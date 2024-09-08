@@ -1,0 +1,10 @@
+[
+  {
+    "username": "admin",
+    "password": "password123",
+    "name": "Felix Pareja",
+    "avatarUrl": "/path/to/avatar.jpg",
+    "email": "felixpareja.pmdit07@yahoo.com",
+    "isLoggedIn": true
+  }
+]

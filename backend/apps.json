@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Next Cloud",
+    "url": "https://www.google.com",
+    "description": "Next Cloud",
+    "icon": ""
+  },
+  {
+    "name": "LMS",
+    "url": "https://www.youtube.com",
+    "description": "Letter Management System",
+    "icon": ""
+  },
+  {
+    "name": "PV Inventory",
+    "url": "https://slack.com",
+    "description": "PV Inventory",
+    "icon": ""
+  },
+  {
+    "name": "INC Hymns",
+    "url": "https://www.espn.com/nba",
+    "description": "INC Hymns",
+    "icon": ""
+  },
+  {
+    "name": "EMV Media",
+    "url": "https://www.google.com",
+    "description": "EVM Media",
+    "icon": ""
+  },
+  {
+    "name": "Choir App123",
+    "url": "https://www.google.com",
+    "description": "Choir App123",
+    "icon": ""
+  }
+]
