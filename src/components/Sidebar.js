@@ -125,25 +125,25 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
               icon={FiPlusCircle}
               label="Add Apps"
               isExpanded={isExpanded}
-              onClick={() => navigate("/add-apps")}
+              onClick={() => navigate("/admin")} // Redirect to admin.js
             />
             <SidebarItem
               icon={FiUser}
               label="Add Suguan"
               isExpanded={isExpanded}
-              onClick={() => navigate("/add-suguan")}
+              onClick={() => navigate("/suguan")} // Redirect to Suguan.js
             />
             <SidebarItem
               icon={FiCalendar}
               label="Add Events"
               isExpanded={isExpanded}
-              onClick={() => navigate("/add-events")}
+              onClick={() => navigate("/events")} // Redirect to Events.js
             />
             <SidebarItem
               icon={FiBell}
               label="Add Reminders"
               isExpanded={isExpanded}
-              onClick={() => navigate("/add-reminders")}
+              onClick={() => navigate("/reminders")} // Redirect to Reminders.js
             />
           </VStack>
         </Collapse>

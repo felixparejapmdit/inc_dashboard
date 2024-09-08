@@ -10,6 +10,10 @@ import Dashboard from "./components/Dashboard";
 import Admin from "./components/Admin";
 import Profile from "./components/Profile"; // Import Profile Page
 import Layout from "./components/Layout"; // Import Layout to wrap around pages
+import AddApps from "./components/Admin"; // Import AddApps Page
+import AddSuguan from "./components/Suguan"; // Import AddSuguan Page
+import AddEvents from "./components/Events"; // Import AddEvents Page
+import AddReminders from "./components/Reminders"; // Import AddReminders Page
 import customTheme from "./theme"; // Optional if you're using a custom theme
 
 function App() {
@@ -60,6 +64,66 @@ function App() {
                 }}
               >
                 <Profile />
+              </Layout>
+            }
+          />
+
+          {/* New Routes for Add Apps, Add Suguan, Add Events, Add Reminders */}
+          <Route
+            path="/add-apps"
+            element={
+              <Layout
+                currentUser={{
+                  name: "John Doe",
+                  avatarUrl: "/path/to/avatar.jpg",
+                }}
+              >
+                <AddApps />
+              </Layout>
+            }
+          />
+
+          {/* New Routes for Add Apps, Add Suguan, Add Events, Add Reminders */}
+          <Route
+            path="/add-suguan"
+            element={
+              <Layout
+                currentUser={{
+                  name: "John Doe",
+                  avatarUrl: "/path/to/avatar.jpg",
+                }}
+              >
+                <AddSuguan />
+              </Layout>
+            }
+          />
+
+          {/* New Routes for Add Apps, Add Suguan, Add Events, Add Reminders */}
+          <Route
+            path="/add-events"
+            element={
+              <Layout
+                currentUser={{
+                  name: "John Doe",
+                  avatarUrl: "/path/to/avatar.jpg",
+                }}
+              >
+                <AddEvents />
+              </Layout>
+            }
+          />
+
+          {/* New Routes for Add Apps, Add Suguan, Add Events, Add Reminders */}
+          <Route
+            path="/add-reminders"
+            element={
+              <Layout
+                currentUser={{
+                  name: "John Doe",
+                  avatarUrl: "/path/to/avatar.jpg",
+                }}
+              >
+                <AddReminders />
               </Layout>
             }
           />
