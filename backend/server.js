@@ -88,6 +88,28 @@ app.put("/api/apps/:name", (req, res) => {
   });
 });
 
+// Endpoint to delete an app
+app.delete("/api/apps/:name", (req, res) => {
+  const appName = req.params.name;
+
+  fs.readFile(appsFilePath, "utf-8", (err, data) => {
+    if (err) {
+      return res.status(500).json({ message: "Error reading file" });
+    }
+
+    let apps = JSON.parse(data);
+    const filteredApps = apps.filter((app) => app.name !== appName);
+
+    // Write the updated app list back to the file
+    fs.writeFile(appsFilePath, JSON.stringify(filteredApps, null, 2), (err) => {
+      if (err) {
+        return res.status(500).json({ message: "Error writing file" });
+      }
+      res.status(200).json({ message: "App deleted successfully." });
+    });
+  });
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

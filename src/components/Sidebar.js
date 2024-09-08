@@ -8,13 +8,25 @@ import {
   Avatar,
   Button,
   useColorModeValue,
-  Image, // Import Image from Chakra UI
+  Image,
+  Collapse,
 } from "@chakra-ui/react";
-import { FiHome, FiSettings, FiLogOut, FiMenu, FiUser } from "react-icons/fi";
+import {
+  FiHome,
+  FiSettings,
+  FiLogOut,
+  FiMenu,
+  FiUser,
+  FiPlusCircle,
+  FiCalendar,
+  FiBell,
+  FiArrowDown,
+} from "react-icons/fi"; // Import additional icons
 import { useNavigate } from "react-router-dom";
 
 const Sidebar = ({ currentUser, onSidebarToggle }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isSettingsExpanded, setIsSettingsExpanded] = useState(false); // State for expanding settings submenu
   const [user, setUser] = useState({ name: "", avatarUrl: "" }); // State to store logged-in user
   const bgGradient = useColorModeValue(
     "linear(to-r, gray.50, gray.100)",
@@ -50,8 +62,12 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
 
   // Handle Logout
   const handleLogout = () => {
-    // Reset any necessary state or authentication (if needed)
     navigate("/login"); // Redirect to login page
+  };
+
+  // Handle Settings toggle
+  const handleSettingsToggle = () => {
+    setIsSettingsExpanded(!isSettingsExpanded); // Toggle the settings sub-menu
   };
 
   return (
@@ -65,13 +81,12 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       boxShadow="lg"
-      zIndex="100" // Ensures it's in front of the content
+      zIndex="100"
       p={4}
     >
       {/* Header */}
       <Box mb={8} display="flex" justifyContent="center">
         {isExpanded ? (
-          // Show the INC logo when expanded and center it
           <Image src="/inc_logo.png" alt="INC Dashboard" boxSize="40px" />
         ) : (
           <Icon as={FiMenu} boxSize={8} color={iconColor} />
@@ -79,7 +94,9 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
       </Box>
 
       {/* Menu */}
-      <VStack align="start" spacing={6}>
+      <VStack align="start" spacing={4}>
+        {" "}
+        {/* Adjusted the spacing */}
         <SidebarItem
           icon={FiHome}
           label="Overview"
@@ -92,12 +109,44 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
           isExpanded={isExpanded}
           onClick={() => navigate("/profile")}
         />
+        {/* Settings with submenu */}
         <SidebarItem
           icon={FiSettings}
           label="Settings"
           isExpanded={isExpanded}
-          onClick={() => navigate("/admin")}
+          onClick={handleSettingsToggle} // Toggle settings menu
+          rightIcon={isSettingsExpanded ? FiArrowDown : null} // Show arrow when expanded
         />
+        <Collapse in={isSettingsExpanded} animateOpacity>
+          <VStack align="start" ml={isExpanded ? 4 : 0} spacing={3}>
+            {" "}
+            {/* Adjusted submenu spacing */}
+            <SidebarItem
+              icon={FiPlusCircle}
+              label="Add Apps"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/add-apps")}
+            />
+            <SidebarItem
+              icon={FiUser}
+              label="Add Suguan"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/add-suguan")}
+            />
+            <SidebarItem
+              icon={FiCalendar}
+              label="Add Events"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/add-events")}
+            />
+            <SidebarItem
+              icon={FiBell}
+              label="Add Reminders"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/add-reminders")}
+            />
+          </VStack>
+        </Collapse>
       </VStack>
 
       <Flex flexGrow={1} />
@@ -136,18 +185,20 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
 };
 
 // Sidebar Item Component
-const SidebarItem = ({ icon, label, isExpanded, onClick }) => {
+const SidebarItem = ({ icon, label, isExpanded, onClick, rightIcon }) => {
   const menuHoverBg = useColorModeValue("gray.200", "gray.700");
   const iconColor = useColorModeValue("gray.600", "gray.300");
 
   return (
     <Button
       onClick={onClick}
-      justifyContent={isExpanded ? "start" : "center"}
+      justifyContent="flex-start" // Left-align the content
       w="100%"
       bg="transparent"
       _hover={{ bg: menuHoverBg }}
-      leftIcon={isExpanded && <Icon as={icon} />}
+      pl={isExpanded ? 4 : 0} // Add padding to the left
+      leftIcon={isExpanded && icon && <Icon as={icon} />}
+      rightIcon={isExpanded && rightIcon && <Icon as={rightIcon} />} // Add right icon for expanded items
     >
       {!isExpanded ? (
         <Icon as={icon} color={iconColor} />
