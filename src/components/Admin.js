@@ -7,8 +7,6 @@ import {
   Input,
   Heading,
   VStack,
-  Text,
-  useColorModeValue,
   Table,
   Thead,
   Tbody,
@@ -30,8 +28,12 @@ import {
   AlertDialogHeader,
   AlertDialogContent,
   AlertDialogOverlay,
+  Text,
 } from "@chakra-ui/react";
 import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
+
+// Use environment variable
+const API_URL = process.env.REACT_APP_API_URL;
 
 const Admin = () => {
   const [apps, setApps] = useState([]);
@@ -52,7 +54,7 @@ const Admin = () => {
 
   // Fetch apps from the backend
   useEffect(() => {
-    fetch("http://localhost:5000/api/apps")
+    fetch(`${API_URL}/api/apps`)
       .then((res) => res.json())
       .then((data) => setApps(data))
       .catch((err) => console.error(err));
@@ -72,8 +74,7 @@ const Admin = () => {
     const newApp = { name, url, description, icon };
 
     if (editingApp) {
-      // Update existing app
-      fetch(`http://localhost:5000/api/apps/${editingApp.name}`, {
+      fetch(`${API_URL}/api/apps/${editingApp.name}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -91,8 +92,7 @@ const Admin = () => {
         })
         .catch((error) => setStatus("Error updating app. Please try again."));
     } else {
-      // Add new app
-      fetch("http://localhost:5000/api/apps", {
+      fetch(`${API_URL}/api/apps`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -114,7 +114,7 @@ const Admin = () => {
   };
 
   const handleDeleteApp = (appName) => {
-    fetch(`http://localhost:5000/api/apps/${appName}`, {
+    fetch(`${API_URL}/api/apps/${appName}`, {
       method: "DELETE",
     })
       .then(() => {
@@ -138,161 +138,113 @@ const Admin = () => {
     onDeleteOpen();
   };
 
-  const bgGradient = useColorModeValue(
-    "linear(to-r, gray.50, gray.100)",
-    "linear(to-r, gray.800, gray.900)"
-  );
-  const inputBg = useColorModeValue("gray.50", "gray.700");
-  const inputHoverBg = useColorModeValue("gray.100", "gray.600");
-  const formLabelColor = useColorModeValue("gray.600", "gray.300");
-  const headingColor = useColorModeValue("gray.700", "white");
-  const buttonBg = useColorModeValue("blue.600", "blue.500");
-  const buttonHoverBg = useColorModeValue("blue.700", "blue.600");
-  const defaultIcon = "https://via.placeholder.com/40"; // URL for default icon placeholder
-
   return (
-    <Box bgGradient={bgGradient} minH="100vh" p={6}>
-      <Heading as="h1" mb={6} color={headingColor} textAlign="center">
-        Admin - Manage Applications
-      </Heading>
+    <Box p={6}>
+      <Heading mb={6}>Manage Applications</Heading>
 
-      <Box maxW="900px" mx="auto">
-        <Box textAlign="right" mb={4}>
-          <IconButton
-            icon={<AddIcon />}
-            onClick={() => {
-              setEditingApp(null); // Clear editing state for adding new
-              onOpen();
-            }}
-            colorScheme="teal"
-            aria-label="Add App"
-          />
-        </Box>
+      <Button leftIcon={<AddIcon />} onClick={onOpen} colorScheme="teal" mb={4}>
+        Add App
+      </Button>
 
-        <Table variant="simple" bg="white" borderRadius="md" shadow="md">
-          <Thead>
-            <Tr>
-              <Th>#</Th>
-              <Th>Icon</Th>
-              <Th>Name</Th>
-              <Th>URL</Th>
-              <Th>Description</Th>
-              <Th>Actions</Th>
+      <Table variant="simple" bg="white" borderRadius="md" shadow="md">
+        <Thead>
+          <Tr>
+            <Th>#</Th>
+            <Th>Icon</Th>
+            <Th>Name</Th>
+            <Th>URL</Th>
+            <Th>Description</Th>
+            <Th>Actions</Th>
+          </Tr>
+        </Thead>
+        <Tbody>
+          {apps.map((app, index) => (
+            <Tr key={index}>
+              <Td>{index + 1}</Td>
+              <Td>
+                <img
+                  src={app.icon || "https://via.placeholder.com/40"}
+                  alt={`${app.name} Icon`}
+                  width="40"
+                  height="40"
+                />
+              </Td>
+              <Td>{app.name}</Td>
+              <Td>{app.url}</Td>
+              <Td>{app.description}</Td>
+              <Td>
+                <IconButton
+                  icon={<EditIcon />}
+                  mr={2}
+                  colorScheme="blue"
+                  onClick={() => handleEditApp(app)}
+                />
+                <IconButton
+                  icon={<DeleteIcon />}
+                  colorScheme="red"
+                  onClick={() => handleOpenDeleteDialog(app.name)}
+                />
+              </Td>
             </Tr>
-          </Thead>
-          <Tbody>
-            {apps.map((app, index) => (
-              <Tr key={index}>
-                <Td>{index + 1}</Td>
-                <Td>
-                  <img
-                    src={app.icon || defaultIcon}
-                    alt={`${app.name} Icon`}
-                    width="40"
-                    height="40"
-                  />
-                </Td>
-                <Td>{app.name}</Td>
-                <Td>{app.url}</Td>
-                <Td>{app.description}</Td>
-                <Td>
-                  <IconButton
-                    icon={<EditIcon />}
-                    mr={2}
-                    colorScheme="blue"
-                    aria-label="Edit"
-                    onClick={() => handleEditApp(app)}
-                  />
-                  <IconButton
-                    icon={<DeleteIcon />}
-                    colorScheme="red"
-                    onClick={() => handleOpenDeleteDialog(app.name)}
-                    aria-label="Delete"
-                  />
-                </Td>
-              </Tr>
-            ))}
-          </Tbody>
-        </Table>
-      </Box>
+          ))}
+        </Tbody>
+      </Table>
 
-      {/* Modal for Adding/Editing App */}
+      {/* Add/Edit Modal */}
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>{editingApp ? "Edit App" : "Add New App"}</ModalHeader>
+          <ModalHeader>{editingApp ? "Edit App" : "Add App"}</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <VStack as="form" spacing={4} onSubmit={handleAddApp}>
-              <FormControl id="app-name" isRequired>
-                <FormLabel color={formLabelColor}>App Name</FormLabel>
+            <VStack spacing={4}>
+              <FormControl isRequired>
+                <FormLabel>App Name</FormLabel>
                 <Input
-                  type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  bg={inputBg}
-                  _hover={{ bg: inputHoverBg }}
-                  focusBorderColor="blue.400"
-                  borderRadius="md"
+                  placeholder="Enter Name"
                 />
               </FormControl>
-              <FormControl id="app-url" isRequired>
-                <FormLabel color={formLabelColor}>App URL</FormLabel>
+
+              <FormControl isRequired>
+                <FormLabel>App URL</FormLabel>
                 <Input
-                  type="url"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  bg={inputBg}
-                  _hover={{ bg: inputHoverBg }}
-                  focusBorderColor="blue.400"
-                  borderRadius="md"
+                  placeholder="Enter URL"
                 />
               </FormControl>
-              <FormControl id="app-description" isRequired>
-                <FormLabel color={formLabelColor}>App Description</FormLabel>
+
+              <FormControl isRequired>
+                <FormLabel>Description</FormLabel>
                 <Input
-                  type="text"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  bg={inputBg}
-                  _hover={{ bg: inputHoverBg }}
-                  focusBorderColor="blue.400"
-                  borderRadius="md"
+                  placeholder="Enter Description"
                 />
               </FormControl>
-              <FormControl id="app-icon">
-                <FormLabel color={formLabelColor}>App Icon</FormLabel>
+
+              <FormControl>
+                <FormLabel>App Icon</FormLabel>
                 <Input
                   type="file"
                   accept="image/*"
                   onChange={handleImageUpload}
-                  bg={inputBg}
-                  _hover={{ bg: inputHoverBg }}
-                  focusBorderColor="blue.400"
-                  borderRadius="md"
                 />
               </FormControl>
             </VStack>
           </ModalBody>
-
           <ModalFooter>
-            <Button
-              bg={buttonBg}
-              color="white"
-              _hover={{ bg: buttonHoverBg }}
-              onClick={handleAddApp}
-              mr={3}
-            >
+            <Button colorScheme="blue" onClick={handleAddApp} mr={3}>
               {editingApp ? "Save Changes" : "Add App"}
             </Button>
-            <Button variant="ghost" onClick={onClose}>
-              Cancel
-            </Button>
+            <Button onClick={onClose}>Cancel</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
 
-      {/* Alert Dialog for Deleting App */}
+      {/* Delete Confirmation Dialog */}
       <AlertDialog
         isOpen={isDeleteOpen}
         leastDestructiveRef={cancelRef}
@@ -303,12 +255,10 @@ const Admin = () => {
             <AlertDialogHeader fontSize="lg" fontWeight="bold">
               Delete App
             </AlertDialogHeader>
-
             <AlertDialogBody>
               Are you sure you want to delete this app? You can't undo this
               action.
             </AlertDialogBody>
-
             <AlertDialogFooter>
               <Button ref={cancelRef} onClick={onDeleteClose}>
                 Cancel

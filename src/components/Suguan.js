@@ -26,6 +26,9 @@ import {
 } from "@chakra-ui/react";
 import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
 
+// Use environment variable
+const API_URL = process.env.REACT_APP_API_URL;
+
 const Suguan = () => {
   const [suguan, setSuguan] = useState([]);
   const [name, setName] = useState("");
@@ -35,28 +38,24 @@ const Suguan = () => {
   const [time, setTime] = useState("");
   const [gampanin, setGampanin] = useState("");
   const [status, setStatus] = useState("");
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const {
-    isOpen: isEditOpen,
-    onOpen: onEditOpen,
-    onClose: onEditClose,
-  } = useDisclosure();
-  const [editingSuguan, setEditingSuguan] = useState(null);
+  const { isOpen, onOpen, onClose } = useDisclosure(); // Single modal state
+  const [editingSuguan, setEditingSuguan] = useState(null); // Track the suguan being edited
 
   // Fetch suguan data
   useEffect(() => {
-    fetch("http://localhost:5000/api/suguan")
+    fetch(`${API_URL}/api/suguan`)
       .then((res) => res.json())
       .then((data) => setSuguan(data))
       .catch((err) => console.error(err));
   }, []);
 
-  const handleAddSuguan = (e) => {
+  const handleAddOrEditSuguan = (e) => {
     e.preventDefault();
     const newSuguan = { name, district, local, date, time, gampanin };
 
     if (editingSuguan) {
-      fetch(`http://localhost:5000/api/suguan/${editingSuguan.name}`, {
+      // Edit existing suguan
+      fetch(`${API_URL}/api/suguan/${editingSuguan.name}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newSuguan),
@@ -68,11 +67,13 @@ const Suguan = () => {
             )
           );
           setStatus(`Suguan "${name}" updated successfully.`);
-          onEditClose();
+          onClose();
+          resetForm();
         })
         .catch(() => setStatus("Error updating suguan. Please try again."));
     } else {
-      fetch("http://localhost:5000/api/suguan", {
+      // Add new suguan
+      fetch(`${API_URL}/api/suguan`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newSuguan),
@@ -81,13 +82,14 @@ const Suguan = () => {
           setSuguan((prevSuguan) => [...prevSuguan, newSuguan]);
           setStatus(`Suguan "${name}" added successfully.`);
           onClose();
+          resetForm();
         })
         .catch(() => setStatus("Error adding suguan. Please try again."));
     }
   };
 
   const handleDeleteSuguan = (name) => {
-    fetch(`http://localhost:5000/api/suguan/${name}`, {
+    fetch(`${API_URL}/api/suguan/${name}`, {
       method: "DELETE",
     })
       .then(() => {
@@ -97,21 +99,39 @@ const Suguan = () => {
   };
 
   const handleEditSuguan = (item) => {
-    setEditingSuguan(item);
+    setEditingSuguan(item); // Set the suguan to edit
     setName(item.name);
     setDistrict(item.district);
     setLocal(item.local);
     setDate(item.date);
     setTime(item.time);
     setGampanin(item.gampanin);
-    onEditOpen();
+    onOpen(); // Open modal for editing
+  };
+
+  const resetForm = () => {
+    setName("");
+    setDistrict("");
+    setLocal("");
+    setDate("");
+    setTime("");
+    setGampanin("");
+    setEditingSuguan(null);
   };
 
   return (
     <Box p={6}>
       <Heading mb={6}>Manage Suguan</Heading>
 
-      <Button leftIcon={<AddIcon />} onClick={onOpen} colorScheme="teal" mb={4}>
+      <Button
+        leftIcon={<AddIcon />}
+        onClick={() => {
+          resetForm();
+          onOpen();
+        }}
+        colorScheme="teal"
+        mb={4}
+      >
         Add Suguan
       </Button>
 
@@ -155,7 +175,7 @@ const Suguan = () => {
       </Table>
 
       {/* Add/Edit Modal */}
-      <Modal isOpen={isOpen || isEditOpen} onClose={onClose || onEditClose}>
+      <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>
@@ -227,13 +247,23 @@ const Suguan = () => {
             </VStack>
           </ModalBody>
           <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={handleAddSuguan}>
+            <Button colorScheme="blue" mr={3} onClick={handleAddOrEditSuguan}>
               {editingSuguan ? "Save Changes" : "Add Suguan"}
             </Button>
-            <Button onClick={onClose || onEditClose}>Cancel</Button>
+            <Button onClick={onClose}>Cancel</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
+
+      {status && (
+        <Box
+          mt={4}
+          textAlign="center"
+          color={status.includes("successfully") ? "green.500" : "red.500"}
+        >
+          {status}
+        </Box>
+      )}
     </Box>
   );
 };

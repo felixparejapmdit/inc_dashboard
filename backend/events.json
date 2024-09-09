@@ -1,0 +1,20 @@
+[
+  {
+    "eventName": "Meeting Music",
+    "date": "2024-09-09",
+    "time": "11:00",
+    "location": "MPH"
+  },
+  {
+    "eventName": "SEMINAR",
+    "date": "2024-09-10",
+    "time": "08:00",
+    "location": "3rd Floor Conference Room"
+  },
+  {
+    "eventName": "TRAINING",
+    "date": "2024-09-11",
+    "time": "13:30",
+    "location": "MPH"
+  }
+]

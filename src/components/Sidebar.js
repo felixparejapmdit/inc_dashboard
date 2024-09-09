@@ -99,7 +99,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
         {/* Adjusted the spacing */}
         <SidebarItem
           icon={FiHome}
-          label="Overview"
+          label="Home"
           isExpanded={isExpanded}
           onClick={() => navigate("/dashboard")}
         />
@@ -131,19 +131,19 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
               icon={FiUser}
               label="Add Suguan"
               isExpanded={isExpanded}
-              onClick={() => navigate("/suguan")} // Redirect to Suguan.js
+              onClick={() => navigate("/add-suguan")} // Redirect to Suguan.js
             />
             <SidebarItem
               icon={FiCalendar}
               label="Add Events"
               isExpanded={isExpanded}
-              onClick={() => navigate("/events")} // Redirect to Events.js
+              onClick={() => navigate("/add-events")} // Redirect to Events.js
             />
             <SidebarItem
               icon={FiBell}
               label="Add Reminders"
               isExpanded={isExpanded}
-              onClick={() => navigate("/reminders")} // Redirect to Reminders.js
+              onClick={() => navigate("/add-reminders")} // Redirect to Reminders.js
             />
           </VStack>
         </Collapse>

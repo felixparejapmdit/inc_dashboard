@@ -1,7 +1,7 @@
 [
   {
     "name": "Next Cloud",
-    "url": "https://www.google.com",
+    "url": "http://172.18.121.101",
     "description": "Next Cloud",
     "icon": ""
   },
@@ -19,7 +19,7 @@
   },
   {
     "name": "INC Hymns",
-    "url": "https://www.espn.com/nba",
+    "url": "http://172.18.121.5",
     "description": "INC Hymns",
     "icon": ""
   },
@@ -30,9 +30,9 @@
     "icon": ""
   },
   {
-    "name": "Choir App123",
-    "url": "https://www.google.com",
-    "description": "Choir App123",
-    "icon": ""
+    "name": "Choir App 12",
+    "url": "https://google.com",
+    "description": "Choir App",
+    "icon": null
   }
 ]
