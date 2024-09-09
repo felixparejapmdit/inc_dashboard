@@ -23,6 +23,7 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
+  Text,
 } from "@chakra-ui/react";
 import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
 
@@ -40,6 +41,7 @@ const Suguan = () => {
   const [status, setStatus] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure(); // Single modal state
   const [editingSuguan, setEditingSuguan] = useState(null); // Track the suguan being edited
+  const [errors, setErrors] = useState({}); // Track form errors
 
   // Fetch suguan data
   useEffect(() => {
@@ -49,9 +51,27 @@ const Suguan = () => {
       .catch((err) => console.error(err));
   }, []);
 
+  const validateForm = () => {
+    let newErrors = {};
+    if (!name) newErrors.name = "Name is required";
+    if (!district) newErrors.district = "District is required";
+    if (!local) newErrors.local = "Local is required";
+    if (!date) newErrors.date = "Date is required";
+    if (!time) newErrors.time = "Time is required";
+    if (!gampanin) newErrors.gampanin = "Gampanin is required";
+    return newErrors;
+  };
+
   const handleAddOrEditSuguan = (e) => {
     e.preventDefault();
     const newSuguan = { name, district, local, date, time, gampanin };
+
+    // Validate form
+    const formErrors = validateForm();
+    if (Object.keys(formErrors).length > 0) {
+      setErrors(formErrors);
+      return;
+    }
 
     if (editingSuguan) {
       // Edit existing suguan
@@ -117,6 +137,7 @@ const Suguan = () => {
     setTime("");
     setGampanin("");
     setEditingSuguan(null);
+    setErrors({});
   };
 
   return (
@@ -184,52 +205,59 @@ const Suguan = () => {
           <ModalCloseButton />
           <ModalBody>
             <VStack spacing={4}>
-              <FormControl isRequired>
+              <FormControl isRequired isInvalid={errors.name}>
                 <FormLabel>Name</FormLabel>
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Enter Name"
                 />
+                {errors.name && <Text color="red.500">{errors.name}</Text>}
               </FormControl>
 
-              <FormControl isRequired>
+              <FormControl isRequired isInvalid={errors.district}>
                 <FormLabel>District</FormLabel>
                 <Input
                   value={district}
                   onChange={(e) => setDistrict(e.target.value)}
                   placeholder="Enter District"
                 />
+                {errors.district && (
+                  <Text color="red.500">{errors.district}</Text>
+                )}
               </FormControl>
 
-              <FormControl isRequired>
+              <FormControl isRequired isInvalid={errors.local}>
                 <FormLabel>Local</FormLabel>
                 <Input
                   value={local}
                   onChange={(e) => setLocal(e.target.value)}
                   placeholder="Enter Local"
                 />
+                {errors.local && <Text color="red.500">{errors.local}</Text>}
               </FormControl>
 
-              <FormControl isRequired>
+              <FormControl isRequired isInvalid={errors.date}>
                 <FormLabel>Date</FormLabel>
                 <Input
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
                 />
+                {errors.date && <Text color="red.500">{errors.date}</Text>}
               </FormControl>
 
-              <FormControl isRequired>
+              <FormControl isRequired isInvalid={errors.time}>
                 <FormLabel>Time</FormLabel>
                 <Input
                   type="time"
                   value={time}
                   onChange={(e) => setTime(e.target.value)}
                 />
+                {errors.time && <Text color="red.500">{errors.time}</Text>}
               </FormControl>
 
-              <FormControl isRequired>
+              <FormControl isRequired isInvalid={errors.gampanin}>
                 <FormLabel>Gampanin</FormLabel>
                 <Select
                   value={gampanin}
@@ -243,6 +271,9 @@ const Suguan = () => {
                   <option value="Reserba 1">Reserba 1</option>
                   <option value="Reserba 2">Reserba 2</option>
                 </Select>
+                {errors.gampanin && (
+                  <Text color="red.500">{errors.gampanin}</Text>
+                )}
               </FormControl>
             </VStack>
           </ModalBody>

@@ -118,7 +118,15 @@ export default function Dashboard() {
   return (
     <Box bg={useColorModeValue("gray.50", "gray.900")} minH="100vh" p={6}>
       <Heading as="h1" size="xl" mb={8} textAlign="center">
-        INC Application Dashboard
+        <Text as="span" color="green.500">
+          INC
+        </Text>{" "}
+        <Text as="span" color="gray.300" p={1} borderRadius="md">
+          Application
+        </Text>{" "}
+        <Text as="span" color="red.500">
+          Dashboard
+        </Text>
       </Heading>
 
       {/* Grid Layout for three columns */}

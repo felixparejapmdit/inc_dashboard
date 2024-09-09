@@ -5,7 +5,7 @@
     "local": "Templo, NEGH",
     "date": "2024-09-12",
     "time": "06:00",
-    "gampanin": "Reserba"
+    "gampanin": "Sugo 2"
   },
   {
     "name": "Kim Amaro",
@@ -14,5 +14,13 @@
     "date": "2024-09-12",
     "time": "19:00",
     "gampanin": "Sugo 2"
+  },
+  {
+    "name": "Felix Pareja",
+    "district": "Central",
+    "local": "Templo, NEGH",
+    "date": "2024-09-12",
+    "time": "06:00",
+    "gampanin": "Reserba"
   }
 ]
