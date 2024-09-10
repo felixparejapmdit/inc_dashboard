@@ -15,6 +15,8 @@ const usersFilePath = "./users.json"; // Path to users.json file in the backend 
 const eventsFilePath = "./events.json";
 const remindersFilePath = "./reminders.json";
 
+const API_URL = "172.18.20.9";
+
 // --- Apps Endpoints ---
 
 app.get("/api/apps", (req, res) => {
@@ -496,5 +498,5 @@ app.delete("/api/reminders/:id", (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`Server is running on http://172.18.125.134:${PORT}`);
+  console.log(`Server is running on ${API_URL}:${PORT}`);
 });
