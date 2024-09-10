@@ -8,12 +8,15 @@ const PORT = 5000;
 app.use(cors());
 app.use(bodyParser.json({ limit: "10mb" })); // Increased limit to handle Base64 images
 
-const appsFilePath = "./apps.json"; // Path to apps.json file in the backend folder
-const suguanFilePath = "./suguan.json"; // Path to suguan.json file in the backend folder
+const appsFilePath = "./apps.json";
+const suguanFilePath = "./suguan.json";
+const usersFilePath = "./users.json"; // Path to users.json file in the backend folder
+
+const eventsFilePath = "./events.json";
+const remindersFilePath = "./reminders.json";
 
 // --- Apps Endpoints ---
 
-// Endpoint to get all apps
 app.get("/api/apps", (req, res) => {
   fs.readFile(appsFilePath, "utf-8", (err, data) => {
     if (err) {
@@ -24,11 +27,8 @@ app.get("/api/apps", (req, res) => {
   });
 });
 
-// Endpoint to add a new app (POST)
 app.post("/api/apps", (req, res) => {
   const newApp = req.body;
-
-  // Basic validation
   if (!newApp.name || !newApp.url || !newApp.description) {
     return res
       .status(400)
@@ -41,8 +41,6 @@ app.post("/api/apps", (req, res) => {
     }
 
     const apps = JSON.parse(data);
-
-    // Check for duplicate app name
     const appExists = apps.some((app) => app.name === newApp.name);
     if (appExists) {
       return res
@@ -50,21 +48,16 @@ app.post("/api/apps", (req, res) => {
         .json({ message: "App with this name already exists." });
     }
 
-    // Add the new app to the list
     apps.push(newApp);
-
-    // Write the updated app list back to the file
     fs.writeFile(appsFilePath, JSON.stringify(apps, null, 2), (err) => {
       if (err) {
         return res.status(500).json({ message: "Error writing file." });
       }
-
       res.status(201).json({ message: "App added successfully." });
     });
   });
 });
 
-// Endpoint to update an app (PUT)
 app.put("/api/apps/:name", (req, res) => {
   const appName = req.params.name;
   const updatedApp = req.body;
@@ -91,7 +84,6 @@ app.put("/api/apps/:name", (req, res) => {
   });
 });
 
-// Endpoint to delete an app
 app.delete("/api/apps/:name", (req, res) => {
   const appName = req.params.name;
 
@@ -103,13 +95,161 @@ app.delete("/api/apps/:name", (req, res) => {
     let apps = JSON.parse(data);
     const filteredApps = apps.filter((app) => app.name !== appName);
 
-    // Write the updated app list back to the file
     fs.writeFile(appsFilePath, JSON.stringify(filteredApps, null, 2), (err) => {
       if (err) {
         return res.status(500).json({ message: "Error writing file" });
       }
       res.status(200).json({ message: "App deleted successfully." });
     });
+  });
+});
+
+// --- Login API ---
+app.post("/api/login", (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res
+      .status(400)
+      .json({ message: "Username and password are required." });
+  }
+
+  fs.readFile(usersFilePath, "utf-8", (err, data) => {
+    if (err) {
+      return res.status(500).json({ message: "Error reading file" });
+    }
+
+    let users = JSON.parse(data);
+    const user = users.find(
+      (u) => u.username === username && u.password === password
+    );
+
+    if (!user) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // Update the user's `isLoggedIn` status to true
+    users = users.map((u) => {
+      if (u.username === username) {
+        return { ...u, isLoggedIn: true };
+      }
+      return u;
+    });
+
+    fs.writeFile(usersFilePath, JSON.stringify(users, null, 2), (err) => {
+      if (err) {
+        return res.status(500).json({ message: "Error writing file" });
+      }
+      res.status(200).json({ message: "Login successful", user });
+    });
+  });
+});
+
+// --- User Endpoints ---
+app.get("/api/users", (req, res) => {
+  fs.readFile(usersFilePath, "utf-8", (err, data) => {
+    if (err) return res.status(500).json({ message: "Error reading file" });
+
+    try {
+      const users = JSON.parse(data);
+
+      // Ensure that users is an array
+      if (!Array.isArray(users)) {
+        return res.status(500).json({ message: "Data is not an array" });
+      }
+
+      res.json(users);
+    } catch (e) {
+      return res.status(500).json({ message: "Invalid JSON format" });
+    }
+  });
+});
+
+app.post("/api/users", (req, res) => {
+  const newUser = { ...req.body, id: Date.now(), isLoggedIn: false };
+
+  fs.readFile(usersFilePath, "utf-8", (err, data) => {
+    if (err) return res.status(500).json({ message: "Error reading file" });
+
+    try {
+      let users = JSON.parse(data);
+
+      // Ensure that users is an array
+      if (!Array.isArray(users)) {
+        users = [];
+      }
+
+      users.push(newUser);
+
+      fs.writeFile(usersFilePath, JSON.stringify(users, null, 2), (err) => {
+        if (err) return res.status(500).json({ message: "Error writing file" });
+        res.status(201).json({ message: "User added successfully" });
+      });
+    } catch (e) {
+      return res.status(500).json({ message: "Invalid JSON format" });
+    }
+  });
+});
+
+app.put("/api/users/:id", (req, res) => {
+  const userId = parseInt(req.params.id);
+  const updatedUser = req.body;
+
+  fs.readFile(usersFilePath, "utf-8", (err, data) => {
+    if (err) return res.status(500).json({ message: "Error reading file" });
+
+    const users = JSON.parse(data);
+    const updatedUsers = users.map((user) =>
+      user.id === userId ? { ...user, ...updatedUser } : user
+    );
+
+    fs.writeFile(
+      usersFilePath,
+      JSON.stringify(updatedUsers, null, 2),
+      (err) => {
+        if (err) return res.status(500).json({ message: "Error writing file" });
+        res.json({ message: "User updated successfully" });
+      }
+    );
+  });
+});
+
+// --- User Logout Endpoint ---
+app.post("/api/logout", (req, res) => {
+  const { userId } = req.body;
+
+  fs.readFile(usersFilePath, "utf-8", (err, data) => {
+    if (err) return res.status(500).json({ message: "Error reading file" });
+
+    const users = JSON.parse(data);
+    const updatedUsers = users.map((user) =>
+      user.id === userId ? { ...user, isLoggedIn: false } : user
+    );
+
+    fs.writeFile(
+      usersFilePath,
+      JSON.stringify(updatedUsers, null, 2),
+      (err) => {
+        if (err) return res.status(500).json({ message: "Error writing file" });
+        res.json({ message: "User logged out successfully" });
+      }
+    );
+  });
+});
+
+// --- Logged-in User Endpoint ---
+app.get("/api/users/logged-in", (req, res) => {
+  fs.readFile(usersFilePath, "utf-8", (err, data) => {
+    if (err) return res.status(500).json({ message: "Error reading file" });
+
+    const users = JSON.parse(data);
+    const loggedInUser = users.find((user) => user.isLoggedIn === true);
+
+    if (loggedInUser) {
+      res.json(loggedInUser); // Return the logged-in user
+    } else {
+      res.status(404).json({ message: "No user is currently logged in" });
+    }
   });
 });
 
@@ -128,14 +268,7 @@ app.get("/api/suguan", (req, res) => {
 
 // Endpoint to add a new suguan (POST)
 app.post("/api/suguan", (req, res) => {
-  const newSuguan = req.body;
-
-  // Basic validation
-  if (!newSuguan.name || !newSuguan.district || !newSuguan.local) {
-    return res
-      .status(400)
-      .json({ message: "All fields (name, district, local) are required." });
-  }
+  const newSuguan = { ...req.body, id: Date.now() }; // Add a unique id based on timestamp
 
   fs.readFile(suguanFilePath, "utf-8", (err, data) => {
     if (err) {
@@ -143,32 +276,20 @@ app.post("/api/suguan", (req, res) => {
     }
 
     const suguan = JSON.parse(data);
-
-    // Check for duplicate suguan name
-    const suguanExists = suguan.some((sugu) => sugu.name === newSuguan.name);
-    if (suguanExists) {
-      return res
-        .status(400)
-        .json({ message: "Suguan with this name already exists." });
-    }
-
-    // Add the new suguan to the list
     suguan.push(newSuguan);
 
-    // Write the updated suguan list back to the file
     fs.writeFile(suguanFilePath, JSON.stringify(suguan, null, 2), (err) => {
       if (err) {
         return res.status(500).json({ message: "Error writing file." });
       }
-
       res.status(201).json({ message: "Suguan added successfully." });
     });
   });
 });
 
 // Endpoint to update a suguan (PUT)
-app.put("/api/suguan/:name", (req, res) => {
-  const suguanName = req.params.name;
+app.put("/api/suguan/:id", (req, res) => {
+  const suguanId = parseInt(req.params.id, 10);
   const updatedSuguan = req.body;
 
   fs.readFile(suguanFilePath, "utf-8", (err, data) => {
@@ -177,12 +298,9 @@ app.put("/api/suguan/:name", (req, res) => {
     }
 
     const suguan = JSON.parse(data);
-    const updatedSuguanList = suguan.map((sugu) => {
-      if (sugu.name === suguanName) {
-        return { ...sugu, ...updatedSuguan };
-      }
-      return sugu;
-    });
+    const updatedSuguanList = suguan.map((sugu) =>
+      sugu.id === suguanId ? { ...sugu, ...updatedSuguan } : sugu
+    );
 
     fs.writeFile(
       suguanFilePath,
@@ -198,8 +316,8 @@ app.put("/api/suguan/:name", (req, res) => {
 });
 
 // Endpoint to delete a suguan
-app.delete("/api/suguan/:name", (req, res) => {
-  const suguanName = req.params.name;
+app.delete("/api/suguan/:id", (req, res) => {
+  const suguanId = parseInt(req.params.id, 10);
 
   fs.readFile(suguanFilePath, "utf-8", (err, data) => {
     if (err) {
@@ -207,9 +325,8 @@ app.delete("/api/suguan/:name", (req, res) => {
     }
 
     let suguan = JSON.parse(data);
-    const filteredSuguan = suguan.filter((sugu) => sugu.name !== suguanName);
+    const filteredSuguan = suguan.filter((sugu) => sugu.id !== suguanId);
 
-    // Write the updated suguan list back to the file
     fs.writeFile(
       suguanFilePath,
       JSON.stringify(filteredSuguan, null, 2),
@@ -223,84 +340,97 @@ app.delete("/api/suguan/:name", (req, res) => {
   });
 });
 
-// Event Endpoints
+// --- Event Endpoints ---
+
+// Get all events
 app.get("/api/events", (req, res) => {
-  fs.readFile("./events.json", "utf-8", (err, data) => {
+  fs.readFile(eventsFilePath, "utf-8", (err, data) => {
     if (err) return res.status(500).json({ message: "Error reading file" });
     const events = JSON.parse(data);
     res.json(events);
   });
 });
 
+// Add a new event (POST)
 app.post("/api/events", (req, res) => {
-  const newEvent = req.body;
-  fs.readFile("./events.json", "utf-8", (err, data) => {
+  const newEvent = { ...req.body, id: new Date().getTime() }; // Add unique ID to new event
+
+  fs.readFile(eventsFilePath, "utf-8", (err, data) => {
     if (err) return res.status(500).json({ message: "Error reading file" });
 
     const events = JSON.parse(data);
     events.push(newEvent);
 
-    fs.writeFile("./events.json", JSON.stringify(events, null, 2), (err) => {
+    fs.writeFile(eventsFilePath, JSON.stringify(events, null, 2), (err) => {
       if (err) return res.status(500).json({ message: "Error writing file" });
       res.status(201).json({ message: "Event added successfully" });
     });
   });
 });
 
-app.put("/api/events/:eventName", (req, res) => {
-  const eventName = req.params.eventName;
+// Update an event (PUT)
+app.put("/api/events/:id", (req, res) => {
+  const eventId = parseInt(req.params.id, 10);
   const updatedEvent = req.body;
 
-  fs.readFile("./events.json", "utf-8", (err, data) => {
+  fs.readFile(eventsFilePath, "utf-8", (err, data) => {
     if (err) return res.status(500).json({ message: "Error reading file" });
 
     let events = JSON.parse(data);
-    events = events.map((item) =>
-      item.eventName === eventName ? { ...item, ...updatedEvent } : item
-    );
+    const eventIndex = events.findIndex((event) => event.id === eventId);
 
-    fs.writeFile("./events.json", JSON.stringify(events, null, 2), (err) => {
+    if (eventIndex === -1) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    events[eventIndex] = { ...events[eventIndex], ...updatedEvent };
+
+    fs.writeFile(eventsFilePath, JSON.stringify(events, null, 2), (err) => {
       if (err) return res.status(500).json({ message: "Error writing file" });
-      res.json({ message: "Event updated successfully" });
+      res.status(200).json({ message: "Event updated successfully" });
     });
   });
 });
 
-app.delete("/api/events/:eventName", (req, res) => {
-  const eventName = req.params.eventName;
+// Delete an event (DELETE)
+app.delete("/api/events/:id", (req, res) => {
+  const eventId = parseInt(req.params.id, 10);
 
-  fs.readFile("./events.json", "utf-8", (err, data) => {
+  fs.readFile(eventsFilePath, "utf-8", (err, data) => {
     if (err) return res.status(500).json({ message: "Error reading file" });
 
     let events = JSON.parse(data);
-    events = events.filter((item) => item.eventName !== eventName);
+    events = events.filter((event) => event.id !== eventId);
 
-    fs.writeFile("./events.json", JSON.stringify(events, null, 2), (err) => {
+    fs.writeFile(eventsFilePath, JSON.stringify(events, null, 2), (err) => {
       if (err) return res.status(500).json({ message: "Error writing file" });
-      res.json({ message: "Event deleted successfully" });
+      res.status(200).json({ message: "Event deleted successfully" });
     });
   });
 });
 
-// Reminder Endpoints
+// --- Reminder Endpoints ---
+// Get all reminders
 app.get("/api/reminders", (req, res) => {
-  fs.readFile("./reminders.json", "utf-8", (err, data) => {
+  fs.readFile(remindersFilePath, "utf-8", (err, data) => {
     if (err) return res.status(500).json({ message: "Error reading file" });
     const reminders = JSON.parse(data);
     res.json(reminders);
   });
 });
 
+// Add a new reminder (POST)
 app.post("/api/reminders", (req, res) => {
-  const newReminder = req.body;
-  fs.readFile("./reminders.json", "utf-8", (err, data) => {
+  const newReminder = { ...req.body, id: new Date().getTime() }; // Add unique ID to new reminder
+
+  fs.readFile(remindersFilePath, "utf-8", (err, data) => {
     if (err) return res.status(500).json({ message: "Error reading file" });
 
     const reminders = JSON.parse(data);
     reminders.push(newReminder);
 
     fs.writeFile(
-      "./reminders.json",
+      remindersFilePath,
       JSON.stringify(reminders, null, 2),
       (err) => {
         if (err) return res.status(500).json({ message: "Error writing file" });
@@ -310,44 +440,55 @@ app.post("/api/reminders", (req, res) => {
   });
 });
 
-app.put("/api/reminders/:title", (req, res) => {
-  const reminderTitle = req.params.title;
+// Update a reminder (PUT)
+app.put("/api/reminders/:id", (req, res) => {
+  const reminderId = parseInt(req.params.id, 10);
   const updatedReminder = req.body;
 
-  fs.readFile("./reminders.json", "utf-8", (err, data) => {
+  fs.readFile(remindersFilePath, "utf-8", (err, data) => {
     if (err) return res.status(500).json({ message: "Error reading file" });
 
     let reminders = JSON.parse(data);
-    reminders = reminders.map((item) =>
-      item.title === reminderTitle ? { ...item, ...updatedReminder } : item
+    const reminderIndex = reminders.findIndex(
+      (reminder) => reminder.id === reminderId
     );
 
+    if (reminderIndex === -1) {
+      return res.status(404).json({ message: "Reminder not found" });
+    }
+
+    reminders[reminderIndex] = {
+      ...reminders[reminderIndex],
+      ...updatedReminder,
+    };
+
     fs.writeFile(
-      "./reminders.json",
+      remindersFilePath,
       JSON.stringify(reminders, null, 2),
       (err) => {
         if (err) return res.status(500).json({ message: "Error writing file" });
-        res.json({ message: "Reminder updated successfully" });
+        res.status(200).json({ message: "Reminder updated successfully" });
       }
     );
   });
 });
 
-app.delete("/api/reminders/:title", (req, res) => {
-  const reminderTitle = req.params.title;
+// Delete a reminder (DELETE)
+app.delete("/api/reminders/:id", (req, res) => {
+  const reminderId = parseInt(req.params.id, 10);
 
-  fs.readFile("./reminders.json", "utf-8", (err, data) => {
+  fs.readFile(remindersFilePath, "utf-8", (err, data) => {
     if (err) return res.status(500).json({ message: "Error reading file" });
 
     let reminders = JSON.parse(data);
-    reminders = reminders.filter((item) => item.title !== reminderTitle);
+    reminders = reminders.filter((reminder) => reminder.id !== reminderId);
 
     fs.writeFile(
-      "./reminders.json",
+      remindersFilePath,
       JSON.stringify(reminders, null, 2),
       (err) => {
         if (err) return res.status(500).json({ message: "Error writing file" });
-        res.json({ message: "Reminder deleted successfully" });
+        res.status(200).json({ message: "Reminder deleted successfully" });
       }
     );
   });

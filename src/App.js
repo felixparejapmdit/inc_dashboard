@@ -11,9 +11,11 @@ import Admin from "./components/Admin";
 import Profile from "./components/Profile"; // Import Profile Page
 import Layout from "./components/Layout"; // Import Layout to wrap around pages
 import AddApps from "./components/Admin"; // Import AddApps Page
+import Users from "./components/Users"; // Import User Page
 import AddSuguan from "./components/Suguan"; // Import AddSuguan Page
 import AddEvents from "./components/Events"; // Import AddEvents Page
 import AddReminders from "./components/Reminders"; // Import AddReminders Page
+import Mastodon from "./components/Mastodon"; // Import Mastodon Page
 import customTheme from "./theme"; // Optional if you're using a custom theme
 
 function App() {
@@ -51,6 +53,19 @@ function App() {
                 }}
               >
                 <Admin />
+              </Layout>
+            }
+          />
+          <Route
+            path="/user"
+            element={
+              <Layout
+                currentUser={{
+                  name: "John Doe",
+                  avatarUrl: "/path/to/avatar.jpg",
+                }}
+              >
+                <Users />
               </Layout>
             }
           />
@@ -124,6 +139,20 @@ function App() {
                 }}
               >
                 <AddReminders />
+              </Layout>
+            }
+          />
+          {/* New Routes for Add Apps, Add Suguan, Add Events, Add Reminders */}
+          <Route
+            path="/Mastodon"
+            element={
+              <Layout
+                currentUser={{
+                  name: "John Doe",
+                  avatarUrl: "/path/to/avatar.jpg",
+                }}
+              >
+                <Mastodon />
               </Layout>
             }
           />

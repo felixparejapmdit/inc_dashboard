@@ -25,7 +25,6 @@ import {
 } from "@chakra-ui/react";
 import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
 
-// Use environment variable
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Events = () => {
@@ -42,7 +41,6 @@ const Events = () => {
   } = useDisclosure();
   const [editingEvent, setEditingEvent] = useState(null);
 
-  // Fetch events data
   useEffect(() => {
     fetch(`${API_URL}/api/events`)
       .then((res) => res.json())
@@ -50,22 +48,20 @@ const Events = () => {
       .catch((err) => console.error(err));
   }, []);
 
-  const handleAddEvent = (e) => {
+  const handleAddOrUpdateEvent = (e) => {
     e.preventDefault();
     const newEvent = { eventName, date, time, location };
 
     if (editingEvent) {
-      fetch(`${API_URL}/api/events/${editingEvent.eventName}`, {
+      fetch(`${API_URL}/api/events/${editingEvent.id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newEvent),
       })
         .then(() => {
           setEvents((prevEvents) =>
             prevEvents.map((item) =>
-              item.eventName === editingEvent.eventName ? newEvent : item
+              item.id === editingEvent.id ? newEvent : item
             )
           );
           onEditClose();
@@ -74,25 +70,26 @@ const Events = () => {
     } else {
       fetch(`${API_URL}/api/events`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newEvent),
       })
         .then(() => {
-          setEvents((prevEvents) => [...prevEvents, newEvent]);
+          setEvents((prevEvents) => [
+            ...prevEvents,
+            { ...newEvent, id: new Date().getTime() },
+          ]);
           onClose();
         })
         .catch(() => alert("Error adding event. Please try again."));
     }
   };
 
-  const handleDeleteEvent = (eventName) => {
-    fetch(`${API_URL}/api/events/${eventName}`, {
+  const handleDeleteEvent = (id) => {
+    fetch(`${API_URL}/api/events/${id}`, {
       method: "DELETE",
     })
       .then(() => {
-        setEvents(events.filter((item) => item.eventName !== eventName));
+        setEvents(events.filter((item) => item.id !== id));
       })
       .catch((err) => console.error("Error deleting event:", err));
   };
@@ -125,8 +122,8 @@ const Events = () => {
           </Tr>
         </Thead>
         <Tbody>
-          {events.map((item, index) => (
-            <Tr key={index}>
+          {events.map((item) => (
+            <Tr key={item.id}>
               <Td>{item.eventName}</Td>
               <Td>{item.date}</Td>
               <Td>{item.time}</Td>
@@ -141,7 +138,7 @@ const Events = () => {
                 <IconButton
                   icon={<DeleteIcon />}
                   colorScheme="red"
-                  onClick={() => handleDeleteEvent(item.eventName)}
+                  onClick={() => handleDeleteEvent(item.id)}
                 />
               </Td>
             </Tr>
@@ -149,7 +146,6 @@ const Events = () => {
         </Tbody>
       </Table>
 
-      {/* Add/Edit Modal */}
       <Modal isOpen={isOpen || isEditOpen} onClose={onClose || onEditClose}>
         <ModalOverlay />
         <ModalContent>
@@ -195,7 +191,7 @@ const Events = () => {
             </VStack>
           </ModalBody>
           <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={handleAddEvent}>
+            <Button colorScheme="blue" mr={3} onClick={handleAddOrUpdateEvent}>
               {editingEvent ? "Save Changes" : "Add Event"}
             </Button>
             <Button onClick={onClose || onEditClose}>Cancel</Button>

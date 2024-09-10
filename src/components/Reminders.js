@@ -25,7 +25,6 @@ import {
 } from "@chakra-ui/react";
 import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
 
-// Use environment variable
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Reminders = () => {
@@ -52,10 +51,17 @@ const Reminders = () => {
 
   const handleAddReminder = (e) => {
     e.preventDefault();
-    const newReminder = { title, date, time, message };
+    const newReminder = {
+      id: editingReminder ? editingReminder.id : new Date().getTime(),
+      title,
+      date,
+      time,
+      message,
+    };
 
     if (editingReminder) {
-      fetch(`${API_URL}/api/reminders/${editingReminder.title}`, {
+      // Update an existing reminder
+      fetch(`${API_URL}/api/reminders/${editingReminder.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -65,13 +71,14 @@ const Reminders = () => {
         .then(() => {
           setReminders((prevReminders) =>
             prevReminders.map((item) =>
-              item.title === editingReminder.title ? newReminder : item
+              item.id === editingReminder.id ? newReminder : item
             )
           );
           onEditClose();
         })
         .catch(() => alert("Error updating reminder. Please try again."));
     } else {
+      // Add a new reminder
       fetch(`${API_URL}/api/reminders`, {
         method: "POST",
         headers: {
@@ -87,12 +94,12 @@ const Reminders = () => {
     }
   };
 
-  const handleDeleteReminder = (title) => {
-    fetch(`${API_URL}/api/reminders/${title}`, {
+  const handleDeleteReminder = (id) => {
+    fetch(`${API_URL}/api/reminders/${id}`, {
       method: "DELETE",
     })
       .then(() => {
-        setReminders(reminders.filter((item) => item.title !== title));
+        setReminders(reminders.filter((item) => item.id !== id));
       })
       .catch((err) => console.error("Error deleting reminder:", err));
   };
@@ -125,8 +132,8 @@ const Reminders = () => {
           </Tr>
         </Thead>
         <Tbody>
-          {reminders.map((item, index) => (
-            <Tr key={index}>
+          {reminders.map((item) => (
+            <Tr key={item.id}>
               <Td>{item.title}</Td>
               <Td>{item.date}</Td>
               <Td>{item.time}</Td>
@@ -141,7 +148,7 @@ const Reminders = () => {
                 <IconButton
                   icon={<DeleteIcon />}
                   colorScheme="red"
-                  onClick={() => handleDeleteReminder(item.title)}
+                  onClick={() => handleDeleteReminder(item.id)}
                 />
               </Td>
             </Tr>

@@ -1,0 +1,56 @@
+[
+  {
+    "id": 1,
+    "username": "admin",
+    "password": "password123",
+    "name": "Felix Pareja",
+    "avatarUrl": "/path/to/avatar.jpg",
+    "email": "felixpareja.pmdit007@yahoo.com",
+    "isLoggedIn": true,
+    "availableApps": [
+      "Next Cloud",
+      "LMS",
+      "PV Inventory",
+      "Choir App",
+      "INC Hymns"
+    ]
+  },
+  {
+    "id": 2,
+    "username": "amaro",
+    "password": "password",
+    "name": "Kim Amaro",
+    "avatarUrl": "/path/to/avatar.jpg",
+    "email": "kimamaro.pmdit07@yahoo.com",
+    "isLoggedIn": false,
+    "availableApps": [
+      "INC Hymns",
+      "EVM Media"
+    ]
+  },
+  {
+    "id": 1725955037371,
+    "username": "user",
+    "password": "123456",
+    "name": "user user",
+    "email": "user@gmail.com",
+    "avatarUrl": "",
+    "isLoggedIn": false,
+    "availableApps": [
+      "Choir App"
+    ]
+  },
+  {
+    "username": "jurada",
+    "password": "123456",
+    "name": "Kyrt Jurada",
+    "email": "jurada@gmail.com",
+    "avatarUrl": "",
+    "isLoggedIn": false,
+    "availableApps": [
+      "LMS",
+      "PV Inventory"
+    ],
+    "id": 1725957225072
+  }
+]

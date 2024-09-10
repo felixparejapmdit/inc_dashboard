@@ -27,7 +27,6 @@ import {
 } from "@chakra-ui/react";
 import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
 
-// Use environment variable
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Suguan = () => {
@@ -39,11 +38,10 @@ const Suguan = () => {
   const [time, setTime] = useState("");
   const [gampanin, setGampanin] = useState("");
   const [status, setStatus] = useState("");
-  const { isOpen, onOpen, onClose } = useDisclosure(); // Single modal state
-  const [editingSuguan, setEditingSuguan] = useState(null); // Track the suguan being edited
-  const [errors, setErrors] = useState({}); // Track form errors
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [editingSuguan, setEditingSuguan] = useState(null);
+  const [errors, setErrors] = useState({});
 
-  // Fetch suguan data
   useEffect(() => {
     fetch(`${API_URL}/api/suguan`)
       .then((res) => res.json())
@@ -64,9 +62,16 @@ const Suguan = () => {
 
   const handleAddOrEditSuguan = (e) => {
     e.preventDefault();
-    const newSuguan = { name, district, local, date, time, gampanin };
+    const newSuguan = {
+      id: editingSuguan ? editingSuguan.id : new Date().getTime(),
+      name,
+      district,
+      local,
+      date,
+      time,
+      gampanin,
+    };
 
-    // Validate form
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
@@ -74,8 +79,7 @@ const Suguan = () => {
     }
 
     if (editingSuguan) {
-      // Edit existing suguan
-      fetch(`${API_URL}/api/suguan/${editingSuguan.name}`, {
+      fetch(`${API_URL}/api/suguan/${editingSuguan.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newSuguan),
@@ -83,7 +87,7 @@ const Suguan = () => {
         .then(() => {
           setSuguan((prevSuguan) =>
             prevSuguan.map((item) =>
-              item.name === editingSuguan.name ? newSuguan : item
+              item.id === editingSuguan.id ? newSuguan : item
             )
           );
           setStatus(`Suguan "${name}" updated successfully.`);
@@ -92,7 +96,6 @@ const Suguan = () => {
         })
         .catch(() => setStatus("Error updating suguan. Please try again."));
     } else {
-      // Add new suguan
       fetch(`${API_URL}/api/suguan`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -108,25 +111,25 @@ const Suguan = () => {
     }
   };
 
-  const handleDeleteSuguan = (name) => {
-    fetch(`${API_URL}/api/suguan/${name}`, {
+  const handleDeleteSuguan = (id) => {
+    fetch(`${API_URL}/api/suguan/${id}`, {
       method: "DELETE",
     })
       .then(() => {
-        setSuguan(suguan.filter((item) => item.name !== name));
+        setSuguan(suguan.filter((item) => item.id !== id));
       })
       .catch((err) => console.error("Error deleting suguan:", err));
   };
 
   const handleEditSuguan = (item) => {
-    setEditingSuguan(item); // Set the suguan to edit
+    setEditingSuguan(item);
     setName(item.name);
     setDistrict(item.district);
     setLocal(item.local);
     setDate(item.date);
     setTime(item.time);
     setGampanin(item.gampanin);
-    onOpen(); // Open modal for editing
+    onOpen();
   };
 
   const resetForm = () => {
@@ -169,8 +172,8 @@ const Suguan = () => {
           </Tr>
         </Thead>
         <Tbody>
-          {suguan.map((item, index) => (
-            <Tr key={index}>
+          {suguan.map((item) => (
+            <Tr key={item.id}>
               <Td>{item.name}</Td>
               <Td>{item.district}</Td>
               <Td>{item.local}</Td>
@@ -187,7 +190,7 @@ const Suguan = () => {
                 <IconButton
                   icon={<DeleteIcon />}
                   colorScheme="red"
-                  onClick={() => handleDeleteSuguan(item.name)}
+                  onClick={() => handleDeleteSuguan(item.id)}
                 />
               </Td>
             </Tr>
@@ -195,7 +198,6 @@ const Suguan = () => {
         </Tbody>
       </Table>
 
-      {/* Add/Edit Modal */}
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>

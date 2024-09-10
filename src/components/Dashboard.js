@@ -29,6 +29,7 @@ const API_URL = process.env.REACT_APP_API_URL;
 
 export default function Dashboard() {
   const [apps, setApps] = useState([]);
+  const [availableApps, setAvailableApps] = useState([]); // For apps available to the logged-in user
   const [suguan, setSuguan] = useState([]);
   const [events, setEvents] = useState([]);
   const [reminders, setReminders] = useState([]);
@@ -41,7 +42,7 @@ export default function Dashboard() {
     icon: "",
   });
 
-  // Fetch data for apps, suguan, events, and reminders
+  // Fetch data for apps, suguan, events, reminders, and logged-in user
   useEffect(() => {
     fetch(`${API_URL}/api/apps`)
       .then((response) => response.json())
@@ -62,7 +63,20 @@ export default function Dashboard() {
       .then((response) => response.json())
       .then((data) => setReminders(data))
       .catch((error) => console.error("Error fetching reminders:", error));
+
+    // Fetch logged-in user details
+    fetch(`${API_URL}/api/users/logged-in`)
+      .then((response) => response.json())
+      .then((user) => {
+        if (user && user.availableApps) {
+          setAvailableApps(user.availableApps); // Set available apps based on the logged-in user
+        }
+      })
+      .catch((error) => console.error("Error fetching logged-in user:", error));
   }, []);
+
+  // Filter apps based on the logged-in user's available apps
+  const filteredApps = apps.filter((app) => availableApps.includes(app.name));
 
   // Function to handle clicking on the edit icon
   const handleSettingsClick = (app) => {
@@ -118,13 +132,13 @@ export default function Dashboard() {
   return (
     <Box bg={useColorModeValue("gray.50", "gray.900")} minH="100vh" p={6}>
       <Heading as="h1" size="xl" mb={8} textAlign="center">
-        <Text as="span" color="green.500">
+        <Text as="span" color="gray.700">
           INC
         </Text>{" "}
-        <Text as="span" color="gray.300" p={1} borderRadius="md">
+        <Text as="span" color="gray.700" p={1} borderRadius="md">
           Application
         </Text>{" "}
-        <Text as="span" color="red.500">
+        <Text as="span" color="gray.700">
           Dashboard
         </Text>
       </Heading>
@@ -177,7 +191,7 @@ export default function Dashboard() {
           <Heading as="h2" size="lg" mb={4}>
             Suguan
           </Heading>
-          <SimpleGrid columns={1} spacing={4}>
+          <SimpleGrid columns={2} spacing={4}>
             {suguan.map((item, index) => (
               <SuguanCard key={index} item={item} colors={colors} />
             ))}
@@ -189,8 +203,8 @@ export default function Dashboard() {
           <Heading as="h2" size="lg" mb={4}>
             Apps
           </Heading>
-          <SimpleGrid columns={1} spacing={4}>
-            {apps.map((app, index) => (
+          <SimpleGrid columns={2} spacing={4}>
+            {filteredApps.map((app, index) => (
               <AppCard
                 key={index}
                 app={app}

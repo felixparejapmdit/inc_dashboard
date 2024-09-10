@@ -21,6 +21,8 @@ import {
   FiCalendar,
   FiBell,
   FiArrowDown,
+  FiGrid,
+  FiUsers,
 } from "react-icons/fi"; // Import additional icons
 import { useNavigate } from "react-router-dom";
 
@@ -32,13 +34,12 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
     "linear(to-r, gray.50, gray.100)",
     "linear(to-r, gray.800, gray.900)"
   );
-  const menuHoverBg = useColorModeValue("gray.200", "gray.700");
   const iconColor = useColorModeValue("gray.600", "gray.300");
   const navigate = useNavigate();
 
-  // Fetch the logged-in user info from users.json
+  // Fetch the logged-in user info from backend/users.json
   useEffect(() => {
-    fetch("/users.json")
+    fetch(`${process.env.REACT_APP_API_URL}/api/users`)
       .then((response) => response.json())
       .then((data) => {
         const loggedInUser = data.find((user) => user.isLoggedIn); // Assume a flag for logged-in user
@@ -62,7 +63,23 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
 
   // Handle Logout
   const handleLogout = () => {
-    navigate("/login"); // Redirect to login page
+    // Set the logged-in user as logged out in the backend
+    fetch(`${process.env.REACT_APP_API_URL}/api/logout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId: user.id }), // Send the user ID for logout
+    })
+      .then((response) => {
+        if (response.ok) {
+          // Navigate to login page after logging out
+          navigate("/login");
+        } else {
+          console.error("Failed to log out.");
+        }
+      })
+      .catch((error) => console.error("Error logging out:", error));
   };
 
   // Handle Settings toggle
@@ -95,7 +112,6 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
 
       {/* Menu */}
       <VStack align="start" spacing={4}>
-        {" "}
         {/* Adjusted the spacing */}
         <SidebarItem
           icon={FiHome}
@@ -119,31 +135,42 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
         />
         <Collapse in={isSettingsExpanded} animateOpacity>
           <VStack align="start" ml={isExpanded ? 4 : 0} spacing={3}>
-            {" "}
             {/* Adjusted submenu spacing */}
             <SidebarItem
-              icon={FiPlusCircle}
-              label="Add Apps"
+              icon={FiGrid}
+              label="Apps"
               isExpanded={isExpanded}
               onClick={() => navigate("/admin")} // Redirect to admin.js
             />
             <SidebarItem
+              icon={FiUsers}
+              label="Users"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/user")} // Redirect to users.js
+            />
+            <SidebarItem
               icon={FiUser}
-              label="Add Suguan"
+              label="Suguan"
               isExpanded={isExpanded}
               onClick={() => navigate("/add-suguan")} // Redirect to Suguan.js
             />
             <SidebarItem
               icon={FiCalendar}
-              label="Add Events"
+              label="Events"
               isExpanded={isExpanded}
               onClick={() => navigate("/add-events")} // Redirect to Events.js
             />
             <SidebarItem
               icon={FiBell}
-              label="Add Reminders"
+              label="Reminders"
               isExpanded={isExpanded}
               onClick={() => navigate("/add-reminders")} // Redirect to Reminders.js
+            />
+            <SidebarItem
+              icon={FiBell}
+              label="PMD Media"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/Mastodon")} // Redirect to Mastodon.js
             />
           </VStack>
         </Collapse>
