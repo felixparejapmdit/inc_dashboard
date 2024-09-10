@@ -494,7 +494,10 @@ app.delete("/api/reminders/:id", (req, res) => {
   });
 });
 
-// Start server
+// // Start server
+// app.listen(PORT, () => {
+//   console.log(`Server is running on http://172.18.125.134:${PORT}`);
+// });
 app.listen(PORT, () => {
-  console.log(`Server is running on http://172.18.125.134:${PORT}`);
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
