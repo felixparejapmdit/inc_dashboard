@@ -15,6 +15,8 @@ const usersFilePath = "./users.json"; // Path to users.json file in the backend 
 const eventsFilePath = "./events.json";
 const remindersFilePath = "./reminders.json";
 
+const API_URL = "172.18.20.9";
+
 // --- Apps Endpoints ---
 
 app.get("/api/apps", (req, res) => {
