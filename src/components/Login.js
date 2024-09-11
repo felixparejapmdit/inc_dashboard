@@ -9,8 +9,8 @@ import {
   FormControl,
   FormLabel,
   Flex,
-  useColorModeValue,
   Text,
+  Image,
 } from "@chakra-ui/react";
 import "./Login.css"; // Custom CSS for animated input effect
 
@@ -68,23 +68,12 @@ const Login = () => {
     }
   };
 
-  // Colors and styles
-  const bgGradient = useColorModeValue(
-    "linear(to-r, gray.50, gray.100)",
-    "linear(to-r, gray.800, gray.900)"
-  );
-  const inputBg = useColorModeValue("white", "gray.700");
-  const formLabelColor = useColorModeValue("gray.600", "gray.300");
-  const headingColor = useColorModeValue("gray.700", "white");
-  const buttonBg = useColorModeValue("blue.600", "blue.500");
-  const buttonHoverBg = useColorModeValue("blue.700", "blue.600");
-
   return (
     <Flex
       minH="100vh"
       alignItems="center"
       justifyContent="center"
-      bgGradient={bgGradient}
+      bgGradient="linear(to-r, #F5F5F5, #f0f4ff)"
     >
       <Box
         bg="white"
@@ -92,57 +81,66 @@ const Login = () => {
         borderRadius="md"
         boxShadow="xl"
         width={["90%", "400px"]}
+        position="relative"
       >
+        {/* Replace Logo Placeholder with Image */}
+        <Box mb={4} display="flex" justifyContent="center">
+          <Image src="/apps_logo.jpg" alt="Logo" boxSize="60px" />
+        </Box>
+
         <Heading
           as="h2"
           mb={6}
           size="lg"
           textAlign="center"
-          color={headingColor}
+          color="#4a4a4a"
           textTransform="uppercase"
         >
-          Dashboard Apps
+          Dashboard Apps!
         </Heading>
+        {/* <Text mb={6} textAlign="center" color="#8a8a8a">
+          User Login
+        </Text> */}
 
         <VStack as="form" onSubmit={handleSubmit} spacing={6}>
           <FormControl id="username" className="floating-label">
-            <FormLabel color={formLabelColor}>Username</FormLabel>
             <Input
               type="text"
-              placeholder="Enter your username"
+              placeholder=" "
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              bg={inputBg}
+              bg="white"
               className="animated-input"
-              focusBorderColor="blue.400"
+              focusBorderColor="#7D00FF"
               borderRadius="md"
               boxShadow="sm"
             />
+            <FormLabel>Username</FormLabel>
           </FormControl>
 
           <FormControl id="password" className="floating-label">
-            <FormLabel color={formLabelColor}>Password</FormLabel>
             <Input
               type="password"
-              placeholder="Enter your password"
+              placeholder=" "
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              bg={inputBg}
+              bg="white"
               className="animated-input"
-              focusBorderColor="blue.400"
+              focusBorderColor="#7D00FF"
               borderRadius="md"
               boxShadow="sm"
             />
+            <FormLabel>Password</FormLabel>
           </FormControl>
 
           <Button
             type="submit"
             width="100%"
-            bg={buttonBg}
+            bgGradient="linear(to-r, #1C1F33, #232946)" // Formal dark blue gradient
             color="white"
-            _hover={{ bg: buttonHoverBg }}
-            _active={{ bg: buttonHoverBg }}
-            boxShadow="md"
+            _hover={{ bgGradient: "linear(to-r, #1B1E2D, #1F2539)" }} // Slightly darker hover gradient
+            _active={{ bgGradient: "linear(to-r, #1B1E2D, #1F2539)" }} // Active state matches hover
+            boxShadow="lg"
             py={6}
           >
             Log In

@@ -167,7 +167,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
               onClick={() => navigate("/add-reminders")} // Redirect to Reminders.js
             />
             <SidebarItem
-              icon={FiBell}
+              icon={FiPlusCircle}
               label="PMD Media"
               isExpanded={isExpanded}
               onClick={() => navigate("/Mastodon")} // Redirect to Mastodon.js

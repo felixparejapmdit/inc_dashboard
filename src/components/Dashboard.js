@@ -18,19 +18,28 @@ import {
   ModalFooter,
   Input,
   Image,
-  Grid,
-  GridItem,
+  HStack,
+  Progress,
+  Avatar,
+  Tooltip,
 } from "@chakra-ui/react";
-import { FiEdit, FiFile, FiCalendar, FiBell, FiUser } from "react-icons/fi";
+import {
+  FiEdit,
+  FiFile,
+  FiCalendar,
+  FiBell,
+  FiUser,
+  FiSearch,
+} from "react-icons/fi";
 import { useDisclosure } from "@chakra-ui/react";
 
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 // Use environment variable
 const API_URL = process.env.REACT_APP_API_URL;
 
 export default function Dashboard() {
   const [apps, setApps] = useState([]);
-  const [availableApps, setAvailableApps] = useState([]); // For apps available to the logged-in user
-  const [suguan, setSuguan] = useState([]);
+  const [availableApps, setAvailableApps] = useState([]);
   const [events, setEvents] = useState([]);
   const [reminders, setReminders] = useState([]);
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -41,18 +50,29 @@ export default function Dashboard() {
     url: "",
     icon: "",
   });
+  const [searchQuery, setSearchQuery] = useState(""); // Search input
+  const [currentUser, setCurrentUser] = useState({ name: "User" });
+  const [hoveredEvent, setHoveredEvent] = useState(null); // Hover state for events
+  const [hoveredReminder, setHoveredReminder] = useState(null); // Hover state for reminders
+  const navigate = useNavigate(); // Initialize useNavigate
 
-  // Fetch data for apps, suguan, events, reminders, and logged-in user
+  const colors = {
+    reminderBg: useColorModeValue("orange.100", "orange.700"),
+    eventBg: useColorModeValue("teal.100", "teal.700"),
+    appBg: useColorModeValue("gray.100", "gray.800"),
+    cardText: useColorModeValue("gray.700", "white"),
+    cardHeader: useColorModeValue("gray.600", "gray.300"),
+    cardBorder: useColorModeValue("gray.300", "gray.700"),
+    buttonBg: useColorModeValue("blue.600", "blue.500"),
+    buttonHoverBg: useColorModeValue("blue.700", "blue.600"),
+  };
+
+  // Fetch data for apps, events, reminders, and logged-in user
   useEffect(() => {
     fetch(`${API_URL}/api/apps`)
       .then((response) => response.json())
       .then((data) => setApps(data))
       .catch((error) => console.error("Error fetching apps:", error));
-
-    fetch(`${API_URL}/api/suguan`)
-      .then((response) => response.json())
-      .then((data) => setSuguan(data))
-      .catch((error) => console.error("Error fetching suguan:", error));
 
     fetch(`${API_URL}/api/events`)
       .then((response) => response.json())
@@ -64,21 +84,25 @@ export default function Dashboard() {
       .then((data) => setReminders(data))
       .catch((error) => console.error("Error fetching reminders:", error));
 
-    // Fetch logged-in user details
     fetch(`${API_URL}/api/users/logged-in`)
       .then((response) => response.json())
       .then((user) => {
-        if (user && user.availableApps) {
-          setAvailableApps(user.availableApps); // Set available apps based on the logged-in user
+        if (user) {
+          setCurrentUser(user);
+          if (user.availableApps) {
+            setAvailableApps(user.availableApps);
+          }
         }
       })
       .catch((error) => console.error("Error fetching logged-in user:", error));
   }, []);
 
-  // Filter apps based on the logged-in user's available apps
-  const filteredApps = apps.filter((app) => availableApps.includes(app.name));
+  const filteredApps = apps
+    .filter((app) => availableApps.includes(app.name))
+    .filter((app) =>
+      app.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ); // Search filter
 
-  // Function to handle clicking on the edit icon
   const handleSettingsClick = (app) => {
     setSelectedApp(app);
     setUpdatedApp({
@@ -90,7 +114,6 @@ export default function Dashboard() {
     onOpen();
   };
 
-  // Function to handle saving changes to the app
   const handleSaveChanges = () => {
     const updatedAppList = apps.map((app) =>
       app.name === selectedApp.name ? updatedApp : app
@@ -108,113 +131,126 @@ export default function Dashboard() {
       .catch((error) => console.error("Error updating app:", error));
   };
 
-  // Color coding
-  const colors = {
-    reminderBg: useColorModeValue("orange.100", "orange.700"),
-    eventBg: useColorModeValue("teal.100", "teal.700"),
-    suguanBg: useColorModeValue("blue.100", "blue.700"),
-    appBg: useColorModeValue("gray.100", "gray.800"),
-    cardText: useColorModeValue("gray.700", "white"),
-    cardHeader: useColorModeValue("gray.600", "gray.300"),
-    cardBorder: useColorModeValue("gray.300", "gray.700"),
-    buttonBg: useColorModeValue("blue.600", "blue.500"),
-    buttonHoverBg: useColorModeValue("blue.700", "blue.600"),
+  // Get the current time and greet the user accordingly
+  const getTimeBasedGreeting = () => {
+    const hours = new Date().getHours();
+    if (hours < 12) return "Good morning";
+    if (hours < 18) return "Good afternoon";
+    return "Good evening";
   };
-
-  // Separate events into "Today" and "Upcoming"
-  const todayEvents = events.filter(
-    (event) => new Date(event.date).toDateString() === new Date().toDateString()
-  );
-  const upcomingEvents = events.filter(
-    (event) => new Date(event.date) > new Date()
-  );
 
   return (
     <Box bg={useColorModeValue("gray.50", "gray.900")} minH="100vh" p={6}>
-      <Heading as="h1" size="xl" mb={8} textAlign="center">
-        <Text as="span" color="gray.700">
-          INC
-        </Text>{" "}
-        <Text as="span" color="gray.700" p={1} borderRadius="md">
-          Application
-        </Text>{" "}
-        <Text as="span" color="gray.700">
-          Dashboard
-        </Text>
+      <HStack justify="space-between" mb={6}>
+        <Heading as="h1" size="xl">
+          {getTimeBasedGreeting()}, {currentUser.name}!
+        </Heading>
+        <Box w="300px">
+          <Input
+            placeholder="Search Apps"
+            size="md"
+            leftIcon={<FiSearch />}
+            borderRadius="full"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)} // Search input handler
+          />
+        </Box>
+      </HStack>
+
+      <SimpleGrid columns={3} spacing={6} mb={8}>
+        <Tooltip
+          label={
+            hoveredEvent ? (
+              <VStack align="start" spacing={2}>
+                {events.map((event) => (
+                  <Box key={event.id}>
+                    <Text fontWeight="bold">{event.eventName}</Text>
+                    <Text>
+                      {event.date} at {event.time}, {event.location}
+                    </Text>
+                  </Box>
+                ))}
+              </VStack>
+            ) : (
+              "Hover to see event details"
+            )
+          }
+          placement="top"
+          hasArrow
+          isOpen={!!hoveredEvent}
+        >
+          <Box
+            bg="blue.500"
+            p={6}
+            borderRadius="lg"
+            color="white"
+            onMouseEnter={() => setHoveredEvent(true)}
+            onMouseLeave={() => setHoveredEvent(false)}
+            onClick={() => navigate("/add-events")} // Redirect to add-events page
+            transition="all 0.3s ease"
+            _hover={{ transform: "scale(1.05)", cursor: "pointer" }}
+            boxShadow="lg"
+          >
+            <Heading size="lg">{events.length}</Heading>
+            <Text>Upcoming Events</Text>
+          </Box>
+        </Tooltip>
+
+        <Tooltip
+          label={
+            hoveredReminder ? (
+              <VStack align="start" spacing={2}>
+                {reminders.map((reminder) => (
+                  <Box key={reminder.id}>
+                    <Text fontWeight="bold">{reminder.title}</Text>
+                    <Text>{reminder.date}</Text>
+                  </Box>
+                ))}
+              </VStack>
+            ) : (
+              "Hover to see reminder details"
+            )
+          }
+          placement="top"
+          hasArrow
+          isOpen={!!hoveredReminder}
+        >
+          <Box
+            bg="green.500"
+            p={6}
+            borderRadius="lg"
+            color="white"
+            onMouseEnter={() => setHoveredReminder(true)}
+            onMouseLeave={() => setHoveredReminder(false)}
+            transition="all 0.3s ease"
+            _hover={{ transform: "scale(1.05)", cursor: "pointer" }}
+            boxShadow="lg"
+          >
+            <Heading size="lg">{reminders.length}</Heading>
+            <Text>Pending Reminders</Text>
+          </Box>
+        </Tooltip>
+
+        <Box bg="orange.500" p={6} borderRadius="lg" color="white">
+          <Heading size="lg">{availableApps.length}</Heading>
+          <Text>Available Apps</Text>
+        </Box>
+      </SimpleGrid>
+
+      {/* Apps Section */}
+      <Heading as="h2" size="lg" mb={6}>
+        Your Apps
       </Heading>
-
-      {/* Grid Layout for three columns */}
-      <Grid templateColumns="repeat(3, 1fr)" gap={6}>
-        {/* First Column: Reminders and Events */}
-        <GridItem>
-          <Heading as="h2" size="lg" mb={4}>
-            Reminders
-          </Heading>
-          <SimpleGrid columns={1} spacing={4}>
-            {reminders.map((reminder, index) => (
-              <ReminderCard key={index} reminder={reminder} colors={colors} />
-            ))}
-          </SimpleGrid>
-
-          <Divider my={6} />
-
-          <Heading as="h2" size="lg" mb={4}>
-            Events
-          </Heading>
-          <Grid templateColumns="repeat(2, 1fr)" gap={6}>
-            <GridItem>
-              <Heading as="h3" size="md" mb={4}>
-                Today
-              </Heading>
-              <SimpleGrid columns={1} spacing={4}>
-                {todayEvents.map((event, index) => (
-                  <EventCard key={index} event={event} colors={colors} />
-                ))}
-              </SimpleGrid>
-            </GridItem>
-
-            <GridItem>
-              <Heading as="h3" size="md" mb={4}>
-                Upcoming
-              </Heading>
-              <SimpleGrid columns={1} spacing={4}>
-                {upcomingEvents.map((event, index) => (
-                  <EventCard key={index} event={event} colors={colors} />
-                ))}
-              </SimpleGrid>
-            </GridItem>
-          </Grid>
-        </GridItem>
-
-        {/* Second Column: Suguan */}
-        <GridItem>
-          <Heading as="h2" size="lg" mb={4}>
-            Suguan
-          </Heading>
-          <SimpleGrid columns={2} spacing={4}>
-            {suguan.map((item, index) => (
-              <SuguanCard key={index} item={item} colors={colors} />
-            ))}
-          </SimpleGrid>
-        </GridItem>
-
-        {/* Third Column: Apps */}
-        <GridItem>
-          <Heading as="h2" size="lg" mb={4}>
-            Apps
-          </Heading>
-          <SimpleGrid columns={2} spacing={4}>
-            {filteredApps.map((app, index) => (
-              <AppCard
-                key={index}
-                app={app}
-                colors={colors}
-                onSettingsClick={handleSettingsClick}
-              />
-            ))}
-          </SimpleGrid>
-        </GridItem>
-      </Grid>
+      <SimpleGrid columns={3} spacing={6}>
+        {filteredApps.map((app, index) => (
+          <AppCard
+            key={index}
+            app={app}
+            colors={colors}
+            onSettingsClick={handleSettingsClick}
+          />
+        ))}
+      </SimpleGrid>
 
       {/* Modal for App Info */}
       {selectedApp && (
@@ -292,102 +328,6 @@ export default function Dashboard() {
   );
 }
 
-// Card component for Reminders
-const ReminderCard = ({ reminder, colors }) => (
-  <VStack
-    bg={colors.reminderBg}
-    borderRadius="lg"
-    border={`1px solid ${colors.cardBorder}`}
-    p={6}
-    spacing={4}
-    boxShadow="md"
-    _hover={{ boxShadow: "lg", transform: "translateY(-5px)" }}
-    transition="all 0.3s ease-in-out"
-    align="flex-start"
-    width="100%"
-  >
-    <Box>
-      <Icon as={FiBell} boxSize={8} color={colors.cardHeader} />
-    </Box>
-    <Box>
-      <Text fontSize="lg" fontWeight="bold" color={colors.cardHeader}>
-        {reminder.title}
-      </Text>
-      <Text fontSize="sm" color={colors.cardText}>
-        {reminder.date} at {reminder.time}
-      </Text>
-      <Text fontSize="sm" color={colors.cardText}>
-        {reminder.message}
-      </Text>
-    </Box>
-  </VStack>
-);
-
-// Card component for Events
-const EventCard = ({ event, colors }) => (
-  <VStack
-    bg={colors.eventBg}
-    borderRadius="lg"
-    border={`1px solid ${colors.cardBorder}`}
-    p={6}
-    spacing={4}
-    boxShadow="md"
-    _hover={{ boxShadow: "lg", transform: "translateY(-5px)" }}
-    transition="all 0.3s ease-in-out"
-    align="flex-start"
-    width="100%"
-  >
-    <Box>
-      <Icon as={FiCalendar} boxSize={8} color={colors.cardHeader} />
-    </Box>
-    <Box>
-      <Text fontSize="lg" fontWeight="bold" color={colors.cardHeader}>
-        {event.eventName}
-      </Text>
-      <Text fontSize="sm" color={colors.cardText}>
-        {event.date} at {event.time}
-      </Text>
-      <Text fontSize="sm" color={colors.cardText}>
-        Location: {event.location}
-      </Text>
-    </Box>
-  </VStack>
-);
-
-// Card component for Suguan
-const SuguanCard = ({ item, colors }) => (
-  <VStack
-    bg={colors.suguanBg}
-    borderRadius="lg"
-    border={`1px solid ${colors.cardBorder}`}
-    p={6}
-    spacing={4}
-    boxShadow="md"
-    _hover={{ boxShadow: "lg", transform: "translateY(-5px)" }}
-    transition="all 0.3s ease-in-out"
-    align="flex-start"
-    width="100%"
-  >
-    <Box>
-      <Icon as={FiUser} boxSize={8} color={colors.cardHeader} />
-    </Box>
-    <Box>
-      <Text fontSize="lg" fontWeight="bold" color={colors.cardHeader}>
-        {item.name}
-      </Text>
-      <Text fontSize="sm" color={colors.cardText}>
-        {item.district} - {item.local}
-      </Text>
-      <Text fontSize="sm" color={colors.cardText}>
-        Date: {item.date} Time: {item.time}
-      </Text>
-      <Text fontSize="sm" color={colors.cardText}>
-        Gampanin: {item.gampanin}
-      </Text>
-    </Box>
-  </VStack>
-);
-
 // Card component for Apps
 const AppCard = ({ app, colors, onSettingsClick }) => (
   <VStack
@@ -436,8 +376,8 @@ const AppCard = ({ app, colors, onSettingsClick }) => (
     <Button
       as="a"
       href={app.url}
-      target="_blank"
-      rel="noopener noreferrer"
+      target={app.url.includes("suguan") ? "_self" : "_blank"}
+      rel={app.url.includes("suguan") ? "" : "noopener noreferrer"}
       bg={colors.buttonBg}
       color="white"
       _hover={{ bg: colors.buttonHoverBg }}

@@ -40,11 +40,12 @@ const Users = () => {
   const [email, setEmail] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [selectedApps, setSelectedApps] = useState([]); // Store selected apps
+  const [selectAll, setSelectAll] = useState(false); // State for Select All checkbox
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [editingUser, setEditingUser] = useState(null);
   const [error, setError] = useState(null); // Error state to handle fetch issues
 
-  // Fetch users data
+  // Fetch users and apps data
   useEffect(() => {
     fetch(`${API_URL}/api/users`)
       .then((res) => res.json())
@@ -60,7 +61,6 @@ const Users = () => {
         setError("Failed to load users. Please try again later.");
       });
 
-    // Fetch available apps data
     fetch(`${API_URL}/api/apps`)
       .then((res) => res.json())
       .then((data) => setApps(data))
@@ -133,14 +133,27 @@ const Users = () => {
     setEmail(item.email);
     setAvatarUrl(item.avatarUrl);
     setSelectedApps(item.availableApps || []); // Populate selected apps
+    setSelectAll(item.availableApps?.length === apps.length); // Check if all apps are selected
     onOpen();
   };
 
   const handleAppChange = (selectedValues) => {
     setSelectedApps(selectedValues); // Handle app selection
+    setSelectAll(selectedValues.length === apps.length); // Update Select All state
   };
 
-  // Reset form and modal state
+  // Handle Select All checkbox logic
+  const handleSelectAll = (isChecked) => {
+    if (isChecked) {
+      const allAppNames = apps.map((app) => app.name);
+      setSelectedApps(allAppNames);
+      setSelectAll(true);
+    } else {
+      setSelectedApps([]);
+      setSelectAll(false);
+    }
+  };
+
   const resetForm = () => {
     setUsername("");
     setPassword("");
@@ -148,7 +161,13 @@ const Users = () => {
     setEmail("");
     setAvatarUrl("");
     setSelectedApps([]);
+    setSelectAll(false);
     setEditingUser(null);
+  };
+
+  const openAddUserModal = () => {
+    resetForm(); // Clear fields when opening the modal
+    onOpen();
   };
 
   const closeModal = () => {
@@ -168,7 +187,12 @@ const Users = () => {
     <Box p={6}>
       <Heading mb={6}>Manage Users</Heading>
 
-      <Button leftIcon={<AddIcon />} onClick={onOpen} colorScheme="teal" mb={4}>
+      <Button
+        leftIcon={<AddIcon />}
+        onClick={openAddUserModal} // Ensure reset on opening Add User
+        colorScheme="teal"
+        mb={4}
+      >
         Add User
       </Button>
 
@@ -262,6 +286,12 @@ const Users = () => {
 
               <FormControl>
                 <FormLabel>Available Apps</FormLabel>
+                <Checkbox
+                  isChecked={selectAll}
+                  onChange={(e) => handleSelectAll(e.target.checked)}
+                >
+                  Select All
+                </Checkbox>
                 <CheckboxGroup value={selectedApps} onChange={handleAppChange}>
                   <Stack spacing={2}>
                     {apps.map((app, index) => (

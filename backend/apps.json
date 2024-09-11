@@ -34,5 +34,11 @@
     "url": "https://google.com",
     "description": "Choir App",
     "icon": ""
+  },
+  {
+    "name": "Suguan",
+    "url": "http://172.18.125.134:3000/add-suguan",
+    "description": "WS Suguan",
+    "icon": null
   }
 ]

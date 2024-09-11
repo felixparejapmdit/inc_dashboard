@@ -1,19 +1,36 @@
+/* Container for floating label and input */
 .floating-label {
   position: relative;
+  margin-bottom: 1.5rem;
 }
 
+/* Input field with smooth focus and hover effects */
 .floating-label input.animated-input {
-  padding: 10px 12px;
+  padding: 14px 10px;
   font-size: 16px;
-  transition: all 0.2s ease-in-out;
+  width: 100%;
   border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f0f0f0; /* Soft background */
+  transition: all 0.3s ease;
   outline: none;
 }
 
+/* Icon inside the input */
+.floating-label input.animated-input::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #aaa;
+}
+
+/* Label animation when input is focused or filled */
 .floating-label label {
   position: absolute;
   top: 50%;
-  left: 12px;
+  left: 10px;
   transform: translateY(-50%);
   font-size: 16px;
   color: #aaa;
@@ -21,14 +38,52 @@
   transition: all 0.2s ease-in-out;
 }
 
+/* Move label above input when focused or input is filled */
 .floating-label input.animated-input:focus + label,
 .floating-label input.animated-input:not(:placeholder-shown) + label {
-  top: -10px; /* Adjust this value to move the label higher */
-  left: 12px;
+  top: -15px;
+  left: 10px;
   font-size: 12px;
-  color: #007aff; /* Label color when active */
+  color: #7d00ff; /* Highlight color when active */
 }
 
+/* Input field focus styling */
 .animated-input:focus {
-  border-color: #007aff;
+  border-color: #7d00ff; /* Highlight border on focus */
+  box-shadow: 0 0 8px rgba(125, 0, 255, 0.4); /* Soft shadow effect */
+}
+
+/* Rounded button with hover and active state */
+button {
+  border-radius: 30px;
+  padding: 10px 20px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Soft shadow */
+}
+
+button:hover {
+  background-color: #5a00cc; /* Button hover color */
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2); /* Larger shadow on hover */
+}
+
+button:active {
+  transform: translateY(1px); /* Slight press effect */
+}
+
+/* Checkbox and Forgot Password section */
+form .checkbox,
+form .forgot-password {
+  color: #999;
+}
+
+form .checkbox {
+  margin-left: 10px;
+  margin-right: 5px;
+}
+
+form .forgot-password {
+  margin-left: auto;
+  font-size: 12px;
+  text-align: right;
 }

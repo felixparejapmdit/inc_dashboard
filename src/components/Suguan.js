@@ -1,20 +1,13 @@
 import React, { useState, useEffect } from "react";
 import {
   Box,
-  Button,
-  FormControl,
-  FormLabel,
-  Input,
   Heading,
+  SimpleGrid,
   VStack,
-  Select,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  IconButton,
+  Text,
+  Icon,
+  useColorModeValue,
+  Button,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -22,15 +15,21 @@ import {
   ModalCloseButton,
   ModalBody,
   ModalFooter,
-  useDisclosure,
-  Text,
+  Input,
+  Select,
+  IconButton,
+  HStack,
 } from "@chakra-ui/react";
-import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
+import { FiEdit, FiTrash2, FiUser } from "react-icons/fi";
+import { ArrowLeftIcon, ArrowRightIcon } from "@chakra-ui/icons";
+import { useDisclosure } from "@chakra-ui/react";
+import moment from "moment";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Suguan = () => {
   const [suguan, setSuguan] = useState([]);
+  const [currentWeek, setCurrentWeek] = useState(moment().startOf("isoWeek")); // Monday as start of the week
   const [name, setName] = useState("");
   const [district, setDistrict] = useState("");
   const [local, setLocal] = useState("");
@@ -40,25 +39,20 @@ const Suguan = () => {
   const [status, setStatus] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [editingSuguan, setEditingSuguan] = useState(null);
-  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     fetch(`${API_URL}/api/suguan`)
       .then((res) => res.json())
-      .then((data) => setSuguan(data))
+      .then((data) => {
+        const sortedSuguan = data.sort((a, b) => {
+          const dateA = new Date(`${a.date}T${a.time}`);
+          const dateB = new Date(`${b.date}T${b.time}`);
+          return dateA - dateB;
+        });
+        setSuguan(sortedSuguan);
+      })
       .catch((err) => console.error(err));
   }, []);
-
-  const validateForm = () => {
-    let newErrors = {};
-    if (!name) newErrors.name = "Name is required";
-    if (!district) newErrors.district = "District is required";
-    if (!local) newErrors.local = "Local is required";
-    if (!date) newErrors.date = "Date is required";
-    if (!time) newErrors.time = "Time is required";
-    if (!gampanin) newErrors.gampanin = "Gampanin is required";
-    return newErrors;
-  };
 
   const handleAddOrEditSuguan = (e) => {
     e.preventDefault();
@@ -71,12 +65,6 @@ const Suguan = () => {
       time,
       gampanin,
     };
-
-    const formErrors = validateForm();
-    if (Object.keys(formErrors).length > 0) {
-      setErrors(formErrors);
-      return;
-    }
 
     if (editingSuguan) {
       fetch(`${API_URL}/api/suguan/${editingSuguan.id}`, {
@@ -140,63 +128,183 @@ const Suguan = () => {
     setTime("");
     setGampanin("");
     setEditingSuguan(null);
-    setErrors({});
+  };
+
+  // Get the start and end of the current week (Monday 12:00 AM to Sunday 11:59 PM)
+  const startOfWeek = currentWeek.clone().startOf("isoWeek");
+  const endOfWeek = currentWeek.clone().endOf("isoWeek").endOf("day");
+
+  // Handle next and previous week
+  const handlePreviousWeek = () => {
+    setCurrentWeek((prev) => prev.clone().subtract(1, "week"));
+  };
+
+  const handleNextWeek = () => {
+    setCurrentWeek((prev) => prev.clone().add(1, "week"));
+  };
+
+  // Filter Suguan for Midweek and Weekend categories
+  const midweekSuguan = suguan.filter((item) => {
+    const suguanDate = moment(item.date);
+    return (
+      suguanDate.isBetween(startOfWeek, endOfWeek, null, "[]") &&
+      suguanDate.day() >= 1 &&
+      suguanDate.day() <= 4
+    ); // Monday to Thursday
+  });
+
+  const weekendSuguan = suguan.filter((item) => {
+    const suguanDate = moment(item.date);
+    return (
+      suguanDate.isBetween(startOfWeek, endOfWeek, null, "[]") &&
+      (suguanDate.day() === 0 || suguanDate.day() >= 5)
+    ); // Friday to Sunday
+  });
+
+  const colors = {
+    suguanBg: useColorModeValue("gray.100", "gray.700"),
+    cardText: useColorModeValue("gray.700", "white"),
+    cardHeader: useColorModeValue("black.600", "black.300"),
+    cardBorder: useColorModeValue("gray.300", "gray.700"),
   };
 
   return (
     <Box p={6}>
       <Heading mb={6}>Manage Suguan</Heading>
 
+      <HStack justify="center" mb={4}>
+        <Button
+          onClick={handlePreviousWeek}
+          colorScheme="blue"
+          leftIcon={<ArrowLeftIcon />}
+        >
+          Previous
+        </Button>
+        <Heading size="md">
+          Week {currentWeek.isoWeek()} ({startOfWeek.format("MMM DD")} -{" "}
+          {endOfWeek.format("MMM DD")})
+        </Heading>
+        <Button
+          onClick={handleNextWeek}
+          colorScheme="blue"
+          rightIcon={<ArrowRightIcon />}
+        >
+          Next
+        </Button>
+      </HStack>
+
       <Button
-        leftIcon={<AddIcon />}
+        leftIcon={<FiUser />}
         onClick={() => {
           resetForm();
           onOpen();
         }}
         colorScheme="teal"
         mb={4}
+        _hover={{ transform: "scale(1.05)", transition: "0.3s ease-in-out" }}
       >
         Add Suguan
       </Button>
 
-      <Table variant="simple">
-        <Thead>
-          <Tr>
-            <Th>Name</Th>
-            <Th>District</Th>
-            <Th>Local</Th>
-            <Th>Date</Th>
-            <Th>Time</Th>
-            <Th>Gampanin</Th>
-            <Th>Actions</Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-          {suguan.map((item) => (
-            <Tr key={item.id}>
-              <Td>{item.name}</Td>
-              <Td>{item.district}</Td>
-              <Td>{item.local}</Td>
-              <Td>{item.date}</Td>
-              <Td>{item.time}</Td>
-              <Td>{item.gampanin}</Td>
-              <Td>
-                <IconButton
-                  icon={<EditIcon />}
-                  mr={2}
-                  colorScheme="blue"
-                  onClick={() => handleEditSuguan(item)}
-                />
-                <IconButton
-                  icon={<DeleteIcon />}
-                  colorScheme="red"
-                  onClick={() => handleDeleteSuguan(item.id)}
-                />
-              </Td>
-            </Tr>
-          ))}
-        </Tbody>
-      </Table>
+      {midweekSuguan.length === 0 && weekendSuguan.length === 0 ? (
+        <Text textAlign="center" color="red.500" mt={4}>
+          No suguan schedule for this week...
+        </Text>
+      ) : (
+        <SimpleGrid columns={2} spacing={6}>
+          <VStack align="stretch">
+            <Heading as="h3" size="lg" mb={4}>
+              Midweek (Mon-Thu)
+            </Heading>
+            {midweekSuguan.length === 0 ? (
+              <Text>No Midweek Suguan</Text>
+            ) : (
+              midweekSuguan.map((item) => (
+                <Box
+                  key={item.id}
+                  bg={colors.suguanBg}
+                  p={6}
+                  borderRadius="lg"
+                  border={`1px solid ${colors.cardBorder}`}
+                  _hover={{ boxShadow: "lg", transform: "translateY(-5px)" }}
+                  transition="all 0.3s ease-in-out"
+                >
+                  <Text fontWeight="bold" color={colors.cardHeader}>
+                    {item.name}
+                  </Text>
+                  <Text>
+                    {item.district} - {item.local}
+                  </Text>
+                  <Text>
+                    Time: {moment(item.time, "HH:mm").format("h:mm A")},{" "}
+                    {moment(item.date).format("dddd")}
+                  </Text>
+                  <Text>Gampanin: {item.gampanin}</Text>
+                  <Box mt={3}>
+                    <IconButton
+                      icon={<FiEdit />}
+                      colorScheme="blue"
+                      onClick={() => handleEditSuguan(item)}
+                      mr={2}
+                    />
+                    <IconButton
+                      icon={<FiTrash2 />}
+                      colorScheme="red"
+                      onClick={() => handleDeleteSuguan(item.id)}
+                    />
+                  </Box>
+                </Box>
+              ))
+            )}
+          </VStack>
+
+          <VStack align="stretch">
+            <Heading as="h3" size="lg" mb={4}>
+              Weekend (Fri-Sun)
+            </Heading>
+            {weekendSuguan.length === 0 ? (
+              <Text>No Weekend Suguan</Text>
+            ) : (
+              weekendSuguan.map((item) => (
+                <Box
+                  key={item.id}
+                  bg={colors.suguanBg}
+                  p={6}
+                  borderRadius="lg"
+                  border={`1px solid ${colors.cardBorder}`}
+                  _hover={{ boxShadow: "lg", transform: "translateY(-5px)" }}
+                  transition="all 0.3s ease-in-out"
+                >
+                  <Text fontWeight="bold" color={colors.cardHeader}>
+                    {item.name}
+                  </Text>
+                  <Text>
+                    {item.district} - {item.local}
+                  </Text>
+                  <Text>
+                    Time: {moment(item.time, "HH:mm").format("h:mm A")},{" "}
+                    {moment(item.date).format("dddd")}
+                  </Text>
+                  <Text>Gampanin: {item.gampanin}</Text>
+                  <Box mt={3}>
+                    <IconButton
+                      icon={<FiEdit />}
+                      colorScheme="blue"
+                      onClick={() => handleEditSuguan(item)}
+                      mr={2}
+                    />
+                    <IconButton
+                      icon={<FiTrash2 />}
+                      colorScheme="red"
+                      onClick={() => handleDeleteSuguan(item.id)}
+                    />
+                  </Box>
+                </Box>
+              ))
+            )}
+          </VStack>
+        </SimpleGrid>
+      )}
 
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
@@ -207,80 +315,47 @@ const Suguan = () => {
           <ModalCloseButton />
           <ModalBody>
             <VStack spacing={4}>
-              <FormControl isRequired isInvalid={errors.name}>
-                <FormLabel>Name</FormLabel>
-                <Input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter Name"
-                />
-                {errors.name && <Text color="red.500">{errors.name}</Text>}
-              </FormControl>
-
-              <FormControl isRequired isInvalid={errors.district}>
-                <FormLabel>District</FormLabel>
-                <Input
-                  value={district}
-                  onChange={(e) => setDistrict(e.target.value)}
-                  placeholder="Enter District"
-                />
-                {errors.district && (
-                  <Text color="red.500">{errors.district}</Text>
-                )}
-              </FormControl>
-
-              <FormControl isRequired isInvalid={errors.local}>
-                <FormLabel>Local</FormLabel>
-                <Input
-                  value={local}
-                  onChange={(e) => setLocal(e.target.value)}
-                  placeholder="Enter Local"
-                />
-                {errors.local && <Text color="red.500">{errors.local}</Text>}
-              </FormControl>
-
-              <FormControl isRequired isInvalid={errors.date}>
-                <FormLabel>Date</FormLabel>
-                <Input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                />
-                {errors.date && <Text color="red.500">{errors.date}</Text>}
-              </FormControl>
-
-              <FormControl isRequired isInvalid={errors.time}>
-                <FormLabel>Time</FormLabel>
-                <Input
-                  type="time"
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
-                />
-                {errors.time && <Text color="red.500">{errors.time}</Text>}
-              </FormControl>
-
-              <FormControl isRequired isInvalid={errors.gampanin}>
-                <FormLabel>Gampanin</FormLabel>
-                <Select
-                  value={gampanin}
-                  onChange={(e) => setGampanin(e.target.value)}
-                  placeholder="Select Gampanin"
-                >
-                  <option value="Sugo">Sugo</option>
-                  <option value="Sugo 1">Sugo 1</option>
-                  <option value="Sugo 2">Sugo 2</option>
-                  <option value="Reserba">Reserba</option>
-                  <option value="Reserba 1">Reserba 1</option>
-                  <option value="Reserba 2">Reserba 2</option>
-                </Select>
-                {errors.gampanin && (
-                  <Text color="red.500">{errors.gampanin}</Text>
-                )}
-              </FormControl>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter Name"
+              />
+              <Input
+                value={district}
+                onChange={(e) => setDistrict(e.target.value)}
+                placeholder="Enter District"
+              />
+              <Input
+                value={local}
+                onChange={(e) => setLocal(e.target.value)}
+                placeholder="Enter Local"
+              />
+              <Input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
+              <Input
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+              />
+              <Select
+                value={gampanin}
+                onChange={(e) => setGampanin(e.target.value)}
+                placeholder="Select Gampanin"
+              >
+                <option value="Sugo">Sugo</option>
+                <option value="Sugo 1">Sugo 1</option>
+                <option value="Sugo 2">Sugo 2</option>
+                <option value="Reserba">Reserba</option>
+                <option value="Reserba 1">Reserba 1</option>
+                <option value="Reserba 2">Reserba 2</option>
+              </Select>
             </VStack>
           </ModalBody>
           <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={handleAddOrEditSuguan}>
+            <Button colorScheme="blue" onClick={handleAddOrEditSuguan}>
               {editingSuguan ? "Save Changes" : "Add Suguan"}
             </Button>
             <Button onClick={onClose}>Cancel</Button>

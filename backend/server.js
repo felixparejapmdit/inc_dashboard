@@ -2,23 +2,21 @@ const express = require("express");
 const fs = require("fs");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const path = require("path"); // Added to resolve file paths
 const app = express();
 const PORT = 5000;
 
 app.use(cors());
 app.use(bodyParser.json({ limit: "10mb" })); // Increased limit to handle Base64 images
 
-const appsFilePath = "./apps.json";
-const suguanFilePath = "./suguan.json";
-const usersFilePath = "./users.json"; // Path to users.json file in the backend folder
-
-const eventsFilePath = "./events.json";
-const remindersFilePath = "./reminders.json";
-
-const API_URL = "172.18.20.9";
+// Use __dirname to resolve the correct file paths
+const appsFilePath = path.join(__dirname, "apps.json");
+const suguanFilePath = path.join(__dirname, "suguan.json");
+const usersFilePath = path.join(__dirname, "users.json");
+const eventsFilePath = path.join(__dirname, "events.json");
+const remindersFilePath = path.join(__dirname, "reminders.json");
 
 // --- Apps Endpoints ---
-
 app.get("/api/apps", (req, res) => {
   fs.readFile(appsFilePath, "utf-8", (err, data) => {
     if (err) {
@@ -256,8 +254,6 @@ app.get("/api/users/logged-in", (req, res) => {
 });
 
 // --- Suguan Endpoints ---
-
-// Endpoint to get all suguan
 app.get("/api/suguan", (req, res) => {
   fs.readFile(suguanFilePath, "utf-8", (err, data) => {
     if (err) {
@@ -268,7 +264,6 @@ app.get("/api/suguan", (req, res) => {
   });
 });
 
-// Endpoint to add a new suguan (POST)
 app.post("/api/suguan", (req, res) => {
   const newSuguan = { ...req.body, id: Date.now() }; // Add a unique id based on timestamp
 
@@ -288,6 +283,8 @@ app.post("/api/suguan", (req, res) => {
     });
   });
 });
+
+// --- More endpoints for Events and Reminders follow the same structure ---
 
 // Endpoint to update a suguan (PUT)
 app.put("/api/suguan/:id", (req, res) => {
@@ -499,7 +496,9 @@ app.delete("/api/reminders/:id", (req, res) => {
 // // Start server
 // app.listen(PORT, () => {
 //   console.log(`Server is running on http://172.18.125.134:${PORT}`);
-// });
+//});
+
+// --- Start server ---
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
