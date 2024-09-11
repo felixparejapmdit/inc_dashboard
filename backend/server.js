@@ -9,12 +9,23 @@ const PORT = 5000;
 app.use(cors());
 app.use(bodyParser.json({ limit: "10mb" })); // Increased limit to handle Base64 images
 
+<<<<<<< Updated upstream
 // Use __dirname to resolve the correct file paths
 const appsFilePath = path.join(__dirname, "apps.json");
 const suguanFilePath = path.join(__dirname, "suguan.json");
 const usersFilePath = path.join(__dirname, "users.json");
 const eventsFilePath = path.join(__dirname, "events.json");
 const remindersFilePath = path.join(__dirname, "reminders.json");
+=======
+const appsFilePath = "./apps.json";
+const suguanFilePath = "./suguan.json";
+const usersFilePath = "./users.json"; // Path to users.json file in the backend folder
+
+const eventsFilePath = "./events.json";
+const remindersFilePath = "./reminders.json";
+
+const API_URL = "172.20.10.9";
+>>>>>>> Stashed changes
 
 // --- Apps Endpoints ---
 app.get("/api/apps", (req, res) => {
