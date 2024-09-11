@@ -7,6 +7,7 @@ import {
   Text,
   Icon,
   useColorModeValue,
+  useColorMode, // For dark/light mode toggle
   Divider,
   Button,
   Modal,
@@ -22,6 +23,13 @@ import {
   Progress,
   Avatar,
   Tooltip,
+  IconButton,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverArrow,
+  PopoverCloseButton,
+  PopoverBody,
 } from "@chakra-ui/react";
 import {
   FiEdit,
@@ -30,10 +38,14 @@ import {
   FiBell,
   FiUser,
   FiSearch,
+  FiSun,
+  FiMoon, // For sun and moon icons (theme toggle)
 } from "react-icons/fi";
 import { useDisclosure } from "@chakra-ui/react";
+import { PopoverHeader, List } from "@chakra-ui/react";
 
 import { useNavigate } from "react-router-dom"; // Import useNavigate
+
 // Use environment variable
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -54,6 +66,9 @@ export default function Dashboard() {
   const [currentUser, setCurrentUser] = useState({ name: "User" });
   const [hoveredEvent, setHoveredEvent] = useState(null); // Hover state for events
   const [hoveredReminder, setHoveredReminder] = useState(null); // Hover state for reminders
+  const { colorMode, toggleColorMode } = useColorMode(); // Color mode state
+  const [notifications, setNotifications] = useState([]);
+
   const navigate = useNavigate(); // Initialize useNavigate
 
   const colors = {
@@ -67,7 +82,7 @@ export default function Dashboard() {
     buttonHoverBg: useColorModeValue("blue.700", "blue.600"),
   };
 
-  // Fetch data for apps, events, reminders, and logged-in user
+  // Fetch data for apps, events, reminders, notifications, and logged-in user
   useEffect(() => {
     fetch(`${API_URL}/api/apps`)
       .then((response) => response.json())
@@ -84,6 +99,11 @@ export default function Dashboard() {
       .then((data) => setReminders(data))
       .catch((error) => console.error("Error fetching reminders:", error));
 
+    fetch(`${API_URL}/api/notifications`)
+      .then((response) => response.json())
+      .then((data) => setNotifications(data))
+      .catch((error) => console.error("Error fetching notifications:", error));
+
     fetch(`${API_URL}/api/users/logged-in`)
       .then((response) => response.json())
       .then((user) => {
@@ -95,6 +115,16 @@ export default function Dashboard() {
         }
       })
       .catch((error) => console.error("Error fetching logged-in user:", error));
+  }, []);
+
+  useEffect(() => {
+    // Fetch notifications from API
+    fetch(`${API_URL}/api/notifications`)
+      .then((response) => response.json())
+      .then((data) => {
+        setNotifications(data); // Store notifications in state
+      })
+      .catch((error) => console.error("Error fetching notifications:", error));
   }, []);
 
   const filteredApps = apps
@@ -155,6 +185,44 @@ export default function Dashboard() {
             onChange={(e) => setSearchQuery(e.target.value)} // Search input handler
           />
         </Box>
+
+        {/* Color mode toggle button */}
+        <IconButton
+          icon={colorMode === "light" ? <FiMoon /> : <FiSun />}
+          onClick={toggleColorMode}
+          isRound
+          size="lg"
+          aria-label="Toggle color mode"
+          mr={4}
+        />
+
+        {/* Notification Bell */}
+        <Popover>
+          <PopoverTrigger>
+            <IconButton
+              icon={<FiBell />}
+              isRound
+              size="lg"
+              aria-label="Notifications"
+            />
+          </PopoverTrigger>
+          <PopoverContent>
+            <PopoverArrow />
+            <PopoverCloseButton />
+            <PopoverBody>
+              {notifications.length > 0 ? (
+                notifications.map((notif) => (
+                  <Box key={notif.id} p={2}>
+                    <Text fontWeight="bold">{notif.title}</Text>
+                    <Text fontSize="sm">{notif.description}</Text>
+                  </Box>
+                ))
+              ) : (
+                <Text>No new notifications</Text>
+              )}
+            </PopoverBody>
+          </PopoverContent>
+        </Popover>
       </HStack>
 
       <SimpleGrid columns={3} spacing={6} mb={8}>
@@ -389,3 +457,34 @@ const AppCard = ({ app, colors, onSettingsClick }) => (
     </Button>
   </VStack>
 );
+
+// <Box position="relative">
+//   <Popover>
+//     <PopoverTrigger>
+//       <IconButton
+//         icon={<FiBell />}
+//         aria-label="Notifications"
+//         variant="ghost"
+//         fontSize="24px"
+//       />
+//     </PopoverTrigger>
+//     <PopoverContent width="300px">
+//       <PopoverHeader fontWeight="bold">Notifications</PopoverHeader>
+//       <PopoverCloseButton />
+//       <PopoverBody>
+//         {notifications.length === 0 ? (
+//           <Text>No new notifications</Text>
+//         ) : (
+//           <List spacing={3}>
+//             {notifications.map((notification) => (
+//               <ListItem key={notification.id}>
+//                 <Text fontWeight="bold">{notification.title}</Text>
+//                 <Text>{notification.description}</Text>
+//               </ListItem>
+//             ))}
+//           </List>
+//         )}
+//       </PopoverBody>
+//     </PopoverContent>
+//   </Popover>
+// </Box>;
