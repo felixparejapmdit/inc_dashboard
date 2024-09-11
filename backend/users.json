@@ -9,23 +9,12 @@
     "isLoggedIn": true,
     "availableApps": [
       "Next Cloud",
-      "Choir App",
       "LMS",
-      "Suguan",
-      "INC Hymns"
-    ]
-  },
-  {
-    "id": 2,
-    "username": "amaro",
-    "password": "password",
-    "name": "Kim Amaro",
-    "avatarUrl": "/path/to/avatar.jpg",
-    "email": "kimamaro.pmdit07@yahoo.com",
-    "isLoggedIn": false,
-    "availableApps": [
+      "PV Inventory",
       "INC Hymns",
-      "EVM Media"
+      "EMV Media",
+      "Choir App",
+      "Suguan"
     ]
   },
   {
@@ -47,6 +36,7 @@
     ]
   },
   {
+    "id": 1725957225072,
     "username": "jurada",
     "password": "123456",
     "name": "Kyrt Jurada",
@@ -56,8 +46,7 @@
     "availableApps": [
       "LMS",
       "PV Inventory"
-    ],
-    "id": 1725957225072
+    ]
   },
   {
     "username": "tramos",
@@ -65,11 +54,26 @@
     "name": "Teo Ramos",
     "email": "tramos@gmail.com",
     "avatarUrl": "",
-    "isLoggedIn": true,
+    "isLoggedIn": false,
     "availableApps": [
       "Next Cloud",
       "Suguan"
     ],
     "id": 1726042675203
+  },
+  {
+    "username": "kamaro",
+    "password": "password",
+    "name": "Kim Amaro",
+    "email": "amaro@yahoo.com",
+    "avatarUrl": "",
+    "isLoggedIn": false,
+    "availableApps": [
+      "Next Cloud",
+      "LMS",
+      "PV Inventory",
+      "INC Hymns"
+    ],
+    "id": 1726064340440
   }
 ]

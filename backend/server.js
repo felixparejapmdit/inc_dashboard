@@ -4,7 +4,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const path = require("path"); // Added to resolve file paths
 const app = express();
-const PORT = 5001;
+const PORT = 5000;
 
 app.use(cors());
 app.use(bodyParser.json({ limit: "10mb" })); // Increased limit to handle Base64 images
@@ -286,13 +286,6 @@ app.post("/api/suguan", (req, res) => {
 
 // --- More endpoints for Events and Reminders follow the same structure ---
 
-// --- Start server ---
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
-
-// --- More endpoints for Events and Reminders follow the same structure ---
-
 // Endpoint to update a suguan (PUT)
 app.put("/api/suguan/:id", (req, res) => {
   const suguanId = parseInt(req.params.id, 10);
@@ -507,5 +500,5 @@ app.delete("/api/reminders/:id", (req, res) => {
 
 // --- Start server ---
 app.listen(PORT, () => {
-  console.log(`Server is running on http://172.20.10.9:${PORT}`);
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
