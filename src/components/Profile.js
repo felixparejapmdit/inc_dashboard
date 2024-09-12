@@ -22,8 +22,10 @@ import {
   Input,
   useDisclosure,
   useToast,
+  Icon,
 } from "@chakra-ui/react";
 import { FaEdit } from "react-icons/fa";
+import { FiLock } from "react-icons/fi"; // Change Password Icon
 
 const Profile = () => {
   const [user, setUser] = useState({ name: "", email: "", avatarUrl: "" });
@@ -34,6 +36,14 @@ const Profile = () => {
     avatarUrl: "",
   });
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: isChangePassOpen,
+    onOpen: onChangePassOpen,
+    onClose: onChangePassClose,
+  } = useDisclosure(); // Change Password Modal
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const toast = useToast();
 
   // Fetch the user data (who is logged in)
@@ -93,6 +103,66 @@ const Profile = () => {
       });
   };
 
+  // Change Password Logic
+  const handleChangePassword = () => {
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Passwords do not match",
+        description: "The new password and confirm password do not match.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    // Mocking password change API request
+    fetch(`${process.env.REACT_APP_API_URL}/api/users/change-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        currentPassword,
+        newPassword,
+        userId: user.id,
+      }),
+    })
+      .then((response) => {
+        if (response.ok) {
+          toast({
+            title: "Password updated",
+            description: "Your password has been updated successfully.",
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
+          onChangePassClose();
+          setCurrentPassword("");
+          setNewPassword("");
+          setConfirmPassword("");
+        } else {
+          toast({
+            title: "Error",
+            description: "Incorrect current password or an error occurred.",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Error changing password:", error);
+        toast({
+          title: "Error changing password",
+          description: "An error occurred while changing your password.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      });
+  };
+
   // Colors and effects
   const bgGradient = useColorModeValue(
     "linear(to-r, teal.100, green.100)",
@@ -116,13 +186,13 @@ const Profile = () => {
         <Box
           w={["90%", "400px"]}
           bgGradient={bgGradient}
-          p={6}
+          p={8}
           borderRadius="lg"
           boxShadow={boxShadow}
           transition="all 0.3s ease"
           _hover={{ transform: "scale(1.02)" }}
         >
-          <VStack spacing={4} textAlign="center">
+          <VStack spacing={6} textAlign="center">
             <Avatar size="2xl" name={user.name} src={user.avatarUrl} />
             <Heading as="h2" size="lg" color={headingColor}>
               {user.name}
@@ -133,7 +203,7 @@ const Profile = () => {
 
             <Divider borderColor="teal.300" />
 
-            <HStack spacing={4} mt={4}>
+            <HStack spacing={4} mt={4} justifyContent="center">
               <Button
                 leftIcon={<FaEdit />}
                 colorScheme="teal"
@@ -142,6 +212,15 @@ const Profile = () => {
                 onClick={onOpen}
               >
                 Edit Profile
+              </Button>
+              <Button
+                leftIcon={<FiLock />}
+                colorScheme="blue"
+                variant="solid"
+                size="md"
+                onClick={onChangePassOpen} // Open Change Password Modal
+              >
+                Change Password
               </Button>
             </HStack>
           </VStack>
@@ -185,6 +264,58 @@ const Profile = () => {
                   Save Changes
                 </Button>
                 <Button variant="ghost" onClick={onClose}>
+                  Cancel
+                </Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
+
+          {/* Change Password Modal */}
+          <Modal isOpen={isChangePassOpen} onClose={onChangePassClose}>
+            <ModalOverlay />
+            <ModalContent>
+              <ModalHeader>Change Password</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+                <VStack spacing={4}>
+                  <FormControl isRequired>
+                    <FormLabel>Current Password</FormLabel>
+                    <Input
+                      type="password"
+                      placeholder="Enter current password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                    />
+                  </FormControl>
+                  <FormControl isRequired>
+                    <FormLabel>New Password</FormLabel>
+                    <Input
+                      type="password"
+                      placeholder="Enter new password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                  </FormControl>
+                  <FormControl isRequired>
+                    <FormLabel>Confirm New Password</FormLabel>
+                    <Input
+                      type="password"
+                      placeholder="Confirm new password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                  </FormControl>
+                </VStack>
+              </ModalBody>
+              <ModalFooter>
+                <Button
+                  colorScheme="blue"
+                  mr={3}
+                  onClick={handleChangePassword}
+                >
+                  Update Password
+                </Button>
+                <Button variant="ghost" onClick={onChangePassClose}>
                   Cancel
                 </Button>
               </ModalFooter>

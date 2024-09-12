@@ -12,6 +12,8 @@ import {
   HStack,
   Heading,
   Container,
+  Progress,
+  useToast,
 } from "@chakra-ui/react";
 import { FiUpload, FiSend, FiHeart, FiMessageSquare } from "react-icons/fi";
 
@@ -60,20 +62,24 @@ const getMedia = (id) => {
 const Mastodon = () => {
   const [message, setMessage] = useState("");
   const [media, setMedia] = useState(null);
+  const [mediaProgress, setMediaProgress] = useState(0);
   const [posts, setPosts] = useState(() => {
     const savedPosts = localStorage.getItem("posts");
     return savedPosts ? JSON.parse(savedPosts) : [];
   });
+  const [likedPosts, setLikedPosts] = useState([]); // To track liked posts
+  const [likedComments, setLikedComments] = useState([]); // To track liked comments
   const [currentUser, setCurrentUser] = useState(null); // Store the logged-in user
   const [comment, setComment] = useState("");
   const [commentingOn, setCommentingOn] = useState(null);
+  const [replyingToComment, setReplyingToComment] = useState(null); // For replying to comments
+  const toast = useToast();
 
   useEffect(() => {
-    // Fetch current user from users.json
-    fetch("/users.json")
+    // Fetch current user from the new API endpoint
+    fetch(`${process.env.REACT_APP_API_URL}/api/users`)
       .then((response) => response.json())
       .then((users) => {
-        // Assuming there is an `isLoggedIn` flag in the user object
         const loggedInUser = users.find((user) => user.isLoggedIn);
         setCurrentUser(loggedInUser);
       })
@@ -87,9 +93,23 @@ const Mastodon = () => {
   const handleMediaUpload = async (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
+    reader.onloadstart = () => setMediaProgress(0); // Start progress at 0%
+    reader.onprogress = (e) => {
+      if (e.lengthComputable) {
+        const progress = Math.round((e.loaded / e.total) * 100);
+        setMediaProgress(progress);
+      }
+    };
     reader.onloadend = async () => {
       const mediaId = await storeMedia(reader.result); // Store media in IndexedDB
       setMedia(mediaId); // Save the mediaId
+      toast({
+        title: "Media uploaded!",
+        description: "Your media has been uploaded successfully.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
     };
     reader.readAsDataURL(file);
   };
@@ -113,33 +133,38 @@ const Mastodon = () => {
       setPosts([newPost, ...posts]);
       setMessage("");
       setMedia(null);
+      setMediaProgress(0); // Reset progress after posting
     }
   };
 
-  const handleLike = (id, parentId, type = "post") => {
-    let updatedPosts = posts;
+  const handleLike = (id, type = "post", parentId = null) => {
     if (type === "post") {
-      updatedPosts = posts.map((post) =>
+      if (likedPosts.includes(id)) return; // Prevent multiple likes
+      const updatedPosts = posts.map((post) =>
         post.id === id ? { ...post, likes: post.likes + 1 } : post
       );
+      setPosts(updatedPosts);
+      setLikedPosts([...likedPosts, id]); // Track liked posts
     } else if (type === "comment") {
-      updatedPosts = posts.map((post) =>
+      if (likedComments.includes(id)) return; // Prevent multiple likes on comments
+      const updatedPosts = posts.map((post) =>
         post.id === parentId
           ? {
               ...post,
               comments: post.comments.map((comment) =>
                 comment.id === id
-                  ? { ...comment, likes: (comment.likes || 0) + 1 }
+                  ? { ...comment, likes: comment.likes + 1 }
                   : comment
               ),
             }
           : post
       );
+      setPosts(updatedPosts);
+      setLikedComments([...likedComments, id]); // Track liked comments
     }
-    setPosts(updatedPosts);
   };
 
-  const handleCommentSubmit = (id, parentId, type = "post") => {
+  const handleCommentSubmit = (id, parentId = null) => {
     if (!currentUser) {
       alert("No user logged in!");
       return;
@@ -147,37 +172,35 @@ const Mastodon = () => {
 
     const newComment = {
       id: new Date().getTime(),
-      user: currentUser, // Add the logged-in user data to the comment
+      user: currentUser,
       message: comment,
       likes: 0,
-      comments: [],
+      comments: [], // Initialize comments array for nested comments
       timestamp: new Date().toISOString(),
     };
 
-    let updatedPosts = posts;
-    if (type === "post") {
-      updatedPosts = posts.map((post) =>
-        post.id === id
-          ? { ...post, comments: [...post.comments, newComment] }
-          : post
-      );
-    } else if (type === "comment") {
-      updatedPosts = posts.map((post) =>
-        post.id === parentId
-          ? {
-              ...post,
-              comments: post.comments.map((c) =>
-                c.id === id
-                  ? { ...c, comments: [...c.comments, newComment] }
-                  : c
-              ),
-            }
-          : post
-      );
-    }
+    const updatedPosts = posts.map((post) => {
+      if (post.id === id) {
+        if (parentId) {
+          return {
+            ...post,
+            comments: post.comments.map((comment) =>
+              comment.id === parentId
+                ? { ...comment, comments: [...comment.comments, newComment] }
+                : comment
+            ),
+          };
+        } else {
+          return { ...post, comments: [...post.comments, newComment] };
+        }
+      }
+      return post;
+    });
+
     setPosts(updatedPosts);
     setComment("");
     setCommentingOn(null);
+    setReplyingToComment(null);
   };
 
   return (
@@ -212,6 +235,9 @@ const Mastodon = () => {
           mb={4}
           borderColor="gray.300"
         />
+        {mediaProgress > 0 && (
+          <Progress value={mediaProgress} size="xs" colorScheme="blue" mb={4} />
+        )}
         <Box display="flex" alignItems="center" justifyContent="space-between">
           {/* Media Upload Button */}
           <label htmlFor="media-upload">
@@ -268,7 +294,7 @@ const Mastodon = () => {
                 <Image
                   borderRadius="full"
                   boxSize="40px"
-                  src="/path/to/default-avatar.jpg"
+                  src="/default-avatar.jpg"
                   alt="Default Avatar"
                 />
               )}
@@ -294,7 +320,8 @@ const Mastodon = () => {
                 size="sm"
                 colorScheme="pink"
                 leftIcon={<FiHeart />}
-                onClick={() => handleLike(post.id, null, "post")}
+                onClick={() => handleLike(post.id)}
+                isDisabled={likedPosts.includes(post.id)} // Disable like button if already liked
               >
                 Like ({post.likes})
               </Button>
@@ -320,7 +347,7 @@ const Mastodon = () => {
                 />
                 <Button
                   colorScheme="blue"
-                  onClick={() => handleCommentSubmit(post.id, null, "post")}
+                  onClick={() => handleCommentSubmit(post.id)}
                 >
                   Submit Comment
                 </Button>
@@ -340,7 +367,9 @@ const Mastodon = () => {
                     comment={comment}
                     postId={post.id}
                     onLike={handleLike}
-                    onComment={handleCommentSubmit}
+                    handleCommentSubmit={handleCommentSubmit}
+                    replyingToComment={replyingToComment}
+                    setReplyingToComment={setReplyingToComment}
                   />
                 ))}
               </>
@@ -375,9 +404,15 @@ const PostMedia = ({ mediaId }) => {
   );
 };
 
-const Comment = ({ comment, postId, onLike, onComment }) => {
+const Comment = ({
+  comment,
+  postId,
+  onLike,
+  handleCommentSubmit,
+  replyingToComment,
+  setReplyingToComment,
+}) => {
   const [commentReply, setCommentReply] = useState("");
-  const [replyingTo, setReplyingTo] = useState(null);
 
   return (
     <Box mt={4} pl={4} borderLeft="2px solid gray">
@@ -393,7 +428,7 @@ const Comment = ({ comment, postId, onLike, onComment }) => {
           <Image
             borderRadius="full"
             boxSize="30px"
-            src="/path/to/default-avatar.jpg"
+            src="/default-avatar.jpg"
             alt="Default Avatar"
           />
         )}
@@ -410,7 +445,8 @@ const Comment = ({ comment, postId, onLike, onComment }) => {
           size="xs"
           colorScheme="pink"
           leftIcon={<FiHeart />}
-          onClick={() => onLike(comment.id, postId, "comment")}
+          onClick={() => onLike(comment.id, "comment", postId)}
+          isDisabled={replyingToComment && replyingToComment === comment.id} // Disable if already replied
         >
           Like ({comment.likes || 0})
         </Button>
@@ -418,15 +454,15 @@ const Comment = ({ comment, postId, onLike, onComment }) => {
           size="xs"
           colorScheme="gray"
           leftIcon={<FiMessageSquare />}
-          onClick={() => setReplyingTo(comment.id)}
+          onClick={() => setReplyingToComment(comment.id)}
         >
-          Reply ({comment.comments ? comment.comments.length : 0})
+          Reply
         </Button>
       </HStack>
 
-      {/* Reply Input */}
-      {replyingTo === comment.id && (
-        <Box mt={2}>
+      {/* Nested comment input */}
+      {replyingToComment === comment.id && (
+        <Box mt={4} pl={4}>
           <Textarea
             size="sm"
             placeholder="Write a reply..."
@@ -439,9 +475,9 @@ const Comment = ({ comment, postId, onLike, onComment }) => {
             size="sm"
             colorScheme="blue"
             onClick={() => {
-              onComment(comment.id, postId, "comment", commentReply);
+              handleCommentSubmit(postId, comment.id);
               setCommentReply("");
-              setReplyingTo(null);
+              setReplyingToComment(null);
             }}
           >
             Submit Reply
@@ -458,7 +494,9 @@ const Comment = ({ comment, postId, onLike, onComment }) => {
               comment={nestedComment}
               postId={postId}
               onLike={onLike}
-              onComment={onComment}
+              handleCommentSubmit={handleCommentSubmit}
+              replyingToComment={replyingToComment}
+              setReplyingToComment={setReplyingToComment}
             />
           ))}
         </VStack>

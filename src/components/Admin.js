@@ -146,7 +146,7 @@ const Admin = () => {
         Add App
       </Button>
 
-      <Table variant="simple" bg="white" borderRadius="md" shadow="md">
+      <Table variant="simple">
         <Thead>
           <Tr>
             <Th>#</Th>

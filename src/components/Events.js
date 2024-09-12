@@ -157,6 +157,7 @@ const Events = () => {
         bg="white"
         boxShadow="xl"
         borderRadius="lg"
+        variant="simple"
         p={6}
         mb={6}
         _hover={{ boxShadow: "2xl", transform: "translateY(-5px)" }}

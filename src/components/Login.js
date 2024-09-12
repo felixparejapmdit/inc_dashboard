@@ -74,81 +74,106 @@ const Login = () => {
       alignItems="center"
       justifyContent="center"
       bgGradient="linear(to-r, #F5F5F5, #f0f4ff)"
+      p={0}
     >
-      <Box
-        bg="white"
-        p={10}
-        borderRadius="md"
+      <Flex
+        width="100%"
+        maxW="800px" // Setting a max width to fit both the form and image
+        height="500px" // Adjust height to match the reference image
         boxShadow="xl"
-        width={["90%", "400px"]}
-        position="relative"
+        borderRadius="md"
+        overflow="hidden"
       >
-        {/* Replace Logo Placeholder with Image */}
-        <Box mb={4} display="flex" justifyContent="center">
-          <Image src="/apps_logo.jpg" alt="Logo" boxSize="60px" />
+        {/* Left-side Login Form */}
+        <Box
+          bg="white"
+          width={["100%", "50%", "50%"]} // 50% width for form
+          p={10}
+          display="flex"
+          flexDirection="column"
+          justifyContent="center"
+        >
+          <Box mb={4} display="flex" justifyContent="center">
+            <Image src="/apps_logo.png" alt="Logo" boxSize="60px" />
+          </Box>
+
+          <Heading
+            as="h2"
+            mb={6}
+            size="lg"
+            textAlign="center"
+            color="#4a4a4a"
+            textTransform="uppercase"
+          >
+            Dashboard Apps!
+          </Heading>
+
+          <VStack as="form" onSubmit={handleSubmit} spacing={6}>
+            <FormControl id="username" className="floating-label">
+              <Input
+                type="text"
+                placeholder=" "
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                bg="white"
+                color="black"
+                className="animated-input"
+                focusBorderColor="#a1a5a5"
+                borderRadius="md"
+                boxShadow="sm"
+              />
+              <FormLabel>Username</FormLabel>
+            </FormControl>
+
+            <FormControl id="password" className="floating-label">
+              <Input
+                type="password"
+                placeholder=" "
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                bg="white"
+                color="black"
+                className="animated-input"
+                focusBorderColor="#a1a5a5"
+                borderRadius="md"
+                boxShadow="sm"
+              />
+              <FormLabel>Password</FormLabel>
+            </FormControl>
+
+            <Button
+              type="submit"
+              width="100%"
+              bgGradient="linear(to-r, #1C1F33, #232946)" // Formal dark blue gradient
+              color="white"
+              _hover={{ bgGradient: "linear(to-r, #1B1E2D, #1F2539)" }} // Slightly darker hover gradient
+              _active={{ bgGradient: "linear(to-r, #1B1E2D, #1F2539)" }} // Active state matches hover
+              boxShadow="lg"
+              py={6}
+            >
+              Log In
+            </Button>
+
+            {error && <Text color="red.500">{error}</Text>}
+          </VStack>
         </Box>
 
-        <Heading
-          as="h2"
-          mb={6}
-          size="lg"
-          textAlign="center"
-          color="#4a4a4a"
-          textTransform="uppercase"
+        {/* Right-side image of application icons */}
+        <Box
+          width={["0", "50%", "50%"]} // 50% width for image
+          height="100%" // Match height with form
+          display={["none", "block"]}
         >
-          Dashboard Apps!
-        </Heading>
-        {/* <Text mb={6} textAlign="center" color="#8a8a8a">
-          User Login
-        </Text> */}
-
-        <VStack as="form" onSubmit={handleSubmit} spacing={6}>
-          <FormControl id="username" className="floating-label">
-            <Input
-              type="text"
-              placeholder=" "
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              bg="white"
-              className="animated-input"
-              focusBorderColor="#7D00FF"
-              borderRadius="md"
-              boxShadow="sm"
-            />
-            <FormLabel>Username</FormLabel>
-          </FormControl>
-
-          <FormControl id="password" className="floating-label">
-            <Input
-              type="password"
-              placeholder=" "
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              bg="white"
-              className="animated-input"
-              focusBorderColor="#7D00FF"
-              borderRadius="md"
-              boxShadow="sm"
-            />
-            <FormLabel>Password</FormLabel>
-          </FormControl>
-
-          <Button
-            type="submit"
+          <Image
+            src="/app-icons-image.jpg" // Replace with the actual image path
+            alt="Applications"
+            objectFit="cover"
             width="100%"
-            bgGradient="linear(to-r, #1C1F33, #232946)" // Formal dark blue gradient
-            color="white"
-            _hover={{ bgGradient: "linear(to-r, #1B1E2D, #1F2539)" }} // Slightly darker hover gradient
-            _active={{ bgGradient: "linear(to-r, #1B1E2D, #1F2539)" }} // Active state matches hover
-            boxShadow="lg"
-            py={6}
-          >
-            Log In
-          </Button>
-
-          {error && <Text color="red.500">{error}</Text>}
-        </VStack>
-      </Box>
+            height="100%" // Make the image cover the full height of the box
+            opacity={0.5} // Slight opacity for the image
+          />
+        </Box>
+      </Flex>
     </Flex>
   );
 };

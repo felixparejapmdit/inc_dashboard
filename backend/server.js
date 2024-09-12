@@ -6,6 +6,7 @@ const path = require("path"); // Added to resolve file paths
 const app = express();
 const PORT = 5000;
 
+app.use(express.json()); // Middleware to parse JSON request bodies
 app.use(cors());
 app.use(bodyParser.json({ limit: "10mb" })); // Increased limit to handle Base64 images
 

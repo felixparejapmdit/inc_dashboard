@@ -42,7 +42,7 @@
     "name": "Kyrt Jurada",
     "email": "jurada@gmail.com",
     "avatarUrl": "",
-    "isLoggedIn": false,
+    "isLoggedIn": true,
     "availableApps": [
       "LMS",
       "PV Inventory"
@@ -67,12 +67,12 @@
     "name": "Kim Amaro",
     "email": "amaro@yahoo.com",
     "avatarUrl": "",
-    "isLoggedIn": false,
+    "isLoggedIn": true,
     "availableApps": [
       "Next Cloud",
-      "LMS",
       "PV Inventory",
-      "INC Hymns"
+      "INC Hymns",
+      "Suguan"
     ],
     "id": 1726064340440
   }

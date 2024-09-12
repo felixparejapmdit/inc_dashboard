@@ -29,10 +29,10 @@
   top: -15px; /* Moves the label above */
   left: 10px;
   font-size: 12px;
-  color: #7d00ff;
+  color: #1e1e1f;
 }
 
 .animated-input:focus {
-  border-color: #7d00ff;
+  border-color: #1e1e1f;
   box-shadow: 0 0 8px rgba(125, 0, 255, 0.4);
 }

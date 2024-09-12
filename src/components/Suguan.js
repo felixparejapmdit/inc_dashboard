@@ -213,8 +213,8 @@ const Suguan = () => {
       ) : (
         <SimpleGrid columns={2} spacing={6}>
           <VStack align="stretch">
-            <Heading as="h3" size="lg" mb={4}>
-              Midweek (Mon-Thu)
+            <Heading align="center" as="h3" size="lg" mb={4}>
+              Midweek
             </Heading>
             {midweekSuguan.length === 0 ? (
               <Text>No Midweek Suguan</Text>
@@ -243,13 +243,13 @@ const Suguan = () => {
                   <Box mt={3}>
                     <IconButton
                       icon={<FiEdit />}
-                      colorScheme="blue"
+                      colorScheme="gray"
                       onClick={() => handleEditSuguan(item)}
                       mr={2}
                     />
                     <IconButton
                       icon={<FiTrash2 />}
-                      colorScheme="red"
+                      colorScheme="gray"
                       onClick={() => handleDeleteSuguan(item.id)}
                     />
                   </Box>
@@ -259,8 +259,8 @@ const Suguan = () => {
           </VStack>
 
           <VStack align="stretch">
-            <Heading as="h3" size="lg" mb={4}>
-              Weekend (Fri-Sun)
+            <Heading align="center" as="h3" size="lg" mb={4}>
+              Weekend
             </Heading>
             {weekendSuguan.length === 0 ? (
               <Text>No Weekend Suguan</Text>
@@ -289,13 +289,13 @@ const Suguan = () => {
                   <Box mt={3}>
                     <IconButton
                       icon={<FiEdit />}
-                      colorScheme="blue"
+                      colorScheme="gray"
                       onClick={() => handleEditSuguan(item)}
                       mr={2}
                     />
                     <IconButton
                       icon={<FiTrash2 />}
-                      colorScheme="red"
+                      colorScheme="gray"
                       onClick={() => handleDeleteSuguan(item.id)}
                     />
                   </Box>
