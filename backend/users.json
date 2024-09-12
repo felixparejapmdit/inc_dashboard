@@ -6,7 +6,7 @@
     "name": "Felix Pareja",
     "avatarUrl": "/path/to/avatar.jpg",
     "email": "felixpareja.pmdit007@yahoo.com",
-    "isLoggedIn": true,
+    "isLoggedIn": false,
     "availableApps": [
       "Next Cloud",
       "LMS",
