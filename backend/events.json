@@ -2,7 +2,7 @@
   {
     "id": 3,
     "eventName": "TRAINING",
-    "date": "2024-09-11",
+    "date": "2024-09-16",
     "time": "13:30",
     "location": "MPH"
   },
@@ -15,14 +15,14 @@
   },
   {
     "eventName": "MEETING",
-    "date": "2024-09-11",
-    "time": "23:35",
+    "date": "2024-09-18",
+    "time": "15:00",
     "location": "MPH",
     "id": 1726036690671
   },
   {
     "eventName": "SEMINAR",
-    "date": "2024-09-09",
+    "date": "2024-09-16",
     "time": "15:00",
     "location": "MPH",
     "id": 1726037084162
@@ -33,12 +33,5 @@
     "time": "08:00",
     "location": "5th Floor Conference Room",
     "id": 1726042357752
-  },
-  {
-    "eventName": "",
-    "date": "",
-    "time": "",
-    "location": "",
-    "id": 1726042378802
   }
 ]

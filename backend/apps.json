@@ -7,13 +7,13 @@
   },
   {
     "name": "LMS",
-    "url": "https://www.youtube.com",
+    "url": "https://lms.pmdmc.net/",
     "description": "Letter Management System",
     "icon": ""
   },
   {
     "name": "PV Inventory",
-    "url": "https://slack.com",
+    "url": "https://pvinv.pmdmc.net/PVLogs",
     "description": "PV Inventory",
     "icon": ""
   },
@@ -24,9 +24,9 @@
     "icon": ""
   },
   {
-    "name": "EMV Media",
-    "url": "https://www.google.com",
-    "description": "EVM Media",
+    "name": "PMD Media",
+    "url": "http://172.18.121.48/",
+    "description": "PMD Media",
     "icon": ""
   },
   {
@@ -39,6 +39,12 @@
     "name": "Suguan",
     "url": "http://172.18.125.134:3000/add-suguan",
     "description": "WS Suguan",
+    "icon": null
+  },
+  {
+    "name": "Snipe IT",
+    "url": "https://pvinv.pmdmc.net",
+    "description": "Snipe IT",
     "icon": null
   }
 ]
