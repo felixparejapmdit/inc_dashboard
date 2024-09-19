@@ -6,7 +6,7 @@
     "name": "Felix Pareja",
     "avatarUrl": "/path/to/avatar.jpg",
     "email": "felixpareja.pmdit007@yahoo.com",
-    "isLoggedIn": false,
+    "isLoggedIn": true,
     "availableApps": [
       "Next Cloud",
       "LMS",
@@ -24,7 +24,7 @@
     "name": "Karl Dematera",
     "email": "kdematera@gmail.com",
     "avatarUrl": "",
-    "isLoggedIn": false,
+    "isLoggedIn": true,
     "availableApps": [
       "Next Cloud",
       "LMS",
@@ -42,7 +42,7 @@
     "name": "Kyrt Jurada",
     "email": "jurada@gmail.com",
     "avatarUrl": "",
-    "isLoggedIn": true,
+    "isLoggedIn": false,
     "availableApps": [
       "LMS",
       "PV Inventory"
