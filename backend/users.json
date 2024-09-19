@@ -25,8 +25,13 @@
     "name": "Karl Dematera",
     "email": "kdematera@gmail.com",
     "avatarUrl": "",
-    "isLoggedIn": false,
-    "availableApps": ["Next Cloud", "LMS", "Suguan", "PMD Media"]
+    "isLoggedIn": true,
+    "availableApps": [
+      "Next Cloud",
+      "LMS",
+      "Suguan",
+      "PMD Media"
+    ]
   },
   {
     "id": 1725957225072,
@@ -36,7 +41,10 @@
     "email": "jurada@gmail.com",
     "avatarUrl": "",
     "isLoggedIn": false,
-    "availableApps": ["LMS", "PV Inventory"]
+    "availableApps": [
+      "LMS",
+      "PV Inventory"
+    ]
   },
   {
     "username": "tramos",
@@ -45,7 +53,10 @@
     "email": "tramos@gmail.com",
     "avatarUrl": "",
     "isLoggedIn": false,
-    "availableApps": ["Next Cloud", "Suguan"],
+    "availableApps": [
+      "Next Cloud",
+      "Suguan"
+    ],
     "id": 1726042675203
   },
   {
@@ -54,8 +65,13 @@
     "name": "Kim Amaro",
     "email": "amaro@yahoo.com",
     "avatarUrl": "",
-    "isLoggedIn": true,
-    "availableApps": ["Next Cloud", "PV Inventory", "INC Hymns", "Suguan"],
+    "isLoggedIn": false,
+    "availableApps": [
+      "Next Cloud",
+      "PV Inventory",
+      "INC Hymns",
+      "Suguan"
+    ],
     "id": 1726064340440
   }
 ]
