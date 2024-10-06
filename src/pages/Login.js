@@ -105,7 +105,7 @@ const Login = () => {
             color="#4a4a4a"
             textTransform="uppercase"
           >
-            Dashboard Apps!
+            PMD Personnel Info
           </Heading>
 
           <VStack as="form" onSubmit={handleSubmit} spacing={6}>

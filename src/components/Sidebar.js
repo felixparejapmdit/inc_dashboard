@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   VStack,
@@ -10,6 +10,12 @@ import {
   useColorModeValue,
   Image,
   Collapse,
+  AlertDialog,
+  AlertDialogOverlay,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogBody,
+  AlertDialogFooter,
 } from "@chakra-ui/react";
 import {
   FiHome,
@@ -23,18 +29,20 @@ import {
   FiArrowDown,
   FiGrid,
   FiUsers,
-} from "react-icons/fi"; // Import additional icons
+} from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
 const Sidebar = ({ currentUser, onSidebarToggle }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isSettingsExpanded, setIsSettingsExpanded] = useState(false); // State for expanding settings submenu
   const [user, setUser] = useState({ name: "", avatarUrl: "" }); // State to store logged-in user
+  const [isLogoutAlertOpen, setIsLogoutAlertOpen] = useState(false); // State for the alert dialog
   const bgGradient = useColorModeValue(
     "linear(to-r, gray.50, gray.100)",
     "linear(to-r, gray.800, gray.900)"
   );
   const iconColor = useColorModeValue("gray.600", "gray.300");
+  const cancelRef = useRef(); // Reference for cancel button in the alert dialog
   const navigate = useNavigate();
 
   // Fetch the logged-in user info from backend/users.json
@@ -63,7 +71,6 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
 
   // Handle Logout
   const handleLogout = () => {
-    // Set the logged-in user as logged out in the backend
     fetch(`${process.env.REACT_APP_API_URL}/api/logout`, {
       method: "POST",
       headers: {
@@ -73,8 +80,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
     })
       .then((response) => {
         if (response.ok) {
-          // Navigate to login page after logging out
-          navigate("/login");
+          navigate("/login"); // Navigate to login page after logging out
         } else {
           console.error("Failed to log out.");
         }
@@ -85,6 +91,16 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
   // Handle Settings toggle
   const handleSettingsToggle = () => {
     setIsSettingsExpanded(!isSettingsExpanded); // Toggle the settings sub-menu
+  };
+
+  // Open Logout Confirmation Dialog
+  const openLogoutDialog = () => {
+    setIsLogoutAlertOpen(true);
+  };
+
+  // Close Logout Confirmation Dialog
+  const closeLogoutDialog = () => {
+    setIsLogoutAlertOpen(false);
   };
 
   return (
@@ -160,18 +176,25 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
               isExpanded={isExpanded}
               onClick={() => navigate("/add-events")} // Redirect to Events.js
             />
-            <SidebarItem
-              icon={FiBell}
-              label="Reminders"
-              isExpanded={isExpanded}
-              onClick={() => navigate("/add-reminders")} // Redirect to Reminders.js
-            />
-            <SidebarItem
-              icon={FiPlusCircle}
-              label="PMD Media"
-              isExpanded={isExpanded}
-              onClick={() => navigate("/Mastodon")} // Redirect to Mastodon.js
-            />
+            {/* Conditionally hide Reminders */}
+            {false && ( // Set this to a variable or condition
+              <SidebarItem
+                icon={FiBell}
+                label="Reminders"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/add-reminders")} // Redirect to Reminders.js
+              />
+            )}
+
+            {/* Conditionally hide PMD Media */}
+            {false && ( // Set this to a variable or condition
+              <SidebarItem
+                icon={FiPlusCircle}
+                label="PMD Media"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/Mastodon")} // Redirect to Mastodon.js
+              />
+            )}
           </VStack>
         </Collapse>
       </VStack>
@@ -204,9 +227,36 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
           icon={FiLogOut}
           label="Log Out"
           isExpanded={isExpanded}
-          onClick={handleLogout} // Handle logout
+          onClick={openLogoutDialog} // Show the logout confirmation dialog
         />
       </Box>
+
+      {/* Logout Confirmation Alert Dialog */}
+      <AlertDialog
+        isOpen={isLogoutAlertOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={closeLogoutDialog}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Confirm Logout
+            </AlertDialogHeader>
+            <AlertDialogBody>
+              Are you sure you want to log out? You will need to log in again to
+              access the dashboard.
+            </AlertDialogBody>
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={closeLogoutDialog}>
+                Cancel
+              </Button>
+              <Button colorScheme="red" onClick={handleLogout} ml={3}>
+                Log Out
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </Flex>
   );
 };

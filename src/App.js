@@ -5,17 +5,17 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import Login from "./components/Login";
-import Dashboard from "./components/Dashboard";
-import Admin from "./components/Admin";
-import Profile from "./components/Profile"; // Import Profile Page
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import Admin from "./pages/Admin";
+import Profile from "./pages/Profile"; // Import Profile Page
 import Layout from "./components/Layout"; // Import Layout to wrap around pages
-import AddApps from "./components/Admin"; // Import AddApps Page
-import Users from "./components/Users"; // Import User Page
-import AddSuguan from "./components/Suguan"; // Import AddSuguan Page
-import AddEvents from "./components/Events"; // Import AddEvents Page
-import AddReminders from "./components/Reminders"; // Import AddReminders Page
-import Mastodon from "./components/Mastodon"; // Import Mastodon Page
+import AddApps from "./pages/Admin"; // Import AddApps Page
+import Users from "./pages/Users"; // Import User Page
+import AddSuguan from "./pages/Suguan"; // Import AddSuguan Page
+import AddEvents from "./pages/Events"; // Import AddEvents Page
+import AddReminders from "./pages/Reminders"; // Import AddReminders Page
+import Mastodon from "./pages/Mastodon"; // Import Mastodon Page
 import customTheme from "./theme"; // Optional if you're using a custom theme
 
 function App() {

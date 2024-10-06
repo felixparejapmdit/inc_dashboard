@@ -225,7 +225,16 @@ export default function Dashboard() {
         </Popover>
       </HStack>
 
-      <SimpleGrid columns={3} spacing={6} mb={8}>
+      <SimpleGrid
+        columns={2}
+        spacing={6}
+        mb={8}
+        maxW="100%" // Allow the grid to use the full available width
+        w="90%" // Increase the width to 90% of the available space
+        justifyContent="center"
+        alignItems="center"
+        minH="10vh"
+      >
         <Tooltip
           label={
             hoveredEvent ? (
@@ -264,42 +273,44 @@ export default function Dashboard() {
           </Box>
         </Tooltip>
 
-        <Tooltip
-          label={
-            hoveredReminder ? (
-              <VStack align="start" spacing={2}>
-                {reminders.map((reminder) => (
-                  <Box key={reminder.id}>
-                    <Text fontWeight="bold">{reminder.title}</Text>
-                    <Text>{reminder.date}</Text>
-                  </Box>
-                ))}
-              </VStack>
-            ) : (
-              "Hover to see reminder details"
-            )
-          }
-          placement="top"
-          hasArrow
-          isOpen={!!hoveredReminder}
-        >
-          <Box
-            bg="green.500"
-            p={6}
-            borderRadius="lg"
-            color="white"
-            onMouseEnter={() => setHoveredReminder(true)}
-            onMouseLeave={() => setHoveredReminder(false)}
-            transition="all 0.3s ease"
-            _hover={{ transform: "scale(1.05)", cursor: "pointer" }}
-            boxShadow="lg"
+        {false && ( // Set this to a variable or condition
+          <Tooltip
+            label={
+              hoveredReminder ? (
+                <VStack align="start" spacing={2}>
+                  {reminders.map((reminder) => (
+                    <Box key={reminder.id}>
+                      <Text fontWeight="bold">{reminder.title}</Text>
+                      <Text>{reminder.date}</Text>
+                    </Box>
+                  ))}
+                </VStack>
+              ) : (
+                "Hover to see reminder details"
+              )
+            }
+            placement="top"
+            hasArrow
+            isOpen={!!hoveredReminder}
           >
-            <Heading size="lg">{reminders.length}</Heading>
-            <Text>Pending Reminders</Text>
-          </Box>
-        </Tooltip>
+            <Box
+              bg="green.500"
+              p={6}
+              borderRadius="lg"
+              color="white"
+              onMouseEnter={() => setHoveredReminder(true)}
+              onMouseLeave={() => setHoveredReminder(false)}
+              transition="all 0.3s ease"
+              _hover={{ transform: "scale(1.05)", cursor: "pointer" }}
+              boxShadow="lg"
+            >
+              <Heading size="lg">{reminders.length}</Heading>
+              <Text>Pending Reminders</Text>
+            </Box>
+          </Tooltip>
+        )}
 
-        <Box bg="orange.500" p={6} borderRadius="lg" color="white">
+        <Box bg="green.500" p={6} borderRadius="lg" color="white">
           <Heading size="lg">{availableApps.length}</Heading>
           <Text>Available Apps</Text>
         </Box>
