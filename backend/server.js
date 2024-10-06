@@ -501,5 +501,5 @@ app.delete("/api/reminders/:id", (req, res) => {
 
 // --- Start server ---
 app.listen(PORT, () => {
-  console.log(`Server is running on http://172.21.16.1/:${PORT}`);
+  console.log(`Server is running on http://172.20.10.9/:${PORT}`);
 });

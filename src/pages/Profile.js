@@ -103,6 +103,20 @@ const Profile = () => {
       });
   };
 
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditUser((prevUser) => ({
+          ...prevUser,
+          avatarUrl: reader.result, // Convert image to base64 string
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   // Change Password Logic
   const handleChangePassword = () => {
     if (newPassword !== confirmPassword) {
@@ -115,6 +129,8 @@ const Profile = () => {
       });
       return;
     }
+
+    // Handle avatar image file change
 
     // Mocking password change API request
     fetch(`${process.env.REACT_APP_API_URL}/api/users/change-password`, {
@@ -250,11 +266,11 @@ const Profile = () => {
                     />
                   </FormControl>
                   <FormControl>
-                    <FormLabel>Avatar URL</FormLabel>
+                    <FormLabel>Avatar</FormLabel>
                     <Input
-                      name="avatarUrl"
-                      value={editUser.avatarUrl}
-                      onChange={handleInputChange}
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleAvatarChange(e)}
                     />
                   </FormControl>
                 </VStack>
