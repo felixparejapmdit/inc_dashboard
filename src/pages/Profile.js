@@ -77,7 +77,7 @@ const Profile = () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(editUser),
+      body: JSON.stringify(editUser), // Ensure avatarUrl is included here
     })
       .then((response) => response.json())
       .then(() => {
@@ -248,7 +248,25 @@ const Profile = () => {
               <ModalHeader>Edit Profile</ModalHeader>
               <ModalCloseButton />
               <ModalBody>
-                <VStack spacing={4}>
+                <VStack spacing={4} align="center">
+                  {/* Display the current avatar image */}
+                  {editUser.avatarUrl && (
+                    <Avatar
+                      size="2xl"
+                      name={editUser.name}
+                      src={editUser.avatarUrl} // Use the avatarUrl to show the current avatar
+                      mb={4}
+                    />
+                  )}
+
+                  <FormControl>
+                    <FormLabel>Avatar</FormLabel>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarChange}
+                    />
+                  </FormControl>
                   <FormControl isRequired>
                     <FormLabel>Name</FormLabel>
                     <Input
@@ -265,16 +283,9 @@ const Profile = () => {
                       onChange={handleInputChange}
                     />
                   </FormControl>
-                  <FormControl>
-                    <FormLabel>Avatar</FormLabel>
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleAvatarChange(e)}
-                    />
-                  </FormControl>
                 </VStack>
               </ModalBody>
+
               <ModalFooter>
                 <Button colorScheme="teal" mr={3} onClick={handleSaveChanges}>
                   Save Changes
