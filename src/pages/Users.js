@@ -10,6 +10,9 @@ import {
   Table,
   Thead,
   Tbody,
+  HStack,
+  Text,
+  Avatar,
   Tr,
   Th,
   Td,
@@ -199,8 +202,8 @@ const Users = () => {
       <Table variant="simple">
         <Thead>
           <Tr>
-            <Th>Username</Th>
             <Th>Name</Th>
+            <Th>Username</Th>
             <Th>Email</Th>
             <Th>Actions</Th>
           </Tr>
@@ -208,8 +211,13 @@ const Users = () => {
         <Tbody>
           {users.map((item, index) => (
             <Tr key={index}>
+              <Td>
+                <HStack spacing={3}>
+                  <Avatar size="sm" src={item.avatarUrl} name={item.name} />
+                  <Text>{item.name}</Text>
+                </HStack>
+              </Td>
               <Td>{item.username}</Td>
-              <Td>{item.name}</Td>
               <Td>{item.email}</Td>
               <Td>
                 <IconButton
