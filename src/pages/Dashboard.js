@@ -193,7 +193,7 @@ export default function Dashboard() {
           isRound
           size="lg"
           aria-label="Toggle color mode"
-          mr={4}
+          mr={0} // Remove margin between icons
         />
 
         {/* Notification Bell */}
@@ -204,6 +204,7 @@ export default function Dashboard() {
               isRound
               size="lg"
               aria-label="Notifications"
+              mr={0} // Remove margin to bring it closer to the color mode icon
             />
           </PopoverTrigger>
           <PopoverContent>
