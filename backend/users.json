@@ -16,7 +16,33 @@
       "Suguan",
       "Snipe IT",
       "PMD Media"
-    ]
+    ],
+    "educationalBackground": [
+      {
+        "degree": "Bachelor of Science in Computer Science",
+        "institution": "New EraUniversity",
+        "yearGraduated": "2011"
+      }
+    ],
+    "workInformation": [
+      {
+        "position": "Software Engineer",
+        "company": "PMD",
+        "yearsWorked": "1"
+      }
+    ],
+    "familyDetails": {
+      "spouse": {
+        "name": "",
+        "age": ""
+      },
+      "children": [
+        {
+          "name": "",
+          "age": ""
+        }
+      ]
+    }
   },
   {
     "id": 1725955037371,
@@ -26,12 +52,10 @@
     "email": "kdematera@gmail.com",
     "avatarUrl": "",
     "isLoggedIn": true,
-    "availableApps": [
-      "Next Cloud",
-      "LMS",
-      "Suguan",
-      "PMD Media"
-    ]
+    "availableApps": ["Next Cloud", "LMS", "Suguan", "PMD Media"],
+    "educationalBackground": [],
+    "workInformation": [],
+    "familyDetails": {}
   },
   {
     "id": 1725957225072,
@@ -41,37 +65,35 @@
     "email": "jurada@gmail.com",
     "avatarUrl": "",
     "isLoggedIn": false,
-    "availableApps": [
-      "LMS",
-      "PV Inventory"
-    ]
+    "availableApps": ["LMS", "PV Inventory"],
+    "educationalBackground": [],
+    "workInformation": [],
+    "familyDetails": {}
   },
   {
+    "id": 1726042675203,
     "username": "tramos",
     "password": "123456",
     "name": "Teo Ramos",
     "email": "tramos@gmail.com",
     "avatarUrl": "",
     "isLoggedIn": false,
-    "availableApps": [
-      "Next Cloud",
-      "Suguan"
-    ],
-    "id": 1726042675203
+    "availableApps": ["Next Cloud", "Suguan"],
+    "educationalBackground": [],
+    "workInformation": [],
+    "familyDetails": {}
   },
   {
+    "id": 1726064340440,
     "username": "kamaro",
     "password": "password",
     "name": "Kim Amaro",
     "email": "amaro@yahoo.com",
     "avatarUrl": "",
     "isLoggedIn": false,
-    "availableApps": [
-      "Next Cloud",
-      "PV Inventory",
-      "INC Hymns",
-      "Suguan"
-    ],
-    "id": 1726064340440
+    "availableApps": ["Next Cloud", "PV Inventory", "INC Hymns", "Suguan"],
+    "educationalBackground": [],
+    "workInformation": [],
+    "familyDetails": {}
   }
 ]
