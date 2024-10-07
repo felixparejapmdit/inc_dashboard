@@ -17,6 +17,105 @@ const usersFilePath = path.join(__dirname, "users.json");
 const eventsFilePath = path.join(__dirname, "events.json");
 const remindersFilePath = path.join(__dirname, "reminders.json");
 
+const ldap = require("ldapjs");
+
+app.use(bodyParser.json());
+app.use(cors());
+
+const LDAP_URL = "ldap://172.18.162.22";
+const BIND_DN = "cn=admin,dc=pmdmc,dc=test";
+const BIND_PASSWORD = "M@sunur1n";
+const BASE_DN = "dc=pmdmc,dc=test";
+
+// LDAP Authentication
+app.post("/api/login_ldap", (req, res) => {
+  const { username, password } = req.body;
+
+  const client = ldap.createClient({
+    url: LDAP_URL,
+  });
+
+  // Bind to the LDAP server
+  client.bind(BIND_DN, BIND_PASSWORD, (err) => {
+    if (err) {
+      console.error("LDAP bind failed:", err);
+      return res.status(500).json({ message: "LDAP bind failed", error: err });
+    }
+
+    // Search for the user in the LDAP directory
+    const searchOptions = {
+      filter: `(cn=${username})`, // Adjust the filter attribute if necessary
+      scope: "sub",
+    };
+
+    client.search(BASE_DN, searchOptions, (searchErr, searchRes) => {
+      if (searchErr) {
+        console.error("Search failed:", searchErr);
+        return res
+          .status(500)
+          .json({ message: "Search failed", error: searchErr });
+      }
+
+      let foundUser = null;
+      searchRes.on("searchEntry", (entry) => {
+        foundUser = entry.object;
+      });
+
+      searchRes.on("end", (result) => {
+        if (!foundUser) {
+          return res.status(401).json({ message: "User not found" });
+        }
+
+        // Verify the password by binding as the user
+        client.bind(foundUser.dn, password, (authErr) => {
+          if (authErr) {
+            console.error("Invalid credentials:", authErr);
+            return res.status(401).json({ message: "Invalid credentials" });
+          }
+
+          // User authenticated successfully
+          res
+            .status(200)
+            .json({ message: "Login successful", user: foundUser });
+
+          // Unbind the client
+          client.unbind((unbindErr) => {
+            if (unbindErr) {
+              console.error("LDAP unbind error:", unbindErr);
+            }
+          });
+        });
+      });
+    });
+  });
+});
+
+// API endpoint to get user details from LDAP
+app.get("/ldap/user/:username", (req, res) => {
+  const username = req.params.username;
+
+  // Bind (authenticate) to the LDAP server and fetch user
+  client.search(BASE_DN, searchOptions, (err, result) => {
+    if (err) {
+      return res.status(500).json({ error: "Failed to search LDAP" });
+    }
+
+    let user = null;
+
+    result.on("searchEntry", (entry) => {
+      user = entry.object;
+    });
+
+    result.on("end", () => {
+      if (user) {
+        res.json(user); // Return user data
+      } else {
+        res.status(404).json({ error: "User not found" });
+      }
+    });
+  });
+});
+
 // --- Apps Endpoints ---
 app.get("/api/apps", (req, res) => {
   fs.readFile(appsFilePath, "utf-8", (err, data) => {
@@ -501,5 +600,5 @@ app.delete("/api/reminders/:id", (req, res) => {
 
 // --- Start server ---
 app.listen(PORT, () => {
-  console.log(`Server is running on http://172.20.10.9/:${PORT}`);
+  console.log(`Server is running on http://localhost/:${PORT}`);
 });

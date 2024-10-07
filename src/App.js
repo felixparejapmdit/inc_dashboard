@@ -5,7 +5,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import Login from "./pages/Login";
+import Login from "./pages/LdapLogin";
 import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
 import Profile from "./pages/Profile"; // Import Profile Page
@@ -17,7 +17,7 @@ import AddEvents from "./pages/Events"; // Import AddEvents Page
 import AddReminders from "./pages/Reminders"; // Import AddReminders Page
 import Mastodon from "./pages/Mastodon"; // Import Mastodon Page
 import customTheme from "./theme"; // Optional if you're using a custom theme
-
+import LdapUser from "./pages/LdapUser"; // Assuming LdapUser page exists
 function App() {
   return (
     <ChakraProvider theme={customTheme}>
@@ -28,6 +28,8 @@ function App() {
 
           {/* Define the login route */}
           <Route path="/login" element={<Login />} />
+
+          <Route path="/ldap/user/:username" element={<LdapUser />} />
 
           {/* Routes wrapped with the sidebar layout */}
           <Route

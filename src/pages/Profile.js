@@ -393,6 +393,81 @@ const Profile = () => {
               {user.email}
             </Text>
 
+            {/* Educational Background */}
+            {user.educationalBackground &&
+              user.educationalBackground.length > 0 && (
+                <>
+                  <Heading as="h3" size="md" color={headingColor} mt={4}>
+                    Educational Background
+                  </Heading>
+                  {user.educationalBackground.map((education, index) => (
+                    <Box key={index}>
+                      <Text fontWeight="bold">{education.degree}</Text>
+                      <Text>{education.institution}</Text>
+                      <Text>{education.yearGraduated}</Text>
+                    </Box>
+                  ))}
+                </>
+              )}
+
+            {/* Work Information */}
+            {user.workInformation && user.workInformation.length > 0 && (
+              <>
+                <Heading as="h3" size="md" color={headingColor} mt={4}>
+                  Work Information
+                </Heading>
+                {user.workInformation.map((work, index) => (
+                  <Box key={index}>
+                    <Text fontWeight="bold">{work.position}</Text>
+                    <Text>{work.company}</Text>
+                    <Text>{work.yearsWorked} years</Text>
+                  </Box>
+                ))}
+              </>
+            )}
+
+            {/* Family Details */}
+            {user.familyDetails ? (
+              <>
+                <Heading as="h3" size="md" color={headingColor} mt={4}>
+                  Family Details
+                </Heading>
+                <Box>
+                  {/* Spouse Info */}
+                  <Text>Spouse: {user.familyDetails.spouse.name || "N/A"}</Text>
+                  <Text>
+                    Spouse Age: {user.familyDetails.spouse.age || "N/A"}
+                  </Text>
+
+                  {/* Children Info */}
+                  {user.familyDetails.children &&
+                  user.familyDetails.children.length > 0 ? (
+                    <>
+                      <Text>Children:</Text>
+                      {user.familyDetails.children.map((child, index) => (
+                        <Text key={index}>
+                          {child.name || "N/A"} - {child.age || "N/A"} years old
+                        </Text>
+                      ))}
+                    </>
+                  ) : (
+                    <Text>Children: N/A</Text>
+                  )}
+                </Box>
+              </>
+            ) : (
+              <>
+                <Heading as="h3" size="md" color={headingColor} mt={4}>
+                  Family Details
+                </Heading>
+                <Box>
+                  <Text>Spouse: N/A</Text>
+                  <Text>Spouse Age: N/A</Text>
+                  <Text>Children: N/A</Text>
+                </Box>
+              </>
+            )}
+
             <Divider borderColor="teal.300" />
 
             <HStack spacing={4} mt={4} justifyContent="center">
@@ -402,17 +477,16 @@ const Profile = () => {
                 variant="solid"
                 size="md"
                 onClick={onOpen}
-                aria-label="Edit Profile" // Provide an aria-label for accessibility
+                aria-label="Edit Profile"
               />
               <IconButton
                 icon={<FiLock />}
                 colorScheme="blue"
                 variant="solid"
                 size="md"
-                onClick={onChangePassOpen} // Open Change Password Modal
+                onClick={onChangePassOpen}
                 aria-label="Change Password"
               />
-              {/* Generate PDF Button */}
               <IconButton
                 icon={<FiFile />}
                 colorScheme="red"
