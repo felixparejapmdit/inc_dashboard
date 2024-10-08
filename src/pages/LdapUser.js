@@ -20,9 +20,10 @@ const LdapUser = () => {
   useEffect(() => {
     // Fetch the user details from your backend
     fetch(`http://localhost:5000/ldap/user/${username}`)
+      // Corrected dynamic URL
       .then((response) => {
         if (!response.ok) {
-          throw new Error("Failed to fetch user");
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.json();
       })

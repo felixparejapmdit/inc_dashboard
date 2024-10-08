@@ -65,5 +65,18 @@ module.exports = {
   // Resolve options for module resolution
   resolve: {
     extensions: [".js", ".jsx"], // Automatically resolve .js and .jsx extensions
+    fallback: {
+      stream: require.resolve("browserify-stream"),
+      crypto: require.resolve("crypto-browserify"),
+      buffer: require.resolve("buffer"),
+      assert: require.resolve("assert"),
+      util: require.resolve("util"),
+      path: require.resolve("path-browserify"),
+      process: require.resolve("process"),
+      http: require.resolve("stream-http"),
+      https: require.resolve("https-browserify"),
+      os: require.resolve("os-browserify/browser"),
+      url: require.resolve("url"),
+    },
   },
 };
