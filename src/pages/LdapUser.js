@@ -1,26 +1,34 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
 import {
   Box,
-  Avatar,
-  Heading,
-  Text,
-  VStack,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  TableContainer,
   Spinner,
+  VStack,
   Alert,
   AlertIcon,
+  Heading,
+  Text,
 } from "@chakra-ui/react";
 
-const LdapUser = () => {
-  const { username } = useParams(); // Capture the username from the URL params
-  const [user, setUser] = useState(null); // State to store user data
-  const [loading, setLoading] = useState(true); // State to track loading state
-  const [error, setError] = useState(null); // State to track errors
+// Utility function to extract the value for a specific type
+const getAttributeValue = (attributes, type) => {
+  const attribute = attributes.find((attr) => attr.type === type);
+  return attribute && attribute.values.length > 0 ? attribute.values[0] : "N/A";
+};
+
+const LdapUsers = () => {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Fetch the user details from your backend
-    fetch(`http://localhost:5000/ldap/user/${username}`)
-      // Corrected dynamic URL
+    fetch("http://localhost:5000/ldap/users") // Fetch from your API
       .then((response) => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -28,20 +36,20 @@ const LdapUser = () => {
         return response.json();
       })
       .then((data) => {
-        setUser(data);
-        setLoading(false); // Stop loading when data is fetched
+        setUsers(data); // Set the fetched users
+        setLoading(false);
       })
       .catch((err) => {
         setError(err.message);
-        setLoading(false); // Stop loading even if there's an error
+        setLoading(false);
       });
-  }, [username]); // Trigger fetch when username changes
+  }, []);
 
   if (loading) {
     return (
       <VStack justify="center" align="center" minH="100vh">
         <Spinner size="xl" />
-        <Text>Loading user information...</Text>
+        <Text>Loading users...</Text>
       </VStack>
     );
   }
@@ -57,32 +65,43 @@ const LdapUser = () => {
     );
   }
 
-  if (!user) {
-    return (
-      <VStack justify="center" align="center" minH="100vh">
-        <Text>No user data found</Text>
-      </VStack>
-    );
-  }
-
   return (
     <Box p={8}>
-      <VStack spacing={4} align="center">
-        <Avatar
-          size="2xl"
-          name={user.cn}
-          src={user.avatarUrl || "/default-avatar.png"}
-        />
-        <Heading as="h2" size="lg">
-          {user.cn || "Unknown User"}
-        </Heading>
-        <Text fontSize="lg">{user.mail || "No email available"}</Text>
-        <Text fontSize="md">Username: {user.uid || "N/A"}</Text>
-        <Text fontSize="md">Department: {user.department || "N/A"}</Text>
-        <Text fontSize="md">Company: {user.company || "N/A"}</Text>
-      </VStack>
+      <Heading as="h2" size="lg" mb={4}>
+        LDAP Users
+      </Heading>
+      <TableContainer>
+        <Table variant="simple">
+          <Thead>
+            <Tr>
+              <Th>#</Th> {/* Added for Row Number */}
+              <Th>Given Name</Th>
+              <Th>Surname</Th>
+              <Th>Username</Th>
+              <Th>Email</Th>
+              <Th>UID Number</Th>
+              <Th>Home Directory</Th>
+              <Th>Object Classes</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {users.map((userAttributes, index) => (
+              <Tr key={index}>
+                <Td>{index + 1}</Td> {/* Display Row Number */}
+                <Td>{getAttributeValue(userAttributes, "givenName")}</Td>
+                <Td>{getAttributeValue(userAttributes, "sn")}</Td>
+                <Td>{getAttributeValue(userAttributes, "uid")}</Td>
+                <Td>{getAttributeValue(userAttributes, "mail")}</Td>
+                <Td>{getAttributeValue(userAttributes, "uidNumber")}</Td>
+                <Td>{getAttributeValue(userAttributes, "homeDirectory")}</Td>
+                <Td>{getAttributeValue(userAttributes, "objectClass")}</Td>
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
+      </TableContainer>
     </Box>
   );
 };
 
-export default LdapUser;
+export default LdapUsers;

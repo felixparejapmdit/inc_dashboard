@@ -17,7 +17,8 @@ import AddEvents from "./pages/Events"; // Import AddEvents Page
 import AddReminders from "./pages/Reminders"; // Import AddReminders Page
 import Mastodon from "./pages/Mastodon"; // Import Mastodon Page
 import customTheme from "./theme"; // Optional if you're using a custom theme
-import LdapUser from "./pages/LdapUser"; // Assuming LdapUser page exists
+import LdapUser from "./pages/LdapUser"; // Import LdapUser page
+
 function App() {
   return (
     <ChakraProvider theme={customTheme}>
@@ -28,8 +29,6 @@ function App() {
 
           {/* Define the login route */}
           <Route path="/login" element={<Login />} />
-
-          <Route path="/ldap/user/:username" element={<LdapUser />} />
 
           {/* Routes wrapped with the sidebar layout */}
           <Route
@@ -100,7 +99,6 @@ function App() {
             }
           />
 
-          {/* New Routes for Add Apps, Add Suguan, Add Events, Add Reminders */}
           <Route
             path="/add-suguan"
             element={
@@ -115,7 +113,6 @@ function App() {
             }
           />
 
-          {/* New Routes for Add Apps, Add Suguan, Add Events, Add Reminders */}
           <Route
             path="/add-events"
             element={
@@ -130,7 +127,6 @@ function App() {
             }
           />
 
-          {/* New Routes for Add Apps, Add Suguan, Add Events, Add Reminders */}
           <Route
             path="/add-reminders"
             element={
@@ -144,7 +140,7 @@ function App() {
               </Layout>
             }
           />
-          {/* New Routes for Add Apps, Add Suguan, Add Events, Add Reminders */}
+
           <Route
             path="/Mastodon"
             element={
@@ -155,6 +151,21 @@ function App() {
                 }}
               >
                 <Mastodon />
+              </Layout>
+            }
+          />
+
+          {/* New Route for LdapUser */}
+          <Route
+            path="/ldap-users/"
+            element={
+              <Layout
+                currentUser={{
+                  name: "John Doe",
+                  avatarUrl: "/path/to/avatar.jpg",
+                }}
+              >
+                <LdapUser />
               </Layout>
             }
           />

@@ -22,10 +22,19 @@ const ldap = require("ldapjs");
 app.use(bodyParser.json());
 app.use(cors());
 
-const LDAP_URL = "ldap://172.18.162.22:389";
-const BIND_DN = "cn=admin,dc=pmdmc,dc=test";
-const BIND_PASSWORD = "M@sunur1n";
-const BASE_DN = "dc=pmdmc,dc=test";
+require("dotenv").config();
+
+console.log("LDAP URL:", process.env.LDAP_URL); // Add this line to check
+
+const LDAP_URL = process.env.LDAP_URL;
+const BIND_DN = process.env.BIND_DN;
+const BIND_PASSWORD = process.env.BIND_PASSWORD;
+const BASE_DN = process.env.BASE_DN;
+
+// const LDAP_URL = process.env.LDAP_URL;
+// const BIND_DN = process.env.BIND_DN;
+// const BIND_PASSWORD = process.env.BIND_PASSWORD;
+// const BASE_DN = process.env.BASE_DN;
 
 // Utility function to create LDAP client
 const createLdapClient = () => {

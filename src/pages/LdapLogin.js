@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import crypto from "crypto-browserify"; // Use crypto-browserify for password hashing
+import crypto from "crypto-js"; // Use crypto-js for password hashing
 import "./LdapLogin.css";
 
 const LdapLogin = () => {
@@ -15,14 +15,20 @@ const LdapLogin = () => {
 
   // Function to encode the password to MD5 (same as LDAP MD5 format)
   const md5HashPassword = (password) => {
-    const md5sum = crypto.createHash("md5");
-    md5sum.update(password);
-    return `{MD5}` + md5sum.digest("base64"); // LDAP stores passwords in base64-encoded MD5
+    const md5sum = crypto.MD5(password);
+    return `{MD5}` + crypto.enc.Base64.stringify(md5sum); // LDAP stores passwords in base64-encoded MD5
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
+
+    if (!username || !password) {
+      setError("Username and password are required.");
+      setSuccess("");
+      setLoading(false);
+      return;
+    }
 
     try {
       // Fetch user details from the backend using the username

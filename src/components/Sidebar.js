@@ -195,6 +195,13 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 onClick={() => navigate("/Mastodon")} // Redirect to Mastodon.js
               />
             )}
+
+            <SidebarItem
+              icon={FiUsers}
+              label="LdapUsers" // Added LdapUsers page
+              isExpanded={isExpanded}
+              onClick={() => navigate("/ldap-users")}
+            />
           </VStack>
         </Collapse>
       </VStack>
