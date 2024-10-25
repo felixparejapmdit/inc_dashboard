@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 24, 2024 at 06:34 AM
+-- Generation Time: Oct 25, 2024 at 10:21 AM
 -- Server version: 10.4.25-MariaDB
 -- PHP Version: 8.1.10
 
@@ -20,73 +20,6 @@ SET time_zone = "+00:00";
 --
 -- Database: `ppi`
 --
-
--- --------------------------------------------------------
-
---
--- Table structure for table `appchildlist`
---
-
-CREATE TABLE `appchildlist` (
-  `id` int(11) NOT NULL,
-  `appid` int(11) DEFAULT NULL,
-  `ipaddress` text DEFAULT NULL,
-  `description` varchar(50) DEFAULT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
-
---
--- Dumping data for table `appchildlist`
---
-
-INSERT INTO `appchildlist` (`id`, `appid`, `ipaddress`, `description`) VALUES
-(1, 1, '172.18.121.42', 'EVM - Next Cloud'),
-(2, 1, '172.18.121.112', 'OMO Nextcloud'),
-(4, 1, '172.18.121.101', 'TRG - Next Cloud'),
-(5, 2, '172.18.121.100', 'TRG - Hesk'),
-(6, 2, '172.18.121.100:8080', 'TRG - Hesk Montly Report'),
-(7, 2, '172.18.121.30', 'PMD-IT Help Desk'),
-(8, 4, '172.18.121.36', 'PMD - Snipeit'),
-(9, 4, '172.18.121.144', 'PV Inventory System - Snipeit');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `applist`
---
-
-CREATE TABLE `applist` (
-  `AppID` int(11) NOT NULL,
-  `Filename` varchar(50) NOT NULL,
-  `Background` varchar(25) NOT NULL,
-  `ApplicationName` varchar(50) NOT NULL,
-  `IPAddress` varchar(50) NOT NULL,
-  `Status` int(11) NOT NULL,
-  `CreatedBy` int(11) NOT NULL,
-  `created_at` datetime NOT NULL,
-  `updated_at` datetime NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
-
---
--- Dumping data for table `applist`
---
-
-INSERT INTO `applist` (`AppID`, `Filename`, `Background`, `ApplicationName`, `IPAddress`, `Status`, `CreatedBy`, `created_at`, `updated_at`) VALUES
-(1, 'logo-blank.png', 'bg-gradient-info', 'EVM - Next Cloud', 'http://172.18.121.42', 0, 1, '0000-00-00 00:00:00', '2023-09-12 01:24:44'),
-(2, 'logo-blank.png', 'bg-gradient-secondary', 'TRG - Hesk', '172.18.121.100', 0, 1, '0000-00-00 00:00:00', '2023-07-14 02:57:34'),
-(3, 'PV Suguan - Icon.png', 'bg-gradient-success', 'Suguan System', '172.18.121.40/suguan.php', 0, 1, '0000-00-00 00:00:00', '2023-04-09 17:00:40'),
-(4, 'Inventory system - icon.png', 'bg-gradient-info', 'Inventory System - Snipeit', '172.18.121.36', 0, 1, '0000-00-00 00:00:00', '2023-04-12 05:24:29'),
-(139, 'Inventory system - icon.png', 'bg-gradient-secondary', 'PV Inventory', '172.18.121.144:8080', 0, 1, '0000-00-00 00:00:00', '2023-04-09 17:00:51'),
-(140, 'logo-blank.png', 'bg-gradient-success', 'ChoirApp', '172.18.121.63', 0, 1, '0000-00-00 00:00:00', '2023-07-14 06:45:16'),
-(141, 'Nextcloud - icon.png', 'bg-gradient-info', 'PMDIT-OnlyOffice', '172.18.121.108', 0, 1, '0000-00-00 00:00:00', '2023-04-09 17:01:03'),
-(142, 'logo-blank.png', 'bg-gradient-secondary', 'ATG-LMS', '172.18.121.102', 0, 1, '0000-00-00 00:00:00', '2023-04-09 17:01:10'),
-(143, 'logo-blank.png', 'bg-gradient-success', 'PV Suguan', '172.18.121.144:8082', 0, 1, '0000-00-00 00:00:00', '2023-04-12 05:24:37'),
-(149, 'logo-blank.png', 'bg-gradient-info', 'TRG - Nextcloud', '172.18.121.101', 1, 0, '2023-07-04 03:33:01', '2023-07-14 04:38:39'),
-(150, 'logo-blank.png', 'bg-gradient-secondary', 'TRG - Hesk Monthly Report', '172.18.121.100:8080', 1, 0, '2023-07-04 03:33:58', '2023-07-04 03:37:10'),
-(151, 'logo-blank.png', 'bg-gradient-success', 'PMD - IT Help Desk', '172.18.121.30', 1, 0, '2023-07-04 03:34:19', '2023-07-14 02:57:25'),
-(152, 'Inventory system - icon.png', 'bg-gradient-info', 'PV Inventory System - Snipeit', '172.18.121.144', 1, 0, '2023-07-04 03:36:37', '2023-07-04 03:36:58'),
-(153, 'logo-blank.png', 'bg-gradient-secondary', 'new app', '1.1.1.1', 1, 0, '2023-07-05 02:12:35', '2023-07-05 02:12:49'),
-(155, 'logo-blank.png', 'bg-gradient-success', 'VSS Synology', '172.18.125.66', 1, 0, '2023-07-10 05:45:20', '2023-07-10 05:45:29'),
-(156, 'logo-blank.png', 'bg-gradient-info', 'app1', '172.18.125.66', 1, 0, '2023-07-10 06:03:22', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -118,6 +51,218 @@ CREATE TABLE `children` (
   `suffix` text DEFAULT NULL,
   `date_of_birth` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `citizenship`
+--
+
+CREATE TABLE `citizenship` (
+  `id` int(11) NOT NULL,
+  `country_name` varchar(100) NOT NULL,
+  `citizenship` varchar(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `citizenship`
+--
+
+INSERT INTO `citizenship` (`id`, `country_name`, `citizenship`) VALUES
+(1, 'Afghanistan', 'Afghan'),
+(2, 'Albania', 'Albanian'),
+(3, 'Algeria', 'Algerian'),
+(4, 'Andorra', 'Andorran'),
+(5, 'Angola', 'Angolan'),
+(6, 'Antigua and Barbuda', 'Antiguan or Barbudan'),
+(7, 'Argentina', 'Argentine'),
+(8, 'Armenia', 'Armenian'),
+(9, 'Australia', 'Australian'),
+(10, 'Austria', 'Austrian'),
+(11, 'Azerbaijan', 'Azerbaijani'),
+(12, 'Bahamas', 'Bahamian'),
+(13, 'Bahrain', 'Bahraini'),
+(14, 'Bangladesh', 'Bangladeshi'),
+(15, 'Barbados', 'Barbadian'),
+(16, 'Belarus', 'Belarusian'),
+(17, 'Belgium', 'Belgian'),
+(18, 'Belize', 'Belizean'),
+(19, 'Benin', 'Beninese'),
+(20, 'Bhutan', 'Bhutanese'),
+(21, 'Bolivia', 'Bolivian'),
+(22, 'Bosnia and Herzegovina', 'Bosnian'),
+(23, 'Botswana', 'Botswana'),
+(24, 'Brazil', 'Brazilian'),
+(25, 'Brunei', 'Bruneian'),
+(26, 'Bulgaria', 'Bulgarian'),
+(27, 'Burkina Faso', 'Burkinabe'),
+(28, 'Burundi', 'Burundian'),
+(29, 'Cabo Verde', 'Cape Verdean'),
+(30, 'Cambodia', 'Cambodian'),
+(31, 'Cameroon', 'Cameroonian'),
+(32, 'Canada', 'Canadian'),
+(33, 'Central African Republic', 'Central African'),
+(34, 'Chad', 'Chadian'),
+(35, 'Chile', 'Chilean'),
+(36, 'China', 'Chinese'),
+(37, 'Colombia', 'Colombian'),
+(38, 'Comoros', 'Comoran'),
+(39, 'Congo, Democratic Republic of the', 'Congolese'),
+(40, 'Congo, Republic of the', 'Congolese'),
+(41, 'Costa Rica', 'Costa Rican'),
+(42, 'Croatia', 'Croatian'),
+(43, 'Cuba', 'Cuban'),
+(44, 'Cyprus', 'Cypriot'),
+(45, 'Czech Republic', 'Czech'),
+(46, 'Denmark', 'Danish'),
+(47, 'Djibouti', 'Djiboutian'),
+(48, 'Dominica', 'Dominican'),
+(49, 'Dominican Republic', 'Dominican'),
+(50, 'Ecuador', 'Ecuadorian'),
+(51, 'Egypt', 'Egyptian'),
+(52, 'El Salvador', 'Salvadoran'),
+(53, 'Equatorial Guinea', 'Equatoguinean'),
+(54, 'Eritrea', 'Eritrean'),
+(55, 'Estonia', 'Estonian'),
+(56, 'Eswatini', 'Swazi'),
+(57, 'Ethiopia', 'Ethiopian'),
+(58, 'Fiji', 'Fijian'),
+(59, 'Finland', 'Finnish'),
+(60, 'France', 'French'),
+(61, 'Gabon', 'Gabonese'),
+(62, 'Gambia', 'Gambian'),
+(63, 'Georgia', 'Georgian'),
+(64, 'Germany', 'German'),
+(65, 'Ghana', 'Ghanaian'),
+(66, 'Greece', 'Greek'),
+(67, 'Grenada', 'Grenadian'),
+(68, 'Guatemala', 'Guatemalan'),
+(69, 'Guinea', 'Guinean'),
+(70, 'Guinea-Bissau', 'Guinea-Bissauan'),
+(71, 'Guyana', 'Guyanese'),
+(72, 'Haiti', 'Haitian'),
+(73, 'Honduras', 'Honduran'),
+(74, 'Hungary', 'Hungarian'),
+(75, 'Iceland', 'Icelander'),
+(76, 'India', 'Indian'),
+(77, 'Indonesia', 'Indonesian'),
+(78, 'Iran', 'Iranian'),
+(79, 'Iraq', 'Iraqi'),
+(80, 'Ireland', 'Irish'),
+(81, 'Israel', 'Israeli'),
+(82, 'Italy', 'Italian'),
+(83, 'Jamaica', 'Jamaican'),
+(84, 'Japan', 'Japanese'),
+(85, 'Jordan', 'Jordanian'),
+(86, 'Kazakhstan', 'Kazakhstani'),
+(87, 'Kenya', 'Kenyan'),
+(88, 'Kiribati', 'I-Kiribati'),
+(89, 'Korea, North', 'North Korean'),
+(90, 'Korea, South', 'South Korean'),
+(91, 'Kuwait', 'Kuwaiti'),
+(92, 'Kyrgyzstan', 'Kyrgyzstani'),
+(93, 'Laos', 'Laotian'),
+(94, 'Latvia', 'Latvian'),
+(95, 'Lebanon', 'Lebanese'),
+(96, 'Lesotho', 'Mosotho'),
+(97, 'Liberia', 'Liberian'),
+(98, 'Libya', 'Libyan'),
+(99, 'Liechtenstein', 'Liechtensteiner'),
+(100, 'Lithuania', 'Lithuanian'),
+(101, 'Luxembourg', 'Luxembourger'),
+(102, 'Madagascar', 'Malagasy'),
+(103, 'Malawi', 'Malawian'),
+(104, 'Malaysia', 'Malaysian'),
+(105, 'Maldives', 'Maldivian'),
+(106, 'Mali', 'Malian'),
+(107, 'Malta', 'Maltese'),
+(108, 'Marshall Islands', 'Marshallese'),
+(109, 'Mauritania', 'Mauritanian'),
+(110, 'Mauritius', 'Mauritian'),
+(111, 'Mexico', 'Mexican'),
+(112, 'Micronesia', 'Micronesian'),
+(113, 'Moldova', 'Moldovan'),
+(114, 'Monaco', 'Monacan'),
+(115, 'Mongolia', 'Mongolian'),
+(116, 'Montenegro', 'Montenegrin'),
+(117, 'Morocco', 'Moroccan'),
+(118, 'Mozambique', 'Mozambican'),
+(119, 'Myanmar', 'Burmese'),
+(120, 'Namibia', 'Namibian'),
+(121, 'Nauru', 'Nauruan'),
+(122, 'Nepal', 'Nepalese'),
+(123, 'Netherlands', 'Dutch'),
+(124, 'New Zealand', 'New Zealander'),
+(125, 'Nicaragua', 'Nicaraguan'),
+(126, 'Niger', 'Nigerien'),
+(127, 'Nigeria', 'Nigerian'),
+(128, 'North Macedonia', 'Macedonian'),
+(129, 'Norway', 'Norwegian'),
+(130, 'Oman', 'Omani'),
+(131, 'Pakistan', 'Pakistani'),
+(132, 'Palau', 'Palauan'),
+(133, 'Palestine', 'Palestinian'),
+(134, 'Panama', 'Panamanian'),
+(135, 'Papua New Guinea', 'Papua New Guinean'),
+(136, 'Paraguay', 'Paraguayan'),
+(137, 'Peru', 'Peruvian'),
+(138, 'Philippines', 'Filipino'),
+(139, 'Poland', 'Polish'),
+(140, 'Portugal', 'Portuguese'),
+(141, 'Qatar', 'Qatari'),
+(142, 'Romania', 'Romanian'),
+(143, 'Russia', 'Russian'),
+(144, 'Rwanda', 'Rwandan'),
+(145, 'Saint Kitts and Nevis', 'Kittitian or Nevisian'),
+(146, 'Saint Lucia', 'Saint Lucian'),
+(147, 'Saint Vincent and the Grenadines', 'Saint Vincentian'),
+(148, 'Samoa', 'Samoan'),
+(149, 'San Marino', 'Sammarinese'),
+(150, 'Sao Tome and Principe', 'Sao Tomean'),
+(151, 'Saudi Arabia', 'Saudi'),
+(152, 'Senegal', 'Senegalese'),
+(153, 'Serbia', 'Serbian'),
+(154, 'Seychelles', 'Seychellois'),
+(155, 'Sierra Leone', 'Sierra Leonean'),
+(156, 'Singapore', 'Singaporean'),
+(157, 'Slovakia', 'Slovak'),
+(158, 'Slovenia', 'Slovenian'),
+(159, 'Solomon Islands', 'Solomon Islander'),
+(160, 'Somalia', 'Somali'),
+(161, 'South Africa', 'South African'),
+(162, 'South Sudan', 'South Sudanese'),
+(163, 'Spain', 'Spanish'),
+(164, 'Sri Lanka', 'Sri Lankan'),
+(165, 'Sudan', 'Sudanese'),
+(166, 'Suriname', 'Surinamese'),
+(167, 'Sweden', 'Swedish'),
+(168, 'Switzerland', 'Swiss'),
+(169, 'Syria', 'Syrian'),
+(170, 'Taiwan', 'Taiwanese'),
+(171, 'Tajikistan', 'Tajik'),
+(172, 'Tanzania', 'Tanzanian'),
+(173, 'Thailand', 'Thai'),
+(174, 'Togo', 'Togolese'),
+(175, 'Tonga', 'Tongan'),
+(176, 'Trinidad and Tobago', 'Trinidadian or Tobagonian'),
+(177, 'Tunisia', 'Tunisian'),
+(178, 'Turkey', 'Turkish'),
+(179, 'Turkmenistan', 'Turkmen'),
+(180, 'Tuvalu', 'Tuvaluan'),
+(181, 'Uganda', 'Ugandan'),
+(182, 'Ukraine', 'Ukrainian'),
+(183, 'United Arab Emirates', 'Emirati'),
+(184, 'United Kingdom', 'British'),
+(185, 'United States', 'American'),
+(186, 'Uruguay', 'Uruguayan'),
+(187, 'Uzbekistan', 'Uzbek'),
+(188, 'Vanuatu', 'Ni-Vanuatu'),
+(189, 'Vatican City', 'Vatican'),
+(190, 'Venezuela', 'Venezuelan'),
+(191, 'Vietnam', 'Vietnamese'),
+(192, 'Yemen', 'Yemeni'),
+(193, 'Zambia', 'Zambian'),
+(194, 'Zimbabwe', 'Zimbabwean');
 
 -- --------------------------------------------------------
 
@@ -329,6 +474,218 @@ INSERT INTO `login_attempts` (`id`, `username`, `remote_ip`, `user_agent`, `succ
 (159, 'admin', '192.168.56.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36 Edg/116.0.1938.76', 1, '2023-09-12 20:22:45', NULL),
 (160, 'admin', '192.168.56.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', 1, '2023-12-22 00:26:33', NULL),
 (161, 'admin', '192.168.56.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', 1, '2023-12-26 15:28:46', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `nationalities`
+--
+
+CREATE TABLE `nationalities` (
+  `id` int(11) NOT NULL,
+  `country_name` varchar(100) NOT NULL,
+  `nationality` varchar(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `nationalities`
+--
+
+INSERT INTO `nationalities` (`id`, `country_name`, `nationality`) VALUES
+(1, 'Afghanistan', 'Afghan'),
+(2, 'Albania', 'Albanian'),
+(3, 'Algeria', 'Algerian'),
+(4, 'Andorra', 'Andorran'),
+(5, 'Angola', 'Angolan'),
+(6, 'Antigua and Barbuda', 'Antiguan or Barbudan'),
+(7, 'Argentina', 'Argentine'),
+(8, 'Armenia', 'Armenian'),
+(9, 'Australia', 'Australian'),
+(10, 'Austria', 'Austrian'),
+(11, 'Azerbaijan', 'Azerbaijani'),
+(12, 'Bahamas', 'Bahamian'),
+(13, 'Bahrain', 'Bahraini'),
+(14, 'Bangladesh', 'Bangladeshi'),
+(15, 'Barbados', 'Barbadian'),
+(16, 'Belarus', 'Belarusian'),
+(17, 'Belgium', 'Belgian'),
+(18, 'Belize', 'Belizean'),
+(19, 'Benin', 'Beninese'),
+(20, 'Bhutan', 'Bhutanese'),
+(21, 'Bolivia', 'Bolivian'),
+(22, 'Bosnia and Herzegovina', 'Bosnian'),
+(23, 'Botswana', 'Botswana'),
+(24, 'Brazil', 'Brazilian'),
+(25, 'Brunei', 'Bruneian'),
+(26, 'Bulgaria', 'Bulgarian'),
+(27, 'Burkina Faso', 'Burkinabe'),
+(28, 'Burundi', 'Burundian'),
+(29, 'Cabo Verde', 'Cape Verdean'),
+(30, 'Cambodia', 'Cambodian'),
+(31, 'Cameroon', 'Cameroonian'),
+(32, 'Canada', 'Canadian'),
+(33, 'Central African Republic', 'Central African'),
+(34, 'Chad', 'Chadian'),
+(35, 'Chile', 'Chilean'),
+(36, 'China', 'Chinese'),
+(37, 'Colombia', 'Colombian'),
+(38, 'Comoros', 'Comoran'),
+(39, 'Congo, Democratic Republic of the', 'Congolese'),
+(40, 'Congo, Republic of the', 'Congolese'),
+(41, 'Costa Rica', 'Costa Rican'),
+(42, 'Croatia', 'Croatian'),
+(43, 'Cuba', 'Cuban'),
+(44, 'Cyprus', 'Cypriot'),
+(45, 'Czech Republic', 'Czech'),
+(46, 'Denmark', 'Danish'),
+(47, 'Djibouti', 'Djiboutian'),
+(48, 'Dominica', 'Dominican'),
+(49, 'Dominican Republic', 'Dominican'),
+(50, 'Ecuador', 'Ecuadorian'),
+(51, 'Egypt', 'Egyptian'),
+(52, 'El Salvador', 'Salvadoran'),
+(53, 'Equatorial Guinea', 'Equatoguinean'),
+(54, 'Eritrea', 'Eritrean'),
+(55, 'Estonia', 'Estonian'),
+(56, 'Eswatini', 'Swazi'),
+(57, 'Ethiopia', 'Ethiopian'),
+(58, 'Fiji', 'Fijian'),
+(59, 'Finland', 'Finnish'),
+(60, 'France', 'French'),
+(61, 'Gabon', 'Gabonese'),
+(62, 'Gambia', 'Gambian'),
+(63, 'Georgia', 'Georgian'),
+(64, 'Germany', 'German'),
+(65, 'Ghana', 'Ghanaian'),
+(66, 'Greece', 'Greek'),
+(67, 'Grenada', 'Grenadian'),
+(68, 'Guatemala', 'Guatemalan'),
+(69, 'Guinea', 'Guinean'),
+(70, 'Guinea-Bissau', 'Guinea-Bissauan'),
+(71, 'Guyana', 'Guyanese'),
+(72, 'Haiti', 'Haitian'),
+(73, 'Honduras', 'Honduran'),
+(74, 'Hungary', 'Hungarian'),
+(75, 'Iceland', 'Icelander'),
+(76, 'India', 'Indian'),
+(77, 'Indonesia', 'Indonesian'),
+(78, 'Iran', 'Iranian'),
+(79, 'Iraq', 'Iraqi'),
+(80, 'Ireland', 'Irish'),
+(81, 'Israel', 'Israeli'),
+(82, 'Italy', 'Italian'),
+(83, 'Jamaica', 'Jamaican'),
+(84, 'Japan', 'Japanese'),
+(85, 'Jordan', 'Jordanian'),
+(86, 'Kazakhstan', 'Kazakhstani'),
+(87, 'Kenya', 'Kenyan'),
+(88, 'Kiribati', 'I-Kiribati'),
+(89, 'Korea, North', 'North Korean'),
+(90, 'Korea, South', 'South Korean'),
+(91, 'Kuwait', 'Kuwaiti'),
+(92, 'Kyrgyzstan', 'Kyrgyzstani'),
+(93, 'Laos', 'Laotian'),
+(94, 'Latvia', 'Latvian'),
+(95, 'Lebanon', 'Lebanese'),
+(96, 'Lesotho', 'Mosotho'),
+(97, 'Liberia', 'Liberian'),
+(98, 'Libya', 'Libyan'),
+(99, 'Liechtenstein', 'Liechtensteiner'),
+(100, 'Lithuania', 'Lithuanian'),
+(101, 'Luxembourg', 'Luxembourger'),
+(102, 'Madagascar', 'Malagasy'),
+(103, 'Malawi', 'Malawian'),
+(104, 'Malaysia', 'Malaysian'),
+(105, 'Maldives', 'Maldivian'),
+(106, 'Mali', 'Malian'),
+(107, 'Malta', 'Maltese'),
+(108, 'Marshall Islands', 'Marshallese'),
+(109, 'Mauritania', 'Mauritanian'),
+(110, 'Mauritius', 'Mauritian'),
+(111, 'Mexico', 'Mexican'),
+(112, 'Micronesia', 'Micronesian'),
+(113, 'Moldova', 'Moldovan'),
+(114, 'Monaco', 'Monacan'),
+(115, 'Mongolia', 'Mongolian'),
+(116, 'Montenegro', 'Montenegrin'),
+(117, 'Morocco', 'Moroccan'),
+(118, 'Mozambique', 'Mozambican'),
+(119, 'Myanmar', 'Burmese'),
+(120, 'Namibia', 'Namibian'),
+(121, 'Nauru', 'Nauruan'),
+(122, 'Nepal', 'Nepalese'),
+(123, 'Netherlands', 'Dutch'),
+(124, 'New Zealand', 'New Zealander'),
+(125, 'Nicaragua', 'Nicaraguan'),
+(126, 'Niger', 'Nigerien'),
+(127, 'Nigeria', 'Nigerian'),
+(128, 'North Macedonia', 'Macedonian'),
+(129, 'Norway', 'Norwegian'),
+(130, 'Oman', 'Omani'),
+(131, 'Pakistan', 'Pakistani'),
+(132, 'Palau', 'Palauan'),
+(133, 'Palestine', 'Palestinian'),
+(134, 'Panama', 'Panamanian'),
+(135, 'Papua New Guinea', 'Papua New Guinean'),
+(136, 'Paraguay', 'Paraguayan'),
+(137, 'Peru', 'Peruvian'),
+(138, 'Philippines', 'Filipino'),
+(139, 'Poland', 'Polish'),
+(140, 'Portugal', 'Portuguese'),
+(141, 'Qatar', 'Qatari'),
+(142, 'Romania', 'Romanian'),
+(143, 'Russia', 'Russian'),
+(144, 'Rwanda', 'Rwandan'),
+(145, 'Saint Kitts and Nevis', 'Kittitian or Nevisian'),
+(146, 'Saint Lucia', 'Saint Lucian'),
+(147, 'Saint Vincent and the Grenadines', 'Saint Vincentian'),
+(148, 'Samoa', 'Samoan'),
+(149, 'San Marino', 'Sammarinese'),
+(150, 'Sao Tome and Principe', 'Sao Tomean'),
+(151, 'Saudi Arabia', 'Saudi'),
+(152, 'Senegal', 'Senegalese'),
+(153, 'Serbia', 'Serbian'),
+(154, 'Seychelles', 'Seychellois'),
+(155, 'Sierra Leone', 'Sierra Leonean'),
+(156, 'Singapore', 'Singaporean'),
+(157, 'Slovakia', 'Slovak'),
+(158, 'Slovenia', 'Slovenian'),
+(159, 'Solomon Islands', 'Solomon Islander'),
+(160, 'Somalia', 'Somali'),
+(161, 'South Africa', 'South African'),
+(162, 'South Sudan', 'South Sudanese'),
+(163, 'Spain', 'Spanish'),
+(164, 'Sri Lanka', 'Sri Lankan'),
+(165, 'Sudan', 'Sudanese'),
+(166, 'Suriname', 'Surinamese'),
+(167, 'Sweden', 'Swedish'),
+(168, 'Switzerland', 'Swiss'),
+(169, 'Syria', 'Syrian'),
+(170, 'Taiwan', 'Taiwanese'),
+(171, 'Tajikistan', 'Tajik'),
+(172, 'Tanzania', 'Tanzanian'),
+(173, 'Thailand', 'Thai'),
+(174, 'Togo', 'Togolese'),
+(175, 'Tonga', 'Tongan'),
+(176, 'Trinidad and Tobago', 'Trinidadian or Tobagonian'),
+(177, 'Tunisia', 'Tunisian'),
+(178, 'Turkey', 'Turkish'),
+(179, 'Turkmenistan', 'Turkmen'),
+(180, 'Tuvalu', 'Tuvaluan'),
+(181, 'Uganda', 'Ugandan'),
+(182, 'Ukraine', 'Ukrainian'),
+(183, 'United Arab Emirates', 'Emirati'),
+(184, 'United Kingdom', 'British'),
+(185, 'United States', 'American'),
+(186, 'Uruguay', 'Uruguayan'),
+(187, 'Uzbekistan', 'Uzbek'),
+(188, 'Vanuatu', 'Ni-Vanuatu'),
+(189, 'Vatican City', 'Vatican'),
+(190, 'Venezuela', 'Venezuelan'),
+(191, 'Vietnam', 'Vietnamese'),
+(192, 'Yemen', 'Yemeni'),
+(193, 'Zambia', 'Zambian'),
+(194, 'Zimbabwe', 'Zimbabwean');
 
 -- --------------------------------------------------------
 
@@ -658,18 +1015,6 @@ CREATE TABLE `work_background` (
 --
 
 --
--- Indexes for table `appchildlist`
---
-ALTER TABLE `appchildlist`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `applist`
---
-ALTER TABLE `applist`
-  ADD PRIMARY KEY (`AppID`);
-
---
 -- Indexes for table `apps`
 --
 ALTER TABLE `apps`
@@ -681,6 +1026,12 @@ ALTER TABLE `apps`
 ALTER TABLE `children`
   ADD PRIMARY KEY (`id`),
   ADD KEY `personnel_id` (`personnel_id`);
+
+--
+-- Indexes for table `citizenship`
+--
+ALTER TABLE `citizenship`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `contacts`
@@ -700,6 +1051,12 @@ ALTER TABLE `educational_background`
 -- Indexes for table `login_attempts`
 --
 ALTER TABLE `login_attempts`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `nationalities`
+--
+ALTER TABLE `nationalities`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -764,18 +1121,6 @@ ALTER TABLE `work_background`
 --
 
 --
--- AUTO_INCREMENT for table `appchildlist`
---
-ALTER TABLE `appchildlist`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
-
---
--- AUTO_INCREMENT for table `applist`
---
-ALTER TABLE `applist`
-  MODIFY `AppID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=157;
-
---
 -- AUTO_INCREMENT for table `apps`
 --
 ALTER TABLE `apps`
@@ -786,6 +1131,12 @@ ALTER TABLE `apps`
 --
 ALTER TABLE `children`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `citizenship`
+--
+ALTER TABLE `citizenship`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=195;
 
 --
 -- AUTO_INCREMENT for table `contacts`
@@ -804,6 +1155,12 @@ ALTER TABLE `educational_background`
 --
 ALTER TABLE `login_attempts`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=162;
+
+--
+-- AUTO_INCREMENT for table `nationalities`
+--
+ALTER TABLE `nationalities`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=195;
 
 --
 -- AUTO_INCREMENT for table `navigationlist`
