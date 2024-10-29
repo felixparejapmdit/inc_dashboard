@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import crypto from "crypto-js";
 import {
   Box,
   Button,
@@ -11,6 +13,7 @@ import {
   Flex,
   Text,
   Image,
+  Switch,
 } from "@chakra-ui/react";
 import "./Login.css"; // Custom CSS for animated input effect
 
@@ -18,10 +21,12 @@ const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [users, setUsers] = useState([]);
+  const [useLdap, setUseLdap] = useState(false); // Toggle for LDAP login
   const navigate = useNavigate();
 
-  // Fetch the users from the backend API
+  // Fetch local users from the backend API
   useEffect(() => {
     fetch(`${process.env.REACT_APP_API_URL}/api/users`)
       .then((response) => response.json())
@@ -35,37 +40,65 @@ const Login = () => {
       .catch((error) => console.error("Error fetching user data:", error));
   }, []);
 
-  const handleSubmit = (e) => {
+  // Hash the password for LDAP MD5 format
+  const md5HashPassword = (password) => {
+    const md5sum = crypto.MD5(password);
+    return `{MD5}` + crypto.enc.Base64.stringify(md5sum);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+    setError("");
 
-    // Validate credentials against the fetched users
-    const user = users.find(
-      (user) => user.username === username && user.password === password
-    );
-
-    if (user) {
-      // Update the `isLoggedIn` field in the backend
-      fetch(`${process.env.REACT_APP_API_URL}/api/users/${user.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ...user, isLoggedIn: true }),
-      })
-        .then((res) => {
-          if (res.ok) {
-            navigate("/dashboard"); // Navigate to dashboard if login successful
-          } else {
-            setError("Error updating login status. Try again.");
-          }
-        })
-        .catch((err) => {
-          console.error("Error updating login status:", err);
-          setError("Error logging in. Please try again.");
-        });
-    } else {
-      setError("Invalid username or password");
+    if (!username || !password) {
+      setError("Username and password are required.");
+      setIsLoading(false);
+      return;
     }
+
+    if (useLdap) {
+      // LDAP Authentication
+      try {
+        const res = await axios.get(
+          `http://localhost:5000/ldap/user/${username}`
+        );
+        const user = res.data;
+        const hashedPassword = md5HashPassword(password);
+
+        if (user && user.userPassword === hashedPassword) {
+          navigate("/dashboard");
+        } else {
+          setError("Invalid LDAP username or password");
+        }
+      } catch (err) {
+        setError(err.response?.data?.message || "LDAP Login failed");
+      }
+    } else {
+      // Local Authentication
+      const user = users.find(
+        (user) => user.username === username && user.password === password
+      );
+
+      if (user) {
+        try {
+          await fetch(`${process.env.REACT_APP_API_URL}/api/users/${user.id}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ ...user, isLoggedIn: true }),
+          });
+          navigate("/dashboard");
+        } catch {
+          setError("Error updating login status. Try again.");
+        }
+      } else {
+        setError("Invalid username or password");
+      }
+    }
+
+    setIsLoading(false);
   };
 
   return (
@@ -78,16 +111,15 @@ const Login = () => {
     >
       <Flex
         width="100%"
-        maxW="800px" // Setting a max width to fit both the form and image
-        height="500px" // Adjust height to match the reference image
+        maxW="800px"
+        height="500px"
         boxShadow="xl"
         borderRadius="md"
         overflow="hidden"
       >
-        {/* Left-side Login Form */}
         <Box
           bg="white"
-          width={["100%", "50%", "50%"]} // 50% width for form
+          width={["100%", "50%", "50%"]}
           p={10}
           display="flex"
           flexDirection="column"
@@ -141,36 +173,45 @@ const Login = () => {
               <FormLabel>Password</FormLabel>
             </FormControl>
 
+            <Flex alignItems="center" justifyContent="center">
+              <Text mr={2}>Use LDAP Login</Text>
+              <Switch
+                colorScheme="teal"
+                isChecked={useLdap}
+                onChange={() => setUseLdap(!useLdap)}
+              />
+            </Flex>
+
             <Button
               type="submit"
               width="100%"
-              bgGradient="linear(to-r, #1C1F33, #232946)" // Formal dark blue gradient
+              bgGradient="linear(to-r, #1C1F33, #232946)"
               color="white"
-              _hover={{ bgGradient: "linear(to-r, #1B1E2D, #1F2539)" }} // Slightly darker hover gradient
-              _active={{ bgGradient: "linear(to-r, #1B1E2D, #1F2539)" }} // Active state matches hover
+              _hover={{ bgGradient: "linear(to-r, #1B1E2D, #1F2539)" }}
+              _active={{ bgGradient: "linear(to-r, #1B1E2D, #1F2539)" }}
               boxShadow="lg"
               py={6}
+              isLoading={isLoading}
             >
-              Log In123
+              Log In
             </Button>
 
             {error && <Text color="red.500">{error}</Text>}
           </VStack>
         </Box>
 
-        {/* Right-side image of application icons */}
         <Box
-          width={["0", "50%", "50%"]} // 50% width for image
-          height="100%" // Match height with form
+          width={["0", "50%", "50%"]}
+          height="100%"
           display={["none", "block"]}
         >
           <Image
-            src="/app-icons-image.jpg" // Replace with the actual image path
+            src="/app-icons-image.jpg"
             alt="Applications"
             objectFit="cover"
             width="100%"
-            height="100%" // Make the image cover the full height of the box
-            opacity={0.5} // Slight opacity for the image
+            height="100%"
+            opacity={0.5}
           />
         </Box>
       </Flex>

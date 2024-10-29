@@ -5,8 +5,8 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-//import Login from "./pages/Login";
-import Login from "./pages/LdapLogin";
+import Login from "./pages/Login";
+//import Login from "./pages/LdapLogin";
 import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
 import Profile from "./pages/Profile"; // Import Profile Page
