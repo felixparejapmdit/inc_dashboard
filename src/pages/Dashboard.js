@@ -107,11 +107,11 @@ export default function Dashboard() {
     fetch(`${API_URL}/api/users/logged-in`)
       .then((response) => response.json())
       .then((user) => {
-        if (user) {
+        console.log("Fetched Logged-in User Data:", user); // Debug log
+        if (user && user.name) {
           setCurrentUser(user);
-          if (user.availableApps) {
-            setAvailableApps(user.availableApps);
-          }
+        } else {
+          console.error("User data is missing 'name' field");
         }
       })
       .catch((error) => console.error("Error fetching logged-in user:", error));
@@ -469,34 +469,3 @@ const AppCard = ({ app, colors, onSettingsClick }) => (
     </Button>
   </VStack>
 );
-
-// <Box position="relative">
-//   <Popover>
-//     <PopoverTrigger>
-//       <IconButton
-//         icon={<FiBell />}
-//         aria-label="Notifications"
-//         variant="ghost"
-//         fontSize="24px"
-//       />
-//     </PopoverTrigger>
-//     <PopoverContent width="300px">
-//       <PopoverHeader fontWeight="bold">Notifications</PopoverHeader>
-//       <PopoverCloseButton />
-//       <PopoverBody>
-//         {notifications.length === 0 ? (
-//           <Text>No new notifications</Text>
-//         ) : (
-//           <List spacing={3}>
-//             {notifications.map((notification) => (
-//               <ListItem key={notification.id}>
-//                 <Text fontWeight="bold">{notification.title}</Text>
-//                 <Text>{notification.description}</Text>
-//               </ListItem>
-//             ))}
-//           </List>
-//         )}
-//       </PopoverBody>
-//     </PopoverContent>
-//   </Popover>
-// </Box>;

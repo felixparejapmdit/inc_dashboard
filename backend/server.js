@@ -6,14 +6,15 @@ const path = require("path"); // Added to resolve file paths
 const app = express();
 const PORT = 5000;
 
+const userRoutes = require("./routes/userRoutes");
+const appRoutes = require("./routes/appRoutes");
+
 app.use(express.json()); // Middleware to parse JSON request bodies
 app.use(cors());
 app.use(bodyParser.json({ limit: "10mb" })); // Increased limit to handle Base64 images
 
 // Use __dirname to resolve the correct file paths
-const appsFilePath = path.join(__dirname, "apps.json");
 const suguanFilePath = path.join(__dirname, "suguan.json");
-const usersFilePath = path.join(__dirname, "users.json");
 const eventsFilePath = path.join(__dirname, "events.json");
 const remindersFilePath = path.join(__dirname, "reminders.json");
 
@@ -42,6 +43,10 @@ const createLdapClient = () => {
     url: LDAP_URL,
   });
 };
+
+// Use the user routes
+app.use(userRoutes);
+app.use(appRoutes);
 
 // Endpoint to test LDAP connection
 app.get("/api/test_ldap_connection", (req, res) => {
@@ -303,243 +308,6 @@ app.get("/ldap/user/:username", async (req, res) => {
     console.error("LDAP error:", err);
     res.status(500).json({ error: err.message });
   }
-});
-
-// --- Apps Endpoints ---
-app.get("/api/apps", (req, res) => {
-  fs.readFile(appsFilePath, "utf-8", (err, data) => {
-    if (err) {
-      return res.status(500).json({ message: "Error reading file" });
-    }
-    const apps = JSON.parse(data);
-    res.json(apps);
-  });
-});
-
-app.post("/api/apps", (req, res) => {
-  const newApp = req.body;
-  if (!newApp.name || !newApp.url || !newApp.description) {
-    return res
-      .status(400)
-      .json({ message: "All fields (name, url, description) are required." });
-  }
-
-  fs.readFile(appsFilePath, "utf-8", (err, data) => {
-    if (err) {
-      return res.status(500).json({ message: "Error reading file." });
-    }
-
-    const apps = JSON.parse(data);
-    const appExists = apps.some((app) => app.name === newApp.name);
-    if (appExists) {
-      return res
-        .status(400)
-        .json({ message: "App with this name already exists." });
-    }
-
-    apps.push(newApp);
-    fs.writeFile(appsFilePath, JSON.stringify(apps, null, 2), (err) => {
-      if (err) {
-        return res.status(500).json({ message: "Error writing file." });
-      }
-      res.status(201).json({ message: "App added successfully." });
-    });
-  });
-});
-
-app.put("/api/apps/:name", (req, res) => {
-  const appName = req.params.name;
-  const updatedApp = req.body;
-
-  fs.readFile(appsFilePath, "utf-8", (err, data) => {
-    if (err) {
-      return res.status(500).json({ message: "Error reading file" });
-    }
-
-    const apps = JSON.parse(data);
-    const updatedApps = apps.map((app) => {
-      if (app.name === appName) {
-        return { ...app, ...updatedApp };
-      }
-      return app;
-    });
-
-    fs.writeFile(appsFilePath, JSON.stringify(updatedApps, null, 2), (err) => {
-      if (err) {
-        return res.status(500).json({ message: "Error writing file" });
-      }
-      res.json({ message: "App updated successfully" });
-    });
-  });
-});
-
-app.delete("/api/apps/:name", (req, res) => {
-  const appName = req.params.name;
-
-  fs.readFile(appsFilePath, "utf-8", (err, data) => {
-    if (err) {
-      return res.status(500).json({ message: "Error reading file" });
-    }
-
-    let apps = JSON.parse(data);
-    const filteredApps = apps.filter((app) => app.name !== appName);
-
-    fs.writeFile(appsFilePath, JSON.stringify(filteredApps, null, 2), (err) => {
-      if (err) {
-        return res.status(500).json({ message: "Error writing file" });
-      }
-      res.status(200).json({ message: "App deleted successfully." });
-    });
-  });
-});
-
-// --- Login API ---
-app.post("/api/login", (req, res) => {
-  const { username, password } = req.body;
-
-  if (!username || !password) {
-    return res
-      .status(400)
-      .json({ message: "Username and password are required." });
-  }
-
-  fs.readFile(usersFilePath, "utf-8", (err, data) => {
-    if (err) {
-      return res.status(500).json({ message: "Error reading file" });
-    }
-
-    let users = JSON.parse(data);
-    const user = users.find(
-      (u) => u.username === username && u.password === password
-    );
-
-    if (!user) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
-
-    // Update the user's `isLoggedIn` status to true
-    users = users.map((u) => {
-      if (u.username === username) {
-        return { ...u, isLoggedIn: true };
-      }
-      return u;
-    });
-
-    fs.writeFile(usersFilePath, JSON.stringify(users, null, 2), (err) => {
-      if (err) {
-        return res.status(500).json({ message: "Error writing file" });
-      }
-      res.status(200).json({ message: "Login successful", user });
-    });
-  });
-});
-
-// --- User Endpoints ---
-app.get("/api/users", (req, res) => {
-  fs.readFile(usersFilePath, "utf-8", (err, data) => {
-    if (err) return res.status(500).json({ message: "Error reading file" });
-
-    try {
-      const users = JSON.parse(data);
-
-      // Ensure that users is an array
-      if (!Array.isArray(users)) {
-        return res.status(500).json({ message: "Data is not an array" });
-      }
-
-      res.json(users);
-    } catch (e) {
-      return res.status(500).json({ message: "Invalid JSON format" });
-    }
-  });
-});
-
-app.post("/api/users", (req, res) => {
-  const newUser = { ...req.body, id: Date.now(), isLoggedIn: false };
-
-  fs.readFile(usersFilePath, "utf-8", (err, data) => {
-    if (err) return res.status(500).json({ message: "Error reading file" });
-
-    try {
-      let users = JSON.parse(data);
-
-      // Ensure that users is an array
-      if (!Array.isArray(users)) {
-        users = [];
-      }
-
-      users.push(newUser);
-
-      fs.writeFile(usersFilePath, JSON.stringify(users, null, 2), (err) => {
-        if (err) return res.status(500).json({ message: "Error writing file" });
-        res.status(201).json({ message: "User added successfully" });
-      });
-    } catch (e) {
-      return res.status(500).json({ message: "Invalid JSON format" });
-    }
-  });
-});
-
-app.put("/api/users/:id", (req, res) => {
-  const userId = parseInt(req.params.id);
-  const updatedUser = req.body;
-
-  fs.readFile(usersFilePath, "utf-8", (err, data) => {
-    if (err) return res.status(500).json({ message: "Error reading file" });
-
-    const users = JSON.parse(data);
-    const updatedUsers = users.map((user) =>
-      user.id === userId ? { ...user, ...updatedUser } : user
-    );
-
-    fs.writeFile(
-      usersFilePath,
-      JSON.stringify(updatedUsers, null, 2),
-      (err) => {
-        if (err) return res.status(500).json({ message: "Error writing file" });
-        res.json({ message: "User updated successfully" });
-      }
-    );
-  });
-});
-
-// --- User Logout Endpoint ---
-app.post("/api/logout", (req, res) => {
-  const { userId } = req.body;
-
-  fs.readFile(usersFilePath, "utf-8", (err, data) => {
-    if (err) return res.status(500).json({ message: "Error reading file" });
-
-    const users = JSON.parse(data);
-    const updatedUsers = users.map((user) =>
-      user.id === userId ? { ...user, isLoggedIn: false } : user
-    );
-
-    fs.writeFile(
-      usersFilePath,
-      JSON.stringify(updatedUsers, null, 2),
-      (err) => {
-        if (err) return res.status(500).json({ message: "Error writing file" });
-        res.json({ message: "User logged out successfully" });
-      }
-    );
-  });
-});
-
-// --- Logged-in User Endpoint ---
-app.get("/api/users/logged-in", (req, res) => {
-  fs.readFile(usersFilePath, "utf-8", (err, data) => {
-    if (err) return res.status(500).json({ message: "Error reading file" });
-
-    const users = JSON.parse(data);
-    const loggedInUser = users.find((user) => user.isLoggedIn === true);
-
-    if (loggedInUser) {
-      res.json(loggedInUser); // Return the logged-in user
-    } else {
-      res.status(404).json({ message: "No user is currently logged in" });
-    }
-  });
 });
 
 // --- Suguan Endpoints ---

@@ -32,10 +32,9 @@ import {
 } from "@chakra-ui/react";
 import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
 
-// Use environment variable
 const API_URL = process.env.REACT_APP_API_URL;
 
-const Admin = () => {
+const Applications = () => {
   const [apps, setApps] = useState([]);
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
@@ -69,12 +68,20 @@ const Admin = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleAddApp = (e) => {
+  const handleAddOrUpdateApp = (e) => {
     e.preventDefault();
+
+    // Check if name and url fields are not empty
+    if (!name.trim() || !url.trim()) {
+      setStatus("Name and URL fields are required.");
+      return;
+    }
+
     const newApp = { name, url, description, icon };
 
     if (editingApp) {
-      fetch(`${API_URL}/api/apps/${editingApp.name}`, {
+      // Update existing app logic
+      fetch(`${API_URL}/api/apps/${editingApp.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -84,14 +91,16 @@ const Admin = () => {
         .then((response) => response.json())
         .then(() => {
           setApps((prevApps) =>
-            prevApps.map((app) => (app.name === editingApp.name ? newApp : app))
+            prevApps.map((app) =>
+              app.id === editingApp.id ? { ...newApp, id: editingApp.id } : app
+            )
           );
           setStatus(`App "${name}" updated successfully.`);
-          onClose();
-          setEditingApp(null); // Reset editing state
+          resetForm();
         })
-        .catch((error) => setStatus("Error updating app. Please try again."));
+        .catch(() => setStatus("Error updating app. Please try again."));
     } else {
+      // Add new app logic
       fetch(`${API_URL}/api/apps`, {
         method: "POST",
         headers: {
@@ -100,49 +109,63 @@ const Admin = () => {
         body: JSON.stringify(newApp),
       })
         .then((response) => response.json())
-        .then(() => {
-          setApps((prevApps) => [...prevApps, newApp]);
+        .then((data) => {
+          setApps((prevApps) => [...prevApps, { ...newApp, id: data.id }]);
           setStatus(`App "${name}" added successfully.`);
-          setName("");
-          setUrl("");
-          setDescription("");
-          setIcon(null);
-          onClose(); // Close the modal after adding
+          resetForm();
         })
-        .catch((error) => setStatus("Error adding app. Please try again."));
+        .catch(() => setStatus("Error adding app. Please try again."));
     }
   };
 
-  const handleDeleteApp = (appName) => {
-    fetch(`${API_URL}/api/apps/${appName}`, {
+  const handleDeleteApp = () => {
+    fetch(`${API_URL}/api/apps/${appToDelete}`, {
       method: "DELETE",
     })
       .then(() => {
-        setApps(apps.filter((app) => app.name !== appName));
+        setApps((prevApps) => prevApps.filter((app) => app.id !== appToDelete));
+        setStatus("App deleted successfully.");
         onDeleteClose();
       })
       .catch((err) => console.error("Error deleting app:", err));
   };
 
   const handleEditApp = (app) => {
-    setEditingApp(app); // Set the app to edit
+    setEditingApp(app);
     setName(app.name);
     setUrl(app.url);
     setDescription(app.description);
     setIcon(app.icon);
-    onOpen(); // Open the modal for editing
+    onOpen();
   };
 
-  const handleOpenDeleteDialog = (appName) => {
-    setAppToDelete(appName);
+  const handleOpenDeleteDialog = (appId) => {
+    setAppToDelete(appId);
     onDeleteOpen();
+  };
+
+  const resetForm = () => {
+    setName("");
+    setUrl("");
+    setDescription("");
+    setIcon(null);
+    setEditingApp(null);
+    onClose();
   };
 
   return (
     <Box p={6}>
       <Heading mb={6}>Manage Applications</Heading>
 
-      <Button leftIcon={<AddIcon />} onClick={onOpen} colorScheme="teal" mb={4}>
+      <Button
+        leftIcon={<AddIcon />}
+        onClick={() => {
+          resetForm();
+          onOpen();
+        }}
+        colorScheme="teal"
+        mb={4}
+      >
         Add App
       </Button>
 
@@ -182,7 +205,7 @@ const Admin = () => {
                 <IconButton
                   icon={<DeleteIcon />}
                   colorScheme="red"
-                  onClick={() => handleOpenDeleteDialog(app.name)}
+                  onClick={() => handleOpenDeleteDialog(app.id)}
                 />
               </Td>
             </Tr>
@@ -216,7 +239,7 @@ const Admin = () => {
                 />
               </FormControl>
 
-              <FormControl isRequired>
+              <FormControl>
                 <FormLabel>Description</FormLabel>
                 <Input
                   value={description}
@@ -236,7 +259,7 @@ const Admin = () => {
             </VStack>
           </ModalBody>
           <ModalFooter>
-            <Button colorScheme="blue" onClick={handleAddApp} mr={3}>
+            <Button colorScheme="blue" onClick={handleAddOrUpdateApp} mr={3}>
               {editingApp ? "Save Changes" : "Add App"}
             </Button>
             <Button onClick={onClose}>Cancel</Button>
@@ -256,18 +279,14 @@ const Admin = () => {
               Delete App
             </AlertDialogHeader>
             <AlertDialogBody>
-              Are you sure you want to delete this app? You can't undo this
-              action.
+              Are you sure you want to delete this app? This action cannot be
+              undone.
             </AlertDialogBody>
             <AlertDialogFooter>
               <Button ref={cancelRef} onClick={onDeleteClose}>
                 Cancel
               </Button>
-              <Button
-                colorScheme="red"
-                onClick={() => handleDeleteApp(appToDelete)}
-                ml={3}
-              >
+              <Button colorScheme="red" onClick={handleDeleteApp} ml={3}>
                 Delete
               </Button>
             </AlertDialogFooter>
@@ -288,4 +307,4 @@ const Admin = () => {
   );
 };
 
-export default Admin;
+export default Applications;

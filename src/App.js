@@ -8,10 +8,9 @@ import {
 import Login from "./pages/Login";
 //import Login from "./pages/LdapLogin";
 import Dashboard from "./pages/Dashboard";
-import Admin from "./pages/Admin";
 import Profile from "./pages/Profile"; // Import Profile Page
 import Layout from "./components/Layout"; // Import Layout to wrap around pages
-import AddApps from "./pages/Admin"; // Import AddApps Page
+import Applications from "./pages/Applications"; // Import AddApps Page
 import Users from "./pages/Users"; // Import User Page
 import AddSuguan from "./pages/Suguan"; // Import AddSuguan Page
 import AddEvents from "./pages/Events"; // Import AddEvents Page
@@ -46,7 +45,7 @@ function App() {
             }
           />
           <Route
-            path="/admin"
+            path="/application"
             element={
               <Layout
                 currentUser={{
@@ -54,7 +53,7 @@ function App() {
                   avatarUrl: "/path/to/avatar.jpg",
                 }}
               >
-                <Admin />
+                <Applications />
               </Layout>
             }
           />
@@ -95,7 +94,7 @@ function App() {
                   avatarUrl: "/path/to/avatar.jpg",
                 }}
               >
-                <AddApps />
+                <Applications />
               </Layout>
             }
           />

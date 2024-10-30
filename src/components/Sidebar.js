@@ -156,7 +156,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
               icon={FiGrid}
               label="Apps"
               isExpanded={isExpanded}
-              onClick={() => navigate("/admin")} // Redirect to admin.js
+              onClick={() => navigate("/application")} // Redirect to application.js
             />
             <SidebarItem
               icon={FiUsers}

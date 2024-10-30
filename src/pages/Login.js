@@ -22,23 +22,8 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [users, setUsers] = useState([]);
   const [useLdap, setUseLdap] = useState(false); // Toggle for LDAP login
   const navigate = useNavigate();
-
-  // Fetch local users from the backend API
-  useEffect(() => {
-    fetch(`${process.env.REACT_APP_API_URL}/api/users`)
-      .then((response) => response.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setUsers(data);
-        } else {
-          console.error("Data fetched is not an array");
-        }
-      })
-      .catch((error) => console.error("Error fetching user data:", error));
-  }, []);
 
   // Hash the password for LDAP MD5 format
   const md5HashPassword = (password) => {
@@ -75,26 +60,21 @@ const Login = () => {
         setError(err.response?.data?.message || "LDAP Login failed");
       }
     } else {
-      // Local Authentication
-      const user = users.find(
-        (user) => user.username === username && user.password === password
-      );
+      // Local Authentication with MySQL
+      try {
+        const response = await axios.post(
+          `${process.env.REACT_APP_API_URL}/api/users/login`,
+          { username, password }
+        );
 
-      if (user) {
-        try {
-          await fetch(`${process.env.REACT_APP_API_URL}/api/users/${user.id}`, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ ...user, isLoggedIn: true }),
-          });
+        if (response.data.success) {
           navigate("/dashboard");
-        } catch {
-          setError("Error updating login status. Try again.");
+        } else {
+          setError("Invalid username or password");
         }
-      } else {
-        setError("Invalid username or password");
+      } catch (error) {
+        setError("Error connecting to the server. Please try again.");
+        console.error("Error during login:", error);
       }
     }
 

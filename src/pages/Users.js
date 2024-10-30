@@ -28,10 +28,11 @@ import {
   Checkbox,
   CheckboxGroup,
   Stack,
+  Alert,
+  AlertIcon,
 } from "@chakra-ui/react";
 import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
 
-// Use environment variable
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Users = () => {
@@ -39,54 +40,55 @@ const Users = () => {
   const [apps, setApps] = useState([]);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
+  const [fullname, setFullname] = useState("");
   const [email, setEmail] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [selectedApps, setSelectedApps] = useState([]); // Store selected apps
   const [selectAll, setSelectAll] = useState(false); // State for Select All checkbox
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [editingUser, setEditingUser] = useState(null);
-  const [error, setError] = useState(null); // Error state to handle fetch issues
+  const [editingUser, setEditingUser] = useState(null); // Holds the entire user object for editing
+  const [status, setStatus] = useState(""); // Status message
 
   // Fetch users and apps data
   useEffect(() => {
     fetch(`${API_URL}/api/users`)
       .then((res) => res.json())
       .then((data) => {
-        if (Array.isArray(data)) {
-          setUsers(data);
-        } else {
-          setError("Failed to load users. Data is not an array.");
-        }
+        console.log("Fetched Users Data:", data); // Debug: Log the data to check `fullname` and `availableApps`
+        setUsers(data);
       })
       .catch((err) => {
-        console.error(err);
-        setError("Failed to load users. Please try again later.");
+        console.error("Error fetching users:", err);
+        setStatus("Failed to load users.");
       });
 
     fetch(`${API_URL}/api/apps`)
       .then((res) => res.json())
-      .then((data) => setApps(data))
+      .then((data) => {
+        console.log("Fetched Apps Data:", data); // Debug: Log the apps data to verify
+        setApps(data);
+      })
       .catch((err) => {
         console.error("Error fetching apps:", err);
-        setError("Failed to load apps.");
+        setStatus("Failed to load apps.");
       });
   }, []);
 
   const handleAddUser = (e) => {
     e.preventDefault();
+
     const newUser = {
       username,
       password,
-      name,
+      name: fullname, // Map `fullname` to `name` to match the backend
       email,
-      avatarUrl,
-      isLoggedIn: false,
-      availableApps: selectedApps, // Link the selected apps
+      avatar: avatarUrl,
+      availableApps: selectedApps,
     };
 
     if (editingUser) {
-      fetch(`${API_URL}/api/users/${editingUser.id}`, {
+      console.log("Payload for Update:", newUser); // Debug log
+      fetch(`${API_URL}/api/users/${editingUser.ID}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -96,12 +98,15 @@ const Users = () => {
         .then(() => {
           setUsers((prevUsers) =>
             prevUsers.map((item) =>
-              item.id === editingUser.id ? newUser : item
+              item.ID === editingUser.ID
+                ? { ...newUser, ID: editingUser.ID }
+                : item
             )
           );
-          onClose();
+          setStatus("User updated successfully.");
+          closeModal();
         })
-        .catch(() => alert("Error updating user. Please try again."));
+        .catch(() => setStatus("Error updating user. Please try again."));
     } else {
       fetch(`${API_URL}/api/users`, {
         method: "POST",
@@ -110,42 +115,52 @@ const Users = () => {
         },
         body: JSON.stringify(newUser),
       })
-        .then(() => {
-          setUsers((prevUsers) => [...prevUsers, newUser]);
-          onClose();
+        .then((response) => response.json())
+        .then((data) => {
+          setUsers((prevUsers) => [...prevUsers, { ...newUser, ID: data.ID }]);
+          setStatus("User added successfully.");
+          closeModal();
         })
-        .catch(() => alert("Error adding user. Please try again."));
+        .catch(() => setStatus("Error adding user. Please try again."));
     }
   };
 
   const handleDeleteUser = (id) => {
+    // Display a confirmation dialog before deleting
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this user?"
+    );
+
+    if (!confirmDelete) return; // If the user clicks "Cancel", stop the deletion
+
     fetch(`${API_URL}/api/users/${id}`, {
       method: "DELETE",
     })
       .then(() => {
-        setUsers(users.filter((item) => item.id !== id));
+        setUsers((prevUsers) => prevUsers.filter((item) => item.ID !== id));
+        setStatus("User deleted successfully.");
       })
-      .catch((err) => console.error("Error deleting user:", err));
+      .catch(() => setStatus("Error deleting user."));
   };
 
   const handleEditUser = (item) => {
-    setEditingUser(item);
+    // Set the entire user object in `editingUser` to ensure `ID` is accessible
+    setEditingUser(item); // Set to the whole item, not just item.ID
     setUsername(item.username);
     setPassword(item.password);
-    setName(item.name);
+    setFullname(item.fullname);
     setEmail(item.email);
-    setAvatarUrl(item.avatarUrl);
-    setSelectedApps(item.availableApps || []); // Populate selected apps
-    setSelectAll(item.availableApps?.length === apps.length); // Check if all apps are selected
+    setAvatarUrl(item.avatar);
+    setSelectedApps(item.availableApps || []);
+    setSelectAll(item.availableApps?.length === apps.length);
     onOpen();
   };
 
   const handleAppChange = (selectedValues) => {
-    setSelectedApps(selectedValues); // Handle app selection
-    setSelectAll(selectedValues.length === apps.length); // Update Select All state
+    setSelectedApps(selectedValues);
+    setSelectAll(selectedValues.length === apps.length);
   };
 
-  // Handle Select All checkbox logic
   const handleSelectAll = (isChecked) => {
     if (isChecked) {
       const allAppNames = apps.map((app) => app.name);
@@ -160,16 +175,16 @@ const Users = () => {
   const resetForm = () => {
     setUsername("");
     setPassword("");
-    setName("");
+    setFullname("");
     setEmail("");
     setAvatarUrl("");
     setSelectedApps([]);
     setSelectAll(false);
-    setEditingUser(null);
+    setEditingUser(null); // Clear `editingUser` on form reset
   };
 
   const openAddUserModal = () => {
-    resetForm(); // Clear fields when opening the modal
+    resetForm();
     onOpen();
   };
 
@@ -178,26 +193,28 @@ const Users = () => {
     onClose();
   };
 
-  if (error) {
-    return (
-      <Box p={6}>
-        <Heading>{error}</Heading>
-      </Box>
-    );
-  }
-
   return (
     <Box p={6}>
       <Heading mb={6}>Manage Users</Heading>
 
       <Button
         leftIcon={<AddIcon />}
-        onClick={openAddUserModal} // Ensure reset on opening Add User
+        onClick={openAddUserModal}
         colorScheme="teal"
         mb={4}
       >
         Add User
       </Button>
+
+      {status && (
+        <Alert
+          status={status.includes("successfully") ? "success" : "error"}
+          mb={4}
+        >
+          <AlertIcon />
+          {status}
+        </Alert>
+      )}
 
       <Table variant="simple">
         <Thead>
@@ -209,12 +226,13 @@ const Users = () => {
           </Tr>
         </Thead>
         <Tbody>
-          {users.map((item, index) => (
-            <Tr key={index}>
+          {users.map((item) => (
+            <Tr key={item.ID}>
               <Td>
                 <HStack spacing={3}>
-                  <Avatar size="sm" src={item.avatarUrl} name={item.name} />
-                  <Text>{item.name}</Text>
+                  <Avatar size="sm" src={item.avatar} name={item.fullname} />
+                  <Text>{item.fullname}</Text>{" "}
+                  {/* Make sure item.fullname is used here */}
                 </HStack>
               </Td>
               <Td>{item.username}</Td>
@@ -229,7 +247,7 @@ const Users = () => {
                 <IconButton
                   icon={<DeleteIcon />}
                   colorScheme="red"
-                  onClick={() => handleDeleteUser(item.id)}
+                  onClick={() => handleDeleteUser(item.ID)}
                 />
               </Td>
             </Tr>
@@ -265,10 +283,10 @@ const Users = () => {
               </FormControl>
 
               <FormControl isRequired>
-                <FormLabel>Name</FormLabel>
+                <FormLabel>Full Name</FormLabel>
                 <Input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  value={fullname}
+                  onChange={(e) => setFullname(e.target.value)} // Using `name` here
                   placeholder="Enter Full Name"
                 />
               </FormControl>
@@ -302,8 +320,8 @@ const Users = () => {
                 </Checkbox>
                 <CheckboxGroup value={selectedApps} onChange={handleAppChange}>
                   <Stack spacing={2}>
-                    {apps.map((app, index) => (
-                      <Checkbox key={index} value={app.name}>
+                    {apps.map((app) => (
+                      <Checkbox key={app.id} value={app.name}>
                         {app.name}
                       </Checkbox>
                     ))}
