@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 25, 2024 at 10:21 AM
+-- Generation Time: Oct 30, 2024 at 10:01 AM
 -- Server version: 10.4.25-MariaDB
 -- PHP Version: 8.1.10
 
@@ -33,6 +33,32 @@ CREATE TABLE `apps` (
   `url` varchar(50) NOT NULL,
   `description` varchar(50) DEFAULT NULL,
   `icon` varchar(50) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `apps`
+--
+
+INSERT INTO `apps` (`id`, `name`, `url`, `description`, `icon`) VALUES
+(1, 'Next Cloud', 'http://172.18.121.101', 'Next Cloud', NULL),
+(2, 'LMS', 'https://lms.pmdmc.net/', 'Letter Management System', ''),
+(3, 'PV Inventory', 'https://pvinv.pmdmc.net/PVLogs', 'PV Inventory', ''),
+(4, 'INC Hymns', 'http://172.18.121.5', 'INC Hymns', ''),
+(5, 'PMD Media', 'http://172.18.121.48/', 'PMD Media', ''),
+(6, 'Choir App', 'https://google.com', 'Choir App', ''),
+(7, 'Suguan', 'http://172.18.125.134:3000/add-suguan', 'WS Suguan', NULL),
+(8, 'Snipe IT', 'https://pvinv.pmdmc.net', 'Snipe IT', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `available_apps`
+--
+
+CREATE TABLE `available_apps` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `app_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -869,7 +895,7 @@ CREATE TABLE `spouses` (
 
 CREATE TABLE `users` (
   `ID` int(11) NOT NULL,
-  `avatar` varchar(50) DEFAULT NULL,
+  `avatar` text DEFAULT NULL,
   `fullname` varchar(50) DEFAULT NULL,
   `username` varchar(25) DEFAULT NULL,
   `email` varchar(50) DEFAULT NULL,
@@ -878,6 +904,17 @@ CREATE TABLE `users` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`ID`, `avatar`, `fullname`, `username`, `email`, `password`, `online_status`, `created_at`, `updated_at`) VALUES
+(1, NULL, 'Felix Pareja', 'felix.pareja', 'felixpareja.pmdit007@yahoo.com', 'felixpareja', NULL, NULL, NULL),
+(2, NULL, 'Karl Dematera', 'kdematera', 'kdematera@gmail.com', '123456', NULL, NULL, NULL),
+(3, NULL, 'Kyrt Jurada', 'jurada', 'jurada@gmail.com', '123456', NULL, NULL, NULL),
+(4, NULL, 'Teo Ramos', 'tramos', 'tramos@gmail.com', '123456', NULL, NULL, NULL),
+(5, NULL, 'Kim Amaro', 'kamaroo', 'amaro@yahoo.com', 'password', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1021,6 +1058,12 @@ ALTER TABLE `apps`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `available_apps`
+--
+ALTER TABLE `available_apps`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `children`
 --
 ALTER TABLE `children`
@@ -1124,6 +1167,12 @@ ALTER TABLE `work_background`
 -- AUTO_INCREMENT for table `apps`
 --
 ALTER TABLE `apps`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+
+--
+-- AUTO_INCREMENT for table `available_apps`
+--
+ALTER TABLE `available_apps`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
@@ -1202,7 +1251,7 @@ ALTER TABLE `spouses`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `user_appslist`
