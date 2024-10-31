@@ -23,47 +23,39 @@ import {
   Input,
   useDisclosure,
   useToast,
-  Icon,
 } from "@chakra-ui/react";
 import { FaEdit } from "react-icons/fa";
-import { FiLock } from "react-icons/fi"; // Change Password Icon
-import { FiFile } from "react-icons/fi"; // Change Password Icon
-import jsPDF from "jspdf"; // Import jsPDF for PDF generation
-import html2canvas from "html2canvas"; // Import html2canvas
+import { FiLock, FiFile } from "react-icons/fi";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 const Profile = () => {
-  const [user, setUser] = useState({ name: "", email: "", avatarUrl: "" });
+  const [user, setUser] = useState({ name: "", email: "", avatar: "" });
   const [loading, setLoading] = useState(true);
   const [editUser, setEditUser] = useState({
     name: "",
     email: "",
-    avatarUrl: "",
-    educationalBackground: [],
-    workInformation: [],
-    familyDetails: { spouse: {}, children: [] },
+    avatar: "",
   });
   const { isOpen, onOpen, onClose } = useDisclosure();
   const {
     isOpen: isChangePassOpen,
     onOpen: onChangePassOpen,
     onClose: onChangePassClose,
-  } = useDisclosure(); // Change Password Modal
+  } = useDisclosure();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const toast = useToast();
-  const profileRef = useRef(null); // Create a ref for the profile section
+  const profileRef = useRef(null);
 
-  // Fetch the user data (who is logged in)
+  // Fetch the user data (from users table)
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_API_URL}/api/users`)
+    fetch(`${process.env.REACT_APP_API_URL}/api/users/logged-in`)
       .then((response) => response.json())
       .then((data) => {
-        const loggedInUser = data.find((user) => user.isLoggedIn);
-        if (loggedInUser) {
-          setUser(loggedInUser);
-          setEditUser(loggedInUser); // Set initial edit state
-        }
+        setUser(data);
+        setEditUser(data);
         setLoading(false);
       })
       .catch((error) => {
@@ -78,14 +70,35 @@ const Profile = () => {
     setEditUser((prevUser) => ({ ...prevUser, [name]: value }));
   };
 
-  // Handle form submission for editing profile
+  // Handle avatar image change
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditUser((prevUser) => ({
+          ...prevUser,
+          avatar: reader.result, // Convert image to base64 string
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSaveChanges = () => {
-    fetch(`${process.env.REACT_APP_API_URL}/api/users/${editUser.id}`, {
+    const formData = new FormData();
+    formData.append("name", editUser.name);
+    formData.append("email", editUser.email);
+    formData.append("username", editUser.username);
+
+    // Include avatar if it has been updated (base64 string or file)
+    if (editUser.avatarUrl && typeof editUser.avatarUrl !== "string") {
+      formData.append("avatar", editUser.avatarUrl);
+    }
+
+    fetch(`${process.env.REACT_APP_API_URL}/api/users/${user.ID}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(editUser), // Ensure avatarUrl is included here
+      body: formData,
     })
       .then((response) => response.json())
       .then(() => {
@@ -97,7 +110,7 @@ const Profile = () => {
           duration: 3000,
           isClosable: true,
         });
-        onClose(); // Close modal after saving
+        onClose();
       })
       .catch((error) => {
         console.error("Error updating profile:", error);
@@ -109,187 +122,6 @@ const Profile = () => {
           isClosable: true,
         });
       });
-  };
-
-  const handleAvatarChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setEditUser((prevUser) => ({
-          ...prevUser,
-          avatarUrl: reader.result, // Convert image to base64 string
-        }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  // Helper function to add educational background
-  const addEducationField = () => {
-    const newEducation = { degree: "", institution: "", yearGraduated: "" };
-    setEditUser((prevUser) => ({
-      ...prevUser,
-      educationalBackground: [...prevUser.educationalBackground, newEducation],
-    }));
-  };
-
-  // Handle changes in educational background
-  const handleEducationChange = (index, field, value) => {
-    const updatedEducation = editUser.educationalBackground.map(
-      (education, i) =>
-        i === index ? { ...education, [field]: value } : education
-    );
-    setEditUser((prevUser) => ({
-      ...prevUser,
-      educationalBackground: updatedEducation,
-    }));
-  };
-
-  // Helper function to add work information
-  const addWorkField = () => {
-    const newWork = { position: "", company: "", yearsWorked: "" };
-    setEditUser((prevUser) => ({
-      ...prevUser,
-      workInformation: [...prevUser.workInformation, newWork],
-    }));
-  };
-
-  // Handle changes in work information
-  const handleWorkChange = (index, field, value) => {
-    const updatedWork = editUser.workInformation.map((work, i) =>
-      i === index ? { ...work, [field]: value } : work
-    );
-    setEditUser((prevUser) => ({ ...prevUser, workInformation: updatedWork }));
-  };
-
-  // Helper function to add family details (children or spouse)
-  const addFamilyField = (type) => {
-    if (type === "spouse") {
-      setEditUser((prevUser) => ({
-        ...prevUser,
-        familyDetails: {
-          ...prevUser.familyDetails,
-          spouse: { name: "", age: "" },
-        },
-      }));
-    } else if (type === "child") {
-      const newChild = { name: "", age: "" };
-      setEditUser((prevUser) => ({
-        ...prevUser,
-        familyDetails: {
-          ...prevUser.familyDetails,
-          children: [...prevUser.familyDetails.children, newChild],
-        },
-      }));
-    }
-  };
-
-  // Handle changes in family details
-  const handleFamilyChange = (field, value, index = null) => {
-    if (field === "spouseName" || field === "spouseAge") {
-      setEditUser((prevUser) => ({
-        ...prevUser,
-        familyDetails: {
-          ...prevUser.familyDetails,
-          spouse: {
-            ...prevUser.familyDetails.spouse,
-            [field.replace("spouse", "").toLowerCase()]: value,
-          },
-        },
-      }));
-    } else if (field === "child") {
-      const updatedChildren = editUser.familyDetails.children.map((child, i) =>
-        i === index ? { ...child, ...value } : child
-      );
-      setEditUser((prevUser) => ({
-        ...prevUser,
-        familyDetails: { ...prevUser.familyDetails, children: updatedChildren },
-      }));
-    }
-  };
-
-  // Generate PDF for user profile
-  const generatePDF = () => {
-    const doc = new jsPDF();
-
-    // Add the avatar image (base64 encoded image)
-    const imgWidth = 40;
-    const imgHeight = 40;
-
-    if (editUser.avatarUrl) {
-      doc.addImage(editUser.avatarUrl, "JPEG", 150, 10, imgWidth, imgHeight); // Add profile picture in the top-right corner
-    }
-
-    // Name and Title
-    doc.setFontSize(20);
-    doc.text(editUser.name, 10, 20); // Name at the top-left
-    doc.setFontSize(14);
-    doc.setTextColor(100);
-    doc.text("Software Engineer", 10, 30); // Subtitle or title under the name
-
-    // Experience Section
-    doc.setFontSize(16);
-    doc.setTextColor(0);
-    doc.text("EXPERIENCE", 10, 50);
-    doc.setFontSize(12);
-    editUser.workInformation.forEach((work, index) => {
-      const positionY = 60 + index * 20;
-      doc.text(`${work.position}`, 10, positionY);
-      doc.setTextColor(100);
-      doc.text(
-        `${work.company} • ${work.yearsWorked} year(s)`,
-        10,
-        positionY + 6
-      );
-      doc.setTextColor(0);
-    });
-
-    // Projects Section (if any)
-    doc.setFontSize(16);
-    doc.setTextColor(0);
-    doc.text("PROJECTS", 100, 50); // Projects on the right side of the page
-    doc.setFontSize(12);
-    const projects = ["Next Cloud", "LMS", "PV Inventory"]; // Example projects
-    projects.forEach((project, index) => {
-      const positionY = 60 + index * 20;
-      doc.text(`${project}`, 100, positionY); // Adjust to match the layout
-    });
-
-    // Education Section
-    doc.setFontSize(16);
-    doc.text("EDUCATION", 10, 100);
-    doc.setFontSize(12);
-    editUser.educationalBackground.forEach((education, index) => {
-      const positionY = 110 + index * 20;
-      doc.text(`${education.degree}`, 10, positionY);
-      doc.setTextColor(100);
-      doc.text(
-        `${education.institution} • ${education.yearGraduated}`,
-        10,
-        positionY + 6
-      );
-      doc.setTextColor(0);
-    });
-
-    // Family Details Section
-    doc.setFontSize(16);
-    doc.text("FAMILY DETAILS", 10, 150);
-    doc.setFontSize(12);
-    const familyDetails = editUser.familyDetails;
-    doc.text(`Spouse: ${familyDetails.spouse.name || "N/A"}`, 10, 160);
-    doc.text(`Children:`, 10, 170);
-    familyDetails.children.forEach((child, index) => {
-      const childPositionY = 180 + index * 10;
-      doc.text(
-        `- ${child.name || "N/A"}, Age: ${child.age || "N/A"}`,
-        10,
-        childPositionY
-      );
-    });
-
-    // Save the PDF
-    doc.save(`${editUser.name}_Profile.pdf`);
   };
 
   // Change Password Logic
@@ -305,9 +137,6 @@ const Profile = () => {
       return;
     }
 
-    // Handle avatar image file change
-
-    // Mocking password change API request
     fetch(`${process.env.REACT_APP_API_URL}/api/users/change-password`, {
       method: "POST",
       headers: {
@@ -316,7 +145,7 @@ const Profile = () => {
       body: JSON.stringify({
         currentPassword,
         newPassword,
-        userId: user.id,
+        userId: user.ID,
       }),
     })
       .then((response) => {
@@ -354,7 +183,19 @@ const Profile = () => {
       });
   };
 
-  // Colors and effects
+  // Generate PDF for user profile
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(20);
+    doc.text(user.name, 10, 20);
+    doc.setFontSize(14);
+    doc.text(user.email, 10, 30);
+    if (user.avatar) {
+      doc.addImage(user.avatar, "JPEG", 150, 10, 40, 40);
+    }
+    doc.save(`${user.name}_Profile.pdf`);
+  };
+
   const bgGradient = useColorModeValue(
     "linear(to-r, teal.100, green.100)",
     "linear(to-r, teal.700, green.700)"
@@ -375,98 +216,21 @@ const Profile = () => {
         <Spinner size="xl" color="teal.500" />
       ) : (
         <Box
-          ref={profileRef} // Attach ref to the profile box
+          ref={profileRef}
           w={["90%", "400px"]}
           bgGradient={bgGradient}
           p={8}
           borderRadius="lg"
           boxShadow={boxShadow}
-          transition="all 0.3s ease"
-          _hover={{ transform: "scale(1.02)" }}
         >
           <VStack spacing={6} textAlign="center">
-            <Avatar size="2xl" name={user.name} src={user.avatarUrl} />
+            <Avatar size="2xl" name={user.name} src={user.avatar} />
             <Heading as="h2" size="lg" color={headingColor}>
               {user.name}
             </Heading>
             <Text fontSize="lg" color="gray.600">
               {user.email}
             </Text>
-
-            {/* Educational Background */}
-            {user.educationalBackground &&
-              user.educationalBackground.length > 0 && (
-                <>
-                  <Heading as="h3" size="md" color={headingColor} mt={4}>
-                    Educational Background
-                  </Heading>
-                  {user.educationalBackground.map((education, index) => (
-                    <Box key={index}>
-                      <Text fontWeight="bold">{education.degree}</Text>
-                      <Text>{education.institution}</Text>
-                      <Text>{education.yearGraduated}</Text>
-                    </Box>
-                  ))}
-                </>
-              )}
-
-            {/* Work Information */}
-            {user.workInformation && user.workInformation.length > 0 && (
-              <>
-                <Heading as="h3" size="md" color={headingColor} mt={4}>
-                  Work Information
-                </Heading>
-                {user.workInformation.map((work, index) => (
-                  <Box key={index}>
-                    <Text fontWeight="bold">{work.position}</Text>
-                    <Text>{work.company}</Text>
-                    <Text>{work.yearsWorked} years</Text>
-                  </Box>
-                ))}
-              </>
-            )}
-
-            {/* Family Details */}
-            {user.familyDetails ? (
-              <>
-                <Heading as="h3" size="md" color={headingColor} mt={4}>
-                  Family Details
-                </Heading>
-                <Box>
-                  {/* Spouse Info */}
-                  <Text>Spouse: {user.familyDetails.spouse.name || "N/A"}</Text>
-                  <Text>
-                    Spouse Age: {user.familyDetails.spouse.age || "N/A"}
-                  </Text>
-
-                  {/* Children Info */}
-                  {user.familyDetails.children &&
-                  user.familyDetails.children.length > 0 ? (
-                    <>
-                      <Text>Children:</Text>
-                      {user.familyDetails.children.map((child, index) => (
-                        <Text key={index}>
-                          {child.name || "N/A"} - {child.age || "N/A"} years old
-                        </Text>
-                      ))}
-                    </>
-                  ) : (
-                    <Text>Children: N/A</Text>
-                  )}
-                </Box>
-              </>
-            ) : (
-              <>
-                <Heading as="h3" size="md" color={headingColor} mt={4}>
-                  Family Details
-                </Heading>
-                <Box>
-                  <Text>Spouse: N/A</Text>
-                  <Text>Spouse Age: N/A</Text>
-                  <Text>Children: N/A</Text>
-                </Box>
-              </>
-            )}
 
             <Divider borderColor="teal.300" />
 
@@ -505,30 +269,20 @@ const Profile = () => {
               <ModalCloseButton />
               <ModalBody>
                 <VStack spacing={6} align="center">
-                  {/* Avatar */}
-                  {editUser.avatarUrl && (
-                    <Avatar
-                      size="2xl"
-                      name={editUser.name}
-                      src={editUser.avatarUrl}
-                      mb={4}
-                      border="2px solid teal"
-                      boxShadow="lg"
-                    />
-                  )}
-
-                  {/* Avatar Upload */}
+                  <Avatar
+                    size="2xl"
+                    name={editUser.name}
+                    src={editUser.avatar}
+                    mb={4}
+                  />
                   <FormControl>
                     <FormLabel>Avatar</FormLabel>
                     <Input
                       type="file"
                       accept="image/*"
                       onChange={handleAvatarChange}
-                      p={2}
                     />
                   </FormControl>
-
-                  {/* Name and Email */}
                   <FormControl isRequired>
                     <FormLabel>Name</FormLabel>
                     <Input
@@ -545,145 +299,8 @@ const Profile = () => {
                       onChange={handleInputChange}
                     />
                   </FormControl>
-
-                  {/* Education Section */}
-                  <FormControl>
-                    <FormLabel>Educational Background</FormLabel>
-                    {editUser.educationalBackground?.map((education, index) => (
-                      <Box key={index}>
-                        <Input
-                          placeholder="Degree"
-                          value={education.degree}
-                          onChange={(e) =>
-                            handleEducationChange(
-                              index,
-                              "degree",
-                              e.target.value
-                            )
-                          }
-                          mb={2}
-                        />
-                        <Input
-                          placeholder="Institution"
-                          value={education.institution}
-                          onChange={(e) =>
-                            handleEducationChange(
-                              index,
-                              "institution",
-                              e.target.value
-                            )
-                          }
-                          mb={2}
-                        />
-                        <Input
-                          placeholder="Year Graduated"
-                          value={education.yearGraduated}
-                          onChange={(e) =>
-                            handleEducationChange(
-                              index,
-                              "yearGraduated",
-                              e.target.value
-                            )
-                          }
-                          mb={2}
-                        />
-                      </Box>
-                    ))}
-                    <Button onClick={addEducationField}>Add Education</Button>
-                  </FormControl>
-
-                  {/* Work Information Section */}
-                  <FormControl>
-                    <FormLabel>Work Information</FormLabel>
-                    {editUser.workInformation?.map((work, index) => (
-                      <Box key={index}>
-                        <Input
-                          placeholder="Position"
-                          value={work.position}
-                          onChange={(e) =>
-                            handleWorkChange(index, "position", e.target.value)
-                          }
-                          mb={2}
-                        />
-                        <Input
-                          placeholder="Company"
-                          value={work.company}
-                          onChange={(e) =>
-                            handleWorkChange(index, "company", e.target.value)
-                          }
-                          mb={2}
-                        />
-                        <Input
-                          placeholder="Years Worked"
-                          value={work.yearsWorked}
-                          onChange={(e) =>
-                            handleWorkChange(
-                              index,
-                              "yearsWorked",
-                              e.target.value
-                            )
-                          }
-                          mb={2}
-                        />
-                      </Box>
-                    ))}
-                    <Button onClick={addWorkField}>Add Work Information</Button>
-                  </FormControl>
-
-                  {/* Family Details Section */}
-                  <FormControl>
-                    <FormLabel>Family Details</FormLabel>
-                    <Input
-                      placeholder="Spouse Name"
-                      value={editUser.familyDetails.spouse.name || ""}
-                      onChange={(e) =>
-                        handleFamilyChange("spouseName", e.target.value)
-                      }
-                      mb={2}
-                    />
-                    <Input
-                      placeholder="Spouse Age"
-                      value={editUser.familyDetails.spouse.age || ""}
-                      onChange={(e) =>
-                        handleFamilyChange("spouseAge", e.target.value)
-                      }
-                      mb={2}
-                    />
-                    {editUser.familyDetails.children?.map((child, index) => (
-                      <Box key={index}>
-                        <Input
-                          placeholder="Child Name"
-                          value={child.name}
-                          onChange={(e) =>
-                            handleFamilyChange(
-                              "child",
-                              { name: e.target.value },
-                              index
-                            )
-                          }
-                          mb={2}
-                        />
-                        <Input
-                          placeholder="Child Age"
-                          value={child.age}
-                          onChange={(e) =>
-                            handleFamilyChange(
-                              "child",
-                              { age: e.target.value },
-                              index
-                            )
-                          }
-                          mb={2}
-                        />
-                      </Box>
-                    ))}
-                    <Button onClick={() => addFamilyField("child")}>
-                      Add Child
-                    </Button>
-                  </FormControl>
                 </VStack>
               </ModalBody>
-
               <ModalFooter>
                 <Button colorScheme="teal" mr={3} onClick={handleSaveChanges}>
                   Save Changes

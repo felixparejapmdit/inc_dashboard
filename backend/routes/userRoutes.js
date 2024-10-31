@@ -2,6 +2,63 @@ const express = require("express");
 const router = express.Router();
 const db = require("../db");
 
+const bcrypt = require("bcrypt");
+const multer = require("multer");
+const upload = multer({ dest: "uploads/" }); // Set destination folder for uploaded images
+
+// Change Password Endpoint
+router.post("/api/users/change-password", (req, res) => {
+  const { userId, currentPassword, newPassword } = req.body;
+
+  // Check if all required fields are provided
+  if (!userId || !currentPassword || !newPassword) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+
+  // Get the current password hash from the database
+  const query = "SELECT password FROM users WHERE ID = ?";
+  db.query(query, [userId], async (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Database error" });
+    }
+
+    // Check if the user was found
+    if (results.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const storedPasswordHash = results[0].password;
+
+    try {
+      // Compare the provided current password with the stored hash
+      const isMatch = await bcrypt.compare(currentPassword, storedPasswordHash);
+      if (!isMatch) {
+        return res
+          .status(400)
+          .json({ message: "Current password is incorrect" });
+      }
+
+      // Hash the new password
+      const newPasswordHash = await bcrypt.hash(newPassword, 10);
+
+      // Update the password in the database
+      const updateQuery = "UPDATE users SET password = ? WHERE ID = ?";
+      db.query(updateQuery, [newPasswordHash, userId], (updateErr) => {
+        if (updateErr) {
+          console.error("Error updating password:", updateErr);
+          return res.status(500).json({ message: "Error updating password" });
+        }
+
+        res.status(200).json({ message: "Password updated successfully" });
+      });
+    } catch (hashingError) {
+      console.error("Error hashing the new password:", hashingError);
+      res.status(500).json({ message: "Error processing password change" });
+    }
+  });
+});
+
 // Logged-In User Endpoint
 router.get("/api/users/logged-in", (req, res) => {
   const query = `
@@ -90,29 +147,49 @@ router.get("/api/users", (req, res) => {
 });
 
 // User login
-router.post("/api/users/login", (req, res) => {
+// Login Endpoint
+router.post("/api/users/login", async (req, res) => {
   const { username, password } = req.body;
+
   if (!username || !password) {
     return res
       .status(400)
       .json({ message: "Username and password are required" });
   }
 
-  const query = "SELECT * FROM users WHERE username = ? AND password = ?";
-  db.query(query, [username, password], (err, results) => {
-    if (err) {
-      return res
-        .status(500)
-        .json({ success: false, message: "Database error" });
-    }
-    if (results.length > 0) {
-      return res.json({ success: true, user: results[0] });
-    } else {
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid credentials" });
-    }
-  });
+  try {
+    // Check if the user exists and retrieve hashed password
+    const query = "SELECT * FROM users WHERE username = ?";
+    db.query(query, [username], async (err, results) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ message: "Database error" });
+      }
+
+      if (results.length === 0) {
+        return res
+          .status(401)
+          .json({ success: false, message: "Invalid username or password" });
+      }
+
+      const user = results[0];
+
+      // Compare the plaintext password with the stored hash
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res
+          .status(401)
+          .json({ success: false, message: "Invalid username or password" });
+      }
+
+      // If password matches, return success and user data
+      console.log("User authenticated:", username);
+      res.json({ success: true, user });
+    });
+  } catch (error) {
+    console.error("Error during login:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 });
 
 // Add new user with selected apps
@@ -165,20 +242,26 @@ router.post("/api/users", (req, res) => {
 });
 
 // Update user details and assigned apps
-router.put("/api/users/:id", (req, res) => {
+router.put("/api/users/:id", upload.single("avatar"), async (req, res) => {
   const userId = parseInt(req.params.id, 10);
   if (isNaN(userId)) {
     return res.status(400).json({ message: "Invalid user ID" });
   }
 
-  const { username, password, name, email, avatarUrl, availableApps } =
-    req.body;
+  const { name, email, username } = req.body;
+  let avatar = null;
+
+  // Handle avatar file if uploaded
+  if (req.file) {
+    avatar = req.file.buffer.toString("base64"); // Convert image to base64
+  }
+
+  // Prepare the update data, only including fields that have values
   const updatedUser = {
-    username,
-    password,
-    fullname: name, // Ensure `name` is mapped to `fullname`
+    fullname: name,
     email,
-    avatar: avatarUrl,
+    username,
+    ...(avatar && { avatar }), // Add avatar only if it exists
   };
 
   db.query(
@@ -190,38 +273,7 @@ router.put("/api/users/:id", (req, res) => {
         return res.status(500).json({ message: "Database update error" });
       }
 
-      db.query(
-        "DELETE FROM available_apps WHERE user_id = ?",
-        [userId],
-        (err) => {
-          if (err) {
-            console.error("Error clearing user apps:", err);
-            return res.status(500).json({ message: "Database error on apps" });
-          }
-
-          const appValues = (availableApps || []).map((appId) => [
-            userId,
-            appId,
-          ]);
-          if (appValues.length > 0) {
-            db.query(
-              "INSERT INTO available_apps (user_id, app_id) VALUES ?",
-              [appValues],
-              (err) => {
-                if (err) {
-                  console.error("Error updating user apps:", err);
-                  return res
-                    .status(500)
-                    .json({ message: "Database error on apps" });
-                }
-                res.json({ message: "User updated successfully" });
-              }
-            );
-          } else {
-            res.json({ message: "User updated successfully" });
-          }
-        }
-      );
+      res.json({ message: "User updated successfully" });
     }
   );
 });
