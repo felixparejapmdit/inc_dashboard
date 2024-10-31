@@ -99,32 +99,28 @@ export default function Dashboard() {
       .then((data) => setReminders(data))
       .catch((error) => console.error("Error fetching reminders:", error));
 
-    fetch(`${API_URL}/api/notifications`)
-      .then((response) => response.json())
-      .then((data) => setNotifications(data))
-      .catch((error) => console.error("Error fetching notifications:", error));
-
     fetch(`${API_URL}/api/users/logged-in`)
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status === 404) {
+          throw new Error(
+            "Endpoint not found (404). Check your backend route."
+          );
+        }
+        if (!response.ok) {
+          throw new Error("Failed to fetch logged-in user");
+        }
+        return response.json();
+      })
       .then((user) => {
-        console.log("Fetched Logged-in User Data:", user); // Debug log
+        console.log("Fetched Logged-in User Data:", user); // Debugging log
         if (user && user.name) {
+          // Since we renamed fullname to name in the backend query
           setCurrentUser(user);
         } else {
           console.error("User data is missing 'name' field");
         }
       })
       .catch((error) => console.error("Error fetching logged-in user:", error));
-  }, []);
-
-  useEffect(() => {
-    // Fetch notifications from API
-    fetch(`${API_URL}/api/notifications`)
-      .then((response) => response.json())
-      .then((data) => {
-        setNotifications(data); // Store notifications in state
-      })
-      .catch((error) => console.error("Error fetching notifications:", error));
   }, []);
 
   const filteredApps = apps

@@ -2,6 +2,63 @@ const express = require("express");
 const router = express.Router();
 const db = require("../db");
 
+// Logged-In User Endpoint
+router.get("/api/users/logged-in", (req, res) => {
+  const query = `
+    SELECT u.ID, u.username, u.fullname AS name, u.email, u.avatar, GROUP_CONCAT(a.name) AS availableApps
+    FROM users u
+    LEFT JOIN available_apps ua ON u.ID = ua.user_id
+    LEFT JOIN apps a ON ua.app_id = a.id
+    WHERE u.isLoggedIn = 1
+    GROUP BY u.ID
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Error fetching logged-in user:", err);
+      return res.status(500).json({ message: "Database error" });
+    }
+    if (results.length > 0) {
+      const user = {
+        ...results[0],
+        availableApps: results[0].availableApps
+          ? results[0].availableApps.split(",")
+          : [],
+      };
+      res.json(user);
+    } else {
+      res.status(404).json({ message: "No user is currently logged in" });
+    }
+  });
+});
+
+// Update user login status
+router.put("/api/users/update-login-status", (req, res) => {
+  console.log("Update login status endpoint hit"); // Debug log
+  const { ID, isLoggedIn } = req.body;
+
+  if (!ID) {
+    console.error("Invalid User ID11:", ID);
+    return res.status(400).json({ message: "Invalid user ID", ID });
+  }
+
+  const query = "UPDATE users SET isLoggedIn = ? WHERE ID = ?";
+  db.query(query, [isLoggedIn ? 1 : 0, ID], (err, result) => {
+    if (err) {
+      console.error("Error updating login status:", err);
+      return res.status(500).json({ message: "Database error" });
+    }
+
+    if (result.affectedRows === 0) {
+      console.error("User not found for ID:", ID);
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    console.log("Login status updated for user ID:", ID);
+    res.status(200).json({ message: "User login status updated successfully" });
+  });
+});
+
 // Get all users with their available apps
 router.get("/api/users", (req, res) => {
   const query = `
@@ -209,36 +266,6 @@ router.post("/api/logout", (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
     res.json({ message: "User logged out successfully" });
-  });
-});
-
-// Logged-In User Endpoint
-router.get("/api/users/logged-in", (req, res) => {
-  const query = `
-    SELECT u.*, GROUP_CONCAT(a.name) AS availableApps
-    FROM users u
-    LEFT JOIN available_apps ua ON u.ID = ua.user_id
-    LEFT JOIN apps a ON ua.app_id = a.id
-    WHERE u.isLoggedIn = ?
-    GROUP BY u.ID
-  `;
-
-  db.query(query, [true], (err, results) => {
-    if (err) {
-      console.error("Error fetching logged-in user:", err);
-      return res.status(500).json({ message: "Database error" });
-    }
-    if (results.length > 0) {
-      const user = {
-        ...results[0],
-        availableApps: results[0].availableApps
-          ? results[0].availableApps.split(",")
-          : [],
-      };
-      res.json(user); // Return the logged-in user with available apps as an array
-    } else {
-      res.status(404).json({ message: "No user is currently logged in" });
-    }
   });
 });
 

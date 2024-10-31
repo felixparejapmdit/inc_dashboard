@@ -6,12 +6,12 @@ import {
   Navigate,
 } from "react-router-dom";
 import Login from "./pages/Login";
-//import Login from "./pages/LdapLogin";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile"; // Import Profile Page
 import Layout from "./components/Layout"; // Import Layout to wrap around pages
 import Applications from "./pages/Applications"; // Import AddApps Page
 import Users from "./pages/Users"; // Import User Page
+import Personnels from "./pages/Personnels"; // Import Personnels Page
 import AddSuguan from "./pages/Suguan"; // Import AddSuguan Page
 import AddEvents from "./pages/Events"; // Import AddEvents Page
 import AddReminders from "./pages/Reminders"; // Import AddReminders Page
@@ -95,6 +95,20 @@ function App() {
                 }}
               >
                 <Applications />
+              </Layout>
+            }
+          />
+
+          <Route
+            path="/personnels"
+            element={
+              <Layout
+                currentUser={{
+                  name: "John Doe",
+                  avatarUrl: "/path/to/avatar.jpg",
+                }}
+              >
+                <Personnels />
               </Layout>
             }
           />

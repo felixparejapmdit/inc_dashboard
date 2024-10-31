@@ -8,6 +8,7 @@ const PORT = 5000;
 
 const userRoutes = require("./routes/userRoutes");
 const appRoutes = require("./routes/appRoutes");
+const personnelsRoutes = require("./routes/personnelsRoutes"); // Replace with actual route file path
 
 app.use(express.json()); // Middleware to parse JSON request bodies
 app.use(cors());
@@ -17,6 +18,11 @@ app.use(bodyParser.json({ limit: "10mb" })); // Increased limit to handle Base64
 const suguanFilePath = path.join(__dirname, "suguan.json");
 const eventsFilePath = path.join(__dirname, "events.json");
 const remindersFilePath = path.join(__dirname, "reminders.json");
+
+// Use the user routes
+app.use(userRoutes);
+app.use(appRoutes);
+app.use(personnelsRoutes); // Make sure this is imported correctly
 
 const ldap = require("ldapjs");
 
@@ -43,10 +49,6 @@ const createLdapClient = () => {
     url: LDAP_URL,
   });
 };
-
-// Use the user routes
-app.use(userRoutes);
-app.use(appRoutes);
 
 // Endpoint to test LDAP connection
 app.get("/api/test_ldap_connection", (req, res) => {

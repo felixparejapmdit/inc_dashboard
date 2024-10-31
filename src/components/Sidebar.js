@@ -47,12 +47,11 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
 
   // Fetch the logged-in user info from backend/users.json
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_API_URL}/api/users`)
+    fetch(`${process.env.REACT_APP_API_URL}/api/users/logged-in`)
       .then((response) => response.json())
       .then((data) => {
-        const loggedInUser = data.find((user) => user.isLoggedIn); // Assume a flag for logged-in user
-        if (loggedInUser) {
-          setUser(loggedInUser); // Set the logged-in user
+        if (data) {
+          setUser(data); // Set the logged-in user data
         }
       })
       .catch((error) => console.error("Error fetching user data:", error));
@@ -76,10 +75,11 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ userId: user.id }), // Send the user ID for logout
+      body: JSON.stringify({ userId: user.ID }), // Send the user ID for logout
     })
       .then((response) => {
         if (response.ok) {
+          setUser({ name: "", avatarUrl: "" }); // Clear the user state on logout
           navigate("/login"); // Navigate to login page after logging out
         } else {
           console.error("Failed to log out.");
@@ -166,6 +166,12 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
             />
             <SidebarItem
               icon={FiUser}
+              label="Personnels"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/personnels")} // Redirect to Suguan.js
+            />
+            <SidebarItem
+              icon={FiUser}
               label="Suguan"
               isExpanded={isExpanded}
               onClick={() => navigate("/add-suguan")} // Redirect to Suguan.js
@@ -175,32 +181,6 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
               label="Events"
               isExpanded={isExpanded}
               onClick={() => navigate("/add-events")} // Redirect to Events.js
-            />
-            {/* Conditionally hide Reminders */}
-            {false && ( // Set this to a variable or condition
-              <SidebarItem
-                icon={FiBell}
-                label="Reminders"
-                isExpanded={isExpanded}
-                onClick={() => navigate("/add-reminders")} // Redirect to Reminders.js
-              />
-            )}
-
-            {/* Conditionally hide PMD Media */}
-            {false && ( // Set this to a variable or condition
-              <SidebarItem
-                icon={FiPlusCircle}
-                label="PMD Media"
-                isExpanded={isExpanded}
-                onClick={() => navigate("/Mastodon")} // Redirect to Mastodon.js
-              />
-            )}
-
-            <SidebarItem
-              icon={FiUsers}
-              label="LdapUsers" // Added LdapUsers page
-              isExpanded={isExpanded}
-              onClick={() => navigate("/ldap-users")}
             />
           </VStack>
         </Collapse>
@@ -218,7 +198,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
       >
         <Avatar
           name={user.name || "User"}
-          src={user.avatarUrl || ""}
+          src={user.avatar || ""}
           size={isExpanded ? "md" : "sm"}
         />
         {isExpanded && (
@@ -250,8 +230,8 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
               Confirm Logout
             </AlertDialogHeader>
             <AlertDialogBody>
-              Are you sure you want to log out? You will need to log in again to
-              access the dashboard.
+              Are you sure you want to log out, {user.name || "User"}? You will
+              need to log in again to access the dashboard.
             </AlertDialogBody>
             <AlertDialogFooter>
               <Button ref={cancelRef} onClick={closeLogoutDialog}>

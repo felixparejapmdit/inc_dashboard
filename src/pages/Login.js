@@ -60,7 +60,6 @@ const Login = () => {
         setError(err.response?.data?.message || "LDAP Login failed");
       }
     } else {
-      // Local Authentication with MySQL
       try {
         const response = await axios.post(
           `${process.env.REACT_APP_API_URL}/api/users/login`,
@@ -68,6 +67,22 @@ const Login = () => {
         );
 
         if (response.data.success) {
+          const userId = Number(response.data.user.ID); // Ensure ID is a number
+          console.log("Logging in user with ID:", userId); // Debug log for user ID
+
+          // Update isLoggedIn status in the database
+          await axios.put(
+            `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
+            {
+              ID: userId,
+              isLoggedIn: true,
+            },
+            {
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+
+          console.log("Login status updated successfully"); // Success log
           navigate("/dashboard");
         } else {
           setError("Invalid username or password");
