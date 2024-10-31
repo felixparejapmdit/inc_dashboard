@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 30, 2024 at 10:01 AM
+-- Generation Time: Oct 31, 2024 at 05:57 AM
 -- Server version: 10.4.25-MariaDB
 -- PHP Version: 8.1.10
 
@@ -899,8 +899,8 @@ CREATE TABLE `users` (
   `fullname` varchar(50) DEFAULT NULL,
   `username` varchar(25) DEFAULT NULL,
   `email` varchar(50) DEFAULT NULL,
-  `password` varchar(50) NOT NULL,
-  `online_status` int(11) DEFAULT NULL,
+  `password` varchar(150) NOT NULL,
+  `isLoggedIn` tinyint(11) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
@@ -909,8 +909,8 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`ID`, `avatar`, `fullname`, `username`, `email`, `password`, `online_status`, `created_at`, `updated_at`) VALUES
-(1, NULL, 'Felix Pareja', 'felix.pareja', 'felixpareja.pmdit007@yahoo.com', 'felixpareja', NULL, NULL, NULL),
+INSERT INTO `users` (`ID`, `avatar`, `fullname`, `username`, `email`, `password`, `isLoggedIn`, `created_at`, `updated_at`) VALUES
+(1, NULL, 'Felix Pareja', 'felix.pareja', 'felixpareja.pmdit007@yahoo.com', '$2b$10$w9VOvwi6V6OM1nsBb2GqpOlVyKdQ1z2xA.rHxvGi.QbrBp1XWPkH2', 1, NULL, NULL),
 (2, NULL, 'Karl Dematera', 'kdematera', 'kdematera@gmail.com', '123456', NULL, NULL, NULL),
 (3, NULL, 'Kyrt Jurada', 'jurada', 'jurada@gmail.com', '123456', NULL, NULL, NULL),
 (4, NULL, 'Teo Ramos', 'tramos', 'tramos@gmail.com', '123456', NULL, NULL, NULL),
