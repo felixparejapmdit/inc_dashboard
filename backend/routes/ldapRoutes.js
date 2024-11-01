@@ -2,6 +2,9 @@ const express = require("express");
 const router = express.Router();
 const ldap = require("ldapjs");
 
+const fs = require("fs");
+const path = require("path");
+
 const LDAP_URL = process.env.LDAP_URL;
 const BIND_DN = process.env.BIND_DN;
 const BIND_PASSWORD = process.env.BIND_PASSWORD;
@@ -22,21 +25,6 @@ const createLdapClient = () => {
     url: LDAP_URL,
   });
 };
-
-router.get("/api/ldap/test-connection", async (req, res) => {
-  const client = ldap.createClient({ url: process.env.LDAP_URL });
-
-  client.bind(process.env.BIND_DN, process.env.BIND_PASSWORD, (err) => {
-    if (err) {
-      console.error("LDAP connection failed:", err);
-      res.status(500).json({ message: "LDAP connection failed", error: err });
-    } else {
-      console.log("LDAP connection successful");
-      res.status(200).json({ message: "LDAP connection successful" });
-    }
-    client.unbind(); // Ensure client is unbound after the test
-  });
-});
 
 // Endpoint to test LDAP connection
 router.get("/api/test_ldap_connection", (req, res) => {
@@ -65,7 +53,6 @@ router.get("/api/test_ldap_connection", (req, res) => {
 });
 
 // LDAP Authentication
-// LDAP Login API endpoint
 router.post("/api/login_ldap", (req, res) => {
   const { username, password } = req.body;
 
@@ -118,6 +105,22 @@ router.post("/api/login_ldap", (req, res) => {
         res.status(500).json({ message: "LDAP search failed", error: err });
       });
     });
+  });
+});
+
+// Endpoint to read LDAP data from ldap_data.json
+// Endpoint para sa pagkuha ng sample LDAP users
+router.get("/api/ldap/users_json", (req, res) => {
+  const filePath = path.join(__dirname, "../data/ldap_users.json");
+  fs.readFile(filePath, "utf8", (err, data) => {
+    if (err) {
+      console.error("Error reading LDAP data file:", err);
+      return res
+        .status(500)
+        .json({ error: "Error reading LDAP data fil12e", filePath });
+    }
+    const ldapData = JSON.parse(data);
+    res.json(ldapData.LDAP_Users);
   });
 });
 

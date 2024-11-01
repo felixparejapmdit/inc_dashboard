@@ -1,0 +1,59 @@
+{
+  "LDAP_Users": [
+    {
+      "givenName": "Felix",
+      "sn": "Pareja",
+      "uid": "fpareja",
+      "mail": "fpareja@example.com",
+      "uidNumber": "1001",
+      "gidNumber": "2001",
+      "memberOf": ["PMD-IT", "ATG-Office"],
+      "userPassword": "$2b$10$2hR.aVzWKP13jQkYfPq6xuZJlIpoS8OebXBLT6/Bu1bPi3LZBXBzq",
+      "groupName": "PMD-IT"
+    },
+    {
+      "givenName": "Kim",
+      "sn": "Amaro",
+      "uid": "kamaro",
+      "mail": "kamaro@example.com",
+      "uidNumber": "1002",
+      "gidNumber": "2002",
+      "memberOf": ["ATG-Office"],
+      "userPassword": "$2b$10$2hR.aVzWKP13jQkYfPq6xuZJlIpoS8OebXBLT6/Bu1bPi3LZBXBzq",
+      "groupName": "ATG-Office"
+    },
+    {
+      "givenName": "Teo",
+      "sn": "Ramos",
+      "uid": "tramos",
+      "mail": "tramos@example.com",
+      "uidNumber": "1003",
+      "gidNumber": "2003",
+      "memberOf": ["ATG-Office"],
+      "userPassword": "$2b$10$2hR.aVzWKP13jQkYfPq6xuZJlIpoS8OebXBLT6/Bu1bPi3LZBXBzq",
+      "groupName": "ATG-Office"
+    },
+    {
+      "givenName": "Kyrt",
+      "sn": "Jurada",
+      "uid": "kjurada",
+      "mail": "kjurada@example.com",
+      "uidNumber": "1004",
+      "gidNumber": "2004",
+      "memberOf": ["PMD-IT"],
+      "userPassword": "$2b$10$2hR.aVzWKP13jQkYfPq6xuZJlIpoS8OebXBLT6/Bu1bPi3LZBXBzq",
+      "groupName": "PMD-IT"
+    },
+    {
+      "givenName": "Karl",
+      "sn": "Dematera",
+      "uid": "kdematera",
+      "mail": "kdematera@example.com",
+      "uidNumber": "1005",
+      "gidNumber": "2005",
+      "memberOf": ["ATG-Office", "PMD-IT"],
+      "userPassword": "$2b$10$2hR.aVzWKP13jQkYfPq6xuZJlIpoS8OebXBLT6/Bu1bPi3LZBXBzq",
+      "groupName": "ATG-Office, PMD-IT"
+    }
+  ]
+}

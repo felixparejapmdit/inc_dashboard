@@ -41,6 +41,7 @@ const Login = () => {
       setIsLoading(false);
       return;
     }
+
     if (useLdap) {
       // LDAP Authentication
       try {

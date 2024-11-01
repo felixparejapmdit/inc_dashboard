@@ -49,7 +49,7 @@ const LdapUsers = () => {
       return;
     }
 
-    fetch(`${API_URL}/api/ldap/users`)
+    fetch(`${API_URL}/api/ldap/users_json`)
       .then((response) => {
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
@@ -110,7 +110,8 @@ const LdapUsers = () => {
             {users.map((user, index) => (
               <Tr key={index}>
                 <Td>{index + 1}</Td>
-                <Td>{getAttributeValue(user, "givenName")}</Td>
+                {/* <Td>{getAttributeValue(user, "givenName")}</Td> */}
+                <Td>{user.givenName}</Td>
                 <Td>{getAttributeValue(user, "sn")}</Td>
                 <Td>{getAttributeValue(user, "uid")}</Td>
                 <Td>{getAttributeValue(user, "mail")}</Td>
