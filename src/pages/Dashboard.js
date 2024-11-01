@@ -82,13 +82,8 @@ export default function Dashboard() {
     buttonHoverBg: useColorModeValue("blue.700", "blue.600"),
   };
 
-  // Fetch data for apps, events, reminders, notifications, and logged-in user
   useEffect(() => {
-    fetch(`${API_URL}/api/apps`)
-      .then((response) => response.json())
-      .then((data) => setApps(data))
-      .catch((error) => console.error("Error fetching apps:", error));
-
+    // Fetch events, reminders, and logged-in user data
     fetch(`${API_URL}/api/events`)
       .then((response) => response.json())
       .then((data) => setEvents(data))
@@ -101,33 +96,55 @@ export default function Dashboard() {
 
     fetch(`${API_URL}/api/users/logged-in`)
       .then((response) => {
-        if (response.status === 404) {
-          throw new Error(
-            "Endpoint not found (404). Check your backend route."
-          );
-        }
         if (!response.ok) {
           throw new Error("Failed to fetch logged-in user");
         }
         return response.json();
       })
       .then((user) => {
-        console.log("Fetched Logged-in User Data:", user); // Debugging log
-        if (user && user.name) {
-          // Since we renamed fullname to name in the backend query
-          setCurrentUser(user);
-        } else {
-          console.error("User data is missing 'name' field");
+        console.log("Fetched User Data:", user); // Log entire user data
+        console.log("Available Apps Data:", user.availableApps); // Log available apps to inspect structure
+
+        if (user && (user.ID || user.id)) {
+          setCurrentUser({ id: user.ID || user.id, ...user });
+          // Directly set availableApps as an array of app names
+          setAvailableApps(user.availableApps || []);
         }
       })
       .catch((error) => console.error("Error fetching logged-in user:", error));
   }, []);
 
+  useEffect(() => {
+    if (currentUser && currentUser.id) {
+      console.log("Fetching available apps for user ID:", currentUser.id);
+      fetch(`${API_URL}/api/availableapps`, {
+        headers: {
+          "Content-Type": "application/json",
+          "X-User-ID": currentUser.id, // Send the user ID in the custom header
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setApps(data); // Set apps if data is an array
+          } else {
+            console.error("Unexpected response format for apps:", data);
+            setApps([]); // Set an empty array if data is not an array
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching apps:", error);
+          setApps([]); // Set an empty array on fetch error
+        });
+    }
+  }, [currentUser]);
+
+  // Filter apps based on `availableApps` IDs and search query
   const filteredApps = apps
-    .filter((app) => availableApps.includes(app.name))
+    .filter((app) => availableApps.includes(app.name)) // Filter by app name instead of ID
     .filter((app) =>
       app.name.toLowerCase().includes(searchQuery.toLowerCase())
-    ); // Search filter
+    );
 
   const handleSettingsClick = (app) => {
     setSelectedApp(app);
@@ -141,20 +158,42 @@ export default function Dashboard() {
   };
 
   const handleSaveChanges = () => {
+    // Immediately update the local state with the temporary updated data
     const updatedAppList = apps.map((app) =>
-      app.name === selectedApp.name ? updatedApp : app
+      app.id === selectedApp.id ? { ...app, ...updatedApp } : app
     );
     setApps(updatedAppList);
 
-    fetch(`${API_URL}/api/apps/${selectedApp.name}`, {
+    // Send updated data to the backend API
+    fetch(`${API_URL}/api/apps/${selectedApp.id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(updatedApp),
     })
-      .then(() => onClose())
-      .catch((error) => console.error("Error updating app:", error));
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to update app");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        const updatedAppFromAPI = data.app;
+
+        // Update the apps state with the confirmed response from the backend
+
+        setApps((prevApps) =>
+          prevApps.map((app) =>
+            app.id === apps.id ? { ...updatedApp, id: apps.id } : app
+          )
+        );
+
+        onClose(); // Close the modal after updating state
+      })
+      .catch((error) => {
+        console.error("Error updating app:", error);
+      });
   };
 
   // Get the current time and greet the user accordingly
@@ -221,7 +260,6 @@ export default function Dashboard() {
           </PopoverContent>
         </Popover>
       </HStack>
-
       <SimpleGrid
         columns={2}
         spacing={6}
@@ -312,20 +350,24 @@ export default function Dashboard() {
           <Text>Available Apps</Text>
         </Box>
       </SimpleGrid>
-
       {/* Apps Section */}
       <Heading as="h2" size="lg" mb={6}>
         Your Apps
       </Heading>
+
       <SimpleGrid columns={3} spacing={6}>
-        {filteredApps.map((app, index) => (
-          <AppCard
-            key={index}
-            app={app}
-            colors={colors}
-            onSettingsClick={handleSettingsClick}
-          />
-        ))}
+        {filteredApps.length > 0 ? (
+          filteredApps.map((app) => (
+            <AppCard
+              key={app.id} // Use app.id as the unique key
+              app={app}
+              colors={colors}
+              onSettingsClick={handleSettingsClick}
+            />
+          ))
+        ) : (
+          <Text>No available apps to display.</Text> // Display if filteredApps is empty
+        )}
       </SimpleGrid>
 
       {/* Modal for App Info */}
@@ -340,9 +382,9 @@ export default function Dashboard() {
                 <Text mb={2}>App Name</Text>
                 <Input
                   name="name"
-                  value={updatedApp.name}
+                  value={updatedApp.name || ""}
                   onChange={(e) =>
-                    setUpdatedApp({ ...updatedApp, name: e.target.value })
+                    setUpdatedApp((prev) => ({ ...prev, name: e.target.value }))
                   }
                   mb={4}
                   placeholder="App Name"
@@ -351,12 +393,12 @@ export default function Dashboard() {
                 <Text mb={2}>Description</Text>
                 <Input
                   name="description"
-                  value={updatedApp.description}
+                  value={updatedApp.description || ""}
                   onChange={(e) =>
-                    setUpdatedApp({
-                      ...updatedApp,
+                    setUpdatedApp((prev) => ({
+                      ...prev,
                       description: e.target.value,
-                    })
+                    }))
                   }
                   mb={4}
                   placeholder="App Description"
@@ -365,9 +407,9 @@ export default function Dashboard() {
                 <Text mb={2}>URL</Text>
                 <Input
                   name="url"
-                  value={updatedApp.url}
+                  value={updatedApp.url || ""}
                   onChange={(e) =>
-                    setUpdatedApp({ ...updatedApp, url: e.target.value })
+                    setUpdatedApp((prev) => ({ ...prev, url: e.target.value }))
                   }
                   mb={4}
                   placeholder="App URL"

@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.0
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 24, 2024 at 06:34 AM
--- Server version: 10.4.25-MariaDB
--- PHP Version: 8.1.10
+-- Generation Time: Nov 01, 2024 at 01:52 AM
+-- Server version: 10.4.28-MariaDB
+-- PHP Version: 8.2.4
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -24,73 +24,6 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Table structure for table `appchildlist`
---
-
-CREATE TABLE `appchildlist` (
-  `id` int(11) NOT NULL,
-  `appid` int(11) DEFAULT NULL,
-  `ipaddress` text DEFAULT NULL,
-  `description` varchar(50) DEFAULT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
-
---
--- Dumping data for table `appchildlist`
---
-
-INSERT INTO `appchildlist` (`id`, `appid`, `ipaddress`, `description`) VALUES
-(1, 1, '172.18.121.42', 'EVM - Next Cloud'),
-(2, 1, '172.18.121.112', 'OMO Nextcloud'),
-(4, 1, '172.18.121.101', 'TRG - Next Cloud'),
-(5, 2, '172.18.121.100', 'TRG - Hesk'),
-(6, 2, '172.18.121.100:8080', 'TRG - Hesk Montly Report'),
-(7, 2, '172.18.121.30', 'PMD-IT Help Desk'),
-(8, 4, '172.18.121.36', 'PMD - Snipeit'),
-(9, 4, '172.18.121.144', 'PV Inventory System - Snipeit');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `applist`
---
-
-CREATE TABLE `applist` (
-  `AppID` int(11) NOT NULL,
-  `Filename` varchar(50) NOT NULL,
-  `Background` varchar(25) NOT NULL,
-  `ApplicationName` varchar(50) NOT NULL,
-  `IPAddress` varchar(50) NOT NULL,
-  `Status` int(11) NOT NULL,
-  `CreatedBy` int(11) NOT NULL,
-  `created_at` datetime NOT NULL,
-  `updated_at` datetime NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
-
---
--- Dumping data for table `applist`
---
-
-INSERT INTO `applist` (`AppID`, `Filename`, `Background`, `ApplicationName`, `IPAddress`, `Status`, `CreatedBy`, `created_at`, `updated_at`) VALUES
-(1, 'logo-blank.png', 'bg-gradient-info', 'EVM - Next Cloud', 'http://172.18.121.42', 0, 1, '0000-00-00 00:00:00', '2023-09-12 01:24:44'),
-(2, 'logo-blank.png', 'bg-gradient-secondary', 'TRG - Hesk', '172.18.121.100', 0, 1, '0000-00-00 00:00:00', '2023-07-14 02:57:34'),
-(3, 'PV Suguan - Icon.png', 'bg-gradient-success', 'Suguan System', '172.18.121.40/suguan.php', 0, 1, '0000-00-00 00:00:00', '2023-04-09 17:00:40'),
-(4, 'Inventory system - icon.png', 'bg-gradient-info', 'Inventory System - Snipeit', '172.18.121.36', 0, 1, '0000-00-00 00:00:00', '2023-04-12 05:24:29'),
-(139, 'Inventory system - icon.png', 'bg-gradient-secondary', 'PV Inventory', '172.18.121.144:8080', 0, 1, '0000-00-00 00:00:00', '2023-04-09 17:00:51'),
-(140, 'logo-blank.png', 'bg-gradient-success', 'ChoirApp', '172.18.121.63', 0, 1, '0000-00-00 00:00:00', '2023-07-14 06:45:16'),
-(141, 'Nextcloud - icon.png', 'bg-gradient-info', 'PMDIT-OnlyOffice', '172.18.121.108', 0, 1, '0000-00-00 00:00:00', '2023-04-09 17:01:03'),
-(142, 'logo-blank.png', 'bg-gradient-secondary', 'ATG-LMS', '172.18.121.102', 0, 1, '0000-00-00 00:00:00', '2023-04-09 17:01:10'),
-(143, 'logo-blank.png', 'bg-gradient-success', 'PV Suguan', '172.18.121.144:8082', 0, 1, '0000-00-00 00:00:00', '2023-04-12 05:24:37'),
-(149, 'logo-blank.png', 'bg-gradient-info', 'TRG - Nextcloud', '172.18.121.101', 1, 0, '2023-07-04 03:33:01', '2023-07-14 04:38:39'),
-(150, 'logo-blank.png', 'bg-gradient-secondary', 'TRG - Hesk Monthly Report', '172.18.121.100:8080', 1, 0, '2023-07-04 03:33:58', '2023-07-04 03:37:10'),
-(151, 'logo-blank.png', 'bg-gradient-success', 'PMD - IT Help Desk', '172.18.121.30', 1, 0, '2023-07-04 03:34:19', '2023-07-14 02:57:25'),
-(152, 'Inventory system - icon.png', 'bg-gradient-info', 'PV Inventory System - Snipeit', '172.18.121.144', 1, 0, '2023-07-04 03:36:37', '2023-07-04 03:36:58'),
-(153, 'logo-blank.png', 'bg-gradient-secondary', 'new app', '1.1.1.1', 1, 0, '2023-07-05 02:12:35', '2023-07-05 02:12:49'),
-(155, 'logo-blank.png', 'bg-gradient-success', 'VSS Synology', '172.18.125.66', 1, 0, '2023-07-10 05:45:20', '2023-07-10 05:45:29'),
-(156, 'logo-blank.png', 'bg-gradient-info', 'app1', '172.18.125.66', 1, 0, '2023-07-10 06:03:22', '0000-00-00 00:00:00');
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `apps`
 --
 
@@ -100,7 +33,46 @@ CREATE TABLE `apps` (
   `url` varchar(50) NOT NULL,
   `description` varchar(50) DEFAULT NULL,
   `icon` varchar(50) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `apps`
+--
+
+INSERT INTO `apps` (`id`, `name`, `url`, `description`, `icon`) VALUES
+(1, 'Next Cloud', 'http://172.18.121.101', 'Next Cloud', NULL),
+(2, 'LMS', 'https://lms.pmdmc.net/', 'Letter Management System', ''),
+(3, 'PV Inventory', 'https://pvinv.pmdmc.net/PVLogs', 'PV Inventory', ''),
+(4, 'INC Hymns', 'http://172.18.121.5', 'INC Hymns', ''),
+(5, 'PMD Media', 'http://172.18.121.48/', 'PMD Media', ''),
+(6, 'Choir App', 'https://google.com', 'Choir App', ''),
+(7, 'Suguan12', 'http://172.18.125.134:3000/add-suguan', 'WS Suguan', NULL),
+(8, 'Snipe IT', 'https://pvinv.pmdmc.net', 'Snipe IT', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `available_apps`
+--
+
+CREATE TABLE `available_apps` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `app_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `available_apps`
+--
+
+INSERT INTO `available_apps` (`id`, `user_id`, `app_id`) VALUES
+(7, 2, 1),
+(8, 2, 2),
+(10, 20, 1),
+(22, 1, 1),
+(23, 1, 2),
+(24, 1, 6),
+(25, 1, 7);
 
 -- --------------------------------------------------------
 
@@ -117,7 +89,219 @@ CREATE TABLE `children` (
   `lastname` varchar(50) NOT NULL,
   `suffix` text DEFAULT NULL,
   `date_of_birth` date DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `citizenship`
+--
+
+CREATE TABLE `citizenship` (
+  `id` int(11) NOT NULL,
+  `country_name` varchar(100) NOT NULL,
+  `citizenship` varchar(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `citizenship`
+--
+
+INSERT INTO `citizenship` (`id`, `country_name`, `citizenship`) VALUES
+(1, 'Afghanistan', 'Afghan'),
+(2, 'Albania', 'Albanian'),
+(3, 'Algeria', 'Algerian'),
+(4, 'Andorra', 'Andorran'),
+(5, 'Angola', 'Angolan'),
+(6, 'Antigua and Barbuda', 'Antiguan or Barbudan'),
+(7, 'Argentina', 'Argentine'),
+(8, 'Armenia', 'Armenian'),
+(9, 'Australia', 'Australian'),
+(10, 'Austria', 'Austrian'),
+(11, 'Azerbaijan', 'Azerbaijani'),
+(12, 'Bahamas', 'Bahamian'),
+(13, 'Bahrain', 'Bahraini'),
+(14, 'Bangladesh', 'Bangladeshi'),
+(15, 'Barbados', 'Barbadian'),
+(16, 'Belarus', 'Belarusian'),
+(17, 'Belgium', 'Belgian'),
+(18, 'Belize', 'Belizean'),
+(19, 'Benin', 'Beninese'),
+(20, 'Bhutan', 'Bhutanese'),
+(21, 'Bolivia', 'Bolivian'),
+(22, 'Bosnia and Herzegovina', 'Bosnian'),
+(23, 'Botswana', 'Botswana'),
+(24, 'Brazil', 'Brazilian'),
+(25, 'Brunei', 'Bruneian'),
+(26, 'Bulgaria', 'Bulgarian'),
+(27, 'Burkina Faso', 'Burkinabe'),
+(28, 'Burundi', 'Burundian'),
+(29, 'Cabo Verde', 'Cape Verdean'),
+(30, 'Cambodia', 'Cambodian'),
+(31, 'Cameroon', 'Cameroonian'),
+(32, 'Canada', 'Canadian'),
+(33, 'Central African Republic', 'Central African'),
+(34, 'Chad', 'Chadian'),
+(35, 'Chile', 'Chilean'),
+(36, 'China', 'Chinese'),
+(37, 'Colombia', 'Colombian'),
+(38, 'Comoros', 'Comoran'),
+(39, 'Congo, Democratic Republic of the', 'Congolese'),
+(40, 'Congo, Republic of the', 'Congolese'),
+(41, 'Costa Rica', 'Costa Rican'),
+(42, 'Croatia', 'Croatian'),
+(43, 'Cuba', 'Cuban'),
+(44, 'Cyprus', 'Cypriot'),
+(45, 'Czech Republic', 'Czech'),
+(46, 'Denmark', 'Danish'),
+(47, 'Djibouti', 'Djiboutian'),
+(48, 'Dominica', 'Dominican'),
+(49, 'Dominican Republic', 'Dominican'),
+(50, 'Ecuador', 'Ecuadorian'),
+(51, 'Egypt', 'Egyptian'),
+(52, 'El Salvador', 'Salvadoran'),
+(53, 'Equatorial Guinea', 'Equatoguinean'),
+(54, 'Eritrea', 'Eritrean'),
+(55, 'Estonia', 'Estonian'),
+(56, 'Eswatini', 'Swazi'),
+(57, 'Ethiopia', 'Ethiopian'),
+(58, 'Fiji', 'Fijian'),
+(59, 'Finland', 'Finnish'),
+(60, 'France', 'French'),
+(61, 'Gabon', 'Gabonese'),
+(62, 'Gambia', 'Gambian'),
+(63, 'Georgia', 'Georgian'),
+(64, 'Germany', 'German'),
+(65, 'Ghana', 'Ghanaian'),
+(66, 'Greece', 'Greek'),
+(67, 'Grenada', 'Grenadian'),
+(68, 'Guatemala', 'Guatemalan'),
+(69, 'Guinea', 'Guinean'),
+(70, 'Guinea-Bissau', 'Guinea-Bissauan'),
+(71, 'Guyana', 'Guyanese'),
+(72, 'Haiti', 'Haitian'),
+(73, 'Honduras', 'Honduran'),
+(74, 'Hungary', 'Hungarian'),
+(75, 'Iceland', 'Icelander'),
+(76, 'India', 'Indian'),
+(77, 'Indonesia', 'Indonesian'),
+(78, 'Iran', 'Iranian'),
+(79, 'Iraq', 'Iraqi'),
+(80, 'Ireland', 'Irish'),
+(81, 'Israel', 'Israeli'),
+(82, 'Italy', 'Italian'),
+(83, 'Jamaica', 'Jamaican'),
+(84, 'Japan', 'Japanese'),
+(85, 'Jordan', 'Jordanian'),
+(86, 'Kazakhstan', 'Kazakhstani'),
+(87, 'Kenya', 'Kenyan'),
+(88, 'Kiribati', 'I-Kiribati'),
+(89, 'Korea, North', 'North Korean'),
+(90, 'Korea, South', 'South Korean'),
+(91, 'Kuwait', 'Kuwaiti'),
+(92, 'Kyrgyzstan', 'Kyrgyzstani'),
+(93, 'Laos', 'Laotian'),
+(94, 'Latvia', 'Latvian'),
+(95, 'Lebanon', 'Lebanese'),
+(96, 'Lesotho', 'Mosotho'),
+(97, 'Liberia', 'Liberian'),
+(98, 'Libya', 'Libyan'),
+(99, 'Liechtenstein', 'Liechtensteiner'),
+(100, 'Lithuania', 'Lithuanian'),
+(101, 'Luxembourg', 'Luxembourger'),
+(102, 'Madagascar', 'Malagasy'),
+(103, 'Malawi', 'Malawian'),
+(104, 'Malaysia', 'Malaysian'),
+(105, 'Maldives', 'Maldivian'),
+(106, 'Mali', 'Malian'),
+(107, 'Malta', 'Maltese'),
+(108, 'Marshall Islands', 'Marshallese'),
+(109, 'Mauritania', 'Mauritanian'),
+(110, 'Mauritius', 'Mauritian'),
+(111, 'Mexico', 'Mexican'),
+(112, 'Micronesia', 'Micronesian'),
+(113, 'Moldova', 'Moldovan'),
+(114, 'Monaco', 'Monacan'),
+(115, 'Mongolia', 'Mongolian'),
+(116, 'Montenegro', 'Montenegrin'),
+(117, 'Morocco', 'Moroccan'),
+(118, 'Mozambique', 'Mozambican'),
+(119, 'Myanmar', 'Burmese'),
+(120, 'Namibia', 'Namibian'),
+(121, 'Nauru', 'Nauruan'),
+(122, 'Nepal', 'Nepalese'),
+(123, 'Netherlands', 'Dutch'),
+(124, 'New Zealand', 'New Zealander'),
+(125, 'Nicaragua', 'Nicaraguan'),
+(126, 'Niger', 'Nigerien'),
+(127, 'Nigeria', 'Nigerian'),
+(128, 'North Macedonia', 'Macedonian'),
+(129, 'Norway', 'Norwegian'),
+(130, 'Oman', 'Omani'),
+(131, 'Pakistan', 'Pakistani'),
+(132, 'Palau', 'Palauan'),
+(133, 'Palestine', 'Palestinian'),
+(134, 'Panama', 'Panamanian'),
+(135, 'Papua New Guinea', 'Papua New Guinean'),
+(136, 'Paraguay', 'Paraguayan'),
+(137, 'Peru', 'Peruvian'),
+(138, 'Philippines', 'Filipino'),
+(139, 'Poland', 'Polish'),
+(140, 'Portugal', 'Portuguese'),
+(141, 'Qatar', 'Qatari'),
+(142, 'Romania', 'Romanian'),
+(143, 'Russia', 'Russian'),
+(144, 'Rwanda', 'Rwandan'),
+(145, 'Saint Kitts and Nevis', 'Kittitian or Nevisian'),
+(146, 'Saint Lucia', 'Saint Lucian'),
+(147, 'Saint Vincent and the Grenadines', 'Saint Vincentian'),
+(148, 'Samoa', 'Samoan'),
+(149, 'San Marino', 'Sammarinese'),
+(150, 'Sao Tome and Principe', 'Sao Tomean'),
+(151, 'Saudi Arabia', 'Saudi'),
+(152, 'Senegal', 'Senegalese'),
+(153, 'Serbia', 'Serbian'),
+(154, 'Seychelles', 'Seychellois'),
+(155, 'Sierra Leone', 'Sierra Leonean'),
+(156, 'Singapore', 'Singaporean'),
+(157, 'Slovakia', 'Slovak'),
+(158, 'Slovenia', 'Slovenian'),
+(159, 'Solomon Islands', 'Solomon Islander'),
+(160, 'Somalia', 'Somali'),
+(161, 'South Africa', 'South African'),
+(162, 'South Sudan', 'South Sudanese'),
+(163, 'Spain', 'Spanish'),
+(164, 'Sri Lanka', 'Sri Lankan'),
+(165, 'Sudan', 'Sudanese'),
+(166, 'Suriname', 'Surinamese'),
+(167, 'Sweden', 'Swedish'),
+(168, 'Switzerland', 'Swiss'),
+(169, 'Syria', 'Syrian'),
+(170, 'Taiwan', 'Taiwanese'),
+(171, 'Tajikistan', 'Tajik'),
+(172, 'Tanzania', 'Tanzanian'),
+(173, 'Thailand', 'Thai'),
+(174, 'Togo', 'Togolese'),
+(175, 'Tonga', 'Tongan'),
+(176, 'Trinidad and Tobago', 'Trinidadian or Tobagonian'),
+(177, 'Tunisia', 'Tunisian'),
+(178, 'Turkey', 'Turkish'),
+(179, 'Turkmenistan', 'Turkmen'),
+(180, 'Tuvalu', 'Tuvaluan'),
+(181, 'Uganda', 'Ugandan'),
+(182, 'Ukraine', 'Ukrainian'),
+(183, 'United Arab Emirates', 'Emirati'),
+(184, 'United Kingdom', 'British'),
+(185, 'United States', 'American'),
+(186, 'Uruguay', 'Uruguayan'),
+(187, 'Uzbekistan', 'Uzbek'),
+(188, 'Vanuatu', 'Ni-Vanuatu'),
+(189, 'Vatican City', 'Vatican'),
+(190, 'Venezuela', 'Venezuelan'),
+(191, 'Vietnam', 'Vietnamese'),
+(192, 'Yemen', 'Yemeni'),
+(193, 'Zambia', 'Zambian'),
+(194, 'Zimbabwe', 'Zimbabwean');
 
 -- --------------------------------------------------------
 
@@ -130,7 +314,7 @@ CREATE TABLE `contacts` (
   `personnel_id` bigint(20) NOT NULL,
   `contactype` varchar(20) NOT NULL,
   `contact_info` varchar(30) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -145,7 +329,7 @@ CREATE TABLE `educational_background` (
   `field_of_study` varchar(50) DEFAULT NULL,
   `institution` varchar(50) NOT NULL,
   `completion_year` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -161,7 +345,7 @@ CREATE TABLE `login_attempts` (
   `successful` tinyint(1) NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `login_attempts`
@@ -333,6 +517,218 @@ INSERT INTO `login_attempts` (`id`, `username`, `remote_ip`, `user_agent`, `succ
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `nationalities`
+--
+
+CREATE TABLE `nationalities` (
+  `id` int(11) NOT NULL,
+  `country_name` varchar(100) NOT NULL,
+  `nationality` varchar(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `nationalities`
+--
+
+INSERT INTO `nationalities` (`id`, `country_name`, `nationality`) VALUES
+(1, 'Afghanistan', 'Afghan'),
+(2, 'Albania', 'Albanian'),
+(3, 'Algeria', 'Algerian'),
+(4, 'Andorra', 'Andorran'),
+(5, 'Angola', 'Angolan'),
+(6, 'Antigua and Barbuda', 'Antiguan or Barbudan'),
+(7, 'Argentina', 'Argentine'),
+(8, 'Armenia', 'Armenian'),
+(9, 'Australia', 'Australian'),
+(10, 'Austria', 'Austrian'),
+(11, 'Azerbaijan', 'Azerbaijani'),
+(12, 'Bahamas', 'Bahamian'),
+(13, 'Bahrain', 'Bahraini'),
+(14, 'Bangladesh', 'Bangladeshi'),
+(15, 'Barbados', 'Barbadian'),
+(16, 'Belarus', 'Belarusian'),
+(17, 'Belgium', 'Belgian'),
+(18, 'Belize', 'Belizean'),
+(19, 'Benin', 'Beninese'),
+(20, 'Bhutan', 'Bhutanese'),
+(21, 'Bolivia', 'Bolivian'),
+(22, 'Bosnia and Herzegovina', 'Bosnian'),
+(23, 'Botswana', 'Botswana'),
+(24, 'Brazil', 'Brazilian'),
+(25, 'Brunei', 'Bruneian'),
+(26, 'Bulgaria', 'Bulgarian'),
+(27, 'Burkina Faso', 'Burkinabe'),
+(28, 'Burundi', 'Burundian'),
+(29, 'Cabo Verde', 'Cape Verdean'),
+(30, 'Cambodia', 'Cambodian'),
+(31, 'Cameroon', 'Cameroonian'),
+(32, 'Canada', 'Canadian'),
+(33, 'Central African Republic', 'Central African'),
+(34, 'Chad', 'Chadian'),
+(35, 'Chile', 'Chilean'),
+(36, 'China', 'Chinese'),
+(37, 'Colombia', 'Colombian'),
+(38, 'Comoros', 'Comoran'),
+(39, 'Congo, Democratic Republic of the', 'Congolese'),
+(40, 'Congo, Republic of the', 'Congolese'),
+(41, 'Costa Rica', 'Costa Rican'),
+(42, 'Croatia', 'Croatian'),
+(43, 'Cuba', 'Cuban'),
+(44, 'Cyprus', 'Cypriot'),
+(45, 'Czech Republic', 'Czech'),
+(46, 'Denmark', 'Danish'),
+(47, 'Djibouti', 'Djiboutian'),
+(48, 'Dominica', 'Dominican'),
+(49, 'Dominican Republic', 'Dominican'),
+(50, 'Ecuador', 'Ecuadorian'),
+(51, 'Egypt', 'Egyptian'),
+(52, 'El Salvador', 'Salvadoran'),
+(53, 'Equatorial Guinea', 'Equatoguinean'),
+(54, 'Eritrea', 'Eritrean'),
+(55, 'Estonia', 'Estonian'),
+(56, 'Eswatini', 'Swazi'),
+(57, 'Ethiopia', 'Ethiopian'),
+(58, 'Fiji', 'Fijian'),
+(59, 'Finland', 'Finnish'),
+(60, 'France', 'French'),
+(61, 'Gabon', 'Gabonese'),
+(62, 'Gambia', 'Gambian'),
+(63, 'Georgia', 'Georgian'),
+(64, 'Germany', 'German'),
+(65, 'Ghana', 'Ghanaian'),
+(66, 'Greece', 'Greek'),
+(67, 'Grenada', 'Grenadian'),
+(68, 'Guatemala', 'Guatemalan'),
+(69, 'Guinea', 'Guinean'),
+(70, 'Guinea-Bissau', 'Guinea-Bissauan'),
+(71, 'Guyana', 'Guyanese'),
+(72, 'Haiti', 'Haitian'),
+(73, 'Honduras', 'Honduran'),
+(74, 'Hungary', 'Hungarian'),
+(75, 'Iceland', 'Icelander'),
+(76, 'India', 'Indian'),
+(77, 'Indonesia', 'Indonesian'),
+(78, 'Iran', 'Iranian'),
+(79, 'Iraq', 'Iraqi'),
+(80, 'Ireland', 'Irish'),
+(81, 'Israel', 'Israeli'),
+(82, 'Italy', 'Italian'),
+(83, 'Jamaica', 'Jamaican'),
+(84, 'Japan', 'Japanese'),
+(85, 'Jordan', 'Jordanian'),
+(86, 'Kazakhstan', 'Kazakhstani'),
+(87, 'Kenya', 'Kenyan'),
+(88, 'Kiribati', 'I-Kiribati'),
+(89, 'Korea, North', 'North Korean'),
+(90, 'Korea, South', 'South Korean'),
+(91, 'Kuwait', 'Kuwaiti'),
+(92, 'Kyrgyzstan', 'Kyrgyzstani'),
+(93, 'Laos', 'Laotian'),
+(94, 'Latvia', 'Latvian'),
+(95, 'Lebanon', 'Lebanese'),
+(96, 'Lesotho', 'Mosotho'),
+(97, 'Liberia', 'Liberian'),
+(98, 'Libya', 'Libyan'),
+(99, 'Liechtenstein', 'Liechtensteiner'),
+(100, 'Lithuania', 'Lithuanian'),
+(101, 'Luxembourg', 'Luxembourger'),
+(102, 'Madagascar', 'Malagasy'),
+(103, 'Malawi', 'Malawian'),
+(104, 'Malaysia', 'Malaysian'),
+(105, 'Maldives', 'Maldivian'),
+(106, 'Mali', 'Malian'),
+(107, 'Malta', 'Maltese'),
+(108, 'Marshall Islands', 'Marshallese'),
+(109, 'Mauritania', 'Mauritanian'),
+(110, 'Mauritius', 'Mauritian'),
+(111, 'Mexico', 'Mexican'),
+(112, 'Micronesia', 'Micronesian'),
+(113, 'Moldova', 'Moldovan'),
+(114, 'Monaco', 'Monacan'),
+(115, 'Mongolia', 'Mongolian'),
+(116, 'Montenegro', 'Montenegrin'),
+(117, 'Morocco', 'Moroccan'),
+(118, 'Mozambique', 'Mozambican'),
+(119, 'Myanmar', 'Burmese'),
+(120, 'Namibia', 'Namibian'),
+(121, 'Nauru', 'Nauruan'),
+(122, 'Nepal', 'Nepalese'),
+(123, 'Netherlands', 'Dutch'),
+(124, 'New Zealand', 'New Zealander'),
+(125, 'Nicaragua', 'Nicaraguan'),
+(126, 'Niger', 'Nigerien'),
+(127, 'Nigeria', 'Nigerian'),
+(128, 'North Macedonia', 'Macedonian'),
+(129, 'Norway', 'Norwegian'),
+(130, 'Oman', 'Omani'),
+(131, 'Pakistan', 'Pakistani'),
+(132, 'Palau', 'Palauan'),
+(133, 'Palestine', 'Palestinian'),
+(134, 'Panama', 'Panamanian'),
+(135, 'Papua New Guinea', 'Papua New Guinean'),
+(136, 'Paraguay', 'Paraguayan'),
+(137, 'Peru', 'Peruvian'),
+(138, 'Philippines', 'Filipino'),
+(139, 'Poland', 'Polish'),
+(140, 'Portugal', 'Portuguese'),
+(141, 'Qatar', 'Qatari'),
+(142, 'Romania', 'Romanian'),
+(143, 'Russia', 'Russian'),
+(144, 'Rwanda', 'Rwandan'),
+(145, 'Saint Kitts and Nevis', 'Kittitian or Nevisian'),
+(146, 'Saint Lucia', 'Saint Lucian'),
+(147, 'Saint Vincent and the Grenadines', 'Saint Vincentian'),
+(148, 'Samoa', 'Samoan'),
+(149, 'San Marino', 'Sammarinese'),
+(150, 'Sao Tome and Principe', 'Sao Tomean'),
+(151, 'Saudi Arabia', 'Saudi'),
+(152, 'Senegal', 'Senegalese'),
+(153, 'Serbia', 'Serbian'),
+(154, 'Seychelles', 'Seychellois'),
+(155, 'Sierra Leone', 'Sierra Leonean'),
+(156, 'Singapore', 'Singaporean'),
+(157, 'Slovakia', 'Slovak'),
+(158, 'Slovenia', 'Slovenian'),
+(159, 'Solomon Islands', 'Solomon Islander'),
+(160, 'Somalia', 'Somali'),
+(161, 'South Africa', 'South African'),
+(162, 'South Sudan', 'South Sudanese'),
+(163, 'Spain', 'Spanish'),
+(164, 'Sri Lanka', 'Sri Lankan'),
+(165, 'Sudan', 'Sudanese'),
+(166, 'Suriname', 'Surinamese'),
+(167, 'Sweden', 'Swedish'),
+(168, 'Switzerland', 'Swiss'),
+(169, 'Syria', 'Syrian'),
+(170, 'Taiwan', 'Taiwanese'),
+(171, 'Tajikistan', 'Tajik'),
+(172, 'Tanzania', 'Tanzanian'),
+(173, 'Thailand', 'Thai'),
+(174, 'Togo', 'Togolese'),
+(175, 'Tonga', 'Tongan'),
+(176, 'Trinidad and Tobago', 'Trinidadian or Tobagonian'),
+(177, 'Tunisia', 'Tunisian'),
+(178, 'Turkey', 'Turkish'),
+(179, 'Turkmenistan', 'Turkmen'),
+(180, 'Tuvalu', 'Tuvaluan'),
+(181, 'Uganda', 'Ugandan'),
+(182, 'Ukraine', 'Ukrainian'),
+(183, 'United Arab Emirates', 'Emirati'),
+(184, 'United Kingdom', 'British'),
+(185, 'United States', 'American'),
+(186, 'Uruguay', 'Uruguayan'),
+(187, 'Uzbekistan', 'Uzbek'),
+(188, 'Vanuatu', 'Ni-Vanuatu'),
+(189, 'Vatican City', 'Vatican'),
+(190, 'Venezuela', 'Venezuelan'),
+(191, 'Vietnam', 'Vietnamese'),
+(192, 'Yemen', 'Yemeni'),
+(193, 'Zambia', 'Zambian'),
+(194, 'Zimbabwe', 'Zimbabwean');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `navgroup`
 --
 
@@ -340,7 +736,7 @@ CREATE TABLE `navgroup` (
   `groupid` int(11) DEFAULT NULL,
   `navid` int(11) DEFAULT NULL,
   `status` int(11) DEFAULT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `navgroup`
@@ -368,7 +764,7 @@ CREATE TABLE `navigationlist` (
   `NavType` int(11) NOT NULL,
   `ParentID` int(11) NOT NULL,
   `Icon` varchar(50) NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `navigationlist`
@@ -397,7 +793,7 @@ CREATE TABLE `permission_groups` (
   `permissions` text DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `permission_groups`
@@ -444,7 +840,7 @@ CREATE TABLE `personnels` (
   `ordination_date` datetime DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -460,7 +856,7 @@ CREATE TABLE `reminders` (
   `time` datetime NOT NULL,
   `message` varchar(250) DEFAULT NULL,
   `created_by` int(11) NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -477,7 +873,7 @@ CREATE TABLE `siblings` (
   `lastname` varchar(50) NOT NULL,
   `suffix` text DEFAULT NULL,
   `date_of_birth` date DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -502,7 +898,7 @@ CREATE TABLE `spouses` (
   `company_name` varchar(100) DEFAULT NULL,
   `industry` varchar(50) DEFAULT NULL,
   `work_experience` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -512,15 +908,26 @@ CREATE TABLE `spouses` (
 
 CREATE TABLE `users` (
   `ID` int(11) NOT NULL,
-  `avatar` varchar(50) DEFAULT NULL,
+  `avatar` text DEFAULT NULL,
   `fullname` varchar(50) DEFAULT NULL,
   `username` varchar(25) DEFAULT NULL,
   `email` varchar(50) DEFAULT NULL,
-  `password` varchar(50) NOT NULL,
-  `online_status` int(11) DEFAULT NULL,
+  `password` varchar(150) NOT NULL,
+  `isLoggedIn` tinyint(11) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`ID`, `avatar`, `fullname`, `username`, `email`, `password`, `isLoggedIn`, `created_at`, `updated_at`) VALUES
+(1, NULL, 'Felix Pareja', 'felix.pareja', 'felixpareja.pmdit07@yahoo.com', '$2b$10$w9VOvwi6V6OM1nsBb2GqpOlVyKdQ1z2xA.rHxvGi.QbrBp1XWPkH2', 1, NULL, NULL),
+(2, NULL, 'Karl Dematera', 'kdematera', 'kdematera@gmail.com', '$2b$10$w9VOvwi6V6OM1nsBb2GqpOlVyKdQ1z2xA.rHxvGi.QbrBp1XWPkH2', NULL, NULL, NULL),
+(3, NULL, 'Kyrt Jurada', 'jurada', 'jurada@gmail.com', '$2b$10$w9VOvwi6V6OM1nsBb2GqpOlVyKdQ1z2xA.rHxvGi.QbrBp1XWPkH2', NULL, NULL, NULL),
+(5, NULL, 'Kim Amaro', 'kamaroo', 'amaro@yahoo.com', '$2b$10$w9VOvwi6V6OM1nsBb2GqpOlVyKdQ1z2xA.rHxvGi.QbrBp1XWPkH2', NULL, NULL, NULL),
+(20, NULL, 'Teo Ramos', 'teo.ramos', 'teo@yahoo.com', 'M@sunur1n', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -532,7 +939,7 @@ CREATE TABLE `user_appslist` (
   `id` int(11) NOT NULL,
   `groupid` int(11) DEFAULT NULL,
   `appid` int(11) NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `user_appslist`
@@ -596,7 +1003,7 @@ INSERT INTO `user_appslist` (`id`, `groupid`, `appid`) VALUES
 CREATE TABLE `user_navlist` (
   `groupid` int(11) NOT NULL,
   `NavID` int(11) NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `user_navlist`
@@ -651,23 +1058,11 @@ CREATE TABLE `work_background` (
   `section` varchar(50) DEFAULT NULL,
   `start_date` date NOT NULL,
   `end_date` date DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Indexes for dumped tables
 --
-
---
--- Indexes for table `appchildlist`
---
-ALTER TABLE `appchildlist`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `applist`
---
-ALTER TABLE `applist`
-  ADD PRIMARY KEY (`AppID`);
 
 --
 -- Indexes for table `apps`
@@ -676,11 +1071,23 @@ ALTER TABLE `apps`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `available_apps`
+--
+ALTER TABLE `available_apps`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `children`
 --
 ALTER TABLE `children`
   ADD PRIMARY KEY (`id`),
   ADD KEY `personnel_id` (`personnel_id`);
+
+--
+-- Indexes for table `citizenship`
+--
+ALTER TABLE `citizenship`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `contacts`
@@ -700,6 +1107,12 @@ ALTER TABLE `educational_background`
 -- Indexes for table `login_attempts`
 --
 ALTER TABLE `login_attempts`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `nationalities`
+--
+ALTER TABLE `nationalities`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -764,28 +1177,28 @@ ALTER TABLE `work_background`
 --
 
 --
--- AUTO_INCREMENT for table `appchildlist`
---
-ALTER TABLE `appchildlist`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
-
---
--- AUTO_INCREMENT for table `applist`
---
-ALTER TABLE `applist`
-  MODIFY `AppID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=157;
-
---
 -- AUTO_INCREMENT for table `apps`
 --
 ALTER TABLE `apps`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+
+--
+-- AUTO_INCREMENT for table `available_apps`
+--
+ALTER TABLE `available_apps`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `children`
 --
 ALTER TABLE `children`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `citizenship`
+--
+ALTER TABLE `citizenship`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=195;
 
 --
 -- AUTO_INCREMENT for table `contacts`
@@ -804,6 +1217,12 @@ ALTER TABLE `educational_background`
 --
 ALTER TABLE `login_attempts`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=162;
+
+--
+-- AUTO_INCREMENT for table `nationalities`
+--
+ALTER TABLE `nationalities`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=195;
 
 --
 -- AUTO_INCREMENT for table `navigationlist`
@@ -845,7 +1264,7 @@ ALTER TABLE `spouses`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `user_appslist`

@@ -14,6 +14,43 @@ router.get("/api/apps", (req, res) => {
   });
 });
 
+// Middleware to extract userId from Authorization header
+router.use((req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const userId = authHeader.split(" ")[1];
+    req.user = { id: parseInt(userId, 10) }; // Ensure userId is an integer
+  }
+  next();
+});
+
+// --- Get available apps for the logged-in user ---
+router.get("/api/availableapps", (req, res) => {
+  // Retrieve user ID from the custom header 'X-User-ID'
+  const userId = req.headers["x-user-id"];
+
+  if (!userId) {
+    return res
+      .status(401)
+      .json({ message: "Unauthorized: No user logged in", userId: null });
+  }
+
+  const query = `
+    SELECT apps.*
+    FROM apps
+    JOIN available_apps ON apps.id = available_apps.app_id
+    WHERE available_apps.user_id = ?
+  `;
+
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error("Error fetching available apps for user:", err);
+      return res.status(500).json({ message: "Database error" });
+    }
+    res.json(results || []); // Ensure an array is returned
+  });
+});
+
 // --- Add a new app ---
 router.post("/api/apps", (req, res) => {
   const { name, url, description, icon } = req.body;
@@ -78,6 +115,8 @@ router.put("/api/apps/:id", (req, res) => {
       if (results.affectedRows === 0) {
         return res.status(404).json({ message: "App not found." });
       }
+
+      // Send back the updated app data
       res.json({
         message: "App updated successfully.",
         app: { id: appId, name, url, description, icon },

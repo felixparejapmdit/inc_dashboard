@@ -194,8 +194,9 @@ router.post("/api/users/login", async (req, res) => {
 
 // Add new user with selected apps
 router.post("/api/users", (req, res) => {
-  const { username, password, name, email, avatarUrl, availableApps } =
+  const { username, password, fullname, email, avatarUrl, availableApps } =
     req.body;
+
   if (!username || !password) {
     return res
       .status(400)
@@ -206,7 +207,7 @@ router.post("/api/users", (req, res) => {
     "INSERT INTO users (username, password, fullname, email, avatar) VALUES (?, ?, ?, ?, ?)";
   db.query(
     insertUserQuery,
-    [username, password, name, email, avatarUrl],
+    [username, password, fullname, email, avatarUrl],
     (err, results) => {
       if (err) {
         console.error("Error adding user:", err);
@@ -216,10 +217,13 @@ router.post("/api/users", (req, res) => {
       }
 
       const userId = results.insertId;
+
+      // Prepare app associations for available_apps table
       const userAppsQuery =
         "INSERT INTO available_apps (user_id, app_id) VALUES ?";
       const appValues = (availableApps || []).map((appId) => [userId, appId]);
 
+      // Insert app associations only if there are apps selected
       if (appValues.length > 0) {
         db.query(userAppsQuery, [appValues], (err) => {
           if (err) {
@@ -228,54 +232,56 @@ router.post("/api/users", (req, res) => {
               .status(500)
               .json({ message: "Database error on apps: " + err.message });
           }
-          res
-            .status(201)
-            .json({ message: "User added successfully.", id: userId });
+          res.status(201).json({
+            message: "User added successfully with apps.",
+            id: userId,
+          });
         });
       } else {
-        res
-          .status(201)
-          .json({ message: "User added successfully.", id: userId });
+        // If no apps are selected, respond with success without inserting into available_apps
+        res.status(201).json({
+          message: "User added successfully without apps.",
+          id: userId,
+        });
       }
     }
   );
 });
 
 // Update user details and assigned apps
-router.put("/api/users/:id", upload.single("avatar"), async (req, res) => {
+router.put("/api/users/:id", (req, res) => {
   const userId = parseInt(req.params.id, 10);
-  if (isNaN(userId)) {
-    return res.status(400).json({ message: "Invalid user ID" });
-  }
-
-  const { name, email, username } = req.body;
-  let avatar = null;
-
-  // Handle avatar file if uploaded
-  if (req.file) {
-    avatar = req.file.buffer.toString("base64"); // Convert image to base64
-  }
-
-  // Prepare the update data, only including fields that have values
-  const updatedUser = {
-    fullname: name,
-    email,
-    username,
-    ...(avatar && { avatar }), // Add avatar only if it exists
-  };
-
-  db.query(
-    "UPDATE users SET ? WHERE ID = ?",
-    [updatedUser, userId],
-    (err, results) => {
-      if (err) {
-        console.error("Error updating user:", err);
-        return res.status(500).json({ message: "Database update error" });
-      }
-
-      res.json({ message: "User updated successfully" });
+  const { username, fullname, email, avatar, availableApps } = req.body;
+  const query =
+    "UPDATE users SET username = ?, fullname = ?, email = ?, avatar = ? WHERE ID = ?";
+  db.query(query, [username, fullname, email, avatar, userId], (err) => {
+    if (err) {
+      console.error("Error updating user:", err);
+      return res.status(500).json({ message: "Database update error" });
     }
-  );
+    // Update available apps
+    const deleteQuery = "DELETE FROM available_apps WHERE user_id = ?";
+    db.query(deleteQuery, [userId], (deleteErr) => {
+      if (deleteErr) {
+        console.error("Error deleting existing apps:", deleteErr);
+        return res.status(500).json({ message: "Error updating apps" });
+      }
+      if (availableApps && availableApps.length > 0) {
+        const insertQuery =
+          "INSERT INTO available_apps (user_id, app_id) VALUES ?";
+        const values = availableApps.map((appId) => [userId, appId]);
+        db.query(insertQuery, [values], (insertErr) => {
+          if (insertErr) {
+            console.error("Error inserting updated apps:", insertErr);
+            return res.status(500).json({ message: "Error updating apps" });
+          }
+          res.json({ message: "User updated successfully" });
+        });
+      } else {
+        res.json({ message: "User updated successfully" });
+      }
+    });
+  });
 });
 
 // Delete user and associated apps

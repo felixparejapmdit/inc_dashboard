@@ -39,7 +39,6 @@ const Users = () => {
   const [users, setUsers] = useState([]);
   const [apps, setApps] = useState([]);
   const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const [fullname, setFullname] = useState("");
   const [email, setEmail] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
@@ -79,28 +78,28 @@ const Users = () => {
 
     const newUser = {
       username,
-      password,
-      name: fullname, // Map `fullname` to `name` to match the backend
+      password: "M@sunur1n", // Add a default password if not provided
+      fullname,
       email,
       avatar: avatarUrl,
-      availableApps: selectedApps,
+      availableApps: selectedApps.map(
+        (appName) => apps.find((app) => app.name === appName)?.id
+      ), // Map app names to app IDs
     };
 
     if (editingUser) {
-      console.log("Payload for Update:", newUser); // Debug log
+      // For editing an existing user
       fetch(`${API_URL}/api/users/${editingUser.ID}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newUser),
       })
         .then(() => {
           setUsers((prevUsers) =>
-            prevUsers.map((item) =>
-              item.ID === editingUser.ID
+            prevUsers.map((user) =>
+              user.ID === editingUser.ID
                 ? { ...newUser, ID: editingUser.ID }
-                : item
+                : user
             )
           );
           setStatus("User updated successfully.");
@@ -108,16 +107,15 @@ const Users = () => {
         })
         .catch(() => setStatus("Error updating user. Please try again."));
     } else {
+      // For adding a new user
       fetch(`${API_URL}/api/users`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newUser),
       })
         .then((response) => response.json())
         .then((data) => {
-          setUsers((prevUsers) => [...prevUsers, { ...newUser, ID: data.ID }]);
+          setUsers((prevUsers) => [...prevUsers, { ...newUser, ID: data.id }]);
           setStatus("User added successfully.");
           closeModal();
         })
@@ -147,7 +145,6 @@ const Users = () => {
     // Set the entire user object in `editingUser` to ensure `ID` is accessible
     setEditingUser(item); // Set to the whole item, not just item.ID
     setUsername(item.username);
-    setPassword(item.password);
     setFullname(item.fullname);
     setEmail(item.email);
     setAvatarUrl(item.avatar);
@@ -174,7 +171,6 @@ const Users = () => {
 
   const resetForm = () => {
     setUsername("");
-    setPassword("");
     setFullname("");
     setEmail("");
     setAvatarUrl("");
@@ -269,16 +265,6 @@ const Users = () => {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Enter Username"
-                />
-              </FormControl>
-
-              <FormControl isRequired>
-                <FormLabel>Password</FormLabel>
-                <Input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter Password"
                 />
               </FormControl>
 
