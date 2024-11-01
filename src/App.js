@@ -14,7 +14,7 @@ import Users from "./pages/Users"; // Import User Page
 import Personnels from "./pages/Personnels"; // Import Personnels Page
 import AddSuguan from "./pages/Suguan"; // Import AddSuguan Page
 import AddEvents from "./pages/Events"; // Import AddEvents Page
-import AddReminders from "./pages/Reminders"; // Import AddReminders Page
+import AddReminders from "./pages/Reminders"; // Import ldap-users Page
 import Mastodon from "./pages/Mastodon"; // Import Mastodon Page
 import customTheme from "./theme"; // Optional if you're using a custom theme
 import LdapUser from "./pages/LdapUser"; // Import LdapUser page

@@ -41,37 +41,55 @@ const Login = () => {
       setIsLoading(false);
       return;
     }
+    if (useLdap) {
+      // LDAP Authentication
+      try {
+        const res = await axios.get(
+          `http://localhost:5000/ldap/user/${username}`
+        );
+        const user = res.data;
+        const hashedPassword = md5HashPassword(password);
 
-    try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/users/login`,
-        { username, password } // send plaintext password to the backend
-      );
-
-      if (response.data.success) {
-        const userId = Number(response.data.user.ID); // Ensure ID is a number
-        console.log("Logging in user with ID:", userId); // Debug log for user ID
-
-        // Update isLoggedIn status in the database
-        await axios.put(
-          `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
-          {
-            ID: userId,
-            isLoggedIn: true,
-          },
-          {
-            headers: { "Content-Type": "application/json" },
-          }
+        if (user && user.userPassword === hashedPassword) {
+          navigate("/dashboard");
+        } else {
+          setError("Invalid LDAP username or password");
+        }
+      } catch (err) {
+        setError(err.response?.data?.message || "LDAP Login failed");
+      }
+    } else {
+      try {
+        const response = await axios.post(
+          `${process.env.REACT_APP_API_URL}/api/users/login`,
+          { username, password } // send plaintext password to the backend
         );
 
-        console.log("Login status updated successfully"); // Success log
-        navigate("/dashboard");
-      } else {
-        setError("Invalid username or password");
+        if (response.data.success) {
+          const userId = Number(response.data.user.ID); // Ensure ID is a number
+          console.log("Logging in user with ID:", userId); // Debug log for user ID
+
+          // Update isLoggedIn status in the database
+          await axios.put(
+            `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
+            {
+              ID: userId,
+              isLoggedIn: true,
+            },
+            {
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+
+          console.log("Login status updated successfully"); // Success log
+          navigate("/dashboard");
+        } else {
+          setError("Invalid username or password");
+        }
+      } catch (error) {
+        setError("Error connecting to the server. Please try again.");
+        console.error("Error during login:", error);
       }
-    } catch (error) {
-      setError("Error connecting to the server. Please try again.");
-      console.error("Error during login:", error);
     }
 
     setIsLoading(false);
@@ -108,7 +126,7 @@ const Login = () => {
           <Heading
             as="h2"
             mb={6}
-            size="lg"
+            size="md"
             textAlign="center"
             color="#4a4a4a"
             textTransform="uppercase"

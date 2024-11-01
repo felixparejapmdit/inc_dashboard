@@ -51,6 +51,7 @@ const API_URL = process.env.REACT_APP_API_URL;
 
 export default function Dashboard() {
   const [apps, setApps] = useState([]);
+  const [status, setStatus] = useState("");
   const [availableApps, setAvailableApps] = useState([]);
   const [events, setEvents] = useState([]);
   const [reminders, setReminders] = useState([]);
@@ -157,20 +158,29 @@ export default function Dashboard() {
     onOpen();
   };
 
-  const handleSaveChanges = () => {
-    // Immediately update the local state with the temporary updated data
-    const updatedAppList = apps.map((app) =>
-      app.id === selectedApp.id ? { ...app, ...updatedApp } : app
-    );
-    setApps(updatedAppList);
+  const handleSaveChanges = (e) => {
+    e.preventDefault();
 
-    // Send updated data to the backend API
+    // Check if all required fields are present before proceeding
+    if (!updatedApp.name || !updatedApp.url) {
+      console.error("Name and URL fields are required.");
+      return;
+    }
+
+    const updatedAppData = { ...selectedApp, ...updatedApp };
+
+    // Update the app immediately in the UI for feedback
+    setApps((prevApps) =>
+      prevApps.map((app) => (app.id === selectedApp.id ? updatedAppData : app))
+    );
+
+    // Send the updated data to the backend
     fetch(`${API_URL}/api/apps/${selectedApp.id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(updatedApp),
+      body: JSON.stringify(updatedAppData), // Send all fields, ensuring no fields are missed
     })
       .then((response) => {
         if (!response.ok) {
@@ -181,18 +191,19 @@ export default function Dashboard() {
       .then((data) => {
         const updatedAppFromAPI = data.app;
 
-        // Update the apps state with the confirmed response from the backend
-
+        // Confirm the update in the UI with the backend response
         setApps((prevApps) =>
           prevApps.map((app) =>
-            app.id === apps.id ? { ...updatedApp, id: apps.id } : app
+            app.id === updatedAppFromAPI.id ? updatedAppFromAPI : app
           )
         );
 
+        setStatus(`App "${updatedApp.name}" updated successfully.`);
         onClose(); // Close the modal after updating state
       })
       .catch((error) => {
         console.error("Error updating app:", error);
+        setStatus("Error updating app. Please try again.");
       });
   };
 
@@ -366,7 +377,7 @@ export default function Dashboard() {
             />
           ))
         ) : (
-          <Text>No available apps to display.</Text> // Display if filteredApps is empty
+          <Text>No available apps to display.</Text>
         )}
       </SimpleGrid>
 
@@ -455,20 +466,30 @@ const AppCard = ({ app, colors, onSettingsClick }) => (
     p={6}
     spacing={4}
     boxShadow="md"
-    _hover={{ boxShadow: "lg", transform: "translateY(-5px)" }}
+    _hover={{
+      boxShadow: "lg",
+      transform: "translateY(-5px)",
+      transition: "all 0.3s ease-in-out",
+    }}
     transition="all 0.3s ease-in-out"
     align="flex-start"
     width="100%"
+    position="relative" // For absolute positioning of the icon
   >
-    <Box alignSelf="flex-end">
+    {/* Settings Icon */}
+    <Box position="absolute" top={4} right={4}>
       <Icon
         as={FiEdit}
         boxSize={5}
         color={colors.cardHeader}
         cursor="pointer"
         onClick={() => onSettingsClick(app)}
+        _hover={{ color: colors.cardHeaderHover }} // Change color on hover
+        style={{ visibility: "hidden" }} // This will hide the icon but keep its space
       />
     </Box>
+
+    {/* App Icon and Details */}
     <Box display="flex" alignItems="center">
       {app.icon ? (
         <Image
@@ -477,6 +498,7 @@ const AppCard = ({ app, colors, onSettingsClick }) => (
           boxSize="40px"
           borderRadius="full"
           mr={4}
+          boxShadow="md" // Add shadow to the icon
         />
       ) : (
         <Icon as={FiFile} boxSize={8} color={colors.cardHeader} mr={4} />
@@ -490,7 +512,10 @@ const AppCard = ({ app, colors, onSettingsClick }) => (
         </Text>
       </Box>
     </Box>
-    <Divider />
+
+    <Divider borderColor={colors.cardBorder} />
+
+    {/* Open Button */}
     <Button
       as="a"
       href={app.url}
@@ -498,10 +523,16 @@ const AppCard = ({ app, colors, onSettingsClick }) => (
       rel={app.url.includes("suguan") ? "" : "noopener noreferrer"}
       bg={colors.buttonBg}
       color="white"
-      _hover={{ bg: colors.buttonHoverBg }}
+      _hover={{
+        bg: colors.buttonHoverBg,
+        transform: "scale(1.05)",
+        transition: "transform 0.2s",
+      }} // Scale effect on hover
       _active={{ bg: colors.buttonHoverBg }}
       mt={2}
       width="full"
+      borderRadius="md" // Rounded corners for the button
+      boxShadow="md" // Add shadow to the button
     >
       Open {app.name}
     </Button>

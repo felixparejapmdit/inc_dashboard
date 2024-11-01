@@ -182,6 +182,12 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
               isExpanded={isExpanded}
               onClick={() => navigate("/add-events")} // Redirect to Events.js
             />
+            <SidebarItem
+              icon={FiUsers}
+              label="LdapUsers" // Added LdapUsers page
+              isExpanded={isExpanded}
+              onClick={() => navigate("/ldap-users")}
+            />
           </VStack>
         </Collapse>
       </VStack>

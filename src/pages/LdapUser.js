@@ -16,10 +16,25 @@ import {
   Text,
 } from "@chakra-ui/react";
 
-// Utility function to extract the value for a specific type
+const API_URL = process.env.REACT_APP_API_URL;
+
+if (!API_URL) {
+  console.error("REACT_APP_API_URL is not defined in the environment.");
+}
+
+// Utility function to extract attribute values
 const getAttributeValue = (attributes, type) => {
-  const attribute = attributes.find((attr) => attr.type === type);
-  return attribute && attribute.values.length > 0 ? attribute.values[0] : "N/A";
+  if (Array.isArray(attributes)) {
+    const attribute = attributes.find(
+      (attr) => attr.type === type || attr.name === type
+    );
+    return attribute && attribute.vals && attribute.vals.length > 0
+      ? attribute.vals[0]
+      : attribute && attribute.values && attribute.values.length > 0
+      ? attribute.values[0]
+      : "N/A";
+  }
+  return "N/A";
 };
 
 const LdapUsers = () => {
@@ -28,15 +43,22 @@ const LdapUsers = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:5000/ldap/users") // Fetch from your API
+    if (!API_URL) {
+      setError("API URL is not defined.");
+      setLoading(false);
+      return;
+    }
+
+    fetch(`${API_URL}/api/ldap/users`)
       .then((response) => {
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          throw new Error(`HTTP error! Status: ${response.status}`);
         }
         return response.json();
       })
       .then((data) => {
-        setUsers(data); // Set the fetched users
+        console.log("Fetched LDAP User Data:", data);
+        setUsers(data);
         setLoading(false);
       })
       .catch((err) => {
@@ -74,27 +96,27 @@ const LdapUsers = () => {
         <Table variant="simple">
           <Thead>
             <Tr>
-              <Th>#</Th> {/* Added for Row Number */}
+              <Th>#</Th>
               <Th>Given Name</Th>
               <Th>Surname</Th>
               <Th>Username</Th>
               <Th>Email</Th>
               <Th>UID Number</Th>
-              <Th>Home Directory</Th>
-              <Th>Object Classes</Th>
+              <Th>GID Number</Th>
+              <Th>Group Name</Th> {/* Added Group Name column */}
             </Tr>
           </Thead>
           <Tbody>
-            {users.map((userAttributes, index) => (
+            {users.map((user, index) => (
               <Tr key={index}>
-                <Td>{index + 1}</Td> {/* Display Row Number */}
-                <Td>{getAttributeValue(userAttributes, "givenName")}</Td>
-                <Td>{getAttributeValue(userAttributes, "sn")}</Td>
-                <Td>{getAttributeValue(userAttributes, "uid")}</Td>
-                <Td>{getAttributeValue(userAttributes, "mail")}</Td>
-                <Td>{getAttributeValue(userAttributes, "uidNumber")}</Td>
-                <Td>{getAttributeValue(userAttributes, "homeDirectory")}</Td>
-                <Td>{getAttributeValue(userAttributes, "objectClass")}</Td>
+                <Td>{index + 1}</Td>
+                <Td>{getAttributeValue(user, "givenName")}</Td>
+                <Td>{getAttributeValue(user, "sn")}</Td>
+                <Td>{getAttributeValue(user, "uid")}</Td>
+                <Td>{getAttributeValue(user, "mail")}</Td>
+                <Td>{getAttributeValue(user, "uidNumber")}</Td>
+                <Td>{getAttributeValue(user, "gidNumber")}</Td>
+                <Td>{user.groupName || "N/A"}</Td> {/* Display Group Name */}
               </Tr>
             ))}
           </Tbody>
