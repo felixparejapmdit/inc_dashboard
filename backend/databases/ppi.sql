@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 01, 2024 at 01:52 AM
+-- Generation Time: Nov 03, 2024 at 06:35 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -46,7 +46,7 @@ INSERT INTO `apps` (`id`, `name`, `url`, `description`, `icon`) VALUES
 (4, 'INC Hymns', 'http://172.18.121.5', 'INC Hymns', ''),
 (5, 'PMD Media', 'http://172.18.121.48/', 'PMD Media', ''),
 (6, 'Choir App', 'https://google.com', 'Choir App', ''),
-(7, 'Suguan12', 'http://172.18.125.134:3000/add-suguan', 'WS Suguan', NULL),
+(7, 'Suguan', 'http://172.18.125.134:3000/add-suguan', 'WS Suguan', NULL),
 (8, 'Snipe IT', 'https://pvinv.pmdmc.net', 'Snipe IT', NULL);
 
 -- --------------------------------------------------------
@@ -69,10 +69,19 @@ INSERT INTO `available_apps` (`id`, `user_id`, `app_id`) VALUES
 (7, 2, 1),
 (8, 2, 2),
 (10, 20, 1),
-(22, 1, 1),
-(23, 1, 2),
-(24, 1, 6),
-(25, 1, 7);
+(42, 5, 1),
+(43, 5, 2),
+(44, 5, 3),
+(45, 5, 4),
+(46, 5, 5),
+(47, 5, 6),
+(48, 5, 7),
+(49, 5, 8),
+(50, 1, 1),
+(51, 1, 2),
+(52, 1, 6),
+(53, 1, 7),
+(54, 1, 4);
 
 -- --------------------------------------------------------
 
@@ -923,11 +932,11 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`ID`, `avatar`, `fullname`, `username`, `email`, `password`, `isLoggedIn`, `created_at`, `updated_at`) VALUES
-(1, NULL, 'Felix Pareja', 'felix.pareja', 'felixpareja.pmdit07@yahoo.com', '$2b$10$w9VOvwi6V6OM1nsBb2GqpOlVyKdQ1z2xA.rHxvGi.QbrBp1XWPkH2', 1, NULL, NULL),
-(2, NULL, 'Karl Dematera', 'kdematera', 'kdematera@gmail.com', '$2b$10$w9VOvwi6V6OM1nsBb2GqpOlVyKdQ1z2xA.rHxvGi.QbrBp1XWPkH2', NULL, NULL, NULL),
+(1, NULL, 'Felix Pareja', 'felix.pareja', 'felixpareja.pmdit07@yahoo.com', '$2b$10$nDKUgFHGnI8yJ6WSaSgMzOGeWjp8slj5vryZYSLz8nlhzn4z00BMK', 1, NULL, NULL),
+(2, NULL, 'Karl Dematera', 'kdematera', 'kdematera@gmail.com', '$2b$10$w9VOvwi6V6OM1nsBb2GqpOlVyKdQ1z2xA.rHxvGi.QbrBp1XWPkH2', 0, NULL, NULL),
 (3, NULL, 'Kyrt Jurada', 'jurada', 'jurada@gmail.com', '$2b$10$w9VOvwi6V6OM1nsBb2GqpOlVyKdQ1z2xA.rHxvGi.QbrBp1XWPkH2', NULL, NULL, NULL),
-(5, NULL, 'Kim Amaro', 'kamaroo', 'amaro@yahoo.com', '$2b$10$w9VOvwi6V6OM1nsBb2GqpOlVyKdQ1z2xA.rHxvGi.QbrBp1XWPkH2', NULL, NULL, NULL),
-(20, NULL, 'Teo Ramos', 'teo.ramos', 'teo@yahoo.com', 'M@sunur1n', NULL, NULL, NULL);
+(5, NULL, 'Kim Amaro', 'kim.amaro', 'amaro@yahoo.com', '$2b$10$w9VOvwi6V6OM1nsBb2GqpOlVyKdQ1z2xA.rHxvGi.QbrBp1XWPkH2', 0, NULL, NULL),
+(20, NULL, 'Teo Ramos', 'teo.ramos', 'teo@yahoo.com', '$2b$10$w9VOvwi6V6OM1nsBb2GqpOlVyKdQ1z2xA.rHxvGi.QbrBp1XWPkH2', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1186,7 +1195,7 @@ ALTER TABLE `apps`
 -- AUTO_INCREMENT for table `available_apps`
 --
 ALTER TABLE `available_apps`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
 
 --
 -- AUTO_INCREMENT for table `children`
