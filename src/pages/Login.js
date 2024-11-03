@@ -199,23 +199,11 @@ const Login = () => {
 
             <Flex alignItems="center" justifyContent="center">
               <Text mr={2}>Use LDAP Login</Text>
-
               <Switch
                 colorScheme="teal"
                 isChecked={useLdap}
                 onChange={() => setUseLdap(!useLdap)}
               />
-              <Text fontSize="sm" color="gray.500">
-                Don't have an account?
-              </Text>
-              <Button
-                colorScheme="blue"
-                variant="outline"
-                width="100%"
-                onClick={handleEnroll}
-              >
-                Enroll
-              </Button>
             </Flex>
 
             <Button
@@ -231,6 +219,19 @@ const Login = () => {
             >
               Log In
             </Button>
+            <Flex alignItems="center" justifyContent="center">
+              <Text fontSize="sm" color="gray.500" mr={2}>
+                Don't have an account?
+              </Text>
+              <Button
+                colorScheme="blue"
+                variant="outline"
+                onClick={handleEnroll}
+                size="sm" // optional to make the button fit better with the text
+              >
+                Enroll
+              </Button>
+            </Flex>
 
             {error && <Text color="red.500">{error}</Text>}
           </VStack>

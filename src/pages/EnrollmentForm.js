@@ -12,6 +12,7 @@ import {
   RadioGroup,
   Radio,
   Stack,
+  Flex,
 } from "@chakra-ui/react";
 import axios from "axios";
 
@@ -129,18 +130,34 @@ const EnrollmentForm = () => {
       rounded="md"
       bg="white"
     >
-      <Heading as="h2" size="lg" color="teal.600">
-        Personnel Enrollment
-      </Heading>
-      <Progress colorScheme="teal" value={progress} size="md" width="100%" />
+      <Box
+        position="fixed"
+        top="0"
+        width="100%"
+        zIndex="1"
+        bg="white"
+        boxShadow="sm"
+      >
+        <Heading as="h2" size="lg" color="teal.600" textAlign="center" p={4}>
+          Personnel Enrollment
+        </Heading>
+        <Progress
+          colorScheme="teal"
+          value={progress}
+          size="md"
+          width="100%"
+          top="0"
+        />
+      </Box>
 
       {/* Step 1: Basic Information */}
       {step === 1 && (
-        <Box>
+        <Box width="100%" bg="white" boxShadow="sm">
           <Text fontSize="lg" mb="2">
             Step 1: Basic Information
           </Text>
           {/* Basic Fields */}
+          <Flex alignItems="center" mb="5"></Flex>
           <Input
             placeholder="Given Name"
             name="givenname"
@@ -162,13 +179,7 @@ const EnrollmentForm = () => {
             onChange={handleChange}
             mb="3"
           />
-          <Input
-            placeholder="Nickname"
-            name="nickname"
-            value={personnelData.nickname}
-            onChange={handleChange}
-            mb="3"
-          />
+
           <Input
             placeholder="Suffix"
             name="suffix"
@@ -176,7 +187,14 @@ const EnrollmentForm = () => {
             onChange={handleChange}
             mb="3"
           />
-
+          <Input
+            placeholder="Nickname"
+            name="nickname"
+            value={personnelData.nickname}
+            onChange={handleChange}
+            mb="3"
+          />
+          <Flex />
           <Select
             placeholder="Select Language"
             name="languages"
@@ -299,207 +317,222 @@ const EnrollmentForm = () => {
             mb="3"
           />
           {/* Continue adding more fields as per the requirements */}
+
+          {/* Government ID */}
+          <Select
+            placeholder="Select Government ID"
+            name="government_id"
+            value={personnelData.government_id}
+            onChange={handleChange}
+            mb="3"
+          >
+            {/* Replace with dynamic data from government ID options if available */}
+            <option value="1">ID Type 1</option>
+            <option value="2">ID Type 2</option>
+          </Select>
+
+          {/* Address ID */}
+          <Select
+            placeholder="Select Address"
+            name="address_id"
+            value={personnelData.address_id}
+            onChange={handleChange}
+            mb="3"
+          >
+            {/* Replace with dynamic data from address options if available */}
+            <option value="1">Address 1</option>
+            <option value="2">Address 2</option>
+          </Select>
+
+          <Input
+            placeholder="Local Congregation"
+            name="local_congregation"
+            value={personnelData.local_congregation}
+            onChange={handleChange}
+            mb="3"
+          />
+
+          {/* District */}
+          <Select
+            placeholder="Select District"
+            name="district_id"
+            value={personnelData.district_id}
+            onChange={handleChange}
+            mb="3"
+          >
+            {districts.map((district) => (
+              <option key={district.id} value={district.id}>
+                {district.name}
+              </option>
+            ))}
+          </Select>
+
+          <Flex alignItems="center" mb="3">
+            <Text fontSize="md" fontWeight="bold" mr={4}>
+              INC Status
+            </Text>
+            <RadioGroup
+              name="inc_status"
+              onChange={handleChange}
+              value={personnelData.inc_status}
+            >
+              <Stack direction="row">
+                <Radio value="Active">Active</Radio>
+                <Radio value="Non-Active">Non-Active</Radio>
+              </Stack>
+            </RadioGroup>
+          </Flex>
+
+          {/* Department */}
+          <Select
+            placeholder="Select Department"
+            name="department_id"
+            value={personnelData.department_id}
+            onChange={handleChange}
+            mb="3"
+          >
+            {departments.map((department) => (
+              <option key={department.id} value={department.id}>
+                {department.name}
+              </option>
+            ))}
+          </Select>
+
+          {/* Section */}
+          <Select
+            placeholder="Select Section"
+            name="section_id"
+            value={personnelData.section_id}
+            onChange={handleChange}
+            mb="3"
+          >
+            {sections.map((section) => (
+              <option key={section.id} value={section.id}>
+                {section.name}
+              </option>
+            ))}
+          </Select>
+
+          {/* Subsection */}
+          <Select
+            placeholder="Select Subsection"
+            name="subsection_id"
+            value={personnelData.subsection_id}
+            onChange={handleChange}
+            mb="3"
+          >
+            {subsections.map((subsection) => (
+              <option key={subsection.id} value={subsection.id}>
+                {subsection.name}
+              </option>
+            ))}
+          </Select>
+
+          {/* Designation */}
+          <Select
+            placeholder="Select Designation"
+            name="designation_id"
+            value={personnelData.designation_id}
+            onChange={handleChange}
+            mb="3"
+          >
+            {designations.map((designation) => (
+              <option key={designation.id} value={designation.id}>
+                {designation.name}
+              </option>
+            ))}
+          </Select>
+
+          <Input
+            placeholder="Date Joined"
+            name="datejoined"
+            type="date"
+            value={personnelData.datejoined}
+            onChange={handleChange}
+            mb="3"
+          />
+
+          {/* Personnel Type */}
+          <RadioGroup
+            name="personnel_type"
+            onChange={handleChange}
+            value={personnelData.personnel_type}
+            mb="3"
+          >
+            <Stack direction="row">
+              <Radio value="Minister">Minister</Radio>
+              <Radio value="Regular">Regular</Radio>
+              <Radio value="Ministerial Student">Ministerial Student</Radio>
+              <Radio value="Minister's Wife">Minister's Wife</Radio>
+              <Radio value="Lay Member">Lay Member</Radio>
+            </Stack>
+          </RadioGroup>
+
+          {/* Assigned Number */}
+          {["Minister", "Regular", "Ministerial Student"].includes(
+            personnelData.personnel_type
+          ) && (
+            <Input
+              placeholder="Assigned Number"
+              name="assigned_number"
+              value={personnelData.assigned_number}
+              onChange={handleChange}
+              mb="3"
+            />
+          )}
+
+          {/* M Type */}
+          <RadioGroup
+            name="m_type"
+            onChange={handleChange}
+            value={personnelData.m_type}
+            mb="3"
+          >
+            <Stack direction="row">
+              <Radio value="May Destino">May Destino</Radio>
+              <Radio value="Fulltime">Fulltime</Radio>
+            </Stack>
+          </RadioGroup>
+
+          {/* Panunumpa Date */}
+          {["Minister", "Regular"].includes(personnelData.personnel_type) && (
+            <Input
+              placeholder="Panunumpa Date"
+              name="panunumpa_date"
+              type="date"
+              value={personnelData.panunumpa_date}
+              onChange={handleChange}
+              mb="3"
+            />
+          )}
+
+          {/* Ordination Date */}
+          {personnelData.personnel_type === "Minister" && (
+            <Input
+              placeholder="Ordination Date"
+              name="ordination_date"
+              type="date"
+              value={personnelData.ordination_date}
+              onChange={handleChange}
+              mb="3"
+            />
+          )}
         </Box>
       )}
-      {/* Government ID */}
-      <Select
-        placeholder="Select Government ID"
-        name="government_id"
-        value={personnelData.government_id}
-        onChange={handleChange}
-        mb="3"
+
+      <Box
+        position="fixed"
+        bottom="0"
+        width="100%"
+        bg="white"
+        boxShadow="sm"
+        p={4}
+        display="flex"
+        justifyContent="center"
+        zIndex="1"
       >
-        {/* Replace with dynamic data from government ID options if available */}
-        <option value="1">ID Type 1</option>
-        <option value="2">ID Type 2</option>
-      </Select>
-
-      {/* Address ID */}
-      <Select
-        placeholder="Select Address"
-        name="address_id"
-        value={personnelData.address_id}
-        onChange={handleChange}
-        mb="3"
-      >
-        {/* Replace with dynamic data from address options if available */}
-        <option value="1">Address 1</option>
-        <option value="2">Address 2</option>
-      </Select>
-
-      <Input
-        placeholder="Local Congregation"
-        name="local_congregation"
-        value={personnelData.local_congregation}
-        onChange={handleChange}
-        mb="3"
-      />
-
-      {/* District */}
-      <Select
-        placeholder="Select District"
-        name="district_id"
-        value={personnelData.district_id}
-        onChange={handleChange}
-        mb="3"
-      >
-        {districts.map((district) => (
-          <option key={district.id} value={district.id}>
-            {district.name}
-          </option>
-        ))}
-      </Select>
-
-      {/* INC Status */}
-      <RadioGroup
-        name="inc_status"
-        onChange={handleChange}
-        value={personnelData.inc_status}
-        mb="3"
-      >
-        <Stack direction="row">
-          <Radio value="Active">Active</Radio>
-          <Radio value="Non-Active">Non-Active</Radio>
-        </Stack>
-      </RadioGroup>
-
-      {/* Department */}
-      <Select
-        placeholder="Select Department"
-        name="department_id"
-        value={personnelData.department_id}
-        onChange={handleChange}
-        mb="3"
-      >
-        {departments.map((department) => (
-          <option key={department.id} value={department.id}>
-            {department.name}
-          </option>
-        ))}
-      </Select>
-
-      {/* Section */}
-      <Select
-        placeholder="Select Section"
-        name="section_id"
-        value={personnelData.section_id}
-        onChange={handleChange}
-        mb="3"
-      >
-        {sections.map((section) => (
-          <option key={section.id} value={section.id}>
-            {section.name}
-          </option>
-        ))}
-      </Select>
-
-      {/* Subsection */}
-      <Select
-        placeholder="Select Subsection"
-        name="subsection_id"
-        value={personnelData.subsection_id}
-        onChange={handleChange}
-        mb="3"
-      >
-        {subsections.map((subsection) => (
-          <option key={subsection.id} value={subsection.id}>
-            {subsection.name}
-          </option>
-        ))}
-      </Select>
-
-      {/* Designation */}
-      <Select
-        placeholder="Select Designation"
-        name="designation_id"
-        value={personnelData.designation_id}
-        onChange={handleChange}
-        mb="3"
-      >
-        {designations.map((designation) => (
-          <option key={designation.id} value={designation.id}>
-            {designation.name}
-          </option>
-        ))}
-      </Select>
-
-      <Input
-        placeholder="Date Joined"
-        name="datejoined"
-        type="date"
-        value={personnelData.datejoined}
-        onChange={handleChange}
-        mb="3"
-      />
-
-      {/* Personnel Type */}
-      <RadioGroup
-        name="personnel_type"
-        onChange={handleChange}
-        value={personnelData.personnel_type}
-        mb="3"
-      >
-        <Stack direction="row">
-          <Radio value="Minister">Minister</Radio>
-          <Radio value="Regular">Regular</Radio>
-          <Radio value="Ministerial Student">Ministerial Student</Radio>
-          <Radio value="Minister's Wife">Minister's Wife</Radio>
-          <Radio value="Lay Member">Lay Member</Radio>
-        </Stack>
-      </RadioGroup>
-
-      {/* Assigned Number */}
-      {["Minister", "Regular", "Ministerial Student"].includes(
-        personnelData.personnel_type
-      ) && (
-        <Input
-          placeholder="Assigned Number"
-          name="assigned_number"
-          value={personnelData.assigned_number}
-          onChange={handleChange}
-          mb="3"
-        />
-      )}
-
-      {/* M Type */}
-      <RadioGroup
-        name="m_type"
-        onChange={handleChange}
-        value={personnelData.m_type}
-        mb="3"
-      >
-        <Stack direction="row">
-          <Radio value="May Destino">May Destino</Radio>
-          <Radio value="Fulltime">Fulltime</Radio>
-        </Stack>
-      </RadioGroup>
-
-      {/* Panunumpa Date */}
-      {["Minister", "Regular"].includes(personnelData.personnel_type) && (
-        <Input
-          placeholder="Panunumpa Date"
-          name="panunumpa_date"
-          type="date"
-          value={personnelData.panunumpa_date}
-          onChange={handleChange}
-          mb="3"
-        />
-      )}
-
-      {/* Ordination Date */}
-      {personnelData.personnel_type === "Minister" && (
-        <Input
-          placeholder="Ordination Date"
-          name="ordination_date"
-          type="date"
-          value={personnelData.ordination_date}
-          onChange={handleChange}
-          mb="3"
-        />
-      )}
-      <Box display="flex" justifyContent="space-between" width="100%">
         {step > 1 && (
-          <Button onClick={handlePrevious} colorScheme="gray">
+          <Button onClick={handlePrevious} colorScheme="gray" mr={4}>
             Previous
           </Button>
         )}
