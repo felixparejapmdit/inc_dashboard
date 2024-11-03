@@ -3,12 +3,12 @@
     {
       "givenName": "Felix",
       "sn": "Pareja",
-      "uid": "fpareja",
+      "uid": "felix.pareja",
       "mail": "fpareja@example.com",
       "uidNumber": "1001",
       "gidNumber": "2001",
       "memberOf": ["PMD-IT", "ATG-Office"],
-      "userPassword": "$2b$10$2hR.aVzWKP13jQkYfPq6xuZJlIpoS8OebXBLT6/Bu1bPi3LZBXBzq",
+      "userPassword": "$2b$10$nDKUgFHGnI8yJ6WSaSgMzOGeWjp8slj5vryZYSLz8nlhzn4z00BMK",
       "groupName": "PMD-IT"
     },
     {
@@ -19,7 +19,7 @@
       "uidNumber": "1002",
       "gidNumber": "2002",
       "memberOf": ["ATG-Office"],
-      "userPassword": "$2b$10$2hR.aVzWKP13jQkYfPq6xuZJlIpoS8OebXBLT6/Bu1bPi3LZBXBzq",
+      "userPassword": "$2b$10$w9VOvwi6V6OM1nsBb2GqpOlVyKdQ1z2xA.rHxvGi.QbrBp1XWPkH2",
       "groupName": "ATG-Office"
     },
     {
@@ -30,7 +30,7 @@
       "uidNumber": "1003",
       "gidNumber": "2003",
       "memberOf": ["ATG-Office"],
-      "userPassword": "$2b$10$2hR.aVzWKP13jQkYfPq6xuZJlIpoS8OebXBLT6/Bu1bPi3LZBXBzq",
+      "userPassword": "$2b$10$w9VOvwi6V6OM1nsBb2GqpOlVyKdQ1z2xA.rHxvGi.QbrBp1XWPkH2",
       "groupName": "ATG-Office"
     },
     {
@@ -41,7 +41,7 @@
       "uidNumber": "1004",
       "gidNumber": "2004",
       "memberOf": ["PMD-IT"],
-      "userPassword": "$2b$10$2hR.aVzWKP13jQkYfPq6xuZJlIpoS8OebXBLT6/Bu1bPi3LZBXBzq",
+      "userPassword": "$2b$10$w9VOvwi6V6OM1nsBb2GqpOlVyKdQ1z2xA.rHxvGi.QbrBp1XWPkH2",
       "groupName": "PMD-IT"
     },
     {
@@ -52,7 +52,7 @@
       "uidNumber": "1005",
       "gidNumber": "2005",
       "memberOf": ["ATG-Office", "PMD-IT"],
-      "userPassword": "$2b$10$2hR.aVzWKP13jQkYfPq6xuZJlIpoS8OebXBLT6/Bu1bPi3LZBXBzq",
+      "userPassword": "$2b$10$w9VOvwi6V6OM1nsBb2GqpOlVyKdQ1z2xA.rHxvGi.QbrBp1XWPkH2",
       "groupName": "ATG-Office, PMD-IT"
     }
   ]

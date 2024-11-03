@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const bcrypt = require("bcryptjs");
 const ldap = require("ldapjs");
 
 const fs = require("fs");
@@ -9,15 +10,6 @@ const LDAP_URL = process.env.LDAP_URL;
 const BIND_DN = process.env.BIND_DN;
 const BIND_PASSWORD = process.env.BIND_PASSWORD;
 const BASE_DN = process.env.BASE_DN;
-
-const GROUP_BASE_DN = process.env.GROUP_BASE_DN; // Define your group base DN here
-
-console.log("LDAP URL:", LDAP_URL); // Debug: Check LDAP URL
-
-// const LDAP_URL = process.env.LDAP_URL;
-// const BIND_DN = process.env.BIND_DN;
-// const BIND_PASSWORD = process.env.BIND_PASSWORD;
-// const BASE_DN = process.env.BASE_DN;
 
 // Utility function to create LDAP client
 const createLdapClient = () => {
@@ -52,64 +44,7 @@ router.get("/api/test_ldap_connection", (req, res) => {
   });
 });
 
-// LDAP Authentication
-router.post("/api/login_ldap", (req, res) => {
-  const { username, password } = req.body;
-
-  const client = ldap.createClient({
-    url: LDAP_URL,
-  });
-
-  // Bind to LDAP server
-  client.bind(BIND_DN, BIND_PASSWORD, (err) => {
-    if (err) {
-      return res.status(500).json({ message: "LDAP bind failed", error: err });
-    }
-
-    // Search for the user in LDAP
-    const searchOptions = {
-      filter: `(uid=${username})`, // Change 'uid' if necessary
-      scope: "sub",
-      attributes: ["dn", "userPassword"], // Fetch the DN and password attributes
-    };
-
-    client.search(BASE_DN, searchOptions, (searchErr, searchRes) => {
-      if (searchErr) {
-        return res
-          .status(500)
-          .json({ message: "LDAP search failed", error: searchErr });
-      }
-
-      let foundUser = null;
-      searchRes.on("searchEntry", (entry) => {
-        foundUser = entry.object;
-      });
-
-      searchRes.on("end", (result) => {
-        if (!foundUser) {
-          return res.status(401).json({ message: "User not found" });
-        }
-
-        // Bind using the user's DN and password to verify the password
-        client.bind(foundUser.dn, password, (authErr) => {
-          if (authErr) {
-            return res.status(401).json({ message: "Invalid credentials" });
-          }
-
-          // Password is correct, user is authenticated
-          return res.status(200).json({ message: "Login successful" });
-        });
-      });
-
-      searchRes.on("error", (err) => {
-        res.status(500).json({ message: "LDAP search failed", error: err });
-      });
-    });
-  });
-});
-
 // Endpoint to read LDAP data from ldap_data.json
-// Endpoint para sa pagkuha ng sample LDAP users
 router.get("/api/ldap/users_json", (req, res) => {
   const filePath = path.join(__dirname, "../data/ldap_users.json");
   fs.readFile(filePath, "utf8", (err, data) => {
@@ -124,7 +59,7 @@ router.get("/api/ldap/users_json", (req, res) => {
   });
 });
 
-// Fetch all LDAP users
+// Fetch all PMD LDAP users
 router.get("/api/ldap/users", async (req, res) => {
   // <-- Corrected this line
   console.log("Fetching all users from LDAP");
@@ -186,6 +121,57 @@ router.get("/api/ldap/users", async (req, res) => {
   }
 });
 
+// Endpoint to authenticate user using ldap_data.json
+router.get("/ldap/user_json/:username", (req, res) => {
+  const username = req.params.username;
+  const providedPassword = req.query.password; // Extract plain password from query
+
+  // Read data from ldap_data.json
+  const filePath = path.join(__dirname, "../data/ldap_users.json");
+
+  fs.readFile(filePath, "utf8", (err, data) => {
+    if (err) {
+      console.error("Error reading LDAP data file:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+
+    try {
+      const ldapData = JSON.parse(data);
+      const user = ldapData.LDAP_Users.find((user) => user.uid === username);
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      if (!providedPassword) {
+        return res.status(400).json({ message: "Password is required" });
+      }
+
+      // Compare provided password with the stored bcrypt hash
+      const isPasswordValid = bcrypt.compareSync(
+        providedPassword,
+        user.userPassword
+      );
+      if (isPasswordValid) {
+        // Password match; return user data (excluding password)
+        res.json({
+          uid: user.uid,
+          cn: user.cn,
+          mail: user.mail,
+          gidNumber: user.gidNumber,
+          memberOf: user.memberOf,
+        });
+      } else {
+        res.status(401).json({ message: "Invalid credentials" });
+      }
+    } catch (parseError) {
+      console.error("Error parsing JSON:", parseError);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+});
+
+//Login using PMD LDAP Credentials by username
 router.get("/ldap/user/:username", async (req, res) => {
   const username = req.params.username;
   console.log("Received request for username:", username);
@@ -279,23 +265,6 @@ router.get("/ldap/user/:username", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-// Utility function to create and bind the LDAP client
-const bindClient = async () => {
-  const client = ldap.createClient({ url: LDAP_URL });
-
-  return new Promise((resolve, reject) => {
-    client.bind(BIND_DN, BIND_PASSWORD, (err) => {
-      if (err) {
-        console.error("LDAP bind error:", err);
-        client.unbind();
-        reject(err);
-      } else {
-        resolve(client);
-      }
-    });
-  });
-};
 
 // Endpoint to retrieve groups by common name (cn)
 router.get("/api/ldap/groups", (req, res) => {

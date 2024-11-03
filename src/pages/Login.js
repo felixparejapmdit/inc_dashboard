@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import crypto from "crypto-js";
+import bcrypt from "bcryptjs";
 import {
   Box,
   Button,
@@ -25,6 +26,10 @@ const Login = () => {
   const [useLdap, setUseLdap] = useState(false); // Toggle for LDAP login
   const navigate = useNavigate();
 
+  const handleEnroll = () => {
+    navigate("/enroll");
+  };
+
   // Hash the password for LDAP MD5 format
   const md5HashPassword = (password) => {
     const md5sum = crypto.MD5(password);
@@ -44,14 +49,38 @@ const Login = () => {
 
     if (useLdap) {
       // LDAP Authentication
+      // try {
+      //   const res = await axios.get(
+      //     `http://localhost:5000/ldap/user/${username}`
+      //   );
+
+      //   const user = res.data;
+      //   const hashedPassword = md5HashPassword(password);
+
+      //   if (user && user.userPassword === hashedPassword) {
+      //     navigate("/dashboard");
+      //   } else {
+      //     setError("Invalid LDAP username or password");
+      //   }
+      // } catch (err) {
+      //   setError(err.response?.data?.message || "LDAP Login failed");
+      // }
+
+      //JSON
       try {
         const res = await axios.get(
-          `http://localhost:5000/ldap/user/${username}`
+          `http://localhost:5000/ldap/user_json/${username}`,
+          {
+            params: {
+              password, // Send the plain password to the backend
+            },
+          }
         );
-        const user = res.data;
-        const hashedPassword = md5HashPassword(password);
 
-        if (user && user.userPassword === hashedPassword) {
+        const user = res.data;
+
+        // If user data is returned, navigate to dashboard
+        if (user) {
           navigate("/dashboard");
         } else {
           setError("Invalid LDAP username or password");
@@ -170,11 +199,23 @@ const Login = () => {
 
             <Flex alignItems="center" justifyContent="center">
               <Text mr={2}>Use LDAP Login</Text>
+
               <Switch
                 colorScheme="teal"
                 isChecked={useLdap}
                 onChange={() => setUseLdap(!useLdap)}
               />
+              <Text fontSize="sm" color="gray.500">
+                Don't have an account?
+              </Text>
+              <Button
+                colorScheme="blue"
+                variant="outline"
+                width="100%"
+                onClick={handleEnroll}
+              >
+                Enroll
+              </Button>
             </Flex>
 
             <Button

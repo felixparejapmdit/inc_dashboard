@@ -18,6 +18,7 @@ import AddReminders from "./pages/Reminders"; // Import ldap-users Page
 import Mastodon from "./pages/Mastodon"; // Import Mastodon Page
 import customTheme from "./theme"; // Optional if you're using a custom theme
 import LdapUser from "./pages/LdapUser"; // Import LdapUser page
+import Enrollment from "./pages/EnrollmentForm"; // Import LdapUser page
 
 function App() {
   return (
@@ -180,6 +181,21 @@ function App() {
                 }}
               >
                 <LdapUser />
+              </Layout>
+            }
+          />
+
+          {/* New Route for Enrollment */}
+          <Route
+            path="/enroll/"
+            element={
+              <Layout
+                currentUser={{
+                  name: "John Doe",
+                  avatarUrl: "/path/to/avatar.jpg",
+                }}
+              >
+                <Enrollment />
               </Layout>
             }
           />
