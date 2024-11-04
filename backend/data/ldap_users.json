@@ -1,59 +1,427 @@
 {
   "LDAP_Users": [
     {
-      "givenName": "Felix",
-      "sn": "Pareja",
-      "uid": "felix.pareja",
-      "mail": "fpareja@example.com",
-      "uidNumber": "1001",
+      "givenName": "Claudio",
+      "sn": "Arro Jr.",
+      "uid": "claudioarro",
+      "mail": "claudio.arro@pmdmc.net",
+      "uidNumber": "2000",
+      "gidNumber": "2000",
+      "groupName": "Team Leaders"
+    },
+    {
+      "givenName": "Christian Marco",
+      "sn": "Cervantes",
+      "uid": "cmcervantes",
+      "mail": "marco.cervantes@pmdmc.net",
+      "uidNumber": "2001",
+      "gidNumber": "2000",
+      "groupName": "Team Leaders"
+    },
+    {
+      "givenName": "Adriel",
+      "sn": "Magpile",
+      "uid": "amagpile",
+      "mail": "adriel.magpile@pmdmc.net",
+      "uidNumber": "2002",
+      "gidNumber": "2000",
+      "groupName": "Team Leaders"
+    },
+    {
+      "givenName": "Ryan Matthew",
+      "sn": "Malabanan",
+      "uid": "rmmalabanan",
+      "mail": "ryan.malabanan@pmdmc.net",
+      "uidNumber": "2003",
+      "gidNumber": "2000",
+      "groupName": "Team Leaders"
+    },
+    {
+      "givenName": "Michael",
+      "sn": "Enriquez",
+      "uid": "mcenriquez",
+      "mail": "michael.enriquez@pmdmc.net",
+      "uidNumber": "2004",
+      "gidNumber": "2000",
+      "groupName": "Team Leaders"
+    },
+    {
+      "givenName": "Philippe Christian",
+      "sn": "Diaz",
+      "uid": "pcdiaz",
+      "mail": "philippe.diaz@pmdmc.net",
+      "uidNumber": "2005",
+      "gidNumber": "2000",
+      "groupName": "Team Leaders"
+    },
+    {
+      "givenName": "Donny",
+      "sn": "Villamarzo",
+      "uid": "dvillamarzo",
+      "mail": "donny.villamarzo@pmdmc.net",
+      "uidNumber": "2006",
+      "gidNumber": "2000",
+      "groupName": "Team Leaders"
+    },
+    {
+      "givenName": "Jeffrey",
+      "sn": "Cabacungan",
+      "uid": "jcabacungan",
+      "mail": "jeffrey.cabacungan@pmdmc.net",
+      "uidNumber": "2007",
+      "gidNumber": "2000",
+      "groupName": "Team Leaders"
+    },
+    {
+      "givenName": "Jeffrey",
+      "sn": "Sarmiento",
+      "uid": "jsarmiento",
+      "mail": "jeffrey.sarmiento@pmdmc.net",
+      "uidNumber": "2008",
+      "gidNumber": "2000",
+      "groupName": "Team Leaders"
+    },
+    {
+      "givenName": "Karlo",
+      "sn": "De Leon",
+      "uid": "kdeleon",
+      "mail": "karlo.deleon@pmdmc.net",
+      "uidNumber": "2009",
+      "gidNumber": "2000",
+      "groupName": "Team Leaders"
+    },
+    {
+      "givenName": "Jake",
+      "sn": "Alcantara",
+      "uid": "jalcantara",
+      "mail": "jake.alcantara@pmdmc.net",
+      "uidNumber": "2010",
+      "gidNumber": "2000",
+      "groupName": "Team Leaders"
+    },
+    {
+      "givenName": "Donald",
+      "sn": "Parena",
+      "uid": "dpareña",
+      "mail": "donald@pmdmc.net",
+      "uidNumber": "2011",
+      "gidNumber": "2000",
+      "groupName": "Team Leaders"
+    },
+    {
+      "givenName": "Rodeson",
+      "sn": "Porcado",
+      "uid": "rporcado",
+      "mail": "rodeson.porcado@pmdmc.net",
+      "uidNumber": "2012",
+      "gidNumber": "2000",
+      "groupName": "Team Leaders"
+    },
+    {
+      "givenName": "Robert Darl",
+      "sn": "Prestoza",
+      "uid": "rdprestoza",
+      "mail": "darl.prestoza@pmdmc.net",
+      "uidNumber": "2013",
+      "gidNumber": "2000",
+      "groupName": "Team Leaders"
+    },
+    {
+      "givenName": "Karl Victor",
+      "sn": "Dematera",
+      "uid": "kvdematera",
+      "mail": "karl.dematera@pmdmc.net",
+      "uidNumber": "2017",
+      "gidNumber": "2000",
+      "groupName": "Team Leaders"
+    },
+    {
+      "givenName": "Raymond",
+      "sn": "Reyes",
+      "uid": "rreyes",
+      "mail": "raymond.reyes@pmdmc.net",
+      "uidNumber": "2018",
+      "gidNumber": "2000",
+      "groupName": "Team Leaders"
+    },
+    {
+      "givenName": "Zaldy",
+      "sn": "Petorio",
+      "uid": "zpetorio",
+      "mail": "zaldy.petorio@pmdmc.net",
+      "uidNumber": "2020",
+      "gidNumber": "2000",
+      "groupName": "Team Leaders"
+    },
+    {
+      "givenName": "Antonio T.",
+      "sn": "de Guzman Jr.",
+      "uid": "ATG",
+      "mail": "ATG@pmdmc.net",
+      "uidNumber": "2014",
+      "gidNumber": "2002",
+      "groupName": "VIP"
+    },
+    {
+      "givenName": "N/A",
+      "sn": "pmdit",
+      "uid": "pmdit",
+      "mail": "N/A",
+      "uidNumber": "N/A",
+      "gidNumber": "N/A",
+      "groupName": "Unknown"
+    },
+    {
+      "givenName": "ATG Office",
+      "sn": "Staff",
+      "uid": "atgstaff",
+      "mail": "atgstaff@pmdmc.net",
+      "uidNumber": "2016",
+      "gidNumber": "2003",
+      "groupName": "ATG Office"
+    },
+    {
+      "givenName": "Eugene",
+      "sn": "Eustaquio",
+      "uid": "eeustaquio",
+      "mail": "eugene.eustaquio@pmdmc.net",
+      "uidNumber": "2019",
+      "gidNumber": "2000",
+      "groupName": "Team Leaders"
+    },
+    {
+      "givenName": "Roland Kim",
+      "sn": "Amaro",
+      "uid": "rolandkim.amaro",
+      "mail": "rolandkim.amaro@pmdmc.net",
+      "uidNumber": "2015",
       "gidNumber": "2001",
-      "memberOf": ["PMD-IT", "ATG-Office"],
-      "userPassword": "$2b$10$nDKUgFHGnI8yJ6WSaSgMzOGeWjp8slj5vryZYSLz8nlhzn4z00BMK",
       "groupName": "PMD-IT"
     },
     {
-      "givenName": "Kim",
-      "sn": "Amaro",
-      "uid": "kamaro",
-      "mail": "kamaro@example.com",
-      "uidNumber": "1002",
-      "gidNumber": "2002",
-      "memberOf": ["ATG-Office"],
-      "userPassword": "$2b$10$w9VOvwi6V6OM1nsBb2GqpOlVyKdQ1z2xA.rHxvGi.QbrBp1XWPkH2",
-      "groupName": "ATG-Office"
-    },
-    {
-      "givenName": "Teo",
-      "sn": "Ramos",
-      "uid": "tramos",
-      "mail": "tramos@example.com",
-      "uidNumber": "1003",
-      "gidNumber": "2003",
-      "memberOf": ["ATG-Office"],
-      "userPassword": "$2b$10$w9VOvwi6V6OM1nsBb2GqpOlVyKdQ1z2xA.rHxvGi.QbrBp1XWPkH2",
-      "groupName": "ATG-Office"
+      "givenName": "N/A",
+      "sn": "test",
+      "uid": "test",
+      "mail": "N/A",
+      "uidNumber": "N/A",
+      "gidNumber": "N/A",
+      "groupName": "Unknown"
     },
     {
       "givenName": "Kyrt",
       "sn": "Jurada",
-      "uid": "kjurada",
-      "mail": "kjurada@example.com",
-      "uidNumber": "1004",
-      "gidNumber": "2004",
-      "memberOf": ["PMD-IT"],
-      "userPassword": "$2b$10$w9VOvwi6V6OM1nsBb2GqpOlVyKdQ1z2xA.rHxvGi.QbrBp1XWPkH2",
+      "uid": "kyrt.jurada",
+      "mail": "kyrt.jurada@pmdmc.net",
+      "uidNumber": "2021",
+      "gidNumber": "2001",
       "groupName": "PMD-IT"
     },
     {
-      "givenName": "Karl",
-      "sn": "Dematera",
-      "uid": "kdematera",
-      "mail": "kdematera@example.com",
-      "uidNumber": "1005",
-      "gidNumber": "2005",
-      "memberOf": ["ATG-Office", "PMD-IT"],
-      "userPassword": "$2b$10$w9VOvwi6V6OM1nsBb2GqpOlVyKdQ1z2xA.rHxvGi.QbrBp1XWPkH2",
-      "groupName": "ATG-Office, PMD-IT"
+      "givenName": "Admin",
+      "sn": "Archiving",
+      "uid": "admin.archiving",
+      "mail": "admin.archiving@pmdmc.net",
+      "uidNumber": "2022",
+      "gidNumber": "2004",
+      "groupName": "Office Chroniclers"
+    },
+    {
+      "givenName": "ATG",
+      "sn": "Office",
+      "uid": "atg.office",
+      "mail": "atg.office@pmdmc.net",
+      "uidNumber": "2023",
+      "gidNumber": "2004",
+      "groupName": "Office Chroniclers"
+    },
+    {
+      "givenName": "ATG",
+      "sn": "Building Admin",
+      "uid": "admin.building-admin",
+      "mail": "admin.building-admin@pmdmc.net",
+      "uidNumber": "2024",
+      "gidNumber": "2004",
+      "groupName": "Office Chroniclers"
+    },
+    {
+      "givenName": "ATG",
+      "sn": "EVMedia",
+      "uid": "atg.evmedia",
+      "mail": "atg.evmedia@pmdmc.net",
+      "uidNumber": "2025",
+      "gidNumber": "2004",
+      "groupName": "Office Chroniclers"
+    },
+    {
+      "givenName": "ATG",
+      "sn": "SFM",
+      "uid": "atg.sfm",
+      "mail": "atg.sfm@pmdmc.net",
+      "uidNumber": "2027",
+      "gidNumber": "2004",
+      "groupName": "Office Chroniclers"
+    },
+    {
+      "givenName": "ATG",
+      "sn": "Security Group",
+      "uid": "atg.security-group",
+      "mail": "atg.security-group@pmdmc.net",
+      "uidNumber": "2028",
+      "gidNumber": "2004",
+      "groupName": "Office Chroniclers"
+    },
+    {
+      "givenName": "ATG",
+      "sn": "Subtitling",
+      "uid": "atg.subtitling",
+      "mail": "atg.subtitling@pmdmc.net",
+      "uidNumber": "2029",
+      "gidNumber": "2004",
+      "groupName": "Office Chroniclers"
+    },
+    {
+      "givenName": "Admin",
+      "sn": "Graphics and Design",
+      "uid": "admin.gnd",
+      "mail": "admin.gnd@pmdmc.net",
+      "uidNumber": "2031",
+      "gidNumber": "2004",
+      "groupName": "Office Chroniclers"
+    },
+    {
+      "givenName": "ATG",
+      "sn": "LSWS Office",
+      "uid": "atg.lsws",
+      "mail": "atg.lsws@pmdmc.net",
+      "uidNumber": "2032",
+      "gidNumber": "2004",
+      "groupName": "Office Chroniclers"
+    },
+    {
+      "givenName": "Music",
+      "sn": "Choir Directors Office",
+      "uid": "music.cdo",
+      "mail": "music.cdo@pmdmc.net",
+      "uidNumber": "2033",
+      "gidNumber": "2004",
+      "groupName": "Office Chroniclers"
+    },
+    {
+      "givenName": "Music",
+      "sn": "EIS",
+      "uid": "music.eis",
+      "mail": "music.eis@pmdmc.net",
+      "uidNumber": "2034",
+      "gidNumber": "2004",
+      "groupName": "Office Chroniclers"
+    },
+    {
+      "givenName": "Music",
+      "sn": "Hymns Section",
+      "uid": "music.hymns",
+      "mail": "music.hymns@pmdmc.net",
+      "uidNumber": "2035",
+      "gidNumber": "2004",
+      "groupName": "Office Chroniclers"
+    },
+    {
+      "givenName": "Music",
+      "sn": "Organ Office",
+      "uid": "music.organ-office",
+      "mail": "music.organ-office@pmdmc.net",
+      "uidNumber": "2036",
+      "gidNumber": "2004",
+      "groupName": "Office Chroniclers"
+    },
+    {
+      "givenName": "Music",
+      "sn": "Original Music",
+      "uid": "music.original-music",
+      "mail": "music.original-music@pmdmc.net",
+      "uidNumber": "2037",
+      "gidNumber": "2004",
+      "groupName": "Office Chroniclers"
+    },
+    {
+      "givenName": "Admin",
+      "sn": "TRG",
+      "uid": "admin.trg",
+      "mail": "admin.trg@pmdmc.net",
+      "uidNumber": "2038",
+      "gidNumber": "2004",
+      "groupName": "Office Chroniclers"
+    },
+    {
+      "givenName": "User",
+      "sn": "B",
+      "uid": "user-b",
+      "mail": "user-b@pmdmc.net",
+      "uidNumber": "2040",
+      "gidNumber": "2004",
+      "groupName": "Office Chroniclers"
+    },
+    {
+      "givenName": "Sample",
+      "sn": "User",
+      "uid": "user.a",
+      "mail": "user.a@pmdmc.net",
+      "uidNumber": "2041",
+      "gidNumber": "2004",
+      "groupName": "Office Chroniclers"
+    },
+    {
+      "givenName": "NEU",
+      "sn": "STF",
+      "uid": "neu.stf",
+      "mail": "neu.stf@pmdmc.net",
+      "uidNumber": "2039",
+      "gidNumber": "2004",
+      "groupName": "Office Chroniclers"
+    },
+    {
+      "givenName": "Executive",
+      "sn": "News",
+      "uid": "executive.news",
+      "mail": "executive.news@pmdmc.net",
+      "uidNumber": "2026",
+      "gidNumber": "2004",
+      "groupName": "Office Chroniclers"
+    },
+    {
+      "givenName": "PMD",
+      "sn": "IT",
+      "uid": "pmd.it",
+      "mail": "pmd.it@pmdmc.net",
+      "uidNumber": "2030",
+      "gidNumber": "2004",
+      "groupName": "Office Chroniclers"
+    },
+    {
+      "givenName": "Ronald",
+      "sn": "de Guzman",
+      "uid": "r.deguzman",
+      "mail": "ron.deguzman@pmdmc.net",
+      "uidNumber": "2042",
+      "gidNumber": "2000",
+      "groupName": "Team Leaders"
+    },
+    {
+      "givenName": "Felix",
+      "sn": "Pareja",
+      "uid": "felix.pareja",
+      "mail": "felix.pareja@pmdmc.net",
+      "uidNumber": "2043",
+      "gidNumber": "2001",
+      "groupName": "PMD-IT"
+    },
+    {
+      "givenName": "Nicole ",
+      "sn": "Sanchez",
+      "uid": "nsanchez",
+      "mail": "nsanchez@pmdmc.net",
+      "uidNumber": "2044",
+      "gidNumber": "2003",
+      "groupName": "ATG Office"
     }
   ]
 }

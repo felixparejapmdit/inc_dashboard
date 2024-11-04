@@ -22,31 +22,24 @@ if (!API_URL) {
   console.error("REACT_APP_API_URL is not defined in the environment.");
 }
 
-// Utility function to extract attribute values with more detailed logging
+// Utility function to extract attribute values with improved handling
 const getAttributeValue = (attributes, type) => {
   if (Array.isArray(attributes)) {
-    console.log("Attributes Array:", attributes); // Log the entire array for inspection
-
     const attribute = attributes.find(
       (attr) => attr.type === type || attr.name === type
     );
-
     if (attribute) {
-      console.log(`Found attribute for type ${type}:`, attribute);
-      if (attribute.vals && attribute.vals.length > 0) {
-        console.log(`Returning vals[0] for ${type}:`, attribute.vals[0]);
-        return attribute.vals[0];
-      } else if (attribute.values && attribute.values.length > 0) {
-        console.log(`Returning values[0] for ${type}:`, attribute.values[0]);
-        return attribute.values[0];
-      }
-    } else {
-      console.log(`No attribute found for type ${type}`);
+      // Check both `vals` and `values` fields to handle LDAP attribute variations
+      return attribute.vals
+        ? attribute.vals[0]
+        : attribute.values
+        ? attribute.values[0]
+        : "N/A";
     }
-  } else {
-    console.log("Attributes is not an array:", attributes);
+  } else if (typeof attributes === "object" && attributes[type]) {
+    // Handle case where `attributes` is an object with direct key-value pairs
+    return attributes[type];
   }
-
   return "N/A";
 };
 
@@ -124,13 +117,13 @@ const LdapUsers = () => {
               <Tr key={index}>
                 <Td>{index + 1}</Td>
                 <Td>{getAttributeValue(user, "givenName")}</Td>
-                {/* <Td>{user.givenName}</Td> */}
                 <Td>{getAttributeValue(user, "sn")}</Td>
                 <Td>{getAttributeValue(user, "uid")}</Td>
                 <Td>{getAttributeValue(user, "mail")}</Td>
                 <Td>{getAttributeValue(user, "uidNumber")}</Td>
                 <Td>{getAttributeValue(user, "gidNumber")}</Td>
-                <Td>{getAttributeValue(user, "groupName")}</Td>
+                <Td>{user.groupName || "Unknown"}</Td>{" "}
+                {/* Display Group Name */}
               </Tr>
             ))}
           </Tbody>

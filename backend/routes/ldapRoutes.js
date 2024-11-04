@@ -62,7 +62,7 @@ router.get("/api/ldap/users_json", (req, res) => {
 
 // Fetch all LDAP users and their group names
 router.get("/api/ldap/users", async (req, res) => {
-  console.log("Fetching all users from LDAP");
+  console.log("Fetching all users and groups from LDAP");
 
   const client = createLdapClient();
 
@@ -112,7 +112,7 @@ router.get("/api/ldap/users", async (req, res) => {
   const fetchGroups = () => {
     return new Promise((resolve, reject) => {
       const searchOptions = {
-        filter: "(objectClass=posixGroup)", // Filter to find groups
+        filter: "(objectClass=posixGroup)",
         scope: "sub",
       };
 
@@ -125,15 +125,18 @@ router.get("/api/ldap/users", async (req, res) => {
         }
 
         result.on("searchEntry", (entry) => {
-          // Ensure entry.object and entry.object.cn exist before accessing them
           const groupName =
-            entry.object && entry.object.cn ? entry.object.cn : null;
+            entry.attributes.find((attr) => attr.type === "cn")?.vals[0] ||
+            "Unknown";
+          const gidNumber = entry.attributes.find(
+            (attr) => attr.type === "gidNumber"
+          )?.vals[0];
           const memberUids =
-            entry.object && entry.object.memberUid
-              ? entry.object.memberUid
-              : []; // Adjust this attribute name if needed
-          if (groupName) {
-            groups.push({ groupName, memberUids });
+            entry.attributes.find((attr) => attr.type === "memberUid")?.vals ||
+            [];
+
+          if (groupName && gidNumber) {
+            groups.push({ groupName, gidNumber, memberUids });
           }
         });
 
@@ -153,20 +156,50 @@ router.get("/api/ldap/users", async (req, res) => {
     const users = await fetchUsers();
     const groups = await fetchGroups();
 
+    // Utility function to extract attribute values with improved handling
+    const getAttributeValue = (attributes, type) => {
+      if (Array.isArray(attributes)) {
+        const attribute = attributes.find(
+          (attr) => attr.type === type || attr.name === type
+        );
+        if (attribute) {
+          // Check both `vals` and `values` fields to handle LDAP attribute variations
+          return attribute.vals
+            ? attribute.vals[0]
+            : attribute.values
+            ? attribute.values[0]
+            : "N/A";
+        }
+      } else if (typeof attributes === "object" && attributes[type]) {
+        // Handle case where `attributes` is an object with direct key-value pairs
+        return attributes[type];
+      }
+      return "N/A";
+    };
+
+    // Log fetched users and groups for debugging
+    console.log("Fetched Users:", JSON.stringify(users, null, 2));
+    console.log("Fetched Groups:", JSON.stringify(groups, null, 2));
+
     // Match each user to their respective group
     const usersWithGroups = users.map((user) => {
-      const uid = user.find((attr) => attr.type === "uid")?.vals[0];
-      const gidNumber = user.find((attr) => attr.type === "gidNumber")?.vals[0];
+      const uid = getAttributeValue(user, "uid");
+      const gidNumber = getAttributeValue(user, "gidNumber");
 
-      // Find the group where this uid or gidNumber exists
+      // Find the group where this gidNumber or uid exists
       const userGroup = groups.find(
         (group) =>
-          group.memberUids.includes(uid) || group.gidNumber === gidNumber
+          group.gidNumber === gidNumber || group.memberUids.includes(uid)
       );
 
       // Add the group name to the user
       return {
-        ...user,
+        givenName: getAttributeValue(user, "givenName"),
+        sn: getAttributeValue(user, "sn"),
+        uid,
+        mail: getAttributeValue(user, "mail"),
+        uidNumber: getAttributeValue(user, "uidNumber"),
+        gidNumber,
         groupName: userGroup ? userGroup.groupName : "Unknown",
       };
     });
