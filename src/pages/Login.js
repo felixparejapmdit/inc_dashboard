@@ -49,38 +49,15 @@ const Login = () => {
 
     if (useLdap) {
       // LDAP Authentication
-      // try {
-      //   const res = await axios.get(
-      //     `http://localhost:5000/ldap/user/${username}`
-      //   );
-
-      //   const user = res.data;
-      //   const hashedPassword = md5HashPassword(password);
-
-      //   if (user && user.userPassword === hashedPassword) {
-      //     navigate("/dashboard");
-      //   } else {
-      //     setError("Invalid LDAP username or password");
-      //   }
-      // } catch (err) {
-      //   setError(err.response?.data?.message || "LDAP Login failed");
-      // }
-
-      //JSON
       try {
         const res = await axios.get(
-          `http://localhost:5000/ldap/user_json/${username}`,
-          {
-            params: {
-              password, // Send the plain password to the backend
-            },
-          }
+          `http://localhost:5000/ldap/user/${username}`
         );
 
         const user = res.data;
+        const hashedPassword = md5HashPassword(password);
 
-        // If user data is returned, navigate to dashboard
-        if (user) {
+        if (user && user.userPassword === hashedPassword) {
           navigate("/dashboard");
         } else {
           setError("Invalid LDAP username or password");
@@ -88,6 +65,29 @@ const Login = () => {
       } catch (err) {
         setError(err.response?.data?.message || "LDAP Login failed");
       }
+
+      //JSON
+      // try {
+      //   const res = await axios.get(
+      //     `http://localhost:5000/ldap/user_json/${username}`,
+      //     {
+      //       params: {
+      //         password, // Send the plain password to the backend
+      //       },
+      //     }
+      //   );
+
+      //   const user = res.data;
+
+      //   // If user data is returned, navigate to dashboard
+      //   if (user) {
+      //     navigate("/dashboard");
+      //   } else {
+      //     setError("Invalid LDAP username or password");
+      //   }
+      // } catch (err) {
+      //   setError(err.response?.data?.message || "LDAP Login failed");
+      // }
     } else {
       try {
         const response = await axios.post(

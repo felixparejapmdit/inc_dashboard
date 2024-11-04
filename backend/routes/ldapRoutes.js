@@ -60,9 +60,9 @@ router.get("/api/ldap/users_json", (req, res) => {
   });
 });
 
-// Fetch all PMD LDAP users with their group names
+// Fetch all LDAP users and their group names
 router.get("/api/ldap/users", async (req, res) => {
-  console.log("Fetching all users and groups from LDAP");
+  console.log("Fetching all users from LDAP");
 
   const client = createLdapClient();
 
@@ -79,7 +79,7 @@ router.get("/api/ldap/users", async (req, res) => {
     });
   };
 
-  const searchUsers = () => {
+  const fetchUsers = () => {
     return new Promise((resolve, reject) => {
       const searchOptions = {
         filter: "(objectClass=inetOrgPerson)",
@@ -95,65 +95,85 @@ router.get("/api/ldap/users", async (req, res) => {
         }
 
         result.on("searchEntry", (entry) => {
-          const user = entry.object;
-          user.groups = []; // Initialize an empty array for group names
-          users.push(user);
+          users.push(entry.attributes);
         });
 
-        result.on("end", () => resolve(users));
-        result.on("error", (err) => reject(err));
+        result.on("end", () => {
+          resolve(users);
+        });
+
+        result.on("error", (err) => {
+          reject(err);
+        });
       });
     });
   };
 
-  const searchGroups = () => {
+  const fetchGroups = () => {
     return new Promise((resolve, reject) => {
       const searchOptions = {
-        filter: "(objectClass=groupOfNames)", // Filter to fetch groups
+        filter: "(objectClass=posixGroup)", // Filter to find groups
         scope: "sub",
       };
 
       const groups = [];
 
-      client.search(GROUP_BASE_DN, searchOptions, (err, result) => {
+      client.search(BASE_DN, searchOptions, (err, result) => {
         if (err) {
           client.unbind();
           reject(err);
         }
 
         result.on("searchEntry", (entry) => {
-          const group = entry.object;
-          groups.push({
-            name: group.cn, // Common name of the group
-            members: group.member || [], // Members of the group
-          });
+          // Ensure entry.object and entry.object.cn exist before accessing them
+          const groupName =
+            entry.object && entry.object.cn ? entry.object.cn : null;
+          const memberUids =
+            entry.object && entry.object.memberUid
+              ? entry.object.memberUid
+              : []; // Adjust this attribute name if needed
+          if (groupName) {
+            groups.push({ groupName, memberUids });
+          }
         });
 
-        result.on("end", () => resolve(groups));
-        result.on("error", (err) => reject(err));
+        result.on("end", () => {
+          resolve(groups);
+        });
+
+        result.on("error", (err) => {
+          reject(err);
+        });
       });
     });
   };
 
   try {
     await bindClient();
+    const users = await fetchUsers();
+    const groups = await fetchGroups();
 
-    const [users, groups] = await Promise.all([searchUsers(), searchGroups()]);
+    // Match each user to their respective group
+    const usersWithGroups = users.map((user) => {
+      const uid = user.find((attr) => attr.type === "uid")?.vals[0];
+      const gidNumber = user.find((attr) => attr.type === "gidNumber")?.vals[0];
 
-    // Map users to their groups
-    users.forEach((user) => {
-      groups.forEach((group) => {
-        if (group.members.includes(user.dn)) {
-          user.groups.push(group.name); // Add group name to user's groups
-        }
-      });
+      // Find the group where this uid or gidNumber exists
+      const userGroup = groups.find(
+        (group) =>
+          group.memberUids.includes(uid) || group.gidNumber === gidNumber
+      );
+
+      // Add the group name to the user
+      return {
+        ...user,
+        groupName: userGroup ? userGroup.groupName : "Unknown",
+      };
     });
 
-    client.unbind(); // Unbind the LDAP client after completing operations
-    res.json(users);
+    res.json(usersWithGroups);
   } catch (err) {
     console.error("LDAP error:", err);
-    client.unbind();
     res.status(500).json({ error: err.message });
   }
 });
