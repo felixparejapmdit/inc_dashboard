@@ -10,6 +10,7 @@ const LDAP_URL = process.env.LDAP_URL;
 const BIND_DN = process.env.BIND_DN;
 const BIND_PASSWORD = process.env.BIND_PASSWORD;
 const BASE_DN = process.env.BASE_DN;
+const GROUP_BASE_DN = "dc=pmdmc,dc=net"; // Use this for group search
 
 // Utility function to create LDAP client
 const createLdapClient = () => {
@@ -59,10 +60,9 @@ router.get("/api/ldap/users_json", (req, res) => {
   });
 });
 
-// Fetch all PMD LDAP users
+// Fetch all PMD LDAP users with their group names
 router.get("/api/ldap/users", async (req, res) => {
-  // <-- Corrected this line
-  console.log("Fetching all users from LDAP");
+  console.log("Fetching all users and groups from LDAP");
 
   const client = createLdapClient();
 
@@ -79,7 +79,7 @@ router.get("/api/ldap/users", async (req, res) => {
     });
   };
 
-  const searchLDAP = () => {
+  const searchUsers = () => {
     return new Promise((resolve, reject) => {
       const searchOptions = {
         filter: "(objectClass=inetOrgPerson)",
@@ -95,28 +95,65 @@ router.get("/api/ldap/users", async (req, res) => {
         }
 
         result.on("searchEntry", (entry) => {
-          users.push(entry.attributes);
+          const user = entry.object;
+          user.groups = []; // Initialize an empty array for group names
+          users.push(user);
         });
 
-        result.on("end", () => {
-          client.unbind();
-          resolve(users);
-        });
+        result.on("end", () => resolve(users));
+        result.on("error", (err) => reject(err));
+      });
+    });
+  };
 
-        result.on("error", (err) => {
+  const searchGroups = () => {
+    return new Promise((resolve, reject) => {
+      const searchOptions = {
+        filter: "(objectClass=groupOfNames)", // Filter to fetch groups
+        scope: "sub",
+      };
+
+      const groups = [];
+
+      client.search(GROUP_BASE_DN, searchOptions, (err, result) => {
+        if (err) {
           client.unbind();
           reject(err);
+        }
+
+        result.on("searchEntry", (entry) => {
+          const group = entry.object;
+          groups.push({
+            name: group.cn, // Common name of the group
+            members: group.member || [], // Members of the group
+          });
         });
+
+        result.on("end", () => resolve(groups));
+        result.on("error", (err) => reject(err));
       });
     });
   };
 
   try {
     await bindClient();
-    const users = await searchLDAP();
+
+    const [users, groups] = await Promise.all([searchUsers(), searchGroups()]);
+
+    // Map users to their groups
+    users.forEach((user) => {
+      groups.forEach((group) => {
+        if (group.members.includes(user.dn)) {
+          user.groups.push(group.name); // Add group name to user's groups
+        }
+      });
+    });
+
+    client.unbind(); // Unbind the LDAP client after completing operations
     res.json(users);
   } catch (err) {
     console.error("LDAP error:", err);
+    client.unbind();
     res.status(500).json({ error: err.message });
   }
 });
