@@ -200,6 +200,7 @@ router.get("/api/ldap/users", async (req, res) => {
         mail: getAttributeValue(user, "mail"),
         uidNumber: getAttributeValue(user, "uidNumber"),
         gidNumber,
+        userPassword: getAttributeValue(user, "userPassword"),
         groupName: userGroup ? userGroup.groupName : "Unknown",
       };
     });

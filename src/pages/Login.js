@@ -59,6 +59,18 @@ const Login = () => {
 
         if (user && user.userPassword === hashedPassword) {
           navigate("/dashboard");
+
+          // Update isLoggedIn status in the database
+          await axios.put(
+            `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
+            {
+              ID: user,
+              isLoggedIn: true,
+            },
+            {
+              headers: { "Content-Type": "application/json" },
+            }
+          );
         } else {
           setError("Invalid LDAP username or password");
         }
