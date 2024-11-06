@@ -57,6 +57,8 @@ export default function Dashboard() {
   const [reminders, setReminders] = useState([]);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedApp, setSelectedApp] = useState(null);
+  const [userFullName, setUserFullName] = useState("");
+  const [error, setError] = useState("");
   const [updatedApp, setUpdatedApp] = useState({
     name: "",
     description: "",
@@ -84,6 +86,9 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
+    // Retrieve full name from local storage after login
+    const fullName = localStorage.getItem("userFullName") || "User";
+    setUserFullName(fullName);
     // Fetch events, reminders, and logged-in user data
     fetch(`${API_URL}/api/events`)
       .then((response) => response.json())
@@ -107,12 +112,30 @@ export default function Dashboard() {
         console.log("Available Apps Data:", user.availableApps); // Log available apps to inspect structure
 
         if (user && (user.ID || user.id)) {
-          setCurrentUser({ id: user.ID || user.id, ...user });
+          // Set user data in state
+          setCurrentUser({
+            id: user.ID || user.id,
+            username: user.username,
+            fullName: user.name, // Assuming 'name' holds the full name from LDAP or users table
+            email: user.email,
+            avatar: user.avatar,
+          });
+
           // Directly set availableApps as an array of app names
           setAvailableApps(user.availableApps || []);
+        } else {
+          console.error("User data is not in the expected format:", user);
         }
       })
-      .catch((error) => console.error("Error fetching logged-in user:", error));
+      .catch((error) => {
+        if (error.message === "Failed to fetch logged-in user") {
+          console.error("Error fetching logged-in user data:", error);
+          setError("Unable to fetch user data. Please check your connection.");
+        } else {
+          console.error("Error with LDAP or user login:", error);
+          setError("LDAP server is unreachable. Using local authentication.");
+        }
+      });
   }, []);
 
   useEffect(() => {
@@ -209,17 +232,17 @@ export default function Dashboard() {
 
   // Get the current time and greet the user accordingly
   const getTimeBasedGreeting = () => {
-    const hours = new Date().getHours();
-    if (hours < 12) return "Good morning";
-    if (hours < 18) return "Good afternoon";
-    return "Good evening";
+    const hour = new Date().getHours();
+    if (hour < 12) return `Good morning, ${userFullName}!`;
+    if (hour < 18) return `Good afternoon, ${userFullName}!`;
+    return `Good evening, ${userFullName}!`;
   };
 
   return (
     <Box bg={useColorModeValue("gray.50", "gray.900")} minH="100vh" p={6}>
       <HStack justify="space-between" mb={6}>
         <Heading as="h1" size="xl">
-          {getTimeBasedGreeting()}, {currentUser.name}!
+          {getTimeBasedGreeting()}
         </Heading>
         <Box w="300px">
           <Input

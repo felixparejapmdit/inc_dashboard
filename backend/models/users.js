@@ -1,9 +1,9 @@
-// models/PMD_Login_Users.js
+// models/users.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database"); // Adjust the path to your database configuration
 
-const PMD_Login_Users = sequelize.define(
-  "PMD_Login_Users",
+const users = sequelize.define(
+  "users",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -24,11 +24,11 @@ const PMD_Login_Users = sequelize.define(
       type: DataTypes.BIGINT,
       allowNull: true,
     },
-    local_username: {
+    username: {
       type: DataTypes.STRING(50),
       allowNull: true,
     },
-    local_password: {
+    password: {
       type: DataTypes.STRING(255),
       allowNull: true,
     },
@@ -36,8 +36,8 @@ const PMD_Login_Users = sequelize.define(
       type: DataTypes.BLOB("long"),
       allowNull: true,
     },
-    online_status: {
-      type: DataTypes.INTEGER,
+    isLoggedIn: {
+      type: DataTypes.TINYINT,
       defaultValue: 0,
     },
     last_login: {
@@ -66,9 +66,9 @@ const PMD_Login_Users = sequelize.define(
     },
   },
   {
-    tableName: "PMD_Login_Users",
+    tableName: "users",
     timestamps: false,
   }
 );
 
-module.exports = PMD_Login_Users;
+module.exports = users;

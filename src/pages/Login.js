@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import crypto from "crypto-js";
@@ -14,7 +14,6 @@ import {
   Flex,
   Text,
   Image,
-  Switch,
 } from "@chakra-ui/react";
 import "./Login.css"; // Custom CSS for animated input effect
 
@@ -23,7 +22,6 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [useLdap, setUseLdap] = useState(false); // Toggle for LDAP login
   const navigate = useNavigate();
 
   const handleEnroll = () => {
@@ -47,90 +45,67 @@ const Login = () => {
       return;
     }
 
-    if (useLdap) {
-      // LDAP Authentication
-      try {
-        const res = await axios.get(
-          `http://localhost:5000/ldap/user/${username}`
+    // Attempt LDAP Authentication first
+    try {
+      // Attempt LDAP Authentication first
+      const ldapResponse = await axios.get(
+        `http://localhost:5000/ldap/user/${username}`
+      );
+      const ldapUser = ldapResponse.data;
+      const hashedPassword = md5HashPassword(password);
+
+      if (ldapUser && ldapUser.userPassword === hashedPassword) {
+        // Store user data and navigate to dashboard
+        const fullName = `${ldapUser.givenName || ""} ${
+          ldapUser.sn || ""
+        }`.trim();
+        localStorage.setItem("userFullName", fullName);
+        navigate("/dashboard");
+
+        // Update isLoggedIn status in the database
+        await axios.put(
+          `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
+          {
+            ID: ldapUser.id,
+            isLoggedIn: true,
+          }
         );
-
-        const user = res.data;
-        const hashedPassword = md5HashPassword(password);
-
-        if (user && user.userPassword === hashedPassword) {
-          navigate("/dashboard");
-
-          // Update isLoggedIn status in the database
-          await axios.put(
-            `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
-            {
-              ID: user,
-              isLoggedIn: true,
-            },
-            {
-              headers: { "Content-Type": "application/json" },
-            }
-          );
-        } else {
-          setError("Invalid LDAP username or password");
-        }
-      } catch (err) {
-        setError(err.response?.data?.message || "LDAP Login failed");
+      } else {
+        setError("Invalid LDAP username or password");
       }
+    } catch (err) {
+      console.error(
+        "LDAP connection failed, falling back to local login:",
+        err
+      );
+      setError("LDAP server is unreachable. Attempting local login...");
 
-      //JSON
-      // try {
-      //   const res = await axios.get(
-      //     `http://localhost:5000/ldap/user_json/${username}`,
-      //     {
-      //       params: {
-      //         password, // Send the plain password to the backend
-      //       },
-      //     }
-      //   );
-
-      //   const user = res.data;
-
-      //   // If user data is returned, navigate to dashboard
-      //   if (user) {
-      //     navigate("/dashboard");
-      //   } else {
-      //     setError("Invalid LDAP username or password");
-      //   }
-      // } catch (err) {
-      //   setError(err.response?.data?.message || "LDAP Login failed");
-      // }
-    } else {
+      // Attempt local login if LDAP fails
       try {
         const response = await axios.post(
           `${process.env.REACT_APP_API_URL}/api/users/login`,
-          { username, password } // send plaintext password to the backend
+          { username, password }
         );
-
         if (response.data.success) {
-          const userId = Number(response.data.user.ID); // Ensure ID is a number
-          console.log("Logging in user with ID:", userId); // Debug log for user ID
+          // Set the full name for local login as well
+          const fullName = response.data.user.fullName || "User";
+          localStorage.setItem("userFullName", fullName);
+          navigate("/dashboard");
 
           // Update isLoggedIn status in the database
           await axios.put(
             `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
             {
-              ID: userId,
+              ID: response.data.user.ID,
               isLoggedIn: true,
-            },
-            {
-              headers: { "Content-Type": "application/json" },
             }
           );
-
-          console.log("Login status updated successfully"); // Success log
-          navigate("/dashboard");
         } else {
           setError("Invalid username or password");
         }
       } catch (error) {
         setError("Error connecting to the server. Please try again.");
-        console.error("Error during login:", error);
+        console.error("Error during local login:", error);
       }
     }
 
@@ -209,15 +184,6 @@ const Login = () => {
               <FormLabel>Password</FormLabel>
             </FormControl>
 
-            <Flex alignItems="center" justifyContent="center">
-              <Text mr={2}>Use LDAP Login</Text>
-              <Switch
-                colorScheme="teal"
-                isChecked={useLdap}
-                onChange={() => setUseLdap(!useLdap)}
-              />
-            </Flex>
-
             <Button
               type="submit"
               width="100%"
@@ -239,7 +205,7 @@ const Login = () => {
                 colorScheme="blue"
                 variant="outline"
                 onClick={handleEnroll}
-                size="sm" // optional to make the button fit better with the text
+                size="sm"
               >
                 Enroll
               </Button>

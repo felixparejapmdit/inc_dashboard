@@ -3,8 +3,32 @@ const router = express.Router();
 const db = require("../db");
 
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 const multer = require("multer");
 const upload = multer({ dest: "uploads/" }); // Set destination folder for uploaded images
+
+const db1 = require("../config/database");
+const axios = require("axios");
+
+// Function to verify SSHA hash
+function verifySSHA(password, hash) {
+  const salt = Buffer.from(hash.slice(6), "base64").slice(-20);
+  const derivedHash = crypto
+    .createHash("sha1")
+    .update(password)
+    .update(salt)
+    .digest("base64");
+  return `{SSHA}${derivedHash + salt.toString("base64")}` === hash;
+}
+
+// Function to verify MD5 hash
+function verifyMD5(password, hash) {
+  const derivedHash = `{MD5}${crypto
+    .createHash("md5")
+    .update(password)
+    .digest("base64")}`;
+  return derivedHash === hash;
+}
 
 // Change Password Endpoint
 router.post("/api/users/change-password", (req, res) => {
@@ -60,9 +84,9 @@ router.post("/api/users/change-password", (req, res) => {
 });
 
 // Logged-In User Endpoint
-router.get("/api/users/logged-in", (req, res) => {
+router.get("/api/users/logged-in", async (req, res) => {
   const query = `
-    SELECT u.ID, u.username, u.fullname AS name, u.email, u.avatar, GROUP_CONCAT(a.name) AS availableApps
+    SELECT u.ID, u.username, 'Admin' AS name, u.avatar, u.auth_type, GROUP_CONCAT(a.name) AS availableApps
     FROM users u
     LEFT JOIN available_apps ua ON u.ID = ua.user_id
     LEFT JOIN apps a ON ua.app_id = a.id
@@ -70,18 +94,40 @@ router.get("/api/users/logged-in", (req, res) => {
     GROUP BY u.ID
   `;
 
-  db.query(query, (err, results) => {
+  db1.query(query, async (err, results) => {
     if (err) {
       console.error("Error fetching logged-in user:", err);
       return res.status(500).json({ message: "Database error" });
     }
+
     if (results.length > 0) {
-      const user = {
-        ...results[0],
-        availableApps: results[0].availableApps
-          ? results[0].availableApps.split(",")
-          : [],
-      };
+      const user = results[0];
+
+      // Check if user is authenticated with LDAP
+      if (user.auth_type === "LDAP") {
+        try {
+          // Fetch user details from the LDAP API
+          const ldapResponse = await axios.get(
+            `http://localhost:5000/ldap/user/${user.username}`
+          );
+          const ldapUser = ldapResponse.data;
+
+          // Update user object with LDAP details
+          user.name = `${ldapUser.givenName} ${ldapUser.sn}`;
+          user.username = ldapUser.uid;
+        } catch (error) {
+          console.error("Error connecting to LDAP server:", error);
+          // Notify the user about LDAP server issues
+          return res.status(500).json({
+            message: "LDAP server is unreachable. Unable to fetch full name.",
+          });
+        }
+      }
+
+      // Process available applications
+      user.availableApps = user.availableApps
+        ? user.availableApps.split(",")
+        : [];
       res.json(user);
     } else {
       res.status(404).json({ message: "No user is currently logged in" });
@@ -173,9 +219,22 @@ router.post("/api/users/login", async (req, res) => {
       }
 
       const user = results[0];
+      const storedHash = user.password;
 
-      // Compare the plaintext password with the stored hash
-      const isMatch = await bcrypt.compare(password, user.password);
+      let isMatch = false;
+
+      // Determine hash type and verify accordingly
+      if (storedHash.startsWith("$2b$") || storedHash.startsWith("$2a$")) {
+        // bcrypt hash
+        isMatch = await bcrypt.compare(password, storedHash);
+      } else if (storedHash.startsWith("{SSHA}")) {
+        // SSHA hash
+        isMatch = verifySSHA(password, storedHash);
+      } else if (storedHash.startsWith("{MD5}")) {
+        // MD5 hash
+        isMatch = verifyMD5(password, storedHash);
+      }
+
       if (!isMatch) {
         return res
           .status(401)

@@ -5,17 +5,17 @@ const { Sequelize } = require("sequelize");
 
 // Create a new Sequelize instance with environment variables
 const sequelize = new Sequelize(
-  process.env.MYSQL_DATABASE,
-  process.env.MYSQL_USER,
-  process.env.MYSQL_PASSWORD,
+  process.env.MYSQL_DATABASE, // Database name
+  process.env.MYSQL_USER, // Database user
+  process.env.MYSQL_PASSWORD, // Database password
   {
     host: process.env.MYSQL_HOST,
     dialect: "mysql",
-    logging: console.log, // Enable logging to see SQL queries, remove or adjust as needed
+    logging: false, // Disable logging; change to console.log for more verbose output
   }
 );
 
-// Test the connection
+// Test the connection function
 async function testConnection() {
   try {
     await sequelize.authenticate();
@@ -25,6 +25,10 @@ async function testConnection() {
   }
 }
 
-testConnection(); // Call the test function to check the connection
+// Call the test function to check the connection
+if (require.main === module) {
+  // Only test the connection if this file is executed directly
+  testConnection();
+}
 
 module.exports = sequelize;

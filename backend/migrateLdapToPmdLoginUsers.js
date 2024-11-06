@@ -1,50 +1,64 @@
-// scripts/migrateLdapToPmdLoginUsers.js
-const bcrypt = require("bcrypt"); // Assuming bcrypt for hashing local passwords if needed
-const LDAP_Users = require("../models/LDAP_Users");
-const PMD_Login_Users = require("../models/PMD_Login_Users");
+// migrateLdapToPmdLoginUsers.js
+require("dotenv").config();
+const axios = require("axios");
+const users = require("./models/users"); // Ensure path is correct
 
+// Function to fetch LDAP users from the API
+async function fetchLdapUsers() {
+  try {
+    const response = await axios.get("http://localhost:5000/api/ldap/users"); // Ensure this URL is correct
+    return response.data; // Assuming the API response is an array of LDAP user objects
+  } catch (error) {
+    console.error("Error fetching LDAP users:", error);
+    throw error;
+  }
+}
+
+// Migration function
 async function migrateLdapToPmdLoginUsers() {
   try {
-    // Step 1: Fetch all users from LDAP_Users
-    const ldapUsers = await LDAP_Users.findAll();
-
-    for (const ldapUser of ldapUsers) {
-      const existingPmdUser = await PMD_Login_Users.findOne({
-        where: { uid: ldapUser.id },
-      });
-
-      // Step 2: Check if user already exists in PMD_Login_Users
-      if (!existingPmdUser) {
-        // Generate a local username and password if needed (example, could use ldapUser.uid as username)
-        const localUsername = ldapUser.uid || ldapUser.cn;
-        const localPassword = await bcrypt.hash("defaultPassword", 10); // Replace with a secure default if needed
-
-        // Step 3: Insert new user into PMD_Login_Users
-        await PMD_Login_Users.create({
-          uid: ldapUser.id,
-          personnel_id: null, // Adjust if you have personnel_id mapping
-          local_username: localUsername,
-          local_password: localPassword,
-          auth_type: "LDAP", // Default to LDAP authentication
-          online_status: 0, // Default status
-          failed_attempts: 0, // Default failed attempts
-          created_at: new Date(),
-          updated_at: new Date(),
-        });
-
-        console.log(`Migrated LDAP user ${localUsername} to PMD_Login_Users.`);
-      } else {
-        console.log(
-          `User with UID ${ldapUser.id} already exists in PMD_Login_Users.`
-        );
-      }
+    // Fetch LDAP users
+    const ldapUsers = await fetchLdapUsers();
+    if (ldapUsers.length === 0) {
+      console.log("No LDAP users found or unable to connect to LDAP API.");
+      return;
     }
 
-    console.log("Migration complete.");
+    // Perform the migration logic
+    for (const ldapUser of ldapUsers) {
+      // Check if the user already exists in users by UID
+      const existingUser = await users.findOne({
+        where: { username: ldapUser.uid },
+      });
+
+      if (!existingUser) {
+        // Map LDAP data to users fields
+        const newUser = {
+          uid: ldapUser.uidNumber,
+          personnel_id: null, // Set to null or map if personnel_id exists elsewhere
+          username: ldapUser.uid, // Map LDAP 'uid' to 'username' field in users
+          password: ldapUser.userPassword, // Assuming the password format matches
+          avatar: null, // Set avatar if available
+          isLoggedIn: 0, // Default to 0 (not logged in)
+          last_login: null,
+          auth_type: "LDAP", // Since data is from LDAP
+          failed_attempts: 0, // Initialize failed attempts to 0
+          last_failed_attempt: null,
+          created_at: new Date(),
+          updated_at: new Date(),
+        };
+
+        // Insert the new user into users
+        await users.create(newUser);
+        console.log(`User ${ldapUser.uid} migrated successfully.`);
+      } else {
+        console.log(`User ${ldapUser.uid} already exists in users.`);
+      }
+    }
   } catch (error) {
     console.error("Error during migration:", error);
   }
 }
 
-// Run the migration
+// Execute the migration
 migrateLdapToPmdLoginUsers();

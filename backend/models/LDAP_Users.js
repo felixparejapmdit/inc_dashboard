@@ -1,6 +1,6 @@
 // models/LDAP_Users.js
 const { DataTypes } = require("sequelize");
-const sequelize = require("../config/database"); // Adjust the path to your database configuration
+const sequelize = require("./config/database"); // Adjust the path to your database configuration
 
 const LDAP_Users = sequelize.define(
   "LDAP_Users",
@@ -23,11 +23,11 @@ const LDAP_Users = sequelize.define(
       allowNull: false,
     },
     homeDirectory: {
-      type: DataTypes.STRING(25),
+      type: DataTypes.STRING(50), // Adjusted size if necessary
       allowNull: true,
     },
     mail: {
-      type: DataTypes.STRING(25),
+      type: DataTypes.STRING(50),
       allowNull: true,
     },
     sn: {
@@ -44,21 +44,25 @@ const LDAP_Users = sequelize.define(
       allowNull: true,
     },
     userPassword: {
-      type: DataTypes.STRING(255), // Adjust size if needed
+      type: DataTypes.STRING(255), // Adjusted for more typical password size
       allowNull: false,
     },
-    created_at: {
+    createdAt: {
       type: DataTypes.DATE,
+      field: "created_at",
       defaultValue: DataTypes.NOW,
     },
-    updated_at: {
+    updatedAt: {
       type: DataTypes.DATE,
+      field: "updated_at",
       defaultValue: DataTypes.NOW,
     },
   },
   {
     tableName: "LDAP_Users",
-    timestamps: false,
+    timestamps: true, // Enables automatic timestamps
+    createdAt: "created_at",
+    updatedAt: "updated_at",
   }
 );
 
