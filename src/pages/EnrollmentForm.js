@@ -17,6 +17,8 @@ import {
 import axios from "axios";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 
+
+
 const EnrollmentForm = () => {
   const [step, setStep] = useState(1);
   const [progress, setProgress] = useState(10);
@@ -34,7 +36,7 @@ const EnrollmentForm = () => {
     place_of_birth: "",
     gender: "",
     bloodtype: "",
-    civil_status: "",
+    civil_status: "Select Civil Status",
     wedding_anniversary: "",
     citizenship: "",
     nationality: "",
@@ -58,7 +60,6 @@ const EnrollmentForm = () => {
   });
 
   // API data
-  const [languages, setLanguages] = useState([]);
   const [bloodtypes] = useState([
     "A+",
     "A-",
@@ -78,11 +79,29 @@ const EnrollmentForm = () => {
   const [subsections, setSubsections] = useState([]);
   const [designations, setDesignations] = useState([]);
 
+  const languages = [
+    { code: "en", name: "English" },
+    { code: "fil", name: "Filipino" },
+    { code: "es", name: "Spanish" },
+    { code: "fr", name: "French" },
+    { code: "de", name: "German" },
+    { code: "it", name: "Italian" },
+    { code: "pt", name: "Portuguese" },
+    { code: "ja", name: "Japanese" },
+    { code: "zh", name: "Chinese" },
+    { code: "ar", name: "Arabic" },
+    { code: "ru", name: "Russian" },
+    { code: "ko", name: "Korean" },
+    { code: "hi", name: "Hindi" },
+    { code: "bn", name: "Bengali" },
+    { code: "vi", name: "Vietnamese" }
+  ];
+
+  
   // Load API data for dropdowns
   useEffect(() => {
     async function fetchData() {
       try {
-        const languagesRes = await axios.get("/api/languages");
         const citizenshipsRes = await axios.get("/api/citizenships");
         const nationalitiesRes = await axios.get("/api/nationalities");
         const districtsRes = await axios.get("/api/districts");
@@ -91,7 +110,6 @@ const EnrollmentForm = () => {
         const subsectionsRes = await axios.get("/api/subsections");
         const designationsRes = await axios.get("/api/designations");
 
-        setLanguages(languagesRes.data);
         setCitizenships(citizenshipsRes.data);
         setNationalities(nationalitiesRes.data);
         setDistricts(districtsRes.data);
@@ -106,8 +124,11 @@ const EnrollmentForm = () => {
     fetchData();
   }, []);
 
-  const handleChange = (e) => {
-    setPersonnelData({ ...personnelData, [e.target.name]: e.target.value });
+  const handleChange = (value, field) => {
+    setPersonnelData({
+      ...personnelData,
+      [field]: value, // Dynamically update the state based on field
+    });
   };
 
   const handleNext = () => {
@@ -131,6 +152,7 @@ const EnrollmentForm = () => {
       w="600px"
       mx="auto"
       mt="50px"
+      mb="50px"
       p="6"
       boxShadow="lg"
       rounded="md"
@@ -169,7 +191,7 @@ const EnrollmentForm = () => {
 
       {/* Step 1: Basic Information */}
       {step === 1 && (
-        <Box width="100%" bg="white" boxShadow="sm">
+        <Box width="100%" bg="white" boxShadow="sm" my={25}>
           <Text fontSize="lg" mb="2">
             Step 1: Basic Information
           </Text>
@@ -197,13 +219,22 @@ const EnrollmentForm = () => {
             mb="3"
           />
 
-          <Input
-            placeholder="Suffix"
-            name="suffix"
-            value={personnelData.suffix}
-            onChange={handleChange}
-            mb="3"
-          />
+<Select
+  placeholder="Select Suffix"
+  name="suffix"
+  value={personnelData.suffix}
+  onChange={handleChange}
+  mb="3"
+>
+  <option value="Jr.">Jr.</option>
+  <option value="Sr.">Sr.</option>
+  <option value="II">II</option>
+  <option value="III">III</option>
+  <option value="IV">IV</option>
+  <option value="V">V</option>
+  <option value="VI">VI</option>
+</Select>
+
           <Input
             placeholder="Nickname"
             name="nickname"
@@ -212,28 +243,33 @@ const EnrollmentForm = () => {
             mb="3"
           />
           <Flex />
+          
           <Select
-            placeholder="Select Language"
-            name="languages"
-            value={personnelData.languages}
-            onChange={handleChange}
-            mb="3"
-          >
-            {languages.map((lang) => (
-              <option key={lang.code} value={lang.name}>
-                {lang.name}
-              </option>
-            ))}
-          </Select>
+  placeholder="Select Language"
+  name="languages"
+  value={personnelData.languages}
+  onChange={handleChange}
+  mb="3"
+>
+  {languages.map((lang) => (
+    <option key={lang.code} value={lang.name}>
+      {lang.name}
+    </option>
+  ))}
+</Select>
 
-          <Input
-            placeholder="Date of Birth"
-            name="date_of_birth"
-            type="date"
-            value={personnelData.date_of_birth}
-            onChange={handleChange}
-            mb="3"
-          />
+          <Flex align="center" mb="3">
+  <Text mr="3" fontWeight="bold">Birthday:</Text> {/* Label */}
+  <Input
+    placeholder="Date of Birth"
+    name="date_of_birth"
+    type="date"
+    value={personnelData.date_of_birth}
+    onChange={handleChange}
+    mb="3"
+  />
+</Flex>
+
           <Input
             placeholder="Place of Birth"
             name="place_of_birth"
@@ -242,17 +278,21 @@ const EnrollmentForm = () => {
             mb="3"
           />
 
-          <RadioGroup
-            name="gender"
-            onChange={handleChange}
-            value={personnelData.gender}
-            mb="3"
-          >
-            <Stack direction="row">
-              <Radio value="Male">Male</Radio>
-              <Radio value="Female">Female</Radio>
-            </Stack>
-          </RadioGroup>
+   {/* Gender Radio Group */}
+   <Flex align="center" mb="3">
+        <Text mr="3" fontWeight="bold">Gender:</Text> {/* Label */}
+        <RadioGroup
+          name="gender"
+          onChange={(value) => handleChange(value, 'gender')} // Pass the value and field name
+          value={personnelData.gender}  // Bind state to RadioGroup
+        >
+          <Stack direction="row">
+            <Radio value="Male">Male</Radio>
+            <Radio value="Female">Female</Radio>
+          </Stack>
+        </RadioGroup>
+      </Flex>
+
 
           <Select
             placeholder="Select Blood Type"
@@ -268,28 +308,36 @@ const EnrollmentForm = () => {
             ))}
           </Select>
 
-          <Select
-            placeholder="Select Civil Status"
-            name="civil_status"
-            value={personnelData.civil_status}
-            onChange={handleChange}
-            mb="3"
-          >
-            {civilStatuses.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </Select>
 
-          <Input
-            placeholder="Wedding Anniversary"
-            name="wedding_anniversary"
-            type="date"
-            value={personnelData.wedding_anniversary}
-            onChange={handleChange}
-            mb="3"
-          />
+{/* Select Civil Status dropdown */}
+<Select
+  name="civil_status"
+  value={personnelData.civil_status}
+  onChange={handleChange}
+  mb="3"
+>
+  <option disabled value="Select Civil Status">Select Civil Status</option>
+  {civilStatuses.map((status) => (
+    <option key={status} value={status}>
+      {status}
+    </option>
+  ))}
+</Select>
+
+{/* Conditionally render the Wedding Anniversary input based on civil status */}
+{personnelData.civil_status !== "Single" && personnelData.civil_status !== "Select Civil Status" && (
+  <Flex align="center" mb="3">
+    <Text mr="3" fontWeight="bold">Wedding Anniversary:</Text> {/* Label */}
+    <Input
+      placeholder="Wedding Anniversary"
+      name="wedding_anniversary"
+      type="date"
+      value={personnelData.wedding_anniversary}
+      onChange={handleChange}
+      mb="3"
+    />
+  </Flex>
+)}
 
           <Select
             placeholder="Select Citizenship"
@@ -384,21 +432,23 @@ const EnrollmentForm = () => {
             ))}
           </Select>
 
-          <Flex alignItems="center" mb="3">
-            <Text fontSize="md" fontWeight="bold" mr={4}>
-              INC Status
-            </Text>
-            <RadioGroup
-              name="inc_status"
-              onChange={handleChange}
-              value={personnelData.inc_status}
-            >
-              <Stack direction="row">
-                <Radio value="Active">Active</Radio>
-                <Radio value="Non-Active">Non-Active</Radio>
-              </Stack>
-            </RadioGroup>
-          </Flex>
+  
+      {/* INC Status Radio Group */}
+      <Flex alignItems="center" mb="3">
+        <Text fontSize="md" fontWeight="bold" mr={4}>
+          INC Status
+        </Text>
+        <RadioGroup
+          name="inc_status"
+          onChange={(value) => handleChange(value, 'inc_status')}  // Pass the value and field name
+          value={personnelData.inc_status}  // Bind state to RadioGroup
+        >
+          <Stack direction="row">
+            <Radio value="Active">Active</Radio>
+            <Radio value="Non-Active">Non-Active</Radio>
+          </Stack>
+        </RadioGroup>
+      </Flex>
 
           {/* Department */}
           <Select
@@ -468,22 +518,29 @@ const EnrollmentForm = () => {
             onChange={handleChange}
             mb="3"
           />
+  {/* Personnel Type */}
+  <Flex direction="column" mb="3">
+        <Text fontSize="md" fontWeight="bold" mb="2">Personnel Type:</Text>
 
-          {/* Personnel Type */}
-          <RadioGroup
-            name="personnel_type"
-            onChange={handleChange}
-            value={personnelData.personnel_type}
-            mb="3"
-          >
-            <Stack direction="row">
-              <Radio value="Minister">Minister</Radio>
-              <Radio value="Regular">Regular</Radio>
-              <Radio value="Ministerial Student">Ministerial Student</Radio>
-              <Radio value="Minister's Wife">Minister's Wife</Radio>
-              <Radio value="Lay Member">Lay Member</Radio>
-            </Stack>
-          </RadioGroup>
+        <RadioGroup
+          name="personnel_type"
+          onChange={handleChange}
+          value={personnelData.personnel_type}
+        >
+          {/* First Row: Minister, Regular, Ministerial Student */}
+          <Stack direction="row" spacing={4} mb={2}>
+            <Radio value="Minister">Minister</Radio>
+            <Radio value="Regular">Regular</Radio>
+            <Radio value="Ministerial Student">Ministerial Student</Radio>
+          </Stack>
+
+          {/* Second Row: Minister's Wife, Lay Member */}
+          <Stack direction="row" spacing={4}>
+            <Radio value="Minister's Wife">Minister's Wife</Radio>
+            <Radio value="Lay Member">Lay Member</Radio>
+          </Stack>
+        </RadioGroup>
+      </Flex>
 
           {/* Assigned Number */}
           {["Minister", "Regular", "Ministerial Student"].includes(
