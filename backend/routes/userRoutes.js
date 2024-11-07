@@ -10,6 +10,18 @@ const upload = multer({ dest: "uploads/" }); // Set destination folder for uploa
 const db1 = require("../config/database");
 const axios = require("axios");
 
+const ldap = require("ldapjs");
+const LDAP_URL = process.env.LDAP_URL;
+const BIND_DN = process.env.BIND_DN;
+const BIND_PASSWORD = process.env.BIND_PASSWORD;
+const BASE_DN = process.env.BASE_DN;
+// Utility function to create LDAP client
+const createLdapClient = () => {
+  return ldap.createClient({
+    url: LDAP_URL,
+  });
+};
+
 // Function to verify SSHA hash
 function verifySSHA(password, hash) {
   const salt = Buffer.from(hash.slice(6), "base64").slice(-20);
@@ -86,7 +98,7 @@ router.post("/api/users/change-password", (req, res) => {
 // Logged-In User Endpoint
 router.get("/api/users/logged-in", async (req, res) => {
   const query = `
-    SELECT u.ID, u.username, 'Admin' AS name, u.avatar, u.auth_type, GROUP_CONCAT(a.name) AS availableApps
+    SELECT u.ID, u.username, u.avatar, u.auth_type, GROUP_CONCAT(a.name) AS availableApps
     FROM users u
     LEFT JOIN available_apps ua ON u.ID = ua.user_id
     LEFT JOIN apps a ON ua.app_id = a.id
@@ -113,7 +125,7 @@ router.get("/api/users/logged-in", async (req, res) => {
           const ldapUser = ldapResponse.data;
 
           // Update user object with LDAP details
-          user.name = `${ldapUser.givenName} ${ldapUser.sn}`;
+          user.name = `${ldapUser.cn}`;
           user.username = ldapUser.uid;
         } catch (error) {
           console.error("Error connecting to LDAP server:", error);
@@ -162,34 +174,103 @@ router.put("/api/users/update-login-status", (req, res) => {
   });
 });
 
-// Get all users with their available apps
-router.get("/api/users", (req, res) => {
+// Get all users with their available apps and LDAP attributes
+router.get("/api/users", async (req, res) => {
   const query = `
-    SELECT u.ID, u.username, u.password, u.fullname, u.email, u.avatar, GROUP_CONCAT(a.name) AS availableApps
+    SELECT u.ID, u.username, u.password, u.avatar, GROUP_CONCAT(a.name) AS availableApps
     FROM users u
     LEFT JOIN available_apps ua ON u.ID = ua.user_id
     LEFT JOIN apps a ON ua.app_id = a.id
     GROUP BY u.ID
   `;
 
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error("Error fetching users:", err);
-      return res.status(500).json({ message: "Database error" });
-    }
+  // Function to fetch users from LDAP
+  const fetchLdapUsers = () => {
+    return new Promise((resolve, reject) => {
+      const client = createLdapClient();
+      client.bind(BIND_DN, BIND_PASSWORD, (err) => {
+        if (err) return reject("LDAP bind error");
 
-    // Format results to ensure availableApps is an array
-    const formattedResults = Array.isArray(results)
-      ? results.map((user) => ({
-          ...user,
-          availableApps: user.availableApps
-            ? user.availableApps.split(",")
-            : [],
-        }))
-      : [];
+        const searchOptions = {
+          filter: "(objectClass=inetOrgPerson)",
+          scope: "sub",
+        };
+        const users = [];
 
-    res.json(formattedResults);
-  });
+        client.search(BASE_DN, searchOptions, (err, result) => {
+          if (err) return reject("LDAP search error");
+
+          result.on("searchEntry", (entry) => {
+            const ldapUser = {
+              uid: entry.attributes.find((attr) => attr.type === "uid")
+                ?.vals[0],
+              givenName: entry.attributes.find(
+                (attr) => attr.type === "givenName"
+              )?.vals[0],
+              sn: entry.attributes.find((attr) => attr.type === "sn")?.vals[0],
+              mail: entry.attributes.find((attr) => attr.type === "mail")
+                ?.vals[0],
+            };
+            users.push(ldapUser);
+          });
+
+          result.on("end", () => {
+            client.unbind();
+            resolve(users);
+          });
+
+          result.on("error", (err) => {
+            client.unbind();
+            reject(err);
+          });
+        });
+      });
+    });
+  };
+
+  try {
+    // Fetch users from database
+    const dbUsers = await new Promise((resolve, reject) => {
+      db.query(query, (err, results) => {
+        if (err) {
+          console.error("Error fetching users from database:", err);
+          return reject("Database error");
+        }
+        // Format the database results
+        const formattedResults = Array.isArray(results)
+          ? results.map((user) => ({
+              ...user,
+              availableApps: user.availableApps
+                ? user.availableApps.split(",")
+                : [],
+            }))
+          : [];
+        resolve(formattedResults);
+      });
+    });
+
+    // Fetch users from LDAP
+    const ldapUsers = await fetchLdapUsers();
+
+    // Combine the database users with LDAP attributes
+    const combinedUsers = dbUsers.map((dbUser) => {
+      // Find the matching LDAP user by username (or another unique field)
+      const ldapUser = ldapUsers.find((lu) => lu.uid === dbUser.username);
+
+      return {
+        ...dbUser,
+        givenName: ldapUser?.givenName || "N/A",
+        sn: ldapUser?.sn || "N/A",
+        mail: ldapUser?.mail || "N/A",
+      };
+    });
+
+    // Send combined users data as JSON response
+    res.json(combinedUsers);
+  } catch (err) {
+    console.error("Error in fetching users:", err);
+    res.status(500).json({ message: "Error fetching users data" });
+  }
 });
 
 // User login
@@ -310,10 +391,9 @@ router.post("/api/users", (req, res) => {
 // Update user details and assigned apps
 router.put("/api/users/:id", (req, res) => {
   const userId = parseInt(req.params.id, 10);
-  const { username, fullname, email, avatar, availableApps } = req.body;
-  const query =
-    "UPDATE users SET username = ?, fullname = ?, email = ?, avatar = ? WHERE ID = ?";
-  db.query(query, [username, fullname, email, avatar, userId], (err) => {
+  const { username, avatar, availableApps } = req.body;
+  const query = "UPDATE users SET username = ?, avatar = ? WHERE ID = ?";
+  db.query(query, [username, avatar, userId], (err) => {
     if (err) {
       console.error("Error updating user:", err);
       return res.status(500).json({ message: "Database update error" });

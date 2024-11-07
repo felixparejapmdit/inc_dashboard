@@ -165,12 +165,6 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
             />
             <SidebarItem
               icon={FiUser}
-              label="Personnels"
-              isExpanded={isExpanded}
-              onClick={() => navigate("/personnels")} // Redirect to Suguan.js
-            />
-            <SidebarItem
-              icon={FiUser}
               label="Suguan"
               isExpanded={isExpanded}
               onClick={() => navigate("/add-suguan")} // Redirect to Suguan.js

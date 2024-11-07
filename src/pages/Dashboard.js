@@ -138,13 +138,19 @@ export default function Dashboard() {
   useEffect(() => {
     if (currentUser && currentUser.id) {
       console.log("Fetching available apps for user ID:", currentUser.id);
+
       fetch(`${API_URL}/api/availableapps`, {
         headers: {
           "Content-Type": "application/json",
-          "X-User-ID": currentUser.id, // Send the user ID in the custom header
+          "x-user-id": currentUser.id, // Use lowercase header to match backend
         },
       })
-        .then((response) => response.json())
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`Failed to fetch apps: ${response.statusText}`);
+          }
+          return response.json();
+        })
         .then((data) => {
           if (Array.isArray(data)) {
             setApps(data); // Set apps if data is an array
@@ -229,6 +235,7 @@ export default function Dashboard() {
 
   // Get the current time and greet the user accordingly
   const getTimeBasedGreeting = () => {
+    const userFullName = localStorage.getItem("userFullName") || "User"; // Retrieve full name from localStorage or use "User" as fallback
     const hour = new Date().getHours();
     if (hour < 12) return `Good morning, ${userFullName}!`;
     if (hour < 18) return `Good afternoon, ${userFullName}!`;
@@ -301,6 +308,11 @@ export default function Dashboard() {
         alignItems="center"
         minH="10vh"
       >
+        <Box bg="green.500" p={6} borderRadius="lg" color="white">
+          <Heading size="lg">{availableApps.length}</Heading>
+          <Text>Available Apps</Text>
+        </Box>
+
         <Tooltip
           label={
             hoveredEvent ? (
@@ -375,11 +387,6 @@ export default function Dashboard() {
             </Box>
           </Tooltip>
         )}
-
-        <Box bg="green.500" p={6} borderRadius="lg" color="white">
-          <Heading size="lg">{availableApps.length}</Heading>
-          <Text>Available Apps</Text>
-        </Box>
       </SimpleGrid>
       {/* Apps Section */}
       <Heading as="h2" size="lg" mb={6}>

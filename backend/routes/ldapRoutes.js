@@ -10,8 +10,6 @@ const LDAP_URL = process.env.LDAP_URL;
 const BIND_DN = process.env.BIND_DN;
 const BIND_PASSWORD = process.env.BIND_PASSWORD;
 const BASE_DN = process.env.BASE_DN;
-const GROUP_BASE_DN = "dc=pmdmc,dc=net"; // Use this for group search
-
 // Utility function to create LDAP client
 const createLdapClient = () => {
   return ldap.createClient({

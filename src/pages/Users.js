@@ -36,7 +36,7 @@ import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Users = () => {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState([]); // Ensure users is initialized as an array
   const [apps, setApps] = useState([]);
   const [username, setUsername] = useState("");
   const [fullname, setFullname] = useState("");
@@ -54,10 +54,11 @@ const Users = () => {
       .then((res) => res.json())
       .then((data) => {
         console.log("Fetched Users Data:", data); // Debug: Log the data to check `fullname` and `availableApps`
-        setUsers(data);
+        setUsers(Array.isArray(data) ? data : []); // Ensure data is an array or set to empty array
       })
       .catch((err) => {
         console.error("Error fetching users:", err);
+        setUsers([]); // Set an empty array if there's an error
         setStatus("Failed to load users.");
       });
 
@@ -65,10 +66,11 @@ const Users = () => {
       .then((res) => res.json())
       .then((data) => {
         console.log("Fetched Apps Data:", data); // Debug: Log the apps data to verify
-        setApps(data);
+        setApps(Array.isArray(data) ? data : []); // Ensure data is an array or set to empty array
       })
       .catch((err) => {
         console.error("Error fetching apps:", err);
+        setApps([]); // Set an empty array if there's an error
         setStatus("Failed to load apps.");
       });
   }, []);
@@ -124,16 +126,12 @@ const Users = () => {
   };
 
   const handleDeleteUser = (id) => {
-    // Display a confirmation dialog before deleting
     const confirmDelete = window.confirm(
       "Are you sure you want to delete this user?"
     );
+    if (!confirmDelete) return;
 
-    if (!confirmDelete) return; // If the user clicks "Cancel", stop the deletion
-
-    fetch(`${API_URL}/api/users/${id}`, {
-      method: "DELETE",
-    })
+    fetch(`${API_URL}/api/users/${id}`, { method: "DELETE" })
       .then(() => {
         setUsers((prevUsers) => prevUsers.filter((item) => item.ID !== id));
         setStatus("User deleted successfully.");
@@ -141,13 +139,13 @@ const Users = () => {
       .catch(() => setStatus("Error deleting user."));
   };
 
+  // Updated handleEditUser function
   const handleEditUser = (item) => {
-    // Set the entire user object in `editingUser` to ensure `ID` is accessible
-    setEditingUser(item); // Set to the whole item, not just item.ID
+    setEditingUser(item);
     setUsername(item.username);
-    setFullname(item.fullname);
-    setEmail(item.email);
-    setAvatarUrl(item.avatar);
+    setFullname(`${item.givenName || ""} ${item.sn || ""}`); // Combine givenName and sn
+    setEmail(item.mail || ""); // Use mail from LDAP or set to empty if not available
+    setAvatarUrl(item.avatar || ""); // Default to empty if no avatar URL
     setSelectedApps(item.availableApps || []);
     setSelectAll(item.availableApps?.length === apps.length);
     onOpen();
@@ -176,7 +174,7 @@ const Users = () => {
     setAvatarUrl("");
     setSelectedApps([]);
     setSelectAll(false);
-    setEditingUser(null); // Clear `editingUser` on form reset
+    setEditingUser(null);
   };
 
   const openAddUserModal = () => {
@@ -192,7 +190,6 @@ const Users = () => {
   return (
     <Box p={6}>
       <Heading mb={6}>Manage Users</Heading>
-
       <Button
         leftIcon={<AddIcon />}
         onClick={openAddUserModal}
@@ -201,7 +198,6 @@ const Users = () => {
       >
         Add User
       </Button>
-
       {status && (
         <Alert
           status={status.includes("successfully") ? "success" : "error"}
@@ -211,11 +207,10 @@ const Users = () => {
           {status}
         </Alert>
       )}
-
       <Table variant="simple">
         <Thead>
           <Tr>
-            <Th>Name</Th>
+            <Th>Full Name</Th>
             <Th>Username</Th>
             <Th>Email</Th>
             <Th>Actions</Th>
@@ -226,13 +221,18 @@ const Users = () => {
             <Tr key={item.ID}>
               <Td>
                 <HStack spacing={3}>
-                  <Avatar size="sm" src={item.avatar} name={item.fullname} />
-                  <Text>{item.fullname}</Text>{" "}
-                  {/* Make sure item.fullname is used here */}
+                  <Avatar
+                    size="sm"
+                    src={item.avatar}
+                    name={`${item.givenName || "N/A"} ${item.sn || "N/A"}`}
+                  />
+                  <Text>{`${item.givenName || "N/A"} ${
+                    item.sn || "N/A"
+                  }`}</Text>
                 </HStack>
               </Td>
               <Td>{item.username}</Td>
-              <Td>{item.email}</Td>
+              <Td>{item.mail || "N/A"}</Td>
               <Td>
                 <IconButton
                   icon={<EditIcon />}
@@ -250,8 +250,7 @@ const Users = () => {
           ))}
         </Tbody>
       </Table>
-
-      {/* Add/Edit Modal */}
+      // Add/Edit Modal
       <Modal isOpen={isOpen} onClose={closeModal}>
         <ModalOverlay />
         <ModalContent>
@@ -269,11 +268,26 @@ const Users = () => {
               </FormControl>
 
               <FormControl isRequired>
-                <FormLabel>Full Name</FormLabel>
+                <FormLabel>First Name</FormLabel>
                 <Input
-                  value={fullname}
-                  onChange={(e) => setFullname(e.target.value)} // Using `name` here
-                  placeholder="Enter Full Name"
+                  value={fullname.split(" ")[0]} // Extract givenName from fullname
+                  onChange={(e) => {
+                    const lastName = fullname.split(" ")[1] || ""; // Keep sn intact
+                    setFullname(`${e.target.value} ${lastName}`);
+                  }}
+                  placeholder="Enter First Name"
+                />
+              </FormControl>
+
+              <FormControl isRequired>
+                <FormLabel>Last Name</FormLabel>
+                <Input
+                  value={fullname.split(" ")[1] || ""} // Extract sn from fullname
+                  onChange={(e) => {
+                    const firstName = fullname.split(" ")[0] || ""; // Keep givenName intact
+                    setFullname(`${firstName} ${e.target.value}`);
+                  }}
+                  placeholder="Enter Last Name"
                 />
               </FormControl>
 

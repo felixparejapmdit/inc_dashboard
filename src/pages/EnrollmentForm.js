@@ -15,6 +15,7 @@ import {
   Flex,
 } from "@chakra-ui/react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const EnrollmentForm = () => {
   const [step, setStep] = useState(1);
@@ -119,6 +120,11 @@ const EnrollmentForm = () => {
     setProgress(progress - 10);
   };
 
+  const navigate = useNavigate(); // Initialize useNavigate for navigation
+
+  const handleBackToLogin = () => {
+    navigate("/login"); // Navigate back to login page
+  };
   return (
     <VStack
       spacing={4}
@@ -138,9 +144,20 @@ const EnrollmentForm = () => {
         bg="white"
         boxShadow="sm"
       >
-        <Heading as="h2" size="lg" color="teal.600" textAlign="center" p={4}>
-          Personnel Enrollment
-        </Heading>
+        <Flex alignItems="center" my={4}>
+          <Button colorScheme="gray" onClick={handleBackToLogin} mr={4}>
+            Back to Login
+          </Button>
+          <Heading
+            as="h2"
+            size="lg"
+            color="teal.600"
+            textAlign="center"
+            flex="1"
+          >
+            Personnel Enrollment
+          </Heading>
+        </Flex>
         <Progress
           colorScheme="teal"
           value={progress}
