@@ -56,9 +56,8 @@ const Login = () => {
 
       if (ldapUser && ldapUser.userPassword === hashedPassword) {
         // Store user data and navigate to dashboard
-        const fullName = `${ldapUser.givenName || ""} ${
-          ldapUser.sn || ""
-        }`.trim();
+        const fullName = `${ldapUser.cn || ""}`.trim();
+
         localStorage.setItem("userFullName", fullName);
         navigate("/dashboard");
 
@@ -66,7 +65,7 @@ const Login = () => {
         await axios.put(
           `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
           {
-            ID: ldapUser.id,
+            ID: ldapUser.uid,
             isLoggedIn: true,
           }
         );
@@ -86,10 +85,12 @@ const Login = () => {
           `${process.env.REACT_APP_API_URL}/api/users/login`,
           { username, password }
         );
+
+        alert(password);
         if (response.data.success) {
           // Set the full name for local login as well
           const fullName = response.data.user.fullName || "User";
-          localStorage.setItem("userFullName", fullName);
+          //localStorage.setItem("userFullName", fullName);
           navigate("/dashboard");
 
           // Update isLoggedIn status in the database

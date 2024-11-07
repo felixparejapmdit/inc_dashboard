@@ -57,7 +57,10 @@ export default function Dashboard() {
   const [reminders, setReminders] = useState([]);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedApp, setSelectedApp] = useState(null);
-  const [userFullName, setUserFullName] = useState("");
+  const [userFullName, setUserFullName] = useState(
+    localStorage.getItem("userFullName") || ""
+  );
+
   const [error, setError] = useState("");
   const [updatedApp, setUpdatedApp] = useState({
     name: "",
@@ -86,9 +89,6 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    // Retrieve full name from local storage after login
-    const fullName = localStorage.getItem("userFullName") || "User";
-    setUserFullName(fullName);
     // Fetch events, reminders, and logged-in user data
     fetch(`${API_URL}/api/events`)
       .then((response) => response.json())
@@ -123,6 +123,8 @@ export default function Dashboard() {
 
           // Directly set availableApps as an array of app names
           setAvailableApps(user.availableApps || []);
+          setUserFullName(user.name);
+          localStorage.setItem("userFullName", user.name); // Update localStorage with full name
         } else {
           console.error("User data is not in the expected format:", user);
         }

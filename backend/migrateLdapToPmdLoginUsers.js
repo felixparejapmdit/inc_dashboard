@@ -34,7 +34,7 @@ async function migrateLdapToPmdLoginUsers() {
       if (!existingUser) {
         // Map LDAP data to users fields
         const newUser = {
-          uid: ldapUser.uidNumber,
+          uid: ldapUser.uid,
           personnel_id: null, // Set to null or map if personnel_id exists elsewhere
           username: ldapUser.uid, // Map LDAP 'uid' to 'username' field in users
           password: ldapUser.userPassword, // Assuming the password format matches

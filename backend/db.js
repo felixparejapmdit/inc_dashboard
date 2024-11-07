@@ -6,7 +6,7 @@ const connection = mysql.createConnection({
   host: process.env.MYSQL_HOST || "localhost",
   user: process.env.MYSQL_USER || "root",
   password: process.env.MYSQL_PASSWORD || "", // Make sure .env has this filled
-  database: process.env.MYSQL_DATABASE || "test", // Optional fallback for testing
+  database: process.env.MYSQL_DATABASE || "ppi", // Optional fallback for testing
 });
 
 connection.connect((error) => {
