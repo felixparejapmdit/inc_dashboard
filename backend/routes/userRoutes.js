@@ -94,7 +94,7 @@ router.get("/api/users/logged-in", async (req, res) => {
     GROUP BY u.ID
   `;
 
-  db1.query(query, async (err, results) => {
+  db.query(query, async (err, results) => {
     if (err) {
       console.error("Error fetching logged-in user:", err);
       return res.status(500).json({ message: "Database error" });
@@ -135,17 +135,17 @@ router.get("/api/users/logged-in", async (req, res) => {
   });
 });
 
-// Update user login status
+// Check if the endpoint URL is correct and accessible from the frontend
 router.put("/api/users/update-login-status", (req, res) => {
   console.log("Update login status endpoint hit"); // Debug log
   const { ID, isLoggedIn } = req.body;
 
   if (!ID) {
-    console.error("Invalid User ID11:", ID);
+    console.error("Invalid User ID:", ID);
     return res.status(400).json({ message: "Invalid user ID", ID });
   }
 
-  const query = "UPDATE users SET isLoggedIn = ? WHERE ID = ?";
+  const query = "UPDATE users SET isLoggedIn = ? WHERE username = ?";
   db.query(query, [isLoggedIn ? 1 : 0, ID], (err, result) => {
     if (err) {
       console.error("Error updating login status:", err);
@@ -154,7 +154,7 @@ router.put("/api/users/update-login-status", (req, res) => {
 
     if (result.affectedRows === 0) {
       console.error("User not found for ID:", ID);
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "User not found1" });
     }
 
     console.log("Login status updated for user ID:", ID);
@@ -372,16 +372,25 @@ router.delete("/api/users/:id", (req, res) => {
 // User Logout Endpoint
 router.post("/api/logout", (req, res) => {
   const { userId } = req.body;
-  const query = "UPDATE users SET isLoggedIn = ? WHERE id = ?";
+  console.log("Received logout request for user:", userId); // Debug log
 
-  db.query(query, [false, userId], (err, results) => {
+  if (!userId) {
+    console.error("Logout failed: No userId provided");
+    return res.status(400).json({ message: "User ID is required" });
+  }
+
+  const query = "UPDATE users SET isLoggedIn = ? WHERE username = ?";
+
+  db.query(query, [0, userId], (err, results) => {
     if (err) {
       console.error("Error updating user logout status:", err);
       return res.status(500).json({ message: "Database error" });
     }
     if (results.affectedRows === 0) {
+      console.error("Logout failed: User not found", userId);
       return res.status(404).json({ message: "User not found" });
     }
+    console.log("User logged out successfully:", userId);
     res.json({ message: "User logged out successfully" });
   });
 });

@@ -26,13 +26,14 @@ router.use((req, res, next) => {
 
 // --- Get available apps for the logged-in user ---
 router.get("/api/availableapps", (req, res) => {
-  // Retrieve user ID from the custom header 'X-User-ID'
+  // Retrieve user ID from the custom header 'x-user-id'
   const userId = req.headers["x-user-id"];
 
+  // Check if the userId is provided in the headers
   if (!userId) {
     return res
       .status(401)
-      .json({ message: "Unauthorized: No user logged in", userId: null });
+      .json({ message: "Unauthorized: No user ID provided", userId: null });
   }
 
   const query = `
@@ -47,7 +48,7 @@ router.get("/api/availableapps", (req, res) => {
       console.error("Error fetching available apps for user:", err);
       return res.status(500).json({ message: "Database error" });
     }
-    res.json(results || []); // Ensure an array is returned
+    res.json(results || []); // Return an empty array if no results
   });
 });
 

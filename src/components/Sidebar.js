@@ -23,9 +23,7 @@ import {
   FiLogOut,
   FiMenu,
   FiUser,
-  FiPlusCircle,
   FiCalendar,
-  FiBell,
   FiArrowDown,
   FiGrid,
   FiUsers,
@@ -45,16 +43,11 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
   const cancelRef = useRef(); // Reference for cancel button in the alert dialog
   const navigate = useNavigate();
 
-  // Fetch the logged-in user info from backend/users.json
+  // Fetch the logged-in user's name from localStorage
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_API_URL}/api/users/logged-in`)
-      .then((response) => response.json())
-      .then((data) => {
-        if (data) {
-          setUser(data); // Set the logged-in user data
-        }
-      })
-      .catch((error) => console.error("Error fetching user data:", error));
+    const storedName = localStorage.getItem("userFullName") || "User";
+    const avatarUrl = "/path/to/default-avatar.jpg"; // Default avatar or dynamically fetch if available
+    setUser({ name: storedName, avatarUrl });
   }, []);
 
   // Toggle sidebar expansion on hover
@@ -70,19 +63,25 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
 
   // Handle Logout
   const handleLogout = () => {
+    const username = localStorage.getItem("username");
+
     fetch(`${process.env.REACT_APP_API_URL}/api/logout`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ userId: user.ID }), // Send the user ID for logout
+      body: JSON.stringify({ userId: username }), // Send the username for logout
     })
       .then((response) => {
         if (response.ok) {
           setUser({ name: "", avatarUrl: "" }); // Clear the user state on logout
+          localStorage.removeItem("userFullName"); // Clear local storage on logout
           navigate("/login"); // Navigate to login page after logging out
         } else {
-          console.error("Failed to log out.");
+          console.error(
+            "Failed to log out: Unexpected response status",
+            response.status
+          );
         }
       })
       .catch((error) => console.error("Error logging out:", error));

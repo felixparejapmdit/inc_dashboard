@@ -20,8 +20,6 @@ import {
   Input,
   Image,
   HStack,
-  Progress,
-  Avatar,
   Tooltip,
   IconButton,
   Popover,
@@ -34,9 +32,7 @@ import {
 import {
   FiEdit,
   FiFile,
-  FiCalendar,
   FiBell,
-  FiUser,
   FiSearch,
   FiSun,
   FiMoon, // For sun and moon icons (theme toggle)
@@ -124,7 +120,6 @@ export default function Dashboard() {
           // Directly set availableApps as an array of app names
           setAvailableApps(user.availableApps || []);
           setUserFullName(user.name);
-          localStorage.setItem("userFullName", user.name); // Update localStorage with full name
         } else {
           console.error("User data is not in the expected format:", user);
         }

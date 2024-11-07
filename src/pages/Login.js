@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import crypto from "crypto-js";
-import bcrypt from "bcryptjs";
 import {
   Box,
   Button,
@@ -47,7 +46,6 @@ const Login = () => {
 
     // Attempt LDAP Authentication first
     try {
-      // Attempt LDAP Authentication first
       const ldapResponse = await axios.get(
         `http://localhost:5000/ldap/user/${username}`
       );
@@ -56,19 +54,23 @@ const Login = () => {
 
       if (ldapUser && ldapUser.userPassword === hashedPassword) {
         // Store user data and navigate to dashboard
-        const fullName = `${ldapUser.cn || ""}`.trim();
-
+        const fullName = ldapUser.cn?.[0] || "User"; // Adjust to the LDAP format
         localStorage.setItem("userFullName", fullName);
+        localStorage.setItem("username", ldapUser.uid); // or response.data.user.username for local login
+
         navigate("/dashboard");
 
         // Update isLoggedIn status in the database
         await axios.put(
           `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
           {
-            ID: ldapUser.uid,
+            ID: ldapUser.uid?.[0], // Ensure this matches the expected ID format
             isLoggedIn: true,
           }
         );
+
+        // Return after successful LDAP login to prevent further execution
+        return;
       } else {
         setError("Invalid LDAP username or password");
       }
@@ -86,21 +88,24 @@ const Login = () => {
           { username, password }
         );
 
-        alert(password);
         if (response.data.success) {
-          // Set the full name for local login as well
-          const fullName = response.data.user.fullName || "User";
-          //localStorage.setItem("userFullName", fullName);
+          // Set the username for local login as well
+          const userName = response.data.user.username || "User";
+          localStorage.setItem("userFullName", userName);
+          localStorage.setItem("username", userName); // or response.data.user.username for local login
+
           navigate("/dashboard");
 
           // Update isLoggedIn status in the database
           await axios.put(
             `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
             {
-              ID: response.data.user.ID,
+              ID: response.data.user.username,
               isLoggedIn: true,
             }
           );
+          // Return after successful local login to prevent further execution
+          return;
         } else {
           setError("Invalid username or password");
         }

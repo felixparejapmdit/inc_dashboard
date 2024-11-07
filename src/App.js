@@ -28,6 +28,9 @@ function App() {
           {/* Redirect the root URL to /login */}
           <Route path="/" element={<Navigate to="/login" />} />
 
+          {/* Standalone Route for Enrollment Page */}
+          <Route path="/enroll" element={<Enrollment />} />
+
           {/* Define the login route */}
           <Route path="/login" element={<Login />} />
 
@@ -181,21 +184,6 @@ function App() {
                 }}
               >
                 <LdapUser />
-              </Layout>
-            }
-          />
-
-          {/* New Route for Enrollment */}
-          <Route
-            path="/enroll/"
-            element={
-              <Layout
-                currentUser={{
-                  name: "John Doe",
-                  avatarUrl: "/path/to/avatar.jpg",
-                }}
-              >
-                <Enrollment />
               </Layout>
             }
           />
