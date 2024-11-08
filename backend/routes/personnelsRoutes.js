@@ -2,29 +2,21 @@ const express = require("express");
 const router = express.Router();
 const db = require("../db");
 
-// Add new personnel
-router.post("/api/personnels", (req, res) => {
-  const personnelData = req.body;
+const personnelsController = require('../controllers/personnelsController');
 
-  const query = "INSERT INTO personnels SET ?";
-  db.query(query, personnelData, (err, results) => {
-    if (err) {
-      console.error("Error adding personnel:", err);
-      return res.status(500).json({ message: "Database error" });
-    }
-    res.status(201).json({ message: "Personnel added successfully." });
-  });
-});
+// Get all personnels
+router.get('/', personnelsController.getAllPersonnels);
 
-// Fetch all personnel data
-router.get("/api/personnels", (req, res) => {
-  db.query("SELECT * FROM personnels", (err, results) => {
-    if (err) {
-      console.error("Error fetching personnel data:", err);
-      return res.status(500).json({ message: "Database error" });
-    }
-    res.json(results);
-  });
-});
+// Get a single personnel by ID
+router.get('/:id', personnelsController.getPersonnelById);
+
+// Create a new personnel
+router.post('/', personnelsController.createPersonnel);
+
+// Update a personnel by ID
+router.put('/:id', personnelsController.updatePersonnel);
+
+// Delete a personnel by ID
+router.delete('/:id', personnelsController.deletePersonnel);
 
 module.exports = router;
