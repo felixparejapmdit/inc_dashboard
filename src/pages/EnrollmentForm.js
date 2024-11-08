@@ -243,9 +243,17 @@ const EnrollmentForm = () => {
       {/* Step 1: Basic Information */}
       {step === 1 && (
         <Box width="100%" bg="white" boxShadow="sm" my={85}>
-          <Text fontSize="lg" fontWeight="bold" color="#0a5856" mb="2">
-            Step 1: Basic Information
-          </Text>
+          <Flex justifyContent="center" mb="4">
+  <Text 
+    fontSize={{ base: "2xl", md: "2xl" }} 
+    fontWeight="bold" 
+    color="#0a5856" 
+    textAlign="center"
+  >
+    Step 1: Basic Information
+  </Text>
+</Flex>
+
 
           <Flex
             alignItems="center"
@@ -495,75 +503,90 @@ const EnrollmentForm = () => {
           </Flex>
 
           <Flex wrap="wrap" justify="space-between" mb="3" width="100%">
-            {/* Civil Status Selector */}
-            <Box
-              width={{ base: "100%", md: "23%" }}
-              mb={{ base: "3", md: "0" }}
-            >
-              <Select
-                placeholder="Select Civil Status"
-                name="civil_status"
-                value={personnelData.civil_status}
-                onChange={(e) => handleChange(e.target.value, "civil_status")}
-                width="100%"
-              >
-                {civilStatuses.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </Select>
-            </Box>
+  {/* Civil Status Selector */}
+  <Box
+    width={{ base: "100%", md: "30%" }}
+    mb={{ base: "3", md: "0" }}
+  >
+    <Select
+      placeholder="Select Civil Status"
+      name="civil_status"
+      value={personnelData.civil_status}
+      onChange={(e) => handleChange(e.target.value, "civil_status")}
+      width="100%"
+    >
+      {civilStatuses.map((status) => (
+        <option key={status} value={status}>
+          {status}
+        </option>
+      ))}
+    </Select>
+  </Box>
 
-            {/* Conditionally render Wedding Anniversary only if civil status is not "Single" */}
-            {personnelData.civil_status &&
-              personnelData.civil_status !== "Single" && (
-                <Box
-                  width={{ base: "100%", md: "23%" }}
-                  mb={{ base: "3", md: "0" }}
-                >
-                  <Flex align="center">
-                    <Text fontWeight="bold" mr="2" color="#0a5856">
-                      Wedding Anniversary:
-                    </Text>
-                    <Input
-                      placeholder="Wedding Anniversary"
-                      name="wedding_anniversary"
-                      type="date"
-                      value={personnelData.wedding_anniversary}
-                      onChange={(e) =>
-                        handleChange(e.target.value, "wedding_anniversary")
-                      }
-                      width="100%"
-                    />
-                  </Flex>
-                </Box>
-              )}
+  {/* Conditionally render Wedding Anniversary only if civil status is not "Single" */}
+  {personnelData.civil_status && personnelData.civil_status !== "Single" && (
+    <Box
+      width={{ base: "100%", md: "30%" }}
+      mb={{ base: "3", md: "0" }}
+    >
+      <Flex align="center">
+        <Text 
+          fontWeight="bold" 
+          mr="2" 
+          color="#0a5856" 
+          minWidth="120px" 
+          flexShrink={0}
+          whiteSpace="nowrap"
+        >
+          Wedding Anniversary:
+        </Text>
+        <Input
+          placeholder="Wedding Anniversary"
+          name="wedding_anniversary"
+          type="date"
+          value={personnelData.wedding_anniversary}
+          onChange={(e) =>
+            handleChange(e.target.value, "wedding_anniversary")
+          }
+          width="100%"
+        />
+      </Flex>
+    </Box>
+  )}
 
-            {/* Citizenship Selector */}
-            <Box
-              width={{ base: "100%", md: "23%" }}
-              mb={{ base: "3", md: "0" }}
-            >
-              <Select
-                placeholder="Select Citizenship"
-                name="citizenship"
-                value={personnelData.citizenship}
-                onChange={(e) => handleChange(e.target.value, "citizenship")}
-                width="100%"
-              >
-                {citizenships.map((citizenship) => (
-                  <option key={citizenship.id} value={citizenship.id}>
-                    {citizenship.name}
-                  </option>
-                ))}
-              </Select>
-            </Box>
+  {/* Citizenship Selector */}
+  <Box
+    width={{ base: "100%", md: "30%" }}
+    mb={{ base: "3", md: "0" }}
+  >
+    <Select
+      placeholder="Select Citizenship"
+      name="citizenship"
+      value={personnelData.citizenship}
+      onChange={(e) => handleChange(e.target.value, "citizenship")}
+      width="100%"
+    >
+      {citizenships.map((citizenship) => (
+        <option key={citizenship.id} value={citizenship.id}>
+          {citizenship.name}
+        </option>
+      ))}
+    </Select>
+  </Box>
+</Flex>
 
+
+
+          <Flex direction="column" width="100%">
+            {/* Email Input Field */}
+            <Flex align="center" mb="3" width="100%">
+
+              
+            
             {/* Nationality Selector */}
             <Box
-              width={{ base: "100%", md: "23%" }}
-              mb={{ base: "3", md: "0" }}
+              width={{ base: "100%", md: "25%" }}
+              mb={{ base: "3", md: "0" }} mr="10px"
             >
               <Select
                 placeholder="Select Nationality"
@@ -579,11 +602,7 @@ const EnrollmentForm = () => {
                 ))}
               </Select>
             </Box>
-          </Flex>
 
-          <Flex direction="column" width="100%">
-            {/* Email Input Field */}
-            <Flex align="center" mb="3" width="100%">
               <Text
                 fontWeight="bold"
                 mr="4"
@@ -610,6 +629,7 @@ const EnrollmentForm = () => {
                 {emailError}
               </Box>
             )}
+
           </Flex>
 
           <Flex
