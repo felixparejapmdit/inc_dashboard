@@ -1,12 +1,13 @@
 {
   "LDAP_Users": [
     {
-      "givenName": "Claudio123",
+      "givenName": "Claudio",
       "sn": "Arro Jr.",
       "uid": "claudioarro",
       "mail": "claudio.arro@pmdmc.net",
       "uidNumber": "2000",
       "gidNumber": "2000",
+      "userPassword": "{SSHA}+3VbtcZxSkn5v8nhLBdwPbRQPOBbcII3",
       "groupName": "Team Leaders"
     },
     {
@@ -16,6 +17,7 @@
       "mail": "marco.cervantes@pmdmc.net",
       "uidNumber": "2001",
       "gidNumber": "2000",
+      "userPassword": "{MD5}d5xp2teod+ZzCrsJ+3H1yQ==",
       "groupName": "Team Leaders"
     },
     {
@@ -25,6 +27,7 @@
       "mail": "adriel.magpile@pmdmc.net",
       "uidNumber": "2002",
       "gidNumber": "2000",
+      "userPassword": "{MD5}3PbHEQTkbxTTefuWRiARAg==",
       "groupName": "Team Leaders"
     },
     {
@@ -34,6 +37,7 @@
       "mail": "ryan.malabanan@pmdmc.net",
       "uidNumber": "2003",
       "gidNumber": "2000",
+      "userPassword": "{MD5}dDdpUA4QjNwSG35UEFTD9Q==",
       "groupName": "Team Leaders"
     },
     {
@@ -43,6 +47,7 @@
       "mail": "michael.enriquez@pmdmc.net",
       "uidNumber": "2004",
       "gidNumber": "2000",
+      "userPassword": "{SSHA}K5M+sv8gd5M7zoxTutWZWQlDBUgpU9uu",
       "groupName": "Team Leaders"
     },
     {
@@ -52,6 +57,7 @@
       "mail": "philippe.diaz@pmdmc.net",
       "uidNumber": "2005",
       "gidNumber": "2000",
+      "userPassword": "{MD5}cRox3Dh47pUtklaRnQMF9w==",
       "groupName": "Team Leaders"
     },
     {
@@ -61,6 +67,7 @@
       "mail": "donny.villamarzo@pmdmc.net",
       "uidNumber": "2006",
       "gidNumber": "2000",
+      "userPassword": "{MD5}sUVO9gmCQXVMEGWc18MiVQ==",
       "groupName": "Team Leaders"
     },
     {
@@ -70,6 +77,7 @@
       "mail": "jeffrey.cabacungan@pmdmc.net",
       "uidNumber": "2007",
       "gidNumber": "2000",
+      "userPassword": "{MD5}ciPSWmnDFftvBezZ3JZR7Q==",
       "groupName": "Team Leaders"
     },
     {
@@ -79,6 +87,7 @@
       "mail": "jeffrey.sarmiento@pmdmc.net",
       "uidNumber": "2008",
       "gidNumber": "2000",
+      "userPassword": "{MD5}4xlkqIDIMJQNZdevSRDPkg==",
       "groupName": "Team Leaders"
     },
     {
@@ -88,6 +97,7 @@
       "mail": "karlo.deleon@pmdmc.net",
       "uidNumber": "2009",
       "gidNumber": "2000",
+      "userPassword": "{MD5}jquH4+vzqn9KN0mZlEs2ew==",
       "groupName": "Team Leaders"
     },
     {
@@ -97,6 +107,7 @@
       "mail": "jake.alcantara@pmdmc.net",
       "uidNumber": "2010",
       "gidNumber": "2000",
+      "userPassword": "{MD5}0IyoNQCSDDbEMKLla4SxoQ==",
       "groupName": "Team Leaders"
     },
     {
@@ -106,6 +117,7 @@
       "mail": "donald@pmdmc.net",
       "uidNumber": "2011",
       "gidNumber": "2000",
+      "userPassword": "{MD5}zemE0W2p/+wTKn1Bn8fGUQ==",
       "groupName": "Team Leaders"
     },
     {
@@ -115,6 +127,7 @@
       "mail": "rodeson.porcado@pmdmc.net",
       "uidNumber": "2012",
       "gidNumber": "2000",
+      "userPassword": "{SSHA}O0qjoUzs1AgMpzE7Ig3HURYjjKNLduyN",
       "groupName": "Team Leaders"
     },
     {
@@ -124,6 +137,7 @@
       "mail": "darl.prestoza@pmdmc.net",
       "uidNumber": "2013",
       "gidNumber": "2000",
+      "userPassword": "{MD5}MAvZAgOvfEpDo3OKrwzNHw==",
       "groupName": "Team Leaders"
     },
     {
@@ -133,6 +147,7 @@
       "mail": "karl.dematera@pmdmc.net",
       "uidNumber": "2017",
       "gidNumber": "2000",
+      "userPassword": "{SSHA}+728w4RErOoPkuPO2W5zP1n6+cAkj1Ru",
       "groupName": "Team Leaders"
     },
     {
@@ -142,6 +157,7 @@
       "mail": "raymond.reyes@pmdmc.net",
       "uidNumber": "2018",
       "gidNumber": "2000",
+      "userPassword": "{MD5}WDUuJDKCc7XD+0pC/8DHwg==",
       "groupName": "Team Leaders"
     },
     {
@@ -151,6 +167,7 @@
       "mail": "zaldy.petorio@pmdmc.net",
       "uidNumber": "2020",
       "gidNumber": "2000",
+      "userPassword": "{SSHA}Q2+NyJ1+Fhx4XN6H1W7n3xvmqmHK0Gvc",
       "groupName": "Team Leaders"
     },
     {
@@ -160,6 +177,7 @@
       "mail": "ATG@pmdmc.net",
       "uidNumber": "2014",
       "gidNumber": "2002",
+      "userPassword": "{MD5}jMnoutNavel8/QA7J2mK3g==",
       "groupName": "VIP"
     },
     {
@@ -169,6 +187,7 @@
       "mail": "N/A",
       "uidNumber": "N/A",
       "gidNumber": "N/A",
+      "userPassword": "{SSHA}1c2pNTw54K4Avjn7GQ90PMyXBD714zOt",
       "groupName": "Unknown"
     },
     {
@@ -178,6 +197,7 @@
       "mail": "atgstaff@pmdmc.net",
       "uidNumber": "2016",
       "gidNumber": "2003",
+      "userPassword": "{SSHA}gy6OWTydaQLnRY11qhdccao0Add7gNdz",
       "groupName": "ATG Office"
     },
     {
@@ -187,6 +207,7 @@
       "mail": "eugene.eustaquio@pmdmc.net",
       "uidNumber": "2019",
       "gidNumber": "2000",
+      "userPassword": "{MD5}tRnpZ0iqYDF7QA4j1EFfkw==",
       "groupName": "Team Leaders"
     },
     {
@@ -196,6 +217,7 @@
       "mail": "rolandkim.amaro@pmdmc.net",
       "uidNumber": "2015",
       "gidNumber": "2001",
+      "userPassword": "{MD5}Mo44VG5oZyexF0jNwGQNiQ==",
       "groupName": "PMD-IT"
     },
     {
@@ -205,6 +227,7 @@
       "mail": "N/A",
       "uidNumber": "N/A",
       "gidNumber": "N/A",
+      "userPassword": "{SSHA}fwON2kpe0RkoPqda45A4uC7TfiXvd+Yh",
       "groupName": "Unknown"
     },
     {
@@ -214,6 +237,7 @@
       "mail": "kyrt.jurada@pmdmc.net",
       "uidNumber": "2021",
       "gidNumber": "2001",
+      "userPassword": "{MD5}cQyCormYGW8ZV0eHcil/tw==",
       "groupName": "PMD-IT"
     },
     {
@@ -223,6 +247,7 @@
       "mail": "admin.archiving@pmdmc.net",
       "uidNumber": "2022",
       "gidNumber": "2004",
+      "userPassword": "{SSHA}jO7uycWuSuI1bz2M/cE5W4nd5pFoPgho",
       "groupName": "Office Chroniclers"
     },
     {
@@ -232,6 +257,7 @@
       "mail": "atg.office@pmdmc.net",
       "uidNumber": "2023",
       "gidNumber": "2004",
+      "userPassword": "{MD5}cQyCormYGW8ZV0eHcil/tw==",
       "groupName": "Office Chroniclers"
     },
     {
@@ -241,6 +267,7 @@
       "mail": "admin.building-admin@pmdmc.net",
       "uidNumber": "2024",
       "gidNumber": "2004",
+      "userPassword": "{MD5}cQyCormYGW8ZV0eHcil/tw==",
       "groupName": "Office Chroniclers"
     },
     {
@@ -250,6 +277,7 @@
       "mail": "atg.evmedia@pmdmc.net",
       "uidNumber": "2025",
       "gidNumber": "2004",
+      "userPassword": "{MD5}cQyCormYGW8ZV0eHcil/tw==",
       "groupName": "Office Chroniclers"
     },
     {
@@ -259,6 +287,7 @@
       "mail": "atg.sfm@pmdmc.net",
       "uidNumber": "2027",
       "gidNumber": "2004",
+      "userPassword": "{MD5}cQyCormYGW8ZV0eHcil/tw==",
       "groupName": "Office Chroniclers"
     },
     {
@@ -268,6 +297,7 @@
       "mail": "atg.security-group@pmdmc.net",
       "uidNumber": "2028",
       "gidNumber": "2004",
+      "userPassword": "{MD5}cQyCormYGW8ZV0eHcil/tw==",
       "groupName": "Office Chroniclers"
     },
     {
@@ -277,6 +307,7 @@
       "mail": "atg.subtitling@pmdmc.net",
       "uidNumber": "2029",
       "gidNumber": "2004",
+      "userPassword": "{MD5}cQyCormYGW8ZV0eHcil/tw==",
       "groupName": "Office Chroniclers"
     },
     {
@@ -286,6 +317,7 @@
       "mail": "admin.gnd@pmdmc.net",
       "uidNumber": "2031",
       "gidNumber": "2004",
+      "userPassword": "{MD5}cQyCormYGW8ZV0eHcil/tw==",
       "groupName": "Office Chroniclers"
     },
     {
@@ -295,6 +327,7 @@
       "mail": "atg.lsws@pmdmc.net",
       "uidNumber": "2032",
       "gidNumber": "2004",
+      "userPassword": "{MD5}cQyCormYGW8ZV0eHcil/tw==",
       "groupName": "Office Chroniclers"
     },
     {
@@ -304,6 +337,7 @@
       "mail": "music.cdo@pmdmc.net",
       "uidNumber": "2033",
       "gidNumber": "2004",
+      "userPassword": "{MD5}cQyCormYGW8ZV0eHcil/tw==",
       "groupName": "Office Chroniclers"
     },
     {
@@ -313,6 +347,7 @@
       "mail": "music.eis@pmdmc.net",
       "uidNumber": "2034",
       "gidNumber": "2004",
+      "userPassword": "{MD5}cQyCormYGW8ZV0eHcil/tw==",
       "groupName": "Office Chroniclers"
     },
     {
@@ -322,6 +357,7 @@
       "mail": "music.hymns@pmdmc.net",
       "uidNumber": "2035",
       "gidNumber": "2004",
+      "userPassword": "{MD5}cQyCormYGW8ZV0eHcil/tw==",
       "groupName": "Office Chroniclers"
     },
     {
@@ -331,6 +367,7 @@
       "mail": "music.organ-office@pmdmc.net",
       "uidNumber": "2036",
       "gidNumber": "2004",
+      "userPassword": "{MD5}cQyCormYGW8ZV0eHcil/tw==",
       "groupName": "Office Chroniclers"
     },
     {
@@ -340,6 +377,7 @@
       "mail": "music.original-music@pmdmc.net",
       "uidNumber": "2037",
       "gidNumber": "2004",
+      "userPassword": "{MD5}cQyCormYGW8ZV0eHcil/tw==",
       "groupName": "Office Chroniclers"
     },
     {
@@ -349,6 +387,7 @@
       "mail": "admin.trg@pmdmc.net",
       "uidNumber": "2038",
       "gidNumber": "2004",
+      "userPassword": "{MD5}cQyCormYGW8ZV0eHcil/tw==",
       "groupName": "Office Chroniclers"
     },
     {
@@ -358,6 +397,7 @@
       "mail": "user-b@pmdmc.net",
       "uidNumber": "2040",
       "gidNumber": "2004",
+      "userPassword": "{SSHA}68Js8c84DFwfeATxN8lBtLhcUENRKyOA",
       "groupName": "Office Chroniclers"
     },
     {
@@ -367,6 +407,7 @@
       "mail": "user.a@pmdmc.net",
       "uidNumber": "2041",
       "gidNumber": "2004",
+      "userPassword": "{SSHA}GjHeaMA6xyjRtPHLc6oR+JTnmTIeJYv7",
       "groupName": "Office Chroniclers"
     },
     {
@@ -376,6 +417,7 @@
       "mail": "neu.stf@pmdmc.net",
       "uidNumber": "2039",
       "gidNumber": "2004",
+      "userPassword": "{MD5}cQyCormYGW8ZV0eHcil/tw==",
       "groupName": "Office Chroniclers"
     },
     {
@@ -385,6 +427,7 @@
       "mail": "executive.news@pmdmc.net",
       "uidNumber": "2026",
       "gidNumber": "2004",
+      "userPassword": "{MD5}cQyCormYGW8ZV0eHcil/tw==",
       "groupName": "Office Chroniclers"
     },
     {
@@ -394,6 +437,7 @@
       "mail": "pmd.it@pmdmc.net",
       "uidNumber": "2030",
       "gidNumber": "2004",
+      "userPassword": "{SSHA}LYVyCEUbqbnRdJMh/NGuR38z6zbsDKG+",
       "groupName": "Office Chroniclers"
     },
     {
@@ -403,6 +447,7 @@
       "mail": "ron.deguzman@pmdmc.net",
       "uidNumber": "2042",
       "gidNumber": "2000",
+      "userPassword": "{MD5}cQyCormYGW8ZV0eHcil/tw==",
       "groupName": "Team Leaders"
     },
     {
@@ -412,6 +457,7 @@
       "mail": "felix.pareja@pmdmc.net",
       "uidNumber": "2043",
       "gidNumber": "2001",
+      "userPassword": "{MD5}cQyCormYGW8ZV0eHcil/tw==",
       "groupName": "PMD-IT"
     },
     {
@@ -421,6 +467,7 @@
       "mail": "nsanchez@pmdmc.net",
       "uidNumber": "2044",
       "gidNumber": "2003",
+      "userPassword": "{MD5}4vh3FhfOq3i3zcUJki6UBg==",
       "groupName": "ATG Office"
     }
   ]

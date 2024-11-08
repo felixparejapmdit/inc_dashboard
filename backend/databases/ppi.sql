@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 07, 2024 at 09:33 AM
+-- Generation Time: Nov 08, 2024 at 09:44 AM
 -- Server version: 10.4.25-MariaDB
 -- PHP Version: 8.1.10
 
@@ -849,13 +849,11 @@ CREATE TABLE `personnels` (
   `wedding_anniversary` datetime DEFAULT NULL,
   `citizenship` int(11) DEFAULT NULL,
   `nationality` int(11) DEFAULT NULL,
-  `contact_info` int(11) DEFAULT NULL,
   `email_address` varchar(50) DEFAULT NULL,
   `government_id` int(11) DEFAULT NULL,
   `address_id` int(11) DEFAULT NULL,
-  `local_congregation` varchar(50) DEFAULT NULL,
   `district_id` int(11) DEFAULT NULL,
-  `inc_status` enum('Active','Non-Active') DEFAULT NULL,
+  `local_congregation` varchar(50) DEFAULT NULL,
   `department_id` int(11) DEFAULT NULL,
   `section_id` int(11) DEFAULT NULL,
   `subsection_id` int(11) DEFAULT NULL,
@@ -874,8 +872,42 @@ CREATE TABLE `personnels` (
 -- Dumping data for table `personnels`
 --
 
-INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progress`, `personnel_progress`, `givenname`, `middlname`, `lastname`, `nickname`, `suffix`, `languages`, `date_of_birth`, `place_of_birth`, `gender`, `bloodtype`, `civil_status`, `wedding_anniversary`, `citizenship`, `nationality`, `contact_info`, `email_address`, `government_id`, `address_id`, `local_congregation`, `district_id`, `inc_status`, `department_id`, `section_id`, `subsection_id`, `designation_id`, `datejoined`, `personnel_type`, `assigned_number`, `m_type`, `panunumpa_date`, `ordination_date`, `created_at`, `updated_at`) VALUES
-(2, NULL, '1', 'District Office', 'Felix', NULL, 'Pareja', 'Chok', NULL, 'Tagalog, English', '1990-11-09 10:57:12', 'Quezon City', 'Male', 'O+', 'Single', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-11-06 03:54:49', '2024-11-06 03:54:49');
+INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progress`, `personnel_progress`, `givenname`, `middlname`, `lastname`, `nickname`, `suffix`, `languages`, `date_of_birth`, `place_of_birth`, `gender`, `bloodtype`, `civil_status`, `wedding_anniversary`, `citizenship`, `nationality`, `email_address`, `government_id`, `address_id`, `district_id`, `local_congregation`, `department_id`, `section_id`, `subsection_id`, `designation_id`, `datejoined`, `personnel_type`, `assigned_number`, `m_type`, `panunumpa_date`, `ordination_date`, `created_at`, `updated_at`) VALUES
+(2, NULL, '1', 'District Office', 'Felix', NULL, 'Pareja', 'Chok', NULL, 'Tagalog, English', '1990-11-09 10:57:12', 'Quezon City', 'Male', 'O+', 'Single', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-11-06 03:54:49', '2024-11-06 03:54:49');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `personnel_gov_id`
+--
+
+CREATE TABLE `personnel_gov_id` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `personnel_gov_id`
+--
+
+INSERT INTO `personnel_gov_id` (`id`, `name`) VALUES
+(1, 'Barangay ID'),
+(2, 'Chief Executive Officer (CEO) ID'),
+(3, 'Driver’s License'),
+(4, 'Government Service Insurance System (GSIS) e-Card'),
+(5, 'National ID (Philippine Identification System or PhilSys ID)'),
+(6, 'OFW ID (Overseas Filipino Worker ID)'),
+(7, 'Philippine Health Insurance Corporation (PhilHealth) ID'),
+(8, 'Philippine Passport'),
+(9, 'Philippine Statistics Authority (PSA) Birth Certificate'),
+(10, 'Postal ID'),
+(11, 'PWD ID (Persons with Disabilities)'),
+(12, 'Seafarer’s ID'),
+(13, 'Senior Citizens ID'),
+(14, 'Social Security System (SSS) ID'),
+(15, 'Tax Identification Number (TIN) ID'),
+(16, 'Unified Multi-Purpose ID (UMID)'),
+(17, 'Voter’s ID');
 
 -- --------------------------------------------------------
 
@@ -1222,6 +1254,12 @@ ALTER TABLE `personnels`
   ADD PRIMARY KEY (`personnel_id`);
 
 --
+-- Indexes for table `personnel_gov_id`
+--
+ALTER TABLE `personnel_gov_id`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `reminders`
 --
 ALTER TABLE `reminders`
@@ -1329,6 +1367,12 @@ ALTER TABLE `permission_groups`
 --
 ALTER TABLE `personnels`
   MODIFY `personnel_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `personnel_gov_id`
+--
+ALTER TABLE `personnel_gov_id`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `reminders`
