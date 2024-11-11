@@ -21,6 +21,7 @@ import { CheckIcon } from "@chakra-ui/icons";
 const EnrollmentForm = () => {
   const [step, setStep] = useState(1);
   const totalSteps = 10;
+  const [isLoading, setIsLoading] = useState(false); // Loading state
   const [progress, setProgress] = useState(10);
   const [personnelData, setPersonnelData] = useState({
     reference_number: "",
@@ -28,7 +29,8 @@ const EnrollmentForm = () => {
     personnel_progress: "",
     givenname: "",
     middlename: "",
-    lastname: "",
+    surname_maiden: "",
+    surname_husband: "",
     nickname: "",
     suffix: "",
     languages: "",
@@ -159,16 +161,50 @@ const EnrollmentForm = () => {
   }, []);
 
   // General input handler function for controlled inputs
-  const handleChange = (value, field) => {
-    setPersonnelData((prevData) => ({ ...prevData, [field]: value }));
+  const handleChange = (e) => {
+    const { name, value } = e.target;
 
-    if (field === "email_address") {
+    setPersonnelData((prevData) => ({ ...prevData, [name]: value }));
+
+    if (name === "email_address") {
       validateEmail(value);
     }
   };
 
-  const handleNext = () => {
-    setStep((prevStep) => Math.min(prevStep + 1, totalSteps));
+  const handleNext = async () => {
+    setIsLoading(true); // Start loading
+    try {
+      // Send personnelData to backend API
+      const response = await axios.post(
+        "http://localhost:5000/api/personnels",
+        personnelData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.status === 201) {
+        // Display a success message
+        alert("Personnel data has been successfully saved.");
+
+        // Proceed to the next step
+        setStep((prevStep) => Math.min(prevStep + 1, totalSteps));
+      } else {
+        throw new Error("Unexpected response status: " + response.status);
+      }
+    } catch (error) {
+      console.error("Error saving personnel data:", error);
+
+      // Display a detailed alert message
+      const errorMessage =
+        error.response?.data?.message ||
+        "Failed to save personnel data. Please try again.";
+      alert(errorMessage);
+    } finally {
+      setIsLoading(false); // End loading
+    }
   };
 
   const handlePrevious = () => {
@@ -244,152 +280,183 @@ const EnrollmentForm = () => {
       {step === 1 && (
         <Box width="100%" bg="white" boxShadow="sm" my={85}>
           <Flex justifyContent="center" mb="4">
-          <Text 
-            fontSize={{ base: "2xl", md: "2xl" }} 
-            fontWeight="bold" 
-            color="#0a5856" 
-            textAlign="center"
+            <Text
+              fontSize={{ base: "2xl", md: "2xl" }}
+              fontWeight="bold"
+              color="#0a5856"
+              textAlign="center"
+            >
+              Step 1: Basic Information
+            </Text>
+          </Flex>
+
+          <Flex
+            wrap="nowrap"
+            justify="flex-start"
+            mb="3"
+            width="100%"
+            align="center"
+            gap="4"
           >
-            Step 1: Basic Information
-          </Text>
-        </Flex>
+            {/* Gender Label and Radio Group */}
+            <Box width={{ base: "45%", sm: "30%", md: "25%" }} mr="4">
+              <Flex align="center" width="100%">
+                <Text
+                  fontWeight="bold"
+                  mr="2"
+                  color="#0a5856"
+                  whiteSpace="nowrap"
+                >
+                  Gender:
+                </Text>
+                <RadioGroup
+                  name="gender"
+                  onChange={(value) => {
+                    handleChange({ target: { name: "gender", value } });
+                    setPersonnelData((prevData) => ({
+                      ...prevData,
+                      gender: value,
+                      surname_maiden_disabled: value === "Male",
+                      surname_husband_disabled: value === "Male",
+                    }));
+                  }}
+                  value={personnelData.gender}
+                >
+                  <Stack direction="row" spacing={2}>
+                    <Radio value="Male">Male</Radio>
+                    <Radio value="Female">Female</Radio>
+                  </Stack>
+                </RadioGroup>
+              </Flex>
+            </Box>
 
+            {/* Civil Status Radio Group */}
+            <Box width={{ base: "45%", sm: "30%", md: "25%" }} mr="4">
+              <Flex align="center" width="100%">
+                <Text
+                  fontWeight="bold"
+                  mr={2}
+                  color="#0a5856"
+                  whiteSpace="nowrap"
+                >
+                  Civil Status:
+                </Text>
+                <RadioGroup
+                  name="civil_status"
+                  onChange={(value) => {
+                    handleChange({ target: { name: "civil_status", value } });
+                    setPersonnelData((prevData) => ({
+                      ...prevData,
+                      civil_status: value,
+                    }));
+                  }}
+                  value={personnelData.civil_status}
+                >
+                  <Stack direction="row" spacing={2}>
+                    {civilStatuses.map((status) => (
+                      <Radio key={status} value={status}>
+                        {status}
+                      </Radio>
+                    ))}
+                  </Stack>
+                </RadioGroup>
+              </Flex>
+            </Box>
 
-        <Flex wrap="nowrap" justify="flex-start" mb="3" width="100%" align="center" gap="4">
-  {/* Gender Label and Radio Group */}
-  <Box width={{ base: "45%", sm: "30%", md: "25%" }} mr="4">
-    <Flex align="center" width="100%">
-      <Text fontWeight="bold" mr="2" color="#0a5856" whiteSpace="nowrap">
-        Gender:
-      </Text>
-      <RadioGroup
-        name="gender"
-        onChange={(value) => {
-          handleChange(value, "gender");
-          setPersonnelData((prevData) => ({
-            ...prevData,
-            gender: value,
-            surname_maiden_disabled: value === "Male",
-            surname_husband_disabled: value === "Male",
-          }));
-        }}
-        value={personnelData.gender}
-      >
-        <Stack direction="row" spacing={2}>
-          <Radio value="Male">Male</Radio>
-          <Radio value="Female">Female</Radio>
-        </Stack>
-      </RadioGroup>
-    </Flex>
-  </Box>
+            {/* Wedding Anniversary */}
+            <Box
+              width={{ base: "100%", md: "35%" }}
+              visibility={
+                personnelData.civil_status === "Married" ? "visible" : "hidden"
+              }
+            >
+              <Flex align="center" width="100%">
+                <Text
+                  fontWeight="bold"
+                  mr="2"
+                  color="#0a5856"
+                  whiteSpace="nowrap"
+                >
+                  Wedding Anniversary:
+                </Text>
+                <Input
+                  placeholder="Wedding Anniversary"
+                  name="wedding_anniversary"
+                  type="date"
+                  value={personnelData.wedding_anniversary}
+                  onChange={(e) =>
+                    handleChange(e.target.value, "wedding_anniversary")
+                  }
+                  width="100%"
+                />
+              </Flex>
+            </Box>
+          </Flex>
 
-  {/* Civil Status Radio Group */}
-  <Box width={{ base: "45%", sm: "30%", md: "25%" }} mr="4">
-    <Flex align="center" width="100%">
-      <Text fontWeight="bold" mr={2} color="#0a5856" whiteSpace="nowrap">
-        Civil Status:
-      </Text>
-      <RadioGroup
-        name="civil_status"
-        onChange={(value) => {
-          handleChange(value, "civil_status");
-          setPersonnelData((prevData) => ({
-            ...prevData,
-            civil_status: value,
-          }));
-        }}
-        value={personnelData.civil_status}
-      >
-        <Stack direction="row" spacing={2}>
-          {civilStatuses.map((status) => (
-            <Radio key={status} value={status}>
-              {status}
-            </Radio>
-          ))}
-        </Stack>
-      </RadioGroup>
-    </Flex>
-  </Box>
+          <Flex
+            alignItems="center"
+            mb="5"
+            width="100%"
+            wrap="wrap"
+            justify="space-between"
+          >
+            {/* Given Name */}
+            <Box
+              width={{ base: "100%", sm: "48%", md: "24%" }}
+              mb={{ base: "3", md: "0" }}
+            >
+              <Input
+                placeholder="Given Name"
+                name="givenname"
+                value={personnelData.givenname}
+                onChange={handleChange}
+                width="100%"
+              />
+            </Box>
 
-  {/* Wedding Anniversary */}
-  <Box
-    width={{ base: "100%", md: "35%" }}
-    visibility={personnelData.civil_status === "Married" ? "visible" : "hidden"}
-  >
-    <Flex align="center" width="100%">
-      <Text
-        fontWeight="bold"
-        mr="2"
-        color="#0a5856"
-        whiteSpace="nowrap"
-      >
-        Wedding Anniversary:
-      </Text>
-      <Input
-        placeholder="Wedding Anniversary"
-        name="wedding_anniversary"
-        type="date"
-        value={personnelData.wedding_anniversary}
-        onChange={(e) => handleChange(e.target.value, "wedding_anniversary")}
-        width="100%"
-      />
-    </Flex>
-  </Box>
-</Flex>
+            {/* Middle Name */}
+            <Box
+              width={{ base: "100%", sm: "48%", md: "24%" }}
+              mb={{ base: "3", md: "0" }}
+            >
+              <Input
+                placeholder="Middle Name"
+                name="middlename"
+                value={personnelData.middlename}
+                onChange={handleChange}
+                width="100%"
+              />
+            </Box>
 
+            {/* Surname (Maiden) */}
+            <Box
+              width={{ base: "100%", sm: "48%", md: "24%" }}
+              mb={{ base: "3", md: "0" }}
+            >
+              <Input
+                placeholder="Surname (Maiden)"
+                name="surname_maiden"
+                value={personnelData.surname_maiden}
+                onChange={handleChange}
+                width="100%"
+                isDisabled={personnelData.gender === "Male"}
+              />
+            </Box>
 
-
-
-
-
-<Flex alignItems="center" mb="5" width="100%" wrap="wrap" justify="space-between">
-  {/* Given Name */}
-  <Box width={{ base: "100%", sm: "48%", md: "24%" }} mb={{ base: "3", md: "0" }}>
-    <Input
-      placeholder="Given Name"
-      name="givenname"
-      value={personnelData.givenname}
-      onChange={handleChange}
-      width="100%"
-    />
-  </Box>
-
-  {/* Middle Name */}
-  <Box width={{ base: "100%", sm: "48%", md: "24%" }} mb={{ base: "3", md: "0" }}>
-    <Input
-      placeholder="Middle Name"
-      name="middlename"
-      value={personnelData.middlename}
-      onChange={handleChange}
-      width="100%"
-    />
-  </Box>
-
-  {/* Surname (Maiden) */}
-  <Box width={{ base: "100%", sm: "48%", md: "24%" }} mb={{ base: "3", md: "0" }}>
-    <Input
-      placeholder="Surname (Maiden)"
-      name="surname_maiden"
-      value={personnelData.surname_maiden}
-      onChange={handleChange}
-      width="100%"
-      isDisabled={personnelData.gender === "Male"}
-    />
-  </Box>
-
-  {/* Surname (Husband) */}
-  <Box width={{ base: "100%", sm: "48%", md: "24%" }} mb={{ base: "3", md: "0" }}>
-    <Input
-      placeholder="Surname (Husband)"
-      name="surname_husband"
-      value={personnelData.surname_husband}
-      onChange={handleChange}
-      width="100%"
-    />
-  </Box>
-</Flex>
-
-
+            {/* Surname (Husband) */}
+            <Box
+              width={{ base: "100%", sm: "48%", md: "24%" }}
+              mb={{ base: "3", md: "0" }}
+            >
+              <Input
+                placeholder="Surname (Husband)"
+                name="surname_husband"
+                value={personnelData.surname_husband}
+                onChange={handleChange}
+                width="100%"
+              />
+            </Box>
+          </Flex>
 
           <Text
             fontSize="md"
@@ -449,208 +516,254 @@ const EnrollmentForm = () => {
           </Flex>
 
           <Flex
-  align="center"
-  mb="3"
-  width="100%"
-  wrap="wrap"
-  justify="space-between"
-  gap="4"
->
-  {/* Date of Birth Input with Age Calculation */}
-  <Box width={{ base: "100%", md: "30%" }}>
-    <Flex align="center" width="100%">
-      <Text
-        fontWeight="bold"
-        mr="2"
-        whiteSpace="nowrap"
-        color="#0a5856"
-      >
-        Birthday:
-      </Text>
-      <Input
-        placeholder="Date of Birth"
-        name="date_of_birth"
-        type="date"
-        value={personnelData.date_of_birth}
-        onChange={(e) => handleChange(e.target.value, "date_of_birth")}
-        width="100%"
-      />
-    </Flex>
-  </Box>
+            align="center"
+            mb="3"
+            width="100%"
+            wrap="wrap"
+            justify="space-between"
+            gap="4"
+          >
+            {/* Date of Birth Input with Age Calculation */}
+            <Box width={{ base: "100%", md: "30%" }}>
+              <Flex align="center" width="100%">
+                <Text
+                  fontWeight="bold"
+                  mr="2"
+                  whiteSpace="nowrap"
+                  color="#0a5856"
+                >
+                  Birthday:
+                </Text>
+                <Input
+                  placeholder="Date of Birth"
+                  name="date_of_birth"
+                  type="date"
+                  value={personnelData.date_of_birth}
+                  onChange={(e) =>
+                    handleChange({
+                      target: { name: "date_of_birth", value: e.target.value },
+                    })
+                  }
+                  width="100%"
+                />
+              </Flex>
+            </Box>
 
-  {/* Age Display */}
-  <Box width={{ base: "100%", md: "15%" }}>
-    <Flex align="center" width="100%">
-      <Text
-        fontWeight="bold"
-        mr="2"
-        whiteSpace="nowrap"
-        color="#0a5856"
-      >
-        Age:
-      </Text>
-      <Input
-        placeholder="0"
-        name="age"
-        value={age}
-        readOnly
-        width="100%"
-      />
-    </Flex>
-  </Box>
+            {/* Age Display */}
+            <Box width={{ base: "100%", md: "15%" }}>
+              <Flex align="center" width="100%">
+                <Text
+                  fontWeight="bold"
+                  mr="2"
+                  whiteSpace="nowrap"
+                  color="#0a5856"
+                >
+                  Age:
+                </Text>
+                <Input
+                  placeholder="0"
+                  name="age"
+                  value={age}
+                  readOnly
+                  width="100%"
+                />
+              </Flex>
+            </Box>
 
-  {/* Place of Birth */}
-  <Box width={{ base: "100%", md: "50%" }}>
-    <Input
-      placeholder="Place of Birth"
-      name="place_of_birth"
-      value={personnelData.place_of_birth}
-      onChange={(e) => handleChange(e.target.value, "place_of_birth")}
-      width="100%"
-    />
-  </Box>
-</Flex>
+            {/* Place of Birth */}
+            <Box width={{ base: "100%", md: "50%" }}>
+              <Input
+                placeholder="Place of Birth"
+                name="place_of_birth"
+                value={personnelData.place_of_birth}
+                onChange={(e) =>
+                  handleChange({
+                    target: { name: "place_of_birth", value: e.target.value },
+                  })
+                }
+                width="100%"
+              />
+            </Box>
+          </Flex>
 
+          <Flex
+            align="center"
+            mb="3"
+            width="100%"
+            wrap="wrap"
+            justify="space-between"
+            gap="4"
+          >
+            {/* Date Joined */}
+            <Box width={{ base: "100%", md: "30%" }}>
+              <Flex align="center" width="100%">
+                <Text
+                  fontSize="md"
+                  fontWeight="bold"
+                  mr="2"
+                  color="#0a5856"
+                  whiteSpace="nowrap"
+                >
+                  Date Joined:
+                </Text>
+                <Input
+                  placeholder="Date Joined"
+                  name="datejoined"
+                  type="date"
+                  value={personnelData.datejoined}
+                  onChange={(e) =>
+                    handleChange({
+                      target: { name: "datejoined", value: e.target.value },
+                    })
+                  }
+                  width="100%"
+                />
+              </Flex>
+            </Box>
 
-<Flex
-  align="center"
-  mb="3"
-  width="100%"
-  wrap="wrap"
-  justify="space-between"
-  gap="4"
->
-  {/* Date Joined */}
-  <Box width={{ base: "100%", md: "30%" }}>
-    <Flex align="center" width="100%">
-      <Text
-        fontSize="md"
-        fontWeight="bold"
-        mr="2"
-        color="#0a5856"
-        whiteSpace="nowrap"
-      >
-        Date Joined:
-      </Text>
-      <Input
-        placeholder="Date Joined"
-        name="datejoined"
-        type="date"
-        value={personnelData.datejoined}
-        onChange={(e) => handleChange(e.target.value, "datejoined")}
-        width="100%"
-      />
-    </Flex>
-  </Box>
+            {/* Language Selector */}
+            <Box width={{ base: "100%", md: "30%" }}>
+              <Select
+                placeholder="Select Language"
+                name="languages"
+                value={personnelData.languages}
+                onChange={(e) =>
+                  handleChange({
+                    target: { name: "languages", value: e.target.value },
+                  })
+                }
+                width="100%"
+              >
+                {languages.map((lang) => (
+                  <option key={lang.code} value={lang.name}>
+                    {lang.name}
+                  </option>
+                ))}
+              </Select>
+            </Box>
 
-  {/* Language Selector */}
-  <Box width={{ base: "100%", md: "30%" }}>
-    <Select
-      placeholder="Select Language"
-      name="languages"
-      value={personnelData.languages}
-      onChange={(e) => handleChange(e.target.value, "languages")}
-      width="100%"
-    >
-      {languages.map((lang) => (
-        <option key={lang.code} value={lang.name}>
-          {lang.name}
-        </option>
-      ))}
-    </Select>
-  </Box>
+            {/* Blood Type Selector */}
+            <Box width={{ base: "100%", md: "30%" }}>
+              <Select
+                placeholder="Select Blood Type"
+                name="bloodtype"
+                value={personnelData.bloodtype}
+                onChange={(e) =>
+                  handleChange({
+                    target: { name: "bloodtype", value: e.target.value },
+                  })
+                }
+                width="100%"
+              >
+                {bloodtypes.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </Select>
+            </Box>
+          </Flex>
 
-  {/* Blood Type Selector */}
-  <Box width={{ base: "100%", md: "30%" }}>
-    <Select
-      placeholder="Select Blood Type"
-      name="bloodtype"
-      value={personnelData.bloodtype}
-      onChange={(e) => handleChange(e.target.value, "bloodtype")}
-      width="100%"
-    >
-      {bloodtypes.map((type) => (
-        <option key={type} value={type}>
-          {type}
-        </option>
-      ))}
-    </Select>
-  </Box>
-</Flex>
+          <Flex
+            wrap="nowrap"
+            justify="space-between"
+            align="center"
+            mb="3"
+            width="100%"
+            gap="4"
+          >
+            {/* Email Input Field */}
+            <Flex
+              align="center"
+              width={{ base: "100%", md: "35%" }}
+              mb={{ base: "3", md: "0" }}
+            >
+              <Text
+                fontWeight="bold"
+                mr="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Email Address:
+              </Text>
+              <Input
+                placeholder="Enter Email Address"
+                name="email_address"
+                value={personnelData.email_address}
+                onChange={(e) =>
+                  handleChange({
+                    target: { name: "email_address", value: e.target.value },
+                  })
+                }
+                width="100%"
+                isInvalid={!!emailError}
+                errorBorderColor="red.300"
+              />
+            </Flex>
 
+            {/* Email Error Message */}
+            {emailError && (
+              <Box
+                color="red.500"
+                fontSize="sm"
+                mt="-2"
+                mb="2"
+                ml={{ base: "0", md: "140px" }}
+                width={{ base: "100%", md: "auto" }}
+              >
+                {emailError}
+              </Box>
+            )}
 
-<Flex wrap="nowrap" justify="space-between" align="center" mb="3" width="100%" gap="4">
-  {/* Email Input Field */}
-  <Flex align="center" width={{ base: "100%", md: "35%" }} mb={{ base: "3", md: "0" }}>
-    <Text
-      fontWeight="bold"
-      mr="2"
-      minWidth="120px"
-      whiteSpace="nowrap"
-      color="#0a5856"
-    >
-      Email Address:
-    </Text>
-    <Input
-      placeholder="Enter Email Address"
-      name="email_address"
-      value={personnelData.email_address}
-      onChange={(e) => handleChange(e.target.value, "email_address")}
-      width="100%"
-      isInvalid={!!emailError}
-      errorBorderColor="red.300"
-    />
-  </Flex>
+            {/* Citizenship Selector */}
+            <Box
+              width={{ base: "100%", md: "30%" }}
+              mb={{ base: "3", md: "0" }}
+            >
+              <Select
+                placeholder="Select Citizenship"
+                name="citizenship"
+                value={personnelData.citizenship}
+                onChange={(e) =>
+                  handleChange({
+                    target: { name: "citizenship", value: e.target.value },
+                  })
+                }
+                width="100%"
+              >
+                {citizenships.map((citizenship) => (
+                  <option key={citizenship.id} value={citizenship.id}>
+                    {citizenship.name}
+                  </option>
+                ))}
+              </Select>
+            </Box>
 
-  {/* Email Error Message */}
-  {emailError && (
-    <Box
-      color="red.500"
-      fontSize="sm"
-      mt="-2"
-      mb="2"
-      ml={{ base: "0", md: "140px" }}
-      width={{ base: "100%", md: "auto" }}
-    >
-      {emailError}
-    </Box>
-  )}
-
-  {/* Citizenship Selector */}
-  <Box width={{ base: "100%", md: "30%" }} mb={{ base: "3", md: "0" }}>
-    <Select
-      placeholder="Select Citizenship"
-      name="citizenship"
-      value={personnelData.citizenship}
-      onChange={(e) => handleChange(e.target.value, "citizenship")}
-      width="100%"
-    >
-      {citizenships.map((citizenship) => (
-        <option key={citizenship.id} value={citizenship.id}>
-          {citizenship.name}
-        </option>
-      ))}
-    </Select>
-  </Box>
-
-  {/* Nationality Selector */}
-  <Box width={{ base: "100%", md: "30%" }} mb={{ base: "3", md: "0" }}>
-    <Select
-      placeholder="Select Nationality"
-      name="nationality"
-      value={personnelData.nationality}
-      onChange={(e) => handleChange(e.target.value, "nationality")}
-      width="100%"
-    >
-      {nationalities.map((nationality) => (
-        <option key={nationality.id} value={nationality.id}>
-          {nationality.name}
-        </option>
-      ))}
-    </Select>
-  </Box>
-</Flex>
-
+            {/* Nationality Selector */}
+            <Box
+              width={{ base: "100%", md: "30%" }}
+              mb={{ base: "3", md: "0" }}
+            >
+              <Select
+                placeholder="Select Nationality"
+                name="nationality"
+                value={personnelData.nationality}
+                onChange={(e) =>
+                  handleChange({
+                    target: { name: "nationality", value: e.target.value },
+                  })
+                }
+                width="100%"
+              >
+                {nationalities.map((nationality) => (
+                  <option key={nationality.id} value={nationality.id}>
+                    {nationality.name}
+                  </option>
+                ))}
+              </Select>
+            </Box>
+          </Flex>
 
           <Flex
             align="center"
@@ -668,7 +781,11 @@ const EnrollmentForm = () => {
                 placeholder="Select Department"
                 name="department_id"
                 value={personnelData.department_id}
-                onChange={handleChange}
+                onChange={(e) =>
+                  handleChange({
+                    target: { name: "department_id", value: e.target.value },
+                  })
+                }
                 width="100%"
               >
                 {departments.map((department) => (
@@ -688,7 +805,11 @@ const EnrollmentForm = () => {
                 placeholder="Select Section"
                 name="section_id"
                 value={personnelData.section_id}
-                onChange={handleChange}
+                onChange={(e) =>
+                  handleChange({
+                    target: { name: "section_id", value: e.target.value },
+                  })
+                }
                 width="100%"
               >
                 {sections.map((section) => (
@@ -708,7 +829,11 @@ const EnrollmentForm = () => {
                 placeholder="Select Subsection"
                 name="subsection_id"
                 value={personnelData.subsection_id}
-                onChange={handleChange}
+                onChange={(e) =>
+                  handleChange({
+                    target: { name: "subsection_id", value: e.target.value },
+                  })
+                }
                 width="100%"
               >
                 {subsections.map((subsection) => (
@@ -728,7 +853,11 @@ const EnrollmentForm = () => {
                 placeholder="Select Designation"
                 name="designation_id"
                 value={personnelData.designation_id}
-                onChange={handleChange}
+                onChange={(e) =>
+                  handleChange({
+                    target: { name: "designation_id", value: e.target.value },
+                  })
+                }
                 width="100%"
               >
                 {designations.map((designation) => (
@@ -775,7 +904,11 @@ const EnrollmentForm = () => {
                 placeholder="Select District"
                 name="district_id"
                 value={personnelData.district_id}
-                onChange={handleChange}
+                onChange={(e) =>
+                  handleChange({
+                    target: { name: "district_id", value: e.target.value },
+                  })
+                }
                 width="100%"
               >
                 {districts.map((district) => (
@@ -798,14 +931,15 @@ const EnrollmentForm = () => {
             </Box>
           </Flex>
 
-
           <Flex direction="column" mb="4" width="100%">
             <Text fontSize="md" fontWeight="bold" mb="1" color="#0a5856">
               Personnel Type:
             </Text>
             <RadioGroup
               name="personnel_type"
-              onChange={(value) => handleChange(value, "personnel_type")}
+              onChange={(value) => {
+                handleChange({ target: { name: "personnel_type", value } });
+              }}
               value={personnelData.personnel_type}
               width="100%"
             >
@@ -862,7 +996,12 @@ const EnrollmentForm = () => {
                   name="assigned_number"
                   value={personnelData.assigned_number}
                   onChange={(e) =>
-                    handleChange(e.target.value, "assigned_number")
+                    handleChange({
+                      target: {
+                        name: "assigned_number",
+                        value: e.target.value,
+                      },
+                    })
                   }
                   width="calc(100% - 140px)" // Adjusted to fit next to label
                   min="0"
@@ -876,7 +1015,9 @@ const EnrollmentForm = () => {
                 </Text>
                 <RadioGroup
                   name="m_type"
-                  onChange={(value) => handleChange(value, "m_type")}
+                  onChange={(value) =>
+                    handleChange({ target: { name: "m_type", value } })
+                  }
                   value={personnelData.m_type}
                 >
                   <Stack direction="row" spacing={4} wrap="wrap">
@@ -905,7 +1046,11 @@ const EnrollmentForm = () => {
                 name="panunumpa_date"
                 type="date"
                 value={personnelData.panunumpa_date}
-                onChange={(e) => handleChange(e.target.value, "panunumpa_date")}
+                onChange={(e) =>
+                  handleChange({
+                    target: { name: "panunumpa_date", value: e.target.value },
+                  })
+                }
                 width="calc(100% - 150px)" // Matches remaining width
               />
             </Flex>
@@ -929,7 +1074,9 @@ const EnrollmentForm = () => {
                 type="date"
                 value={personnelData.ordination_date}
                 onChange={(e) =>
-                  handleChange(e.target.value, "ordination_date")
+                  handleChange({
+                    target: { name: "ordination_date", value: e.target.value },
+                  })
                 }
                 width="calc(100% - 150px)" // Matches remaining width
               />

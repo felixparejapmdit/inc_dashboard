@@ -1,22 +1,20 @@
 const express = require("express");
 const router = express.Router();
-const db = require("../db");
+const personnelsController = require("../controllers/personnelsController");
 
-const personnelsController = require('../controllers/personnelsController');
+// Route to get all personnels
+router.get("/api/personnels", personnelsController.getAllPersonnels);
 
-// Get all personnels
-router.get('/', personnelsController.getAllPersonnels);
+// Route to get a specific personnel by ID
+router.get("/api/personnels/:id", personnelsController.getPersonnelById);
 
-// Get a single personnel by ID
-router.get('/:id', personnelsController.getPersonnelById);
+// Route to create a new personnel
+router.post("/api/personnels", personnelsController.createPersonnel);
 
-// Create a new personnel
-router.post('/', personnelsController.createPersonnel);
+// Route to update a personnel by ID
+router.put("/api/personnels/:id", personnelsController.updatePersonnel);
 
-// Update a personnel by ID
-router.put('/:id', personnelsController.updatePersonnel);
-
-// Delete a personnel by ID
-router.delete('/:id', personnelsController.deletePersonnel);
+// Route to delete a personnel by ID
+router.delete("/api/personnels/:id", personnelsController.deletePersonnel);
 
 module.exports = router;

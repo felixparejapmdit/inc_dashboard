@@ -195,6 +195,7 @@ const Users = () => {
         onClick={openAddUserModal}
         colorScheme="teal"
         mb={4}
+        display="none"
       >
         Add User
       </Button>
@@ -243,6 +244,7 @@ const Users = () => {
                 <IconButton
                   icon={<DeleteIcon />}
                   colorScheme="red"
+                  display="none"
                   onClick={() => handleDeleteUser(item.ID)}
                 />
               </Td>
@@ -250,7 +252,7 @@ const Users = () => {
           ))}
         </Tbody>
       </Table>
-      // Add/Edit Modal
+      {/* Add/Edit Modal */}
       <Modal isOpen={isOpen} onClose={closeModal}>
         <ModalOverlay />
         <ModalContent>

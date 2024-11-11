@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+
 import {
   Box,
   VStack,
@@ -27,12 +28,44 @@ import {
   FiArrowDown,
   FiGrid,
   FiUsers,
+  FiBriefcase,
+  FiLayers,
+  FiMapPin,
+  FiFlag,
+  FiGlobe,
+  FiBookOpen,
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+
+// Map labels to icons
+const getIconForLabel = (label) => {
+  switch (label) {
+    case "Department":
+      return FiBriefcase;
+    case "Section":
+      return FiLayers;
+    case "Subsection":
+      return FiLayers;
+    case "Designation":
+      return FiUser;
+    case "District":
+      return FiMapPin;
+    case "Citizenship":
+      return FiFlag;
+    case "Nationality":
+      return FiGlobe;
+    case "Language":
+      return FiBookOpen;
+    default:
+      return FiSettings;
+  }
+};
 
 const Sidebar = ({ currentUser, onSidebarToggle }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isSettingsExpanded, setIsSettingsExpanded] = useState(false); // State for expanding settings submenu
+  const [isManagementsExpanded, setIsManagementsExpanded] = useState(false);
+
   const [user, setUser] = useState({ name: "", avatarUrl: "" }); // State to store logged-in user
   const [isLogoutAlertOpen, setIsLogoutAlertOpen] = useState(false); // State for the alert dialog
   const bgGradient = useColorModeValue(
@@ -90,6 +123,10 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
   // Handle Settings toggle
   const handleSettingsToggle = () => {
     setIsSettingsExpanded(!isSettingsExpanded); // Toggle the settings sub-menu
+  };
+
+  const handleManagementsToggle = () => {
+    setIsManagementsExpanded(!isManagementsExpanded);
   };
 
   // Open Logout Confirmation Dialog
@@ -183,6 +220,68 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
             />
           </VStack>
         </Collapse>
+
+        {/* Managements Section */}
+        <SidebarItem
+          icon={FiSettings}
+          label="Managements"
+          isExpanded={isExpanded}
+          onClick={handleManagementsToggle}
+          rightIcon={isManagementsExpanded ? FiArrowDown : null}
+        />
+
+        <Collapse in={isManagementsExpanded} animateOpacity>
+          <VStack align="start" ml={isExpanded ? 4 : 0} spacing={3}>
+            <SidebarItem
+              label="Department"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/managements/departments")}
+              useDynamicIcon // Use dynamic icon mapping
+            />
+            <SidebarItem
+              label="Section"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/managements/sections")}
+              useDynamicIcon
+            />
+            <SidebarItem
+              label="Subsection"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/managements/subsections")}
+              useDynamicIcon
+            />
+            <SidebarItem
+              label="Designation"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/managements/designations")}
+              useDynamicIcon
+            />
+            <SidebarItem
+              label="District"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/managements/districts")}
+              useDynamicIcon
+            />
+            <SidebarItem
+              label="Citizenship"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/managements/citizenships")}
+              useDynamicIcon
+            />
+            <SidebarItem
+              label="Nationality"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/managements/nationalities")}
+              useDynamicIcon
+            />
+            <SidebarItem
+              label="Language"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/managements/languages")}
+              useDynamicIcon
+            />
+          </VStack>
+        </Collapse>
       </VStack>
 
       <Flex flexGrow={1} />
@@ -248,9 +347,17 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
 };
 
 // Sidebar Item Component
-const SidebarItem = ({ icon, label, isExpanded, onClick, rightIcon }) => {
+const SidebarItem = ({
+  icon,
+  label,
+  isExpanded,
+  onClick,
+  rightIcon,
+  useDynamicIcon = false,
+}) => {
   const menuHoverBg = useColorModeValue("gray.200", "gray.700");
   const iconColor = useColorModeValue("gray.600", "gray.300");
+  const IconComponent = useDynamicIcon ? getIconForLabel(label) : icon;
 
   return (
     <Button
@@ -260,11 +367,14 @@ const SidebarItem = ({ icon, label, isExpanded, onClick, rightIcon }) => {
       bg="transparent"
       _hover={{ bg: menuHoverBg }}
       pl={isExpanded ? 4 : 0} // Add padding to the left
-      leftIcon={isExpanded && icon && <Icon as={icon} />}
+      leftIcon={
+        isExpanded &&
+        IconComponent && <Icon as={IconComponent} color={iconColor} />
+      } // Apply dynamic or static icon
       rightIcon={isExpanded && rightIcon && <Icon as={rightIcon} />} // Add right icon for expanded items
     >
       {!isExpanded ? (
-        <Icon as={icon} color={iconColor} />
+        <Icon as={IconComponent} color={iconColor} />
       ) : (
         <Text>{label}</Text>
       )}

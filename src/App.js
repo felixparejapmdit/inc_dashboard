@@ -18,6 +18,14 @@ import Mastodon from "./pages/Mastodon"; // Import Mastodon Page
 import customTheme from "./theme"; // Optional if you're using a custom theme
 import LdapUser from "./pages/LdapUser"; // Import LdapUser page
 import Enrollment from "./pages/EnrollmentForm"; // Import LdapUser page
+import DepartmentManagement from "./pages/managements/DepartmentManagement.js"; // Import the new DepartmentManagement page
+import SectionManagement from "./pages/managements/SectionManagement.js";
+import SubsectionManagement from "./pages/managements/SubsectionManagement.js";
+import DistrictManagement from "./pages/managements/DistrictManagement.js";
+import CitizenshipManagement from "./pages/managements/CitizenshipManagement.js";
+import NationalityManagement from "./pages/managements/NationalityManagement.js";
+import LanguagesManagement from "./pages/managements/LanguagesManagement.js";
+import DesignationManagement from "./pages/managements/DesignationManagement .js";
 
 function App() {
   return (
@@ -169,6 +177,112 @@ function App() {
                 }}
               >
                 <LdapUser />
+              </Layout>
+            }
+          />
+
+          {/* New Route for Department Management */}
+          <Route
+            path="/managements/departments"
+            element={
+              <Layout
+                currentUser={{
+                  name: "John Doe",
+                  avatarUrl: "/path/to/avatar.jpg",
+                }}
+              >
+                <DepartmentManagement />
+              </Layout>
+            }
+          />
+          <Route
+            path="/managements/sections"
+            element={
+              <Layout
+                currentUser={{
+                  name: "John Doe",
+                  avatarUrl: "/path/to/avatar.jpg",
+                }}
+              >
+                <SectionManagement />
+              </Layout>
+            }
+          />
+          <Route
+            path="/managements/subsections"
+            element={
+              <Layout
+                currentUser={{
+                  name: "John Doe",
+                  avatarUrl: "/path/to/avatar.jpg",
+                }}
+              >
+                <SubsectionManagement />
+              </Layout>
+            }
+          />
+          <Route
+            path="/managements/designations"
+            element={
+              <Layout
+                currentUser={{
+                  name: "John Doe",
+                  avatarUrl: "/path/to/avatar.jpg",
+                }}
+              >
+                <DesignationManagement />
+              </Layout>
+            }
+          />
+          <Route
+            path="/managements/districts"
+            element={
+              <Layout
+                currentUser={{
+                  name: "John Doe",
+                  avatarUrl: "/path/to/avatar.jpg",
+                }}
+              >
+                <DistrictManagement />
+              </Layout>
+            }
+          />
+          <Route
+            path="/managements/citizenships"
+            element={
+              <Layout
+                currentUser={{
+                  name: "John Doe",
+                  avatarUrl: "/path/to/avatar.jpg",
+                }}
+              >
+                <CitizenshipManagement />
+              </Layout>
+            }
+          />
+          <Route
+            path="/managements/nationalities"
+            element={
+              <Layout
+                currentUser={{
+                  name: "John Doe",
+                  avatarUrl: "/path/to/avatar.jpg",
+                }}
+              >
+                <NationalityManagement />
+              </Layout>
+            }
+          />
+          <Route
+            path="/managements/languages"
+            element={
+              <Layout
+                currentUser={{
+                  name: "John Doe",
+                  avatarUrl: "/path/to/avatar.jpg",
+                }}
+              >
+                <LanguagesManagement />
               </Layout>
             }
           />

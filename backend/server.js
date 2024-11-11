@@ -15,6 +15,16 @@ const appRoutes = require("./routes/appRoutes");
 // const reminderRoutes = require("./routes/reminderRoutes");
 const personnelsRoutes = require("./routes/personnelsRoutes"); // Replace with actual route file path
 
+const departmentRoutes = require("./routes/departmentRoutes");
+const sectionsRoutes = require("./routes/sectionsRoutes");
+const subsectionsRoutes = require("./routes/subsectionsRoutes");
+const designationsRoutes = require("./routes/designationsRoutes");
+const districtsRoutes = require("./routes/districtsRoutes");
+
+const citizenshipsRoutes = require("./routes/citizenshipsRoutes");
+const nationalitiesRoutes = require("./routes/nationalitiesRoutes");
+const languagesRoutes = require("./routes/languagesRoutes");
+
 app.use(express.json()); // Middleware to parse JSON request bodies
 app.use(cors());
 app.use(bodyParser.json({ limit: "10mb" })); // Increased limit to handle Base64 images
@@ -27,6 +37,16 @@ app.use(appRoutes);
 // app.use(reminderRoutes);
 
 app.use(personnelsRoutes);
+
+// Management
+app.use(departmentRoutes);
+app.use(sectionsRoutes);
+app.use(subsectionsRoutes);
+app.use(designationsRoutes);
+app.use(districtsRoutes);
+app.use(citizenshipsRoutes);
+app.use(nationalitiesRoutes);
+app.use(languagesRoutes);
 
 // --- Start server ---
 app.listen(PORT, () => {
