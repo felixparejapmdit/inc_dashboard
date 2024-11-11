@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 08, 2024 at 09:44 AM
+-- Generation Time: Nov 11, 2024 at 10:23 AM
 -- Server version: 10.4.25-MariaDB
 -- PHP Version: 8.1.10
 
@@ -102,214 +102,216 @@ CREATE TABLE `children` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `citizenship`
+-- Table structure for table `citizenships`
 --
 
-CREATE TABLE `citizenship` (
+CREATE TABLE `citizenships` (
   `id` int(11) NOT NULL,
   `country_name` varchar(100) NOT NULL,
-  `citizenship` varchar(100) NOT NULL
+  `citizenship` varchar(100) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Dumping data for table `citizenship`
+-- Dumping data for table `citizenships`
 --
 
-INSERT INTO `citizenship` (`id`, `country_name`, `citizenship`) VALUES
-(1, 'Afghanistan', 'Afghan'),
-(2, 'Albania', 'Albanian'),
-(3, 'Algeria', 'Algerian'),
-(4, 'Andorra', 'Andorran'),
-(5, 'Angola', 'Angolan'),
-(6, 'Antigua and Barbuda', 'Antiguan or Barbudan'),
-(7, 'Argentina', 'Argentine'),
-(8, 'Armenia', 'Armenian'),
-(9, 'Australia', 'Australian'),
-(10, 'Austria', 'Austrian'),
-(11, 'Azerbaijan', 'Azerbaijani'),
-(12, 'Bahamas', 'Bahamian'),
-(13, 'Bahrain', 'Bahraini'),
-(14, 'Bangladesh', 'Bangladeshi'),
-(15, 'Barbados', 'Barbadian'),
-(16, 'Belarus', 'Belarusian'),
-(17, 'Belgium', 'Belgian'),
-(18, 'Belize', 'Belizean'),
-(19, 'Benin', 'Beninese'),
-(20, 'Bhutan', 'Bhutanese'),
-(21, 'Bolivia', 'Bolivian'),
-(22, 'Bosnia and Herzegovina', 'Bosnian'),
-(23, 'Botswana', 'Botswana'),
-(24, 'Brazil', 'Brazilian'),
-(25, 'Brunei', 'Bruneian'),
-(26, 'Bulgaria', 'Bulgarian'),
-(27, 'Burkina Faso', 'Burkinabe'),
-(28, 'Burundi', 'Burundian'),
-(29, 'Cabo Verde', 'Cape Verdean'),
-(30, 'Cambodia', 'Cambodian'),
-(31, 'Cameroon', 'Cameroonian'),
-(32, 'Canada', 'Canadian'),
-(33, 'Central African Republic', 'Central African'),
-(34, 'Chad', 'Chadian'),
-(35, 'Chile', 'Chilean'),
-(36, 'China', 'Chinese'),
-(37, 'Colombia', 'Colombian'),
-(38, 'Comoros', 'Comoran'),
-(39, 'Congo, Democratic Republic of the', 'Congolese'),
-(40, 'Congo, Republic of the', 'Congolese'),
-(41, 'Costa Rica', 'Costa Rican'),
-(42, 'Croatia', 'Croatian'),
-(43, 'Cuba', 'Cuban'),
-(44, 'Cyprus', 'Cypriot'),
-(45, 'Czech Republic', 'Czech'),
-(46, 'Denmark', 'Danish'),
-(47, 'Djibouti', 'Djiboutian'),
-(48, 'Dominica', 'Dominican'),
-(49, 'Dominican Republic', 'Dominican'),
-(50, 'Ecuador', 'Ecuadorian'),
-(51, 'Egypt', 'Egyptian'),
-(52, 'El Salvador', 'Salvadoran'),
-(53, 'Equatorial Guinea', 'Equatoguinean'),
-(54, 'Eritrea', 'Eritrean'),
-(55, 'Estonia', 'Estonian'),
-(56, 'Eswatini', 'Swazi'),
-(57, 'Ethiopia', 'Ethiopian'),
-(58, 'Fiji', 'Fijian'),
-(59, 'Finland', 'Finnish'),
-(60, 'France', 'French'),
-(61, 'Gabon', 'Gabonese'),
-(62, 'Gambia', 'Gambian'),
-(63, 'Georgia', 'Georgian'),
-(64, 'Germany', 'German'),
-(65, 'Ghana', 'Ghanaian'),
-(66, 'Greece', 'Greek'),
-(67, 'Grenada', 'Grenadian'),
-(68, 'Guatemala', 'Guatemalan'),
-(69, 'Guinea', 'Guinean'),
-(70, 'Guinea-Bissau', 'Guinea-Bissauan'),
-(71, 'Guyana', 'Guyanese'),
-(72, 'Haiti', 'Haitian'),
-(73, 'Honduras', 'Honduran'),
-(74, 'Hungary', 'Hungarian'),
-(75, 'Iceland', 'Icelander'),
-(76, 'India', 'Indian'),
-(77, 'Indonesia', 'Indonesian'),
-(78, 'Iran', 'Iranian'),
-(79, 'Iraq', 'Iraqi'),
-(80, 'Ireland', 'Irish'),
-(81, 'Israel', 'Israeli'),
-(82, 'Italy', 'Italian'),
-(83, 'Jamaica', 'Jamaican'),
-(84, 'Japan', 'Japanese'),
-(85, 'Jordan', 'Jordanian'),
-(86, 'Kazakhstan', 'Kazakhstani'),
-(87, 'Kenya', 'Kenyan'),
-(88, 'Kiribati', 'I-Kiribati'),
-(89, 'Korea, North', 'North Korean'),
-(90, 'Korea, South', 'South Korean'),
-(91, 'Kuwait', 'Kuwaiti'),
-(92, 'Kyrgyzstan', 'Kyrgyzstani'),
-(93, 'Laos', 'Laotian'),
-(94, 'Latvia', 'Latvian'),
-(95, 'Lebanon', 'Lebanese'),
-(96, 'Lesotho', 'Mosotho'),
-(97, 'Liberia', 'Liberian'),
-(98, 'Libya', 'Libyan'),
-(99, 'Liechtenstein', 'Liechtensteiner'),
-(100, 'Lithuania', 'Lithuanian'),
-(101, 'Luxembourg', 'Luxembourger'),
-(102, 'Madagascar', 'Malagasy'),
-(103, 'Malawi', 'Malawian'),
-(104, 'Malaysia', 'Malaysian'),
-(105, 'Maldives', 'Maldivian'),
-(106, 'Mali', 'Malian'),
-(107, 'Malta', 'Maltese'),
-(108, 'Marshall Islands', 'Marshallese'),
-(109, 'Mauritania', 'Mauritanian'),
-(110, 'Mauritius', 'Mauritian'),
-(111, 'Mexico', 'Mexican'),
-(112, 'Micronesia', 'Micronesian'),
-(113, 'Moldova', 'Moldovan'),
-(114, 'Monaco', 'Monacan'),
-(115, 'Mongolia', 'Mongolian'),
-(116, 'Montenegro', 'Montenegrin'),
-(117, 'Morocco', 'Moroccan'),
-(118, 'Mozambique', 'Mozambican'),
-(119, 'Myanmar', 'Burmese'),
-(120, 'Namibia', 'Namibian'),
-(121, 'Nauru', 'Nauruan'),
-(122, 'Nepal', 'Nepalese'),
-(123, 'Netherlands', 'Dutch'),
-(124, 'New Zealand', 'New Zealander'),
-(125, 'Nicaragua', 'Nicaraguan'),
-(126, 'Niger', 'Nigerien'),
-(127, 'Nigeria', 'Nigerian'),
-(128, 'North Macedonia', 'Macedonian'),
-(129, 'Norway', 'Norwegian'),
-(130, 'Oman', 'Omani'),
-(131, 'Pakistan', 'Pakistani'),
-(132, 'Palau', 'Palauan'),
-(133, 'Palestine', 'Palestinian'),
-(134, 'Panama', 'Panamanian'),
-(135, 'Papua New Guinea', 'Papua New Guinean'),
-(136, 'Paraguay', 'Paraguayan'),
-(137, 'Peru', 'Peruvian'),
-(138, 'Philippines', 'Filipino'),
-(139, 'Poland', 'Polish'),
-(140, 'Portugal', 'Portuguese'),
-(141, 'Qatar', 'Qatari'),
-(142, 'Romania', 'Romanian'),
-(143, 'Russia', 'Russian'),
-(144, 'Rwanda', 'Rwandan'),
-(145, 'Saint Kitts and Nevis', 'Kittitian or Nevisian'),
-(146, 'Saint Lucia', 'Saint Lucian'),
-(147, 'Saint Vincent and the Grenadines', 'Saint Vincentian'),
-(148, 'Samoa', 'Samoan'),
-(149, 'San Marino', 'Sammarinese'),
-(150, 'Sao Tome and Principe', 'Sao Tomean'),
-(151, 'Saudi Arabia', 'Saudi'),
-(152, 'Senegal', 'Senegalese'),
-(153, 'Serbia', 'Serbian'),
-(154, 'Seychelles', 'Seychellois'),
-(155, 'Sierra Leone', 'Sierra Leonean'),
-(156, 'Singapore', 'Singaporean'),
-(157, 'Slovakia', 'Slovak'),
-(158, 'Slovenia', 'Slovenian'),
-(159, 'Solomon Islands', 'Solomon Islander'),
-(160, 'Somalia', 'Somali'),
-(161, 'South Africa', 'South African'),
-(162, 'South Sudan', 'South Sudanese'),
-(163, 'Spain', 'Spanish'),
-(164, 'Sri Lanka', 'Sri Lankan'),
-(165, 'Sudan', 'Sudanese'),
-(166, 'Suriname', 'Surinamese'),
-(167, 'Sweden', 'Swedish'),
-(168, 'Switzerland', 'Swiss'),
-(169, 'Syria', 'Syrian'),
-(170, 'Taiwan', 'Taiwanese'),
-(171, 'Tajikistan', 'Tajik'),
-(172, 'Tanzania', 'Tanzanian'),
-(173, 'Thailand', 'Thai'),
-(174, 'Togo', 'Togolese'),
-(175, 'Tonga', 'Tongan'),
-(176, 'Trinidad and Tobago', 'Trinidadian or Tobagonian'),
-(177, 'Tunisia', 'Tunisian'),
-(178, 'Turkey', 'Turkish'),
-(179, 'Turkmenistan', 'Turkmen'),
-(180, 'Tuvalu', 'Tuvaluan'),
-(181, 'Uganda', 'Ugandan'),
-(182, 'Ukraine', 'Ukrainian'),
-(183, 'United Arab Emirates', 'Emirati'),
-(184, 'United Kingdom', 'British'),
-(185, 'United States', 'American'),
-(186, 'Uruguay', 'Uruguayan'),
-(187, 'Uzbekistan', 'Uzbek'),
-(188, 'Vanuatu', 'Ni-Vanuatu'),
-(189, 'Vatican City', 'Vatican'),
-(190, 'Venezuela', 'Venezuelan'),
-(191, 'Vietnam', 'Vietnamese'),
-(192, 'Yemen', 'Yemeni'),
-(193, 'Zambia', 'Zambian'),
-(194, 'Zimbabwe', 'Zimbabwean');
+INSERT INTO `citizenships` (`id`, `country_name`, `citizenship`, `created_at`, `updated_at`) VALUES
+(1, 'Afghanistan', 'Afghan', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(2, 'Albania', 'Albanian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(3, 'Algeria', 'Algerian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(4, 'Andorra', 'Andorran', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(5, 'Angola', 'Angolan', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(6, 'Antigua and Barbuda', 'Antiguan or Barbudan', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(7, 'Argentina', 'Argentine', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(8, 'Armenia', 'Armenian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(9, 'Australia', 'Australian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(10, 'Austria', 'Austrian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(11, 'Azerbaijan', 'Azerbaijani', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(12, 'Bahamas', 'Bahamian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(13, 'Bahrain', 'Bahraini', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(14, 'Bangladesh', 'Bangladeshi', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(15, 'Barbados', 'Barbadian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(16, 'Belarus', 'Belarusian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(17, 'Belgium', 'Belgian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(18, 'Belize', 'Belizean', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(19, 'Benin', 'Beninese', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(20, 'Bhutan', 'Bhutanese', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(21, 'Bolivia', 'Bolivian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(22, 'Bosnia and Herzegovina', 'Bosnian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(23, 'Botswana', 'Botswana', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(24, 'Brazil', 'Brazilian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(25, 'Brunei', 'Bruneian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(26, 'Bulgaria', 'Bulgarian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(27, 'Burkina Faso', 'Burkinabe', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(28, 'Burundi', 'Burundian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(29, 'Cabo Verde', 'Cape Verdean', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(30, 'Cambodia', 'Cambodian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(31, 'Cameroon', 'Cameroonian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(32, 'Canada', 'Canadian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(33, 'Central African Republic', 'Central African', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(34, 'Chad', 'Chadian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(35, 'Chile', 'Chilean', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(36, 'China', 'Chinese', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(37, 'Colombia', 'Colombian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(38, 'Comoros', 'Comoran', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(39, 'Congo, Democratic Republic of the', 'Congolese', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(40, 'Congo, Republic of the', 'Congolese', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(41, 'Costa Rica', 'Costa Rican', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(42, 'Croatia', 'Croatian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(43, 'Cuba', 'Cuban', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(44, 'Cyprus', 'Cypriot', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(45, 'Czech Republic', 'Czech', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(46, 'Denmark', 'Danish', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(47, 'Djibouti', 'Djiboutian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(48, 'Dominica', 'Dominican', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(49, 'Dominican Republic', 'Dominican', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(50, 'Ecuador', 'Ecuadorian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(51, 'Egypt', 'Egyptian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(52, 'El Salvador', 'Salvadoran', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(53, 'Equatorial Guinea', 'Equatoguinean', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(54, 'Eritrea', 'Eritrean', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(55, 'Estonia', 'Estonian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(56, 'Eswatini', 'Swazi', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(57, 'Ethiopia', 'Ethiopian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(58, 'Fiji', 'Fijian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(59, 'Finland', 'Finnish', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(60, 'France', 'French', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(61, 'Gabon', 'Gabonese', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(62, 'Gambia', 'Gambian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(63, 'Georgia', 'Georgian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(64, 'Germany', 'German', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(65, 'Ghana', 'Ghanaian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(66, 'Greece', 'Greek', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(67, 'Grenada', 'Grenadian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(68, 'Guatemala', 'Guatemalan', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(69, 'Guinea', 'Guinean', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(70, 'Guinea-Bissau', 'Guinea-Bissauan', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(71, 'Guyana', 'Guyanese', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(72, 'Haiti', 'Haitian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(73, 'Honduras', 'Honduran', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(74, 'Hungary', 'Hungarian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(75, 'Iceland', 'Icelander', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(76, 'India', 'Indian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(77, 'Indonesia', 'Indonesian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(78, 'Iran', 'Iranian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(79, 'Iraq', 'Iraqi', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(80, 'Ireland', 'Irish', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(81, 'Israel', 'Israeli', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(82, 'Italy', 'Italian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(83, 'Jamaica', 'Jamaican', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(84, 'Japan', 'Japanese', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(85, 'Jordan', 'Jordanian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(86, 'Kazakhstan', 'Kazakhstani', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(87, 'Kenya', 'Kenyan', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(88, 'Kiribati', 'I-Kiribati', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(89, 'Korea, North', 'North Korean', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(90, 'Korea, South', 'South Korean', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(91, 'Kuwait', 'Kuwaiti', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(92, 'Kyrgyzstan', 'Kyrgyzstani', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(93, 'Laos', 'Laotian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(94, 'Latvia', 'Latvian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(95, 'Lebanon', 'Lebanese', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(96, 'Lesotho', 'Mosotho', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(97, 'Liberia', 'Liberian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(98, 'Libya', 'Libyan', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(99, 'Liechtenstein', 'Liechtensteiner', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(100, 'Lithuania', 'Lithuanian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(101, 'Luxembourg', 'Luxembourger', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(102, 'Madagascar', 'Malagasy', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(103, 'Malawi', 'Malawian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(104, 'Malaysia', 'Malaysian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(105, 'Maldives', 'Maldivian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(106, 'Mali', 'Malian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(107, 'Malta', 'Maltese', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(108, 'Marshall Islands', 'Marshallese', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(109, 'Mauritania', 'Mauritanian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(110, 'Mauritius', 'Mauritian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(111, 'Mexico', 'Mexican', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(112, 'Micronesia', 'Micronesian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(113, 'Moldova', 'Moldovan', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(114, 'Monaco', 'Monacan', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(115, 'Mongolia', 'Mongolian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(116, 'Montenegro', 'Montenegrin', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(117, 'Morocco', 'Moroccan', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(118, 'Mozambique', 'Mozambican', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(119, 'Myanmar', 'Burmese', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(120, 'Namibia', 'Namibian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(121, 'Nauru', 'Nauruan', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(122, 'Nepal', 'Nepalese', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(123, 'Netherlands', 'Dutch', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(124, 'New Zealand', 'New Zealander', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(125, 'Nicaragua', 'Nicaraguan', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(126, 'Niger', 'Nigerien', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(127, 'Nigeria', 'Nigerian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(128, 'North Macedonia', 'Macedonian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(129, 'Norway', 'Norwegian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(130, 'Oman', 'Omani', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(131, 'Pakistan', 'Pakistani', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(132, 'Palau', 'Palauan', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(133, 'Palestine', 'Palestinian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(134, 'Panama', 'Panamanian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(135, 'Papua New Guinea', 'Papua New Guinean', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(136, 'Paraguay', 'Paraguayan', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(137, 'Peru', 'Peruvian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(138, 'Philippines', 'Filipino', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(139, 'Poland', 'Polish', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(140, 'Portugal', 'Portuguese', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(141, 'Qatar', 'Qatari', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(142, 'Romania', 'Romanian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(143, 'Russia', 'Russian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(144, 'Rwanda', 'Rwandan', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(145, 'Saint Kitts and Nevis', 'Kittitian or Nevisian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(146, 'Saint Lucia', 'Saint Lucian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(147, 'Saint Vincent and the Grenadines', 'Saint Vincentian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(148, 'Samoa', 'Samoan', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(149, 'San Marino', 'Sammarinese', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(150, 'Sao Tome and Principe', 'Sao Tomean', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(151, 'Saudi Arabia', 'Saudi', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(152, 'Senegal', 'Senegalese', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(153, 'Serbia', 'Serbian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(154, 'Seychelles', 'Seychellois', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(155, 'Sierra Leone', 'Sierra Leonean', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(156, 'Singapore', 'Singaporean', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(157, 'Slovakia', 'Slovak', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(158, 'Slovenia', 'Slovenian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(159, 'Solomon Islands', 'Solomon Islander', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(160, 'Somalia', 'Somali', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(161, 'South Africa', 'South African', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(162, 'South Sudan', 'South Sudanese', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(163, 'Spain', 'Spanish', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(164, 'Sri Lanka', 'Sri Lankan', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(165, 'Sudan', 'Sudanese', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(166, 'Suriname', 'Surinamese', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(167, 'Sweden', 'Swedish', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(168, 'Switzerland', 'Swiss', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(169, 'Syria', 'Syrian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(170, 'Taiwan', 'Taiwanese', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(171, 'Tajikistan', 'Tajik', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(172, 'Tanzania', 'Tanzanian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(173, 'Thailand', 'Thai', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(174, 'Togo', 'Togolese', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(175, 'Tonga', 'Tongan', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(176, 'Trinidad and Tobago', 'Trinidadian or Tobagonian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(177, 'Tunisia', 'Tunisian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(178, 'Turkey', 'Turkish', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(179, 'Turkmenistan', 'Turkmen', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(180, 'Tuvalu', 'Tuvaluan', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(181, 'Uganda', 'Ugandan', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(182, 'Ukraine', 'Ukrainian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(183, 'United Arab Emirates', 'Emirati', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(184, 'United Kingdom', 'British', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(185, 'United States', 'American', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(186, 'Uruguay', 'Uruguayan', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(187, 'Uzbekistan', 'Uzbek', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(188, 'Vanuatu', 'Ni-Vanuatu', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(189, 'Vatican City', 'Vatican', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(190, 'Venezuela', 'Venezuelan', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(191, 'Vietnam', 'Vietnamese', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(192, 'Yemen', 'Yemeni', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(193, 'Zambia', 'Zambian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(194, 'Zimbabwe', 'Zimbabwean', '2024-11-11 08:30:29', '2024-11-11 08:30:29');
 
 -- --------------------------------------------------------
 
@@ -331,8 +333,39 @@ CREATE TABLE `contacts` (
 --
 
 CREATE TABLE `departments` (
-  `department_id` int(11) NOT NULL,
-  `name` varchar(50) NOT NULL
+  `id` int(11) NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `image_url` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `designations`
+--
+
+CREATE TABLE `designations` (
+  `id` int(11) NOT NULL,
+  `section_id` int(11) NOT NULL,
+  `subsection_id` int(11) NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `districts`
+--
+
+CREATE TABLE `districts` (
+  `id` int(11) NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -348,6 +381,20 @@ CREATE TABLE `educational_background` (
   `field_of_study` varchar(50) DEFAULT NULL,
   `institution` varchar(50) NOT NULL,
   `completion_year` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `languages`
+--
+
+CREATE TABLE `languages` (
+  `id` int(11) NOT NULL,
+  `country_name` varchar(50) NOT NULL,
+  `language` varchar(50) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -542,208 +589,210 @@ INSERT INTO `login_attempts` (`id`, `username`, `remote_ip`, `user_agent`, `succ
 CREATE TABLE `nationalities` (
   `id` int(11) NOT NULL,
   `country_name` varchar(100) NOT NULL,
-  `nationality` varchar(100) NOT NULL
+  `nationality` varchar(100) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `nationalities`
 --
 
-INSERT INTO `nationalities` (`id`, `country_name`, `nationality`) VALUES
-(1, 'Afghanistan', 'Afghan'),
-(2, 'Albania', 'Albanian'),
-(3, 'Algeria', 'Algerian'),
-(4, 'Andorra', 'Andorran'),
-(5, 'Angola', 'Angolan'),
-(6, 'Antigua and Barbuda', 'Antiguan or Barbudan'),
-(7, 'Argentina', 'Argentine'),
-(8, 'Armenia', 'Armenian'),
-(9, 'Australia', 'Australian'),
-(10, 'Austria', 'Austrian'),
-(11, 'Azerbaijan', 'Azerbaijani'),
-(12, 'Bahamas', 'Bahamian'),
-(13, 'Bahrain', 'Bahraini'),
-(14, 'Bangladesh', 'Bangladeshi'),
-(15, 'Barbados', 'Barbadian'),
-(16, 'Belarus', 'Belarusian'),
-(17, 'Belgium', 'Belgian'),
-(18, 'Belize', 'Belizean'),
-(19, 'Benin', 'Beninese'),
-(20, 'Bhutan', 'Bhutanese'),
-(21, 'Bolivia', 'Bolivian'),
-(22, 'Bosnia and Herzegovina', 'Bosnian'),
-(23, 'Botswana', 'Botswana'),
-(24, 'Brazil', 'Brazilian'),
-(25, 'Brunei', 'Bruneian'),
-(26, 'Bulgaria', 'Bulgarian'),
-(27, 'Burkina Faso', 'Burkinabe'),
-(28, 'Burundi', 'Burundian'),
-(29, 'Cabo Verde', 'Cape Verdean'),
-(30, 'Cambodia', 'Cambodian'),
-(31, 'Cameroon', 'Cameroonian'),
-(32, 'Canada', 'Canadian'),
-(33, 'Central African Republic', 'Central African'),
-(34, 'Chad', 'Chadian'),
-(35, 'Chile', 'Chilean'),
-(36, 'China', 'Chinese'),
-(37, 'Colombia', 'Colombian'),
-(38, 'Comoros', 'Comoran'),
-(39, 'Congo, Democratic Republic of the', 'Congolese'),
-(40, 'Congo, Republic of the', 'Congolese'),
-(41, 'Costa Rica', 'Costa Rican'),
-(42, 'Croatia', 'Croatian'),
-(43, 'Cuba', 'Cuban'),
-(44, 'Cyprus', 'Cypriot'),
-(45, 'Czech Republic', 'Czech'),
-(46, 'Denmark', 'Danish'),
-(47, 'Djibouti', 'Djiboutian'),
-(48, 'Dominica', 'Dominican'),
-(49, 'Dominican Republic', 'Dominican'),
-(50, 'Ecuador', 'Ecuadorian'),
-(51, 'Egypt', 'Egyptian'),
-(52, 'El Salvador', 'Salvadoran'),
-(53, 'Equatorial Guinea', 'Equatoguinean'),
-(54, 'Eritrea', 'Eritrean'),
-(55, 'Estonia', 'Estonian'),
-(56, 'Eswatini', 'Swazi'),
-(57, 'Ethiopia', 'Ethiopian'),
-(58, 'Fiji', 'Fijian'),
-(59, 'Finland', 'Finnish'),
-(60, 'France', 'French'),
-(61, 'Gabon', 'Gabonese'),
-(62, 'Gambia', 'Gambian'),
-(63, 'Georgia', 'Georgian'),
-(64, 'Germany', 'German'),
-(65, 'Ghana', 'Ghanaian'),
-(66, 'Greece', 'Greek'),
-(67, 'Grenada', 'Grenadian'),
-(68, 'Guatemala', 'Guatemalan'),
-(69, 'Guinea', 'Guinean'),
-(70, 'Guinea-Bissau', 'Guinea-Bissauan'),
-(71, 'Guyana', 'Guyanese'),
-(72, 'Haiti', 'Haitian'),
-(73, 'Honduras', 'Honduran'),
-(74, 'Hungary', 'Hungarian'),
-(75, 'Iceland', 'Icelander'),
-(76, 'India', 'Indian'),
-(77, 'Indonesia', 'Indonesian'),
-(78, 'Iran', 'Iranian'),
-(79, 'Iraq', 'Iraqi'),
-(80, 'Ireland', 'Irish'),
-(81, 'Israel', 'Israeli'),
-(82, 'Italy', 'Italian'),
-(83, 'Jamaica', 'Jamaican'),
-(84, 'Japan', 'Japanese'),
-(85, 'Jordan', 'Jordanian'),
-(86, 'Kazakhstan', 'Kazakhstani'),
-(87, 'Kenya', 'Kenyan'),
-(88, 'Kiribati', 'I-Kiribati'),
-(89, 'Korea, North', 'North Korean'),
-(90, 'Korea, South', 'South Korean'),
-(91, 'Kuwait', 'Kuwaiti'),
-(92, 'Kyrgyzstan', 'Kyrgyzstani'),
-(93, 'Laos', 'Laotian'),
-(94, 'Latvia', 'Latvian'),
-(95, 'Lebanon', 'Lebanese'),
-(96, 'Lesotho', 'Mosotho'),
-(97, 'Liberia', 'Liberian'),
-(98, 'Libya', 'Libyan'),
-(99, 'Liechtenstein', 'Liechtensteiner'),
-(100, 'Lithuania', 'Lithuanian'),
-(101, 'Luxembourg', 'Luxembourger'),
-(102, 'Madagascar', 'Malagasy'),
-(103, 'Malawi', 'Malawian'),
-(104, 'Malaysia', 'Malaysian'),
-(105, 'Maldives', 'Maldivian'),
-(106, 'Mali', 'Malian'),
-(107, 'Malta', 'Maltese'),
-(108, 'Marshall Islands', 'Marshallese'),
-(109, 'Mauritania', 'Mauritanian'),
-(110, 'Mauritius', 'Mauritian'),
-(111, 'Mexico', 'Mexican'),
-(112, 'Micronesia', 'Micronesian'),
-(113, 'Moldova', 'Moldovan'),
-(114, 'Monaco', 'Monacan'),
-(115, 'Mongolia', 'Mongolian'),
-(116, 'Montenegro', 'Montenegrin'),
-(117, 'Morocco', 'Moroccan'),
-(118, 'Mozambique', 'Mozambican'),
-(119, 'Myanmar', 'Burmese'),
-(120, 'Namibia', 'Namibian'),
-(121, 'Nauru', 'Nauruan'),
-(122, 'Nepal', 'Nepalese'),
-(123, 'Netherlands', 'Dutch'),
-(124, 'New Zealand', 'New Zealander'),
-(125, 'Nicaragua', 'Nicaraguan'),
-(126, 'Niger', 'Nigerien'),
-(127, 'Nigeria', 'Nigerian'),
-(128, 'North Macedonia', 'Macedonian'),
-(129, 'Norway', 'Norwegian'),
-(130, 'Oman', 'Omani'),
-(131, 'Pakistan', 'Pakistani'),
-(132, 'Palau', 'Palauan'),
-(133, 'Palestine', 'Palestinian'),
-(134, 'Panama', 'Panamanian'),
-(135, 'Papua New Guinea', 'Papua New Guinean'),
-(136, 'Paraguay', 'Paraguayan'),
-(137, 'Peru', 'Peruvian'),
-(138, 'Philippines', 'Filipino'),
-(139, 'Poland', 'Polish'),
-(140, 'Portugal', 'Portuguese'),
-(141, 'Qatar', 'Qatari'),
-(142, 'Romania', 'Romanian'),
-(143, 'Russia', 'Russian'),
-(144, 'Rwanda', 'Rwandan'),
-(145, 'Saint Kitts and Nevis', 'Kittitian or Nevisian'),
-(146, 'Saint Lucia', 'Saint Lucian'),
-(147, 'Saint Vincent and the Grenadines', 'Saint Vincentian'),
-(148, 'Samoa', 'Samoan'),
-(149, 'San Marino', 'Sammarinese'),
-(150, 'Sao Tome and Principe', 'Sao Tomean'),
-(151, 'Saudi Arabia', 'Saudi'),
-(152, 'Senegal', 'Senegalese'),
-(153, 'Serbia', 'Serbian'),
-(154, 'Seychelles', 'Seychellois'),
-(155, 'Sierra Leone', 'Sierra Leonean'),
-(156, 'Singapore', 'Singaporean'),
-(157, 'Slovakia', 'Slovak'),
-(158, 'Slovenia', 'Slovenian'),
-(159, 'Solomon Islands', 'Solomon Islander'),
-(160, 'Somalia', 'Somali'),
-(161, 'South Africa', 'South African'),
-(162, 'South Sudan', 'South Sudanese'),
-(163, 'Spain', 'Spanish'),
-(164, 'Sri Lanka', 'Sri Lankan'),
-(165, 'Sudan', 'Sudanese'),
-(166, 'Suriname', 'Surinamese'),
-(167, 'Sweden', 'Swedish'),
-(168, 'Switzerland', 'Swiss'),
-(169, 'Syria', 'Syrian'),
-(170, 'Taiwan', 'Taiwanese'),
-(171, 'Tajikistan', 'Tajik'),
-(172, 'Tanzania', 'Tanzanian'),
-(173, 'Thailand', 'Thai'),
-(174, 'Togo', 'Togolese'),
-(175, 'Tonga', 'Tongan'),
-(176, 'Trinidad and Tobago', 'Trinidadian or Tobagonian'),
-(177, 'Tunisia', 'Tunisian'),
-(178, 'Turkey', 'Turkish'),
-(179, 'Turkmenistan', 'Turkmen'),
-(180, 'Tuvalu', 'Tuvaluan'),
-(181, 'Uganda', 'Ugandan'),
-(182, 'Ukraine', 'Ukrainian'),
-(183, 'United Arab Emirates', 'Emirati'),
-(184, 'United Kingdom', 'British'),
-(185, 'United States', 'American'),
-(186, 'Uruguay', 'Uruguayan'),
-(187, 'Uzbekistan', 'Uzbek'),
-(188, 'Vanuatu', 'Ni-Vanuatu'),
-(189, 'Vatican City', 'Vatican'),
-(190, 'Venezuela', 'Venezuelan'),
-(191, 'Vietnam', 'Vietnamese'),
-(192, 'Yemen', 'Yemeni'),
-(193, 'Zambia', 'Zambian'),
-(194, 'Zimbabwe', 'Zimbabwean');
+INSERT INTO `nationalities` (`id`, `country_name`, `nationality`, `created_at`, `updated_at`) VALUES
+(1, 'Afghanistan', 'Afghan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(2, 'Albania', 'Albanian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(3, 'Algeria', 'Algerian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(4, 'Andorra', 'Andorran', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(5, 'Angola', 'Angolan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(6, 'Antigua and Barbuda', 'Antiguan or Barbudan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(7, 'Argentina', 'Argentine', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(8, 'Armenia', 'Armenian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(9, 'Australia', 'Australian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(10, 'Austria', 'Austrian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(11, 'Azerbaijan', 'Azerbaijani', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(12, 'Bahamas', 'Bahamian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(13, 'Bahrain', 'Bahraini', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(14, 'Bangladesh', 'Bangladeshi', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(15, 'Barbados', 'Barbadian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(16, 'Belarus', 'Belarusian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(17, 'Belgium', 'Belgian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(18, 'Belize', 'Belizean', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(19, 'Benin', 'Beninese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(20, 'Bhutan', 'Bhutanese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(21, 'Bolivia', 'Bolivian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(22, 'Bosnia and Herzegovina', 'Bosnian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(23, 'Botswana', 'Botswana', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(24, 'Brazil', 'Brazilian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(25, 'Brunei', 'Bruneian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(26, 'Bulgaria', 'Bulgarian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(27, 'Burkina Faso', 'Burkinabe', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(28, 'Burundi', 'Burundian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(29, 'Cabo Verde', 'Cape Verdean', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(30, 'Cambodia', 'Cambodian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(31, 'Cameroon', 'Cameroonian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(32, 'Canada', 'Canadian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(33, 'Central African Republic', 'Central African', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(34, 'Chad', 'Chadian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(35, 'Chile', 'Chilean', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(36, 'China', 'Chinese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(37, 'Colombia', 'Colombian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(38, 'Comoros', 'Comoran', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(39, 'Congo, Democratic Republic of the', 'Congolese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(40, 'Congo, Republic of the', 'Congolese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(41, 'Costa Rica', 'Costa Rican', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(42, 'Croatia', 'Croatian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(43, 'Cuba', 'Cuban', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(44, 'Cyprus', 'Cypriot', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(45, 'Czech Republic', 'Czech', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(46, 'Denmark', 'Danish', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(47, 'Djibouti', 'Djiboutian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(48, 'Dominica', 'Dominican', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(49, 'Dominican Republic', 'Dominican', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(50, 'Ecuador', 'Ecuadorian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(51, 'Egypt', 'Egyptian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(52, 'El Salvador', 'Salvadoran', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(53, 'Equatorial Guinea', 'Equatoguinean', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(54, 'Eritrea', 'Eritrean', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(55, 'Estonia', 'Estonian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(56, 'Eswatini', 'Swazi', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(57, 'Ethiopia', 'Ethiopian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(58, 'Fiji', 'Fijian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(59, 'Finland', 'Finnish', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(60, 'France', 'French', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(61, 'Gabon', 'Gabonese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(62, 'Gambia', 'Gambian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(63, 'Georgia', 'Georgian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(64, 'Germany', 'German', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(65, 'Ghana', 'Ghanaian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(66, 'Greece', 'Greek', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(67, 'Grenada', 'Grenadian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(68, 'Guatemala', 'Guatemalan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(69, 'Guinea', 'Guinean', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(70, 'Guinea-Bissau', 'Guinea-Bissauan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(71, 'Guyana', 'Guyanese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(72, 'Haiti', 'Haitian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(73, 'Honduras', 'Honduran', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(74, 'Hungary', 'Hungarian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(75, 'Iceland', 'Icelander', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(76, 'India', 'Indian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(77, 'Indonesia', 'Indonesian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(78, 'Iran', 'Iranian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(79, 'Iraq', 'Iraqi', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(80, 'Ireland', 'Irish', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(81, 'Israel', 'Israeli', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(82, 'Italy', 'Italian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(83, 'Jamaica', 'Jamaican', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(84, 'Japan', 'Japanese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(85, 'Jordan', 'Jordanian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(86, 'Kazakhstan', 'Kazakhstani', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(87, 'Kenya', 'Kenyan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(88, 'Kiribati', 'I-Kiribati', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(89, 'Korea, North', 'North Korean', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(90, 'Korea, South', 'South Korean', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(91, 'Kuwait', 'Kuwaiti', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(92, 'Kyrgyzstan', 'Kyrgyzstani', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(93, 'Laos', 'Laotian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(94, 'Latvia', 'Latvian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(95, 'Lebanon', 'Lebanese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(96, 'Lesotho', 'Mosotho', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(97, 'Liberia', 'Liberian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(98, 'Libya', 'Libyan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(99, 'Liechtenstein', 'Liechtensteiner', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(100, 'Lithuania', 'Lithuanian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(101, 'Luxembourg', 'Luxembourger', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(102, 'Madagascar', 'Malagasy', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(103, 'Malawi', 'Malawian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(104, 'Malaysia', 'Malaysian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(105, 'Maldives', 'Maldivian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(106, 'Mali', 'Malian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(107, 'Malta', 'Maltese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(108, 'Marshall Islands', 'Marshallese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(109, 'Mauritania', 'Mauritanian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(110, 'Mauritius', 'Mauritian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(111, 'Mexico', 'Mexican', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(112, 'Micronesia', 'Micronesian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(113, 'Moldova', 'Moldovan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(114, 'Monaco', 'Monacan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(115, 'Mongolia', 'Mongolian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(116, 'Montenegro', 'Montenegrin', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(117, 'Morocco', 'Moroccan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(118, 'Mozambique', 'Mozambican', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(119, 'Myanmar', 'Burmese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(120, 'Namibia', 'Namibian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(121, 'Nauru', 'Nauruan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(122, 'Nepal', 'Nepalese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(123, 'Netherlands', 'Dutch', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(124, 'New Zealand', 'New Zealander', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(125, 'Nicaragua', 'Nicaraguan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(126, 'Niger', 'Nigerien', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(127, 'Nigeria', 'Nigerian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(128, 'North Macedonia', 'Macedonian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(129, 'Norway', 'Norwegian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(130, 'Oman', 'Omani', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(131, 'Pakistan', 'Pakistani', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(132, 'Palau', 'Palauan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(133, 'Palestine', 'Palestinian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(134, 'Panama', 'Panamanian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(135, 'Papua New Guinea', 'Papua New Guinean', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(136, 'Paraguay', 'Paraguayan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(137, 'Peru', 'Peruvian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(138, 'Philippines', 'Filipino', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(139, 'Poland', 'Polish', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(140, 'Portugal', 'Portuguese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(141, 'Qatar', 'Qatari', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(142, 'Romania', 'Romanian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(143, 'Russia', 'Russian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(144, 'Rwanda', 'Rwandan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(145, 'Saint Kitts and Nevis', 'Kittitian or Nevisian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(146, 'Saint Lucia', 'Saint Lucian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(147, 'Saint Vincent and the Grenadines', 'Saint Vincentian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(148, 'Samoa', 'Samoan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(149, 'San Marino', 'Sammarinese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(150, 'Sao Tome and Principe', 'Sao Tomean', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(151, 'Saudi Arabia', 'Saudi', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(152, 'Senegal', 'Senegalese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(153, 'Serbia', 'Serbian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(154, 'Seychelles', 'Seychellois', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(155, 'Sierra Leone', 'Sierra Leonean', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(156, 'Singapore', 'Singaporean', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(157, 'Slovakia', 'Slovak', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(158, 'Slovenia', 'Slovenian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(159, 'Solomon Islands', 'Solomon Islander', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(160, 'Somalia', 'Somali', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(161, 'South Africa', 'South African', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(162, 'South Sudan', 'South Sudanese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(163, 'Spain', 'Spanish', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(164, 'Sri Lanka', 'Sri Lankan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(165, 'Sudan', 'Sudanese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(166, 'Suriname', 'Surinamese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(167, 'Sweden', 'Swedish', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(168, 'Switzerland', 'Swiss', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(169, 'Syria', 'Syrian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(170, 'Taiwan', 'Taiwanese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(171, 'Tajikistan', 'Tajik', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(172, 'Tanzania', 'Tanzanian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(173, 'Thailand', 'Thai', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(174, 'Togo', 'Togolese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(175, 'Tonga', 'Tongan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(176, 'Trinidad and Tobago', 'Trinidadian or Tobagonian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(177, 'Tunisia', 'Tunisian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(178, 'Turkey', 'Turkish', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(179, 'Turkmenistan', 'Turkmen', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(180, 'Tuvalu', 'Tuvaluan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(181, 'Uganda', 'Ugandan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(182, 'Ukraine', 'Ukrainian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(183, 'United Arab Emirates', 'Emirati', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(184, 'United Kingdom', 'British', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(185, 'United States', 'American', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(186, 'Uruguay', 'Uruguayan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(187, 'Uzbekistan', 'Uzbek', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(188, 'Vanuatu', 'Ni-Vanuatu', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(189, 'Vatican City', 'Vatican', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(190, 'Venezuela', 'Venezuelan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(191, 'Vietnam', 'Vietnamese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(192, 'Yemen', 'Yemeni', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(193, 'Zambia', 'Zambian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
+(194, 'Zimbabwe', 'Zimbabwean', '2024-11-11 08:30:57', '2024-11-11 08:30:57');
 
 -- --------------------------------------------------------
 
@@ -835,33 +884,32 @@ CREATE TABLE `personnels` (
   `reference_number` varchar(25) DEFAULT NULL,
   `enrollment_progress` enum('1','2','3','4','5','6','7','8','9','10') DEFAULT NULL,
   `personnel_progress` enum('District Office','Section Chief(first_attempt)','Enrollment','Security Section','ATG Office','PMD-IT','Personnel Office','Section Chief') DEFAULT NULL,
-  `givenname` varchar(50) DEFAULT NULL,
-  `middlname` text DEFAULT NULL,
-  `lastname` varchar(50) DEFAULT NULL,
-  `nickname` varchar(50) DEFAULT NULL,
-  `suffix` text DEFAULT NULL,
-  `languages` varchar(50) DEFAULT NULL,
-  `date_of_birth` datetime DEFAULT NULL,
-  `place_of_birth` varchar(50) DEFAULT NULL,
   `gender` enum('Male','Female') DEFAULT NULL,
-  `bloodtype` varchar(10) DEFAULT NULL,
   `civil_status` enum('Single','Married','Divorced') DEFAULT NULL,
   `wedding_anniversary` datetime DEFAULT NULL,
+  `givenname` varchar(50) DEFAULT NULL,
+  `middlename` text DEFAULT NULL,
+  `surname_maiden` varchar(50) DEFAULT NULL,
+  `surname_husband` varchar(50) NOT NULL,
+  `suffix` text DEFAULT NULL,
+  `nickname` varchar(50) DEFAULT NULL,
+  `date_of_birth` datetime DEFAULT NULL,
+  `place_of_birth` varchar(50) DEFAULT NULL,
+  `datejoined` datetime DEFAULT NULL,
+  `language_id` varchar(50) DEFAULT NULL,
+  `bloodtype` varchar(10) DEFAULT NULL,
+  `email_address` varchar(50) DEFAULT NULL,
   `citizenship` int(11) DEFAULT NULL,
   `nationality` int(11) DEFAULT NULL,
-  `email_address` varchar(50) DEFAULT NULL,
-  `government_id` int(11) DEFAULT NULL,
-  `address_id` int(11) DEFAULT NULL,
-  `district_id` int(11) DEFAULT NULL,
-  `local_congregation` varchar(50) DEFAULT NULL,
   `department_id` int(11) DEFAULT NULL,
   `section_id` int(11) DEFAULT NULL,
   `subsection_id` int(11) DEFAULT NULL,
   `designation_id` int(11) DEFAULT NULL,
-  `datejoined` datetime DEFAULT NULL,
+  `district_id` int(11) DEFAULT NULL,
+  `local_congregation` varchar(50) DEFAULT NULL,
   `personnel_type` enum('Minister','Regular','Ministerial Student','Minister''s Wife','Lay Member') DEFAULT NULL,
   `assigned_number` int(11) DEFAULT NULL,
-  `m_type` enum('May Destino','Fulltime') DEFAULT NULL,
+  `m_status` enum('May Destino','Fulltime') DEFAULT NULL,
   `panunumpa_date` datetime DEFAULT NULL,
   `ordination_date` datetime DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -872,8 +920,12 @@ CREATE TABLE `personnels` (
 -- Dumping data for table `personnels`
 --
 
-INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progress`, `personnel_progress`, `givenname`, `middlname`, `lastname`, `nickname`, `suffix`, `languages`, `date_of_birth`, `place_of_birth`, `gender`, `bloodtype`, `civil_status`, `wedding_anniversary`, `citizenship`, `nationality`, `email_address`, `government_id`, `address_id`, `district_id`, `local_congregation`, `department_id`, `section_id`, `subsection_id`, `designation_id`, `datejoined`, `personnel_type`, `assigned_number`, `m_type`, `panunumpa_date`, `ordination_date`, `created_at`, `updated_at`) VALUES
-(2, NULL, '1', 'District Office', 'Felix', NULL, 'Pareja', 'Chok', NULL, 'Tagalog, English', '1990-11-09 10:57:12', 'Quezon City', 'Male', 'O+', 'Single', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-11-06 03:54:49', '2024-11-06 03:54:49');
+INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progress`, `personnel_progress`, `gender`, `civil_status`, `wedding_anniversary`, `givenname`, `middlename`, `surname_maiden`, `surname_husband`, `suffix`, `nickname`, `date_of_birth`, `place_of_birth`, `datejoined`, `language_id`, `bloodtype`, `email_address`, `citizenship`, `nationality`, `department_id`, `section_id`, `subsection_id`, `designation_id`, `district_id`, `local_congregation`, `personnel_type`, `assigned_number`, `m_status`, `panunumpa_date`, `ordination_date`, `created_at`, `updated_at`) VALUES
+(2, NULL, '1', 'District Office', 'Male', 'Single', NULL, 'Felix', NULL, 'Pareja', '', NULL, 'Chok', '1990-11-09 10:57:12', 'Quezon City', NULL, 'Tagalog, English', 'O+', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-11-06 03:54:49', '2024-11-06 03:54:49'),
+(3, '', '1', '', 'Male', 'Single', '0000-00-00 00:00:00', 'Kim Roland', 'Test', '', 'Amaro', '', 'Kim', '2024-11-11 00:00:00', 'QC', '2024-11-11 00:00:00', NULL, 'A-', 'kim@yahoo.com', 0, 0, 0, 0, 0, 0, 0, 'Central', 'Regular', 16123, NULL, '2019-11-11 00:00:00', '0000-00-00 00:00:00', '2024-11-11 06:02:58', '2024-11-11 06:02:58'),
+(4, '', '1', '', 'Male', 'Single', '0000-00-00 00:00:00', 'Kyrt', 'Test', '', 'Jurada', '', 'Kim', '2024-11-11 00:00:00', 'QC', '2024-11-11 00:00:00', NULL, 'A-', 'kim@yahoo.com', 0, 0, 0, 0, 0, 0, 0, 'Central', 'Regular', 16123, NULL, '2019-11-11 00:00:00', '0000-00-00 00:00:00', '2024-11-11 06:04:51', '2024-11-11 06:04:51'),
+(5, 'ENR-2411-EP1-6905', '1', '', 'Male', 'Single', '0000-00-00 00:00:00', 'Adrian', 'Test', '', 'Amado', '', 'Adrian', '2024-11-11 00:00:00', 'QC', '2024-11-11 00:00:00', NULL, 'A-', 'kim@yahoo.com', 0, 0, 0, 0, 0, 0, 0, 'Central', 'Regular', 15123, NULL, '2019-11-11 00:00:00', '0000-00-00 00:00:00', '2024-11-11 06:29:24', '2024-11-11 06:29:24'),
+(6, 'ENR-2411-EP1-1234', '1', 'District Office', 'Male', 'Single', '0000-00-00 00:00:00', 'Aldrin', 'Test', '', 'Salvador', '', 'Aldrin', '2024-11-11 00:00:00', 'QC', '2024-11-11 00:00:00', NULL, 'A-', 'kim@yahoo.com', 0, 0, 0, 0, 0, 0, 0, 'Central', 'Regular', 20123, NULL, '2022-11-09 00:00:00', '0000-00-00 00:00:00', '2024-11-11 06:31:55', '2024-11-11 06:31:55');
 
 -- --------------------------------------------------------
 
@@ -928,6 +980,20 @@ CREATE TABLE `reminders` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `sections`
+--
+
+CREATE TABLE `sections` (
+  `id` int(11) NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `image_url` text NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `siblings`
 --
 
@@ -965,6 +1031,22 @@ CREATE TABLE `spouses` (
   `company_name` varchar(100) DEFAULT NULL,
   `industry` varchar(50) DEFAULT NULL,
   `work_experience` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `subsections`
+--
+
+CREATE TABLE `subsections` (
+  `id` int(11) NOT NULL,
+  `department_id` int(11) NOT NULL,
+  `section_id` int(11) NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `image_url` text NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -1039,7 +1121,7 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (43, 'executive.news', NULL, NULL, 'executive.news', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (44, 'pmd.it', NULL, NULL, 'pmd.it', '{SSHA}LYVyCEUbqbnRdJMh/NGuR38z6zbsDKG+', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (45, 'r.deguzman', NULL, NULL, 'r.deguzman', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(46, 'felix.pareja', 2, NULL, 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
+(46, 'felix.pareja', 2, NULL, 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (47, 'nsanchez', NULL, NULL, 'nsanchez', '{MD5}4vh3FhfOq3i3zcUJki6UBg==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (48, NULL, NULL, NULL, 'admin', '$2a$12$ZXhnczgjZG4QAa4oGMH5eOt0.a9urccMHJ0/FBYB5zCe2/zfh3dEO', 0, NULL, 'Local', NULL, NULL, NULL, NULL);
 
@@ -1198,9 +1280,9 @@ ALTER TABLE `children`
   ADD KEY `personnel_id` (`personnel_id`);
 
 --
--- Indexes for table `citizenship`
+-- Indexes for table `citizenships`
 --
-ALTER TABLE `citizenship`
+ALTER TABLE `citizenships`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -1214,7 +1296,19 @@ ALTER TABLE `contacts`
 -- Indexes for table `departments`
 --
 ALTER TABLE `departments`
-  ADD PRIMARY KEY (`department_id`);
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `designations`
+--
+ALTER TABLE `designations`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `districts`
+--
+ALTER TABLE `districts`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `educational_background`
@@ -1222,6 +1316,12 @@ ALTER TABLE `departments`
 ALTER TABLE `educational_background`
   ADD PRIMARY KEY (`id`),
   ADD KEY `personnel_id` (`personnel_id`);
+
+--
+-- Indexes for table `languages`
+--
+ALTER TABLE `languages`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `login_attempts`
@@ -1266,6 +1366,12 @@ ALTER TABLE `reminders`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `sections`
+--
+ALTER TABLE `sections`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `siblings`
 --
 ALTER TABLE `siblings`
@@ -1278,6 +1384,12 @@ ALTER TABLE `siblings`
 ALTER TABLE `spouses`
   ADD PRIMARY KEY (`id`),
   ADD KEY `personnel_id` (`personnel_id`);
+
+--
+-- Indexes for table `subsections`
+--
+ALTER TABLE `subsections`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `users`
@@ -1321,9 +1433,9 @@ ALTER TABLE `children`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `citizenship`
+-- AUTO_INCREMENT for table `citizenships`
 --
-ALTER TABLE `citizenship`
+ALTER TABLE `citizenships`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=195;
 
 --
@@ -1333,10 +1445,28 @@ ALTER TABLE `contacts`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `designations`
+--
+ALTER TABLE `designations`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `districts`
+--
+ALTER TABLE `districts`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `educational_background`
 --
 ALTER TABLE `educational_background`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `languages`
+--
+ALTER TABLE `languages`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `login_attempts`
@@ -1366,7 +1496,7 @@ ALTER TABLE `permission_groups`
 -- AUTO_INCREMENT for table `personnels`
 --
 ALTER TABLE `personnels`
-  MODIFY `personnel_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `personnel_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `personnel_gov_id`
@@ -1381,6 +1511,12 @@ ALTER TABLE `reminders`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `sections`
+--
+ALTER TABLE `sections`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `siblings`
 --
 ALTER TABLE `siblings`
@@ -1391,6 +1527,12 @@ ALTER TABLE `siblings`
 --
 ALTER TABLE `spouses`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `subsections`
+--
+ALTER TABLE `subsections`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `users`
