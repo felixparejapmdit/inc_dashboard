@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 11, 2024 at 10:23 AM
+-- Generation Time: Nov 12, 2024 at 09:49 AM
 -- Server version: 10.4.25-MariaDB
 -- PHP Version: 8.1.10
 
@@ -32,7 +32,7 @@ CREATE TABLE `apps` (
   `name` varchar(50) NOT NULL,
   `url` varchar(50) NOT NULL,
   `description` varchar(50) DEFAULT NULL,
-  `icon` varchar(50) DEFAULT NULL
+  `icon` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
@@ -76,11 +76,9 @@ INSERT INTO `available_apps` (`id`, `user_id`, `app_id`, `ldap_group_cn`) VALUES
 (61, 48, 6, ''),
 (62, 48, 7, ''),
 (63, 48, 8, ''),
-(64, 46, 1, ''),
-(65, 46, 2, ''),
-(66, 46, 3, ''),
-(67, 46, 4, ''),
-(68, 46, 8, '');
+(71, 46, 1, ''),
+(72, 46, 4, ''),
+(73, 46, 3, '');
 
 -- --------------------------------------------------------
 
@@ -340,6 +338,13 @@ CREATE TABLE `departments` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+--
+-- Dumping data for table `departments`
+--
+
+INSERT INTO `departments` (`id`, `name`, `image_url`, `created_at`, `updated_at`) VALUES
+(1, 'Admin', NULL, '2024-11-12 01:31:23', '2024-11-12 02:27:39');
+
 -- --------------------------------------------------------
 
 --
@@ -355,6 +360,13 @@ CREATE TABLE `designations` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+--
+-- Dumping data for table `designations`
+--
+
+INSERT INTO `designations` (`id`, `section_id`, `subsection_id`, `name`, `created_at`, `updated_at`) VALUES
+(1, 2, 1, 'Programmer', '2024-11-12 06:44:56', '2024-11-12 06:44:56');
+
 -- --------------------------------------------------------
 
 --
@@ -367,6 +379,13 @@ CREATE TABLE `districts` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `districts`
+--
+
+INSERT INTO `districts` (`id`, `name`, `created_at`, `updated_at`) VALUES
+(1, 'Central', '2024-11-12 07:03:42', '2024-11-12 07:03:42');
 
 -- --------------------------------------------------------
 
@@ -396,6 +415,14 @@ CREATE TABLE `languages` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `languages`
+--
+
+INSERT INTO `languages` (`id`, `country_name`, `language`, `created_at`, `updated_at`) VALUES
+(1, 'Philippines', 'Tagalog', '2024-11-12 07:33:32', '2024-11-12 07:33:32'),
+(2, 'USA', 'English', '2024-11-12 07:42:35', '2024-11-12 07:42:35');
 
 -- --------------------------------------------------------
 
@@ -985,11 +1012,20 @@ CREATE TABLE `reminders` (
 
 CREATE TABLE `sections` (
   `id` int(11) NOT NULL,
+  `department_id` int(11) NOT NULL,
   `name` varchar(50) NOT NULL,
-  `image_url` text NOT NULL,
+  `image_url` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `sections`
+--
+
+INSERT INTO `sections` (`id`, `department_id`, `name`, `image_url`, `created_at`, `updated_at`) VALUES
+(2, 1, 'TRG', NULL, '2024-11-12 03:55:24', '2024-11-12 03:55:24'),
+(3, 1, 'Music', NULL, '2024-11-12 06:26:53', '2024-11-12 06:26:53');
 
 -- --------------------------------------------------------
 
@@ -1048,6 +1084,14 @@ CREATE TABLE `subsections` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `subsections`
+--
+
+INSERT INTO `subsections` (`id`, `department_id`, `section_id`, `name`, `image_url`, `created_at`, `updated_at`) VALUES
+(1, 1, 2, 'PMD IT', '', '2024-11-12 06:26:27', '2024-11-12 06:26:27'),
+(2, 1, 3, 'INC Hymns', '', '2024-11-12 06:27:04', '2024-11-12 06:27:04');
 
 -- --------------------------------------------------------
 
@@ -1121,7 +1165,7 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (43, 'executive.news', NULL, NULL, 'executive.news', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (44, 'pmd.it', NULL, NULL, 'pmd.it', '{SSHA}LYVyCEUbqbnRdJMh/NGuR38z6zbsDKG+', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (45, 'r.deguzman', NULL, NULL, 'r.deguzman', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(46, 'felix.pareja', 2, NULL, 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
+(46, 'felix.pareja', 2, '', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (47, 'nsanchez', NULL, NULL, 'nsanchez', '{MD5}4vh3FhfOq3i3zcUJki6UBg==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (48, NULL, NULL, NULL, 'admin', '$2a$12$ZXhnczgjZG4QAa4oGMH5eOt0.a9urccMHJ0/FBYB5zCe2/zfh3dEO', 0, NULL, 'Local', NULL, NULL, NULL, NULL);
 
@@ -1418,13 +1462,13 @@ ALTER TABLE `work_background`
 -- AUTO_INCREMENT for table `apps`
 --
 ALTER TABLE `apps`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `available_apps`
 --
 ALTER TABLE `available_apps`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=69;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
 
 --
 -- AUTO_INCREMENT for table `children`
@@ -1445,16 +1489,22 @@ ALTER TABLE `contacts`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `departments`
+--
+ALTER TABLE `departments`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
 -- AUTO_INCREMENT for table `designations`
 --
 ALTER TABLE `designations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `districts`
 --
 ALTER TABLE `districts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `educational_background`
@@ -1466,7 +1516,7 @@ ALTER TABLE `educational_background`
 -- AUTO_INCREMENT for table `languages`
 --
 ALTER TABLE `languages`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `login_attempts`
@@ -1514,7 +1564,7 @@ ALTER TABLE `reminders`
 -- AUTO_INCREMENT for table `sections`
 --
 ALTER TABLE `sections`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `siblings`
@@ -1532,7 +1582,7 @@ ALTER TABLE `spouses`
 -- AUTO_INCREMENT for table `subsections`
 --
 ALTER TABLE `subsections`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `users`
