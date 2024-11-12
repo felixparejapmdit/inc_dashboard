@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Button,
-  Flex,
+  IconButton,
   Input,
   Stack,
   Table,
@@ -12,22 +12,39 @@ import {
   Thead,
   Tr,
   useToast,
+  Text,
+  Avatar,
+  Flex,
+  Select,
+  AlertDialog,
+  AlertDialogOverlay,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogBody,
+  AlertDialogFooter,
 } from "@chakra-ui/react";
+import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import axios from "axios";
 
 const SubsectionManagement = () => {
   const [subsections, setSubsections] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [sections, setSections] = useState([]);
   const [newSubsection, setNewSubsection] = useState({
     name: "",
     department_id: "",
     section_id: "",
-    image_url: "",
   });
+  const [isAdding, setIsAdding] = useState(false);
   const [editingSubsection, setEditingSubsection] = useState(null);
+  const [deletingSubsection, setDeletingSubsection] = useState(null);
   const toast = useToast();
+  const cancelRef = useRef();
 
   useEffect(() => {
     fetchSubsections();
+    fetchDepartments();
+    fetchSections();
   }, []);
 
   const fetchSubsections = async () => {
@@ -46,16 +63,60 @@ const SubsectionManagement = () => {
     }
   };
 
-  const handleAddSubsection = async () => {
+  const fetchDepartments = async () => {
     try {
-      await axios.post("/api/subsections", newSubsection);
-      fetchSubsections();
-      setNewSubsection({
-        name: "",
-        department_id: "",
-        section_id: "",
-        image_url: "",
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/departments`
+      );
+      setDepartments(response.data);
+    } catch (error) {
+      toast({
+        title: "Error loading departments",
+        description: error.message,
+        status: "error",
+        duration: 3000,
       });
+    }
+  };
+
+  const fetchSections = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/sections`
+      );
+      setSections(response.data);
+    } catch (error) {
+      toast({
+        title: "Error loading sections",
+        description: error.message,
+        status: "error",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleAddSubsection = async () => {
+    if (
+      !newSubsection.name ||
+      !newSubsection.department_id ||
+      !newSubsection.section_id
+    ) {
+      toast({
+        title: "All fields are required",
+        status: "warning",
+        duration: 3000,
+      });
+      return;
+    }
+
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/subsections`,
+        newSubsection
+      );
+      fetchSubsections();
+      setNewSubsection({ name: "", department_id: "", section_id: "" });
+      setIsAdding(false);
       toast({
         title: "Subsection added",
         status: "success",
@@ -74,7 +135,7 @@ const SubsectionManagement = () => {
   const handleUpdateSubsection = async () => {
     try {
       await axios.put(
-        `/api/subsections/${editingSubsection.id}`,
+        `${process.env.REACT_APP_API_URL}/api/subsections/${editingSubsection.id}`,
         editingSubsection
       );
       fetchSubsections();
@@ -94,9 +155,12 @@ const SubsectionManagement = () => {
     }
   };
 
-  const handleDeleteSubsection = async (id) => {
+  const handleDeleteSubsection = async () => {
+    if (!deletingSubsection) return;
     try {
-      await axios.delete(`/api/subsections/${id}`);
+      await axios.delete(
+        `${process.env.REACT_APP_API_URL}/api/subsections/${deletingSubsection.id}`
+      );
       fetchSubsections();
       toast({
         title: "Subsection deleted",
@@ -110,63 +174,115 @@ const SubsectionManagement = () => {
         status: "error",
         duration: 3000,
       });
+    } finally {
+      setDeletingSubsection(null);
     }
   };
 
   return (
     <Box p={5}>
       <Stack spacing={4}>
-        <Flex>
-          <Input
-            placeholder="Subsection Name"
-            value={newSubsection.name}
-            onChange={(e) =>
-              setNewSubsection({ ...newSubsection, name: e.target.value })
-            }
-            mr={2}
-          />
-          <Input
-            placeholder="Department ID"
-            value={newSubsection.department_id}
-            onChange={(e) =>
-              setNewSubsection({
-                ...newSubsection,
-                department_id: e.target.value,
-              })
-            }
-            mr={2}
-          />
-          <Input
-            placeholder="Section ID"
-            value={newSubsection.section_id}
-            onChange={(e) =>
-              setNewSubsection({ ...newSubsection, section_id: e.target.value })
-            }
-            mr={2}
-          />
-          <Input
-            placeholder="Image URL"
-            value={newSubsection.image_url}
-            onChange={(e) =>
-              setNewSubsection({ ...newSubsection, image_url: e.target.value })
-            }
-            mr={2}
-          />
-          <Button onClick={handleAddSubsection} colorScheme="blue">
-            Add Subsection
-          </Button>
+        <Flex justify="space-between" align="center">
+          <Text fontSize="2xl" fontWeight="bold">
+            Subsection List
+          </Text>
         </Flex>
+
         <Table variant="striped">
           <Thead>
             <Tr>
               <Th>Name</Th>
-              <Th>Department ID</Th>
-              <Th>Section ID</Th>
-              <Th>Image URL</Th>
-              <Th>Actions</Th>
+              <Th>Section</Th>
+              <Th>
+                <Flex justify="space-between" align="center">
+                  <span>Department</span>
+                  {!isAdding && (
+                    <IconButton
+                      icon={<AddIcon />}
+                      onClick={() => setIsAdding(true)}
+                      size="sm"
+                      aria-label="Add section"
+                      variant="ghost"
+                      _hover={{ bg: "gray.100" }}
+                    />
+                  )}
+                </Flex>
+              </Th>
             </Tr>
           </Thead>
           <Tbody>
+            {isAdding && (
+              <Tr>
+                <Td>
+                  <Input
+                    placeholder="Subsection Name"
+                    value={newSubsection.name}
+                    onChange={(e) =>
+                      setNewSubsection({
+                        ...newSubsection,
+                        name: e.target.value,
+                      })
+                    }
+                    autoFocus
+                  />
+                </Td>
+                <Td>
+                  <Select
+                    placeholder="Select Department"
+                    value={newSubsection.department_id}
+                    onChange={(e) =>
+                      setNewSubsection({
+                        ...newSubsection,
+                        department_id: e.target.value,
+                      })
+                    }
+                  >
+                    {departments.map((dept) => (
+                      <option key={dept.id} value={dept.id}>
+                        {dept.name}
+                      </option>
+                    ))}
+                  </Select>
+                </Td>
+                <Td>
+                  <Select
+                    placeholder="Select Section"
+                    value={newSubsection.section_id}
+                    onChange={(e) =>
+                      setNewSubsection({
+                        ...newSubsection,
+                        section_id: e.target.value,
+                      })
+                    }
+                  >
+                    {sections.map((section) => (
+                      <option key={section.id} value={section.id}>
+                        {section.name}
+                      </option>
+                    ))}
+                  </Select>
+                </Td>
+                <Td>
+                  <Flex justify="flex-end">
+                    <Button
+                      onClick={handleAddSubsection}
+                      colorScheme="green"
+                      size="sm"
+                      mr={2}
+                    >
+                      Save
+                    </Button>
+                    <Button
+                      onClick={() => setIsAdding(false)}
+                      colorScheme="red"
+                      size="sm"
+                    >
+                      Cancel
+                    </Button>
+                  </Flex>
+                </Td>
+              </Tr>
+            )}
             {subsections.map((subsection) => (
               <Tr key={subsection.id}>
                 <Td>
@@ -180,45 +296,140 @@ const SubsectionManagement = () => {
                           name: e.target.value,
                         })
                       }
+                      autoFocus
                     />
                   ) : (
-                    subsection.name
+                    <Flex align="center">
+                      <Avatar name={subsection.name} size="sm" mr={3} />
+                      <Text>{subsection.name}</Text>
+                    </Flex>
                   )}
                 </Td>
-                <Td>{subsection.department_id}</Td>
-                <Td>{subsection.section_id}</Td>
-                <Td>{subsection.image_url}</Td>
                 <Td>
                   {editingSubsection &&
                   editingSubsection.id === subsection.id ? (
-                    <Button
-                      onClick={handleUpdateSubsection}
-                      colorScheme="green"
-                      mr={2}
+                    <Select
+                      value={editingSubsection.section_id}
+                      onChange={(e) =>
+                        setEditingSubsection({
+                          ...editingSubsection,
+                          section_id: e.target.value,
+                        })
+                      }
                     >
-                      Save
-                    </Button>
+                      {sections.map((section) => (
+                        <option key={section.id} value={section.id}>
+                          {section.name}
+                        </option>
+                      ))}
+                    </Select>
                   ) : (
-                    <Button
-                      onClick={() => setEditingSubsection(subsection)}
-                      colorScheme="yellow"
-                      mr={2}
-                    >
-                      Edit
-                    </Button>
+                    sections.find((s) => s.id === subsection.section_id)
+                      ?.name || "N/A"
                   )}
-                  <Button
-                    onClick={() => handleDeleteSubsection(subsection.id)}
-                    colorScheme="red"
-                  >
-                    Delete
-                  </Button>
+                </Td>
+                <Td>
+                  <Flex align="center" justify="space-between">
+                    {editingSubsection &&
+                    editingSubsection.id === subsection.id ? (
+                      <Select
+                        value={editingSubsection.department_id}
+                        onChange={(e) =>
+                          setEditingSubsection({
+                            ...editingSubsection,
+                            department_id: e.target.value,
+                          })
+                        }
+                      >
+                        {departments.map((dept) => (
+                          <option key={dept.id} value={dept.id}>
+                            {dept.name}
+                          </option>
+                        ))}
+                      </Select>
+                    ) : (
+                      departments.find((d) => d.id === subsection.department_id)
+                        ?.name || "N/A"
+                    )}
+                    <Flex justify="flex-end">
+                      {editingSubsection &&
+                      editingSubsection.id === subsection.id ? (
+                        <>
+                          <Button
+                            onClick={handleUpdateSubsection}
+                            colorScheme="green"
+                            size="sm"
+                            mr={2}
+                          >
+                            Save
+                          </Button>
+                          <Button
+                            onClick={() => setEditingSubsection(null)}
+                            colorScheme="red"
+                            size="sm"
+                          >
+                            Cancel
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <IconButton
+                            icon={<EditIcon />}
+                            onClick={() => setEditingSubsection(subsection)}
+                            size="sm"
+                            mr={2}
+                            variant="ghost"
+                            colorScheme="yellow"
+                            aria-label="Edit subsection"
+                          />
+                          <IconButton
+                            icon={<DeleteIcon />}
+                            onClick={() => setDeletingSubsection(subsection)}
+                            size="sm"
+                            variant="ghost"
+                            colorScheme="red"
+                            aria-label="Delete subsection"
+                          />
+                        </>
+                      )}
+                    </Flex>
+                  </Flex>
                 </Td>
               </Tr>
             ))}
           </Tbody>
         </Table>
       </Stack>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        isOpen={!!deletingSubsection}
+        leastDestructiveRef={cancelRef}
+        onClose={() => setDeletingSubsection(null)}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Delete Subsection
+            </AlertDialogHeader>
+            <AlertDialogBody>
+              Are you sure you want to delete the subsection "
+              {deletingSubsection?.name}"? This action cannot be undone.
+            </AlertDialogBody>
+            <AlertDialogFooter>
+              <Button
+                ref={cancelRef}
+                onClick={() => setDeletingSubsection(null)}
+              >
+                Cancel
+              </Button>
+              <Button colorScheme="red" onClick={handleDeleteSubsection} ml={3}>
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </Box>
   );
 };

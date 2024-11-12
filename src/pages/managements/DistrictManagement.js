@@ -12,12 +12,17 @@ import {
   Thead,
   Tr,
   useToast,
+  IconButton,
+  Text,
+  Avatar,
 } from "@chakra-ui/react";
+import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
 import axios from "axios";
 
 const DistrictManagement = () => {
   const [districts, setDistricts] = useState([]);
   const [newDistrict, setNewDistrict] = useState({ name: "" });
+  const [isAdding, setIsAdding] = useState(false);
   const [editingDistrict, setEditingDistrict] = useState(null);
   const toast = useToast();
 
@@ -42,10 +47,22 @@ const DistrictManagement = () => {
   };
 
   const handleAddDistrict = async () => {
+    if (!newDistrict.name) {
+      toast({
+        title: "District name is required",
+        status: "warning",
+        duration: 3000,
+      });
+      return;
+    }
     try {
-      await axios.post("/api/districts", newDistrict);
+      await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/districts`,
+        newDistrict
+      );
       fetchDistricts();
       setNewDistrict({ name: "" });
+      setIsAdding(false);
       toast({
         title: "District added",
         status: "success",
@@ -63,7 +80,10 @@ const DistrictManagement = () => {
 
   const handleUpdateDistrict = async () => {
     try {
-      await axios.put(`/api/districts/${editingDistrict.id}`, editingDistrict);
+      await axios.put(
+        `${process.env.REACT_APP_API_URL}/api/districts/${editingDistrict.id}`,
+        editingDistrict
+      );
       fetchDistricts();
       setEditingDistrict(null);
       toast({
@@ -83,7 +103,9 @@ const DistrictManagement = () => {
 
   const handleDeleteDistrict = async (id) => {
     try {
-      await axios.delete(`/api/districts/${id}`);
+      await axios.delete(
+        `${process.env.REACT_APP_API_URL}/api/districts/${id}`
+      );
       fetchDistricts();
       toast({
         title: "District deleted",
@@ -103,27 +125,68 @@ const DistrictManagement = () => {
   return (
     <Box p={5}>
       <Stack spacing={4}>
-        <Flex>
-          <Input
-            placeholder="District Name"
-            value={newDistrict.name}
-            onChange={(e) =>
-              setNewDistrict({ ...newDistrict, name: e.target.value })
-            }
-            mr={2}
-          />
-          <Button onClick={handleAddDistrict} colorScheme="blue">
-            Add District
-          </Button>
-        </Flex>
+        <Text fontSize="28px" fontWeight="bold">
+          District List
+        </Text>
+
         <Table variant="striped">
           <Thead>
             <Tr>
-              <Th>Name</Th>
-              <Th>Actions</Th>
+              <Th>District Name</Th>
+              <Th>
+                <Flex justify="space-between" align="center">
+                  <span>Actions</span>
+                  {!isAdding && (
+                    <IconButton
+                      icon={<AddIcon />}
+                      onClick={() => setIsAdding(true)}
+                      size="sm"
+                      aria-label="Add district"
+                      variant="ghost"
+                      _hover={{ bg: "gray.100" }}
+                    />
+                  )}
+                </Flex>
+              </Th>
             </Tr>
           </Thead>
           <Tbody>
+            {isAdding && (
+              <Tr>
+                <Td>
+                  <Input
+                    placeholder="Type District Name"
+                    value={newDistrict.name}
+                    onChange={(e) =>
+                      setNewDistrict({
+                        ...newDistrict,
+                        name: e.target.value,
+                      })
+                    }
+                    autoFocus
+                  />
+                </Td>
+                <Td>
+                  <Flex justify="flex-end">
+                    <Button
+                      onClick={handleAddDistrict}
+                      colorScheme="green"
+                      size="sm"
+                      mr={2}
+                    >
+                      Save
+                    </Button>
+                    <Button
+                      onClick={() => setIsAdding(false)}
+                      colorScheme="red"
+                      size="sm"
+                    >
+                      Cancel
+                    </Button>
+                  </Flex>
+                </Td>
+              </Tr>
+            )}
             {districts.map((district) => (
               <Tr key={district.id}>
                 <Td>
@@ -136,35 +199,57 @@ const DistrictManagement = () => {
                           name: e.target.value,
                         })
                       }
+                      autoFocus
                     />
                   ) : (
-                    district.name
+                    <Flex align="center">
+                      <Avatar name={district.name} size="sm" mr={3} />
+                      <Text>{district.name}</Text>
+                    </Flex>
                   )}
                 </Td>
                 <Td>
-                  {editingDistrict && editingDistrict.id === district.id ? (
-                    <Button
-                      onClick={handleUpdateDistrict}
-                      colorScheme="green"
-                      mr={2}
-                    >
-                      Save
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={() => setEditingDistrict(district)}
-                      colorScheme="yellow"
-                      mr={2}
-                    >
-                      Edit
-                    </Button>
-                  )}
-                  <Button
-                    onClick={() => handleDeleteDistrict(district.id)}
-                    colorScheme="red"
-                  >
-                    Delete
-                  </Button>
+                  <Flex justify="flex-end">
+                    {editingDistrict && editingDistrict.id === district.id ? (
+                      <>
+                        <Button
+                          onClick={handleUpdateDistrict}
+                          colorScheme="green"
+                          size="sm"
+                          mr={2}
+                        >
+                          Save
+                        </Button>
+                        <Button
+                          onClick={() => setEditingDistrict(null)}
+                          colorScheme="red"
+                          size="sm"
+                        >
+                          Cancel
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <IconButton
+                          icon={<EditIcon />}
+                          onClick={() => setEditingDistrict(district)}
+                          size="sm"
+                          mr={2}
+                          variant="ghost"
+                          colorScheme="yellow"
+                          aria-label="Edit district"
+                        />
+                        <IconButton
+                          icon={<DeleteIcon />}
+                          onClick={() => handleDeleteDistrict(district.id)}
+                          size="sm"
+                          variant="ghost"
+                          colorScheme="red"
+                          aria-label="Delete district"
+                        />
+                      </>
+                    )}
+                  </Flex>
                 </Td>
               </Tr>
             ))}

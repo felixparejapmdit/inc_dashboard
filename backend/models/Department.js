@@ -14,14 +14,15 @@ const Department = sequelize.define(
       allowNull: false,
     },
     image_url: {
-      type: DataTypes.TEXT, // Use TEXT to store image URLs or base64 data
+      type: DataTypes.TEXT,
       allowNull: true,
     },
   },
   {
     timestamps: true,
-    createdAt: "created_at", // Map to existing 'created_at' column
-    updatedAt: "updated_at", // Map to existing 'updated_at' column
+    createdAt: "created_at", // Map Sequelize `createdAt` to 'created_at'
+    updatedAt: "updated_at", // Map Sequelize `updatedAt` to 'updated_at'
+    tableName: "departments", // Ensure Sequelize maps to the correct table name
   }
 );
 

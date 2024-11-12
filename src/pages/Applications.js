@@ -29,10 +29,13 @@ import {
   AlertDialogContent,
   AlertDialogOverlay,
   Text,
+  Avatar,
+  Flex,
 } from "@chakra-ui/react";
 import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
 
 const API_URL = process.env.REACT_APP_API_URL;
+const ITEMS_PER_PAGE = 10;
 
 const Applications = () => {
   const [apps, setApps] = useState([]);
@@ -49,6 +52,7 @@ const Applications = () => {
     onClose: onDeleteClose,
   } = useDisclosure();
   const [appToDelete, setAppToDelete] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const cancelRef = React.useRef();
 
   // Fetch apps from the backend
@@ -70,8 +74,6 @@ const Applications = () => {
 
   const handleAddOrUpdateApp = (e) => {
     e.preventDefault();
-
-    // Check if name and url fields are not empty
     if (!name.trim() || !url.trim()) {
       setStatus("Name and URL fields are required.");
       return;
@@ -80,7 +82,6 @@ const Applications = () => {
     const newApp = { name, url, description, icon };
 
     if (editingApp) {
-      // Update existing app logic
       fetch(`${API_URL}/api/apps/${editingApp.id}`, {
         method: "PUT",
         headers: {
@@ -100,7 +101,6 @@ const Applications = () => {
         })
         .catch(() => setStatus("Error updating app. Please try again."));
     } else {
-      // Add new app logic
       fetch(`${API_URL}/api/apps`, {
         method: "POST",
         headers: {
@@ -153,6 +153,20 @@ const Applications = () => {
     onClose();
   };
 
+  const totalPages = Math.ceil(apps.length / ITEMS_PER_PAGE);
+  const currentItems = apps.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const handlePageChange = (direction) => {
+    setCurrentPage((prev) =>
+      direction === "next"
+        ? Math.min(prev + 1, totalPages)
+        : Math.max(prev - 1, 1)
+    );
+  };
+
   return (
     <Box p={6}>
       <Heading mb={6}>Manage Applications</Heading>
@@ -173,7 +187,6 @@ const Applications = () => {
         <Thead>
           <Tr>
             <Th>#</Th>
-            <Th>Icon</Th>
             <Th>Name</Th>
             <Th>URL</Th>
             <Th>Description</Th>
@@ -181,18 +194,20 @@ const Applications = () => {
           </Tr>
         </Thead>
         <Tbody>
-          {apps.map((app, index) => (
-            <Tr key={index}>
-              <Td>{index + 1}</Td>
+          {currentItems.map((app, index) => (
+            <Tr key={app.id}>
+              <Td>{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</Td>
               <Td>
-                <img
-                  src={app.icon || "https://via.placeholder.com/40"}
-                  alt={`${app.name} Icon`}
-                  width="40"
-                  height="40"
-                />
+                <Flex align="center">
+                  <Avatar
+                    src={app.icon || "https://via.placeholder.com/40"}
+                    name={app.name}
+                    size="sm"
+                    mr={2}
+                  />
+                  <Text>{app.name}</Text>
+                </Flex>
               </Td>
-              <Td>{app.name}</Td>
               <Td>{app.url}</Td>
               <Td>{app.description}</Td>
               <Td>
@@ -212,6 +227,26 @@ const Applications = () => {
           ))}
         </Tbody>
       </Table>
+
+      {apps.length > ITEMS_PER_PAGE && (
+        <Flex justify="space-between" align="center" mt={4}>
+          <Button
+            onClick={() => handlePageChange("previous")}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </Button>
+          <Text>
+            Page {currentPage} of {totalPages}
+          </Text>
+          <Button
+            onClick={() => handlePageChange("next")}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </Button>
+        </Flex>
+      )}
 
       {/* Add/Edit Modal */}
       <Modal isOpen={isOpen} onClose={onClose}>

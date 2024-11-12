@@ -9,6 +9,10 @@ const Section = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
+    department_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
     name: {
       type: DataTypes.STRING(50),
       allowNull: false,
@@ -17,9 +21,19 @@ const Section = sequelize.define(
       type: DataTypes.STRING, // Adjust based on how you're storing images
       allowNull: true,
     },
+    created_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+    updated_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
   },
   {
-    timestamps: false, // Disables automatic 'createdAt' and 'updatedAt' fields
+    timestamps: true, // Enables automatic 'createdAt' and 'updatedAt' fields
+    createdAt: "created_at",
+    updatedAt: "updated_at",
   }
 );
 

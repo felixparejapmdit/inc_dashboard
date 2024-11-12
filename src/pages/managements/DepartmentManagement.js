@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Button,
-  Flex,
+  IconButton,
   Input,
   Stack,
   Table,
@@ -12,17 +12,27 @@ import {
   Thead,
   Tr,
   useToast,
+  Text,
+  Avatar,
+  Flex,
+  AlertDialog,
+  AlertDialogOverlay,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogBody,
+  AlertDialogFooter,
 } from "@chakra-ui/react";
+import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import axios from "axios";
 
 const DepartmentManagement = () => {
   const [departments, setDepartments] = useState([]);
-  const [newDepartment, setNewDepartment] = useState({
-    name: "",
-    image_url: "",
-  });
+  const [newDepartment, setNewDepartment] = useState({ name: "" });
+  const [isAdding, setIsAdding] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState(null);
+  const [deletingDepartment, setDeletingDepartment] = useState(null); // State for department to delete
   const toast = useToast();
+  const cancelRef = useRef();
 
   useEffect(() => {
     fetchDepartments();
@@ -46,18 +56,31 @@ const DepartmentManagement = () => {
 
   const handleAddDepartment = async () => {
     try {
-      await axios.post("/api/departments", newDepartment);
+      if (!newDepartment.name) {
+        toast({
+          title: "Name is required",
+          status: "warning",
+          duration: 3000,
+        });
+        return;
+      }
+      await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/departments`,
+        newDepartment
+      );
       fetchDepartments();
-      setNewDepartment({ name: "", image_url: "" });
+      setNewDepartment({ name: "" });
+      setIsAdding(false);
       toast({
         title: "Department added",
         status: "success",
         duration: 3000,
       });
     } catch (error) {
+      console.error("Error adding department:", error);
       toast({
         title: "Error adding department",
-        description: error.message,
+        description: error.response?.data?.message || error.message,
         status: "error",
         duration: 3000,
       });
@@ -67,7 +90,7 @@ const DepartmentManagement = () => {
   const handleUpdateDepartment = async () => {
     try {
       await axios.put(
-        `/api/departments/${editingDepartment.id}`,
+        `${process.env.REACT_APP_API_URL}/api/departments/${editingDepartment.id}`,
         editingDepartment
       );
       fetchDepartments();
@@ -87,9 +110,12 @@ const DepartmentManagement = () => {
     }
   };
 
-  const handleDeleteDepartment = async (id) => {
+  const handleDeleteDepartment = async () => {
+    if (!deletingDepartment) return;
     try {
-      await axios.delete(`/api/departments/${id}`);
+      await axios.delete(
+        `${process.env.REACT_APP_API_URL}/api/departments/${deletingDepartment.id}`
+      );
       fetchDepartments();
       toast({
         title: "Department deleted",
@@ -103,107 +129,169 @@ const DepartmentManagement = () => {
         status: "error",
         duration: 3000,
       });
+    } finally {
+      setDeletingDepartment(null); // Close alert after delete
     }
   };
 
   return (
     <Box p={5}>
       <Stack spacing={4}>
-        <Flex>
-          <Input
-            placeholder="Department Name"
-            value={newDepartment.name}
-            onChange={(e) =>
-              setNewDepartment({ ...newDepartment, name: e.target.value })
-            }
-            mr={2}
-          />
-          <Input
-            placeholder="Image URL"
-            value={newDepartment.image_url}
-            onChange={(e) =>
-              setNewDepartment({ ...newDepartment, image_url: e.target.value })
-            }
-            mr={2}
-          />
-          <Button onClick={handleAddDepartment} colorScheme="blue">
-            Add Department
-          </Button>
-        </Flex>
+        <Text fontSize="28px" fontWeight="bold">
+          Department List
+        </Text>
+
         <Table variant="striped">
           <Thead>
             <Tr>
-              <Th>Name</Th>
-              <Th>Image URL</Th>
-              <Th>Actions</Th>
+              <Th>
+                <Flex justify="space-between" align="center">
+                  <span>Name</span>
+                  {!isAdding && (
+                    <IconButton
+                      icon={<AddIcon />}
+                      onClick={() => setIsAdding(true)}
+                      size="sm"
+                      aria-label="Add department"
+                      variant="ghost"
+                      _hover={{ bg: "gray.100" }}
+                    />
+                  )}
+                </Flex>
+              </Th>
             </Tr>
           </Thead>
           <Tbody>
-            {departments.map((department) => (
-              <Tr key={department.id}>
+            {isAdding && (
+              <Tr>
                 <Td>
-                  {editingDepartment &&
-                  editingDepartment.id === department.id ? (
-                    <Input
-                      value={editingDepartment.name}
-                      onChange={(e) =>
-                        setEditingDepartment({
-                          ...editingDepartment,
-                          name: e.target.value,
-                        })
-                      }
-                    />
-                  ) : (
-                    department.name
-                  )}
-                </Td>
-                <Td>
-                  {editingDepartment &&
-                  editingDepartment.id === department.id ? (
-                    <Input
-                      value={editingDepartment.image_url}
-                      onChange={(e) =>
-                        setEditingDepartment({
-                          ...editingDepartment,
-                          image_url: e.target.value,
-                        })
-                      }
-                    />
-                  ) : (
-                    department.image_url
-                  )}
-                </Td>
-                <Td>
-                  {editingDepartment &&
-                  editingDepartment.id === department.id ? (
+                  <Input
+                    placeholder="Department Name"
+                    value={newDepartment.name}
+                    onChange={(e) => setNewDepartment({ name: e.target.value })}
+                    autoFocus
+                  />
+                  <Flex mt={2} justify="flex-end">
                     <Button
-                      onClick={handleUpdateDepartment}
+                      onClick={handleAddDepartment}
                       colorScheme="green"
-                      mr={2}
+                      size="sm"
+                      mt={2}
                     >
                       Save
                     </Button>
-                  ) : (
                     <Button
-                      onClick={() => setEditingDepartment(department)}
-                      colorScheme="yellow"
-                      mr={2}
+                      onClick={() => setIsAdding(false)}
+                      colorScheme="red"
+                      size="sm"
+                      mt={2}
+                      ml={2}
                     >
-                      Edit
+                      Cancel
                     </Button>
-                  )}
-                  <Button
-                    onClick={() => handleDeleteDepartment(department.id)}
-                    colorScheme="red"
-                  >
-                    Delete
-                  </Button>
+                  </Flex>
+                </Td>
+              </Tr>
+            )}
+            {departments.map((department) => (
+              <Tr key={department.id}>
+                <Td>
+                  <Flex align="center">
+                    {editingDepartment &&
+                    editingDepartment.id === department.id ? (
+                      <>
+                        <Input
+                          value={editingDepartment.name}
+                          onChange={(e) =>
+                            setEditingDepartment({
+                              ...editingDepartment,
+                              name: e.target.value,
+                            })
+                          }
+                          autoFocus
+                          mr={2}
+                        />
+                        <Button
+                          onClick={handleUpdateDepartment}
+                          colorScheme="green"
+                          size="sm"
+                          mr={2}
+                        >
+                          Save
+                        </Button>
+                        <Button
+                          onClick={() => setEditingDepartment(null)}
+                          colorScheme="red"
+                          size="sm"
+                        >
+                          Cancel
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Avatar name={department.name} size="sm" mr={3} />
+                        <Text>{department.name}</Text>
+                        <IconButton
+                          icon={<EditIcon />}
+                          onClick={() => setEditingDepartment(department)}
+                          size="sm"
+                          ml="auto"
+                          variant="ghost"
+                          colorScheme="yellow"
+                          aria-label="Edit department"
+                          _hover={{ bg: "yellow.100" }}
+                        />
+                        <IconButton
+                          icon={<DeleteIcon />}
+                          onClick={() => setDeletingDepartment(department)}
+                          size="sm"
+                          ml={2}
+                          variant="ghost"
+                          colorScheme="red"
+                          aria-label="Delete department"
+                          _hover={{ bg: "red.100" }}
+                        />
+                      </>
+                    )}
+                  </Flex>
                 </Td>
               </Tr>
             ))}
           </Tbody>
         </Table>
       </Stack>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        isOpen={!!deletingDepartment}
+        leastDestructiveRef={cancelRef}
+        onClose={() => setDeletingDepartment(null)}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Delete Department
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              Are you sure you want to delete the department "
+              {deletingDepartment?.name}"? This action cannot be undone.
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button
+                ref={cancelRef}
+                onClick={() => setDeletingDepartment(null)}
+              >
+                Cancel
+              </Button>
+              <Button colorScheme="red" onClick={handleDeleteDepartment} ml={3}>
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </Box>
   );
 };

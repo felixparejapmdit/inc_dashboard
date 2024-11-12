@@ -34,6 +34,7 @@ import {
   FiFlag,
   FiGlobe,
   FiBookOpen,
+  FiTool,
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
@@ -75,6 +76,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
   const iconColor = useColorModeValue("gray.600", "gray.300");
   const cancelRef = useRef(); // Reference for cancel button in the alert dialog
   const navigate = useNavigate();
+  const showLdapUsers = false; // Set this to true if you want to show the item
 
   // Fetch the logged-in user's name from localStorage
   useEffect(() => {
@@ -212,18 +214,20 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
               isExpanded={isExpanded}
               onClick={() => navigate("/add-events")} // Redirect to Events.js
             />
-            <SidebarItem
-              icon={FiUsers}
-              label="LdapUsers" // Added LdapUsers page
-              isExpanded={isExpanded}
-              onClick={() => navigate("/ldap-users")}
-            />
+            {showLdapUsers && (
+              <SidebarItem
+                icon={FiUsers}
+                label="LdapUsers" // Added LdapUsers page
+                isExpanded={isExpanded}
+                onClick={() => navigate("/ldap-users")}
+              />
+            )}
           </VStack>
         </Collapse>
 
         {/* Managements Section */}
         <SidebarItem
-          icon={FiSettings}
+          icon={FiTool} // Change icon to FiBriefcase or any other appropriate icon
           label="Managements"
           isExpanded={isExpanded}
           onClick={handleManagementsToggle}

@@ -24,6 +24,7 @@ exports.getDepartmentById = async (req, res) => {
 
 // Create a new department
 exports.createDepartment = async (req, res) => {
+  console.log("Creating a new department:", req.body); // Debugging log
   try {
     const newDepartment = await Department.create(req.body);
     res.status(201).json({
@@ -31,6 +32,7 @@ exports.createDepartment = async (req, res) => {
       department: newDepartment,
     });
   } catch (error) {
+    console.error("Error creating department:", error);
     res.status(500).json({ message: "Error creating department", error });
   }
 };
