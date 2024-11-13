@@ -27,11 +27,14 @@ import NationalityManagement from "./pages/managements/NationalityManagement.js"
 import LanguagesManagement from "./pages/managements/LanguagesManagement.js";
 import DesignationManagement from "./pages/managements/DesignationManagement .js";
 
+import Step2 from "./pages/Step2";
+
 function App() {
   return (
     <ChakraProvider theme={customTheme}>
       <Router>
         <Routes>
+          <Route path="/step2" element={<Step2 />} />
           {/* Redirect the root URL to /login */}
           <Route path="/" element={<Navigate to="/login" />} />
 

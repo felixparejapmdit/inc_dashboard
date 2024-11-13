@@ -65,11 +65,13 @@ const Applications = () => {
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setIcon(reader.result);
-    };
-    reader.readAsDataURL(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setIcon(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleAddOrUpdateApp = (e) => {
@@ -180,7 +182,7 @@ const Applications = () => {
         colorScheme="teal"
         mb={4}
       >
-        Add App
+        App
       </Button>
 
       <Table variant="simple">
@@ -200,7 +202,7 @@ const Applications = () => {
               <Td>
                 <Flex align="center">
                   <Avatar
-                    src={app.icon || "https://via.placeholder.com/40"}
+                    src={app.icon ? app.icon : ""}
                     name={app.name}
                     size="sm"
                     mr={2}
@@ -208,6 +210,7 @@ const Applications = () => {
                   <Text>{app.name}</Text>
                 </Flex>
               </Td>
+
               <Td>{app.url}</Td>
               <Td>{app.description}</Td>
               <Td>

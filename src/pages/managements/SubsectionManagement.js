@@ -184,7 +184,7 @@ const SubsectionManagement = () => {
       <Stack spacing={4}>
         <Flex justify="space-between" align="center">
           <Text fontSize="2xl" fontWeight="bold">
-            Subsection List
+            Subsection/Team List
           </Text>
         </Flex>
 
@@ -192,10 +192,10 @@ const SubsectionManagement = () => {
           <Thead>
             <Tr>
               <Th>Name</Th>
-              <Th>Section</Th>
+              <Th>Department</Th>
               <Th>
                 <Flex justify="space-between" align="center">
-                  <span>Department</span>
+                  <span>Section</span>
                   {!isAdding && (
                     <IconButton
                       icon={<AddIcon />}
@@ -228,24 +228,6 @@ const SubsectionManagement = () => {
                 </Td>
                 <Td>
                   <Select
-                    placeholder="Select Department"
-                    value={newSubsection.department_id}
-                    onChange={(e) =>
-                      setNewSubsection({
-                        ...newSubsection,
-                        department_id: e.target.value,
-                      })
-                    }
-                  >
-                    {departments.map((dept) => (
-                      <option key={dept.id} value={dept.id}>
-                        {dept.name}
-                      </option>
-                    ))}
-                  </Select>
-                </Td>
-                <Td>
-                  <Select
                     placeholder="Select Section"
                     value={newSubsection.section_id}
                     onChange={(e) =>
@@ -258,6 +240,24 @@ const SubsectionManagement = () => {
                     {sections.map((section) => (
                       <option key={section.id} value={section.id}>
                         {section.name}
+                      </option>
+                    ))}
+                  </Select>
+                </Td>
+                <Td>
+                  <Select
+                    placeholder="Select Department"
+                    value={newSubsection.department_id}
+                    onChange={(e) =>
+                      setNewSubsection({
+                        ...newSubsection,
+                        department_id: e.target.value,
+                      })
+                    }
+                  >
+                    {departments.map((dept) => (
+                      <option key={dept.id} value={dept.id}>
+                        {dept.name}
                       </option>
                     ))}
                   </Select>
@@ -309,22 +309,22 @@ const SubsectionManagement = () => {
                   {editingSubsection &&
                   editingSubsection.id === subsection.id ? (
                     <Select
-                      value={editingSubsection.section_id}
+                      value={editingSubsection.department_id}
                       onChange={(e) =>
                         setEditingSubsection({
                           ...editingSubsection,
-                          section_id: e.target.value,
+                          department_id: e.target.value,
                         })
                       }
                     >
-                      {sections.map((section) => (
-                        <option key={section.id} value={section.id}>
-                          {section.name}
+                      {departments.map((dept) => (
+                        <option key={dept.id} value={dept.id}>
+                          {dept.name}
                         </option>
                       ))}
                     </Select>
                   ) : (
-                    sections.find((s) => s.id === subsection.section_id)
+                    departments.find((d) => d.id === subsection.department_id)
                       ?.name || "N/A"
                   )}
                 </Td>
@@ -333,22 +333,22 @@ const SubsectionManagement = () => {
                     {editingSubsection &&
                     editingSubsection.id === subsection.id ? (
                       <Select
-                        value={editingSubsection.department_id}
+                        value={editingSubsection.section_id}
                         onChange={(e) =>
                           setEditingSubsection({
                             ...editingSubsection,
-                            department_id: e.target.value,
+                            section_id: e.target.value,
                           })
                         }
                       >
-                        {departments.map((dept) => (
-                          <option key={dept.id} value={dept.id}>
-                            {dept.name}
+                        {sections.map((section) => (
+                          <option key={section.id} value={section.id}>
+                            {section.name}
                           </option>
                         ))}
                       </Select>
                     ) : (
-                      departments.find((d) => d.id === subsection.department_id)
+                      sections.find((s) => s.id === subsection.section_id)
                         ?.name || "N/A"
                     )}
                     <Flex justify="flex-end">

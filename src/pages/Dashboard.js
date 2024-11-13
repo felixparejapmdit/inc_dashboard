@@ -139,7 +139,7 @@ export default function Dashboard() {
     if (currentUser && currentUser.id) {
       console.log("Fetching available apps for user ID:", currentUser.id);
 
-      fetch(`${API_URL}/api/availableapps`, {
+      fetch(`${API_URL}/api/apps/available`, {
         headers: {
           "Content-Type": "application/json",
           "x-user-id": currentUser.id, // Use lowercase header to match backend

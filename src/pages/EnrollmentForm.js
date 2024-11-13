@@ -186,18 +186,22 @@ const EnrollmentForm = () => {
       );
 
       if (response.status === 201) {
-        // Display a success message
         alert("Personnel data has been successfully saved.");
 
-        // Proceed to the next step
-        setStep((prevStep) => Math.min(prevStep + 1, totalSteps));
+        if (step === 1) {
+          // Redirect to Step2 page if current step is 1
+          navigate("/step2");
+
+          // setStep(2); // Navigate to Step 2 after successful submission
+        } else {
+          // Otherwise, move to the next step
+          setStep((prevStep) => Math.min(prevStep + 1, totalSteps));
+        }
       } else {
         throw new Error("Unexpected response status: " + response.status);
       }
     } catch (error) {
       console.error("Error saving personnel data:", error);
-
-      // Display a detailed alert message
       const errorMessage =
         error.response?.data?.message ||
         "Failed to save personnel data. Please try again.";
@@ -1101,7 +1105,7 @@ const EnrollmentForm = () => {
             Previous
           </Button>
         )}
-        {step < 10 ? (
+        {step < 2 ? (
           <Button onClick={handleNext} colorScheme="teal">
             Next
           </Button>

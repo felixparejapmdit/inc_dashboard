@@ -1,86 +1,119 @@
-const appModel = require("../models/Apps");
+// controllers/appController.js
+const App = require("../models/Apps");
+const { Op } = require("sequelize");
+const sequelize = require("../config/database"); // Ensure you import sequelize if needed for raw queries
 
 // Get all apps
-exports.getAllApps = (req, res) => {
-  appModel.getAllApps((err, results) => {
-    if (err) {
-      console.error("Error fetching apps:", err);
-      return res.status(500).json({ message: "Database error" });
-    }
-    res.json(results);
-  });
+exports.getAllApps = async (req, res) => {
+  try {
+    const apps = await App.findAll();
+    res.json(apps);
+  } catch (error) {
+    console.error("Error fetching apps:", error);
+    res.status(500).json({ message: "Database error" });
+  }
 };
 
 // Get available apps for the logged-in user
-exports.getAvailableApps = (req, res) => {
-  const userId = req.headers["x-user-id"];
+exports.getAvailableApps = async (req, res) => {
+  const userId = req.headers["x-user-id"]; // Retrieve user ID from custom header
   if (!userId) {
     return res
       .status(401)
       .json({ message: "Unauthorized: No user ID provided" });
   }
 
-  appModel.getAvailableApps(userId, (err, results) => {
-    if (err) {
-      console.error("Error fetching available apps for user:", err);
-      return res.status(500).json({ message: "Database error" });
-    }
-    res.json(results || []);
-  });
+  try {
+    // Fetch available apps for the logged-in user using a JOIN on available_apps table
+    const availableApps = await sequelize.query(
+      `
+      SELECT apps.* 
+      FROM apps 
+      INNER JOIN available_apps ON apps.id = available_apps.app_id 
+      WHERE available_apps.user_id = :userId
+      `,
+      {
+        replacements: { userId },
+        type: sequelize.QueryTypes.SELECT,
+      }
+    );
+
+    res.json(availableApps);
+  } catch (error) {
+    console.error("Error fetching available apps for user:", error);
+    res.status(500).json({ message: "Database error" });
+  }
 };
 
 // Add a new app
-exports.addApp = (req, res) => {
+exports.addApp = async (req, res) => {
   const { name, url, description, icon } = req.body;
+
   if (!name || !url || !description) {
     return res
       .status(400)
       .json({ message: "All fields (name, url, description) are required." });
   }
 
-  appModel.addApp({ name, url, description, icon }, (err, result) => {
-    if (err) {
-      console.error("Error adding app:", err);
-      return res.status(500).json({ message: "Database error" });
-    }
-    res.status(201).json({ message: "App added successfully.", app: result });
-  });
+  // Updated URL validation regex pattern to allow localhost and ports
+  const urlPattern =
+    /^(https?:\/\/)(localhost|[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+)(:\d+)?(\/[\w-]*)*\/?$/;
+  if (!urlPattern.test(url)) {
+    return res
+      .status(400)
+      .json({ message: "Invalid URL format. Must start with http or https." });
+  }
+
+  try {
+    const newApp = await App.create({ name, url, description, icon });
+    res.status(201).json({ message: "App added successfully.", app: newApp });
+  } catch (error) {
+    console.error("Error adding app:", error);
+    res.status(500).json({ message: "Database error" });
+  }
 };
 
 // Update an existing app
-exports.updateApp = (req, res) => {
+exports.updateApp = async (req, res) => {
   const appId = req.params.id;
   const { name, url, description, icon } = req.body;
+
   if (!name || !url) {
     return res
       .status(400)
       .json({ message: "Name and URL fields are required." });
   }
 
-  appModel.updateApp(appId, { name, url, description, icon }, (err, result) => {
-    if (err) {
-      console.error("Error updating app:", err);
-      return res.status(500).json({ message: "Database error" });
-    }
-    if (!result) {
+  try {
+    const [updated] = await App.update(
+      { name, url, description, icon },
+      { where: { id: appId } }
+    );
+
+    if (!updated) {
       return res.status(404).json({ message: "App not found." });
     }
-    res.json({ message: "App updated successfully.", app: result });
-  });
+
+    const updatedApp = await App.findByPk(appId);
+    res.json({ message: "App updated successfully.", app: updatedApp });
+  } catch (error) {
+    console.error("Error updating app:", error);
+    res.status(500).json({ message: "Database error" });
+  }
 };
 
 // Delete an app
-exports.deleteApp = (req, res) => {
+exports.deleteApp = async (req, res) => {
   const appId = req.params.id;
 
-  appModel.deleteApp(appId, (err, result) => {
-    if (err) {
-      console.error("Error deleting app:", err);
-      return res.status(500).json({ message: "Database error" });
-    }
-    if (!result) {
+  try {
+    const deleted = await App.destroy({ where: { id: appId } });
+    if (!deleted) {
       return res.status(404).json({ message: "App not found." });
     }
     res.status(200).json({ message: "App deleted successfully." });
-  });
+  } catch (error) {
+    console.error("Error deleting app:", error);
+    res.status(500).json({ message: "Database error" });
+  }
 };
