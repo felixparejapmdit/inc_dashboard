@@ -18,6 +18,7 @@ import {
   ModalFooter,
   ModalBody,
   ModalCloseButton,
+  Heading,
 } from '@chakra-ui/react';
 import { BsUpload } from 'react-icons/bs';
 import { MdPhotoCamera } from 'react-icons/md';
@@ -119,7 +120,12 @@ const Step8 = ({ personnelId, onSaveImage }) => {
   };
 
   return (
-    <VStack spacing={6} align="center"  my={85}>
+    <VStack spacing={6} align="center"  my={115}>
+          <Heading as="h2" size="lg" textAlign="center" mb={6}>
+        Step 8: Upload Image(s)
+      </Heading>
+
+
       <Select
         value={imageSize}
         onChange={(e) => setImageSize(e.target.value)}
