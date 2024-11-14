@@ -33,6 +33,10 @@ import Step3 from "./pages/Step3";
 import Step4 from "./pages/Step4";
 import Step5 from "./pages/Step5";
 import Step6 from "./pages/Step6";
+import Step7 from "./pages/Step7";
+import Step8 from "./pages/Step8";
+// import Step9 from "./pages/Step9";
+// import Step10 from "./pages/Step10";
 
 function App() {
   return (
@@ -45,6 +49,10 @@ function App() {
           <Route path="/step4" element={<Step4 />} />
           <Route path="/step5" element={<Step5 />} />
           <Route path="/step6" element={<Step6 />} />
+          <Route path="/step7" element={<Step7 />} />
+          <Route path="/step8" element={<Step8 />} />
+          {/* <Route path="/step9" element={<Step9 />} />
+          <Route path="/step10" element={<Step10 />} /> */}
           
           {/* Redirect the root URL to /login */}
           <Route path="/" element={<Navigate to="/login" />} />

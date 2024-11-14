@@ -16,6 +16,9 @@ import Step3 from "./Step3";
 import Step4 from "./Step4"; // Import Step4 component
 import Step5 from "./Step5"; // Import Step5 component for siblings
 import Step6 from "./Step6"; // Import Step6 component for spouse
+import Step7 from "./Step7";
+import Step8 from './Step8'; // Update the path if needed
+
 
 const EnrollmentForm = () => {
   const [step, setStep] = useState(1);
@@ -242,8 +245,105 @@ const EnrollmentForm = () => {
       middleName: "",
       lastName: "",
       suffix: "",
-      gender: "Male",
+      gender: "Male", // Default gender
       status: "Alive", // Default status
+      bloodType: "",
+      civilStatus: "",
+      dateOfBirth: "",
+      contactNumber: "",
+      educationLevel: "",
+      startYear: "",
+      completionYear: "",
+      school: "",
+      fieldOfStudy: "",
+      degree: "",
+      institution: "",
+      professionalLicensureExamination: "",
+      employmentType: "",
+      company: "",
+      address: "",
+      position: "",
+      department: "",
+      section: "",
+      startDate: "",
+      endDate: "",
+      reasonForLeaving: "",
+      isEditing: true,
+    },
+  ]);
+  
+
+  const handleAddSpouse = () => {
+    setSpouses([
+      ...spouses,
+      {
+        relationshipType: "Spouse",
+        givenName: "",
+        middleName: "",
+        lastName: "",
+        suffix: "",
+        gender: "Female",
+        bloodType: "",
+        civilStatus: "",
+        dateOfBirth: "",
+        dateOfMarriage: "",
+        placeOfMarriage: "",
+        citizenship: "",
+        nationality: "",
+        contactNumber: "",
+        churchDuties: "",
+        livelihood: "",
+        localCongregation: "",
+        districtId: "",
+        ministerOfficiated: "",
+        employmentType: "",
+        company: "",
+        address: "",
+        position: "",
+        department: "",
+        section: "",
+        startDate: "",
+        endDate: "",
+        reasonForLeaving: "",
+        educationLevel: "",
+        startYear: "",
+        completionYear: "",
+        school: "",
+        fieldOfStudy: "",
+        degree: "",
+        institution: "",
+        professionalLicensureExamination: "",
+        status: "Alive",
+        isEditing: true,
+      },
+    ]);
+  };
+  
+  const handleSpouseChange = (index, field, value) => {
+    const updatedSpouses = spouses.map((spouse, i) =>
+      i === index ? { ...spouse, [field]: value } : spouse
+    );
+    setSpouses(updatedSpouses);
+  };
+  
+  const toggleEditSpouse = (index) => {
+    const updatedSpouses = [...spouses];
+    updatedSpouses[index].isEditing = !updatedSpouses[index].isEditing;
+    setSpouses(updatedSpouses);
+  };
+  
+  const handleDeleteSpouse = (index) => {
+    setSpouses(spouses.filter((_, i) => i !== index));
+  };
+  
+  
+  const [children, setChildren] = useState([
+    {
+      givenName: "",
+      middleName: "",
+      lastName: "",
+      suffix: "",
+      gender: "",
       bloodType: "",
       civilStatus: "",
       dateOfBirth: "",
@@ -260,68 +360,59 @@ const EnrollmentForm = () => {
     },
   ]);
 
-
-  const handleAddSpouse = () => {
-    setSpouses([...spouses, {
-      relationshipType: "Spouse",
-      givenName: "",
-      middleName: "",
-      lastName: "",
-      suffix: "",
-      gender: "",
-      bloodType: "",
-      civilStatus: "",
-      dateOfBirth: "",
-      dateOfMarriage: "",
-      placeOfMarriage: "",
-      citizenship: "",
-      nationality: "",
-      contactNumber: "",
-      churchDuties: "",
-      livelihood: "",
-      localCongregation: "",
-      districtId: "",
-      ministerOfficiated: "",
-      employmentType: "",
-      company: "",
-      address: "",
-      position: "",
-      department: "",
-      section: "",
-      startDate: "",
-      endDate: "",
-      reasonForLeaving: "",
-      educationLevel: "",
-      startYear: "",
-      completionYear: "",
-      school: "",
-      fieldOfStudy: "",
-      degree: "",
-      institution: "",
-      professionalLicensureExamination: "",
-      status: "", // Add a status field to handle deceased/alive status
-      isEditing: true
-    }]);
+  
+  const handleAddChild = () => {
+    setChildren([
+      ...children,
+      {
+        givenName: "",
+        middleName: "",
+        lastName: "",
+        suffix: "",
+        gender: "",
+        bloodType: "",
+        civilStatus: "",
+        dateOfBirth: "",
+        contactNumber: "",
+        educationLevel: "",
+        startYear: "",
+        completionYear: "",
+        school: "",
+        fieldOfStudy: "",
+        degree: "",
+        institution: "",
+        professionalLicensureExamination: "",
+        isEditing: true,
+      },
+    ]);
   };
   
-  const handleSpouseChange = (index, field, value) => {
-    const updatedSpouses = spouses.map((spouse, i) =>
-      i === index ? { ...spouse, [field]: value } : spouse
+  const toggleEditChild = (index) => {
+    const updatedChildren = [...children];
+    updatedChildren[index].isEditing = !updatedChildren[index].isEditing;
+    setChildren(updatedChildren);
+  };
+  
+  const handleChildChange = (index, field, value) => {
+    const updatedChildren = children.map((child, i) =>
+      i === index ? { ...child, [field]: value } : child
     );
-    setSpouses(updatedSpouses);
+    setChildren(updatedChildren);
   };
   
+  const handleDeleteChild = (index) => {
+    setChildren(children.filter((_, i) => i !== index));
+  };
   
 
-  const toggleEditSpouse = (index) => {
-    const updatedSpouses = [...spouses];
-    updatedSpouses[index].isEditing = !updatedSpouses[index].isEditing;
-    setSpouses(updatedSpouses);
+  const [personnelImage, setPersonnelImage] = useState(null);
+  const [personnelId, setPersonnelId] = useState(null);
+
+  const handleSaveImage = (imageData) => {
+    setPersonnelImage(imageData);
+    // Here you can add code to save `imageData` to your database if needed.
   };
-  
-  const handleDeleteSpouse = (index) => {
-    setSpouses(spouses.filter((_, i) => i !== index));
-  };
+
   
   const navigate = useNavigate();
 
@@ -484,7 +575,20 @@ const EnrollmentForm = () => {
   />
 )}
 
+{step === 7 && (
+  <Step7
+    children={children}
+    handleAddChild={handleAddChild}
+    handleChildChange={handleChildChange}
+    toggleEditChild={toggleEditChild}
+    handleDeleteChild={handleDeleteChild}
+  />
+)}
 
+
+{step === 8 && (
+  <Step8 personnelId={personnelId} onSaveImage={handleSaveImage} />
+)}
 
 
       {/* Navigation Buttons */}
@@ -504,7 +608,7 @@ const EnrollmentForm = () => {
             Previous
           </Button>
         )}
-        {step < 6 ? (
+        {step < 8 ? (
           <Button onClick={handleNext} colorScheme="teal" isLoading={isLoading}>
             Next
           </Button>
