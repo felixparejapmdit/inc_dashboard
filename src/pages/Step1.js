@@ -39,51 +39,6 @@ const Step1 = ({ personnelData, handleChange, emailError, age }) => {
 
   return (
     <VStack spacing={4}>
-      <Box
-        position="fixed"
-        top="0"
-        width="100%"
-        zIndex="1"
-        bg="white"
-        boxShadow="sm"
-      >
-        <Flex alignItems="center" my={2}>
-          <Heading
-            as="h2"
-            size="lg"
-            color="teal.600"
-            textAlign="center"
-            flex="1"
-          >
-            Personnel Enrollment
-          </Heading>
-        </Flex>
-        {/* Step Indicator */}
-        <Flex justify="center" align="center" my={6} px={4} bg="#FEF3C7" py={2}>
-          {Array.from({ length: totalSteps }, (_, index) => (
-            <Box
-              key={index}
-              as="button"
-              onClick={() => setStep(index + 1)}
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              borderRadius="full"
-              width="40px"
-              height="40px"
-              mx={2}
-              fontWeight="bold"
-              color="white"
-              bg={step > index ? "green.400" : "gray.200"}
-              border={step === index + 1 ? "2px solid #2D3748" : "none"}
-              transition="background 0.3s, border 0.3s"
-            >
-              {step > index ? <CheckIcon /> : index + 1}
-            </Box>
-          ))}
-        </Flex>
-      </Box>
-
       {/* Step 1: Basic Information */}
       {step === 1 && (
         <Box width="100%" bg="white" boxShadow="sm" my={85}>
