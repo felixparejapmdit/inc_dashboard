@@ -1,12 +1,6 @@
 // src/pages/EnrollmentForm.js
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Button,
-  VStack,
-  Heading,
-  Flex,
-} from "@chakra-ui/react";
+import { Box, Button, VStack, Heading, Flex } from "@chakra-ui/react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { CheckIcon } from "@chakra-ui/icons";
@@ -17,12 +11,11 @@ import Step4 from "./Step4"; // Import Step4 component
 import Step5 from "./Step5"; // Import Step5 component for siblings
 import Step6 from "./Step6"; // Import Step6 component for spouse
 import Step7 from "./Step7";
-import Step8 from './Step8'; // Update the path if needed
-
+import Step8 from "./Step8"; // Update the path if needed
 
 const EnrollmentForm = () => {
   const [step, setStep] = useState(1);
-  const totalSteps = 10;
+  const totalSteps = 8;
   const [isLoading, setIsLoading] = useState(false);
   const [personnelData, setPersonnelData] = useState({
     // Initialize all fields here as in your original code
@@ -119,51 +112,67 @@ const EnrollmentForm = () => {
       isEditing: true,
     },
   ]);
-  
 
-  const handleAddContact = () => setContacts([...contacts, { contactType: "", contactInfo: "" }]);
-  const handleAddAddress = () => setAddresses([...addresses, { addressType: "", name: "" }]);
-  const handleAddGovID = () => setGovIDs([...govIDs, { govIDType: "", govIDNumber: "" }]);
+  const handleAddContact = () =>
+    setContacts([...contacts, { contactType: "", contactInfo: "" }]);
+  const handleAddAddress = () =>
+    setAddresses([...addresses, { addressType: "", name: "" }]);
+  const handleAddGovID = () =>
+    setGovIDs([...govIDs, { govIDType: "", govIDNumber: "" }]);
 
   const handleContactChange = (idx, field, value) => {
-    const updatedContacts = contacts.map((contact, i) => (i === idx ? { ...contact, [field]: value } : contact));
+    const updatedContacts = contacts.map((contact, i) =>
+      i === idx ? { ...contact, [field]: value } : contact
+    );
     setContacts(updatedContacts);
   };
 
   const handleAddressChange = (idx, field, value) => {
-    const updatedAddresses = addresses.map((address, i) => (i === idx ? { ...address, [field]: value } : address));
+    const updatedAddresses = addresses.map((address, i) =>
+      i === idx ? { ...address, [field]: value } : address
+    );
     setAddresses(updatedAddresses);
   };
 
   const handleGovIDChange = (idx, field, value) => {
-    const updatedGovIDs = govIDs.map((id, i) => (i === idx ? { ...id, [field]: value } : id));
+    const updatedGovIDs = govIDs.map((id, i) =>
+      i === idx ? { ...id, [field]: value } : id
+    );
     setGovIDs(updatedGovIDs);
   };
 
-  const handleAddEducation = () => setEducation([...education, {
-    level: "",
-    startFrom: "",
-    completionYear: "",
-    school: "",
-    fieldOfStudy: "",
-    degree: "",
-    institution: "",
-    professionalLicensure: "",
-    isEditing: true,
-  }]);
+  const handleAddEducation = () =>
+    setEducation([
+      ...education,
+      {
+        level: "",
+        startFrom: "",
+        completionYear: "",
+        school: "",
+        fieldOfStudy: "",
+        degree: "",
+        institution: "",
+        professionalLicensure: "",
+        isEditing: true,
+      },
+    ]);
 
-  const handleAddWorkExperience = () => setWorkExperience([...workExperience, {
-    employmentType: "",
-    company: "",
-    address: "",
-    position: "",
-    department: "",
-    section: "",
-    startDate: "",
-    endDate: "",
-    reasonForLeaving: "",
-    isEditing: true,
-  }]);
+  const handleAddWorkExperience = () =>
+    setWorkExperience([
+      ...workExperience,
+      {
+        employmentType: "",
+        company: "",
+        address: "",
+        position: "",
+        department: "",
+        section: "",
+        startDate: "",
+        endDate: "",
+        reasonForLeaving: "",
+        isEditing: true,
+      },
+    ]);
 
   const toggleEditParent = (index) => {
     const updatedParents = [...parents];
@@ -177,7 +186,6 @@ const EnrollmentForm = () => {
     );
     setParents(updatedParents);
   };
-
 
   const [siblings, setSiblings] = useState([
     {
@@ -202,7 +210,7 @@ const EnrollmentForm = () => {
       isEditing: true,
     },
   ]);
-  
+
   // 3. Functions for managing siblings
   const handleAddSibling = () =>
     setSiblings([
@@ -229,14 +237,13 @@ const EnrollmentForm = () => {
         isEditing: true,
       },
     ]);
-  
+
   const handleSiblingChange = (index, field, value) => {
     const updatedSiblings = siblings.map((sibling, i) =>
       i === index ? { ...sibling, [field]: value } : sibling
     );
     setSiblings(updatedSiblings);
   };
-
 
   const [spouses, setSpouses] = useState([
     {
@@ -271,7 +278,6 @@ const EnrollmentForm = () => {
       isEditing: true,
     },
   ]);
-  
 
   const handleAddSpouse = () => {
     setSpouses([
@@ -318,25 +324,24 @@ const EnrollmentForm = () => {
       },
     ]);
   };
-  
+
   const handleSpouseChange = (index, field, value) => {
     const updatedSpouses = spouses.map((spouse, i) =>
       i === index ? { ...spouse, [field]: value } : spouse
     );
     setSpouses(updatedSpouses);
   };
-  
+
   const toggleEditSpouse = (index) => {
     const updatedSpouses = [...spouses];
     updatedSpouses[index].isEditing = !updatedSpouses[index].isEditing;
     setSpouses(updatedSpouses);
   };
-  
+
   const handleDeleteSpouse = (index) => {
     setSpouses(spouses.filter((_, i) => i !== index));
   };
-  
-  
+
   const [children, setChildren] = useState([
     {
       givenName: "",
@@ -360,7 +365,6 @@ const EnrollmentForm = () => {
     },
   ]);
 
-  
   const handleAddChild = () => {
     setChildren([
       ...children,
@@ -386,24 +390,23 @@ const EnrollmentForm = () => {
       },
     ]);
   };
-  
+
   const toggleEditChild = (index) => {
     const updatedChildren = [...children];
     updatedChildren[index].isEditing = !updatedChildren[index].isEditing;
     setChildren(updatedChildren);
   };
-  
+
   const handleChildChange = (index, field, value) => {
     const updatedChildren = children.map((child, i) =>
       i === index ? { ...child, [field]: value } : child
     );
     setChildren(updatedChildren);
   };
-  
+
   const handleDeleteChild = (index) => {
     setChildren(children.filter((_, i) => i !== index));
   };
-  
 
   const [personnelImage, setPersonnelImage] = useState(null);
   const [personnelId, setPersonnelId] = useState(null);
@@ -413,16 +416,19 @@ const EnrollmentForm = () => {
     // Here you can add code to save `imageData` to your database if needed.
   };
 
-  
   const navigate = useNavigate();
 
   const handleNext = async () => {
     setIsLoading(true);
     if (step === 1) {
       try {
-        await axios.post("http://localhost:5000/api/personnels", personnelData, {
-          headers: { "Content-Type": "application/json" },
-        });
+        await axios.post(
+          "http://localhost:5000/api/personnels",
+          personnelData,
+          {
+            headers: { "Content-Type": "application/json" },
+          }
+        );
         setStep(2); // Move to Step 2
       } catch (error) {
         setStep(2); // Move to Step 2
@@ -555,41 +561,37 @@ const EnrollmentForm = () => {
         />
       )}
 
+      {step === 5 && (
+        <Step5
+          siblings={siblings}
+          handleSiblingChange={handleSiblingChange}
+          handleAddSibling={handleAddSibling}
+        />
+      )}
 
-    {step === 5 && (
-      <Step5
-        siblings={siblings}
-        handleSiblingChange={handleSiblingChange}
-        handleAddSibling={handleAddSibling}
-      />
-    )}
+      {step === 6 && (
+        <Step6
+          spouses={spouses}
+          handleSpouseChange={handleSpouseChange}
+          handleAddSpouse={handleAddSpouse}
+          toggleEditSpouse={toggleEditSpouse}
+          handleDeleteSpouse={handleDeleteSpouse}
+        />
+      )}
 
+      {step === 7 && (
+        <Step7
+          children={children}
+          handleAddChild={handleAddChild}
+          handleChildChange={handleChildChange}
+          toggleEditChild={toggleEditChild}
+          handleDeleteChild={handleDeleteChild}
+        />
+      )}
 
-{step === 6 && (
-  <Step6
-    spouses={spouses}
-    handleSpouseChange={handleSpouseChange}
-    handleAddSpouse={handleAddSpouse}
-    toggleEditSpouse={toggleEditSpouse}
-    handleDeleteSpouse={handleDeleteSpouse}
-  />
-)}
-
-{step === 7 && (
-  <Step7
-    children={children}
-    handleAddChild={handleAddChild}
-    handleChildChange={handleChildChange}
-    toggleEditChild={toggleEditChild}
-    handleDeleteChild={handleDeleteChild}
-  />
-)}
-
-
-{step === 8 && (
-  <Step8 personnelId={personnelId} onSaveImage={handleSaveImage} />
-)}
-
+      {step === 8 && (
+        <Step8 personnelId={personnelId} onSaveImage={handleSaveImage} />
+      )}
 
       {/* Navigation Buttons */}
       <Box
