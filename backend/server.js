@@ -11,7 +11,7 @@ const userRoutes = require("./routes/userRoutes");
 const ldapRoutes = require("./routes/ldapRoutes");
 const appRoutes = require("./routes/appRoutes");
 // const eventRoutes = require("./routes/eventRoutes");
-// const suguanRoutes = require("./routes/suguanRoutes");
+const suguanRoutes = require("./routes/suguanRoutes");
 // const reminderRoutes = require("./routes/reminderRoutes");
 const personnelsRoutes = require("./routes/personnelsRoutes"); // Replace with actual route file path
 
@@ -33,7 +33,7 @@ app.use(userRoutes);
 app.use(ldapRoutes);
 app.use(appRoutes);
 // app.use(eventRoutes);
-// app.use(suguanRoutes);
+app.use(suguanRoutes);
 // app.use(reminderRoutes);
 
 app.use(personnelsRoutes);

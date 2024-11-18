@@ -31,71 +31,88 @@ const Suguan = () => {
   const [suguan, setSuguan] = useState([]);
   const [currentWeek, setCurrentWeek] = useState(moment().startOf("isoWeek")); // Monday as start of the week
   const [name, setName] = useState("");
-  const [district, setDistrict] = useState("");
-  const [local, setLocal] = useState("");
+  const [district_id, setDistrictId] = useState("");
+  const [local_id, setLocalId] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
-  const [gampanin, setGampanin] = useState("");
-  const [status, setStatus] = useState("");
+  const [gampanin_id, setGampaninId] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [editingSuguan, setEditingSuguan] = useState(null);
+  const [status, setStatus] = useState("");
 
   useEffect(() => {
-    fetch(`${API_URL}/api/suguan`)
-      .then((res) => res.json())
-      .then((data) => {
-        const sortedSuguan = data.sort((a, b) => {
-          const dateA = new Date(`${a.date}T${a.time}`);
-          const dateB = new Date(`${b.date}T${b.time}`);
-          return dateA - dateB;
-        });
-        setSuguan(sortedSuguan);
-      })
-      .catch((err) => console.error(err));
-  }, []);
+    const fetchSuguan = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/suguan`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch Suguan. Status: ${response.status}`);
+        }
+        const data = await response.json();
 
-  const handleAddOrEditSuguan = (e) => {
-    e.preventDefault();
-    const newSuguan = {
-      id: editingSuguan ? editingSuguan.id : new Date().getTime(),
-      name,
-      district,
-      local,
-      date,
-      time,
-      gampanin,
+        if (Array.isArray(data)) {
+          const sortedSuguan = data.sort((a, b) => {
+            const dateA = new Date(`${a.date}T${a.time}`);
+            const dateB = new Date(`${b.date}T${b.time}`);
+            return dateA - dateB;
+          });
+          setSuguan(sortedSuguan);
+        } else {
+          console.error("Unexpected API response:", data);
+        }
+      } catch (error) {
+        console.error("Error fetching Suguan:", error);
+      }
     };
 
-    if (editingSuguan) {
-      fetch(`${API_URL}/api/suguan/${editingSuguan.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newSuguan),
-      })
-        .then(() => {
-          setSuguan((prevSuguan) =>
-            prevSuguan.map((item) =>
-              item.id === editingSuguan.id ? newSuguan : item
-            )
-          );
-          setStatus(`Suguan "${name}" updated successfully.`);
-          onClose();
-          resetForm();
-        })
-        .catch(() => setStatus("Error updating suguan. Please try again."));
-    } else {
-      fetch(`${API_URL}/api/suguan`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newSuguan),
-      })
-        .then(() => {
-          setSuguan((prevSuguan) => [...prevSuguan, newSuguan]);
-          setStatus(`Suguan "${name}" added successfully.`);
-          onClose();
-          resetForm();
-        })
-        .catch(() => setStatus("Error adding suguan. Please try again."));
+    fetchSuguan();
+  }, [API_URL]);
+
+  const handleAddOrEditSuguan = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(
+        editingSuguan
+          ? `${API_URL}/api/suguan/${editingSuguan.id}`
+          : `${API_URL}/api/suguan`,
+        {
+          method: editingSuguan ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            district_id,
+            local_id,
+            date,
+            time,
+            gampanin_id,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to ${editingSuguan ? "update" : "add"} Suguan. Status: ${
+            response.status
+          }`
+        );
+      }
+
+      const result = await response.json();
+      if (editingSuguan) {
+        setSuguan((prev) =>
+          prev.map((item) =>
+            item.id === editingSuguan.id ? { ...item, ...result } : item
+          )
+        );
+        setStatus(`Suguan "${name}" updated successfully.`);
+      } else {
+        setSuguan((prev) => [...prev, result]);
+        setStatus(`Suguan "${name}" added successfully.`);
+      }
+      onClose();
+      resetForm();
+    } catch (error) {
+      console.error("Error in handleAddOrEditSuguan:", error);
+      setStatus("Error processing the request. Please try again.");
     }
   };
 
@@ -112,21 +129,21 @@ const Suguan = () => {
   const handleEditSuguan = (item) => {
     setEditingSuguan(item);
     setName(item.name);
-    setDistrict(item.district);
-    setLocal(item.local);
+    setDistrictId(item.district);
+    setLocalId(item.local);
     setDate(item.date);
     setTime(item.time);
-    setGampanin(item.gampanin);
+    setGampaninId(item.gampanin);
     onOpen();
   };
 
   const resetForm = () => {
     setName("");
-    setDistrict("");
-    setLocal("");
+    setDistrictId("");
+    setLocalId("");
     setDate("");
     setTime("");
-    setGampanin("");
+    setGampaninId("");
     setEditingSuguan(null);
   };
 
@@ -172,14 +189,13 @@ const Suguan = () => {
     <Box p={6}>
       <Heading mb={6}>Manage Suguan</Heading>
 
+      {/* Week navigation */}
       <HStack justify="center" mb={4}>
         <Button
           onClick={handlePreviousWeek}
           colorScheme="blue"
           leftIcon={<ArrowLeftIcon />}
-        >
-          Previous
-        </Button>
+        ></Button>
         <Heading size="md">
           Week {currentWeek.isoWeek()} ({startOfWeek.format("MMM DD")} -{" "}
           {endOfWeek.format("MMM DD")})
@@ -188,11 +204,10 @@ const Suguan = () => {
           onClick={handleNextWeek}
           colorScheme="blue"
           rightIcon={<ArrowRightIcon />}
-        >
-          Next
-        </Button>
+        ></Button>
       </HStack>
 
+      {/* Add Suguan button */}
       <Button
         leftIcon={<FiUser />}
         onClick={() => {
@@ -206,18 +221,20 @@ const Suguan = () => {
         Add Suguan
       </Button>
 
+      {/* Display Suguan schedule */}
       {midweekSuguan.length === 0 && weekendSuguan.length === 0 ? (
         <Text textAlign="center" color="red.500" mt={4}>
-          No suguan schedule for this week...
+          No Suguan schedule for this week.
         </Text>
       ) : (
-        <SimpleGrid columns={2} spacing={6}>
+        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+          {/* Midweek Suguan */}
           <VStack align="stretch">
             <Heading align="center" as="h3" size="lg" mb={4}>
               Midweek
             </Heading>
             {midweekSuguan.length === 0 ? (
-              <Text>No Midweek Suguan</Text>
+              <Text textAlign="center">No Midweek Suguan</Text>
             ) : (
               midweekSuguan.map((item) => (
                 <Box
@@ -233,37 +250,37 @@ const Suguan = () => {
                     {item.name}
                   </Text>
                   <Text>
-                    {item.district} - {item.local}
+                    District: {item.district_id}, Local: {item.local_id}
                   </Text>
                   <Text>
-                    Time: {moment(item.time, "HH:mm").format("h:mm A")},{" "}
-                    {moment(item.date).format("dddd")}
+                    Date: {moment(item.date).format("MMM DD, YYYY")}, Time:{" "}
+                    {moment(item.time, "HH:mm").format("h:mm A")}
                   </Text>
-                  <Text>Gampanin: {item.gampanin}</Text>
-                  <Box mt={3}>
+                  <Text>Gampanin ID: {item.gampanin_id}</Text>
+                  <HStack mt={3}>
                     <IconButton
                       icon={<FiEdit />}
                       colorScheme="gray"
                       onClick={() => handleEditSuguan(item)}
-                      mr={2}
                     />
                     <IconButton
                       icon={<FiTrash2 />}
                       colorScheme="gray"
                       onClick={() => handleDeleteSuguan(item.id)}
                     />
-                  </Box>
+                  </HStack>
                 </Box>
               ))
             )}
           </VStack>
 
+          {/* Weekend Suguan */}
           <VStack align="stretch">
             <Heading align="center" as="h3" size="lg" mb={4}>
               Weekend
             </Heading>
             {weekendSuguan.length === 0 ? (
-              <Text>No Weekend Suguan</Text>
+              <Text textAlign="center">No Weekend Suguan</Text>
             ) : (
               weekendSuguan.map((item) => (
                 <Box
@@ -279,26 +296,25 @@ const Suguan = () => {
                     {item.name}
                   </Text>
                   <Text>
-                    {item.district} - {item.local}
+                    District: {item.district_id}, Local: {item.local_id}
                   </Text>
                   <Text>
-                    Time: {moment(item.time, "HH:mm").format("h:mm A")},{" "}
-                    {moment(item.date).format("dddd")}
+                    Date: {moment(item.date).format("MMM DD, YYYY")}, Time:{" "}
+                    {moment(item.time, "HH:mm").format("h:mm A")}
                   </Text>
-                  <Text>Gampanin: {item.gampanin}</Text>
-                  <Box mt={3}>
+                  <Text>Gampanin ID: {item.gampanin_id}</Text>
+                  <HStack mt={3}>
                     <IconButton
                       icon={<FiEdit />}
                       colorScheme="gray"
                       onClick={() => handleEditSuguan(item)}
-                      mr={2}
                     />
                     <IconButton
                       icon={<FiTrash2 />}
                       colorScheme="gray"
                       onClick={() => handleDeleteSuguan(item.id)}
                     />
-                  </Box>
+                  </HStack>
                 </Box>
               ))
             )}
@@ -306,6 +322,7 @@ const Suguan = () => {
         </SimpleGrid>
       )}
 
+      {/* Add/Edit Modal */}
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
@@ -319,38 +336,44 @@ const Suguan = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter Name"
+                isRequired
               />
               <Input
-                value={district}
-                onChange={(e) => setDistrict(e.target.value)}
-                placeholder="Enter District"
+                value={district_id}
+                onChange={(e) => setDistrictId(e.target.value)}
+                placeholder="Enter District ID"
+                isRequired
               />
               <Input
-                value={local}
-                onChange={(e) => setLocal(e.target.value)}
-                placeholder="Enter Local"
+                value={local_id}
+                onChange={(e) => setLocalId(e.target.value)}
+                placeholder="Enter Local ID"
+                isRequired
               />
               <Input
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
+                isRequired
               />
               <Input
                 type="time"
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
+                isRequired
               />
               <Select
-                value={gampanin}
-                onChange={(e) => setGampanin(e.target.value)}
+                value={gampanin_id}
+                onChange={(e) => setGampaninId(e.target.value)}
                 placeholder="Select Gampanin"
+                isRequired
               >
-                <option value="Sugo">Sugo</option>
-                <option value="Sugo 1">Sugo 1</option>
-                <option value="Sugo 2">Sugo 2</option>
-                <option value="Reserba">Reserba</option>
-                <option value="Reserba 1">Reserba 1</option>
-                <option value="Reserba 2">Reserba 2</option>
+                <option value="1">Sugo</option>
+                <option value="2">Sugo 1</option>
+                <option value="3">Sugo 2</option>
+                <option value="4">Reserba</option>
+                <option value="5">Reserba 1</option>
+                <option value="6">Reserba 2</option>
               </Select>
             </VStack>
           </ModalBody>
@@ -363,6 +386,7 @@ const Suguan = () => {
         </ModalContent>
       </Modal>
 
+      {/* Status message */}
       {status && (
         <Box
           mt={4}
