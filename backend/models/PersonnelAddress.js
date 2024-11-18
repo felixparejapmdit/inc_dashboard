@@ -1,5 +1,5 @@
-const { DataTypes } = require("sequelize");
-const db = require("../db");
+const { Sequelize, DataTypes } = require("sequelize");
+const db = require("../config/database");
 
 const PersonnelAddress = db.define("PersonnelAddress", {
   id: {
@@ -19,6 +19,9 @@ const PersonnelAddress = db.define("PersonnelAddress", {
     type: DataTypes.STRING(250),
     allowNull: false,
   },
+}, {
+  tableName: "personnel_address",
+  timestamps: false,
 });
 
 module.exports = PersonnelAddress;

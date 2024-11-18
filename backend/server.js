@@ -4,6 +4,8 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 
+const IP_Address = process.env.REACT_IP_ADDRESS;
+
 const app = express();
 const PORT = 5000;
 
@@ -13,7 +15,13 @@ const appRoutes = require("./routes/appRoutes");
 // const eventRoutes = require("./routes/eventRoutes");
 const suguanRoutes = require("./routes/suguanRoutes");
 // const reminderRoutes = require("./routes/reminderRoutes");
+
+
 const personnelsRoutes = require("./routes/personnelsRoutes"); // Replace with actual route file path
+const personnelContactsRoutes = require("./routes/personnelContactsRoutes");
+const personnelAddressesRoutes = require("./routes/personnelAddressesRoutes");
+const personnelGovIDsRoutes = require("./routes/personnelGovIDsRoutes");
+const familyMembersRoutes = require("./routes/familyMembersRoutes");
 
 const departmentRoutes = require("./routes/departmentRoutes");
 const sectionsRoutes = require("./routes/sectionsRoutes");
@@ -37,6 +45,10 @@ app.use(suguanRoutes);
 // app.use(reminderRoutes);
 
 app.use(personnelsRoutes);
+app.use(personnelContactsRoutes);
+app.use(personnelAddressesRoutes);
+app.use(personnelGovIDsRoutes);
+app.use(familyMembersRoutes);
 
 // Management
 app.use(departmentRoutes);
@@ -50,5 +62,5 @@ app.use(languagesRoutes);
 
 // --- Start server ---
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost/:${PORT}`);
+  console.log(`Server is running on ${IP_Address}:${PORT}`);
 });

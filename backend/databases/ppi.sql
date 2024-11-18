@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.0
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 14, 2024 at 12:53 PM
--- Server version: 10.4.25-MariaDB
--- PHP Version: 8.1.10
+-- Generation Time: Nov 18, 2024 at 11:52 PM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -33,7 +33,7 @@ CREATE TABLE `apps` (
   `url` varchar(50) NOT NULL,
   `description` varchar(50) DEFAULT NULL,
   `icon` text DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `apps`
@@ -61,7 +61,7 @@ CREATE TABLE `available_apps` (
   `user_id` int(11) NOT NULL,
   `app_id` int(11) NOT NULL,
   `ldap_group_cn` varchar(50) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `available_apps`
@@ -77,9 +77,18 @@ INSERT INTO `available_apps` (`id`, `user_id`, `app_id`, `ldap_group_cn`) VALUES
 (61, 48, 6, ''),
 (62, 48, 7, ''),
 (63, 48, 8, ''),
-(78, 46, 1, ''),
-(79, 46, 4, ''),
-(80, 46, 3, '');
+(81, 46, 1, ''),
+(82, 46, 4, ''),
+(83, 46, 3, ''),
+(84, 46, 2, ''),
+(85, 22, 1, ''),
+(86, 22, 2, ''),
+(87, 22, 3, ''),
+(88, 22, 4, ''),
+(89, 22, 5, ''),
+(90, 22, 6, ''),
+(91, 22, 7, ''),
+(92, 22, 8, '');
 
 -- --------------------------------------------------------
 
@@ -96,7 +105,7 @@ CREATE TABLE `children` (
   `lastname` varchar(50) NOT NULL,
   `suffix` text DEFAULT NULL,
   `date_of_birth` date DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -110,7 +119,7 @@ CREATE TABLE `citizenships` (
   `citizenship` varchar(100) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `citizenships`
@@ -323,7 +332,7 @@ CREATE TABLE `contacts` (
   `personnel_id` bigint(20) NOT NULL,
   `contactype` varchar(20) NOT NULL,
   `contact_info` varchar(30) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -337,7 +346,7 @@ CREATE TABLE `departments` (
   `image_url` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `departments`
@@ -359,7 +368,7 @@ CREATE TABLE `designations` (
   `name` varchar(50) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `designations`
@@ -379,7 +388,7 @@ CREATE TABLE `districts` (
   `name` varchar(50) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `districts`
@@ -401,7 +410,7 @@ CREATE TABLE `educational_background` (
   `field_of_study` varchar(50) DEFAULT NULL,
   `institution` varchar(50) NOT NULL,
   `completion_year` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -415,7 +424,7 @@ CREATE TABLE `languages` (
   `language` varchar(50) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `languages`
@@ -440,7 +449,7 @@ CREATE TABLE `login_attempts` (
   `successful` tinyint(1) NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `login_attempts`
@@ -621,7 +630,7 @@ CREATE TABLE `nationalities` (
   `nationality` varchar(100) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `nationalities`
@@ -833,7 +842,7 @@ CREATE TABLE `navgroup` (
   `groupid` int(11) DEFAULT NULL,
   `navid` int(11) DEFAULT NULL,
   `status` int(11) DEFAULT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `navgroup`
@@ -861,7 +870,7 @@ CREATE TABLE `navigationlist` (
   `NavType` int(11) NOT NULL,
   `ParentID` int(11) NOT NULL,
   `Icon` varchar(50) NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `navigationlist`
@@ -890,7 +899,7 @@ CREATE TABLE `permission_groups` (
   `permissions` text DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `permission_groups`
@@ -943,14 +952,15 @@ CREATE TABLE `personnels` (
   `ordination_date` datetime DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `personnels`
 --
 
 INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progress`, `personnel_progress`, `gender`, `civil_status`, `wedding_anniversary`, `givenname`, `middlename`, `surname_maiden`, `surname_husband`, `suffix`, `nickname`, `date_of_birth`, `place_of_birth`, `datejoined`, `language_id`, `bloodtype`, `email_address`, `citizenship`, `nationality`, `department_id`, `section_id`, `subsection_id`, `designation_id`, `district_id`, `local_congregation`, `personnel_type`, `assigned_number`, `m_status`, `panunumpa_date`, `ordination_date`, `created_at`, `updated_at`) VALUES
-(2, NULL, '1', 'District Office', 'Male', 'Single', NULL, 'Felix', NULL, 'Pareja', '', NULL, 'Chok', '1990-11-09 10:57:12', 'Quezon City', NULL, 'Tagalog, English', 'O+', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-11-06 03:54:49', '2024-11-06 03:54:49');
+(2, NULL, '1', 'District Office', 'Male', 'Single', NULL, 'Felix', NULL, 'Pareja', '', NULL, 'Chok', '1990-11-09 10:57:12', 'Quezon City', NULL, 'Tagalog, English', 'O+', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-11-06 03:54:49', '2024-11-06 03:54:49'),
+(8, 'ENR-2411-EP1-7619', '1', 'District Office', 'Male', 'Married', '0000-00-00 00:00:00', 'Kim Roland', 'Test', '', 'Amaro', '', 'Kim', '1997-11-19 00:00:00', 'asd', '2024-11-19 00:00:00', NULL, 'A-', 'kim@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', 'Regular', 212112, NULL, '2019-11-19 00:00:00', '0000-00-00 00:00:00', '2024-11-18 17:24:51', '2024-11-18 17:24:51');
 
 -- --------------------------------------------------------
 
@@ -961,7 +971,7 @@ INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progre
 CREATE TABLE `personnel_gov_id` (
   `id` int(11) NOT NULL,
   `name` varchar(100) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `personnel_gov_id`
@@ -1000,7 +1010,7 @@ CREATE TABLE `reminders` (
   `time` datetime NOT NULL,
   `message` varchar(250) DEFAULT NULL,
   `created_by` int(11) NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -1015,7 +1025,7 @@ CREATE TABLE `sections` (
   `image_url` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `sections`
@@ -1040,7 +1050,7 @@ CREATE TABLE `siblings` (
   `lastname` varchar(50) NOT NULL,
   `suffix` text DEFAULT NULL,
   `date_of_birth` date DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -1065,7 +1075,7 @@ CREATE TABLE `spouses` (
   `company_name` varchar(100) DEFAULT NULL,
   `industry` varchar(50) DEFAULT NULL,
   `work_experience` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -1081,7 +1091,7 @@ CREATE TABLE `subsections` (
   `image_url` text NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `subsections`
@@ -1090,6 +1100,29 @@ CREATE TABLE `subsections` (
 INSERT INTO `subsections` (`id`, `department_id`, `section_id`, `name`, `image_url`, `created_at`, `updated_at`) VALUES
 (1, 1, 2, 'PMD IT', '', '2024-11-12 06:26:27', '2024-11-12 06:26:27'),
 (2, 1, 3, 'INC Hymns', '', '2024-11-13 01:04:44', '2024-11-13 01:04:44');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `suguan`
+--
+
+CREATE TABLE `suguan` (
+  `id` int(11) NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `district_id` int(11) NOT NULL,
+  `local_id` int(11) NOT NULL,
+  `date` datetime NOT NULL,
+  `time` time NOT NULL,
+  `gampanin_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `suguan`
+--
+
+INSERT INTO `suguan` (`id`, `name`, `district_id`, `local_id`, `date`, `time`, `gampanin_id`) VALUES
+(1, 'fe', 1, 1, '2024-11-18 00:00:00', '06:00:00', 3);
 
 -- --------------------------------------------------------
 
@@ -1111,7 +1144,7 @@ CREATE TABLE `users` (
   `last_failed_attempt` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
@@ -1139,7 +1172,7 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (19, 'pmdit', NULL, NULL, 'pmdit', '{SSHA}1c2pNTw54K4Avjn7GQ90PMyXBD714zOt', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (20, 'atgstaff', NULL, NULL, 'atgstaff', '{SSHA}gy6OWTydaQLnRY11qhdccao0Add7gNdz', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (21, 'eeustaquio', NULL, NULL, 'eeustaquio', '{MD5}tRnpZ0iqYDF7QA4j1EFfkw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(22, 'rolandkim.amaro', NULL, NULL, 'rolandkim.amaro', '{MD5}Mo44VG5oZyexF0jNwGQNiQ==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
+(22, 'rolandkim.amaro', NULL, '', 'rolandkim.amaro', '{MD5}Mo44VG5oZyexF0jNwGQNiQ==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (23, 'test', NULL, NULL, 'test', '{SSHA}fwON2kpe0RkoPqda45A4uC7TfiXvd+Yh', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (24, 'kyrt.jurada', NULL, NULL, 'kyrt.jurada', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (25, 'admin.archiving', NULL, NULL, 'admin.archiving', '{SSHA}jO7uycWuSuI1bz2M/cE5W4nd5pFoPgho', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
@@ -1163,7 +1196,7 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (43, 'executive.news', NULL, NULL, 'executive.news', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (44, 'pmd.it', NULL, NULL, 'pmd.it', '{SSHA}LYVyCEUbqbnRdJMh/NGuR38z6zbsDKG+', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (45, 'r.deguzman', NULL, NULL, 'r.deguzman', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(46, 'felix.pareja', 2, '', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
+(46, 'felix.pareja', 2, '', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (47, 'nsanchez', NULL, NULL, 'nsanchez', '{MD5}4vh3FhfOq3i3zcUJki6UBg==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (48, NULL, NULL, NULL, 'admin', '$2a$12$ZXhnczgjZG4QAa4oGMH5eOt0.a9urccMHJ0/FBYB5zCe2/zfh3dEO', 0, NULL, 'Local', NULL, NULL, NULL, NULL);
 
@@ -1177,7 +1210,7 @@ CREATE TABLE `user_appslist` (
   `id` int(11) NOT NULL,
   `groupid` int(11) DEFAULT NULL,
   `appid` int(11) NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `user_appslist`
@@ -1241,7 +1274,7 @@ INSERT INTO `user_appslist` (`id`, `groupid`, `appid`) VALUES
 CREATE TABLE `user_navlist` (
   `groupid` int(11) NOT NULL,
   `NavID` int(11) NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `user_navlist`
@@ -1296,7 +1329,7 @@ CREATE TABLE `work_background` (
   `section` varchar(50) DEFAULT NULL,
   `start_date` date NOT NULL,
   `end_date` date DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Indexes for dumped tables
@@ -1434,6 +1467,12 @@ ALTER TABLE `subsections`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `suguan`
+--
+ALTER TABLE `suguan`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -1466,7 +1505,7 @@ ALTER TABLE `apps`
 -- AUTO_INCREMENT for table `available_apps`
 --
 ALTER TABLE `available_apps`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=93;
 
 --
 -- AUTO_INCREMENT for table `children`
@@ -1544,7 +1583,7 @@ ALTER TABLE `permission_groups`
 -- AUTO_INCREMENT for table `personnels`
 --
 ALTER TABLE `personnels`
-  MODIFY `personnel_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `personnel_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `personnel_gov_id`
@@ -1581,6 +1620,12 @@ ALTER TABLE `spouses`
 --
 ALTER TABLE `subsections`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `suguan`
+--
+ALTER TABLE `suguan`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `users`

@@ -13,16 +13,84 @@ import Step6 from "./Step6"; // Import Step6 component for spouse
 import Step7 from "./Step7";
 import Step8 from "./Step8"; // Update the path if needed
 
+const API_URL = process.env.REACT_APP_API_URL;
+
+
 const EnrollmentForm = () => {
   const [step, setStep] = useState(1);
   const totalSteps = 8;
   const [isLoading, setIsLoading] = useState(false);
+
+  // Step 1 values
   const [personnelData, setPersonnelData] = useState({
-    // Initialize all fields here as in your original code
+    gender: "",
+    civil_status: "",
+    surname_maiden_disabled: false,
+    surname_husband_disabled: false,
+    wedding_anniversary: "",
+    givenname: "",
+    middlename: "",
+    surname_maiden: "",
+    surname_husband: "",
+    suffix: "",
+    nickname: "",
+    date_of_birth: "",
+    age: "",
+    place_of_birth: "",
+    datejoined: "",
+    languages: "",
+    bloodtype: "",
+    citizenship: "",
+    nationality: "",
+    department_id: "",
+    section_id: "",
+    subsection_id: "",
+    designation_id: "",
+    district_id: "",
+    local_congregation: "",
+    personnel_type: "",
+    assigned_number: "",
+    m_type: "",
+    panunumpa_date: "",
+    ordination_date: "",
   });
 
   const [emailError, setEmailError] = useState("");
   const [age, setAge] = useState("");
+
+
+  const [languages, setLanguages] = useState([]);
+  const [citizenships, setCitizenships] = useState([]);
+  const [nationalities, setNationalities] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [sections, setSections] = useState([]);
+  const [subsections, setSubsections] = useState([]);
+  const [designations, setDesignations] = useState([]);
+  const [districts, setDistricts] = useState([]);
+
+  // Fetch data on component load
+  useEffect(() => {
+    // Helper function to fetch and set data
+    const fetchData = async (endpoint, setter) => {
+      try {
+        const response = await axios.get(`${API_URL}/api/${endpoint}`);
+        setter(response.data);
+      } catch (error) {
+        console.error(`Error fetching ${endpoint}:`, error);
+      }
+    };
+
+    
+  fetchData("languages", setLanguages); // Add this line for languages
+    fetchData("citizenships", setCitizenships);
+    fetchData("nationalities", setNationalities);
+    fetchData("departments", setDepartments);
+    fetchData("sections", setSections);
+    fetchData("subsections", setSubsections);
+    fetchData("designations", setDesignations);
+    fetchData("districts", setDistricts);
+  }, []);
+
 
   const [contacts, setContacts] = useState([]);
   const [addresses, setAddresses] = useState([]);
@@ -423,7 +491,7 @@ const EnrollmentForm = () => {
     if (step === 1) {
       try {
         await axios.post(
-          "http://localhost:5000/api/personnels",
+          `${API_URL}/api/personnels`,
           personnelData,
           {
             headers: { "Content-Type": "application/json" },
@@ -444,15 +512,37 @@ const EnrollmentForm = () => {
   const handlePrevious = () => {
     setStep(step - 1);
   };
-
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setPersonnelData((prevData) => ({ ...prevData, [name]: value }));
-
-    if (name === "email_address") {
-      validateEmail(value);
-    }
+  
+    setPersonnelData((prevData) => {
+      const updatedData = { ...prevData, [name]: value };
+  
+      // Conditional logic for email validation
+      if (name === "email_address") {
+        validateEmail(value);
+      }
+  
+      // Conditional logic for civil_status
+      if (name === "civil_status") {
+        updatedData.wedding_anniversary =
+          value === "Married" ? prevData.wedding_anniversary : ""; // Reset wedding_anniversary if not married
+      }
+  
+      // Conditional logic for gender
+      if (name === "gender") {
+        updatedData.surname_maiden_disabled = value === "Male";
+        updatedData.surname_husband_disabled = value === "Male";
+        if (value === "Male") {
+          updatedData.surname_maiden = ""; // Clear surname_maiden if gender is Male
+          updatedData.surname_husband = ""; // Clear surname_husband if gender is Male
+        }
+      }
+  
+      return updatedData;
+    });
   };
+  
 
   const validateEmail = (email) => {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -520,11 +610,21 @@ const EnrollmentForm = () => {
 
       {/* Step Content */}
       {step === 1 && (
+      
         <Step1
           personnelData={personnelData}
+          setPersonnelData={setPersonnelData} // Add this line
           handleChange={handleChange}
           emailError={emailError}
           age={age}
+          languages={languages}
+          citizenships={citizenships}
+          nationalities={nationalities}
+          departments={departments}
+          sections={sections}
+          subsections={subsections}
+          designations={designations}
+          districts={districts}
         />
       )}
 

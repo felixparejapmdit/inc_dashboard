@@ -1,23 +1,59 @@
 const PersonnelAddress = require("../models/PersonnelAddress");
 
-const getAddressesByPersonnel = async (req, res) => {
+exports.getAllAddresses = async (req, res) => {
   try {
-    const addresses = await PersonnelAddress.findAll({
-      where: { personnel_id: req.params.personnel_id },
+    const addresses = await PersonnelAddress.findAll();
+    res.status(200).json(addresses);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getAddressById = async (req, res) => {
+  try {
+    const address = await PersonnelAddress.findByPk(req.params.id);
+    if (!address) {
+      return res.status(404).json({ message: "Address not found" });
+    }
+    res.status(200).json(address);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.createAddress = async (req, res) => {
+  try {
+    const newAddress = await PersonnelAddress.create(req.body);
+    res.status(201).json(newAddress);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.updateAddress = async (req, res) => {
+  try {
+    const updated = await PersonnelAddress.update(req.body, {
+      where: { id: req.params.id },
     });
-    res.json(addresses);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch addresses." });
+    if (updated[0] === 0) {
+      return res.status(404).json({ message: "Address not found" });
+    }
+    res.status(200).json({ message: "Address updated successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 
-const addAddress = async (req, res) => {
+exports.deleteAddress = async (req, res) => {
   try {
-    const address = await PersonnelAddress.create(req.body);
-    res.status(201).json(address);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to add address." });
+    const deleted = await PersonnelAddress.destroy({
+      where: { id: req.params.id },
+    });
+    if (!deleted) {
+      return res.status(404).json({ message: "Address not found" });
+    }
+    res.status(200).json({ message: "Address deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
-
-module.exports = { getAddressesByPersonnel, addAddress };

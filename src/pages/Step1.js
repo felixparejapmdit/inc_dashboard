@@ -17,25 +17,23 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { CheckIcon } from "@chakra-ui/icons";
 
-const Step1 = ({ personnelData, handleChange, emailError, age }) => {
-  const [step, setStep, setPersonnelData] = useState(1);
+const Step1 = ({ personnelData, setPersonnelData, handleChange, emailError, age,
+  languages,
+  citizenships,
+  nationalities,
+  departments,
+  sections,
+  subsections,
+  designations,
+  districts,
+ }) => {
+  const [step, setStep ] = useState(1);
   const totalSteps = 10;
   const bloodtypes = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
   const civilStatuses = ["Single", "Married"];
-  const languages = [
-    { code: "en", name: "English" },
-    { code: "fil", name: "Filipino" },
-    // Add other languages as needed
-  ];
+
   const suffixOptions = ["Jr.", "Sr.", "II", "III", "IV", "V", "VI"];
 
-  const [citizenships, setCitizenships] = useState([]);
-  const [nationalities, setNationalities] = useState([]);
-  const [districts, setDistricts] = useState([]);
-  const [departments, setDepartments] = useState([]);
-  const [sections, setSections] = useState([]);
-  const [subsections, setSubsections] = useState([]);
-  const [designations, setDesignations] = useState([]);
 
   return (
     <VStack spacing={4}>
@@ -61,7 +59,6 @@ const Step1 = ({ personnelData, handleChange, emailError, age }) => {
             align="center"
             gap="4"
           >
-            {/* Gender Label and Radio Group */}
             <Box width={{ base: "45%", sm: "30%", md: "25%" }} mr="4">
               <Flex align="center" width="100%">
                 <Text
@@ -74,15 +71,14 @@ const Step1 = ({ personnelData, handleChange, emailError, age }) => {
                 </Text>
                 <RadioGroup
                   name="gender"
-                  onChange={(value) => {
-                    handleChange({ target: { name: "gender", value } });
-                    setPersonnelData((prevData) => ({
-                      ...prevData,
-                      gender: value,
-                      surname_maiden_disabled: value === "Male",
-                      surname_husband_disabled: value === "Male",
-                    }));
-                  }}
+                  onChange={(value) =>
+                    handleChange({
+                      target: {
+                        name: "gender",
+                        value: value,
+                      },
+                    })
+                  }
                   value={personnelData.gender}
                 >
                   <Stack direction="row" spacing={2}>
@@ -93,67 +89,62 @@ const Step1 = ({ personnelData, handleChange, emailError, age }) => {
               </Flex>
             </Box>
 
-            {/* Civil Status Radio Group */}
-            <Box width={{ base: "45%", sm: "30%", md: "25%" }} mr="4">
-              <Flex align="center" width="100%">
-                <Text
-                  fontWeight="bold"
-                  mr={2}
-                  color="#0a5856"
-                  whiteSpace="nowrap"
-                >
-                  Civil Status:
-                </Text>
-                <RadioGroup
-                  name="civil_status"
-                  onChange={(value) => {
-                    handleChange({ target: { name: "civil_status", value } });
-                    setPersonnelData((prevData) => ({
-                      ...prevData,
-                      civil_status: value,
-                    }));
-                  }}
-                  value={personnelData.civil_status}
-                >
-                  <Stack direction="row" spacing={2}>
-                    {civilStatuses.map((status) => (
-                      <Radio key={status} value={status}>
-                        {status}
-                      </Radio>
-                    ))}
-                  </Stack>
-                </RadioGroup>
-              </Flex>
-            </Box>
 
-            {/* Wedding Anniversary */}
-            <Box
-              width={{ base: "100%", md: "35%" }}
-              visibility={
-                personnelData.civil_status === "Married" ? "visible" : "hidden"
-              }
-            >
-              <Flex align="center" width="100%">
-                <Text
-                  fontWeight="bold"
-                  mr="2"
-                  color="#0a5856"
-                  whiteSpace="nowrap"
-                >
-                  Wedding Anniversary:
-                </Text>
-                <Input
-                  placeholder="Wedding Anniversary"
-                  name="wedding_anniversary"
-                  type="date"
-                  value={personnelData.wedding_anniversary}
-                  onChange={(e) =>
-                    handleChange(e.target.value, "wedding_anniversary")
-                  }
-                  width="100%"
-                />
-              </Flex>
-            </Box>
+       {/* Civil Status Radio Group */}
+<Box width={{ base: "45%", sm: "30%", md: "25%" }} mr="4">
+  <Flex align="center" width="100%">
+    <Text fontWeight="bold" mr={2} color="#0a5856" whiteSpace="nowrap">
+      Civil Status:
+    </Text>
+    <RadioGroup
+      name="civil_status"
+      onChange={(value) => {
+        setPersonnelData((prevData) => ({
+          ...prevData,
+          civil_status: value,
+          wedding_anniversary: value === "Married" ? prevData.wedding_anniversary : "", // Clear if not Married
+        }));
+      }}
+      value={personnelData.civil_status}
+    >
+      <Stack direction="row" spacing={2}>
+        {civilStatuses.map((status) => (
+          <Radio key={status} value={status}>
+            {status}
+          </Radio>
+        ))}
+      </Stack>
+    </RadioGroup>
+  </Flex>
+</Box>
+
+{/* Conditional Wedding Anniversary Field */}
+<Box
+  width={{ base: "100%", md: "35%" }}
+  visibility={personnelData.civil_status === "Married" ? "visible" : "hidden"}
+>
+  <Flex align="center" width="100%">
+    <Text fontWeight="bold" mr="2" color="#0a5856" whiteSpace="nowrap">
+      Wedding Anniversary:
+    </Text>
+    <Input
+      placeholder="Wedding Anniversary"
+      name="wedding_anniversary"
+      type="date"
+      value={personnelData.wedding_anniversary}
+      onChange={(e) =>
+        setPersonnelData((prevData) => ({
+          ...prevData,
+          wedding_anniversary: e.target.value,
+        }))
+      }
+      width="100%"
+    />
+  </Flex>
+</Box>
+
+
+
           </Flex>
 
           <Flex
@@ -384,26 +375,27 @@ const Step1 = ({ personnelData, handleChange, emailError, age }) => {
               </Flex>
             </Box>
 
-            {/* Language Selector */}
-            <Box width={{ base: "100%", md: "30%" }}>
-              <Select
-                placeholder="Select Language"
-                name="languages"
-                value={personnelData.languages}
-                onChange={(e) =>
-                  handleChange({
-                    target: { name: "languages", value: e.target.value },
-                  })
-                }
-                width="100%"
-              >
-                {languages.map((lang) => (
-                  <option key={lang.code} value={lang.name}>
-                    {lang.name}
-                  </option>
-                ))}
-              </Select>
-            </Box>
+{/* Language Selector */}
+<Box width={{ base: "100%", md: "30%" }}>
+  <Select
+    placeholder="Select Language"
+    name="languages"
+    value={personnelData.languages}
+    onChange={(e) =>
+      handleChange({
+        target: { name: "languages", value: e.target.value },
+      })
+    }
+    width="100%"
+  >
+    {languages.map((language) => (
+      <option key={language.id} value={language.language}>
+        {language.country_name} - {language.language}
+      </option>
+    ))}
+  </Select>
+</Box>
+
 
             {/* Blood Type Selector */}
             <Box width={{ base: "100%", md: "30%" }}>
@@ -497,7 +489,7 @@ const Step1 = ({ personnelData, handleChange, emailError, age }) => {
               >
                 {citizenships.map((citizenship) => (
                   <option key={citizenship.id} value={citizenship.id}>
-                    {citizenship.name}
+                    {citizenship.citizenship}
                   </option>
                 ))}
               </Select>
@@ -521,7 +513,7 @@ const Step1 = ({ personnelData, handleChange, emailError, age }) => {
               >
                 {nationalities.map((nationality) => (
                   <option key={nationality.id} value={nationality.id}>
-                    {nationality.name}
+                    {nationality.nationality}
                   </option>
                 ))}
               </Select>

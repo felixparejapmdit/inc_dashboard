@@ -1,23 +1,59 @@
 const PersonnelContact = require("../models/PersonnelContact");
 
-const getContactsByPersonnel = async (req, res) => {
+exports.getAllContacts = async (req, res) => {
   try {
-    const contacts = await PersonnelContact.findAll({
-      where: { personnel_id: req.params.personnel_id },
+    const contacts = await PersonnelContact.findAll();
+    res.status(200).json(contacts);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getContactById = async (req, res) => {
+  try {
+    const contact = await PersonnelContact.findByPk(req.params.id);
+    if (!contact) {
+      return res.status(404).json({ message: "Contact not found" });
+    }
+    res.status(200).json(contact);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.createContact = async (req, res) => {
+  try {
+    const newContact = await PersonnelContact.create(req.body);
+    res.status(201).json(newContact);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.updateContact = async (req, res) => {
+  try {
+    const updated = await PersonnelContact.update(req.body, {
+      where: { id: req.params.id },
     });
-    res.json(contacts);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch contacts." });
+    if (updated[0] === 0) {
+      return res.status(404).json({ message: "Contact not found" });
+    }
+    res.status(200).json({ message: "Contact updated successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 
-const addContact = async (req, res) => {
+exports.deleteContact = async (req, res) => {
   try {
-    const contact = await PersonnelContact.create(req.body);
-    res.status(201).json(contact);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to add contact." });
+    const deleted = await PersonnelContact.destroy({
+      where: { id: req.params.id },
+    });
+    if (!deleted) {
+      return res.status(404).json({ message: "Contact not found" });
+    }
+    res.status(200).json({ message: "Contact deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
-
-module.exports = { getContactsByPersonnel, addContact };
