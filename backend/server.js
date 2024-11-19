@@ -16,7 +16,6 @@ const appRoutes = require("./routes/appRoutes");
 const suguanRoutes = require("./routes/suguanRoutes");
 // const reminderRoutes = require("./routes/reminderRoutes");
 
-
 const personnelsRoutes = require("./routes/personnelsRoutes"); // Replace with actual route file path
 const personnelContactsRoutes = require("./routes/personnelContactsRoutes");
 const personnelAddressesRoutes = require("./routes/personnelAddressesRoutes");
@@ -32,6 +31,9 @@ const districtsRoutes = require("./routes/districtsRoutes");
 const citizenshipsRoutes = require("./routes/citizenshipsRoutes");
 const nationalitiesRoutes = require("./routes/nationalitiesRoutes");
 const languagesRoutes = require("./routes/languagesRoutes");
+const contactTypeInfoRoutes = require("./routes/contactTypeInfoRoutes");
+const governmentIssuedIdRoutes = require("./routes/governmentIssuedIDRoutes");
+const personnelDocumentsRoutes = require("./routes/PersonnelDocumentsRoutes");
 
 app.use(express.json()); // Middleware to parse JSON request bodies
 app.use(cors());
@@ -59,6 +61,11 @@ app.use(districtsRoutes);
 app.use(citizenshipsRoutes);
 app.use(nationalitiesRoutes);
 app.use(languagesRoutes);
+
+app.use(contactTypeInfoRoutes);
+app.use(governmentIssuedIdRoutes);
+app.use(personnelDocumentsRoutes);
+app.use("/uploads", express.static("uploads"));
 
 // --- Start server ---
 app.listen(PORT, () => {

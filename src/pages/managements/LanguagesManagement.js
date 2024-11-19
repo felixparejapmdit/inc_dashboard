@@ -80,6 +80,27 @@ const LanguagesManagement = () => {
       });
       return;
     }
+    // Prevent duplicates
+    const duplicate = languages.find(
+      (lang) =>
+        lang.country_name.toLowerCase() ===
+          newLanguage.country_name.toLowerCase() &&
+        lang.language.toLowerCase() === newLanguage.language.toLowerCase()
+    );
+
+    if (
+      duplicate &&
+      (!editingLanguage || editingLanguage.id !== duplicate.id)
+    ) {
+      toast({
+        title: "Duplicate Entry",
+        description: "This language already exists.",
+        status: "error",
+        duration: 3000,
+      });
+      return;
+    }
+
     try {
       if (editingLanguage) {
         await axios.put(
@@ -393,9 +414,14 @@ const LanguagesManagement = () => {
                 Delete Language
               </AlertDialogHeader>
               <AlertDialogBody>
-                Are you sure you want to delete this language? This action
-                cannot be undone.
+                Are you sure you want to delete the language:{" "}
+                <strong>
+                  {deletingLanguage?.country_name} -{" "}
+                  {deletingLanguage?.language}
+                </strong>
+                ? This action cannot be undone.
               </AlertDialogBody>
+
               <AlertDialogFooter>
                 <Button
                   ref={cancelRef}

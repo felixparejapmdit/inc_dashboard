@@ -51,11 +51,30 @@ const Profile = () => {
 
   // Fetch the user data (from users table)
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_API_URL}/api/users/logged-in`)
-      .then((response) => response.json())
+    // Get the username from local storage
+    const username = localStorage.getItem("username");
+
+    if (!username) {
+      console.error("Username not found in local storage.");
+      setLoading(false);
+      return;
+    }
+
+    console.log("Fetching profile for username:", username);
+
+    // Fetch the user data using the username query parameter
+    fetch(
+      `${process.env.REACT_APP_API_URL}/api/users/logged-in?username=${username}`
+    )
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch user data");
+        }
+        return response.json();
+      })
       .then((data) => {
         setUser(data);
-        setEditUser(data);
+        setEditUser(data); // Set the data to editUser for editing functionality
         setLoading(false);
       })
       .catch((error) => {

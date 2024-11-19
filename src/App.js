@@ -24,8 +24,10 @@ import SubsectionManagement from "./pages/managements/SubsectionManagement.js";
 import DistrictManagement from "./pages/managements/DistrictManagement.js";
 import CitizenshipManagement from "./pages/managements/CitizenshipManagement.js";
 import NationalityManagement from "./pages/managements/NationalityManagement.js";
-import LanguagesManagement from "./pages/managements/LanguagesManagement.js";
 import DesignationManagement from "./pages/managements/DesignationManagement .js";
+import LanguagesManagement from "./pages/managements/LanguagesManagement.js";
+import ContactTypeInfoManagement from "./pages/managements/ContactTypeInfoManagement.js";
+import GovernmentIssuedIDManagement from "./pages/managements/GovernmentIssuedIDManagement.js";
 
 import Step1 from "./pages/Step1";
 import Step2 from "./pages/Step2";
@@ -53,16 +55,12 @@ function App() {
           <Route path="/step8" element={<Step8 />} />
           {/* <Route path="/step9" element={<Step9 />} />
           <Route path="/step10" element={<Step10 />} /> */}
-          
           {/* Redirect the root URL to /login */}
           <Route path="/" element={<Navigate to="/login" />} />
-
           {/* Standalone Route for Enrollment Page */}
           <Route path="/enroll" element={<Enrollment />} />
-
           {/* Define the login route */}
           <Route path="/login" element={<Login />} />
-
           {/* Routes wrapped with the sidebar layout */}
           <Route
             path="/dashboard"
@@ -116,7 +114,6 @@ function App() {
               </Layout>
             }
           />
-
           {/* New Routes for Add Apps, Add Suguan, Add Events, Add Reminders */}
           <Route
             path="/add-apps"
@@ -131,7 +128,6 @@ function App() {
               </Layout>
             }
           />
-
           <Route
             path="/add-suguan"
             element={
@@ -145,7 +141,6 @@ function App() {
               </Layout>
             }
           />
-
           <Route
             path="/add-events"
             element={
@@ -159,7 +154,6 @@ function App() {
               </Layout>
             }
           />
-
           <Route
             path="/add-reminders"
             element={
@@ -173,7 +167,6 @@ function App() {
               </Layout>
             }
           />
-
           <Route
             path="/Mastodon"
             element={
@@ -187,7 +180,6 @@ function App() {
               </Layout>
             }
           />
-
           {/* New Route for LdapUser */}
           <Route
             path="/ldap-users/"
@@ -202,7 +194,6 @@ function App() {
               </Layout>
             }
           />
-
           {/* New Route for Department Management */}
           <Route
             path="/managements/departments"
@@ -305,6 +296,32 @@ function App() {
                 }}
               >
                 <LanguagesManagement />
+              </Layout>
+            }
+          />
+          <Route
+            path="/managements/contact_infos"
+            element={
+              <Layout
+                currentUser={{
+                  name: "John Doe",
+                  avatarUrl: "/path/to/avatar.jpg",
+                }}
+              >
+                <ContactTypeInfoManagement />
+              </Layout>
+            }
+          />
+          <Route
+            path="/managements/government_issued_ids"
+            element={
+              <Layout
+                currentUser={{
+                  name: "John Doe",
+                  avatarUrl: "/path/to/avatar.jpg",
+                }}
+              >
+                <GovernmentIssuedIDManagement />
               </Layout>
             }
           />

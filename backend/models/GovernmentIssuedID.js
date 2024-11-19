@@ -1,16 +1,23 @@
 const { DataTypes } = require("sequelize");
-const db = require("../db");
+const sequelize = require("../config/database");
 
-const GovernmentIssuedID = db.define("GovernmentIssuedID", {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
+const GovernmentIssuedID = sequelize.define(
+  "GovernmentIssuedID",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    name: {
+      type: DataTypes.STRING(250),
+      allowNull: false,
+    },
   },
-  name: {
-    type: DataTypes.STRING(250),
-    allowNull: false,
-  },
-});
+  {
+    tableName: "government_issued_id",
+    timestamps: false,
+  }
+);
 
 module.exports = GovernmentIssuedID;

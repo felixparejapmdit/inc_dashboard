@@ -84,19 +84,61 @@ export default function Dashboard() {
     buttonHoverBg: useColorModeValue("blue.700", "blue.600"),
   };
 
-  useEffect(() => {
-    // Fetch events, reminders, and logged-in user data
-    fetch(`${API_URL}/api/events`)
+  const handleNextcloudLogin = () => {
+    const username = localStorage.getItem("username"); // Get logged-in username
+
+    fetch(`${API_URL}/api/nextcloud-login?username=${username}`)
       .then((response) => response.json())
+      .then((data) => {
+        if (data.nextcloudUrl) {
+          window.location.href = data.nextcloudUrl; // Redirect to Nextcloud
+        } else {
+          console.error("Failed to retrieve Nextcloud login URL");
+        }
+      })
+      .catch((error) => {
+        console.error("Error logging in to Nextcloud:", error);
+      });
+  };
+
+  useEffect(() => {
+    const username = localStorage.getItem("username"); // Retrieve username
+    console.log("Username retrieved from localStorage:", username);
+
+    if (!username) {
+      console.error("Username not found in localStorage");
+      setError("User is not logged in. Please log in again.");
+      return;
+    }
+
+    // Fetch events and reminders
+    fetch(`${API_URL}/api/events`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch events");
+        }
+        return response.json();
+      })
       .then((data) => setEvents(data))
       .catch((error) => console.error("Error fetching events:", error));
 
     fetch(`${API_URL}/api/reminders`)
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch reminders");
+        }
+        return response.json();
+      })
       .then((data) => setReminders(data))
       .catch((error) => console.error("Error fetching reminders:", error));
 
-    fetch(`${API_URL}/api/users/logged-in`)
+    // Fetch logged-in user and available apps using username
+    const url = `${API_URL}/api/users/logged-in?username=${encodeURIComponent(
+      username
+    )}`;
+    console.log("Constructed Fetch URL:", url);
+
+    fetch(url)
       .then((response) => {
         if (!response.ok) {
           throw new Error("Failed to fetch logged-in user");
@@ -105,44 +147,39 @@ export default function Dashboard() {
       })
       .then((user) => {
         console.log("Fetched User Data:", user); // Log entire user data
-        console.log("Available Apps Data:", user.availableApps); // Log available apps to inspect structure
 
         if (user && (user.ID || user.id)) {
           // Set user data in state
           setCurrentUser({
             id: user.ID || user.id,
             username: user.username,
-            fullName: user.name, // Assuming 'name' holds the full name from LDAP or users table
-            email: user.email,
-            avatar: user.avatar,
+            fullName: user.name || `${user.firstName} ${user.lastName}`, // Handle full name from user object
+            email: user.email || "", // Optional: fallback to empty string
+            avatar: user.avatar || "", // Optional: fallback to empty string
           });
 
-          // Directly set availableApps as an array of app names
+          // Set available apps from user data
           setAvailableApps(user.availableApps || []);
-          setUserFullName(user.name);
+          setUserFullName(user.name || `${user.firstName} ${user.lastName}`);
         } else {
           console.error("User data is not in the expected format:", user);
         }
       })
       .catch((error) => {
-        if (error.message === "Failed to fetch logged-in user") {
-          console.error("Error fetching logged-in user data:", error);
-          setError("Unable to fetch user data. Please check your connection.");
-        } else {
-          console.error("Error with LDAP or user login:", error);
-          setError("LDAP server is unreachable. Using local authentication.");
-        }
+        console.error("Error fetching logged-in user data:", error);
+        setError("Unable to fetch user data. Please check your connection.");
       });
-  }, []);
+  }, []); // Empty dependency array to run once on component mount
 
   useEffect(() => {
+    // Fetch available apps if currentUser exists
     if (currentUser && currentUser.id) {
       console.log("Fetching available apps for user ID:", currentUser.id);
 
       fetch(`${API_URL}/api/apps/available`, {
         headers: {
           "Content-Type": "application/json",
-          "x-user-id": currentUser.id, // Use lowercase header to match backend
+          "x-user-id": currentUser.id, // Pass user ID in request header
         },
       })
         .then((response) => {
@@ -156,15 +193,15 @@ export default function Dashboard() {
             setApps(data); // Set apps if data is an array
           } else {
             console.error("Unexpected response format for apps:", data);
-            setApps([]); // Set an empty array if data is not an array
+            setApps([]); // Fallback to empty array
           }
         })
         .catch((error) => {
           console.error("Error fetching apps:", error);
-          setApps([]); // Set an empty array on fetch error
+          setApps([]); // Fallback to empty array on fetch error
         });
     }
-  }, [currentUser]);
+  }, [currentUser]); // Dependency array to trigger fetch when currentUser changes
 
   // Filter apps based on `availableApps` IDs and search query
   const filteredApps = apps
@@ -401,6 +438,7 @@ export default function Dashboard() {
               app={app}
               colors={colors}
               onSettingsClick={handleSettingsClick}
+              handleNextcloudLogin={handleNextcloudLogin}
             />
           ))
         ) : (
@@ -485,7 +523,7 @@ export default function Dashboard() {
 }
 
 // Card component for Apps
-const AppCard = ({ app, colors, onSettingsClick }) => (
+const AppCard = ({ app, colors, onSettingsClick, handleNextcloudLogin }) => (
   <VStack
     bg={colors.appBg}
     borderRadius="lg"

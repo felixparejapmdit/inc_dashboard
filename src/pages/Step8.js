@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef } from "react";
 import {
   VStack,
   Box,
@@ -19,21 +19,21 @@ import {
   ModalBody,
   ModalCloseButton,
   Heading,
-} from '@chakra-ui/react';
-import { BsUpload } from 'react-icons/bs';
-import { MdPhotoCamera } from 'react-icons/md';
+} from "@chakra-ui/react";
+import { BsUpload } from "react-icons/bs";
+import { MdPhotoCamera } from "react-icons/md";
 
 const Step8 = ({ personnelId, onSaveImage }) => {
   const [image, setImage] = useState(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
-  const [imageSize, setImageSize] = useState('2x2'); // Default to 2x2
+  const [imageSize, setImageSize] = useState("2x2"); // Default to 2x2
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const toast = useToast();
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
-    if (file && (file.type === 'image/jpeg' || file.type === 'image/png')) {
+    if (file && (file.type === "image/jpeg" || file.type === "image/png")) {
       const reader = new FileReader();
       reader.onload = (e) => {
         setImage(e.target.result);
@@ -41,9 +41,9 @@ const Step8 = ({ personnelId, onSaveImage }) => {
       reader.readAsDataURL(file);
     } else {
       toast({
-        title: 'Invalid file type',
-        description: 'Only JPEG and PNG formats are supported.',
-        status: 'error',
+        title: "Invalid file type",
+        description: "Only JPEG and PNG formats are supported.",
+        status: "error",
         duration: 3000,
         isClosable: true,
       });
@@ -51,10 +51,25 @@ const Step8 = ({ personnelId, onSaveImage }) => {
   };
 
   const openCamera = async () => {
-    setIsCameraOpen(true);
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    if (videoRef.current) {
-      videoRef.current.srcObject = stream;
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("Camera not supported on this browser.");
+      }
+      setIsCameraOpen(true);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+      });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (error) {
+      toast({
+        title: "Camera Error",
+        description: error.message || "Unable to access the camera.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
     }
   };
 
@@ -62,7 +77,7 @@ const Step8 = ({ personnelId, onSaveImage }) => {
     if (videoRef.current && videoRef.current.srcObject) {
       const stream = videoRef.current.srcObject;
       const tracks = stream.getTracks();
-      tracks.forEach(track => track.stop());
+      tracks.forEach((track) => track.stop());
       videoRef.current.srcObject = null;
     }
     setIsCameraOpen(false);
@@ -74,9 +89,9 @@ const Step8 = ({ personnelId, onSaveImage }) => {
     if (canvas && video) {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      const context = canvas.getContext('2d');
+      const context = canvas.getContext("2d");
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL('image/png');
+      const dataUrl = canvas.toDataURL("image/png");
       setImage(dataUrl);
       closeCamera();
     }
@@ -92,16 +107,16 @@ const Step8 = ({ personnelId, onSaveImage }) => {
       };
       onSaveImage(payload);
       toast({
-        title: 'Image saved successfully',
-        status: 'success',
+        title: "Image saved successfully",
+        status: "success",
         duration: 3000,
         isClosable: true,
       });
     } else {
       toast({
-        title: 'No image to save',
-        description: 'Please upload or capture an image before saving.',
-        status: 'warning',
+        title: "No image to save",
+        description: "Please upload or capture an image before saving.",
+        status: "warning",
         duration: 3000,
         isClosable: true,
       });
@@ -110,21 +125,20 @@ const Step8 = ({ personnelId, onSaveImage }) => {
 
   const getBoxSize = () => {
     switch (imageSize) {
-      case 'wholebody':
-        return { width: '300px', height: '400px' };
-      case 'halfbody':
-        return { width: '300px', height: '250px' };
+      case "wholebody":
+        return { width: "300px", height: "400px" };
+      case "halfbody":
+        return { width: "300px", height: "250px" };
       default:
-        return { width: '150px', height: '150px' };
+        return { width: "150px", height: "150px" };
     }
   };
 
   return (
-    <VStack spacing={6} align="center"  my={115}>
-          <Heading as="h2" size="lg" textAlign="center" mb={6}>
+    <VStack spacing={6} align="center" my={115}>
+      <Heading as="h2" size="lg" textAlign="center" mb={6}>
         Step 8: Upload Image(s)
       </Heading>
-
 
       <Select
         value={imageSize}
@@ -152,7 +166,7 @@ const Step8 = ({ personnelId, onSaveImage }) => {
         justifyContent="center"
         cursor="pointer"
         transition="all 0.3s"
-        _hover={{ bg: 'yellow.200' }}
+        _hover={{ bg: "yellow.200" }}
       >
         {image ? (
           <Image
@@ -212,7 +226,7 @@ const Step8 = ({ personnelId, onSaveImage }) => {
           <ModalCloseButton />
           <ModalBody display="flex" justifyContent="center">
             <video ref={videoRef} autoPlay width="100%" />
-            <canvas ref={canvasRef} style={{ display: 'none' }} />
+            <canvas ref={canvasRef} style={{ display: "none" }} />
           </ModalBody>
           <ModalFooter>
             <Button colorScheme="teal" onClick={captureImage}>

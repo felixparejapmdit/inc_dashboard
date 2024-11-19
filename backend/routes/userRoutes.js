@@ -97,14 +97,19 @@ router.post("/api/users/change-password", (req, res) => {
 
 // Logged-In User Endpoint
 router.get("/api/users/logged-in", async (req, res) => {
+  const { username } = req.query; // Extract username from query parameters
+  console.log("Received username in query:", username); // Debug log
+
+  if (!username) {
+    return res.status(400).json({ message: "Username is required" });
+  }
   const query = `
-    SELECT u.ID, u.username, u.avatar, u.auth_type, GROUP_CONCAT(a.name) AS availableApps
-    FROM users u
-    LEFT JOIN available_apps ua ON u.ID = ua.user_id
-    LEFT JOIN apps a ON ua.app_id = a.id
-    WHERE u.isLoggedIn = 1
-    GROUP BY u.ID
-  `;
+  SELECT u.ID, u.username, u.avatar, u.auth_type, GROUP_CONCAT(a.name) AS availableApps
+  FROM users u
+  LEFT JOIN available_apps ua ON u.ID = ua.user_id
+  LEFT JOIN apps a ON ua.app_id = a.id
+  WHERE u.username = '${username}'
+    GROUP BY u.ID`;
 
   db.query(query, async (err, results) => {
     if (err) {
@@ -145,6 +150,49 @@ router.get("/api/users/logged-in", async (req, res) => {
       res.status(404).json({ message: "No user is currently logged in" });
     }
   });
+});
+
+router.get("/api/nextcloud-login", async (req, res) => {
+  const { username } = req.query;
+
+  if (!username) {
+    return res.status(400).json({ message: "Username is required" });
+  }
+
+  try {
+    // Request a login flow from Nextcloud
+    const response = await axios.post(
+      "https://cloud.pmdmc.net/index.php/login/v2",
+      {}, // No payload required for this endpoint
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXTCLOUD_TOKEN}`, // Admin token or API key
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    // If the login flow is successful, return the polling endpoint and login URL
+    if (response.data && response.data.poll && response.data.login) {
+      res.json({
+        nextcloudUrl: response.data.login, // Login URL for redirecting the user
+        pollEndpoint: response.data.poll, // Polling endpoint for session confirmation
+      });
+    } else {
+      res.status(500).json({
+        message: "Unexpected response from Nextcloud login API",
+      });
+    }
+  } catch (error) {
+    console.error(
+      "Error logging in to Nextcloud:",
+      error.response?.data || error.message
+    );
+    res.status(500).json({
+      message: "Failed to log in to Nextcloud",
+      details: error.response?.data || error.message,
+    });
+  }
 });
 
 // Check if the endpoint URL is correct and accessible from the frontend

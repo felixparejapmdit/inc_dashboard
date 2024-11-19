@@ -40,7 +40,8 @@
     "sequelize": "^6.37.5",
     "stream-browserify": "^3.0.0",
     "util": "^0.12.5",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "webrtc-adapter": "^9.0.1"
   },
   "scripts": {
     "start": "concurrently \"npm run frontend\" \"npm run backend\"",

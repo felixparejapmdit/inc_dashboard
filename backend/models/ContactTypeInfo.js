@@ -1,16 +1,23 @@
 const { DataTypes } = require("sequelize");
-const db = require("../db");
+const sequelize = require("../config/database");
 
-const ContactTypeInfo = db.define("ContactTypeInfo", {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
+const ContactTypeInfo = sequelize.define(
+  "ContactTypeInfo",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    name: {
+      type: DataTypes.STRING(25),
+      allowNull: false,
+    },
   },
-  name: {
-    type: DataTypes.STRING(25),
-    allowNull: false,
-  },
-});
+  {
+    tableName: "contact_type_info",
+    timestamps: false,
+  }
+);
 
 module.exports = ContactTypeInfo;

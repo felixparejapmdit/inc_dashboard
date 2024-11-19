@@ -57,6 +57,10 @@ const getIconForLabel = (label) => {
       return FiGlobe;
     case "Language":
       return FiBookOpen;
+    case "ContactInfo":
+      return FiUsers;
+    case "GovernmentIssuedID":
+      return FiTool; // Choose an appropriate icon
     default:
       return FiSettings;
   }
@@ -198,7 +202,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
             />
             <SidebarItem
               icon={FiUsers}
-              label="Users"
+              label="Personnels"
               isExpanded={isExpanded}
               onClick={() => navigate("/user")} // Redirect to users.js
             />
@@ -282,6 +286,18 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
               label="Language"
               isExpanded={isExpanded}
               onClick={() => navigate("/managements/languages")}
+              useDynamicIcon
+            />
+            <SidebarItem
+              label="ContactInfo"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/managements/contact_infos")}
+              useDynamicIcon
+            />
+            <SidebarItem
+              label="GovernmentIssuedID"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/managements/government_issued_ids")}
               useDynamicIcon
             />
           </VStack>

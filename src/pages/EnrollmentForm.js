@@ -15,7 +15,6 @@ import Step8 from "./Step8"; // Update the path if needed
 
 const API_URL = process.env.REACT_APP_API_URL;
 
-
 const EnrollmentForm = () => {
   const [step, setStep] = useState(1);
   const totalSteps = 8;
@@ -58,7 +57,6 @@ const EnrollmentForm = () => {
   const [emailError, setEmailError] = useState("");
   const [age, setAge] = useState("");
 
-
   const [languages, setLanguages] = useState([]);
   const [citizenships, setCitizenships] = useState([]);
   const [nationalities, setNationalities] = useState([]);
@@ -80,8 +78,7 @@ const EnrollmentForm = () => {
       }
     };
 
-    
-  fetchData("languages", setLanguages); // Add this line for languages
+    fetchData("languages", setLanguages); // Add this line for languages
     fetchData("citizenships", setCitizenships);
     fetchData("nationalities", setNationalities);
     fetchData("departments", setDepartments);
@@ -90,7 +87,6 @@ const EnrollmentForm = () => {
     fetchData("designations", setDesignations);
     fetchData("districts", setDistricts);
   }, []);
-
 
   const [contacts, setContacts] = useState([]);
   const [addresses, setAddresses] = useState([]);
@@ -486,17 +482,17 @@ const EnrollmentForm = () => {
 
   const navigate = useNavigate();
 
+  const handleBackToLogin = () => {
+    navigate("/login"); // Navigate back to login page
+  };
+
   const handleNext = async () => {
     setIsLoading(true);
     if (step === 1) {
       try {
-        await axios.post(
-          `${API_URL}/api/personnels`,
-          personnelData,
-          {
-            headers: { "Content-Type": "application/json" },
-          }
-        );
+        await axios.post(`${API_URL}/api/personnels`, personnelData, {
+          headers: { "Content-Type": "application/json" },
+        });
         setStep(2); // Move to Step 2
       } catch (error) {
         setStep(2); // Move to Step 2
@@ -514,21 +510,21 @@ const EnrollmentForm = () => {
   };
   const handleChange = (e) => {
     const { name, value } = e.target;
-  
+
     setPersonnelData((prevData) => {
       const updatedData = { ...prevData, [name]: value };
-  
+
       // Conditional logic for email validation
       if (name === "email_address") {
         validateEmail(value);
       }
-  
+
       // Conditional logic for civil_status
       if (name === "civil_status") {
         updatedData.wedding_anniversary =
           value === "Married" ? prevData.wedding_anniversary : ""; // Reset wedding_anniversary if not married
       }
-  
+
       // Conditional logic for gender
       if (name === "gender") {
         updatedData.surname_maiden_disabled = value === "Male";
@@ -538,11 +534,10 @@ const EnrollmentForm = () => {
           updatedData.surname_husband = ""; // Clear surname_husband if gender is Male
         }
       }
-  
+
       return updatedData;
     });
   };
-  
 
   const validateEmail = (email) => {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -572,6 +567,10 @@ const EnrollmentForm = () => {
         boxShadow="sm"
       >
         <Flex alignItems="center" my={2}>
+          <Button colorScheme="gray" onClick={handleBackToLogin} mr={4}>
+            Back to Login
+          </Button>
+
           <Heading
             as="h2"
             size="lg"
@@ -610,7 +609,6 @@ const EnrollmentForm = () => {
 
       {/* Step Content */}
       {step === 1 && (
-      
         <Step1
           personnelData={personnelData}
           setPersonnelData={setPersonnelData} // Add this line
