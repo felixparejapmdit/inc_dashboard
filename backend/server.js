@@ -35,6 +35,9 @@ const contactTypeInfoRoutes = require("./routes/contactTypeInfoRoutes");
 const governmentIssuedIdRoutes = require("./routes/governmentIssuedIDRoutes");
 const personnelDocumentsRoutes = require("./routes/PersonnelDocumentsRoutes");
 
+const educationalBackgroundRoutes = require("./routes/educationalBackgroundRoutes");
+const workExperienceRoutes = require("./routes/workExperienceRoutes");
+
 app.use(express.json()); // Middleware to parse JSON request bodies
 app.use(cors());
 app.use(bodyParser.json({ limit: "10mb" })); // Increased limit to handle Base64 images
@@ -65,6 +68,11 @@ app.use(languagesRoutes);
 app.use(contactTypeInfoRoutes);
 app.use(governmentIssuedIdRoutes);
 app.use(personnelDocumentsRoutes);
+
+// API Routes
+app.use(educationalBackgroundRoutes);
+app.use(workExperienceRoutes);
+
 app.use("/uploads", express.static("uploads"));
 
 // --- Start server ---

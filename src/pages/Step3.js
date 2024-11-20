@@ -15,38 +15,118 @@ import {
   Tr,
   Td,
   Th,
+  useToast,
 } from "@chakra-ui/react";
 import { EditIcon, DeleteIcon, CheckIcon } from "@chakra-ui/icons";
+import axios from "axios";
 
-const Step3 = () => {
-  const [education, setEducation] = useState([
-    {
-      level: "",
-      startFrom: "",
-      completionYear: "",
-      school: "",
-      fieldOfStudy: "",
-      degree: "",
-      institution: "",
-      professionalLicensure: "",
-      isEditing: true,
-    },
-  ]);
+const API_URL = process.env.REACT_APP_API_URL;
 
-  const [workExperience, setWorkExperience] = useState([
-    {
-      employmentType: "",
-      company: "",
-      address: "",
-      position: "",
-      department: "",
-      section: "",
-      startDate: "",
-      endDate: "",
-      reasonForLeaving: "",
-      isEditing: true,
-    },
-  ]);
+const Step3 = ({ personnelId }) => {
+  const [education, setEducation] = useState([]);
+  const [workExperience, setWorkExperience] = useState([]);
+  const toast = useToast();
+
+  // Validation Function
+  const validateEducation = (edu) => {
+    return (
+      edu.level &&
+      edu.startFrom &&
+      edu.completionYear &&
+      edu.school &&
+      edu.fieldOfStudy &&
+      edu.degree &&
+      edu.institution
+    );
+  };
+
+  const validateWorkExperience = (work) => {
+    return (
+      work.employmentType &&
+      work.company &&
+      work.position &&
+      work.department &&
+      work.startDate
+    );
+  };
+
+  // Save Education to Database
+  // Save Education to Database
+  const saveEducationToDatabase = async (edu) => {
+    console.log("Saving Education:", edu); // Debugging log
+    console.log("Personnel ID:", personnelId); // Debugging log for personnel ID
+
+    try {
+      const response = await axios.post(
+        `${API_URL}/api/educational-backgrounds`,
+        {
+          personnel_id: personnelId,
+          level: edu.level,
+          startfrom: edu.startFrom,
+          completion_year: edu.completionYear,
+          school: edu.school,
+          field_of_study: edu.fieldOfStudy,
+          degree: edu.degree,
+          institution: edu.institution,
+          professional_licensure_examination: edu.professionalLicensure,
+        }
+      );
+
+      console.log("Response:", response.data); // Debugging log
+      toast({
+        title: "Educational Background Saved",
+        description: "Entry has been saved to the database.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error("Error saving education:", error.response || error.message);
+      toast({
+        title: "Error",
+        description:
+          error.response?.data?.message ||
+          "Failed to save educational background.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  // Save Work Experience to Database
+  const saveWorkExperienceToDatabase = async (work) => {
+    try {
+      await axios.post(`${API_URL}/api/work-experiences`, {
+        personnel_id: personnelId,
+        employment_type: work.employmentType,
+        company: work.company,
+        address: work.address,
+        position: work.position,
+        department: work.department,
+        section: work.section,
+        start_date: work.startDate,
+        end_date: work.endDate,
+        reason_for_leaving: work.reasonForLeaving,
+      });
+      toast({
+        title: "Work Experience Saved",
+        description: "Entry has been saved to the database.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error("Error saving work experience:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save work experience.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
 
   // Add new entry handlers
   const handleAddEducation = () => {
@@ -84,6 +164,69 @@ const Step3 = () => {
     ]);
   };
 
+  // Save handlers for education and work experience
+  const handleSaveEducation = (index) => {
+    const edu = education[index];
+    console.log("Education Entry to Save:", edu); // Debugging log
+
+    if (!validateEducation(edu)) {
+      toast({
+        title: "Validation Error",
+        description: "All fields are required for Educational Background.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    saveEducationToDatabase(edu); // Save to database
+    const updatedEducation = [...education];
+    updatedEducation[index].isEditing = false;
+    setEducation(updatedEducation);
+  };
+
+  const handleSaveWorkExperience = (index) => {
+    const work = workExperience[index];
+    if (!validateWorkExperience(work)) {
+      toast({
+        title: "Validation Error",
+        description: "All required fields must be filled for Work Experience.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+    saveWorkExperienceToDatabase(work); // Save to database
+    const updatedExperience = [...workExperience];
+    updatedExperience[index].isEditing = false;
+    setWorkExperience(updatedExperience);
+  };
+
+  // Delete handlers
+  const handleDeleteEducation = (index) => {
+    setEducation(education.filter((_, i) => i !== index));
+    toast({
+      title: "Deleted Successfully",
+      description: "Education entry has been removed.",
+      status: "success",
+      duration: 3000,
+      isClosable: true,
+    });
+  };
+
+  const handleDeleteWorkExperience = (index) => {
+    setWorkExperience(workExperience.filter((_, i) => i !== index));
+    toast({
+      title: "Deleted Successfully",
+      description: "Work Experience entry has been removed.",
+      status: "success",
+      duration: 3000,
+      isClosable: true,
+    });
+  };
+
   // Edit and save entry handlers
   const toggleEditEducation = (index) => {
     const updatedEducation = [...education];
@@ -95,15 +238,6 @@ const Step3 = () => {
     const updatedExperience = [...workExperience];
     updatedExperience[index].isEditing = !updatedExperience[index].isEditing;
     setWorkExperience(updatedExperience);
-  };
-
-  // Delete entry handlers
-  const handleDeleteEducation = (index) => {
-    setEducation(education.filter((_, i) => i !== index));
-  };
-
-  const handleDeleteWorkExperience = (index) => {
-    setWorkExperience(workExperience.filter((_, i) => i !== index));
   };
 
   return (
@@ -287,7 +421,7 @@ const Step3 = () => {
                 {edu.isEditing ? (
                   <IconButton
                     icon={<CheckIcon />}
-                    onClick={() => toggleEditEducation(index)}
+                    onClick={() => handleSaveEducation(index)}
                     colorScheme="green"
                   />
                 ) : (
@@ -502,7 +636,7 @@ const Step3 = () => {
                 {work.isEditing ? (
                   <IconButton
                     icon={<CheckIcon />}
-                    onClick={() => toggleEditWorkExperience(index)}
+                    onClick={() => handleSaveWorkExperience(index)}
                     colorScheme="green"
                   />
                 ) : (
