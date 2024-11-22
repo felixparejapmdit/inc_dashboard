@@ -206,7 +206,11 @@ const Step4 = () => {
                       placeholder="Contact Number"
                       value={parent.contactNumber}
                       onChange={(e) =>
-                        handleParentChange(index, "contactNumber", e.target.value)
+                        handleParentChange(
+                          index,
+                          "contactNumber",
+                          e.target.value
+                        )
                       }
                     />
                   </Td>
@@ -218,7 +222,11 @@ const Step4 = () => {
                       placeholder="Employment Type"
                       value={parent.employmentType}
                       onChange={(e) =>
-                        handleParentChange(index, "employmentType", e.target.value)
+                        handleParentChange(
+                          index,
+                          "employmentType",
+                          e.target.value
+                        )
                       }
                     >
                       <option>Self-employed</option>
@@ -262,7 +270,11 @@ const Step4 = () => {
                       placeholder="Education Level"
                       value={parent.educationLevel}
                       onChange={(e) =>
-                        handleParentChange(index, "educationLevel", e.target.value)
+                        handleParentChange(
+                          index,
+                          "educationLevel",
+                          e.target.value
+                        )
                       }
                     >
                       <option>Elementary</option>
@@ -285,7 +297,11 @@ const Step4 = () => {
                       placeholder="Field of Study"
                       value={parent.fieldOfStudy}
                       onChange={(e) =>
-                        handleParentChange(index, "fieldOfStudy", e.target.value)
+                        handleParentChange(
+                          index,
+                          "fieldOfStudy",
+                          e.target.value
+                        )
                       }
                     />
                   </Td>
