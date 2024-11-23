@@ -242,7 +242,9 @@ const Step3 = ({ personnelId }) => {
 
   return (
     <Box width="100%" bg="white" boxShadow="sm" p={5} my={85}>
-      <Heading mb={6}>Step 3: Educational Background & Work Experience</Heading>
+      <Heading as="h2" size="lg" textAlign="center" mb={6}>
+        Step 4: Educational Background & Work Experience
+      </Heading>
 
       <VStack align="start" spacing={4} w="100%">
         <Text fontWeight="bold" fontSize="lg" mb={2}>

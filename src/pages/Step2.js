@@ -259,7 +259,7 @@ const Step2 = () => {
       ) : (
         <Box>
           <Heading as="h2" size="lg" textAlign="center" mb={6}>
-            Step 2: Contact Information
+            Step 3: Contact Information
           </Heading>
 
           {/* Contacts Section */}

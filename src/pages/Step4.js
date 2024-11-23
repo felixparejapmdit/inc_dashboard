@@ -4,7 +4,7 @@ import {
   Box,
   VStack,
   HStack,
-  Text,
+  Heading,
   Input,
   Select,
   Table,
@@ -112,10 +112,10 @@ const Step4 = () => {
 
   return (
     <Box width="100%" bg="white" boxShadow="sm" my={85} p={5}>
+      <Heading as="h2" size="lg" textAlign="center" mb={6}>
+        Step 5: Parents Information
+      </Heading>
       <VStack align="start" spacing={4} mb={8} w="100%">
-        <Text fontWeight="bold" fontSize="lg" mb={2}>
-          Parents Information:
-        </Text>
         <Table variant="striped" colorScheme="gray" size="md">
           <Tbody>
             {parents.map((parent, index) => (

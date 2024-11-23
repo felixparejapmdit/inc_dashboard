@@ -3,6 +3,7 @@ import {
   VStack,
   HStack,
   Text,
+  Heading,
   Input,
   Select,
   Button,
@@ -15,7 +16,7 @@ import { EditIcon, DeleteIcon, CheckIcon } from "@chakra-ui/icons";
 const Step6 = () => {
   const [spouses, setSpouses] = useState([
     {
-        relationshipType: "Spouse",
+      relationshipType: "Spouse",
       givenName: "",
       middleName: "",
       lastName: "",
@@ -92,9 +93,9 @@ const Step6 = () => {
 
   return (
     <VStack align="start" spacing={4} w="100%" mb={8}>
-      <Text fontWeight="bold" fontSize="lg" mb={2}>
-        Spouse Information:
-      </Text>
+      <Heading as="h2" size="lg" textAlign="center" mb={6}>
+        Step 7: Spouse Information
+      </Heading>
       {spouses.map((spouse, index) => (
         <VStack
           key={index}
@@ -119,28 +120,36 @@ const Step6 = () => {
               <Input
                 placeholder="Given Name"
                 value={spouse.givenName}
-                onChange={(e) => handleSpouseChange(index, "givenName", e.target.value)}
+                onChange={(e) =>
+                  handleSpouseChange(index, "givenName", e.target.value)
+                }
               />
             </GridItem>
             <GridItem colSpan={1}>
               <Input
                 placeholder="Middle Name"
                 value={spouse.middleName}
-                onChange={(e) => handleSpouseChange(index, "middleName", e.target.value)}
+                onChange={(e) =>
+                  handleSpouseChange(index, "middleName", e.target.value)
+                }
               />
             </GridItem>
             <GridItem colSpan={1}>
               <Input
                 placeholder="Last Name"
                 value={spouse.lastName}
-                onChange={(e) => handleSpouseChange(index, "lastName", e.target.value)}
+                onChange={(e) =>
+                  handleSpouseChange(index, "lastName", e.target.value)
+                }
               />
             </GridItem>
             <GridItem colSpan={1}>
               <Input
                 placeholder="Suffix"
                 value={spouse.suffix}
-                onChange={(e) => handleSpouseChange(index, "suffix", e.target.value)}
+                onChange={(e) =>
+                  handleSpouseChange(index, "suffix", e.target.value)
+                }
               />
             </GridItem>
 
@@ -149,7 +158,9 @@ const Step6 = () => {
               <Select
                 placeholder="Gender"
                 value={spouse.gender}
-                onChange={(e) => handleSpouseChange(index, "gender", e.target.value)}
+                onChange={(e) =>
+                  handleSpouseChange(index, "gender", e.target.value)
+                }
               >
                 <option>Male</option>
                 <option>Female</option>
@@ -159,14 +170,18 @@ const Step6 = () => {
               <Input
                 placeholder="Blood Type"
                 value={spouse.bloodType}
-                onChange={(e) => handleSpouseChange(index, "bloodType", e.target.value)}
+                onChange={(e) =>
+                  handleSpouseChange(index, "bloodType", e.target.value)
+                }
               />
             </GridItem>
             <GridItem colSpan={1}>
               <Select
                 placeholder="Civil Status"
                 value={spouse.civilStatus}
-                onChange={(e) => handleSpouseChange(index, "civilStatus", e.target.value)}
+                onChange={(e) =>
+                  handleSpouseChange(index, "civilStatus", e.target.value)
+                }
               >
                 <option>Single</option>
                 <option>Married</option>
@@ -179,7 +194,9 @@ const Step6 = () => {
                 placeholder="Date of Birth"
                 type="date"
                 value={spouse.dateOfBirth}
-                onChange={(e) => handleSpouseChange(index, "dateOfBirth", e.target.value)}
+                onChange={(e) =>
+                  handleSpouseChange(index, "dateOfBirth", e.target.value)
+                }
               />
             </GridItem>
 
@@ -188,7 +205,9 @@ const Step6 = () => {
               <Input
                 placeholder="Education Level"
                 value={spouse.educationLevel}
-                onChange={(e) => handleSpouseChange(index, "educationLevel", e.target.value)}
+                onChange={(e) =>
+                  handleSpouseChange(index, "educationLevel", e.target.value)
+                }
               />
             </GridItem>
             <GridItem colSpan={1}>
@@ -196,7 +215,9 @@ const Step6 = () => {
                 placeholder="Start Year"
                 type="number"
                 value={spouse.startYear}
-                onChange={(e) => handleSpouseChange(index, "startYear", e.target.value)}
+                onChange={(e) =>
+                  handleSpouseChange(index, "startYear", e.target.value)
+                }
               />
             </GridItem>
             <GridItem colSpan={1}>
@@ -204,21 +225,27 @@ const Step6 = () => {
                 placeholder="Completion Year"
                 type="number"
                 value={spouse.completionYear}
-                onChange={(e) => handleSpouseChange(index, "completionYear", e.target.value)}
+                onChange={(e) =>
+                  handleSpouseChange(index, "completionYear", e.target.value)
+                }
               />
             </GridItem>
             <GridItem colSpan={1}>
               <Input
                 placeholder="School"
                 value={spouse.school}
-                onChange={(e) => handleSpouseChange(index, "school", e.target.value)}
+                onChange={(e) =>
+                  handleSpouseChange(index, "school", e.target.value)
+                }
               />
             </GridItem>
             <GridItem colSpan={1}>
               <Input
                 placeholder="Field of Study"
                 value={spouse.fieldOfStudy}
-                onChange={(e) => handleSpouseChange(index, "fieldOfStudy", e.target.value)}
+                onChange={(e) =>
+                  handleSpouseChange(index, "fieldOfStudy", e.target.value)
+                }
               />
             </GridItem>
 
@@ -227,7 +254,9 @@ const Step6 = () => {
               <Select
                 placeholder="Employment Type"
                 value={spouse.employmentType}
-                onChange={(e) => handleSpouseChange(index, "employmentType", e.target.value)}
+                onChange={(e) =>
+                  handleSpouseChange(index, "employmentType", e.target.value)
+                }
               >
                 <option>Self-employed</option>
                 <option>Employed</option>
@@ -239,14 +268,18 @@ const Step6 = () => {
               <Input
                 placeholder="Company"
                 value={spouse.company}
-                onChange={(e) => handleSpouseChange(index, "company", e.target.value)}
+                onChange={(e) =>
+                  handleSpouseChange(index, "company", e.target.value)
+                }
               />
             </GridItem>
             <GridItem colSpan={1}>
               <Input
                 placeholder="Position"
                 value={spouse.position}
-                onChange={(e) => handleSpouseChange(index, "position", e.target.value)}
+                onChange={(e) =>
+                  handleSpouseChange(index, "position", e.target.value)
+                }
               />
             </GridItem>
             <GridItem colSpan={1}>
@@ -254,7 +287,9 @@ const Step6 = () => {
                 placeholder="Start Date"
                 type="date"
                 value={spouse.startDate}
-                onChange={(e) => handleSpouseChange(index, "startDate", e.target.value)}
+                onChange={(e) =>
+                  handleSpouseChange(index, "startDate", e.target.value)
+                }
               />
             </GridItem>
             <GridItem colSpan={1}>
@@ -262,14 +297,18 @@ const Step6 = () => {
                 placeholder="End Date"
                 type="date"
                 value={spouse.endDate}
-                onChange={(e) => handleSpouseChange(index, "endDate", e.target.value)}
+                onChange={(e) =>
+                  handleSpouseChange(index, "endDate", e.target.value)
+                }
               />
             </GridItem>
             <GridItem colSpan={1}>
               <Input
                 placeholder="Reason for Leaving"
                 value={spouse.reasonForLeaving}
-                onChange={(e) => handleSpouseChange(index, "reasonForLeaving", e.target.value)}
+                onChange={(e) =>
+                  handleSpouseChange(index, "reasonForLeaving", e.target.value)
+                }
               />
             </GridItem>
           </Grid>
@@ -297,11 +336,12 @@ const Step6 = () => {
       ))}
 
       {/* Conditional add spouse button */}
-      {spouses.length > 0 && spouses[spouses.length - 1]?.status === "Deceased" && (
-        <Button onClick={handleAddSpouse} colorScheme="teal" mt={4}>
-          Add Spouse
-        </Button>
-      )}
+      {spouses.length > 0 &&
+        spouses[spouses.length - 1]?.status === "Deceased" && (
+          <Button onClick={handleAddSpouse} colorScheme="teal" mt={4}>
+            Add Spouse
+          </Button>
+        )}
     </VStack>
   );
 };

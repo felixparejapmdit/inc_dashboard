@@ -5,13 +5,13 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { CheckIcon } from "@chakra-ui/icons";
 import Step1 from "./Step1";
-import Step2 from "./Step2";
-import Step3 from "./Step3";
-import Step4 from "./Step4"; // Import Step4 component
-import Step5 from "./Step5"; // Import Step5 component for siblings
-import Step6 from "./Step6"; // Import Step6 component for spouse
-import Step7 from "./Step7";
-import Step8 from "./Step8"; // Update the path if needed
+import Step2 from "./Step1.1"; // Update the path if needed
+import Step3 from "./Step2";
+import Step4 from "./Step3";
+import Step5 from "./Step4"; // Import Step4 component
+import Step6 from "./Step5"; // Import Step5 component for siblings
+import Step7 from "./Step6"; // Import Step6 component for spouse
+import Step8 from "./Step7";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -627,7 +627,11 @@ const EnrollmentForm = () => {
       )}
 
       {step === 2 && (
-        <Step2
+        <Step2 personnelId={personnelId} onSaveImage={handleSaveImage} />
+      )}
+
+      {step === 3 && (
+        <Step3
           contacts={contacts}
           addresses={addresses}
           govIDs={govIDs}
@@ -640,8 +644,8 @@ const EnrollmentForm = () => {
         />
       )}
 
-      {step === 3 && (
-        <Step3
+      {step === 4 && (
+        <Step4
           education={education}
           workExperience={workExperience}
           handleAddEducation={handleAddEducation}
@@ -651,24 +655,24 @@ const EnrollmentForm = () => {
         />
       )}
 
-      {step === 4 && (
-        <Step4
+      {step === 5 && (
+        <Step5
           parents={parents}
           handleParentChange={handleParentChange}
           toggleEditParent={toggleEditParent}
         />
       )}
 
-      {step === 5 && (
-        <Step5
+      {step === 6 && (
+        <Step6
           siblings={siblings}
           handleSiblingChange={handleSiblingChange}
           handleAddSibling={handleAddSibling}
         />
       )}
 
-      {step === 6 && (
-        <Step6
+      {step === 7 && (
+        <Step7
           spouses={spouses}
           handleSpouseChange={handleSpouseChange}
           handleAddSpouse={handleAddSpouse}
@@ -677,18 +681,14 @@ const EnrollmentForm = () => {
         />
       )}
 
-      {step === 7 && (
-        <Step7
+      {step === 8 && (
+        <Step8
           children={children}
           handleAddChild={handleAddChild}
           handleChildChange={handleChildChange}
           toggleEditChild={toggleEditChild}
           handleDeleteChild={handleDeleteChild}
         />
-      )}
-
-      {step === 8 && (
-        <Step8 personnelId={personnelId} onSaveImage={handleSaveImage} />
       )}
 
       {/* Navigation Buttons */}
