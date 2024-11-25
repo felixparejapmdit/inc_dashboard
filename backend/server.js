@@ -7,7 +7,7 @@ const bodyParser = require("body-parser");
 const IP_Address = process.env.REACT_IP_ADDRESS;
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.REACT_PORT;
 
 const userRoutes = require("./routes/userRoutes");
 const ldapRoutes = require("./routes/ldapRoutes");

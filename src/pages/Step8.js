@@ -3,20 +3,19 @@ import {
   VStack,
   HStack,
   Text,
-  Heading,
   Input,
   Select,
   Button,
   IconButton,
   Grid,
   GridItem,
+  Heading,
 } from "@chakra-ui/react";
 import { EditIcon, DeleteIcon, CheckIcon } from "@chakra-ui/icons";
 
-const Step7 = () => {
-  const [spouses, setSpouses] = useState([
+const Step8 = () => {
+  const [children, setChildren] = useState([
     {
-      relationshipType: "Spouse",
       givenName: "",
       middleName: "",
       lastName: "",
@@ -26,26 +25,21 @@ const Step7 = () => {
       civilStatus: "",
       dateOfBirth: "",
       contactNumber: "",
-      employmentType: "",
-      company: "",
-      position: "",
-      startDate: "",
-      endDate: "",
-      reasonForLeaving: "",
       educationLevel: "",
       startYear: "",
       completionYear: "",
       school: "",
       fieldOfStudy: "",
+      degree: "",
       institution: "",
       professionalLicensureExamination: "",
       isEditing: true,
     },
   ]);
 
-  const handleAddSpouse = () => {
-    setSpouses([
-      ...spouses,
+  const handleAddChild = () => {
+    setChildren([
+      ...children,
       {
         givenName: "",
         middleName: "",
@@ -56,17 +50,12 @@ const Step7 = () => {
         civilStatus: "",
         dateOfBirth: "",
         contactNumber: "",
-        employmentType: "",
-        company: "",
-        position: "",
-        startDate: "",
-        endDate: "",
-        reasonForLeaving: "",
         educationLevel: "",
         startYear: "",
         completionYear: "",
         school: "",
         fieldOfStudy: "",
+        degree: "",
         institution: "",
         professionalLicensureExamination: "",
         isEditing: true,
@@ -74,29 +63,29 @@ const Step7 = () => {
     ]);
   };
 
-  const toggleEditSpouse = (index) => {
-    const updatedSpouses = [...spouses];
-    updatedSpouses[index].isEditing = !updatedSpouses[index].isEditing;
-    setSpouses(updatedSpouses);
+  const toggleEditChild = (index) => {
+    const updatedChildren = [...children];
+    updatedChildren[index].isEditing = !updatedChildren[index].isEditing;
+    setChildren(updatedChildren);
   };
 
-  const handleSpouseChange = (index, field, value) => {
-    const updatedSpouses = spouses.map((spouse, i) =>
-      i === index ? { ...spouse, [field]: value } : spouse
+  const handleChildChange = (index, field, value) => {
+    const updatedChildren = children.map((child, i) =>
+      i === index ? { ...child, [field]: value } : child
     );
-    setSpouses(updatedSpouses);
+    setChildren(updatedChildren);
   };
 
-  const handleDeleteSpouse = (index) => {
-    setSpouses(spouses.filter((_, i) => i !== index));
+  const handleDeleteChild = (index) => {
+    setChildren(children.filter((_, i) => i !== index));
   };
 
   return (
     <VStack width="100%" bg="white" boxShadow="sm" my={85} p={5}>
       <Heading as="h2" size="lg" textAlign="center" mb={6}>
-        Step 7: Spouse Information
+        Step 8: Children Information
       </Heading>
-      {spouses.map((spouse, index) => (
+      {children.map((child, index) => (
         <VStack
           key={index}
           p={4}
@@ -107,11 +96,11 @@ const Step7 = () => {
           spacing={4}
         >
           <HStack w="100%" justify="space-between">
-            <Text fontWeight="bold">Spouse #{index + 1}</Text>
+            <Text fontWeight="bold">Child #{index + 1}</Text>
             <IconButton
               icon={<DeleteIcon />}
               colorScheme="red"
-              onClick={() => handleDeleteSpouse(index)}
+              onClick={() => handleDeleteChild(index)}
             />
           </HStack>
           <Grid templateColumns="repeat(4, 1fr)" gap={4} w="100%">
@@ -119,36 +108,36 @@ const Step7 = () => {
             <GridItem colSpan={1}>
               <Input
                 placeholder="Given Name"
-                value={spouse.givenName}
+                value={child.givenName}
                 onChange={(e) =>
-                  handleSpouseChange(index, "givenName", e.target.value)
+                  handleChildChange(index, "givenName", e.target.value)
                 }
               />
             </GridItem>
             <GridItem colSpan={1}>
               <Input
                 placeholder="Middle Name"
-                value={spouse.middleName}
+                value={child.middleName}
                 onChange={(e) =>
-                  handleSpouseChange(index, "middleName", e.target.value)
+                  handleChildChange(index, "middleName", e.target.value)
                 }
               />
             </GridItem>
             <GridItem colSpan={1}>
               <Input
                 placeholder="Last Name"
-                value={spouse.lastName}
+                value={child.lastName}
                 onChange={(e) =>
-                  handleSpouseChange(index, "lastName", e.target.value)
+                  handleChildChange(index, "lastName", e.target.value)
                 }
               />
             </GridItem>
             <GridItem colSpan={1}>
               <Input
                 placeholder="Suffix"
-                value={spouse.suffix}
+                value={child.suffix}
                 onChange={(e) =>
-                  handleSpouseChange(index, "suffix", e.target.value)
+                  handleChildChange(index, "suffix", e.target.value)
                 }
               />
             </GridItem>
@@ -157,9 +146,9 @@ const Step7 = () => {
             <GridItem colSpan={1}>
               <Select
                 placeholder="Gender"
-                value={spouse.gender}
+                value={child.gender}
                 onChange={(e) =>
-                  handleSpouseChange(index, "gender", e.target.value)
+                  handleChildChange(index, "gender", e.target.value)
                 }
               >
                 <option>Male</option>
@@ -169,18 +158,18 @@ const Step7 = () => {
             <GridItem colSpan={1}>
               <Input
                 placeholder="Blood Type"
-                value={spouse.bloodType}
+                value={child.bloodType}
                 onChange={(e) =>
-                  handleSpouseChange(index, "bloodType", e.target.value)
+                  handleChildChange(index, "bloodType", e.target.value)
                 }
               />
             </GridItem>
             <GridItem colSpan={1}>
               <Select
                 placeholder="Civil Status"
-                value={spouse.civilStatus}
+                value={child.civilStatus}
                 onChange={(e) =>
-                  handleSpouseChange(index, "civilStatus", e.target.value)
+                  handleChildChange(index, "civilStatus", e.target.value)
                 }
               >
                 <option>Single</option>
@@ -193,9 +182,9 @@ const Step7 = () => {
               <Input
                 placeholder="Date of Birth"
                 type="date"
-                value={spouse.dateOfBirth}
+                value={child.dateOfBirth}
                 onChange={(e) =>
-                  handleSpouseChange(index, "dateOfBirth", e.target.value)
+                  handleChildChange(index, "dateOfBirth", e.target.value)
                 }
               />
             </GridItem>
@@ -204,9 +193,9 @@ const Step7 = () => {
             <GridItem colSpan={1}>
               <Input
                 placeholder="Education Level"
-                value={spouse.educationLevel}
+                value={child.educationLevel}
                 onChange={(e) =>
-                  handleSpouseChange(index, "educationLevel", e.target.value)
+                  handleChildChange(index, "educationLevel", e.target.value)
                 }
               />
             </GridItem>
@@ -214,9 +203,9 @@ const Step7 = () => {
               <Input
                 placeholder="Start Year"
                 type="number"
-                value={spouse.startYear}
+                value={child.startYear}
                 onChange={(e) =>
-                  handleSpouseChange(index, "startYear", e.target.value)
+                  handleChildChange(index, "startYear", e.target.value)
                 }
               />
             </GridItem>
@@ -224,126 +213,91 @@ const Step7 = () => {
               <Input
                 placeholder="Completion Year"
                 type="number"
-                value={spouse.completionYear}
+                value={child.completionYear}
                 onChange={(e) =>
-                  handleSpouseChange(index, "completionYear", e.target.value)
+                  handleChildChange(index, "completionYear", e.target.value)
                 }
               />
             </GridItem>
             <GridItem colSpan={1}>
               <Input
                 placeholder="School"
-                value={spouse.school}
+                value={child.school}
                 onChange={(e) =>
-                  handleSpouseChange(index, "school", e.target.value)
+                  handleChildChange(index, "school", e.target.value)
                 }
               />
             </GridItem>
             <GridItem colSpan={1}>
               <Input
                 placeholder="Field of Study"
-                value={spouse.fieldOfStudy}
+                value={child.fieldOfStudy}
                 onChange={(e) =>
-                  handleSpouseChange(index, "fieldOfStudy", e.target.value)
-                }
-              />
-            </GridItem>
-
-            {/* Employment Information */}
-            <GridItem colSpan={1}>
-              <Select
-                placeholder="Employment Type"
-                value={spouse.employmentType}
-                onChange={(e) =>
-                  handleSpouseChange(index, "employmentType", e.target.value)
-                }
-              >
-                <option>Self-employed</option>
-                <option>Employed</option>
-                <option>Government</option>
-                <option>Private</option>
-              </Select>
-            </GridItem>
-            <GridItem colSpan={1}>
-              <Input
-                placeholder="Company"
-                value={spouse.company}
-                onChange={(e) =>
-                  handleSpouseChange(index, "company", e.target.value)
+                  handleChildChange(index, "fieldOfStudy", e.target.value)
                 }
               />
             </GridItem>
             <GridItem colSpan={1}>
               <Input
-                placeholder="Position"
-                value={spouse.position}
+                placeholder="Degree"
+                value={child.degree}
                 onChange={(e) =>
-                  handleSpouseChange(index, "position", e.target.value)
+                  handleChildChange(index, "degree", e.target.value)
                 }
               />
             </GridItem>
             <GridItem colSpan={1}>
               <Input
-                placeholder="Start Date"
-                type="date"
-                value={spouse.startDate}
+                placeholder="Institution"
+                value={child.institution}
                 onChange={(e) =>
-                  handleSpouseChange(index, "startDate", e.target.value)
+                  handleChildChange(index, "institution", e.target.value)
                 }
               />
             </GridItem>
             <GridItem colSpan={1}>
               <Input
-                placeholder="End Date"
-                type="date"
-                value={spouse.endDate}
+                placeholder="Professional Licensure Examination"
+                value={child.professionalLicensureExamination}
                 onChange={(e) =>
-                  handleSpouseChange(index, "endDate", e.target.value)
-                }
-              />
-            </GridItem>
-            <GridItem colSpan={1}>
-              <Input
-                placeholder="Reason for Leaving"
-                value={spouse.reasonForLeaving}
-                onChange={(e) =>
-                  handleSpouseChange(index, "reasonForLeaving", e.target.value)
+                  handleChildChange(
+                    index,
+                    "professionalLicensureExamination",
+                    e.target.value
+                  )
                 }
               />
             </GridItem>
           </Grid>
           <HStack spacing={2} mt={4}>
-            {spouse.isEditing ? (
+            {child.isEditing ? (
               <IconButton
                 icon={<CheckIcon />}
                 colorScheme="green"
-                onClick={() => toggleEditSpouse(index)}
+                onClick={() => toggleEditChild(index)}
               />
             ) : (
               <IconButton
                 icon={<EditIcon />}
                 colorScheme="blue"
-                onClick={() => toggleEditSpouse(index)}
+                onClick={() => toggleEditChild(index)}
               />
             )}
             <IconButton
               icon={<DeleteIcon />}
               colorScheme="red"
-              onClick={() => handleDeleteSpouse(index)}
+              onClick={() => handleDeleteChild(index)}
             />
           </HStack>
         </VStack>
       ))}
 
-      {/* Conditional add spouse button */}
-      {spouses.length > 0 &&
-        spouses[spouses.length - 1]?.status === "Deceased" && (
-          <Button onClick={handleAddSpouse} colorScheme="teal" mt={4}>
-            Add Spouse
-          </Button>
-        )}
+      {/* Always visible add child button */}
+      <Button onClick={handleAddChild} colorScheme="teal" mt={4}>
+        Add Child
+      </Button>
     </VStack>
   );
 };
 
-export default Step7;
+export default Step8;

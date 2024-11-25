@@ -11,9 +11,9 @@ import Profile from "./pages/Profile"; // Import Profile Page
 import Layout from "./components/Layout"; // Import Layout to wrap around pages
 import Applications from "./pages/Applications"; // Import AddApps Page
 import Users from "./pages/Users"; // Import User Page
-import AddSuguan from "./pages/Suguan"; // Import AddSuguan Page
-import AddEvents from "./pages/Events"; // Import AddEvents Page
-import AddReminders from "./pages/Reminders"; // Import ldap-users Page
+import Suguan from "./pages/Suguan"; // Import Suguan Page
+import Events from "./pages/Events"; // Import Events Page
+import Reminders from "./pages/Reminders"; // Import ldap-users Page
 import Mastodon from "./pages/Mastodon"; // Import Mastodon Page
 import customTheme from "./theme"; // Optional if you're using a custom theme
 import LdapUser from "./pages/LdapUser"; // Import LdapUser page
@@ -30,13 +30,13 @@ import ContactTypeInfoManagement from "./pages/managements/ContactTypeInfoManage
 import GovernmentIssuedIDManagement from "./pages/managements/GovernmentIssuedIDManagement.js";
 
 import Step1 from "./pages/Step1";
-import Step2 from "./pages/Step1.1";
-import Step3 from "./pages/Step2";
-import Step4 from "./pages/Step3";
-import Step5 from "./pages/Step4";
-import Step6 from "./pages/Step5";
-import Step7 from "./pages/Step6";
-import Step8 from "./pages/Step7";
+import Step2 from "./pages/Step2";
+import Step3 from "./pages/Step3";
+import Step4 from "./pages/Step4";
+import Step5 from "./pages/Step5";
+import Step6 from "./pages/Step6";
+import Step7 from "./pages/Step7";
+import Step8 from "./pages/Step8";
 // import Step9 from "./pages/Step9";
 // import Step10 from "./pages/Step10";
 
@@ -46,13 +46,13 @@ function App() {
       <Router>
         <Routes>
           <Route path="/step1" element={<Step1 />} />
-          <Route path="/step1.1" element={<Step2 />} />
-          <Route path="/step2" element={<Step3 />} />
-          <Route path="/step3" element={<Step4 />} />
-          <Route path="/step4" element={<Step5 />} />
-          <Route path="/step5" element={<Step6 />} />
-          <Route path="/step6" element={<Step7 />} />
-          <Route path="/step7" element={<Step8 />} />
+          <Route path="/step2" element={<Step2 />} />
+          <Route path="/step3" element={<Step3 />} />
+          <Route path="/step4" element={<Step4 />} />
+          <Route path="/step5" element={<Step5 />} />
+          <Route path="/step6" element={<Step6 />} />
+          <Route path="/step7" element={<Step7 />} />
+          <Route path="/step8" element={<Step8 />} />
           {/* <Route path="/step9" element={<Step9 />} />
           <Route path="/step10" element={<Step10 />} /> */}
           {/* Redirect the root URL to /login */}
@@ -137,7 +137,7 @@ function App() {
                   avatarUrl: "/path/to/avatar.jpg",
                 }}
               >
-                <AddSuguan />
+                <Suguan />
               </Layout>
             }
           />
@@ -150,7 +150,7 @@ function App() {
                   avatarUrl: "/path/to/avatar.jpg",
                 }}
               >
-                <AddEvents />
+                <Events />
               </Layout>
             }
           />
@@ -163,7 +163,7 @@ function App() {
                   avatarUrl: "/path/to/avatar.jpg",
                 }}
               >
-                <AddReminders />
+                <Reminders />
               </Layout>
             }
           />

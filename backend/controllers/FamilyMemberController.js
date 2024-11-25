@@ -5,7 +5,14 @@ exports.getAllFamilyMembers = async (req, res) => {
     const members = await FamilyMember.findAll();
     res.status(200).json(members);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(
+      "Error fetching family members:",
+      error.stack || error.message
+    );
+    res.status(500).json({
+      error:
+        error.message || "An error occurred while fetching family members.",
+    });
   }
 };
 
@@ -17,30 +24,84 @@ exports.getFamilyMemberById = async (req, res) => {
     }
     res.status(200).json(member);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(
+      "Error fetching family member by ID:",
+      error.stack || error.message
+    );
+    res.status(500).json({
+      error:
+        error.message || "An error occurred while fetching the family member.",
+    });
   }
 };
-
 exports.createFamilyMember = async (req, res) => {
   try {
+    const requiredFields = [
+      "personnel_id",
+      "relationship_type",
+      "givenname",
+      "lastname",
+      "gender",
+    ];
+    for (const field of requiredFields) {
+      if (
+        req.body[field] === undefined || // Check if field is missing
+        req.body[field] === null || // Check if field is null
+        (typeof req.body[field] === "string" && req.body[field].trim() === "") // Check if string field is empty
+      ) {
+        return res
+          .status(400)
+          .json({ message: `The field ${field} is required.` });
+      }
+    }
+
     const newMember = await FamilyMember.create(req.body);
     res.status(201).json(newMember);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(
+      "Error creating family member:",
+      error.stack || error.message
+    );
+    res.status(500).json({
+      error:
+        error.message || "An error occurred while creating the family member.",
+    });
   }
 };
 
 exports.updateFamilyMember = async (req, res) => {
   try {
-    const updated = await FamilyMember.update(req.body, {
-      where: { id: req.params.id },
-    });
-    if (updated[0] === 0) {
+    const member = await FamilyMember.findByPk(req.params.id);
+    if (!member) {
       return res.status(404).json({ message: "Family member not found" });
     }
-    res.status(200).json({ message: "Family member updated successfully" });
+
+    // Validate required fields only when they're being updated
+    const requiredFields = ["lastname", "gender"];
+    for (const field of requiredFields) {
+      if (
+        req.body[field] !== undefined && // Only validate if the field is being updated
+        (req.body[field] === null || // Check if null
+          (typeof req.body[field] === "string" &&
+            req.body[field].trim() === "")) // Check if empty
+      ) {
+        return res
+          .status(400)
+          .json({ message: `The field ${field} is required.` });
+      }
+    }
+
+    await member.update(req.body);
+    res.status(200).json(member);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(
+      "Error updating family member:",
+      error.stack || error.message
+    );
+    res.status(500).json({
+      error:
+        error.message || "An error occurred while updating the family member.",
+    });
   }
 };
 
@@ -54,6 +115,13 @@ exports.deleteFamilyMember = async (req, res) => {
     }
     res.status(200).json({ message: "Family member deleted successfully" });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(
+      "Error deleting family member:",
+      error.stack || error.message
+    );
+    res.status(500).json({
+      error:
+        error.message || "An error occurred while deleting the family member.",
+    });
   }
 };

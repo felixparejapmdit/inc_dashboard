@@ -1,665 +1,513 @@
-// src/pages/Step3.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Heading,
-  VStack,
-  HStack,
-  Text,
-  Input,
-  Select,
-  Button,
-  IconButton,
   Table,
+  Thead,
   Tbody,
   Tr,
-  Td,
   Th,
+  Td,
+  Select,
+  Input,
+  IconButton,
+  Button,
+  Text,
   useToast,
 } from "@chakra-ui/react";
-import { EditIcon, DeleteIcon, CheckIcon } from "@chakra-ui/icons";
+import {
+  EditIcon,
+  DeleteIcon,
+  CheckIcon,
+  AttachmentIcon,
+} from "@chakra-ui/icons";
 import axios from "axios";
+const Step3 = () => {
+  const [contacts, setContacts] = useState([]);
+  const [addresses, setAddresses] = useState([]);
+  const [govIDs, setGovIDs] = useState([]);
 
-const API_URL = process.env.REACT_APP_API_URL;
-
-const Step3 = ({ personnelId }) => {
-  const [education, setEducation] = useState([]);
-  const [workExperience, setWorkExperience] = useState([]);
+  const [contactTypes, setContactTypes] = useState([]);
+  const [governmentIDs, setGovernmentIDs] = useState([]);
   const toast = useToast();
 
-  // Validation Function
-  const validateEducation = (edu) => {
-    return (
-      edu.level &&
-      edu.startFrom &&
-      edu.completionYear &&
-      edu.school &&
-      edu.fieldOfStudy &&
-      edu.degree &&
-      edu.institution
-    );
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchDropdownData();
+  }, []);
+
+  const fetchDropdownData = async () => {
+    setLoading(true);
+    try {
+      const [contactTypeRes, governmentIDRes] = await Promise.all([
+        axios.get(`${process.env.REACT_APP_API_URL}/api/contact-type-info`),
+        axios.get(`${process.env.REACT_APP_API_URL}/api/government-issued-ids`),
+      ]);
+      setContactTypes(contactTypeRes.data || []);
+      setGovernmentIDs(governmentIDRes.data || []);
+    } catch (error) {
+      toast({
+        title: "Error loading dropdown data",
+        description: error.message,
+        status: "error",
+        duration: 3000,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const validateWorkExperience = (work) => {
-    return (
-      work.employmentType &&
-      work.company &&
-      work.position &&
-      work.department &&
-      work.startDate
+  const handleAddContact = () =>
+    setContacts([...contacts, { contactType: "", contactInfo: "" }]);
+
+  const handleAddAddress = () =>
+    setAddresses([...addresses, { addressType: "", name: "" }]);
+
+  const handleAddGovID = () =>
+    setGovIDs([...govIDs, { govIDType: "", govIDNumber: "", document: null }]);
+
+  const handleContactChange = (idx, field, value) => {
+    const updatedContacts = contacts.map((contact, i) =>
+      i === idx ? { ...contact, [field]: value } : contact
     );
+    setContacts(updatedContacts);
   };
 
-  // Save Education to Database
-  // Save Education to Database
-  const saveEducationToDatabase = async (edu) => {
-    console.log("Saving Education:", edu); // Debugging log
-    console.log("Personnel ID:", personnelId); // Debugging log for personnel ID
+  const handleAddressChange = (idx, field, value) => {
+    const updatedAddresses = addresses.map((address, i) =>
+      i === idx ? { ...address, [field]: value } : address
+    );
+    setAddresses(updatedAddresses);
+  };
+
+  const handleGovIDChange = (idx, field, value) => {
+    const updatedGovIDs = govIDs.map((id, i) =>
+      i === idx ? { ...id, [field]: value } : id
+    );
+    setGovIDs(updatedGovIDs);
+  };
+
+  const handleSaveContact = async (idx) => {
+    const contact = contacts[idx];
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/personnel-contacts`,
+        {
+          personnel_id: "2", // Replace with actual personnel ID
+          contactype_id: contact.contactType,
+          contact_info: contact.contactInfo,
+        }
+      );
+      toast({
+        title: "Contact saved successfully.",
+        status: "success",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Error saving contact:", error);
+      toast({
+        title: "Error saving contact.",
+        description: error.message,
+        status: "error",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleSaveAddress = async (idx) => {
+    const address = addresses[idx];
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/personnel-addresses`,
+        {
+          personnel_id: "2", // Replace with actual personnel ID
+          address_type: address.addressType,
+          name: address.name,
+        }
+      );
+      toast({
+        title: "Address saved successfully.",
+        status: "success",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Error saving address:", error);
+      toast({
+        title: "Error saving address.",
+        description: error.message,
+        status: "error",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleSaveGovID = async (idx) => {
+    const govID = govIDs[idx];
+    const payload = {
+      personnel_id: 2, // Replace with actual personnel ID
+      gov_id: govID.govIDType,
+      document: govID.document
+        ? {
+            file_name: govID.document.file_name,
+            file_path: govID.document.file_path,
+            uploaded_by: 1, // Replace with uploader's ID
+            description: "Uploaded government ID",
+            status: "active",
+            expiration_date: "2024-12-31", // Replace with actual expiration date
+          }
+        : null,
+    };
+
+    console.log("Payload being sent:", payload); // Log the payload
 
     try {
       const response = await axios.post(
-        `${API_URL}/api/educational-backgrounds`,
+        `${process.env.REACT_APP_API_URL}/api/personnel-gov-ids`,
+        payload
+      );
+      toast({
+        title: "Government ID saved successfully.",
+        status: "success",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Error saving government ID:", error);
+      toast({
+        title: "Error saving government ID.",
+        description: error.response?.data?.message || error.message,
+        status: "error",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleDocumentUpload = async (idx, file) => {
+    try {
+      if (!file) {
+        throw new Error("No file selected for upload.");
+      }
+
+      // Create FormData to include the file and other required fields
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("document_id", govIDs[idx]?.govIDType || ""); // Ensure govIDType exists
+      formData.append("personnel_id", "2"); // Replace with actual logic to fetch personnel ID
+      formData.append("description", "Uploaded document");
+      formData.append("status", "active");
+
+      // API request to upload the file
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/personnel-documents/upload`,
+        formData,
         {
-          personnel_id: personnelId,
-          level: edu.level,
-          startfrom: edu.startFrom,
-          completion_year: edu.completionYear,
-          school: edu.school,
-          field_of_study: edu.fieldOfStudy,
-          degree: edu.degree,
-          institution: edu.institution,
-          professional_licensure_examination: edu.professionalLicensure,
+          headers: { "Content-Type": "multipart/form-data" },
         }
       );
 
-      console.log("Response:", response.data); // Debugging log
+      // Log response for debugging
+      console.log("Document uploaded successfully:", response.data);
+
+      // Display success toast
       toast({
-        title: "Educational Background Saved",
-        description: "Entry has been saved to the database.",
+        title: "Document uploaded successfully.",
         status: "success",
         duration: 3000,
-        isClosable: true,
       });
+
+      // Update the `govIDs` array to include the uploaded document info
+      const updatedGovIDs = govIDs.map((id, i) =>
+        i === idx ? { ...id, document: response.data.document } : id
+      );
+      setGovIDs(updatedGovIDs);
     } catch (error) {
-      console.error("Error saving education:", error.response || error.message);
+      // Log and display error message
+      console.error("Error uploading document:", error.message);
       toast({
-        title: "Error",
-        description:
-          error.response?.data?.message ||
-          "Failed to save educational background.",
+        title: "Error uploading document.",
+        description: error.response?.data?.message || error.message,
         status: "error",
         duration: 3000,
-        isClosable: true,
       });
     }
   };
 
-  // Save Work Experience to Database
-  const saveWorkExperienceToDatabase = async (work) => {
-    try {
-      await axios.post(`${API_URL}/api/work-experiences`, {
-        personnel_id: personnelId,
-        employment_type: work.employmentType,
-        company: work.company,
-        address: work.address,
-        position: work.position,
-        department: work.department,
-        section: work.section,
-        start_date: work.startDate,
-        end_date: work.endDate,
-        reason_for_leaving: work.reasonForLeaving,
-      });
-      toast({
-        title: "Work Experience Saved",
-        description: "Entry has been saved to the database.",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-    } catch (error) {
-      console.error("Error saving work experience:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save work experience.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    }
+  const handleRemoveContact = (index) => {
+    setContacts(contacts.filter((_, idx) => idx !== index));
   };
 
-  // Add new entry handlers
-  const handleAddEducation = () => {
-    setEducation([
-      ...education,
-      {
-        level: "",
-        startFrom: "",
-        completionYear: "",
-        school: "",
-        fieldOfStudy: "",
-        degree: "",
-        institution: "",
-        professionalLicensure: "",
-        isEditing: true,
-      },
-    ]);
+  const handleRemoveAddress = (index) => {
+    setAddresses(addresses.filter((_, idx) => idx !== index));
   };
 
-  const handleAddWorkExperience = () => {
-    setWorkExperience([
-      ...workExperience,
-      {
-        employmentType: "",
-        company: "",
-        address: "",
-        position: "",
-        department: "",
-        section: "",
-        startDate: "",
-        endDate: "",
-        reasonForLeaving: "",
-        isEditing: true,
-      },
-    ]);
-  };
-
-  // Save handlers for education and work experience
-  const handleSaveEducation = (index) => {
-    const edu = education[index];
-    console.log("Education Entry to Save:", edu); // Debugging log
-
-    if (!validateEducation(edu)) {
-      toast({
-        title: "Validation Error",
-        description: "All fields are required for Educational Background.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    saveEducationToDatabase(edu); // Save to database
-    const updatedEducation = [...education];
-    updatedEducation[index].isEditing = false;
-    setEducation(updatedEducation);
-  };
-
-  const handleSaveWorkExperience = (index) => {
-    const work = workExperience[index];
-    if (!validateWorkExperience(work)) {
-      toast({
-        title: "Validation Error",
-        description: "All required fields must be filled for Work Experience.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-    saveWorkExperienceToDatabase(work); // Save to database
-    const updatedExperience = [...workExperience];
-    updatedExperience[index].isEditing = false;
-    setWorkExperience(updatedExperience);
-  };
-
-  // Delete handlers
-  const handleDeleteEducation = (index) => {
-    setEducation(education.filter((_, i) => i !== index));
-    toast({
-      title: "Deleted Successfully",
-      description: "Education entry has been removed.",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-    });
-  };
-
-  const handleDeleteWorkExperience = (index) => {
-    setWorkExperience(workExperience.filter((_, i) => i !== index));
-    toast({
-      title: "Deleted Successfully",
-      description: "Work Experience entry has been removed.",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-    });
-  };
-
-  // Edit and save entry handlers
-  const toggleEditEducation = (index) => {
-    const updatedEducation = [...education];
-    updatedEducation[index].isEditing = !updatedEducation[index].isEditing;
-    setEducation(updatedEducation);
-  };
-
-  const toggleEditWorkExperience = (index) => {
-    const updatedExperience = [...workExperience];
-    updatedExperience[index].isEditing = !updatedExperience[index].isEditing;
-    setWorkExperience(updatedExperience);
+  const handleRemoveGovID = (index) => {
+    setGovIDs(govIDs.filter((_, idx) => idx !== index));
   };
 
   return (
-    <Box width="100%" bg="white" boxShadow="sm" p={5} my={85}>
-      <Heading as="h2" size="lg" textAlign="center" mb={6}>
-        Step 4: Educational Background & Work Experience
-      </Heading>
+    <Box
+      width="100%"
+      bg="white"
+      boxShadow="lg"
+      p={8}
+      rounded="md"
+      mt={6}
+      my={85}
+    >
+      {loading ? (
+        <Text>Loading...</Text>
+      ) : (
+        <Box>
+          <Heading as="h2" size="lg" textAlign="center" mb={6}>
+            Step 3: Contact Information
+          </Heading>
 
-      <VStack align="start" spacing={4} w="100%">
-        <Text fontWeight="bold" fontSize="lg" mb={2}>
-          Educational Background:
-        </Text>
-        {education.map((edu, index) => (
-          <Box
-            key={index}
-            bg="gray.50"
-            p={4}
-            borderRadius="md"
-            boxShadow="sm"
-            mb={4}
-            width="100%"
-          >
-            <HStack spacing={4} mb={4} w="100%">
-              <Box flex="1">
-                <Text fontWeight="bold">Level</Text>
-                {edu.isEditing ? (
-                  <Select
-                    placeholder="Select Level"
-                    value={edu.level}
-                    onChange={(e) =>
-                      setEducation((prev) => {
-                        const updated = [...prev];
-                        updated[index].level = e.target.value;
-                        return updated;
-                      })
-                    }
-                  >
-                    <option>Elementary</option>
-                    <option>Secondary</option>
-                    <option>Senior High School</option>
-                    <option>College Graduate</option>
-                    <option>Undergrad</option>
-                  </Select>
-                ) : (
-                  <Text>{edu.level}</Text>
-                )}
-              </Box>
-              <Box flex="1">
-                <Text fontWeight="bold">Start From</Text>
-                {edu.isEditing ? (
-                  <Input
-                    placeholder="Start Year"
-                    type="number"
-                    value={edu.startFrom}
-                    onChange={(e) =>
-                      setEducation((prev) => {
-                        const updated = [...prev];
-                        updated[index].startFrom = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{edu.startFrom}</Text>
-                )}
-              </Box>
-              <Box flex="1">
-                <Text fontWeight="bold">Completion Year</Text>
-                {edu.isEditing ? (
-                  <Input
-                    placeholder="Completion Year"
-                    type="number"
-                    value={edu.completionYear}
-                    onChange={(e) =>
-                      setEducation((prev) => {
-                        const updated = [...prev];
-                        updated[index].completionYear = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{edu.completionYear}</Text>
-                )}
-              </Box>
-            </HStack>
+          {/* Contacts Section */}
+          <Text fontWeight="bold" fontSize="lg" mt={6} mb={2}>
+            Contacts
+          </Text>
+          <Table variant="striped" colorScheme="teal">
+            <Thead>
+              <Tr>
+                <Th>Type</Th>
+                <Th>Contact Info</Th>
+                <Th>Actions</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {contacts.map((contact, idx) => (
+                <Tr key={idx}>
+                  <Td>
+                    <Select
+                      placeholder="Select Type"
+                      value={contact.contactType}
+                      onChange={(e) =>
+                        handleContactChange(idx, "contactType", e.target.value)
+                      }
+                    >
+                      {contactTypes.map((type) => (
+                        <option key={type.id} value={type.id}>
+                          {type.name}
+                        </option>
+                      ))}
+                    </Select>
+                  </Td>
+                  <Td>
+                    <Input
+                      placeholder="Contact Info"
+                      value={contact.contactInfo}
+                      onChange={(e) =>
+                        handleContactChange(idx, "contactInfo", e.target.value)
+                      }
+                    />
+                  </Td>
+                  <Td>
+                    <IconButton
+                      icon={<CheckIcon />}
+                      size="sm"
+                      colorScheme="green"
+                      mr={2}
+                      onClick={() => handleSaveContact(idx)}
+                    />
+                    <IconButton
+                      icon={<EditIcon />}
+                      size="sm"
+                      colorScheme="blue"
+                      mr={2}
+                    />
+                    <IconButton
+                      icon={<DeleteIcon />}
+                      size="sm"
+                      colorScheme="red"
+                      onClick={() => handleRemoveContact(idx)}
+                    />
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+          <Button onClick={handleAddContact} colorScheme="teal" mt={4}>
+            Add Contact
+          </Button>
 
-            <HStack spacing={4} mb={4} w="100%">
-              <Box flex="1">
-                <Text fontWeight="bold">School</Text>
-                {edu.isEditing ? (
-                  <Input
-                    placeholder="School"
-                    value={edu.school}
-                    onChange={(e) =>
-                      setEducation((prev) => {
-                        const updated = [...prev];
-                        updated[index].school = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{edu.school}</Text>
-                )}
-              </Box>
-              <Box flex="1">
-                <Text fontWeight="bold">Field of Study</Text>
-                {edu.isEditing ? (
-                  <Input
-                    placeholder="Field of Study"
-                    value={edu.fieldOfStudy}
-                    onChange={(e) =>
-                      setEducation((prev) => {
-                        const updated = [...prev];
-                        updated[index].fieldOfStudy = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{edu.fieldOfStudy}</Text>
-                )}
-              </Box>
-              <Box flex="1">
-                <Text fontWeight="bold">Degree</Text>
-                {edu.isEditing ? (
-                  <Input
-                    placeholder="Degree"
-                    value={edu.degree}
-                    onChange={(e) =>
-                      setEducation((prev) => {
-                        const updated = [...prev];
-                        updated[index].degree = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{edu.degree}</Text>
-                )}
-              </Box>
-            </HStack>
+          {/* Addresses Section */}
+          <Text fontWeight="bold" fontSize="lg" mt={6} mb={2}>
+            Addresses
+          </Text>
+          <Table variant="striped" colorScheme="teal">
+            <Thead>
+              <Tr>
+                <Th>Address Type</Th>
+                <Th>Address</Th>
+                <Th>Actions</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {addresses.map((address, idx) => (
+                <Tr key={idx}>
+                  <Td>
+                    <Select
+                      placeholder="Address Type"
+                      value={address.addressType}
+                      onChange={(e) =>
+                        handleAddressChange(idx, "addressType", e.target.value)
+                      }
+                    >
+                      <option>Home Address</option>
+                      <option>Provincial Address</option>
+                      <option>Work Address</option>
+                    </Select>
+                  </Td>
+                  <Td>
+                    <Input
+                      placeholder="Address"
+                      value={address.name}
+                      onChange={(e) =>
+                        handleAddressChange(idx, "name", e.target.value)
+                      }
+                    />
+                  </Td>
+                  <Td>
+                    <IconButton
+                      icon={<CheckIcon />}
+                      size="sm"
+                      colorScheme="green"
+                      mr={2}
+                      onClick={() => handleSaveAddress(idx)}
+                    />
+                    <IconButton
+                      icon={<EditIcon />}
+                      size="sm"
+                      colorScheme="blue"
+                      mr={2}
+                    />
+                    <IconButton
+                      icon={<DeleteIcon />}
+                      size="sm"
+                      colorScheme="red"
+                      onClick={() => handleRemoveAddress(idx)}
+                    />
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+          <Button onClick={handleAddAddress} colorScheme="teal" mt={4}>
+            Add Address
+          </Button>
 
-            <HStack spacing={4} mb={4} w="100%">
-              <Box flex="1">
-                <Text fontWeight="bold">Institution</Text>
-                {edu.isEditing ? (
-                  <Input
-                    placeholder="Institution"
-                    value={edu.institution}
-                    onChange={(e) =>
-                      setEducation((prev) => {
-                        const updated = [...prev];
-                        updated[index].institution = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{edu.institution}</Text>
-                )}
-              </Box>
-              <Box flex="1">
-                <Text fontWeight="bold">Professional Licensure</Text>
-                {edu.isEditing ? (
-                  <Input
-                    placeholder="Professional Licensure"
-                    value={edu.professionalLicensure}
-                    onChange={(e) =>
-                      setEducation((prev) => {
-                        const updated = [...prev];
-                        updated[index].professionalLicensure = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{edu.professionalLicensure}</Text>
-                )}
-              </Box>
-              <HStack>
-                {edu.isEditing ? (
-                  <IconButton
-                    icon={<CheckIcon />}
-                    onClick={() => handleSaveEducation(index)}
-                    colorScheme="green"
-                  />
-                ) : (
-                  <IconButton
-                    icon={<EditIcon />}
-                    onClick={() => toggleEditEducation(index)}
-                  />
-                )}
-                <IconButton
-                  icon={<DeleteIcon />}
-                  onClick={() => handleDeleteEducation(index)}
-                  colorScheme="red"
-                />
-              </HStack>
-            </HStack>
-          </Box>
-        ))}
-        <Button onClick={handleAddEducation} colorScheme="teal">
-          Add Education
-        </Button>
-      </VStack>
+          {/* Government Issued IDs Section */}
+          <Text fontWeight="bold" fontSize="lg" mt={6} mb={2}>
+            Government Issued IDs
+          </Text>
+          <Table variant="striped" colorScheme="teal">
+            <Thead>
+              <Tr>
+                <Th>ID Type</Th>
+                <Th>ID Number</Th>
+                <Th>Document</Th>
+                <Th>Actions</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {govIDs.map((id, idx) => (
+                <Tr key={idx}>
+                  <Td>
+                    <Select
+                      placeholder="Select ID Type"
+                      value={id.govIDType}
+                      onChange={(e) =>
+                        handleGovIDChange(idx, "govIDType", e.target.value)
+                      }
+                    >
+                      {governmentIDs.map((govID) => (
+                        <option key={govID.id} value={govID.id}>
+                          {govID.name}
+                        </option>
+                      ))}
+                    </Select>
+                  </Td>
+                  <Td>
+                    <Input
+                      placeholder="ID Number"
+                      value={id.govIDNumber}
+                      onChange={(e) =>
+                        handleGovIDChange(idx, "govIDNumber", e.target.value)
+                      }
+                    />
+                  </Td>
+                  <Td>
+                    <Button
+                      leftIcon={<AttachmentIcon />}
+                      size="sm"
+                      colorScheme="teal"
+                      onClick={() =>
+                        document.getElementById(`file-upload-${idx}`).click()
+                      }
+                    >
+                      Upload
+                    </Button>
+                    <input
+                      type="file"
+                      id={`file-upload-${idx}`}
+                      style={{ display: "none" }}
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          console.log(
+                            `File selected for idx ${idx}:`,
+                            file.name
+                          );
+                          handleDocumentUpload(idx, file);
+                        } else {
+                          console.warn(`No file selected for idx ${idx}`);
+                        }
+                      }}
+                    />
 
-      <VStack align="start" spacing={4} w="100%">
-        <Text fontWeight="bold" fontSize="lg" mb={2}>
-          Work Experience:
-        </Text>
-        {workExperience.map((work, index) => (
-          <Box
-            key={index}
-            bg="gray.50"
-            p={4}
-            borderRadius="md"
-            boxShadow="sm"
-            mb={4}
-            width="100%"
-          >
-            <HStack spacing={4} mb={4} w="100%">
-              <Box flex="1">
-                <Text fontWeight="bold">Employment Type</Text>
-                {work.isEditing ? (
-                  <Select
-                    placeholder="Select Type"
-                    value={work.employmentType}
-                    onChange={(e) =>
-                      setWorkExperience((prev) => {
-                        const updated = [...prev];
-                        updated[index].employmentType = e.target.value;
-                        return updated;
-                      })
-                    }
-                  >
-                    <option>Self-employed</option>
-                    <option>Employed</option>
-                    <option>Government</option>
-                    <option>Private</option>
-                  </Select>
-                ) : (
-                  <Text>{work.employmentType}</Text>
-                )}
-              </Box>
-              <Box flex="1">
-                <Text fontWeight="bold">Company</Text>
-                {work.isEditing ? (
-                  <Input
-                    placeholder="Company"
-                    value={work.company}
-                    onChange={(e) =>
-                      setWorkExperience((prev) => {
-                        const updated = [...prev];
-                        updated[index].company = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{work.company}</Text>
-                )}
-              </Box>
-              <Box flex="1">
-                <Text fontWeight="bold">Address</Text>
-                {work.isEditing ? (
-                  <Input
-                    placeholder="Address"
-                    value={work.address}
-                    onChange={(e) =>
-                      setWorkExperience((prev) => {
-                        const updated = [...prev];
-                        updated[index].address = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{work.address}</Text>
-                )}
-              </Box>
-              <Box flex="1">
-                <Text fontWeight="bold">Position</Text>
-                {work.isEditing ? (
-                  <Input
-                    placeholder="Position"
-                    value={work.position}
-                    onChange={(e) =>
-                      setWorkExperience((prev) => {
-                        const updated = [...prev];
-                        updated[index].position = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{work.position}</Text>
-                )}
-              </Box>
-            </HStack>
+                    {id.document && (
+                      <Text mt={2}>
+                        <a
+                          href={`${process.env.REACT_APP_API_URL}/${id.document.file_path}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {id.document.file_name}
+                        </a>
+                      </Text>
+                    )}
+                  </Td>
 
-            <HStack spacing={4} mb={4} w="100%">
-              <Box flex="1">
-                <Text fontWeight="bold">Department</Text>
-                {work.isEditing ? (
-                  <Input
-                    placeholder="Department"
-                    value={work.department}
-                    onChange={(e) =>
-                      setWorkExperience((prev) => {
-                        const updated = [...prev];
-                        updated[index].department = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{work.department}</Text>
-                )}
-              </Box>
-              <Box flex="1">
-                <Text fontWeight="bold">Section</Text>
-                {work.isEditing ? (
-                  <Input
-                    placeholder="Section"
-                    value={work.section}
-                    onChange={(e) =>
-                      setWorkExperience((prev) => {
-                        const updated = [...prev];
-                        updated[index].section = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{work.section}</Text>
-                )}
-              </Box>
-              <Box flex="1">
-                <Text fontWeight="bold">Start Date</Text>
-                {work.isEditing ? (
-                  <Input
-                    type="date"
-                    value={work.startDate}
-                    onChange={(e) =>
-                      setWorkExperience((prev) => {
-                        const updated = [...prev];
-                        updated[index].startDate = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{work.startDate}</Text>
-                )}
-              </Box>
-              <Box flex="1">
-                <Text fontWeight="bold">End Date</Text>
-                {work.isEditing ? (
-                  <Input
-                    type="date"
-                    value={work.endDate}
-                    onChange={(e) =>
-                      setWorkExperience((prev) => {
-                        const updated = [...prev];
-                        updated[index].endDate = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{work.endDate}</Text>
-                )}
-              </Box>
-            </HStack>
-
-            <HStack spacing={4} mb={4} w="100%">
-              <Box flex="1">
-                <Text fontWeight="bold">Reason for Leaving</Text>
-                {work.isEditing ? (
-                  <Input
-                    placeholder="Reason for Leaving"
-                    value={work.reasonForLeaving}
-                    onChange={(e) =>
-                      setWorkExperience((prev) => {
-                        const updated = [...prev];
-                        updated[index].reasonForLeaving = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{work.reasonForLeaving}</Text>
-                )}
-              </Box>
-              <HStack>
-                {work.isEditing ? (
-                  <IconButton
-                    icon={<CheckIcon />}
-                    onClick={() => handleSaveWorkExperience(index)}
-                    colorScheme="green"
-                  />
-                ) : (
-                  <IconButton
-                    icon={<EditIcon />}
-                    onClick={() => toggleEditWorkExperience(index)}
-                  />
-                )}
-                <IconButton
-                  icon={<DeleteIcon />}
-                  onClick={() => handleDeleteWorkExperience(index)}
-                  colorScheme="red"
-                />
-              </HStack>
-            </HStack>
-          </Box>
-        ))}
-        <Button onClick={handleAddWorkExperience} colorScheme="teal">
-          Add Work Experience
-        </Button>
-      </VStack>
+                  <Td>
+                    <IconButton
+                      icon={<CheckIcon />}
+                      size="sm"
+                      colorScheme="green"
+                      mr={2}
+                      onClick={() => handleSaveGovID(idx)}
+                    />
+                    <IconButton
+                      icon={<EditIcon />}
+                      size="sm"
+                      colorScheme="blue"
+                      mr={2}
+                    />
+                    <IconButton
+                      icon={<DeleteIcon />}
+                      size="sm"
+                      colorScheme="red"
+                      onClick={() => handleRemoveGovID(idx)}
+                    />
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+          <Button onClick={handleAddGovID} colorScheme="teal" mt={4}>
+            Add Government ID
+          </Button>
+        </Box>
+      )}
     </Box>
   );
 };

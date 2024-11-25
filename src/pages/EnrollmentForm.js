@@ -5,13 +5,13 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { CheckIcon } from "@chakra-ui/icons";
 import Step1 from "./Step1";
-import Step2 from "./Step1.1"; // Update the path if needed
-import Step3 from "./Step2";
-import Step4 from "./Step3";
-import Step5 from "./Step4"; // Import Step4 component
-import Step6 from "./Step5"; // Import Step5 component for siblings
-import Step7 from "./Step6"; // Import Step6 component for spouse
-import Step8 from "./Step7";
+import Step2 from "./Step2"; // Update the path if needed
+import Step3 from "./Step3";
+import Step4 from "./Step4";
+import Step5 from "./Step5"; // Import Step4 component
+import Step6 from "./Step6"; // Import Step5 component for siblings
+import Step7 from "./Step7"; // Import Step6 component for spouse
+import Step8 from "./Step8";
 
 const API_URL = process.env.REACT_APP_API_URL;
 

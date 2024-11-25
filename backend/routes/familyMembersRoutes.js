@@ -7,15 +7,24 @@ const FamilyMemberController = require("../controllers/FamilyMemberController");
 router.get("/api/family-members", FamilyMemberController.getAllFamilyMembers);
 
 // Get a specific family member by ID
-router.get("/api/family-members/:id", FamilyMemberController.getFamilyMemberById);
+router.get(
+  "/api/family-members/:id",
+  FamilyMemberController.getFamilyMemberById
+);
 
 // Add a new family member
 router.post("/api/family-members", FamilyMemberController.createFamilyMember);
 
 // Update an existing family member
-router.put("/api/family-members/:id", FamilyMemberController.updateFamilyMember);
+router.put(
+  "/api/family-members/:id",
+  FamilyMemberController.updateFamilyMember
+);
 
 // Delete a family member
-router.delete("/api/family-members/:id", FamilyMemberController.deleteFamilyMember);
+router.delete(
+  "/api/family-members/:id",
+  FamilyMemberController.deleteFamilyMember
+);
 
 module.exports = router;

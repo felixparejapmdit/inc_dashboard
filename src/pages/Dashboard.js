@@ -281,7 +281,7 @@ export default function Dashboard() {
 
   return (
     <Box bg={useColorModeValue("gray.50", "gray.900")} minH="100vh" p={6}>
-      <HStack justify="space-between" mb={6}>
+      <HStack justify="space-between" mb={0}>
         <Heading as="h1" size="xl">
           {getTimeBasedGreeting()}
         </Heading>
@@ -314,6 +314,7 @@ export default function Dashboard() {
               isRound
               size="lg"
               aria-label="Notifications"
+              display="none"
               mr={0} // Remove margin to bring it closer to the color mode icon
             />
           </PopoverTrigger>
@@ -338,14 +339,20 @@ export default function Dashboard() {
       <SimpleGrid
         columns={2}
         spacing={6}
-        mb={8}
+        mb={0}
         maxW="100%" // Allow the grid to use the full available width
         w="90%" // Increase the width to 90% of the available space
         justifyContent="center"
         alignItems="center"
         minH="10vh"
       >
-        <Box bg="green.500" p={6} borderRadius="lg" color="white">
+        <Box
+          display="none"
+          bg="green.500"
+          p={6}
+          borderRadius="lg"
+          color="white"
+        >
           <Heading size="lg">{availableApps.length}</Heading>
           <Text>Available Apps</Text>
         </Box>
@@ -382,6 +389,7 @@ export default function Dashboard() {
             transition="all 0.3s ease"
             _hover={{ transform: "scale(1.05)", cursor: "pointer" }}
             boxShadow="lg"
+            display="none"
           >
             <Heading size="lg">{events.length}</Heading>
             <Text>Upcoming Events</Text>

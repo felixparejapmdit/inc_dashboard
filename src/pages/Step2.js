@@ -1,514 +1,244 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import {
+  VStack,
   Box,
-  Heading,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  Select,
-  Input,
-  IconButton,
-  Button,
+  Image,
   Text,
+  Input,
+  Select,
+  Button,
+  Icon,
   useToast,
+  IconButton,
+  HStack,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  Heading,
 } from "@chakra-ui/react";
-import {
-  EditIcon,
-  DeleteIcon,
-  CheckIcon,
-  AttachmentIcon,
-} from "@chakra-ui/icons";
-import axios from "axios";
-const Step2 = () => {
-  const [contacts, setContacts] = useState([]);
-  const [addresses, setAddresses] = useState([]);
-  const [govIDs, setGovIDs] = useState([]);
+import { BsUpload } from "react-icons/bs";
+import { MdPhotoCamera } from "react-icons/md";
 
-  const [contactTypes, setContactTypes] = useState([]);
-  const [governmentIDs, setGovernmentIDs] = useState([]);
+const Step2 = ({ personnelId, onSaveImage }) => {
+  const [image, setImage] = useState(null);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [imageSize, setImageSize] = useState("2x2"); // Default to 2x2
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
   const toast = useToast();
 
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchDropdownData();
-  }, []);
-
-  const fetchDropdownData = async () => {
-    setLoading(true);
-    try {
-      const [contactTypeRes, governmentIDRes] = await Promise.all([
-        axios.get(`${process.env.REACT_APP_API_URL}/api/contact-type-info`),
-        axios.get(`${process.env.REACT_APP_API_URL}/api/government-issued-ids`),
-      ]);
-      setContactTypes(contactTypeRes.data || []);
-      setGovernmentIDs(governmentIDRes.data || []);
-    } catch (error) {
+  const handleImageUpload = (event) => {
+    const file = event.target.files[0];
+    if (file && (file.type === "image/jpeg" || file.type === "image/png")) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImage(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    } else {
       toast({
-        title: "Error loading dropdown data",
-        description: error.message,
+        title: "Invalid file type",
+        description: "Only JPEG and PNG formats are supported.",
         status: "error",
         duration: 3000,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAddContact = () =>
-    setContacts([...contacts, { contactType: "", contactInfo: "" }]);
-
-  const handleAddAddress = () =>
-    setAddresses([...addresses, { addressType: "", name: "" }]);
-
-  const handleAddGovID = () =>
-    setGovIDs([...govIDs, { govIDType: "", govIDNumber: "", document: null }]);
-
-  const handleContactChange = (idx, field, value) => {
-    const updatedContacts = contacts.map((contact, i) =>
-      i === idx ? { ...contact, [field]: value } : contact
-    );
-    setContacts(updatedContacts);
-  };
-
-  const handleAddressChange = (idx, field, value) => {
-    const updatedAddresses = addresses.map((address, i) =>
-      i === idx ? { ...address, [field]: value } : address
-    );
-    setAddresses(updatedAddresses);
-  };
-
-  const handleGovIDChange = (idx, field, value) => {
-    const updatedGovIDs = govIDs.map((id, i) =>
-      i === idx ? { ...id, [field]: value } : id
-    );
-    setGovIDs(updatedGovIDs);
-  };
-
-  const handleSaveContact = async (idx) => {
-    const contact = contacts[idx];
-    try {
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/personnel-contacts`,
-        {
-          personnel_id: "2", // Replace with actual personnel ID
-          contactype_id: contact.contactType,
-          contact_info: contact.contactInfo,
-        }
-      );
-      toast({
-        title: "Contact saved successfully.",
-        status: "success",
-        duration: 3000,
-      });
-    } catch (error) {
-      console.error("Error saving contact:", error);
-      toast({
-        title: "Error saving contact.",
-        description: error.message,
-        status: "error",
-        duration: 3000,
+        isClosable: true,
       });
     }
   };
 
-  const handleSaveAddress = async (idx) => {
-    const address = addresses[idx];
+  const openCamera = async () => {
     try {
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/personnel-addresses`,
-        {
-          personnel_id: "2", // Replace with actual personnel ID
-          address_type: address.addressType,
-          name: address.name,
-        }
-      );
-      toast({
-        title: "Address saved successfully.",
-        status: "success",
-        duration: 3000,
-      });
-    } catch (error) {
-      console.error("Error saving address:", error);
-      toast({
-        title: "Error saving address.",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
-    }
-  };
-
-  const handleSaveGovID = async (idx) => {
-    const govID = govIDs[idx];
-    const payload = {
-      personnel_id: 2, // Replace with actual personnel ID
-      gov_id: govID.govIDType,
-      document: govID.document
-        ? {
-            file_name: govID.document.file_name,
-            file_path: govID.document.file_path,
-            uploaded_by: 1, // Replace with uploader's ID
-            description: "Uploaded government ID",
-            status: "active",
-            expiration_date: "2024-12-31", // Replace with actual expiration date
-          }
-        : null,
-    };
-
-    console.log("Payload being sent:", payload); // Log the payload
-
-    try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/personnel-gov-ids`,
-        payload
-      );
-      toast({
-        title: "Government ID saved successfully.",
-        status: "success",
-        duration: 3000,
-      });
-    } catch (error) {
-      console.error("Error saving government ID:", error);
-      toast({
-        title: "Error saving government ID.",
-        description: error.response?.data?.message || error.message,
-        status: "error",
-        duration: 3000,
-      });
-    }
-  };
-
-  const handleDocumentUpload = async (idx, file) => {
-    try {
-      if (!file) {
-        throw new Error("No file selected for upload.");
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("Camera not supported on this browser.");
       }
-
-      // Create FormData to include the file and other required fields
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("document_id", govIDs[idx]?.govIDType || ""); // Ensure govIDType exists
-      formData.append("personnel_id", "2"); // Replace with actual logic to fetch personnel ID
-      formData.append("description", "Uploaded document");
-      formData.append("status", "active");
-
-      // API request to upload the file
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/personnel-documents/upload`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
-
-      // Log response for debugging
-      console.log("Document uploaded successfully:", response.data);
-
-      // Display success toast
-      toast({
-        title: "Document uploaded successfully.",
-        status: "success",
-        duration: 3000,
+      setIsCameraOpen(true);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
       });
-
-      // Update the `govIDs` array to include the uploaded document info
-      const updatedGovIDs = govIDs.map((id, i) =>
-        i === idx ? { ...id, document: response.data.document } : id
-      );
-      setGovIDs(updatedGovIDs);
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
     } catch (error) {
-      // Log and display error message
-      console.error("Error uploading document:", error.message);
       toast({
-        title: "Error uploading document.",
-        description: error.response?.data?.message || error.message,
+        title: "Camera Error",
+        description: error.message || "Unable to access the camera.",
         status: "error",
         duration: 3000,
+        isClosable: true,
       });
     }
   };
 
-  const handleRemoveContact = (index) => {
-    setContacts(contacts.filter((_, idx) => idx !== index));
+  const closeCamera = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject;
+      const tracks = stream.getTracks();
+      tracks.forEach((track) => track.stop());
+      videoRef.current.srcObject = null;
+    }
+    setIsCameraOpen(false);
   };
 
-  const handleRemoveAddress = (index) => {
-    setAddresses(addresses.filter((_, idx) => idx !== index));
+  const captureImage = () => {
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+    if (canvas && video) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const context = canvas.getContext("2d");
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL("image/png");
+      setImage(dataUrl);
+      closeCamera();
+    }
   };
 
-  const handleRemoveGovID = (index) => {
-    setGovIDs(govIDs.filter((_, idx) => idx !== index));
+  const handleSaveImage = () => {
+    if (image) {
+      const payload = {
+        personnel_id: personnelId,
+        type: `${imageSize} Picture`,
+        image_url: image,
+        created_at: new Date().toISOString(),
+      };
+      onSaveImage(payload);
+      toast({
+        title: "Image saved successfully",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } else {
+      toast({
+        title: "No image to save",
+        description: "Please upload or capture an image before saving.",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const getBoxSize = () => {
+    switch (imageSize) {
+      case "wholebody":
+        return { width: "300px", height: "400px" };
+      case "halfbody":
+        return { width: "300px", height: "250px" };
+      default:
+        return { width: "150px", height: "150px" };
+    }
   };
 
   return (
-    <Box
-      width="100%"
-      bg="white"
-      boxShadow="lg"
-      p={8}
-      rounded="md"
-      mt={6}
-      my={85}
-    >
-      {loading ? (
-        <Text>Loading...</Text>
-      ) : (
-        <Box>
-          <Heading as="h2" size="lg" textAlign="center" mb={6}>
-            Step 3: Contact Information
-          </Heading>
+    <VStack spacing={6} align="center" my={115}>
+      <Heading as="h2" size="lg" textAlign="center" mb={6}>
+        Step 2: Upload Image(s)
+      </Heading>
 
-          {/* Contacts Section */}
-          <Text fontWeight="bold" fontSize="lg" mt={6} mb={2}>
-            Contacts
-          </Text>
-          <Table variant="striped" colorScheme="teal">
-            <Thead>
-              <Tr>
-                <Th>Type</Th>
-                <Th>Contact Info</Th>
-                <Th>Actions</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {contacts.map((contact, idx) => (
-                <Tr key={idx}>
-                  <Td>
-                    <Select
-                      placeholder="Select Type"
-                      value={contact.contactType}
-                      onChange={(e) =>
-                        handleContactChange(idx, "contactType", e.target.value)
-                      }
-                    >
-                      {contactTypes.map((type) => (
-                        <option key={type.id} value={type.id}>
-                          {type.name}
-                        </option>
-                      ))}
-                    </Select>
-                  </Td>
-                  <Td>
-                    <Input
-                      placeholder="Contact Info"
-                      value={contact.contactInfo}
-                      onChange={(e) =>
-                        handleContactChange(idx, "contactInfo", e.target.value)
-                      }
-                    />
-                  </Td>
-                  <Td>
-                    <IconButton
-                      icon={<CheckIcon />}
-                      size="sm"
-                      colorScheme="green"
-                      mr={2}
-                      onClick={() => handleSaveContact(idx)}
-                    />
-                    <IconButton
-                      icon={<EditIcon />}
-                      size="sm"
-                      colorScheme="blue"
-                      mr={2}
-                    />
-                    <IconButton
-                      icon={<DeleteIcon />}
-                      size="sm"
-                      colorScheme="red"
-                      onClick={() => handleRemoveContact(idx)}
-                    />
-                  </Td>
-                </Tr>
-              ))}
-            </Tbody>
-          </Table>
-          <Button onClick={handleAddContact} colorScheme="teal" mt={4}>
-            Add Contact
-          </Button>
+      <Select
+        value={imageSize}
+        onChange={(e) => setImageSize(e.target.value)}
+        placeholder="Select Image Size"
+        w="200px"
+        mb={4}
+      >
+        <option value="2x2">2x2 Picture</option>
+        <option value="wholebody">Whole Body</option>
+        <option value="halfbody">Half Body</option>
+      </Select>
 
-          {/* Addresses Section */}
-          <Text fontWeight="bold" fontSize="lg" mt={6} mb={2}>
-            Addresses
-          </Text>
-          <Table variant="striped" colorScheme="teal">
-            <Thead>
-              <Tr>
-                <Th>Address Type</Th>
-                <Th>Address</Th>
-                <Th>Actions</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {addresses.map((address, idx) => (
-                <Tr key={idx}>
-                  <Td>
-                    <Select
-                      placeholder="Address Type"
-                      value={address.addressType}
-                      onChange={(e) =>
-                        handleAddressChange(idx, "addressType", e.target.value)
-                      }
-                    >
-                      <option>Home Address</option>
-                      <option>Provincial Address</option>
-                      <option>Work Address</option>
-                    </Select>
-                  </Td>
-                  <Td>
-                    <Input
-                      placeholder="Address"
-                      value={address.name}
-                      onChange={(e) =>
-                        handleAddressChange(idx, "name", e.target.value)
-                      }
-                    />
-                  </Td>
-                  <Td>
-                    <IconButton
-                      icon={<CheckIcon />}
-                      size="sm"
-                      colorScheme="green"
-                      mr={2}
-                      onClick={() => handleSaveAddress(idx)}
-                    />
-                    <IconButton
-                      icon={<EditIcon />}
-                      size="sm"
-                      colorScheme="blue"
-                      mr={2}
-                    />
-                    <IconButton
-                      icon={<DeleteIcon />}
-                      size="sm"
-                      colorScheme="red"
-                      onClick={() => handleRemoveAddress(idx)}
-                    />
-                  </Td>
-                </Tr>
-              ))}
-            </Tbody>
-          </Table>
-          <Button onClick={handleAddAddress} colorScheme="teal" mt={4}>
-            Add Address
-          </Button>
+      <Box
+        p={5}
+        border="2px dashed"
+        borderColor="gray.400"
+        borderRadius="md"
+        w={getBoxSize().width}
+        h={getBoxSize().height}
+        position="relative"
+        bg="yellow.100"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        cursor="pointer"
+        transition="all 0.3s"
+        _hover={{ bg: "yellow.200" }}
+      >
+        {image ? (
+          <Image
+            src={image}
+            alt="Uploaded Picture"
+            boxSize="100%"
+            borderRadius="md"
+            objectFit="cover"
+          />
+        ) : (
+          <VStack>
+            <Icon as={BsUpload} w={12} h={12} color="gray.500" />
+            <Text fontSize="lg" fontWeight="bold">
+              Drop your {imageSize} here or browse
+            </Text>
+            <Text fontSize="sm" color="gray.600">
+              Supports PNG and JPEG
+            </Text>
+          </VStack>
+        )}
+        <Input
+          type="file"
+          accept="image/png, image/jpeg"
+          position="absolute"
+          top={0}
+          left={0}
+          w="100%"
+          h="100%"
+          opacity={0}
+          cursor="pointer"
+          onChange={handleImageUpload}
+        />
+      </Box>
 
-          {/* Government Issued IDs Section */}
-          <Text fontWeight="bold" fontSize="lg" mt={6} mb={2}>
-            Government Issued IDs
-          </Text>
-          <Table variant="striped" colorScheme="teal">
-            <Thead>
-              <Tr>
-                <Th>ID Type</Th>
-                <Th>ID Number</Th>
-                <Th>Document</Th>
-                <Th>Actions</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {govIDs.map((id, idx) => (
-                <Tr key={idx}>
-                  <Td>
-                    <Select
-                      placeholder="Select ID Type"
-                      value={id.govIDType}
-                      onChange={(e) =>
-                        handleGovIDChange(idx, "govIDType", e.target.value)
-                      }
-                    >
-                      {governmentIDs.map((govID) => (
-                        <option key={govID.id} value={govID.id}>
-                          {govID.name}
-                        </option>
-                      ))}
-                    </Select>
-                  </Td>
-                  <Td>
-                    <Input
-                      placeholder="ID Number"
-                      value={id.govIDNumber}
-                      onChange={(e) =>
-                        handleGovIDChange(idx, "govIDNumber", e.target.value)
-                      }
-                    />
-                  </Td>
-                  <Td>
-                    <Button
-                      leftIcon={<AttachmentIcon />}
-                      size="sm"
-                      colorScheme="teal"
-                      onClick={() =>
-                        document.getElementById(`file-upload-${idx}`).click()
-                      }
-                    >
-                      Upload
-                    </Button>
-                    <input
-                      type="file"
-                      id={`file-upload-${idx}`}
-                      style={{ display: "none" }}
-                      onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                          console.log(
-                            `File selected for idx ${idx}:`,
-                            file.name
-                          );
-                          handleDocumentUpload(idx, file);
-                        } else {
-                          console.warn(`No file selected for idx ${idx}`);
-                        }
-                      }}
-                    />
+      <HStack spacing={4}>
+        <IconButton
+          icon={<MdPhotoCamera />}
+          colorScheme="teal"
+          onClick={openCamera}
+          aria-label="Capture Image"
+        />
+        <Button
+          onClick={handleSaveImage}
+          colorScheme="yellow"
+          fontWeight="bold"
+          mt={4}
+        >
+          Submit Now
+        </Button>
+      </HStack>
 
-                    {id.document && (
-                      <Text mt={2}>
-                        <a
-                          href={`${process.env.REACT_APP_API_URL}/${id.document.file_path}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {id.document.file_name}
-                        </a>
-                      </Text>
-                    )}
-                  </Td>
-
-                  <Td>
-                    <IconButton
-                      icon={<CheckIcon />}
-                      size="sm"
-                      colorScheme="green"
-                      mr={2}
-                      onClick={() => handleSaveGovID(idx)}
-                    />
-                    <IconButton
-                      icon={<EditIcon />}
-                      size="sm"
-                      colorScheme="blue"
-                      mr={2}
-                    />
-                    <IconButton
-                      icon={<DeleteIcon />}
-                      size="sm"
-                      colorScheme="red"
-                      onClick={() => handleRemoveGovID(idx)}
-                    />
-                  </Td>
-                </Tr>
-              ))}
-            </Tbody>
-          </Table>
-          <Button onClick={handleAddGovID} colorScheme="teal" mt={4}>
-            Add Government ID
-          </Button>
-        </Box>
-      )}
-    </Box>
+      {/* Modal for Camera */}
+      <Modal isOpen={isCameraOpen} onClose={closeCamera}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Capture Image</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody display="flex" justifyContent="center">
+            <video ref={videoRef} autoPlay width="100%" />
+            <canvas ref={canvasRef} style={{ display: "none" }} />
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="teal" onClick={captureImage}>
+              Capture
+            </Button>
+            <Button variant="ghost" onClick={closeCamera}>
+              Close
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </VStack>
   );
 };
 
