@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 22, 2024 at 11:30 AM
+-- Generation Time: Nov 25, 2024 at 09:43 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -491,6 +491,19 @@ CREATE TABLE `family_members` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `family_members`
+--
+
+INSERT INTO `family_members` (`id`, `personnel_id`, `relationship_type`, `givenname`, `middlename`, `lastname`, `suffix`, `gender`, `bloodtype`, `civil_status`, `date_of_marriage`, `place_of_marriage`, `citizenship`, `nationality`, `date_of_birth`, `contact_number`, `church_duties`, `livelihood`, `local_congregation`, `district_id`, `minister_officiated`, `employment_type`, `company`, `address`, `position`, `department`, `section`, `start_date`, `end_date`, `reason_for_leaving`, `education_level`, `start_year`, `completion_year`, `school`, `field_of_study`, `degree`, `institution`, `professional_licensure_examination`, `created_at`, `updated_at`) VALUES
+(1, 8, 'Father', 'asd', NULL, 'asd', 's', 'Male', NULL, NULL, NULL, NULL, 0, 0, '0000-00-00', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', 'd', 'asdas', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', NULL, NULL, NULL, NULL, '2024-11-25 02:50:26', '2024-11-25 02:50:26'),
+(2, 8, 'Mother', 'alicia', NULL, 'asd', '', 'Female', NULL, NULL, NULL, NULL, 0, 0, '0000-00-00', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', 'asd', 'asasd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', NULL, NULL, NULL, NULL, '2024-11-25 02:50:58', '2024-11-25 02:50:58'),
+(3, 8, 'Father', 'as12', NULL, 'asd', 'a', 'Male', NULL, NULL, NULL, NULL, 0, 0, '0000-00-00', NULL, NULL, 'asd', NULL, NULL, NULL, NULL, 'asd', 'asd', 'asd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', NULL, 'asd', 'asd', NULL, '2024-11-25 04:36:53', '2024-11-25 04:39:26'),
+(4, 8, 'Father', 'HEY', NULL, 'asd', '1', 'Male', NULL, NULL, NULL, NULL, 0, 0, '0000-00-00', NULL, NULL, 'asd', NULL, NULL, NULL, NULL, 'asd', 'asd', 'asd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', NULL, 'asd', 'asd', NULL, '2024-11-25 05:20:43', '2024-11-25 05:24:04'),
+(5, 8, 'Mother', 'ALICE', NULL, 'asd', '', 'Female', NULL, NULL, NULL, NULL, 0, 0, '0000-00-00', NULL, NULL, 'asd', NULL, NULL, NULL, NULL, 'asd', 'asd', 'asd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', NULL, 'asd', 'asd', NULL, '2024-11-25 05:53:15', '2024-11-25 05:53:15'),
+(6, 8, 'Sibling', 'asd', NULL, 'asd', '1', 'Male', NULL, NULL, NULL, NULL, 0, 0, '0000-00-00', NULL, NULL, 'asd', NULL, NULL, NULL, NULL, 'asd', 'asd', 'asd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', NULL, 'asd', 'as', NULL, '2024-11-25 08:15:39', '2024-11-25 08:15:39'),
+(7, 8, 'Child', 'asd', NULL, 'asd', 'asd', 'Male', NULL, NULL, NULL, NULL, 0, 0, '0000-00-00', NULL, NULL, 'asd', NULL, NULL, NULL, NULL, 'asd', 'asd', 'asd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', NULL, 'asd', 'asd', NULL, '2024-11-25 08:43:02', '2024-11-25 08:43:02');
 
 -- --------------------------------------------------------
 
@@ -1264,7 +1277,7 @@ CREATE TABLE `suguan` (
 
 INSERT INTO `suguan` (`id`, `name`, `district_id`, `local_id`, `date`, `time`, `gampanin_id`) VALUES
 (1, 'fe', 1, 1, '2024-11-18 00:00:00', '06:00:00', 3),
-(2, 'KVD', 0, 0, '2024-11-25 00:00:00', '11:11:00', 2);
+(2, 'KVDtest', 0, 0, '2024-11-25 00:00:00', '11:11:00', 2);
 
 -- --------------------------------------------------------
 
@@ -1338,7 +1351,7 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (43, 'executive.news', NULL, NULL, 'executive.news', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (44, 'pmd.it', NULL, NULL, 'pmd.it', '{SSHA}LYVyCEUbqbnRdJMh/NGuR38z6zbsDKG+', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (45, 'r.deguzman', NULL, NULL, 'r.deguzman', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(46, 'felix.pareja', 2, '', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
+(46, 'felix.pareja', 2, '', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (47, 'nsanchez', NULL, NULL, 'nsanchez', '{MD5}4vh3FhfOq3i3zcUJki6UBg==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (48, NULL, NULL, '', 'admin', '$2a$12$ZXhnczgjZG4QAa4oGMH5eOt0.a9urccMHJ0/FBYB5zCe2/zfh3dEO', 0, NULL, 'Local', NULL, NULL, NULL, NULL);
 
@@ -1740,7 +1753,7 @@ ALTER TABLE `educational_background`
 -- AUTO_INCREMENT for table `family_members`
 --
 ALTER TABLE `family_members`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `government_issued_id`

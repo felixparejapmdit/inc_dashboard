@@ -49,6 +49,10 @@ const FamilyMember = db.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    date_of_marriage: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     place_of_marriage: {
       type: DataTypes.STRING(50),
       allowNull: true,
@@ -62,6 +66,26 @@ const FamilyMember = db.define(
       allowNull: true,
     },
     contact_number: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    church_duties: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    livelihood: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    local_congregation: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    district_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    minister_officiated: {
       type: DataTypes.STRING(50),
       allowNull: true,
     },
@@ -94,6 +118,10 @@ const FamilyMember = db.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    reason_for_leaving: {
+      type: DataTypes.STRING(150),
+      allowNull: true,
+    },
     education_level: {
       type: DataTypes.ENUM(
         "Elementary",
@@ -103,11 +131,31 @@ const FamilyMember = db.define(
       ),
       allowNull: true,
     },
+    start_year: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    completion_year: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     school: {
       type: DataTypes.STRING(50),
       allowNull: true,
     },
     field_of_study: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    degree: {
+      type: DataTypes.STRING(30),
+      allowNull: true,
+    },
+    institution: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    professional_licensure_examination: {
       type: DataTypes.STRING(50),
       allowNull: true,
     },

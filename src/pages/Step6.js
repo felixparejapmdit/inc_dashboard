@@ -9,9 +9,17 @@ import {
   Input,
   Select,
   Button,
+  Table,
+  Tbody,
+  Tr,
+  Td,
   IconButton,
+  useToast,
 } from "@chakra-ui/react";
 import { EditIcon, DeleteIcon, CheckIcon } from "@chakra-ui/icons";
+import axios from "axios";
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 const Step6 = () => {
   const [siblings, setSiblings] = useState([
@@ -21,15 +29,20 @@ const Step6 = () => {
       middleName: "",
       lastName: "",
       suffix: "",
-      gender: "",
+      gender: "Male",
       bloodType: "",
       civilStatus: "",
       dateOfBirth: "",
+      dateOfMarriage: "",
+      placeOfMarriage: "",
+      citizenship: "",
+      nationality: "",
       contactNumber: "",
       churchDuties: "",
       livelihood: "",
       localCongregation: "",
       districtId: "",
+      ministerOfficiated: "",
       employmentType: "",
       company: "",
       address: "",
@@ -47,7 +60,7 @@ const Step6 = () => {
       degree: "",
       institution: "",
       professionalLicensureExamination: "",
-      isEditing: true,
+      isEditing: true, // Default is true for editable fields on load
     },
   ]);
 
@@ -60,15 +73,20 @@ const Step6 = () => {
         middleName: "",
         lastName: "",
         suffix: "",
-        gender: "",
+        gender: "Male",
         bloodType: "",
         civilStatus: "",
         dateOfBirth: "",
+        dateOfMarriage: "",
+        placeOfMarriage: "",
+        citizenship: "",
+        nationality: "",
         contactNumber: "",
         churchDuties: "",
         livelihood: "",
         localCongregation: "",
         districtId: "",
+        ministerOfficiated: "",
         employmentType: "",
         company: "",
         address: "",
@@ -86,10 +104,20 @@ const Step6 = () => {
         degree: "",
         institution: "",
         professionalLicensureExamination: "",
-        isEditing: true,
+        isEditing: true, // Default to true for new siblings
       },
     ]);
+    toast({
+      title: "Sibling Added",
+      description: "A new sibling has been added.",
+      status: "success",
+      duration: 3000,
+      isClosable: true,
+    });
   };
+
+  const [loading, setLoading] = useState(false);
+  const toast = useToast();
 
   const toggleEditSibling = (index) => {
     const updatedSiblings = [...siblings];
@@ -106,6 +134,125 @@ const Step6 = () => {
 
   const handleDeleteSibling = (index) => {
     setSiblings(siblings.filter((_, i) => i !== index));
+    toast({
+      title: "Sibling Deleted",
+      description: `Sibling ${index + 1} removed.`,
+      status: "warning",
+      duration: 3000,
+      isClosable: true,
+    });
+  };
+  const handleSaveOrUpdate = async (index) => {
+    setLoading(true);
+    const sibling = siblings[index];
+    const {
+      id,
+      isEditing,
+      relationshipType,
+      givenName,
+      lastName,
+      gender,
+      ...siblingsData
+    } = sibling;
+
+    // Map frontend fields to backend fields
+    const formattedData = {
+      ...siblingsData,
+      givenname: givenName,
+      lastname: lastName, // Ensure lastname is sent
+      gender: gender, // Ensure gender is sent
+      relationship_type: relationshipType,
+      personnel_id: siblingsData.personnel_id || 8,
+    };
+
+    // Validate required fields before saving/updating
+    const requiredFields = [
+      "personnel_id",
+      "relationship_type",
+      "givenname",
+      "lastname",
+      "gender",
+    ];
+    for (const field of requiredFields) {
+      if (
+        !formattedData[field] ||
+        (typeof formattedData[field] === "string" &&
+          formattedData[field].trim() === "")
+      ) {
+        toast({
+          title: "Validation Error",
+          description: `The field ${field} is required for ${relationshipType}.`,
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
+    }
+
+    try {
+      if (id) {
+        // Update existing siblings record
+        const response = await axios.put(
+          `${API_URL}/api/family-members/${id}`,
+          formattedData
+        );
+        const updatedsiblings = response.data;
+
+        setSiblings((prev) =>
+          prev.map((item, i) =>
+            i === index ? { ...updatedsiblings, isEditing: false } : item
+          )
+        );
+
+        toast({
+          title: "siblings Information Updated",
+          description: `${relationshipType} information has been updated successfully.`,
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        // Save new siblings record
+        const response = await axios.post(
+          `${API_URL}/api/family-members`,
+          formattedData
+        );
+        const savedsiblings = response.data;
+
+        setSiblings((prev) =>
+          prev.map((item, i) =>
+            i === index
+              ? { ...item, id: savedsiblings.id, isEditing: false }
+              : item
+          )
+        );
+
+        toast({
+          title: "siblings Information Saved",
+          description: `${relationshipType} information has been saved successfully.`,
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    } catch (error) {
+      console.error(
+        "Error saving/updating siblings information:",
+        error.response
+      );
+      toast({
+        title: "Error",
+        description: `Failed to save/update ${relationshipType} information. ${
+          error.response?.data?.message || "Please check the data."
+        }`,
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -115,200 +262,484 @@ const Step6 = () => {
       </Heading>
       <VStack align="start" spacing={4} mb={8} w="100%">
         {siblings.map((sibling, index) => (
-          <Box
-            key={index}
-            p={4}
-            bg="gray.50"
-            borderRadius="md"
-            boxShadow="sm"
-            mb={4}
-            width="100%"
+          <Table
+            key={sibling.id || sibling.generatedId}
+            size="md"
+            variant="simple"
           >
-            <HStack spacing={4} mb={3}>
-              <Text fontWeight="bold">Sibling #{index + 1}</Text>
-              <IconButton
-                icon={<DeleteIcon />}
-                colorScheme="red"
-                size="sm"
-                onClick={() => handleDeleteSibling(index)}
-              />
-            </HStack>
-            <VStack spacing={3} align="stretch">
-              <HStack>
-                <Select
-                  placeholder="Gender"
-                  value={sibling.gender}
-                  onChange={(e) =>
-                    handleSiblingChange(index, "gender", e.target.value)
-                  }
-                >
-                  <option>Male</option>
-                  <option>Female</option>
-                </Select>
-                <Input
-                  placeholder="Given Name"
-                  value={sibling.givenName}
-                  onChange={(e) =>
-                    handleSiblingChange(index, "givenName", e.target.value)
-                  }
-                />
-                <Input
-                  placeholder="Middle Name"
-                  value={sibling.middleName}
-                  onChange={(e) =>
-                    handleSiblingChange(index, "middleName", e.target.value)
-                  }
-                />
-                <Input
-                  placeholder="Last Name"
-                  value={sibling.lastName}
-                  onChange={(e) =>
-                    handleSiblingChange(index, "lastName", e.target.value)
-                  }
-                />
-                <Input
-                  placeholder="Suffix"
-                  value={sibling.suffix}
-                  onChange={(e) =>
-                    handleSiblingChange(index, "suffix", e.target.value)
-                  }
-                />
-              </HStack>
-              <HStack>
-                <Select
-                  placeholder="Civil Status"
-                  value={sibling.civilStatus}
-                  onChange={(e) =>
-                    handleSiblingChange(index, "civilStatus", e.target.value)
-                  }
-                >
-                  <option>Single</option>
-                  <option>Married</option>
-                  <option>Widowed</option>
-                  <option>Divorced</option>
-                </Select>
-                <Input
-                  placeholder="Date of Birth"
-                  type="date"
-                  value={sibling.dateOfBirth}
-                  onChange={(e) =>
-                    handleSiblingChange(index, "dateOfBirth", e.target.value)
-                  }
-                />
-                <Input
-                  placeholder="Contact Number"
-                  value={sibling.contactNumber}
-                  onChange={(e) =>
-                    handleSiblingChange(index, "contactNumber", e.target.value)
-                  }
-                />
-              </HStack>
-              <HStack>
-                <Select
-                  placeholder="Employment Type"
-                  value={sibling.employmentType}
-                  onChange={(e) =>
-                    handleSiblingChange(index, "employmentType", e.target.value)
-                  }
-                >
-                  <option>Self-employed</option>
-                  <option>Employed</option>
-                  <option>Government</option>
-                  <option>Private</option>
-                </Select>
-                <Input
-                  placeholder="Company"
-                  value={sibling.company}
-                  onChange={(e) =>
-                    handleSiblingChange(index, "company", e.target.value)
-                  }
-                />
-                <Input
-                  placeholder="Position"
-                  value={sibling.position}
-                  onChange={(e) =>
-                    handleSiblingChange(index, "position", e.target.value)
-                  }
-                />
-              </HStack>
-              <HStack>
-                <Input
-                  placeholder="School"
-                  value={sibling.school}
-                  onChange={(e) =>
-                    handleSiblingChange(index, "school", e.target.value)
-                  }
-                />
-                <Input
-                  placeholder="Field of Study"
-                  value={sibling.fieldOfStudy}
-                  onChange={(e) =>
-                    handleSiblingChange(index, "fieldOfStudy", e.target.value)
-                  }
-                />
-                <Input
-                  placeholder="Degree"
-                  value={sibling.degree}
-                  onChange={(e) =>
-                    handleSiblingChange(index, "degree", e.target.value)
-                  }
-                />
-              </HStack>
-              <HStack>
-                <Input
-                  placeholder="Start Year"
-                  type="number"
-                  value={sibling.startYear}
-                  onChange={(e) =>
-                    handleSiblingChange(index, "startYear", e.target.value)
-                  }
-                />
-                <Input
-                  placeholder="Completion Year"
-                  type="number"
-                  value={sibling.completionYear}
-                  onChange={(e) =>
-                    handleSiblingChange(index, "completionYear", e.target.value)
-                  }
-                />
-                <Input
-                  placeholder="Institution"
-                  value={sibling.institution}
-                  onChange={(e) =>
-                    handleSiblingChange(index, "institution", e.target.value)
-                  }
-                />
-                <Input
-                  placeholder="Professional Licensure Examination"
-                  value={sibling.professionalLicensureExamination}
-                  onChange={(e) =>
-                    handleSiblingChange(
-                      index,
-                      "professionalLicensureExamination",
-                      e.target.value
-                    )
-                  }
-                />
-              </HStack>
-              <HStack>
-                {sibling.isEditing ? (
-                  <IconButton
-                    icon={<CheckIcon />}
-                    onClick={() => toggleEditSibling(index)}
-                    colorScheme="green"
-                    size="sm"
+            <Tbody>
+              {/* Header */}
+              <Tr>
+                <Td colSpan={4} fontWeight="bold" fontSize="md">
+                  {siblings.relationshipType}
+                </Td>
+              </Tr>
+
+              {/* Personal Information */}
+              <Tr bg="gray.50">
+                <Td colSpan={4}>
+                  <Text fontWeight="bold">Personal Information</Text>
+                </Td>
+              </Tr>
+              <Tr>
+                <Td>
+                  <Input
+                    placeholder="Given Name"
+                    value={siblings.givenName}
+                    onChange={(e) =>
+                      handleSiblingChange(index, "givenName", e.target.value)
+                    }
+                    isDisabled={!sibling.isEditing}
                   />
-                ) : (
-                  <IconButton
-                    icon={<EditIcon />}
-                    onClick={() => toggleEditSibling(index)}
-                    colorScheme="blue"
-                    size="sm"
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Middle Name"
+                    value={siblings.middleName}
+                    onChange={(e) =>
+                      handleSiblingChange(index, "middleName", e.target.value)
+                    }
+                    isDisabled={!sibling.isEditing}
                   />
-                )}
-              </HStack>
-            </VStack>
-          </Box>
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Last Name"
+                    value={siblings.lastName}
+                    onChange={(e) =>
+                      handleSiblingChange(index, "lastName", e.target.value)
+                    }
+                    isDisabled={!sibling.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Suffix"
+                    value={siblings.suffix}
+                    onChange={(e) =>
+                      handleSiblingChange(index, "suffix", e.target.value)
+                    }
+                    isDisabled={!sibling.isEditing}
+                  />
+                </Td>
+              </Tr>
+              <Tr>
+                <Td>
+                  <Select
+                    placeholder="Gender"
+                    value={siblings.gender}
+                    onChange={(e) =>
+                      handleSiblingChange(index, "gender", e.target.value)
+                    }
+                    isDisabled={!sibling.isEditing}
+                  >
+                    <option>Male</option>
+                    <option>Female</option>
+                  </Select>
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Date of Birth"
+                    type="date"
+                    value={siblings.dateOfBirth}
+                    onChange={(e) =>
+                      handleSiblingChange(index, "dateOfBirth", e.target.value)
+                    }
+                    isDisabled={!sibling.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Contact Number"
+                    value={siblings.contactNumber}
+                    onChange={(e) =>
+                      handleSiblingChange(
+                        index,
+                        "contactNumber",
+                        e.target.value
+                      )
+                    }
+                    isDisabled={!sibling.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Select
+                    placeholder="Blood Type"
+                    value={siblings.bloodType}
+                    onChange={(e) =>
+                      handleSiblingChange(index, "bloodType", e.target.value)
+                    }
+                    isDisabled={!sibling.isEditing}
+                  >
+                    <option>A</option>
+                    <option>B</option>
+                    <option>AB</option>
+                    <option>O</option>
+                  </Select>
+                </Td>
+              </Tr>
+              <Tr>
+                <Td>
+                  <Input
+                    placeholder="Civil Status"
+                    value={siblings.civilStatus}
+                    onChange={(e) =>
+                      handleSiblingChange(index, "civilStatus", e.target.value)
+                    }
+                    isDisabled={!sibling.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Place of Marriage"
+                    value={siblings.placeOfMarriage}
+                    onChange={(e) =>
+                      handleSiblingChange(
+                        index,
+                        "placeOfMarriage",
+                        e.target.value
+                      )
+                    }
+                    isDisabled={!sibling.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Select
+                    placeholder="Citizenship"
+                    value={siblings.citizenship}
+                    onChange={(e) =>
+                      handleSiblingChange(index, "citizenship", e.target.value)
+                    }
+                    isDisabled={!sibling.isEditing}
+                  >
+                    <option>Filipino</option>
+                    <option>Other</option>
+                  </Select>
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Nationality"
+                    value={siblings.nationality}
+                    onChange={(e) =>
+                      handleSiblingChange(index, "nationality", e.target.value)
+                    }
+                    isDisabled={!sibling.isEditing}
+                  />
+                </Td>
+              </Tr>
+              <Tr>
+                <Td>
+                  <Input
+                    placeholder="Church Duties"
+                    value={siblings.churchDuties}
+                    onChange={(e) =>
+                      handleSiblingChange(index, "churchDuties", e.target.value)
+                    }
+                    isDisabled={!sibling.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Livelihood"
+                    value={siblings.livelihood}
+                    onChange={(e) =>
+                      handleSiblingChange(index, "livelihood", e.target.value)
+                    }
+                    isDisabled={!sibling.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Local Congregation"
+                    value={siblings.localCongregation}
+                    onChange={(e) =>
+                      handleSiblingChange(
+                        index,
+                        "localCongregation",
+                        e.target.value
+                      )
+                    }
+                    isDisabled={!sibling.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Select
+                    placeholder="District ID"
+                    value={siblings.districtId}
+                    onChange={(e) =>
+                      handleSiblingChange(index, "districtId", e.target.value)
+                    }
+                    isDisabled={!sibling.isEditing}
+                  >
+                    <option>District 1</option>
+                    <option>District 2</option>
+                    <option>District 3</option>
+                  </Select>
+                </Td>
+              </Tr>
+
+              <Tr>
+                <Td>
+                  <Input
+                    placeholder="Minister Officiated"
+                    value={siblings.ministerOfficiated}
+                    onChange={(e) =>
+                      handleSiblingChange(
+                        index,
+                        "ministerOfficiated",
+                        e.target.value
+                      )
+                    }
+                    isDisabled={!sibling.isEditing}
+                  />
+                </Td>
+              </Tr>
+
+              {/* Work Information Section */}
+              <Tr bg="gray.50">
+                <Td colSpan={4}>
+                  <Text fontWeight="bold">Work Information</Text>
+                </Td>
+              </Tr>
+              <Tr>
+                <Td>
+                  <Select
+                    placeholder="Employment Type"
+                    value={siblings.employmentType}
+                    onChange={(e) =>
+                      handleSiblingChange(
+                        index,
+                        "employmentType",
+                        e.target.value
+                      )
+                    }
+                    isDisabled={!sibling.isEditing}
+                  >
+                    <option>Self-employed</option>
+                    <option>Employed</option>
+                    <option>Government</option>
+                    <option>Private</option>
+                  </Select>
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Company"
+                    value={siblings.company}
+                    onChange={(e) =>
+                      handleSiblingChange(index, "company", e.target.value)
+                    }
+                    isDisabled={!sibling.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Position"
+                    value={siblings.position}
+                    onChange={(e) =>
+                      handleSiblingChange(index, "position", e.target.value)
+                    }
+                    isDisabled={!sibling.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Address"
+                    value={siblings.address}
+                    onChange={(e) =>
+                      handleSiblingChange(index, "address", e.target.value)
+                    }
+                    isDisabled={!sibling.isEditing}
+                  />
+                </Td>
+              </Tr>
+              <Tr>
+                <Td>
+                  <Input
+                    placeholder="Department"
+                    value={siblings.department}
+                    onChange={(e) =>
+                      handleSiblingChange(index, "department", e.target.value)
+                    }
+                    isDisabled={!sibling.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Section"
+                    value={siblings.section}
+                    onChange={(e) =>
+                      handleSiblingChange(index, "section", e.target.value)
+                    }
+                    isDisabled={!sibling.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Start Date"
+                    type="date"
+                    value={siblings.startDate}
+                    onChange={(e) =>
+                      handleSiblingChange(index, "startDate", e.target.value)
+                    }
+                    isDisabled={!sibling.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="End Date"
+                    type="date"
+                    value={siblings.endDate}
+                    onChange={(e) =>
+                      handleSiblingChange(index, "endDate", e.target.value)
+                    }
+                    isDisabled={!sibling.isEditing}
+                  />
+                </Td>
+              </Tr>
+              <Tr>
+                <Td>
+                  <Input
+                    placeholder="Reason for Leaving"
+                    value={siblings.reasonForLeaving}
+                    onChange={(e) =>
+                      handleSiblingChange(
+                        index,
+                        "reasonForLeaving",
+                        e.target.value
+                      )
+                    }
+                    isDisabled={!sibling.isEditing}
+                  />
+                </Td>
+              </Tr>
+
+              {/* Educational Information Section */}
+              <Tr bg="gray.50">
+                <Td colSpan={4}>
+                  <Text fontWeight="bold">Educational Information</Text>
+                </Td>
+              </Tr>
+              <Tr>
+                <Td>
+                  <Select
+                    placeholder="Education Level"
+                    value={siblings.educationLevel}
+                    onChange={(e) =>
+                      handleSiblingChange(
+                        index,
+                        "educationLevel",
+                        e.target.value
+                      )
+                    }
+                    isDisabled={!sibling.isEditing}
+                  >
+                    <option>Elementary</option>
+                    <option>Secondary</option>
+                    <option>Senior High School</option>
+                    <option>College</option>
+                  </Select>
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="School"
+                    value={siblings.school}
+                    onChange={(e) =>
+                      handleSiblingChange(index, "school", e.target.value)
+                    }
+                    isDisabled={!sibling.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Field of Study"
+                    value={siblings.fieldOfStudy}
+                    onChange={(e) =>
+                      handleSiblingChange(index, "fieldOfStudy", e.target.value)
+                    }
+                    isDisabled={!sibling.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Degree"
+                    value={siblings.degree}
+                    onChange={(e) =>
+                      handleSiblingChange(index, "degree", e.target.value)
+                    }
+                    isDisabled={!sibling.isEditing}
+                  />
+                </Td>
+              </Tr>
+              <Tr>
+                <Td>
+                  <Input
+                    placeholder="Institution"
+                    value={siblings.institution}
+                    onChange={(e) =>
+                      handleSiblingChange(index, "institution", e.target.value)
+                    }
+                    isDisabled={!sibling.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Professional Licensure"
+                    value={siblings.professionalLicensureExamination}
+                    onChange={(e) =>
+                      handleSiblingChange(
+                        index,
+                        "professionalLicensureExamination",
+                        e.target.value
+                      )
+                    }
+                    isDisabled={!sibling.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Start Year"
+                    type="number"
+                    value={siblings.startYear}
+                    onChange={(e) =>
+                      handleSiblingChange(index, "startYear", e.target.value)
+                    }
+                    isDisabled={!sibling.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Completion Year"
+                    type="number"
+                    value={siblings.completionYear}
+                    onChange={(e) =>
+                      handleSiblingChange(
+                        index,
+                        "completionYear",
+                        e.target.value
+                      )
+                    }
+                    isDisabled={!sibling.isEditing}
+                  />
+                </Td>
+              </Tr>
+
+              {/* Save and Edit Button */}
+              <Tr>
+                <Td colSpan={4} textAlign="center">
+                  <IconButton
+                    icon={sibling.isEditing ? <CheckIcon /> : <EditIcon />}
+                    onClick={
+                      () =>
+                        sibling.isEditing
+                          ? handleSaveOrUpdate(index) // Save on check
+                          : handleSiblingChange(index, "isEditing", true) // Enable editing
+                    }
+                    colorScheme={sibling.isEditing ? "green" : "blue"}
+                  />
+                </Td>
+              </Tr>
+            </Tbody>
+          </Table>
         ))}
         <Button onClick={handleAddSibling} colorScheme="teal">
           Add Sibling

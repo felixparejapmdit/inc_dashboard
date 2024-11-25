@@ -2,8 +2,14 @@
 import React, { useState } from "react";
 import {
   Box,
+  Tabs,
+  TabList,
+  TabPanels,
+  Tab,
+  TabPanel,
   VStack,
   HStack,
+  Text,
   Heading,
   Input,
   Select,
@@ -18,7 +24,6 @@ import { CheckIcon, EditIcon } from "@chakra-ui/icons";
 import axios from "axios";
 
 const API_URL = process.env.REACT_APP_API_URL;
-
 const Step5 = () => {
   const [parents, setParents] = useState([
     {
@@ -106,7 +111,7 @@ const Step5 = () => {
     updatedParents[index].isEditing = !updatedParents[index].isEditing;
     setParents(updatedParents);
   };
-
+  const [loading, setLoading] = useState(false);
   const toast = useToast();
 
   // Handle input change
@@ -118,6 +123,7 @@ const Step5 = () => {
   };
 
   const handleSaveOrUpdate = async (index) => {
+    setLoading(true);
     const parent = parents[index];
     const {
       id,
@@ -224,6 +230,8 @@ const Step5 = () => {
         duration: 3000,
         isClosable: true,
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -233,414 +241,561 @@ const Step5 = () => {
         Step 5: Parents Information
       </Heading>
       <VStack align="start" spacing={4} mb={8} w="100%">
-        <Table variant="striped" colorScheme="gray" size="md">
-          <Tbody>
+        <Tabs variant="enclosed" colorScheme="blue">
+          <TabList>
             {parents.map((parent, index) => (
-              <React.Fragment key={index}>
-                {/* Header */}
-                <Tr>
-                  <Td colSpan={4} fontWeight="bold" fontSize="md">
-                    {parent.relationshipType}
-                  </Td>
-                </Tr>
-
-                {/* Personal Information */}
-                <Tr>
-                  <Td colSpan={4} fontWeight="bold">
-                    Personal Information
-                  </Td>
-                </Tr>
-                <Tr>
-                  <Td>
-                    <Input
-                      placeholder="Given Name"
-                      value={parent.givenName}
-                      onChange={(e) =>
-                        handleParentChange(index, "givenName", e.target.value)
-                      }
-                      isDisabled={!parent.isEditing}
-                    />
-                  </Td>
-                  <Td>
-                    <Input
-                      placeholder="Middle Name"
-                      value={parent.middleName}
-                      onChange={(e) =>
-                        handleParentChange(index, "middleName", e.target.value)
-                      }
-                      isDisabled={!parent.isEditing}
-                    />
-                  </Td>
-                  <Td>
-                    <Input
-                      placeholder="Last Name"
-                      value={parent.lastName}
-                      onChange={(e) =>
-                        handleParentChange(index, "lastName", e.target.value)
-                      }
-                      isDisabled={!parent.isEditing}
-                    />
-                  </Td>
-                  <Td>
-                    <Input
-                      placeholder="Suffix"
-                      value={parent.suffix}
-                      onChange={(e) =>
-                        handleParentChange(index, "suffix", e.target.value)
-                      }
-                      isDisabled={!parent.isEditing}
-                    />
-                  </Td>
-                </Tr>
-                <Tr>
-                  <Td>
-                    <Select
-                      placeholder="Gender"
-                      value={parent.gender}
-                      onChange={(e) =>
-                        handleParentChange(index, "gender", e.target.value)
-                      }
-                      isDisabled={!parent.isEditing}
-                    >
-                      <option>Male</option>
-                      <option>Female</option>
-                    </Select>
-                  </Td>
-                  <Td>
-                    <Input
-                      placeholder="Date of Birth"
-                      type="date"
-                      value={parent.dateOfBirth}
-                      onChange={(e) =>
-                        handleParentChange(index, "dateOfBirth", e.target.value)
-                      }
-                      isDisabled={!parent.isEditing}
-                    />
-                  </Td>
-                  <Td>
-                    <Input
-                      placeholder="Contact Number"
-                      value={parent.contactNumber}
-                      onChange={(e) =>
-                        handleParentChange(
-                          index,
-                          "contactNumber",
-                          e.target.value
-                        )
-                      }
-                      isDisabled={!parent.isEditing}
-                    />
-                  </Td>
-                  <Td>
-                    <Select
-                      placeholder="Blood Type"
-                      value={parent.bloodType}
-                      onChange={(e) =>
-                        handleParentChange(index, "bloodType", e.target.value)
-                      }
-                      isDisabled={!parent.isEditing}
-                    >
-                      <option>A</option>
-                      <option>B</option>
-                      <option>AB</option>
-                      <option>O</option>
-                    </Select>
-                  </Td>
-                </Tr>
-                <Tr>
-                  <Td>
-                    <Input
-                      placeholder="Civil Status"
-                      value={parent.civilStatus}
-                      onChange={(e) =>
-                        handleParentChange(index, "civilStatus", e.target.value)
-                      }
-                      isDisabled={!parent.isEditing}
-                    />
-                  </Td>
-                  <Td>
-                    <Input
-                      placeholder="Place of Marriage"
-                      value={parent.placeOfMarriage}
-                      onChange={(e) =>
-                        handleParentChange(
-                          index,
-                          "placeOfMarriage",
-                          e.target.value
-                        )
-                      }
-                      isDisabled={!parent.isEditing}
-                    />
-                  </Td>
-                  <Td>
-                    <Select
-                      placeholder="Citizenship"
-                      value={parent.citizenship}
-                      onChange={(e) =>
-                        handleParentChange(index, "citizenship", e.target.value)
-                      }
-                      isDisabled={!parent.isEditing}
-                    >
-                      <option>Filipino</option>
-                      <option>Other</option>
-                    </Select>
-                  </Td>
-                  <Td>
-                    <Input
-                      placeholder="Nationality"
-                      value={parent.nationality}
-                      onChange={(e) =>
-                        handleParentChange(index, "nationality", e.target.value)
-                      }
-                      isDisabled={!parent.isEditing}
-                    />
-                  </Td>
-                </Tr>
-                <Tr>
-                  <Td>
-                    <Input
-                      placeholder="Church Duties"
-                      value={parent.churchDuties}
-                      onChange={(e) =>
-                        handleParentChange(
-                          index,
-                          "churchDuties",
-                          e.target.value
-                        )
-                      }
-                      isDisabled={!parent.isEditing}
-                    />
-                  </Td>
-                  <Td>
-                    <Input
-                      placeholder="Livelihood"
-                      value={parent.livelihood}
-                      onChange={(e) =>
-                        handleParentChange(index, "livelihood", e.target.value)
-                      }
-                      isDisabled={!parent.isEditing}
-                    />
-                  </Td>
-                  <Td>
-                    <Input
-                      placeholder="Local Congregation"
-                      value={parent.localCongregation}
-                      onChange={(e) =>
-                        handleParentChange(
-                          index,
-                          "localCongregation",
-                          e.target.value
-                        )
-                      }
-                      isDisabled={!parent.isEditing}
-                    />
-                  </Td>
-                  <Td>
-                    <Select
-                      placeholder="District ID"
-                      value={parent.districtId}
-                      onChange={(e) =>
-                        handleParentChange(index, "districtId", e.target.value)
-                      }
-                      isDisabled={!parent.isEditing}
-                    >
-                      <option>District 1</option>
-                      <option>District 2</option>
-                      <option>District 3</option>
-                    </Select>
-                  </Td>
-                </Tr>
-
-                {/* Work Information */}
-                <Tr>
-                  <Td colSpan={4} fontWeight="bold">
-                    Work Information
-                  </Td>
-                </Tr>
-                <Tr>
-                  <Td>
-                    <Select
-                      placeholder="Employment Type"
-                      value={parent.employmentType}
-                      onChange={(e) =>
-                        handleParentChange(
-                          index,
-                          "employmentType",
-                          e.target.value
-                        )
-                      }
-                      isDisabled={!parent.isEditing}
-                    >
-                      <option>Self-employed</option>
-                      <option>Employed</option>
-                      <option>Government</option>
-                      <option>Private</option>
-                    </Select>
-                  </Td>
-                  <Td>
-                    <Input
-                      placeholder="Company"
-                      value={parent.company}
-                      onChange={(e) =>
-                        handleParentChange(index, "company", e.target.value)
-                      }
-                      isDisabled={!parent.isEditing}
-                    />
-                  </Td>
-                  <Td>
-                    <Input
-                      placeholder="Position"
-                      value={parent.position}
-                      onChange={(e) =>
-                        handleParentChange(index, "position", e.target.value)
-                      }
-                      isDisabled={!parent.isEditing}
-                    />
-                  </Td>
-                  <Td>
-                    <Input
-                      placeholder="Address"
-                      value={parent.address}
-                      onChange={(e) =>
-                        handleParentChange(index, "address", e.target.value)
-                      }
-                      isDisabled={!parent.isEditing}
-                    />
-                  </Td>
-                </Tr>
-
-                {/* Education Information */}
-                <Tr>
-                  <Td colSpan={4} fontWeight="bold">
-                    Educational Information
-                  </Td>
-                </Tr>
-                <Tr>
-                  <Td>
-                    <Select
-                      placeholder="Education Level"
-                      value={parent.educationLevel}
-                      onChange={(e) =>
-                        handleParentChange(
-                          index,
-                          "educationLevel",
-                          e.target.value
-                        )
-                      }
-                      isDisabled={!parent.isEditing}
-                    >
-                      <option>Elementary</option>
-                      <option>Secondary</option>
-                      <option>Senior High School</option>
-                      <option>College</option>
-                    </Select>
-                  </Td>
-                  <Td>
-                    <Input
-                      placeholder="School"
-                      value={parent.school}
-                      onChange={(e) =>
-                        handleParentChange(index, "school", e.target.value)
-                      }
-                      isDisabled={!parent.isEditing}
-                    />
-                  </Td>
-                  <Td>
-                    <Input
-                      placeholder="Field of Study"
-                      value={parent.fieldOfStudy}
-                      onChange={(e) =>
-                        handleParentChange(
-                          index,
-                          "fieldOfStudy",
-                          e.target.value
-                        )
-                      }
-                      isDisabled={!parent.isEditing}
-                    />
-                  </Td>
-                  <Td>
-                    <Input
-                      placeholder="Degree"
-                      value={parent.degree}
-                      onChange={(e) =>
-                        handleParentChange(index, "degree", e.target.value)
-                      }
-                      isDisabled={!parent.isEditing}
-                    />
-                  </Td>
-                </Tr>
-                <Tr>
-                  <Td>
-                    <Input
-                      placeholder="Institution"
-                      value={parent.institution}
-                      onChange={(e) =>
-                        handleParentChange(index, "institution", e.target.value)
-                      }
-                      isDisabled={!parent.isEditing}
-                    />
-                  </Td>
-                  <Td>
-                    <Input
-                      placeholder="Professional Licensure"
-                      value={parent.professionalLicensureExamination}
-                      onChange={(e) =>
-                        handleParentChange(
-                          index,
-                          "professionalLicensureExamination",
-                          e.target.value
-                        )
-                      }
-                      isDisabled={!parent.isEditing}
-                    />
-                  </Td>
-                  <Td>
-                    <Input
-                      placeholder="Start Year"
-                      type="number"
-                      value={parent.startYear}
-                      onChange={(e) =>
-                        handleParentChange(index, "startYear", e.target.value)
-                      }
-                      isDisabled={!parent.isEditing}
-                    />
-                  </Td>
-                  <Td>
-                    <Input
-                      placeholder="Completion Year"
-                      type="number"
-                      value={parent.completionYear}
-                      onChange={(e) =>
-                        handleParentChange(
-                          index,
-                          "completionYear",
-                          e.target.value
-                        )
-                      }
-                      isDisabled={!parent.isEditing}
-                    />
-                  </Td>
-                </Tr>
-
-                {/* Save Button */}
-                <Tr>
-                  <Td colSpan={4} textAlign="center">
-                    <IconButton
-                      icon={parent.isEditing ? <CheckIcon /> : <EditIcon />}
-                      onClick={() =>
-                        parent.isEditing
-                          ? handleSaveOrUpdate(index)
-                          : handleParentChange(index, "isEditing", true)
-                      }
-                      colorScheme={parent.isEditing ? "green" : "blue"}
-                    />
-                  </Td>
-                </Tr>
-              </React.Fragment>
+              <Tab key={index}>{parent.relationshipType}</Tab>
             ))}
-          </Tbody>
-        </Table>
+          </TabList>
+
+          <TabPanels>
+            {parents.map((parent, index) => (
+              <TabPanel key={index}>
+                <Table size="md" variant="simple">
+                  <Tbody>
+                    {/* Header */}
+                    <Tr>
+                      <Td colSpan={4} fontWeight="bold" fontSize="md">
+                        {parent.relationshipType}
+                      </Td>
+                    </Tr>
+
+                    {/* Personal Information */}
+                    <Tr bg="gray.50">
+                      <Td colSpan={4}>
+                        <Text fontWeight="bold">Personal Information</Text>
+                      </Td>
+                    </Tr>
+                    <Tr>
+                      <Td>
+                        <Input
+                          placeholder="Given Name"
+                          value={parent.givenName}
+                          onChange={(e) =>
+                            handleParentChange(
+                              index,
+                              "givenName",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Input
+                          placeholder="Middle Name"
+                          value={parent.middleName}
+                          onChange={(e) =>
+                            handleParentChange(
+                              index,
+                              "middleName",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Input
+                          placeholder="Last Name"
+                          value={parent.lastName}
+                          onChange={(e) =>
+                            handleParentChange(
+                              index,
+                              "lastName",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Input
+                          placeholder="Suffix"
+                          value={parent.suffix}
+                          onChange={(e) =>
+                            handleParentChange(index, "suffix", e.target.value)
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                    </Tr>
+                    <Tr>
+                      <Td>
+                        <Select
+                          placeholder="Gender"
+                          value={parent.gender}
+                          onChange={(e) =>
+                            handleParentChange(index, "gender", e.target.value)
+                          }
+                          isDisabled={!parent.isEditing}
+                        >
+                          <option>Male</option>
+                          <option>Female</option>
+                        </Select>
+                      </Td>
+                      <Td>
+                        <Input
+                          placeholder="Date of Birth"
+                          type="date"
+                          value={parent.dateOfBirth}
+                          onChange={(e) =>
+                            handleParentChange(
+                              index,
+                              "dateOfBirth",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Input
+                          placeholder="Contact Number"
+                          value={parent.contactNumber}
+                          onChange={(e) =>
+                            handleParentChange(
+                              index,
+                              "contactNumber",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Select
+                          placeholder="Blood Type"
+                          value={parent.bloodType}
+                          onChange={(e) =>
+                            handleParentChange(
+                              index,
+                              "bloodType",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        >
+                          <option>A</option>
+                          <option>B</option>
+                          <option>AB</option>
+                          <option>O</option>
+                        </Select>
+                      </Td>
+                    </Tr>
+                    <Tr>
+                      <Td>
+                        <Input
+                          placeholder="Civil Status"
+                          value={parent.civilStatus}
+                          onChange={(e) =>
+                            handleParentChange(
+                              index,
+                              "civilStatus",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Input
+                          placeholder="Place of Marriage"
+                          value={parent.placeOfMarriage}
+                          onChange={(e) =>
+                            handleParentChange(
+                              index,
+                              "placeOfMarriage",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Select
+                          placeholder="Citizenship"
+                          value={parent.citizenship}
+                          onChange={(e) =>
+                            handleParentChange(
+                              index,
+                              "citizenship",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        >
+                          <option>Filipino</option>
+                          <option>Other</option>
+                        </Select>
+                      </Td>
+                      <Td>
+                        <Input
+                          placeholder="Nationality"
+                          value={parent.nationality}
+                          onChange={(e) =>
+                            handleParentChange(
+                              index,
+                              "nationality",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                    </Tr>
+                    <Tr>
+                      <Td>
+                        <Input
+                          placeholder="Church Duties"
+                          value={parent.churchDuties}
+                          onChange={(e) =>
+                            handleParentChange(
+                              index,
+                              "churchDuties",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Input
+                          placeholder="Livelihood"
+                          value={parent.livelihood}
+                          onChange={(e) =>
+                            handleParentChange(
+                              index,
+                              "livelihood",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Input
+                          placeholder="Local Congregation"
+                          value={parent.localCongregation}
+                          onChange={(e) =>
+                            handleParentChange(
+                              index,
+                              "localCongregation",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Select
+                          placeholder="District ID"
+                          value={parent.districtId}
+                          onChange={(e) =>
+                            handleParentChange(
+                              index,
+                              "districtId",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        >
+                          <option>District 1</option>
+                          <option>District 2</option>
+                          <option>District 3</option>
+                        </Select>
+                      </Td>
+                    </Tr>
+
+                    <Tr>
+                      <Td>
+                        <Input
+                          placeholder="Minister Officiated"
+                          value={parent.ministerOfficiated}
+                          onChange={(e) =>
+                            handleParentChange(
+                              index,
+                              "ministerOfficiated",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                    </Tr>
+
+                    {/* Work Information Section */}
+                    <Tr bg="gray.50">
+                      <Td colSpan={4}>
+                        <Text fontWeight="bold">Work Information</Text>
+                      </Td>
+                    </Tr>
+                    <Tr>
+                      <Td>
+                        <Select
+                          placeholder="Employment Type"
+                          value={parent.employmentType}
+                          onChange={(e) =>
+                            handleParentChange(
+                              index,
+                              "employmentType",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        >
+                          <option>Self-employed</option>
+                          <option>Employed</option>
+                          <option>Government</option>
+                          <option>Private</option>
+                        </Select>
+                      </Td>
+                      <Td>
+                        <Input
+                          placeholder="Company"
+                          value={parent.company}
+                          onChange={(e) =>
+                            handleParentChange(index, "company", e.target.value)
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Input
+                          placeholder="Position"
+                          value={parent.position}
+                          onChange={(e) =>
+                            handleParentChange(
+                              index,
+                              "position",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Input
+                          placeholder="Address"
+                          value={parent.address}
+                          onChange={(e) =>
+                            handleParentChange(index, "address", e.target.value)
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                    </Tr>
+                    <Tr>
+                      <Td>
+                        <Input
+                          placeholder="Department"
+                          value={parent.department}
+                          onChange={(e) =>
+                            handleParentChange(
+                              index,
+                              "department",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Input
+                          placeholder="Section"
+                          value={parent.section}
+                          onChange={(e) =>
+                            handleParentChange(index, "section", e.target.value)
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Input
+                          placeholder="Start Date"
+                          type="date"
+                          value={parent.startDate}
+                          onChange={(e) =>
+                            handleParentChange(
+                              index,
+                              "startDate",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Input
+                          placeholder="End Date"
+                          type="date"
+                          value={parent.endDate}
+                          onChange={(e) =>
+                            handleParentChange(index, "endDate", e.target.value)
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                    </Tr>
+                    <Tr>
+                      <Td>
+                        <Input
+                          placeholder="Reason for Leaving"
+                          value={parent.reasonForLeaving}
+                          onChange={(e) =>
+                            handleParentChange(
+                              index,
+                              "reasonForLeaving",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                    </Tr>
+
+                    {/* Educational Information Section */}
+                    <Tr bg="gray.50">
+                      <Td colSpan={4}>
+                        <Text fontWeight="bold">Educational Information</Text>
+                      </Td>
+                    </Tr>
+                    <Tr>
+                      <Td>
+                        <Select
+                          placeholder="Education Level"
+                          value={parent.educationLevel}
+                          onChange={(e) =>
+                            handleParentChange(
+                              index,
+                              "educationLevel",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        >
+                          <option>Elementary</option>
+                          <option>Secondary</option>
+                          <option>Senior High School</option>
+                          <option>College</option>
+                        </Select>
+                      </Td>
+                      <Td>
+                        <Input
+                          placeholder="School"
+                          value={parent.school}
+                          onChange={(e) =>
+                            handleParentChange(index, "school", e.target.value)
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Input
+                          placeholder="Field of Study"
+                          value={parent.fieldOfStudy}
+                          onChange={(e) =>
+                            handleParentChange(
+                              index,
+                              "fieldOfStudy",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Input
+                          placeholder="Degree"
+                          value={parent.degree}
+                          onChange={(e) =>
+                            handleParentChange(index, "degree", e.target.value)
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                    </Tr>
+                    <Tr>
+                      <Td>
+                        <Input
+                          placeholder="Institution"
+                          value={parent.institution}
+                          onChange={(e) =>
+                            handleParentChange(
+                              index,
+                              "institution",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Input
+                          placeholder="Professional Licensure"
+                          value={parent.professionalLicensureExamination}
+                          onChange={(e) =>
+                            handleParentChange(
+                              index,
+                              "professionalLicensureExamination",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Input
+                          placeholder="Start Year"
+                          type="number"
+                          value={parent.startYear}
+                          onChange={(e) =>
+                            handleParentChange(
+                              index,
+                              "startYear",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Input
+                          placeholder="Completion Year"
+                          type="number"
+                          value={parent.completionYear}
+                          onChange={(e) =>
+                            handleParentChange(
+                              index,
+                              "completionYear",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                    </Tr>
+
+                    {/* Save Button */}
+                    <Tr>
+                      <Td colSpan={4} textAlign="center">
+                        <IconButton
+                          icon={parent.isEditing ? <CheckIcon /> : <EditIcon />}
+                          onClick={() =>
+                            parent.isEditing
+                              ? handleSaveOrUpdate(index)
+                              : handleParentChange(index, "isEditing", true)
+                          }
+                          colorScheme={parent.isEditing ? "green" : "blue"}
+                        />
+                      </Td>
+                    </Tr>
+                  </Tbody>
+                </Table>
+              </TabPanel>
+            ))}
+          </TabPanels>
+        </Tabs>
       </VStack>
     </Box>
   );
