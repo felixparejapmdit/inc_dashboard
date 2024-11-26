@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 25, 2024 at 09:43 AM
+-- Generation Time: Nov 26, 2024 at 09:50 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -542,6 +542,19 @@ INSERT INTO `government_issued_id` (`id`, `name`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `group_permission_mappings`
+--
+
+CREATE TABLE `group_permission_mappings` (
+  `group_id` bigint(20) NOT NULL,
+  `permission_id` bigint(20) NOT NULL,
+  `category_id` bigint(20) NOT NULL,
+  `accessrights` int(11) NOT NULL COMMENT '1=View, 2=Edit, 3=Full Access'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `languages`
 --
 
@@ -1017,6 +1030,43 @@ INSERT INTO `navigationlist` (`ID`, `NavigationName`, `PageName`, `NavType`, `Pa
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `permission_category_mappings`
+--
+
+CREATE TABLE `permission_category_mappings` (
+  `id` bigint(20) NOT NULL,
+  `permission_id` bigint(20) NOT NULL,
+  `category_id` bigint(20) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `description` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `permission_definitions`
+--
+
+CREATE TABLE `permission_definitions` (
+  `id` bigint(20) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `description` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `permission_definitions`
+--
+
+INSERT INTO `permission_definitions` (`id`, `name`, `description`, `created_at`, `updated_at`) VALUES
+(1, 'TEST', 'asd', '2024-11-26 07:47:38', '2024-11-26 07:47:42');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `permission_groups`
 --
 
@@ -1351,7 +1401,7 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (43, 'executive.news', NULL, NULL, 'executive.news', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (44, 'pmd.it', NULL, NULL, 'pmd.it', '{SSHA}LYVyCEUbqbnRdJMh/NGuR38z6zbsDKG+', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (45, 'r.deguzman', NULL, NULL, 'r.deguzman', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(46, 'felix.pareja', 2, '', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
+(46, 'felix.pareja', 2, '', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (47, 'nsanchez', NULL, NULL, 'nsanchez', '{MD5}4vh3FhfOq3i3zcUJki6UBg==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (48, NULL, NULL, '', 'admin', '$2a$12$ZXhnczgjZG4QAa4oGMH5eOt0.a9urccMHJ0/FBYB5zCe2/zfh3dEO', 0, NULL, 'Local', NULL, NULL, NULL, NULL);
 
@@ -1419,6 +1469,38 @@ INSERT INTO `user_appslist` (`id`, `groupid`, `appid`) VALUES
 (63, 2, 1),
 (64, 2, 1),
 (65, 2, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_groups`
+--
+
+CREATE TABLE `user_groups` (
+  `id` bigint(20) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `description` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `user_groups`
+--
+
+INSERT INTO `user_groups` (`id`, `name`, `description`, `created_at`, `updated_at`) VALUES
+(1, 'Admin', 'Admin', '2024-11-26 07:27:46', '2024-11-26 07:34:50');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_group_mappings`
+--
+
+CREATE TABLE `user_group_mappings` (
+  `user_id` bigint(20) NOT NULL,
+  `group_id` bigint(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -1570,6 +1652,14 @@ ALTER TABLE `government_issued_id`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `group_permission_mappings`
+--
+ALTER TABLE `group_permission_mappings`
+  ADD PRIMARY KEY (`group_id`,`permission_id`,`category_id`),
+  ADD KEY `permission_id` (`permission_id`),
+  ADD KEY `category_id` (`category_id`);
+
+--
 -- Indexes for table `languages`
 --
 ALTER TABLE `languages`
@@ -1592,6 +1682,19 @@ ALTER TABLE `nationalities`
 --
 ALTER TABLE `navigationlist`
   ADD PRIMARY KEY (`ID`);
+
+--
+-- Indexes for table `permission_category_mappings`
+--
+ALTER TABLE `permission_category_mappings`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `permission_id` (`permission_id`);
+
+--
+-- Indexes for table `permission_definitions`
+--
+ALTER TABLE `permission_definitions`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `permission_groups`
@@ -1678,6 +1781,18 @@ ALTER TABLE `users`
 --
 ALTER TABLE `user_appslist`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `user_groups`
+--
+ALTER TABLE `user_groups`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `user_group_mappings`
+--
+ALTER TABLE `user_group_mappings`
+  ADD PRIMARY KEY (`user_id`,`group_id`);
 
 --
 -- Indexes for table `work_experience`
@@ -1786,6 +1901,18 @@ ALTER TABLE `navigationlist`
   MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
 
 --
+-- AUTO_INCREMENT for table `permission_category_mappings`
+--
+ALTER TABLE `permission_category_mappings`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `permission_definitions`
+--
+ALTER TABLE `permission_definitions`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT for table `permission_groups`
 --
 ALTER TABLE `permission_groups`
@@ -1870,6 +1997,12 @@ ALTER TABLE `user_appslist`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
 
 --
+-- AUTO_INCREMENT for table `user_groups`
+--
+ALTER TABLE `user_groups`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT for table `work_experience`
 --
 ALTER TABLE `work_experience`
@@ -1890,6 +2023,20 @@ ALTER TABLE `children`
 --
 ALTER TABLE `contacts`
   ADD CONSTRAINT `contacts_ibfk_1` FOREIGN KEY (`personnel_id`) REFERENCES `personnels` (`personnel_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `group_permission_mappings`
+--
+ALTER TABLE `group_permission_mappings`
+  ADD CONSTRAINT `group_permission_mappings_ibfk_1` FOREIGN KEY (`group_id`) REFERENCES `user_groups` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `group_permission_mappings_ibfk_2` FOREIGN KEY (`permission_id`) REFERENCES `permission_definitions` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `group_permission_mappings_ibfk_3` FOREIGN KEY (`category_id`) REFERENCES `permission_category_mappings` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `permission_category_mappings`
+--
+ALTER TABLE `permission_category_mappings`
+  ADD CONSTRAINT `permission_category_mappings_ibfk_1` FOREIGN KEY (`permission_id`) REFERENCES `permission_definitions` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `siblings`

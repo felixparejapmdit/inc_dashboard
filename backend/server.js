@@ -9,6 +9,9 @@ const IP_Address = process.env.REACT_IP_ADDRESS;
 const app = express();
 const PORT = process.env.REACT_PORT;
 
+const groupRoutes = require("./routes/groupRoutes");
+const permissionRoutes = require("./routes/permissionRoutes");
+
 const userRoutes = require("./routes/userRoutes");
 const ldapRoutes = require("./routes/ldapRoutes");
 const appRoutes = require("./routes/appRoutes");
@@ -72,6 +75,9 @@ app.use(personnelDocumentsRoutes);
 // API Routes
 app.use(educationalBackgroundRoutes);
 app.use(workExperienceRoutes);
+
+app.use(groupRoutes);
+app.use(permissionRoutes);
 
 app.use("/uploads", express.static("uploads"));
 

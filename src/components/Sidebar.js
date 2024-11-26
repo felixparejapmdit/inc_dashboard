@@ -218,6 +218,24 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
               isExpanded={isExpanded}
               onClick={() => navigate("/add-events")} // Redirect to Events.js
             />
+            <SidebarItem
+              icon={FiCalendar}
+              label="Groups"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/managements/groupmanagement")} // Redirect to groupmanagement.js
+            />
+            <SidebarItem
+              icon={FiCalendar}
+              label="Permissions"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/managements/permissionmanagement")} // Redirect to permissionmanagement.js
+            />
+            <SidebarItem
+              icon={FiCalendar}
+              label="Categories"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/managements/categorymanagement")} // Redirect to categorymanagement.js
+            />
             {showLdapUsers && (
               <SidebarItem
                 icon={FiUsers}
