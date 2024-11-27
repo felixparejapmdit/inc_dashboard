@@ -19,7 +19,7 @@ const Group = sequelize.define(
     },
   },
   {
-    tableName: "user_groups",
+    tableName: "user_groups", // Ensure this matches the DB table name
     timestamps: true,
     createdAt: "created_at",
     updatedAt: "updated_at",

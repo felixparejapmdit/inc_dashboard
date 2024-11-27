@@ -12,6 +12,8 @@ const PORT = process.env.REACT_PORT;
 const groupRoutes = require("./routes/groupRoutes");
 const permissionRoutes = require("./routes/permissionRoutes");
 
+const userGroupsRoutes = require("./routes/userGroupsRoutes");
+
 const userRoutes = require("./routes/userRoutes");
 const ldapRoutes = require("./routes/ldapRoutes");
 const appRoutes = require("./routes/appRoutes");
@@ -78,6 +80,9 @@ app.use(workExperienceRoutes);
 
 app.use(groupRoutes);
 app.use(permissionRoutes);
+//app.use(userGroupsRoutes);
+
+app.use("/api/user-groups", userGroupsRoutes);
 
 app.use("/uploads", express.static("uploads"));
 

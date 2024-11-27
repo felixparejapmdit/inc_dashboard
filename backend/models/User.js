@@ -1,8 +1,8 @@
-// models/users.js
+// models/User.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database"); // Adjust the path to your database configuration
 
-const users = sequelize.define(
+const User = sequelize.define(
   "users",
   {
     id: {
@@ -67,8 +67,10 @@ const users = sequelize.define(
   },
   {
     tableName: "users",
-    timestamps: false,
+    timestamps: true,
+    createdAt: "created_at",
+    updatedAt: "updated_at",
   }
 );
 
-module.exports = users;
+module.exports = User;
