@@ -6,36 +6,31 @@ const PermissionCategoryMapping = require("../models/PermissionCategoryMapping")
 // Get all permissions
 exports.getAllPermissions = async (req, res) => {
   try {
-    const permissions = await PermissionDefinition.findAll({
-      include: [
-        {
-          model: PermissionCategoryMapping,
-          as: "categoryMappings",
-          include: [
-            {
-              model: PermissionCategory,
-              as: "category",
-              attributes: ["id", "name"], // Fetch only necessary fields
-            },
-          ],
-        },
-      ],
-    });
+    // Execute raw SQL query
+    const [permissions] = await sequelize.query(`
+      SELECT 
+        pcm.id as pcm, 
+        pd.id as pd, 
+        pc.id as pc, 
+        pd.name as permissionName, 
+        pc.name as categoryName
+      FROM 
+        permission_category_mappings pcm
+      INNER JOIN 
+        permission_definitions pd 
+        ON pd.id = pcm.permission_id
+      INNER JOIN 
+        permission_categories pc 
+        ON pc.id = pcm.category_id
+    `);
 
-    // Format permissions data to include the category name
-    const formattedPermissions = permissions.map((permission) => {
-      const category = permission.categoryMappings.length
-        ? permission.categoryMappings[0].category
-        : null;
-
-      return {
-        id: permission.id,
-        name: permission.name,
-        description: permission.description,
-        categoryName: category ? category.name : "N/A",
-        categoryId: category ? category.id : null,
-      };
-    });
+    // Format permissions data
+    const formattedPermissions = permissions.map((permission) => ({
+      id: permission.pd,
+      name: permission.permissionName,
+      categoryId: permission.pc,
+      categoryName: permission.categoryName,
+    }));
 
     res.status(200).json(formattedPermissions);
   } catch (error) {
@@ -43,7 +38,6 @@ exports.getAllPermissions = async (req, res) => {
     res.status(500).json({ message: "Error fetching permissions", error });
   }
 };
-
 
 // Get all permissions
 exports.getAllPermissions1 = async (req, res) => {
