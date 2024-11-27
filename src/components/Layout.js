@@ -21,7 +21,7 @@ const Layout = ({ children, currentUser }) => {
       {/* Main content */}
       <div
         style={{
-          marginLeft: isSidebarExpanded ? "200px" : "60px", // Adjust dynamically
+          marginLeft: isSidebarExpanded ? "250px" : "60px", // Adjust dynamically
           width: "100%",
           padding: "20px",
           transition: "margin-left 0.3s ease", // Smooth transition

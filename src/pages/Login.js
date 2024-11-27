@@ -13,6 +13,7 @@ import {
   Flex,
   Text,
   Image,
+  Spinner,
 } from "@chakra-ui/react";
 import "./Login.css"; // Custom CSS for animated input effect
 
@@ -123,118 +124,76 @@ const Login = () => {
       minH="100vh"
       alignItems="center"
       justifyContent="center"
-      bgGradient="linear(to-r, #F5F5F5, #f0f4ff)"
-      p={0}
+      bg="#ffd559"
+      p={4}
     >
       <Flex
-        width="100%"
-        maxW="800px"
-        height="500px"
-        boxShadow="xl"
+        direction="column"
+        bg="yellow.100"
+        boxShadow="lg"
         borderRadius="md"
-        overflow="hidden"
+        p={8}
+        width={["90%", "400px"]}
       >
-        <Box
-          bg="white"
-          width={["100%", "50%", "50%"]}
-          p={10}
-          display="flex"
-          flexDirection="column"
-          justifyContent="center"
-        >
-          <Box mb={4} display="flex" justifyContent="center">
-            <Image src="/apps_logo.png" alt="Logo" boxSize="60px" />
-          </Box>
+        <Flex justifyContent="center" mb={4}>
+          <Image src="/apps_logo.png" alt="Logo" boxSize="80px" />
+        </Flex>
+        <Heading as="h2" size="lg" textAlign="center" color="gray.850" mb={6}>
+          PMD Personnel Info
+        </Heading>
+        <VStack as="form" onSubmit={handleSubmit} spacing={5}>
+          <FormControl id="username" className="floating-label" isRequired>
+            <Input
+              type="text"
+              placeholder=" "
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              bg="gray.50"
+              color="black"
+              focusBorderColor="blue.400"
+              borderRadius="md"
+              className="animated-input"
+            />
+            <FormLabel>Username</FormLabel>
+          </FormControl>
 
-          <Heading
-            as="h2"
-            mb={6}
-            size="md"
-            textAlign="center"
-            color="#4a4a4a"
-            textTransform="uppercase"
-          >
-            PMD Personnel Info
-          </Heading>
+          <FormControl id="password" className="floating-label" isRequired>
+            <Input
+              type="password"
+              placeholder=" "
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              bg="gray.50"
+              color="black"
+              focusBorderColor="blue.400"
+              borderRadius="md"
+              className="animated-input"
+            />
+            <FormLabel>Password</FormLabel>
+          </FormControl>
 
-          <VStack as="form" onSubmit={handleSubmit} spacing={6}>
-            <FormControl id="username" className="floating-label">
-              <Input
-                type="text"
-                placeholder=" "
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                bg="white"
-                color="black"
-                className="animated-input"
-                focusBorderColor="#a1a5a5"
-                borderRadius="md"
-                boxShadow="sm"
-              />
-              <FormLabel>Username</FormLabel>
-            </FormControl>
+          {error && <Text color="red.500">{error}</Text>}
 
-            <FormControl id="password" className="floating-label">
-              <Input
-                type="password"
-                placeholder=" "
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                bg="white"
-                color="black"
-                className="animated-input"
-                focusBorderColor="#a1a5a5"
-                borderRadius="md"
-                boxShadow="sm"
-              />
-              <FormLabel>Password</FormLabel>
-            </FormControl>
-
-            <Button
-              type="submit"
-              width="100%"
-              bgGradient="linear(to-r, #1C1F33, #232946)"
-              color="white"
-              _hover={{ bgGradient: "linear(to-r, #1B1E2D, #1F2539)" }}
-              _active={{ bgGradient: "linear(to-r, #1B1E2D, #1F2539)" }}
-              boxShadow="lg"
-              py={6}
-              isLoading={isLoading}
-            >
-              Log In
-            </Button>
-            <Flex alignItems="center" justifyContent="center">
-              <Text fontSize="sm" color="gray.500" mr={2}>
-                Don't have an account?
-              </Text>
-              <Button
-                colorScheme="blue"
-                variant="outline"
-                onClick={handleEnroll}
-                size="sm"
-              >
-                Enroll
-              </Button>
-            </Flex>
-
-            {error && <Text color="red.500">{error}</Text>}
-          </VStack>
-        </Box>
-
-        <Box
-          width={["0", "50%", "50%"]}
-          height="100%"
-          display={["none", "block"]}
-        >
-          <Image
-            src="/app-icons-image.jpg"
-            alt="Applications"
-            objectFit="cover"
+          <Button
+            type="submit"
             width="100%"
-            height="100%"
-            opacity={0.5}
-          />
-        </Box>
+            bgGradient="linear(to-r, #FFD559, #F3C847)"
+            color="white"
+            _hover={{ bgGradient: "linear(to-r, #F3C847, #FFD559)" }}
+            isLoading={isLoading}
+            spinner={<Spinner />}
+          >
+            Log In
+          </Button>
+          <Flex justifyContent="space-between" width="100%" alignItems="center">
+            <Text fontSize="sm" color="gray.500">
+              Don’t have an account?
+            </Text>
+            <Button variant="link" colorScheme="orange" onClick={handleEnroll}>
+              Enroll
+            </Button>
+          </Flex>
+        </VStack>
       </Flex>
     </Flex>
   );

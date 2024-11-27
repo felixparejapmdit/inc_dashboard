@@ -533,81 +533,69 @@ export default function Dashboard() {
 // Card component for Apps
 const AppCard = ({ app, colors, onSettingsClick, handleNextcloudLogin }) => (
   <VStack
+    as="a"
+    href={app.url}
+    target={app.url.includes("suguan") ? "_self" : "_blank"}
+    rel={app.url.includes("suguan") ? "" : "noopener noreferrer"}
     bg={colors.appBg}
-    borderRadius="lg"
-    border={`1px solid ${colors.cardBorder}`}
-    p={6}
+    borderRadius="xl" // Slightly rounded corners
+    border={`2px solid ${colors.cardBorder}`}
+    p={8} // Increased padding for better spacing
     spacing={4}
     boxShadow="md"
     _hover={{
-      boxShadow: "lg",
-      transform: "translateY(-5px)",
+      boxShadow: "xl",
+      transform: "scale(1.01)",
       transition: "all 0.3s ease-in-out",
+      bgGradient: "linear(to-r, white, gray.50)",
     }}
     transition="all 0.3s ease-in-out"
-    align="flex-start"
+    align="center" // Center align content
+    textAlign="center" // Align text in the center
     width="100%"
     position="relative" // For absolute positioning of the icon
   >
     {/* Settings Icon */}
-    <Box position="absolute" top={4} right={4}>
+    <Box position="absolute" display="none" top={4} right={4}>
       <Icon
         as={FiEdit}
         boxSize={5}
         color={colors.cardHeader}
         cursor="pointer"
-        onClick={() => onSettingsClick(app)}
+        onClick={(e) => {
+          e.preventDefault(); // Prevent link navigation when clicking the settings icon
+          onSettingsClick(app);
+        }}
         _hover={{ color: colors.cardHeaderHover }} // Change color on hover
-        style={{ visibility: "hidden" }} // This will hide the icon but keep its space
       />
     </Box>
 
-    {/* App Icon and Details */}
-    <Box display="flex" alignItems="center">
+    {/* App Icon */}
+    <Box>
       {app.icon ? (
         <Image
           src={app.icon}
           alt={`${app.name} Icon`}
-          boxSize="40px"
-          borderRadius="full"
-          mr={4}
-          boxShadow="md" // Add shadow to the icon
+          boxSize="70px" // Larger icon for emphasis
+          borderRadius="full" // Circular icon
+          mb={4}
+          boxShadow="md"
+          border="2px solid"
+          borderColor={colors.cardBorder}
         />
       ) : (
-        <Icon as={FiFile} boxSize={8} color={colors.cardHeader} mr={4} />
+        <Icon as={FiFile} boxSize={12} color={colors.cardHeader} mb={4} />
       )}
-      <Box>
-        <Text fontSize="lg" fontWeight="bold" color={colors.cardHeader}>
-          {app.name}
-        </Text>
-        <Text fontSize="sm" color={colors.cardText}>
-          {app.description}
-        </Text>
-      </Box>
     </Box>
 
-    <Divider borderColor={colors.cardBorder} />
-
-    {/* Open Button */}
-    <Button
-      as="a"
-      href={app.url}
-      target={app.url.includes("suguan") ? "_self" : "_blank"}
-      rel={app.url.includes("suguan") ? "" : "noopener noreferrer"}
-      bg={colors.buttonBg}
-      color="white"
-      _hover={{
-        bg: colors.buttonHoverBg,
-        transform: "scale(1.05)",
-        transition: "transform 0.2s",
-      }} // Scale effect on hover
-      _active={{ bg: colors.buttonHoverBg }}
-      mt={2}
-      width="full"
-      borderRadius="md" // Rounded corners for the button
-      boxShadow="md" // Add shadow to the button
-    >
-      Open {app.name}
-    </Button>
+    {/* App Name and Description */}
+    <Box>
+      <Text fontSize="xl" fontWeight="bold" color={colors.cardHeader}>
+        {app.name}
+      </Text>
+      <Text fontSize="sm" color={colors.cardText}>
+        {app.description}
+      </Text>
+    </Box>
   </VStack>
 );

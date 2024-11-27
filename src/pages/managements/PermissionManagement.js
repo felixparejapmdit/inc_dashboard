@@ -141,15 +141,6 @@ const PermissionManagement = () => {
         <Box fontSize="2xl" fontWeight="bold">
           Permission Management
         </Box>
-        {!isAdding && (
-          <Button
-            onClick={() => setIsAdding(true)}
-            colorScheme="blue"
-            leftIcon={<AddIcon />}
-          >
-            Add Permission
-          </Button>
-        )}
       </Flex>
 
       <Table variant="striped">
@@ -157,7 +148,22 @@ const PermissionManagement = () => {
           <Tr>
             <Th>Name</Th>
             <Th>Description</Th>
-            <Th>Actions</Th>
+            <Th
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              {!isAdding && (
+                <IconButton
+                  icon={<AddIcon />}
+                  onClick={() => setIsAdding(true)}
+                  size="sm"
+                  aria-label="Add Permission"
+                />
+              )}
+            </Th>
           </Tr>
         </Thead>
         <Tbody>
@@ -238,7 +244,7 @@ const PermissionManagement = () => {
                 )}
               </Td>
               <Td>
-                <Flex justify="flex-end">
+                <Flex justify="center">
                   {editingPermission &&
                   editingPermission.id === permission.id ? (
                     <>

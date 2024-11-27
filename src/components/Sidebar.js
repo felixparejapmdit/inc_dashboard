@@ -25,6 +25,7 @@ import {
   FiMenu,
   FiUser,
   FiCalendar,
+  FiArrowUp,
   FiArrowDown,
   FiGrid,
   FiUsers,
@@ -81,11 +82,12 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
   const cancelRef = useRef(); // Reference for cancel button in the alert dialog
   const navigate = useNavigate();
   const showLdapUsers = false; // Set this to true if you want to show the item
+  const roleTextColor = useColorModeValue("gray.500", "gray.300");
 
   // Fetch the logged-in user's name from localStorage
   useEffect(() => {
     const storedName = localStorage.getItem("userFullName") || "User";
-    const avatarUrl = "/path/to/default-avatar.jpg"; // Default avatar or dynamically fetch if available
+    const avatarUrl = user.avatarUrl || "/default-avatar.png";
     setUser({ name: storedName, avatarUrl });
   }, []);
 
@@ -150,7 +152,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
       direction="column"
       bgGradient={bgGradient}
       h="100vh"
-      width={isExpanded ? "200px" : "60px"}
+      width={isExpanded ? "250px" : "70px"}
       transition="width 0.3s ease"
       position="fixed"
       onMouseEnter={handleMouseEnter}
@@ -158,11 +160,31 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
       boxShadow="lg"
       zIndex="100"
       p={4}
+      overflowY="auto"
+      css={{
+        "::-webkit-scrollbar": {
+          width: "4px", // Narrower scrollbar for Webkit browsers
+        },
+        "::-webkit-scrollbar-thumb": {
+          backgroundColor: "rgba(0, 0, 0, 0.1)", // Light gray thumb with reduced visibility
+          borderRadius: "10px", // Rounded corners for the thumb
+        },
+        "::-webkit-scrollbar-track": {
+          backgroundColor: "transparent", // Transparent track for minimal visual distraction
+        },
+        "-ms-overflow-style": "auto", // Default scrollbar style for IE
+        "scrollbar-width": "thin", // Thinner scrollbar for Firefox
+        "scrollbar-color": "rgba(0, 0, 0, 0.1) transparent", // Thumb color and track color for Firefox
+      }}
     >
       {/* Header */}
       <Box mb={8} display="flex" justifyContent="center">
         {isExpanded ? (
-          <Image src="/inc_logo.png" alt="INC Dashboard" boxSize="40px" />
+          <Image
+            src="/apps_logo - Copy.png"
+            alt="INC Dashboard"
+            boxSize="60px"
+          />
         ) : (
           <Icon as={FiMenu} boxSize={8} color={iconColor} />
         )}
@@ -189,7 +211,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
           label="Settings"
           isExpanded={isExpanded}
           onClick={handleSettingsToggle} // Toggle settings menu
-          rightIcon={isSettingsExpanded ? FiArrowDown : null} // Show arrow when expanded
+          rightIcon={isSettingsExpanded ? FiArrowUp : FiArrowDown} // Show arrow when expanded
         />
         <Collapse in={isSettingsExpanded} animateOpacity>
           <VStack align="start" ml={isExpanded ? 4 : 0} spacing={3}>
@@ -253,7 +275,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
           label="Managements"
           isExpanded={isExpanded}
           onClick={handleManagementsToggle}
-          rightIcon={isManagementsExpanded ? FiArrowDown : null}
+          rightIcon={isManagementsExpanded ? FiArrowUp : FiArrowDown}
         />
 
         <Collapse in={isManagementsExpanded} animateOpacity>
@@ -307,13 +329,13 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
               useDynamicIcon
             />
             <SidebarItem
-              label="ContactInfo"
+              label="Contact Info"
               isExpanded={isExpanded}
               onClick={() => navigate("/managements/contact_infos")}
               useDynamicIcon
             />
             <SidebarItem
-              label="GovernmentIssuedID"
+              label="Issued ID"
               isExpanded={isExpanded}
               onClick={() => navigate("/managements/government_issued_ids")}
               useDynamicIcon
@@ -326,32 +348,67 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
 
       {/* Current User Info */}
       <Flex
-        align="center"
+        direction="column"
+        align={isExpanded ? "start" : "center"}
         mt="auto"
         py={4}
         px={isExpanded ? 4 : 0}
-        justifyContent={isExpanded ? "start" : "center"}
+        bg={useColorModeValue("gray.100", "gray.700")} // Subtle background for user info
+        borderRadius="md"
+        boxShadow="sm"
       >
-        <Avatar
-          name={user.name || "User"}
-          src={user.avatar || ""}
-          size={isExpanded ? "md" : "sm"}
-        />
-        {isExpanded && (
-          <Text ml={4} fontSize="md" color={iconColor}>
-            {user.name || "User"}
-          </Text>
-        )}
+        <Flex align="center" mb={2}>
+          <Avatar
+            name={user.name || "User"}
+            src={user.avatar || ""}
+            size={isExpanded ? "lg" : "sm"} // Larger avatar when expanded
+            mr={isExpanded ? 4 : 0} // Add spacing when expanded
+          />
+          {isExpanded && (
+            <VStack
+              align="start"
+              spacing={0}
+              animation="fadeIn 0.2s ease-in-out" // Add animation for smooth appearance
+              css={{
+                "@keyframes fadeIn": {
+                  "0%": { opacity: 0 },
+                  "100%": { opacity: 1 },
+                },
+              }}
+            >
+              <Text fontSize="md" fontWeight="bold" color={iconColor}>
+                {user.name || "User"}
+              </Text>
+              <Text fontSize="sm" color={roleTextColor}>
+                {user.role || "User"}{" "}
+                {/* Add user role dynamically if available */}
+              </Text>
+            </VStack>
+          )}
+        </Flex>
       </Flex>
 
       {/* Logout */}
-      <Box mt={6}>
-        <SidebarItem
-          icon={FiLogOut}
-          label="Log Out"
-          isExpanded={isExpanded}
-          onClick={openLogoutDialog} // Show the logout confirmation dialog
-        />
+      <Box
+        mt={4}
+        bg={useColorModeValue("red.50", "red.800")} // Subtle background for logout
+        p={isExpanded ? 3 : 2}
+        borderRadius="md"
+        textAlign="center"
+        _hover={{
+          bg: useColorModeValue("red.100", "red.700"), // Slight hover effect
+          cursor: "pointer",
+        }}
+        onClick={openLogoutDialog} // Show the logout confirmation dialog
+      >
+        <Flex align="center" justify="center">
+          <Icon as={FiLogOut} color="red.500" boxSize={isExpanded ? 5 : 4} />
+          {isExpanded && (
+            <Text ml={2} fontSize="md" fontWeight="semibold" color="red.500">
+              Log Out
+            </Text>
+          )}
+        </Flex>
       </Box>
 
       {/* Logout Confirmation Alert Dialog */}
