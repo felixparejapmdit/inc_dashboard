@@ -12,24 +12,30 @@ UserGroupMapping.belongsTo(Group, { foreignKey: "group_id" });
 User.hasMany(UserGroupMapping, { foreignKey: "user_id" });
 UserGroupMapping.belongsTo(User, { foreignKey: "user_id" });
 
-// Define associations for permissions and categories
+// PermissionDefinition has many category mappings
 PermissionDefinition.hasMany(PermissionCategoryMapping, {
   foreignKey: "permission_id",
   as: "categoryMappings",
 });
+
+// PermissionCategoryMapping belongs to PermissionDefinition
 PermissionCategoryMapping.belongsTo(PermissionDefinition, {
   foreignKey: "permission_id",
   as: "permission",
 });
 
+// PermissionCategory has many category mappings
 PermissionCategory.hasMany(PermissionCategoryMapping, {
   foreignKey: "category_id",
   as: "mappings",
 });
+
+// PermissionCategoryMapping belongs to PermissionCategory
 PermissionCategoryMapping.belongsTo(PermissionCategory, {
   foreignKey: "category_id",
   as: "category",
 });
+
 
 // Export all models
 module.exports = {

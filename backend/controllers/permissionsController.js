@@ -4,25 +4,38 @@ const PermissionCategory = require("../models/PermissionCategory");
 const PermissionCategoryMapping = require("../models/PermissionCategoryMapping");
 
 // Get all permissions
-exports.getAllPermissions1 = async (req, res) => {
+exports.getAllPermissions = async (req, res) => {
   try {
     const permissions = await PermissionDefinition.findAll({
       include: [
         {
           model: PermissionCategoryMapping,
           as: "categoryMappings",
-          include: [{ model: PermissionCategory, as: "category" }],
+          include: [
+            {
+              model: PermissionCategory,
+              as: "category",
+              attributes: ["id", "name"], // Fetch only necessary fields
+            },
+          ],
         },
       ],
     });
 
-    const formattedPermissions = permissions.map((permission) => ({
-      id: permission.id,
-      name: permission.name,
-      description: permission.description,
-      categoryName: permission.categoryMappings[0]?.category?.name || "N/A",
-      categoryId: permission.categoryMappings[0]?.category?.id || null,
-    }));
+    // Format permissions data to include the category name
+    const formattedPermissions = permissions.map((permission) => {
+      const category = permission.categoryMappings.length
+        ? permission.categoryMappings[0].category
+        : null;
+
+      return {
+        id: permission.id,
+        name: permission.name,
+        description: permission.description,
+        categoryName: category ? category.name : "N/A",
+        categoryId: category ? category.id : null,
+      };
+    });
 
     res.status(200).json(formattedPermissions);
   } catch (error) {
@@ -31,8 +44,9 @@ exports.getAllPermissions1 = async (req, res) => {
   }
 };
 
+
 // Get all permissions
-exports.getAllPermissions = async (req, res) => {
+exports.getAllPermissions1 = async (req, res) => {
   try {
     const permissions = await PermissionDefinition.findAll();
     res.status(200).json(permissions);

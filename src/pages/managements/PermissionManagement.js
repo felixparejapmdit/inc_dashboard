@@ -281,27 +281,27 @@ const PermissionManagement = () => {
                 )}
               </Td>
               <Td>
-                {editingPermission && editingPermission.id === permission.id ? (
-                  <Select
-                    placeholder="Select Category"
-                    value={editingPermission.categoryId || ""}
-                    onChange={(e) =>
-                      setEditingPermission({
-                        ...editingPermission,
-                        categoryId: e.target.value,
-                      })
-                    }
-                  >
-                    {categories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </Select>
-                ) : (
-                  permission.categoryName || "N/A"
-                )}
-              </Td>
+        {editingPermission && editingPermission.id === permission.id ? (
+          <Select
+            placeholder="Select Category"
+            value={editingPermission.categoryId || ""}
+            onChange={(e) =>
+              setEditingPermission({
+                ...editingPermission,
+                categoryId: e.target.value,
+              })
+            }
+          >
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </Select>
+        ) : (
+          permission.categoryName || "N/A"
+        )}
+      </Td>
               <Td>
                 <Flex justify="center">
                   {editingPermission &&

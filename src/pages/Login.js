@@ -48,7 +48,7 @@ const Login = () => {
     // Attempt LDAP Authentication first
     try {
       const ldapResponse = await axios.get(
-        `http://localhost:5000/ldap/user/${username}`
+        `http://localhost:5000/ldap/user_json/${username}`
       );
       const ldapUser = ldapResponse.data;
       const hashedPassword = md5HashPassword(password);
@@ -81,14 +81,14 @@ const Login = () => {
         err
       );
       setError("LDAP server is unreachable. Attempting local login...");
-
+   
       // Attempt local login if LDAP fails
       try {
         const response = await axios.post(
           `${process.env.REACT_APP_API_URL}/api/users/login`,
           { username, password }
         );
-
+;
         if (response.data.success) {
           // Set the username for local login as well
           const userName = response.data.user.username || "User";

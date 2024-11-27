@@ -331,7 +331,7 @@ router.post("/api/users/login", async (req, res) => {
       .status(400)
       .json({ message: "Username and password are required" });
   }
-
+  console.error("Error during login:", username);
   try {
     // Check if the user exists and retrieve hashed password
     const query = "SELECT * FROM users WHERE username = ?";
