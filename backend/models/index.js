@@ -1,9 +1,11 @@
 const Group = require("./Group");
 const User = require("./User");
 const UserGroupMapping = require("./UserGroupMapping");
-const PermissionDefinition = require("./PermissionDefinition");
-const PermissionCategory = require("./PermissionCategory");
-const PermissionCategoryMapping = require("./PermissionCategoryMapping");
+// const PermissionDefinition = require("./PermissionDefinition");
+// const PermissionCategory = require("./PermissionCategory");
+// const PermissionCategoryMapping = require("./PermissionCategoryMapping");
+const { PermissionDefinition, PermissionCategoryMapping, PermissionCategory } = require("../models");
+
 
 // Define associations for groups and users
 Group.hasMany(UserGroupMapping, { foreignKey: "group_id" });
@@ -35,6 +37,11 @@ PermissionCategoryMapping.belongsTo(PermissionCategory, {
   foreignKey: "category_id",
   as: "category",
 });
+
+// Initialize associations
+PermissionDefinition.associate({ PermissionCategoryMapping });
+PermissionCategoryMapping.associate({ PermissionDefinition, PermissionCategory });
+PermissionCategory.associate({ PermissionCategoryMapping });
 
 
 // Export all models

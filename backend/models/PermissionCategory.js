@@ -41,4 +41,5 @@ PermissionCategory.associate = (models) => {
   });
 };
 
+
 module.exports = PermissionCategory;

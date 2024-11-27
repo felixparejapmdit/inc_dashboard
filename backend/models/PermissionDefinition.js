@@ -41,4 +41,5 @@ PermissionDefinition.associate = (models) => {
     as: "categoryMappings",
   });
 };
+
 module.exports = PermissionDefinition;

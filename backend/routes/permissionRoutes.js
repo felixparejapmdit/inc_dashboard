@@ -9,6 +9,7 @@ const categoriesController = require("../controllers/permissionCategoriesControl
 // Get all permissions
 router.get("/api/permissions/", permissionsController.getAllPermissions);
 
+
 // Get a single permission by ID
 router.get("/api/permissions/:id", permissionsController.getPermissionById);
 
