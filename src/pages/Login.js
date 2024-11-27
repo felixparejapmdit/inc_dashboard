@@ -139,7 +139,7 @@ const Login = () => {
           <Image src="/apps_logo.png" alt="Logo" boxSize="80px" />
         </Flex>
         <Heading as="h2" size="lg" textAlign="center" color="gray.850" mb={6}>
-          PMD Personnel Info
+          PMD Portal
         </Heading>
         <VStack as="form" onSubmit={handleSubmit} spacing={5}>
           <FormControl id="username" className="floating-label" isRequired>

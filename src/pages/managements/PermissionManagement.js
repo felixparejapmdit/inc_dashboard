@@ -12,31 +12,27 @@ import {
   Tr,
   useToast,
   Flex,
-  AlertDialog,
-  AlertDialogOverlay,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogBody,
-  AlertDialogFooter,
-  Text,
+  Select,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import axios from "axios";
 
 const PermissionManagement = () => {
   const [permissions, setPermissions] = useState([]);
+  const [categories, setCategories] = useState([]); // State for categories
   const [newPermission, setNewPermission] = useState({
     name: "",
     description: "",
+    categoryId: "",
   });
   const [isAdding, setIsAdding] = useState(false);
   const [editingPermission, setEditingPermission] = useState(null);
   const [deletingPermission, setDeletingPermission] = useState(null);
   const toast = useToast();
-  const cancelRef = useRef();
 
   useEffect(() => {
     fetchPermissions();
+    fetchCategories();
   }, []);
 
   const fetchPermissions = async () => {
@@ -44,7 +40,6 @@ const PermissionManagement = () => {
       const response = await axios.get(
         `${process.env.REACT_APP_API_URL}/api/permissions`
       );
-      // Sort permissions alphabetically by name
       const sortedPermissions = response.data.sort((a, b) =>
         a.name.localeCompare(b.name)
       );
@@ -59,10 +54,26 @@ const PermissionManagement = () => {
     }
   };
 
-  const handleAddPermission = async () => {
-    if (!newPermission.name) {
+  const fetchCategories = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/permission-categories`
+      );
+      setCategories(response.data);
+    } catch (error) {
       toast({
-        title: "Name is required",
+        title: "Error loading categories",
+        description: error.message,
+        status: "error",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleAddPermission = async () => {
+    if (!newPermission.name || !newPermission.categoryId) {
+      toast({
+        title: "Name and category are required",
         status: "warning",
         duration: 3000,
       });
@@ -75,7 +86,7 @@ const PermissionManagement = () => {
         newPermission
       );
       fetchPermissions();
-      setNewPermission({ name: "", description: "" });
+      setNewPermission({ name: "", description: "", categoryId: "" });
       setIsAdding(false);
       toast({
         title: "Permission added successfully",
@@ -153,6 +164,7 @@ const PermissionManagement = () => {
             <Th>#</Th>
             <Th>Name</Th>
             <Th>Description</Th>
+            <Th>Category</Th>
             <Th
               style={{
                 display: "flex",
@@ -197,6 +209,24 @@ const PermissionManagement = () => {
                 />
               </Td>
               <Td>
+                <Select
+                  placeholder="Select Category"
+                  value={newPermission.categoryId}
+                  onChange={(e) =>
+                    setNewPermission({
+                      ...newPermission,
+                      categoryId: e.target.value,
+                    })
+                  }
+                >
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </Select>
+              </Td>
+              <Td>
                 <Flex justify="flex-end">
                   <Button
                     onClick={handleAddPermission}
@@ -217,127 +247,109 @@ const PermissionManagement = () => {
               </Td>
             </Tr>
           )}
-          {permissions.length === 0 ? (
-            <Tr>
-              <Td colSpan="4" textAlign="center">
-                <Text>No permissions found</Text>
+          {permissions.map((permission, index) => (
+            <Tr key={permission.id}>
+              <Td>{index + 1}</Td>
+              <Td>
+                {editingPermission && editingPermission.id === permission.id ? (
+                  <Input
+                    value={editingPermission.name}
+                    onChange={(e) =>
+                      setEditingPermission({
+                        ...editingPermission,
+                        name: e.target.value,
+                      })
+                    }
+                  />
+                ) : (
+                  permission.name
+                )}
+              </Td>
+              <Td>
+                {editingPermission && editingPermission.id === permission.id ? (
+                  <Input
+                    value={editingPermission.description}
+                    onChange={(e) =>
+                      setEditingPermission({
+                        ...editingPermission,
+                        description: e.target.value,
+                      })
+                    }
+                  />
+                ) : (
+                  permission.description || "N/A"
+                )}
+              </Td>
+              <Td>
+                {editingPermission && editingPermission.id === permission.id ? (
+                  <Select
+                    placeholder="Select Category"
+                    value={editingPermission.categoryId || ""}
+                    onChange={(e) =>
+                      setEditingPermission({
+                        ...editingPermission,
+                        categoryId: e.target.value,
+                      })
+                    }
+                  >
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </Select>
+                ) : (
+                  permission.categoryName || "N/A"
+                )}
+              </Td>
+              <Td>
+                <Flex justify="center">
+                  {editingPermission &&
+                  editingPermission.id === permission.id ? (
+                    <>
+                      <Button
+                        onClick={handleUpdatePermission}
+                        colorScheme="green"
+                        size="sm"
+                        mr={2}
+                      >
+                        Save
+                      </Button>
+                      <Button
+                        onClick={() => setEditingPermission(null)}
+                        colorScheme="red"
+                        size="sm"
+                      >
+                        Cancel
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <IconButton
+                        icon={<EditIcon />}
+                        onClick={() => setEditingPermission(permission)}
+                        size="sm"
+                        mr={2}
+                        variant="ghost"
+                        colorScheme="yellow"
+                        aria-label="Edit permission"
+                      />
+                      <IconButton
+                        icon={<DeleteIcon />}
+                        onClick={() => setDeletingPermission(permission)}
+                        size="sm"
+                        variant="ghost"
+                        colorScheme="red"
+                        aria-label="Delete permission"
+                      />
+                    </>
+                  )}
+                </Flex>
               </Td>
             </Tr>
-          ) : (
-            permissions.map((permission, index) => (
-              <Tr key={permission.id}>
-                <Td>{index + 1}</Td>
-                <Td>
-                  {editingPermission &&
-                  editingPermission.id === permission.id ? (
-                    <Input
-                      value={editingPermission.name}
-                      onChange={(e) =>
-                        setEditingPermission({
-                          ...editingPermission,
-                          name: e.target.value,
-                        })
-                      }
-                    />
-                  ) : (
-                    permission.name
-                  )}
-                </Td>
-                <Td>
-                  {editingPermission &&
-                  editingPermission.id === permission.id ? (
-                    <Input
-                      value={editingPermission.description}
-                      onChange={(e) =>
-                        setEditingPermission({
-                          ...editingPermission,
-                          description: e.target.value,
-                        })
-                      }
-                    />
-                  ) : (
-                    permission.description || "N/A"
-                  )}
-                </Td>
-                <Td>
-                  <Flex justify="center">
-                    {editingPermission &&
-                    editingPermission.id === permission.id ? (
-                      <>
-                        <Button
-                          onClick={handleUpdatePermission}
-                          colorScheme="green"
-                          size="sm"
-                          mr={2}
-                        >
-                          Save
-                        </Button>
-                        <Button
-                          onClick={() => setEditingPermission(null)}
-                          colorScheme="red"
-                          size="sm"
-                        >
-                          Cancel
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <IconButton
-                          icon={<EditIcon />}
-                          onClick={() => setEditingPermission(permission)}
-                          size="sm"
-                          mr={2}
-                          variant="ghost"
-                          colorScheme="yellow"
-                          aria-label="Edit permission"
-                        />
-                        <IconButton
-                          icon={<DeleteIcon />}
-                          onClick={() => setDeletingPermission(permission)}
-                          size="sm"
-                          variant="ghost"
-                          colorScheme="red"
-                          aria-label="Delete permission"
-                        />
-                      </>
-                    )}
-                  </Flex>
-                </Td>
-              </Tr>
-            ))
-          )}
+          ))}
         </Tbody>
       </Table>
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog
-        isOpen={!!deletingPermission}
-        leastDestructiveRef={cancelRef}
-        onClose={() => setDeletingPermission(null)}
-      >
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Delete Permission
-            </AlertDialogHeader>
-            <AlertDialogBody>
-              Are you sure you want to delete the permission "
-              {deletingPermission?.name}"? This action cannot be undone.
-            </AlertDialogBody>
-            <AlertDialogFooter>
-              <Button
-                ref={cancelRef}
-                onClick={() => setDeletingPermission(null)}
-              >
-                Cancel
-              </Button>
-              <Button colorScheme="red" onClick={handleDeletePermission} ml={3}>
-                Delete
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
     </Box>
   );
 };

@@ -42,7 +42,7 @@ import Step8 from "./pages/Step8";
 
 import GroupManagement from "./pages/managements/GroupManagement.js";
 import PermissionManagement from "./pages/managements/PermissionManagement.js";
-import PermissionCategoryManagement from "./pages/managements/PermissionCategoryManagement.js";
+import PermissionCategoriesManagement from "./pages/managements/PermissionCategoriesManagement.js";
 
 function App() {
   return (
@@ -369,7 +369,7 @@ function App() {
                   avatarUrl: "/path/to/avatar.jpg",
                 }}
               >
-                <PermissionCategoryManagement />
+                <PermissionCategoriesManagement />
               </Layout>
             }
           />

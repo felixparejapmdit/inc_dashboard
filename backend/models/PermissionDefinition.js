@@ -35,4 +35,10 @@ const PermissionDefinition = sequelize.define(
   }
 );
 
+PermissionDefinition.associate = (models) => {
+  PermissionDefinition.hasMany(models.PermissionCategoryMapping, {
+    foreignKey: "permission_id",
+    as: "categoryMappings",
+  });
+};
 module.exports = PermissionDefinition;
