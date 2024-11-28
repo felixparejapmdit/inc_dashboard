@@ -4,7 +4,6 @@ const PermissionCategory = require("../models/PermissionCategory");
 const PermissionCategoryMapping = require("../models/PermissionCategoryMapping");
 const sequelize = require("../config/database"); // Ensure Sequelize instance is imported
 
-
 // Get all permissions
 exports.getAllPermissions = async (req, res) => {
   try {
@@ -38,7 +37,6 @@ exports.getAllPermissions = async (req, res) => {
     res.status(500).json({ message: "Error fetching permissions", error });
   }
 };
-
 
 // Get all permissions
 exports.getAllPermissions1 = async (req, res) => {
