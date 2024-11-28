@@ -5,6 +5,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
+
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile"; // Import Profile Page
@@ -43,6 +44,9 @@ import Step8 from "./pages/Step8";
 import GroupManagement from "./pages/managements/GroupManagement.js";
 import PermissionManagement from "./pages/managements/PermissionManagement.js";
 import PermissionCategoriesManagement from "./pages/managements/PermissionCategoriesManagement.js";
+
+import { PermissionProvider } from "./contexts/PermissionContext";
+import Sidebar from "./components/Sidebar";
 
 function App() {
   return (

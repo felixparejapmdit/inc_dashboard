@@ -31,6 +31,7 @@ import {
   Alert,
   AlertIcon,
   Flex,
+  Select,
 } from "@chakra-ui/react";
 import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
 
@@ -39,6 +40,9 @@ const ITEMS_PER_PAGE = 15;
 
 const Users = () => {
   const [users, setUsers] = useState([]);
+  const [groups, setGroups] = useState([]);
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [selectedGroup, setSelectedGroup] = useState(""); // For group assignment
   const [apps, setApps] = useState([]);
   const [username, setUsername] = useState("");
   const [fullname, setFullname] = useState("");
@@ -52,6 +56,8 @@ const Users = () => {
   const [editingUser, setEditingUser] = useState(null);
   const [status, setStatus] = useState("");
 
+  const avatarBaseUrl = `${API_URL}/uploads/`;
+
   useEffect(() => {
     fetch(`${API_URL}/api/users`)
       .then((res) => res.json())
@@ -62,52 +68,114 @@ const Users = () => {
       .then((res) => res.json())
       .then((data) => setApps(Array.isArray(data) ? data : []))
       .catch(() => setStatus("Failed to load apps."));
+    // Fetch groups
+    fetch(`${API_URL}/api/groups`)
+      .then((res) => res.json())
+      .then((data) => setGroups(Array.isArray(data) ? data : []))
+      .catch(() => setStatus("Failed to load groups."));
   }, []);
 
-  const handleAddUser = (e) => {
+  const handleAddUser = async (e) => {
     e.preventDefault();
+
+    let avatarUrlResponse;
+
+    // If a file is selected, upload the avatar using FormData
+    if (avatarFile) {
+      const formData = new FormData();
+      formData.append("avatar", avatarFile);
+
+      const avatarResponse = await fetch(
+        `${API_URL}/api/users/${editingUser?.ID || "new"}/avatar`,
+        {
+          method: "PUT",
+          body: formData,
+        }
+      );
+
+      if (!avatarResponse.ok) {
+        throw new Error("Error uploading avatar");
+      }
+
+      const avatarData = await avatarResponse.json();
+      avatarUrlResponse = avatarData.avatar; // URL of the uploaded avatar
+    }
+
+    // Prepare the payload with the new avatar URL if uploaded
     const newUser = {
       username,
-      password: "M@sunur1n",
+      password: editingUser ? undefined : "M@sunur1n", // Only include password for new users
       fullname,
       email,
-      avatar: avatarUrl,
+      avatar: avatarUrlResponse || avatarUrl, // Use the uploaded avatar URL if available
       availableApps: selectedApps.map(
         (appName) => apps.find((app) => app.name === appName)?.id
       ),
     };
 
-    if (editingUser) {
-      fetch(`${API_URL}/api/users/${editingUser.ID}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newUser),
-      })
-        .then(() => {
-          setUsers((prevUsers) =>
-            prevUsers.map((user) =>
-              user.ID === editingUser.ID
-                ? { ...newUser, ID: editingUser.ID }
-                : user
-            )
-          );
-          setStatus("User updated successfully.");
-          closeModal();
-        })
-        .catch(() => setStatus("Error updating user. Please try again."));
-    } else {
-      fetch(`${API_URL}/api/users`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newUser),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          setUsers((prevUsers) => [...prevUsers, { ...newUser, ID: data.id }]);
-          setStatus("User added successfully.");
-          closeModal();
-        })
-        .catch(() => setStatus("Error adding user. Please try again."));
+    try {
+      if (editingUser) {
+        // Update user information
+        await fetch(`${API_URL}/api/users/${editingUser.ID}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newUser),
+        });
+
+        // Call handleAssignGroup to update the group
+        await handleAssignGroup(editingUser.ID, selectedGroup);
+
+        // Update the user in the local state
+        setUsers((prevUsers) =>
+          prevUsers.map((user) =>
+            user.ID === editingUser.ID
+              ? {
+                  ...user,
+                  username: newUser.username,
+                  fullname: newUser.fullname,
+                  email: newUser.email,
+                  groupname:
+                    groups.find((group) => group.id === selectedGroup)?.name ||
+                    "N/A",
+                }
+              : user
+          )
+        );
+
+        setStatus("User updated successfully.");
+      } else {
+        // Add new user
+        const response = await fetch(`${API_URL}/api/users`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newUser),
+        });
+        const data = await response.json();
+
+        // Assign group to the new user
+        await handleAssignGroup(data.id, selectedGroup);
+
+        // Add the new user to the local state
+        setUsers((prevUsers) => [
+          ...prevUsers,
+          {
+            ...newUser,
+            ID: data.id,
+            groupname:
+              groups.find((group) => group.id === selectedGroup)?.name || "N/A",
+          },
+        ]);
+        setStatus("User added successfully.");
+      }
+
+      closeModal();
+    } catch (error) {
+      setStatus(
+        editingUser
+          ? "Error updating user. Please try again."
+          : "Error adding user. Please try again."
+      );
+      console.error("Error in handleAddUser:", error);
     }
   };
 
@@ -129,7 +197,9 @@ const Users = () => {
     setEmail(item.mail || "");
     setAvatarUrl(item.avatar || "");
     setSelectedApps(item.availableApps || []);
-    setSelectAll(item.availableApps?.length === apps.length);
+    setSelectAll(item.availableApps?.length === apps.length); // Set the current group of the user
+    setSelectedGroup(item.groupId || ""); // Ensure groupId exists in user data
+
     onOpen();
   };
 
@@ -174,10 +244,39 @@ const Users = () => {
   };
 
   const filteredUsers = users.filter((user) =>
-    `${user.username} ${user.fullname} ${user.email}`
+    `${user.username} ${
+      user.fullname || `${user.givenName || ""} ${user.sn || ""}`
+    } ${user.email || ""}`
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
   );
+
+  const handleAssignGroup = async (userId, groupId) => {
+    try {
+      const response = await fetch(
+        `${API_URL}/api/users/${userId}/assign-group`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ groupId }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to assign group");
+      }
+
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user.ID === userId ? { ...user, groupId } : user
+        )
+      );
+      setStatus("Group assigned successfully.");
+    } catch (error) {
+      console.error("Error in handleAssignGroup:", error);
+      setStatus("Error assigning group. Please try again.");
+    }
+  };
 
   const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
   const currentItems = filteredUsers.slice(
@@ -231,46 +330,56 @@ const Users = () => {
       <Table variant="simple">
         <Thead>
           <Tr>
+            <Th>Avatar</Th>
             <Th>Full Name</Th>
             <Th>Username</Th>
             <Th>Email</Th>
+            <Th>Group</Th>
             <Th>Actions</Th>
           </Tr>
         </Thead>
         <Tbody>
-          {currentItems.map((item) => (
-            <Tr key={item.ID}>
-              <Td>
-                <HStack spacing={3}>
+          {currentItems.map((item) => {
+            // Prepend the base URL if needed
+            const avatarSrc = item.avatar ? `${API_URL}${item.avatar}` : "";
+            return (
+              <Tr key={item.ID}>
+                <Td>
                   <Avatar
                     size="sm"
-                    src={item.avatar}
+                    src={avatarSrc}
                     name={`${item.givenName || "N/A"} ${item.sn || "N/A"}`}
                   />
-                  <Text>{`${item.givenName || "N/A"} ${
-                    item.sn || "N/A"
-                  }`}</Text>
-                </HStack>
-              </Td>
-              <Td>{item.username}</Td>
-              <Td>{item.mail || "N/A"}</Td>
-              <Td>
-                <IconButton
-                  icon={<EditIcon />}
-                  mr={2}
-                  colorScheme="blue"
-                  onClick={() => handleEditUser(item)}
-                />
-                <IconButton
-                  icon={<DeleteIcon />}
-                  colorScheme="red"
-                  onClick={() => handleDeleteUser(item.ID)}
-                />
-              </Td>
-            </Tr>
-          ))}
+                </Td>
+                <Td>
+                  <HStack spacing={3}>
+                    <Text>{`${item.givenName || "N/A"} ${
+                      item.sn || "N/A"
+                    }`}</Text>
+                  </HStack>
+                </Td>
+                <Td>{item.username || "N/A"}</Td>
+                <Td>{item.mail || "N/A"}</Td>
+                <Td>{item.groupname || "N/A"}</Td>
+                <Td>
+                  <IconButton
+                    icon={<EditIcon />}
+                    mr={2}
+                    colorScheme="blue"
+                    onClick={() => handleEditUser(item)}
+                  />
+                  <IconButton
+                    icon={<DeleteIcon />}
+                    colorScheme="red"
+                    onClick={() => handleDeleteUser(item.ID)}
+                  />
+                </Td>
+              </Tr>
+            );
+          })}
         </Tbody>
       </Table>
+
       <Flex justify="space-between" align="center" mt={4}>
         <Button
           onClick={() => handlePageChange("previous")}
@@ -295,6 +404,35 @@ const Users = () => {
           <ModalCloseButton />
           <ModalBody>
             <VStack spacing={4}>
+              <FormControl>
+                <FormLabel>Avatar</FormLabel>
+                {/* Display the current or selected image */}
+                {/* Display the selected image */}
+                {avatarUrl && (
+                  <Box mb={4} textAlign="center">
+                    <Avatar size="xl" src={avatarUrl} alt="Avatar Preview" />
+                  </Box>
+                )}
+                {/* File input for browsing and selecting an image */}
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      // Set file to state for upload
+                      setAvatarFile(file);
+
+                      // Create a temporary preview URL for the selected file
+                      const reader = new FileReader();
+                      reader.onload = (event) =>
+                        setAvatarUrl(event.target.result);
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
+              </FormControl>
+
               <FormControl isRequired>
                 <FormLabel>Username</FormLabel>
                 <Input
@@ -334,14 +472,21 @@ const Users = () => {
                   placeholder="Enter Email"
                 />
               </FormControl>
-              <FormControl>
-                <FormLabel>Avatar URL</FormLabel>
-                <Input
-                  value={avatarUrl}
-                  onChange={(e) => setAvatarUrl(e.target.value)}
-                  placeholder="Enter Avatar URL"
-                />
+              <FormControl isRequired>
+                <FormLabel>Group Name</FormLabel>
+                <Select
+                  placeholder="Assign Group"
+                  value={selectedGroup || ""} // Display the current group
+                  onChange={(e) => setSelectedGroup(e.target.value)} // Update selected group on change
+                >
+                  {groups.map((group) => (
+                    <option key={group.id} value={group.id}>
+                      {group.name}
+                    </option>
+                  ))}
+                </Select>
               </FormControl>
+
               <FormControl>
                 <FormLabel>Available Apps</FormLabel>
                 <Checkbox

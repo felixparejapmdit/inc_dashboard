@@ -4,8 +4,11 @@ const db = require("../db");
 
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
+
 const multer = require("multer");
-const upload = multer({ dest: "uploads/" }); // Set destination folder for uploaded images
+const path = require("path");
+const User = require("../models/User");
+const UserController = require("../controllers/userController");
 
 const db1 = require("../config/database");
 const axios = require("axios");
@@ -41,6 +44,47 @@ function verifyMD5(password, hash) {
     .digest("base64")}`;
   return derivedHash === hash;
 }
+
+router.put("/api/users/:userId/assign-group", UserController.assignGroup);
+
+// Set up Multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/"); // Directory to save uploaded files
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}_${file.originalname}`);
+  },
+});
+
+const upload = multer({ storage });
+
+// Add an endpoint for avatar uploads
+router.put(
+  "/api/users/:userId/avatar",
+  upload.single("avatar"),
+  async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+      const user = await User.findByPk(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Update the user's avatar column
+      user.avatar = `/uploads/${req.file.filename}`;
+      await user.save();
+
+      res
+        .status(200)
+        .json({ message: "Avatar updated successfully", avatar: user.avatar });
+    } catch (error) {
+      console.error("Error updating avatar:", error);
+      res.status(500).json({ message: "Error updating avatar", error });
+    }
+  }
+);
 
 // Change Password Endpoint
 router.post("/api/users/change-password", (req, res) => {
@@ -225,10 +269,13 @@ router.put("/api/users/update-login-status", (req, res) => {
 // Get all users with their available apps and LDAP attributes
 router.get("/api/users", async (req, res) => {
   const query = `
-    SELECT u.ID, u.username, u.password, u.avatar, GROUP_CONCAT(a.name) AS availableApps
-    FROM users u
-    LEFT JOIN available_apps ua ON u.ID = ua.user_id
-    LEFT JOIN apps a ON ua.app_id = a.id
+    SELECT u.ID, u.username, u.password,
+    ug.id AS groupId,  u.avatar, ug.name as groupname, GROUP_CONCAT(a.name) AS availableApps 
+    FROM users u 
+    LEFT JOIN user_group_mappings ugm ON ugm.user_id = u.ID 
+    LEFT JOIN user_groups ug ON ug.id = ugm.group_id 
+    LEFT JOIN available_apps ua ON u.ID = ua.user_id 
+    LEFT JOIN apps a ON ua.app_id = a.id 
     GROUP BY u.ID
   `;
 
@@ -440,32 +487,43 @@ router.post("/api/users", (req, res) => {
 router.put("/api/users/:id", (req, res) => {
   const userId = parseInt(req.params.id, 10);
   const { username, avatar, availableApps } = req.body;
-  const query = "UPDATE users SET username = ?, avatar = ? WHERE ID = ?";
-  db.query(query, [username, avatar, userId], (err) => {
+
+  // Update user details
+  const updateUserQuery =
+    "UPDATE users SET username = ?, avatar = ? WHERE ID = ?";
+  db.query(updateUserQuery, [username, avatar, userId], (err) => {
     if (err) {
       console.error("Error updating user:", err);
       return res.status(500).json({ message: "Database update error" });
     }
-    // Update available apps
-    const deleteQuery = "DELETE FROM available_apps WHERE user_id = ?";
-    db.query(deleteQuery, [userId], (deleteErr) => {
+
+    // Delete existing apps for the user
+    const deleteAppsQuery = "DELETE FROM available_apps WHERE user_id = ?";
+    db.query(deleteAppsQuery, [userId], (deleteErr) => {
       if (deleteErr) {
         console.error("Error deleting existing apps:", deleteErr);
         return res.status(500).json({ message: "Error updating apps" });
       }
+
+      // Insert new available apps if any
       if (availableApps && availableApps.length > 0) {
-        const insertQuery =
+        const insertAppsQuery =
           "INSERT INTO available_apps (user_id, app_id) VALUES ?";
         const values = availableApps.map((appId) => [userId, appId]);
-        db.query(insertQuery, [values], (insertErr) => {
+        db.query(insertAppsQuery, [values], (insertErr) => {
           if (insertErr) {
             console.error("Error inserting updated apps:", insertErr);
             return res.status(500).json({ message: "Error updating apps" });
           }
-          res.json({ message: "User updated successfully" });
+
+          // Respond with success
+          res.json({ message: "User and apps updated successfully" });
         });
       } else {
-        res.json({ message: "User updated successfully" });
+        // No apps to update, respond with success
+        res.json({
+          message: "User updated successfully with no apps assigned",
+        });
       }
     });
   });

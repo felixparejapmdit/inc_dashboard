@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -13,13 +13,14 @@ import {
   useToast,
   Flex,
   Select,
+  Text,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import axios from "axios";
 
 const PermissionManagement = () => {
   const [permissions, setPermissions] = useState([]);
-  const [categories, setCategories] = useState([]); // State for categories
+  const [categories, setCategories] = useState([]);
   const [newPermission, setNewPermission] = useState({
     name: "",
     description: "",
@@ -40,10 +41,7 @@ const PermissionManagement = () => {
       const response = await axios.get(
         `${process.env.REACT_APP_API_URL}/api/permissions`
       );
-      const sortedPermissions = response.data.sort((a, b) =>
-        a.name.localeCompare(b.name)
-      );
-      setPermissions(sortedPermissions);
+      setPermissions(response.data);
     } catch (error) {
       toast({
         title: "Error loading permissions",
@@ -158,157 +156,104 @@ const PermissionManagement = () => {
         </Box>
       </Flex>
 
-      <Table variant="striped">
-        <Thead>
-          <Tr>
-            <Th>#</Th>
-            <Th>Name</Th>
-            <Th>Description</Th>
-            <Th>Category</Th>
-            <Th
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              {!isAdding && (
-                <IconButton
-                  icon={<AddIcon />}
-                  onClick={() => setIsAdding(true)}
-                  size="sm"
-                  aria-label="Add Permission"
-                />
-              )}
-            </Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-          {isAdding && (
-            <Tr>
-              <Td></Td>
-              <Td>
-                <Input
-                  placeholder="Permission Name"
-                  value={newPermission.name}
-                  onChange={(e) =>
-                    setNewPermission({ ...newPermission, name: e.target.value })
-                  }
-                />
-              </Td>
-              <Td>
-                <Input
-                  placeholder="Description"
-                  value={newPermission.description}
-                  onChange={(e) =>
-                    setNewPermission({
-                      ...newPermission,
-                      description: e.target.value,
-                    })
-                  }
-                />
-              </Td>
-              <Td>
-                <Select
-                  placeholder="Select Category"
-                  value={newPermission.categoryId}
-                  onChange={(e) =>
-                    setNewPermission({
-                      ...newPermission,
-                      categoryId: e.target.value,
-                    })
-                  }
-                >
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </Select>
-              </Td>
-              <Td>
-                <Flex justify="flex-end">
-                  <Button
-                    onClick={handleAddPermission}
-                    colorScheme="green"
-                    size="sm"
-                    mr={2}
-                  >
-                    Save
-                  </Button>
-                  <Button
-                    onClick={() => setIsAdding(false)}
-                    colorScheme="red"
-                    size="sm"
-                  >
-                    Cancel
-                  </Button>
-                </Flex>
-              </Td>
-            </Tr>
-          )}
-          {permissions.map((permission, index) => (
-            <Tr key={permission.id}>
-              <Td>{index + 1}</Td>
-              <Td>
-                {editingPermission && editingPermission.id === permission.id ? (
-                  <Input
-                    value={editingPermission.name}
-                    onChange={(e) =>
-                      setEditingPermission({
-                        ...editingPermission,
-                        name: e.target.value,
-                      })
-                    }
-                  />
-                ) : (
-                  permission.name
-                )}
-              </Td>
-              <Td>
-                {editingPermission && editingPermission.id === permission.id ? (
-                  <Input
-                    value={editingPermission.description}
-                    onChange={(e) =>
-                      setEditingPermission({
-                        ...editingPermission,
-                        description: e.target.value,
-                      })
-                    }
-                  />
-                ) : (
-                  permission.description || "N/A"
-                )}
-              </Td>
-              <Td>
-        {editingPermission && editingPermission.id === permission.id ? (
-          <Select
-            placeholder="Select Category"
-            value={editingPermission.categoryId || ""}
-            onChange={(e) =>
-              setEditingPermission({
-                ...editingPermission,
-                categoryId: e.target.value,
-              })
-            }
-          >
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </Select>
-        ) : (
-          permission.categoryName || "N/A"
-        )}
-      </Td>
-              <Td>
-                <Flex justify="center">
-                  {editingPermission &&
-                  editingPermission.id === permission.id ? (
-                    <>
+      {categories.map((category) => (
+        <Box key={category.id} mb={6}>
+          <Text fontSize="lg" fontWeight="bold" mb={2}>
+            {category.name}
+          </Text>
+          <Table variant="striped">
+            <Thead>
+              <Tr>
+                <Th>#</Th>
+                <Th>Name</Th>
+                <Th>Description</Th>
+                <Th>
+                  {" "}
+                  Category
+                  <Flex display="none" justify="space-between" align="center">
+                    <Text>Category</Text>
+                    <Select
+                      placeholder="Select Category"
+                      size="sm"
+                      value={category.id}
+                      disabled
+                    >
+                      {categories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </option>
+                      ))}
+                    </Select>
+                  </Flex>
+                </Th>
+                <Th>
+                  <Flex justify="flex-end">
+                    <IconButton
+                      icon={<AddIcon />}
+                      onClick={() => {
+                        setNewPermission({
+                          ...newPermission,
+                          categoryId: category.id,
+                        });
+                        setIsAdding(true);
+                      }}
+                      size="sm"
+                      aria-label="Add Permission"
+                    />
+                  </Flex>
+                </Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {isAdding && newPermission.categoryId === category.id && (
+                <Tr>
+                  <Td></Td>
+                  <Td>
+                    <Input
+                      placeholder="Permission Name"
+                      value={newPermission.name}
+                      onChange={(e) =>
+                        setNewPermission({
+                          ...newPermission,
+                          name: e.target.value,
+                        })
+                      }
+                    />
+                  </Td>
+                  <Td>
+                    <Input
+                      placeholder="Description"
+                      value={newPermission.description}
+                      onChange={(e) =>
+                        setNewPermission({
+                          ...newPermission,
+                          description: e.target.value,
+                        })
+                      }
+                    />
+                  </Td>
+                  <Td>
+                    <Select
+                      placeholder="Select Category"
+                      value={newPermission.categoryId || ""}
+                      onChange={(e) =>
+                        setNewPermission({
+                          ...newPermission,
+                          categoryId: e.target.value,
+                        })
+                      }
+                    >
+                      {categories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </option>
+                      ))}
+                    </Select>
+                  </Td>
+                  <Td>
+                    <Flex justify="flex-end">
                       <Button
-                        onClick={handleUpdatePermission}
+                        onClick={handleAddPermission}
                         colorScheme="green"
                         size="sm"
                         mr={2}
@@ -316,40 +261,126 @@ const PermissionManagement = () => {
                         Save
                       </Button>
                       <Button
-                        onClick={() => setEditingPermission(null)}
+                        onClick={() => setIsAdding(false)}
                         colorScheme="red"
                         size="sm"
                       >
                         Cancel
                       </Button>
-                    </>
-                  ) : (
-                    <>
-                      <IconButton
-                        icon={<EditIcon />}
-                        onClick={() => setEditingPermission(permission)}
-                        size="sm"
-                        mr={2}
-                        variant="ghost"
-                        colorScheme="yellow"
-                        aria-label="Edit permission"
-                      />
-                      <IconButton
-                        icon={<DeleteIcon />}
-                        onClick={() => setDeletingPermission(permission)}
-                        size="sm"
-                        variant="ghost"
-                        colorScheme="red"
-                        aria-label="Delete permission"
-                      />
-                    </>
-                  )}
-                </Flex>
-              </Td>
-            </Tr>
-          ))}
-        </Tbody>
-      </Table>
+                    </Flex>
+                  </Td>
+                </Tr>
+              )}
+              {permissions
+                .filter((permission) => permission.categoryId === category.id)
+                .map((permission, index) => (
+                  <Tr key={permission.id}>
+                    <Td>{index + 1}</Td>
+                    <Td>
+                      {editingPermission &&
+                      editingPermission.id === permission.id ? (
+                        <Input
+                          value={editingPermission.name}
+                          onChange={(e) =>
+                            setEditingPermission({
+                              ...editingPermission,
+                              name: e.target.value,
+                            })
+                          }
+                        />
+                      ) : (
+                        permission.name
+                      )}
+                    </Td>
+                    <Td>
+                      {editingPermission &&
+                      editingPermission.id === permission.id ? (
+                        <Input
+                          value={editingPermission.description}
+                          onChange={(e) =>
+                            setEditingPermission({
+                              ...editingPermission,
+                              description: e.target.value,
+                            })
+                          }
+                        />
+                      ) : (
+                        permission.description || "N/A"
+                      )}
+                    </Td>
+                    <Td>
+                      {editingPermission &&
+                      editingPermission.id === permission.id ? (
+                        <Select
+                          placeholder="Select Category"
+                          value={editingPermission.categoryId || ""}
+                          onChange={(e) =>
+                            setEditingPermission({
+                              ...editingPermission,
+                              categoryId: e.target.value,
+                            })
+                          }
+                        >
+                          {categories.map((cat) => (
+                            <option key={cat.id} value={cat.id}>
+                              {cat.name}
+                            </option>
+                          ))}
+                        </Select>
+                      ) : (
+                        category.name
+                      )}
+                    </Td>
+                    <Td>
+                      <Flex justify="center">
+                        {editingPermission &&
+                        editingPermission.id === permission.id ? (
+                          <>
+                            <Button
+                              onClick={handleUpdatePermission}
+                              colorScheme="green"
+                              size="sm"
+                              mr={2}
+                            >
+                              Save
+                            </Button>
+                            <Button
+                              onClick={() => setEditingPermission(null)}
+                              colorScheme="red"
+                              size="sm"
+                            >
+                              Cancel
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <IconButton
+                              icon={<EditIcon />}
+                              onClick={() => setEditingPermission(permission)}
+                              size="sm"
+                              mr={2}
+                              variant="ghost"
+                              colorScheme="yellow"
+                              aria-label="Edit permission"
+                            />
+                            <IconButton
+                              icon={<DeleteIcon />}
+                              onClick={() => setDeletingPermission(permission)}
+                              size="sm"
+                              variant="ghost"
+                              colorScheme="red"
+                              aria-label="Delete permission"
+                            />
+                          </>
+                        )}
+                      </Flex>
+                    </Td>
+                  </Tr>
+                ))}
+            </Tbody>
+          </Table>
+        </Box>
+      ))}
     </Box>
   );
 };

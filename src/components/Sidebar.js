@@ -193,12 +193,14 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
       {/* Menu */}
       <VStack align="start" spacing={4}>
         {/* Adjusted the spacing */}
+
         <SidebarItem
           icon={FiHome}
           label="Home"
           isExpanded={isExpanded}
           onClick={() => navigate("/dashboard")}
         />
+
         <SidebarItem
           icon={FiUser}
           label="Profile"
@@ -222,6 +224,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
               isExpanded={isExpanded}
               onClick={() => navigate("/application")} // Redirect to application.js
             />
+
             <SidebarItem
               icon={FiUsers}
               label="Personnels"

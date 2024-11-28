@@ -15,6 +15,8 @@ import {
   Text,
   Flex,
   Select,
+  Radio,
+  RadioGroup,
   AlertDialog,
   AlertDialogOverlay,
   AlertDialogContent,
@@ -29,13 +31,17 @@ import {
   FaUserTie,
   FaUser,
   FaStar,
+  FaRegIdBadge,
 } from "react-icons/fa"; // Import icons
 import axios from "axios";
 
 const GroupManagement = () => {
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
+  const [isAddingOrEditing, setIsAddingOrEditing] = useState(false); // To handle Add/Edit mode
+
   const [groupUsers, setGroupUsers] = useState([]);
+  const [permissions, setPermissions] = useState([]);
   const [newGroup, setNewGroup] = useState({ name: "", description: "" });
   const [isAdding, setIsAdding] = useState(false);
   const [editingGroup, setEditingGroup] = useState(null);
@@ -45,7 +51,8 @@ const GroupManagement = () => {
 
   useEffect(() => {
     fetchGroups();
-  }, []);
+    console.log("Permissions state updated:", permissions);
+  }, [permissions]);
 
   const fetchGroups = async () => {
     try {
@@ -57,6 +64,37 @@ const GroupManagement = () => {
       toast({
         title: "Error loading groups",
         description: error.message,
+        status: "error",
+        duration: 3000,
+      });
+    }
+  };
+
+  const fetchPermissions = async (groupId) => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/groups/${groupId}/permissions`
+      );
+      console.log("Fetched Permissions:", response.data);
+
+      // Group permissions by category
+      const groupedPermissions = response.data.map((category) => ({
+        categoryId: category.categoryId,
+        categoryName: category.categoryName,
+        permissions: category.permissions.map((permission) => ({
+          id: permission.id,
+          name: permission.name,
+          description: permission.description,
+          accessrights: permission.accessrights,
+        })),
+      }));
+
+      setPermissions(groupedPermissions); // Set state with grouped permissions
+    } catch (error) {
+      console.error("Error fetching permissions:", error);
+      toast({
+        title: "Error loading permissions",
+        description: error.response?.data?.message || error.message,
         status: "error",
         duration: 3000,
       });
@@ -83,6 +121,32 @@ const GroupManagement = () => {
   const handleSelectGroup = (group) => {
     setSelectedGroup(group);
     fetchGroupUsers(group.id);
+  };
+
+  const handlePermissionChange = async (
+    groupId,
+    permissionId,
+    categoryId,
+    accessrights
+  ) => {
+    try {
+      await axios.put(
+        `${process.env.REACT_APP_API_URL}/api/groups/${groupId}/permissions`,
+        { permissionId, categoryId, accessrights }
+      );
+      toast({
+        title: "Permission updated successfully",
+        status: "success",
+        duration: 3000,
+      });
+    } catch (error) {
+      toast({
+        title: "Error updating permission",
+        description: error.message,
+        status: "error",
+        duration: 3000,
+      });
+    }
   };
 
   const handleAddGroup = async () => {
@@ -167,13 +231,20 @@ const GroupManagement = () => {
     }
   };
 
-  const handleDeleteGroup = async () => {
+  const handleDeleteGroup = async (group) => {
     try {
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/groups/${deletingGroup.id}`
+      // Confirm before deleting the group
+      const confirmDelete = window.confirm(
+        `Are you sure you want to delete the group "${group.name}"?`
       );
-      fetchGroups();
-      setDeletingGroup(null);
+
+      if (!confirmDelete) return;
+
+      await axios.delete(
+        `${process.env.REACT_APP_API_URL}/api/groups/${group.id}`
+      );
+
+      fetchGroups(); // Refresh the list of groups
       toast({
         title: "Group deleted successfully",
         status: "success",
@@ -182,7 +253,7 @@ const GroupManagement = () => {
     } catch (error) {
       toast({
         title: "Error deleting group",
-        description: error.message,
+        description: error.response?.data?.message || error.message,
         status: "error",
         duration: 3000,
       });
@@ -210,10 +281,14 @@ const GroupManagement = () => {
                   alignItems: "center",
                 }}
               >
-                {!isAdding && (
+                {!isAddingOrEditing && (
                   <IconButton
                     icon={<AddIcon />}
-                    onClick={() => setIsAdding(true)}
+                    onClick={() => {
+                      setIsAddingOrEditing("add");
+                      setNewGroup({ name: "", description: "" });
+                      setPermissions([]); // Reset permissions for adding a new group
+                    }}
                     size="sm"
                     aria-label="Add Group"
                   />
@@ -222,7 +297,8 @@ const GroupManagement = () => {
             </Tr>
           </Thead>
           <Tbody>
-            {isAdding && (
+            {/* Add Group Row */}
+            {isAddingOrEditing === "add" && (
               <Tr>
                 <Td></Td> {/* Empty cell for row number */}
                 <Td>
@@ -247,12 +323,22 @@ const GroupManagement = () => {
                   <Button colorScheme="green" onClick={handleAddGroup} mr={2}>
                     Save
                   </Button>
-                  <Button colorScheme="red" onClick={() => setIsAdding(false)}>
+                  <Button
+                    colorScheme="red"
+                    onClick={() => {
+                      setIsAddingOrEditing(null); // Exit add mode
+                      setSelectedGroup(null); // Deselect group to hide permissions table
+                      setNewGroup({ name: "", description: "" }); // Clear input fields
+                      setPermissions([]); // Reset permissions to default
+                    }}
+                  >
                     Cancel
                   </Button>
                 </Td>
               </Tr>
             )}
+
+            {/* Group Rows */}
             {groups.map((group, index) => {
               // Determine the appropriate icon for the group
               const groupIcon = (() => {
@@ -268,103 +354,210 @@ const GroupManagement = () => {
                   case "VIP":
                     return <FaStar />;
                   default:
-                    return null; // Fallback if group name doesn't match
+                    return <FaRegIdBadge />; // Default icon for unmatched cases
                 }
               })();
 
               return (
-                <Tr
-                  key={group.id}
-                  onClick={() => handleSelectGroup(group)}
-                  style={{
-                    cursor: "pointer",
-                    background:
-                      selectedGroup && selectedGroup.id === group.id
-                        ? "#f0f0f0"
-                        : "transparent",
-                  }}
-                >
-                  <Td>{index + 1}</Td> {/* Add row number */}
-                  <Td>
-                    <Flex align="center">
-                      {groupIcon && <Box mr={2}>{groupIcon}</Box>}{" "}
-                      {/* Display icon */}
+                <React.Fragment key={group.id}>
+                  <Tr
+                    onClick={() => handleSelectGroup(group)}
+                    style={{
+                      cursor: "pointer",
+                      background:
+                        selectedGroup && selectedGroup.id === group.id
+                          ? "#f0f0f0"
+                          : "transparent",
+                    }}
+                  >
+                    <Td>{index + 1}</Td> {/* Add row number */}
+                    <Td>
+                      <Flex align="center">
+                        {groupIcon && <Box mr={2}>{groupIcon}</Box>}{" "}
+                        {/* Display icon */}
+                        {editingGroup && editingGroup.id === group.id ? (
+                          <Input
+                            value={editingGroup.name}
+                            onChange={(e) =>
+                              setEditingGroup({
+                                ...editingGroup,
+                                name: e.target.value,
+                              })
+                            }
+                          />
+                        ) : (
+                          group.name
+                        )}
+                      </Flex>
+                    </Td>
+                    <Td>
                       {editingGroup && editingGroup.id === group.id ? (
                         <Input
-                          value={editingGroup.name}
+                          value={editingGroup.description}
                           onChange={(e) =>
                             setEditingGroup({
                               ...editingGroup,
-                              name: e.target.value,
+                              description: e.target.value,
                             })
                           }
                         />
                       ) : (
-                        group.name
+                        group.description
                       )}
-                    </Flex>
-                  </Td>
-                  <Td>
-                    {editingGroup && editingGroup.id === group.id ? (
-                      <Input
-                        value={editingGroup.description}
-                        onChange={(e) =>
-                          setEditingGroup({
-                            ...editingGroup,
-                            description: e.target.value,
-                          })
-                        }
-                      />
-                    ) : (
-                      group.description
-                    )}
-                  </Td>
-                  <Td>
-                    <Flex justify="center">
-                      {editingGroup && editingGroup.id === group.id ? (
-                        <>
+                    </Td>
+                    <Td>
+                      <Flex justify="center">
+                        {editingGroup && editingGroup.id === group.id ? (
+                          <>
+                            <Button
+                              colorScheme="green"
+                              onClick={handleUpdateGroup}
+                              size="sm"
+                              mr={2}
+                            >
+                              Save
+                            </Button>
+                            <Button
+                              colorScheme="red"
+                              onClick={() => setEditingGroup(null)}
+                              size="sm"
+                              mr={2}
+                            >
+                              Cancel
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <IconButton
+                              icon={<EditIcon />}
+                              onClick={() => {
+                                setSelectedGroup(group);
+                                setIsAddingOrEditing("edit");
+                                setEditingGroup(group);
+                                fetchPermissions(group.id); // Load permissions for editing
+                              }}
+                              colorScheme="yellow"
+                              size="sm"
+                              mr={2}
+                            />
+                            <IconButton
+                              icon={<DeleteIcon />}
+                              onClick={() => handleDeleteGroup(group)}
+                              size="sm"
+                              colorScheme="red"
+                            />
+                          </>
+                        )}
+                      </Flex>
+                    </Td>
+                  </Tr>
+                  {/* Inline Permissions Table */}
+                  {isAddingOrEditing && selectedGroup?.id === group.id && (
+                    <Tr>
+                      <Td colSpan={4}>
+                        <Text fontSize="lg" fontWeight="bold" mt={4}>
+                          {isAddingOrEditing === "add"
+                            ? "Add Group with Permissions"
+                            : `Edit Permissions for ${group.name}`}
+                        </Text>
+                        <Flex mt={4} justify="flex-end">
                           <Button
                             colorScheme="green"
-                            onClick={handleUpdateGroup}
-                            size="sm"
-                            mr={2}
+                            onClick={() => {
+                              setIsAddingOrEditing(null); // Exit editing/adding mode
+                              setSelectedGroup(null); // Hide permissions table
+                            }}
                           >
-                            Save
+                            Hide
                           </Button>
+                        </Flex>
+                        <Table variant="striped" mt={2}>
+                          <Thead>
+                            <Tr>
+                              <Th width="30%">Category</Th>
+                              <Th width="40%">Permission</Th>
+                              <Th width="15%" textAlign="center">
+                                Grant
+                              </Th>
+                              <Th width="15%" textAlign="center">
+                                Deny
+                              </Th>
+                            </Tr>
+                          </Thead>
+                          <Tbody>
+                            {permissions.map((category) => (
+                              <React.Fragment key={category.categoryId}>
+                                <Tr bg="gray.100">
+                                  <Td colSpan={4} fontWeight="bold">
+                                    {category.categoryName}
+                                  </Td>
+                                </Tr>
+                                {category.permissions.map(
+                                  (permission, index) => (
+                                    <Tr key={permission.id}>
+                                      <Td textAlign="center">{index + 1}</Td>
+                                      <Td>{permission.name}</Td>
+                                      <Td textAlign="center">
+                                        <RadioGroup
+                                          onChange={(value) =>
+                                            handlePermissionChange(
+                                              selectedGroup.id,
+                                              permission.id,
+                                              category.categoryId,
+                                              parseInt(value)
+                                            )
+                                          }
+                                          value={String(
+                                            permission.accessrights
+                                          )}
+                                        >
+                                          <Radio value="1">Grant</Radio>
+                                        </RadioGroup>
+                                      </Td>
+                                      <Td textAlign="center">
+                                        <RadioGroup
+                                          onChange={(value) =>
+                                            handlePermissionChange(
+                                              selectedGroup.id,
+                                              permission.id,
+                                              category.categoryId,
+                                              parseInt(value)
+                                            )
+                                          }
+                                          value={String(
+                                            permission.accessrights
+                                          )}
+                                        >
+                                          <Radio value="0">Deny</Radio>
+                                        </RadioGroup>
+                                      </Td>
+                                    </Tr>
+                                  )
+                                )}
+                              </React.Fragment>
+                            ))}
+                          </Tbody>
+                        </Table>
+                        <Flex mt={4} justify="flex-end">
                           <Button
-                            colorScheme="red"
-                            onClick={() => setEditingGroup(null)}
-                            size="sm"
-                            mr={2}
+                            colorScheme="green"
+                            onClick={() => {
+                              setIsAddingOrEditing(null); // Exit editing/adding mode
+                              setSelectedGroup(null); // Hide permissions table
+                            }}
                           >
-                            Cancel
+                            Hide
                           </Button>
-                        </>
-                      ) : (
-                        <>
-                          <IconButton
-                            icon={<EditIcon />}
-                            onClick={() => setEditingGroup(group)}
-                            colorScheme="yellow"
-                            size="sm"
-                            mr={2}
-                          />
-                          <IconButton
-                            icon={<DeleteIcon />}
-                            onClick={() => setDeletingGroup(group)}
-                            size="sm"
-                            colorScheme="red"
-                          />
-                        </>
-                      )}
-                    </Flex>
-                  </Td>
-                </Tr>
+                        </Flex>
+                      </Td>
+                    </Tr>
+                  )}
+                </React.Fragment>
               );
             })}
           </Tbody>
         </Table>
-        ;
+
         {selectedGroup && (
           <Box mt={5}>
             <Text fontSize="xl" fontWeight="bold" mb={3}>

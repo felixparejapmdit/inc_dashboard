@@ -37,8 +37,7 @@ PermissionCategoryMapping.associate = (models) => {
     foreignKey: "permission_id",
     as: "permission",
   });
-
-  PermissionCategoryMapping.belongsTo(models.PermissionCategory, {
+  PermissionCategoryMapping.belongsTo(models.Category, {
     foreignKey: "category_id",
     as: "category",
   });

@@ -1,6 +1,9 @@
 require("dotenv").config();
 
 const express = require("express");
+
+const path = require("path");
+
 const cors = require("cors");
 const bodyParser = require("body-parser");
 
@@ -15,6 +18,8 @@ const permissionRoutes = require("./routes/permissionRoutes");
 const userGroupsRoutes = require("./routes/userGroupsRoutes");
 
 const permissionCategoriesRoutes = require("./routes/permissionCategoriesRoutes");
+
+const groupPermissionsRoutes = require("./routes/groupPermissionsRoutes");
 
 const userRoutes = require("./routes/userRoutes");
 const ldapRoutes = require("./routes/ldapRoutes");
@@ -50,6 +55,10 @@ app.use(cors());
 app.use(bodyParser.json({ limit: "10mb" })); // Increased limit to handle Base64 images
 
 app.use(userRoutes);
+app.use(express.urlencoded({ extended: true }));
+
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 app.use(ldapRoutes);
 app.use(appRoutes);
 // app.use(eventRoutes);
@@ -83,6 +92,8 @@ app.use(workExperienceRoutes);
 app.use(groupRoutes);
 app.use(permissionRoutes);
 app.use(permissionCategoriesRoutes);
+
+app.use("/api/groups", groupPermissionsRoutes);
 
 app.use("/api/user-groups", userGroupsRoutes);
 

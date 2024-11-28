@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 27, 2024 at 07:57 AM
+-- Generation Time: Nov 28, 2024 at 03:28 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -84,9 +84,16 @@ INSERT INTO `available_apps` (`id`, `user_id`, `app_id`, `ldap_group_cn`) VALUES
 (24, 15, 5, ''),
 (25, 15, 4, ''),
 (26, 15, 3, ''),
-(29, 46, 4, ''),
-(30, 46, 24, ''),
-(31, 46, 23, '');
+(3801, 46, 1, ''),
+(3802, 46, 2, ''),
+(3803, 46, 3, ''),
+(3804, 46, 4, ''),
+(3805, 46, 5, ''),
+(3806, 46, 6, ''),
+(3807, 46, 7, ''),
+(3808, 46, 8, ''),
+(3809, 46, 23, ''),
+(3810, 46, 24, '');
 
 -- --------------------------------------------------------
 
@@ -551,6 +558,18 @@ CREATE TABLE `group_permission_mappings` (
   `category_id` bigint(20) NOT NULL,
   `accessrights` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `group_permission_mappings`
+--
+
+INSERT INTO `group_permission_mappings` (`group_id`, `permission_id`, `category_id`, `accessrights`) VALUES
+(1, 2, 1, 0),
+(1, 16, 3, 0),
+(1, 17, 3, 1),
+(1, 18, 3, 1),
+(1, 19, 2, 0),
+(2, 19, 2, 1);
 
 -- --------------------------------------------------------
 
@@ -1046,11 +1065,11 @@ CREATE TABLE `permission_categories` (
 --
 
 INSERT INTO `permission_categories` (`id`, `name`, `description`, `created_at`, `updated_at`) VALUES
-(1, 'Dashboard', 'View Dashboard', '2024-11-27 05:51:13', '2024-11-27 05:55:29'),
 (2, 'Home', 'View Home', '2024-11-27 05:53:14', '2024-11-27 05:53:33'),
 (3, 'Profile', 'View Profile', '2024-11-27 05:53:26', '2024-11-27 05:53:26'),
 (4, 'Settings', 'View Settings', '2024-11-27 05:55:38', '2024-11-27 05:55:38'),
-(5, 'Managements', 'View Managements', '2024-11-27 05:55:54', '2024-11-27 05:55:54');
+(5, 'Managements', 'View Managements', '2024-11-27 05:55:54', '2024-11-27 05:55:54'),
+(6, 'Global', 'View Global', '2024-11-28 02:05:52', '2024-11-28 02:05:52');
 
 -- --------------------------------------------------------
 
@@ -1071,9 +1090,25 @@ CREATE TABLE `permission_category_mappings` (
 --
 
 INSERT INTO `permission_category_mappings` (`id`, `permission_id`, `category_id`, `created_at`, `updated_at`) VALUES
-(1, 1, 1, '2024-11-27 06:37:53', '2024-11-27 06:37:53'),
-(2, 2, 5, '2024-11-27 06:42:16', '2024-11-27 06:42:37'),
-(3, 3, 4, '2024-11-27 06:44:27', '2024-11-27 06:44:27');
+(1, 1, 6, '2024-11-27 06:37:53', '2024-11-28 09:15:31'),
+(2, 2, 4, '2024-11-27 06:42:16', '2024-11-28 02:14:03'),
+(3, 3, 4, '2024-11-27 06:44:27', '2024-11-27 06:44:27'),
+(4, 4, 5, '2024-11-28 02:14:30', '2024-11-28 02:14:30'),
+(5, 5, 5, '2024-11-28 02:14:39', '2024-11-28 02:14:39'),
+(6, 6, 5, '2024-11-28 02:14:47', '2024-11-28 02:14:47'),
+(7, 7, 5, '2024-11-28 02:14:55', '2024-11-28 02:14:55'),
+(8, 8, 5, '2024-11-28 02:15:06', '2024-11-28 02:15:06'),
+(9, 9, 5, '2024-11-28 02:15:20', '2024-11-28 02:15:20'),
+(10, 10, 5, '2024-11-28 02:15:26', '2024-11-28 02:15:26'),
+(11, 11, 4, '2024-11-28 02:18:43', '2024-11-28 02:18:43'),
+(12, 12, 4, '2024-11-28 02:18:56', '2024-11-28 02:18:56'),
+(13, 13, 4, '2024-11-28 02:19:12', '2024-11-28 02:19:12'),
+(14, 14, 4, '2024-11-28 02:19:35', '2024-11-28 02:19:35'),
+(15, 15, 4, '2024-11-28 02:20:14', '2024-11-28 02:20:14'),
+(16, 16, 3, '2024-11-28 02:29:25', '2024-11-28 02:29:25'),
+(17, 17, 3, '2024-11-28 02:29:46', '2024-11-28 02:29:46'),
+(18, 18, 3, '2024-11-28 02:29:58', '2024-11-28 02:29:58'),
+(19, 19, 2, '2024-11-28 02:44:58', '2024-11-28 03:06:07');
 
 -- --------------------------------------------------------
 
@@ -1094,9 +1129,25 @@ CREATE TABLE `permission_definitions` (
 --
 
 INSERT INTO `permission_definitions` (`id`, `name`, `description`, `created_at`, `updated_at`) VALUES
-(1, 'TEST', 'asd', '2024-11-26 07:47:38', '2024-11-26 07:47:42'),
-(2, 'asd', 'asd', '2024-11-27 06:29:58', '2024-11-27 06:29:58'),
-(3, 'TEST2', 'TEST2', '2024-11-27 06:44:27', '2024-11-27 06:44:27');
+(1, 'Personnels', 'asd', '2024-11-26 07:47:38', '2024-11-28 01:42:26'),
+(2, 'apps.view', 'View Application', '2024-11-27 06:29:58', '2024-11-28 02:59:08'),
+(3, 'suguan.view', 'View Suguan', '2024-11-27 06:44:27', '2024-11-28 02:59:16'),
+(4, 'department.view', 'View Department', '2024-11-28 02:14:30', '2024-11-28 03:01:12'),
+(5, 'section.view', 'View Section', '2024-11-28 02:14:39', '2024-11-28 03:01:06'),
+(6, 'subsection.view', 'View Subsection', '2024-11-28 02:14:47', '2024-11-28 03:01:01'),
+(7, 'designation.view', 'View Designation', '2024-11-28 02:14:55', '2024-11-28 03:00:52'),
+(8, 'district.view', 'View District', '2024-11-28 02:15:06', '2024-11-28 03:00:43'),
+(9, 'citizenship.view', 'View Citizenships', '2024-11-28 02:15:20', '2024-11-28 03:00:36'),
+(10, 'nationality.view', 'View Nationalies', '2024-11-28 02:15:26', '2024-11-28 03:00:34'),
+(11, 'groups.ivew', 'View Groups', '2024-11-28 02:18:43', '2024-11-28 02:59:23'),
+(12, 'permission.view', 'View Permission', '2024-11-28 02:18:56', '2024-11-28 02:59:29'),
+(13, 'categories.view', 'View Categories', '2024-11-28 02:19:12', '2024-11-28 02:59:35'),
+(14, 'events.view', 'View Events', '2024-11-28 02:19:35', '2024-11-28 02:59:41'),
+(15, 'personnels.view', 'View Personnels', '2024-11-28 02:20:14', '2024-11-28 02:59:48'),
+(16, 'profile.changepassword', 'Change user password', '2024-11-28 02:29:25', '2024-11-28 03:00:02'),
+(17, 'profile.edit', 'Edit user profile', '2024-11-28 02:29:46', '2024-11-28 03:00:10'),
+(18, 'profile.download_pdf', 'Download PDF file', '2024-11-28 02:29:58', '2024-11-28 03:00:19'),
+(19, 'home.search', 'Search Apps', '2024-11-28 02:44:58', '2024-11-28 03:01:23');
 
 -- --------------------------------------------------------
 
@@ -1407,7 +1458,7 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (15, 'kvdematera', NULL, '', 'kvdematera', '{SSHA}+728w4RErOoPkuPO2W5zP1n6+cAkj1Ru', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (16, 'rreyes', NULL, NULL, 'rreyes', '{MD5}WDUuJDKCc7XD+0pC/8DHwg==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (17, 'zpetorio', NULL, NULL, 'zpetorio', '{SSHA}Q2+NyJ1+Fhx4XN6H1W7n3xvmqmHK0Gvc', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(18, 'ATG', NULL, NULL, 'ATG', '{MD5}jMnoutNavel8/QA7J2mK3g==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
+(18, 'ATG', NULL, '', 'ATG', '{MD5}jMnoutNavel8/QA7J2mK3g==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (19, 'pmdit', NULL, NULL, 'pmdit', '{SSHA}1c2pNTw54K4Avjn7GQ90PMyXBD714zOt', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (20, 'atgstaff', NULL, NULL, 'atgstaff', '{SSHA}gy6OWTydaQLnRY11qhdccao0Add7gNdz', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (21, 'eeustaquio', NULL, NULL, 'eeustaquio', '{MD5}tRnpZ0iqYDF7QA4j1EFfkw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
@@ -1435,7 +1486,7 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (43, 'executive.news', NULL, NULL, 'executive.news', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (44, 'pmd.it', NULL, NULL, 'pmd.it', '{SSHA}LYVyCEUbqbnRdJMh/NGuR38z6zbsDKG+', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (45, 'r.deguzman', NULL, NULL, 'r.deguzman', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(46, 'felix.pareja', 2, '', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
+(46, 'felix.pareja', 8, '', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-28 13:25:36'),
 (47, 'nsanchez', NULL, NULL, 'nsanchez', '{MD5}4vh3FhfOq3i3zcUJki6UBg==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (48, NULL, NULL, '', 'admin', '$2a$12$ZXhnczgjZG4QAa4oGMH5eOt0.a9urccMHJ0/FBYB5zCe2/zfh3dEO', 0, NULL, 'Local', NULL, NULL, NULL, NULL);
 
@@ -1523,7 +1574,7 @@ CREATE TABLE `user_groups` (
 --
 
 INSERT INTO `user_groups` (`id`, `name`, `description`, `created_at`, `updated_at`) VALUES
-(1, 'Admin', 'Manages the entire system and user permissions.', '2024-11-26 07:27:46', '2024-11-27 05:38:04'),
+(1, 'Admin', 'Manages the entire system and user permissions.', '2024-11-26 07:27:46', '2024-11-28 09:40:38'),
 (2, 'VIP', 'Special user with additional privileges.', '2024-11-27 03:16:58', '2024-11-27 05:04:53'),
 (3, 'User', 'Has basic access to the system\'s features.', '2024-11-27 04:56:42', '2024-11-27 05:04:44'),
 (4, 'Section Chief', 'Oversees a specific section or department.', '2024-11-27 04:56:50', '2024-11-27 05:04:29'),
@@ -1545,7 +1596,7 @@ CREATE TABLE `user_group_mappings` (
 --
 
 INSERT INTO `user_group_mappings` (`user_id`, `group_id`) VALUES
-(45, 2),
+(45, 1),
 (46, 1);
 
 -- --------------------------------------------------------
@@ -1702,6 +1753,7 @@ ALTER TABLE `government_issued_id`
 --
 ALTER TABLE `group_permission_mappings`
   ADD PRIMARY KEY (`group_id`,`permission_id`,`category_id`),
+  ADD UNIQUE KEY `group_permission_mappings_group_id_permission_id` (`group_id`,`permission_id`),
   ADD KEY `permission_id` (`permission_id`),
   ADD KEY `category_id` (`category_id`);
 
@@ -1867,7 +1919,7 @@ ALTER TABLE `apps`
 -- AUTO_INCREMENT for table `available_apps`
 --
 ALTER TABLE `available_apps`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3811;
 
 --
 -- AUTO_INCREMENT for table `children`
@@ -1957,19 +2009,19 @@ ALTER TABLE `navigationlist`
 -- AUTO_INCREMENT for table `permission_categories`
 --
 ALTER TABLE `permission_categories`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `permission_category_mappings`
 --
 ALTER TABLE `permission_category_mappings`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `permission_definitions`
 --
 ALTER TABLE `permission_definitions`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `permission_groups`
@@ -2059,7 +2111,7 @@ ALTER TABLE `user_appslist`
 -- AUTO_INCREMENT for table `user_groups`
 --
 ALTER TABLE `user_groups`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `work_experience`

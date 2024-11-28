@@ -33,8 +33,8 @@ const User = sequelize.define(
       allowNull: true,
     },
     avatar: {
-      type: DataTypes.BLOB("long"),
-      allowNull: true,
+      type: DataTypes.STRING,
+      allowNull: true, // Make sure this matches your database schema
     },
     isLoggedIn: {
       type: DataTypes.TINYINT,

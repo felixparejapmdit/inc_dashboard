@@ -13,7 +13,8 @@ exports.getAllPermissions = async (req, res) => {
         pd.id as pd, 
         pc.id as pc, 
         pd.name as permissionName, 
-        pc.name as categoryName
+        pc.name as categoryName,
+        pd.description
       FROM 
         permission_category_mappings pcm
       INNER JOIN 
@@ -27,6 +28,7 @@ exports.getAllPermissions = async (req, res) => {
     const formattedPermissions = permissions.map((permission) => ({
       id: permission.pd,
       name: permission.permissionName,
+      description: permission.description, // Add description here
       categoryId: permission.pc,
       categoryName: permission.categoryName,
     }));

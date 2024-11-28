@@ -5,6 +5,11 @@ const UserGroupMapping = require("../models/UserGroupMapping");
 const User = require("../models/User");
 const axios = require("axios"); // Ensure Axios is installed and available
 
+const Permission = require("../models/PermissionDefinition");
+const PermissionCategory = require("../models/PermissionCategory");
+const GroupPermissionMapping = require("../models/GroupPermissionMapping");
+const PermissionDefinition = require("../models/PermissionDefinition");
+
 // Get all groups
 exports.getAllGroups = async (req, res) => {
   try {
@@ -142,5 +147,47 @@ exports.updateUserGroup = async (req, res) => {
   } catch (error) {
     console.error("Error updating user group:", error);
     res.status(500).json({ message: "Error updating user group", error });
+  }
+};
+
+exports.getGroupPermissions = async (req, res) => {
+  const groupId = req.params.id;
+
+  try {
+    // Ensure the group exists
+    const group = await Group.findByPk(groupId);
+    if (!group) {
+      return res.status(404).json({ message: "Group not found." });
+    }
+
+    // Fetch permissions for the group
+    const permissions = await GroupPermissionMapping.findAll({
+      where: { group_id: groupId },
+      include: [
+        {
+          model: PermissionDefinition,
+          as: "permission",
+          attributes: ["id", "name"],
+        },
+        {
+          model: PermissionCategory,
+          as: "category",
+          attributes: ["id", "name"],
+        },
+      ],
+    });
+
+    const formattedPermissions = permissions.map((perm) => ({
+      id: perm.permission.id,
+      name: perm.permission.name,
+      categoryId: perm.category.id,
+      categoryName: perm.category.name,
+      accessrights: perm.accessrights,
+    }));
+
+    res.status(200).json(formattedPermissions);
+  } catch (error) {
+    console.error("Error fetching group permissions:", error);
+    res.status(500).json({ message: "Error fetching permissions" });
   }
 };

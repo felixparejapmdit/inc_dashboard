@@ -1,4 +1,3 @@
-// backend/models/PermissionDefinition.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
@@ -11,7 +10,7 @@ const PermissionDefinition = sequelize.define(
       autoIncrement: true,
     },
     name: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(50),
       allowNull: false,
     },
     description: {
@@ -20,26 +19,17 @@ const PermissionDefinition = sequelize.define(
     },
     created_at: {
       type: DataTypes.DATE,
-      allowNull: false,
       defaultValue: DataTypes.NOW,
     },
     updated_at: {
       type: DataTypes.DATE,
-      allowNull: false,
       defaultValue: DataTypes.NOW,
     },
   },
   {
+    tableName: "permission_definitions", // Ensure it matches your table name
     timestamps: false,
-    tableName: "permission_definitions",
   }
 );
-
-PermissionDefinition.associate = (models) => {
-  PermissionDefinition.hasMany(models.PermissionCategoryMapping, {
-    foreignKey: "permission_id",
-    as: "categoryMappings",
-  });
-};
 
 module.exports = PermissionDefinition;
