@@ -50,6 +50,7 @@ import Sidebar from "./components/Sidebar";
 
 function App() {
   return (
+    <PermissionProvider>
     <ChakraProvider theme={customTheme}>
       <Router>
         <Routes>
@@ -380,6 +381,7 @@ function App() {
         </Routes>
       </Router>
     </ChakraProvider>
+     </PermissionProvider>
   );
 }
 

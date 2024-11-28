@@ -48,7 +48,7 @@ const Login = () => {
     // Attempt LDAP Authentication first
     try {
       const ldapResponse = await axios.get(
-        `http://localhost:5000/ldap/user/${username}`
+        `http://localhost:5000/ldap/user_json/${username}`
       );
       const ldapUser = ldapResponse.data;
       const hashedPassword = md5HashPassword(password);

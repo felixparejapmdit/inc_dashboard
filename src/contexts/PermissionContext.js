@@ -1,32 +1,34 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { getGroupPermissions } from "../utils/permissions";
+import React, { createContext, useContext, useState } from "react";
 
 const PermissionContext = createContext();
 
-export const PermissionProvider = ({ children, groupId }) => {
+export const PermissionProvider = ({ children }) => {
   const [permissions, setPermissions] = useState([]);
 
-  useEffect(() => {
-    const fetchPermissions = async () => {
-      const fetchedPermissions = await getGroupPermissions(groupId);
-      setPermissions(fetchedPermissions);
-    };
-
-    fetchPermissions();
-  }, [groupId]);
+  const loadPermissions = async (groupId) => {
+    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/permissions_access/${groupId}`);
+  
+    const data = await response.json();
+    setPermissions(data);
+  };
 
   const hasPermission = (permissionName) => {
-    const permission = permissions.find(
-      (perm) => perm.permission_name === permissionName
+    return permissions.some(
+      (perm) => perm.permission_name === permissionName && perm.accessrights === 1
     );
-    return permission?.accessrights === 1; // Returns true if the user has access
   };
 
   return (
-    <PermissionContext.Provider value={{ permissions, hasPermission }}>
+    <PermissionContext.Provider value={{ hasPermission, loadPermissions }}>
       {children}
     </PermissionContext.Provider>
   );
 };
 
-export const usePermission = () => useContext(PermissionContext);
+export const usePermission = () => {
+  const context = useContext(PermissionContext);
+  if (!context) {
+    throw new Error("usePermission must be used within a PermissionProvider");
+  }
+  return context;
+};
