@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 28, 2024 at 03:28 PM
+-- Generation Time: Nov 29, 2024 at 09:44 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -71,29 +71,32 @@ CREATE TABLE `available_apps` (
 --
 
 INSERT INTO `available_apps` (`id`, `user_id`, `app_id`, `ldap_group_cn`) VALUES
-(13, 48, 1, ''),
-(14, 48, 2, ''),
-(15, 48, 3, ''),
-(16, 48, 4, ''),
-(17, 48, 5, ''),
-(18, 48, 6, ''),
-(19, 48, 7, ''),
-(20, 48, 8, ''),
-(21, 48, 23, ''),
 (23, 15, 6, ''),
 (24, 15, 5, ''),
 (25, 15, 4, ''),
 (26, 15, 3, ''),
-(3801, 46, 1, ''),
-(3802, 46, 2, ''),
-(3803, 46, 3, ''),
-(3804, 46, 4, ''),
-(3805, 46, 5, ''),
-(3806, 46, 6, ''),
-(3807, 46, 7, ''),
-(3808, 46, 8, ''),
-(3809, 46, 23, ''),
-(3810, 46, 24, '');
+(3820, 46, 1, ''),
+(3821, 46, 4, ''),
+(3822, 46, 24, ''),
+(3823, 46, 2, ''),
+(3824, 46, 3, ''),
+(3828, 48, 1, ''),
+(3829, 48, 2, ''),
+(3830, 48, 3, ''),
+(3831, 48, 4, ''),
+(3832, 48, 5, ''),
+(3833, 48, 6, ''),
+(3834, 48, 7, ''),
+(3835, 48, 8, ''),
+(3836, 48, 23, ''),
+(3837, 48, 24, ''),
+(3838, 18, 1, ''),
+(3839, 18, 2, ''),
+(3840, 18, 3, ''),
+(3841, 18, 4, ''),
+(3842, 18, 5, ''),
+(3843, 18, 6, ''),
+(3844, 18, 24, '');
 
 -- --------------------------------------------------------
 
@@ -409,6 +412,8 @@ INSERT INTO `designations` (`id`, `section_id`, `subsection_id`, `name`, `create
 CREATE TABLE `districts` (
   `id` int(11) NOT NULL,
   `name` varchar(50) NOT NULL,
+  `code` varchar(10) NOT NULL,
+  `region` varchar(20) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -417,8 +422,91 @@ CREATE TABLE `districts` (
 -- Dumping data for table `districts`
 --
 
-INSERT INTO `districts` (`id`, `name`, `created_at`, `updated_at`) VALUES
-(1, 'Central', '2024-11-12 07:03:42', '2024-11-12 07:03:42');
+INSERT INTO `districts` (`id`, `name`, `code`, `region`, `created_at`, `updated_at`) VALUES
+(1, 'Abra', 'abr', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(2, 'Zambales North', 'zan', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(3, 'Zambales South', 'zas', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(4, 'Albay', 'alb', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(5, 'Agusan Del Norte', 'agn', 'Mindanao', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(6, 'Agusan Del Sur', 'ags', 'Mindanao', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(7, 'Aklan', 'akl', 'Visayas', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(8, 'Alaminos City, Pangasinan', 'pnw', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(9, 'Antique', 'ant', 'Visayas', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(10, 'Aurora', 'aur', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(11, 'Bacolod City, Negros Occidental', 'ngc', 'Visayas', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(12, 'Bataan', 'btn', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(13, 'Batac City, Ilocos Norte', 'icc', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(14, 'Batangas', 'btg', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(15, 'Batangas North', 'bgn', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(16, 'Benguet', 'ben', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(17, 'Bislig City, Surigao del Sur', 'srs', 'Mindanao', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(18, 'Bogo City, Cebu', 'cbn', 'Visayas', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(19, 'Bohol', 'boh', 'Visayas', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(20, 'Bongabong, Oriental Mindoro', 'mos', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(21, 'Valencia City, Bukidnon', 'buk', 'Mindanao', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(22, 'Don Carlos, Bukidnon', 'dcb', 'Mindanao', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(23, 'Bulacan', 'bln', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(24, 'Bulacan East', 'ble', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(25, 'Bulacan North', 'bcn', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(26, 'Bulacan South', 'bls', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(27, 'Bulacan West', 'bcw', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(28, 'Cabanatuan City, Nueva Ecija', 'nec', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(29, 'Cagayan de Oro, Misamis Oriental', 'msr', 'Mindanao', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(30, 'Cagayan East', 'cge', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(31, 'Cagayan South', 'cgs', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(32, 'Cagayan West', 'cgw', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(33, 'Calamba City, Laguna', 'lgw', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(34, 'Calamian', 'clm', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(35, 'Caloocan North', 'cln', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(36, 'Candon, Ilocos Sur', 'cis', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(37, 'Camarines Norte', 'cnt', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(38, 'Capas, Tarlac', 'tls', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(39, 'Capiz', 'cap', 'Visayas', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(40, 'Carcar City, Cebu', 'cb3', 'Visayas', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(41, 'Catanduanes', 'cat', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(42, 'Cavite', 'cvn', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(43, 'Cavite South', 'cvs', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(44, 'Cebu City, Cebu', 'cbs', 'Visayas', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(45, 'Central', 'cen', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(46, 'Cotabato Norte', 'ctn', 'Mindanao', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(47, 'Cotabato South', 'cts', 'Mindanao', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(48, 'Davao City', 'dvc', 'Mindanao', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(49, 'Davao del Norte', 'ddn', 'Mindanao', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(50, 'Davao del Sur', 'dds', 'Mindanao', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(51, 'Davao Oriental', 'dvo', 'Mindanao', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(52, 'Dumaguete City, Negros Oriental', 'ng2', 'Visayas', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(53, 'Eastern Samar', 'esm', 'Visayas', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(54, 'General Santos City', 'gsc', 'Mindanao', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(55, 'Iligan City, Lanao del Norte', 'ldn', 'Mindanao', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(56, 'Iloilo City', 'ilo', 'Visayas', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(57, 'Isabela East', 'ise', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(58, 'Isabela South', 'iss', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(59, 'Isabela West', 'isw', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(60, 'La Union', 'lun', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(61, 'Laguna', 'lag', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(62, 'Leyte East', 'ley', 'Visayas', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(63, 'Leyte West', 'le2', 'Visayas', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(64, 'Marinduque', 'mar', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(65, 'Metro Manila East', 'mme', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(66, 'Metro Manila North', 'mmn', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(67, 'Metro Manila South', 'mms', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(68, 'Metro Manila West', 'mmw', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(69, 'Misamis Occidental', 'msc', 'Mindanao', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(70, 'Negros Occidental', 'ngo', 'Visayas', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(71, 'Negros Oriental', 'ngr', 'Visayas', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(72, 'Nueva Ecija', 'nec', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(73, 'Nueva Vizcaya', 'nvz', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(74, 'Palawan', 'plw', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(75, 'Pampanga East', 'ppe', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(76, 'Pampanga West', 'ppw', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(77, 'Pangasinan', 'png', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(78, 'Quezon', 'qzn', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(79, 'Rizal', 'riz', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(80, 'Samar', 'smr', 'Visayas', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(81, 'Sorsogon', 'sor', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(82, 'South Cotabato', 'sco', 'Mindanao', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(83, 'Tarlac', 'trl', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(84, 'Zamboanga City', 'zam', 'Mindanao', '2024-11-29 02:34:44', '2024-11-29 02:34:44');
 
 -- --------------------------------------------------------
 
@@ -449,6 +537,33 @@ INSERT INTO `educational_background` (`id`, `personnel_id`, `level`, `startfrom`
 (1, 8, 'College Graduate', 2007, 2011, 'asd', 'ASD', 'AS', 'ASD', NULL, '2024-11-20 08:53:50', '2024-11-20 08:53:50'),
 (2, 8, 'College Graduate', 2007, 2011, 'asd', 'asd', 'asd', 'asd', NULL, '2024-11-22 02:15:03', '2024-11-22 02:15:03'),
 (3, 8, 'College Graduate', 2007, 2011, 'asd', 'asd', 'asd', 'asd', NULL, '2024-11-22 02:15:32', '2024-11-22 02:15:32');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `events`
+--
+
+CREATE TABLE `events` (
+  `id` int(11) NOT NULL,
+  `eventName` varchar(50) NOT NULL,
+  `date` date NOT NULL,
+  `time` time NOT NULL,
+  `location_id` int(11) NOT NULL,
+  `recurrence` varchar(20) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `events`
+--
+
+INSERT INTO `events` (`id`, `eventName`, `date`, `time`, `location_id`, `recurrence`, `created_at`, `updated_at`) VALUES
+(11, 'PANATA', '2024-11-25', '08:30:00', 1, 'weekly', '2024-11-29 05:51:10', '2024-11-29 06:12:36'),
+(12, 'PANATA', '2024-12-02', '08:30:00', 1, 'weekly', '2024-11-29 05:51:10', '2024-11-29 05:51:10'),
+(13, 'PANATA', '2024-12-09', '08:30:00', 1, 'weekly', '2024-11-29 05:51:10', '2024-11-29 05:51:10'),
+(14, 'PANATA', '2024-12-16', '08:30:00', 1, 'weekly', '2024-11-29 05:51:10', '2024-11-29 05:51:10');
 
 -- --------------------------------------------------------
 
@@ -564,7 +679,9 @@ CREATE TABLE `group_permission_mappings` (
 --
 
 INSERT INTO `group_permission_mappings` (`group_id`, `permission_id`, `category_id`, `accessrights`) VALUES
-(1, 2, 1, 0),
+(1, 2, 1, 1),
+(1, 3, 4, 1),
+(1, 15, 4, 1),
 (1, 16, 3, 0),
 (1, 17, 3, 1),
 (1, 18, 3, 1),
@@ -593,6 +710,27 @@ INSERT INTO `languages` (`id`, `country_name`, `language`, `created_at`, `update
 (1, 'Philippines', 'Tagalog', '2024-11-12 07:33:32', '2024-11-12 07:33:32'),
 (2, 'USA', 'English', '2024-11-12 07:42:35', '2024-11-12 07:42:35'),
 (3, 'China', 'Chinese', '2024-11-13 01:06:18', '2024-11-13 01:06:18');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `locations`
+--
+
+CREATE TABLE `locations` (
+  `id` int(11) NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `locations`
+--
+
+INSERT INTO `locations` (`id`, `name`, `created_at`, `updated_at`) VALUES
+(1, 'MPH', '2024-11-29 05:13:47', '2024-11-29 05:58:14'),
+(3, 'Chapel 1', '2024-11-29 06:03:30', '2024-11-29 06:03:30');
 
 -- --------------------------------------------------------
 
@@ -1090,7 +1228,7 @@ CREATE TABLE `permission_category_mappings` (
 --
 
 INSERT INTO `permission_category_mappings` (`id`, `permission_id`, `category_id`, `created_at`, `updated_at`) VALUES
-(1, 1, 6, '2024-11-27 06:37:53', '2024-11-28 09:15:31'),
+(1, 1, 4, '2024-11-27 06:37:53', '2024-11-29 04:15:09'),
 (2, 2, 4, '2024-11-27 06:42:16', '2024-11-28 02:14:03'),
 (3, 3, 4, '2024-11-27 06:44:27', '2024-11-27 06:44:27'),
 (4, 4, 5, '2024-11-28 02:14:30', '2024-11-28 02:14:30'),
@@ -1400,7 +1538,7 @@ CREATE TABLE `suguan` (
   `id` int(11) NOT NULL,
   `name` varchar(50) NOT NULL,
   `district_id` int(11) NOT NULL,
-  `local_id` int(11) NOT NULL,
+  `local_congregation` varchar(50) NOT NULL,
   `date` datetime NOT NULL,
   `time` time NOT NULL,
   `gampanin_id` int(11) NOT NULL
@@ -1410,9 +1548,15 @@ CREATE TABLE `suguan` (
 -- Dumping data for table `suguan`
 --
 
-INSERT INTO `suguan` (`id`, `name`, `district_id`, `local_id`, `date`, `time`, `gampanin_id`) VALUES
-(1, 'fe', 1, 1, '2024-11-18 00:00:00', '06:00:00', 3),
-(2, 'Felix Pareja', 0, 0, '2024-11-25 00:00:00', '11:11:00', 2);
+INSERT INTO `suguan` (`id`, `name`, `district_id`, `local_congregation`, `date`, `time`, `gampanin_id`) VALUES
+(7, 'Felix Pareja', 45, 'Centerville Extension', '2024-11-27 00:00:00', '19:45:00', 4),
+(8, 'Felix Pareja', 45, 'Veterance Village 1', '2024-12-01 00:00:00', '06:00:00', 3),
+(9, 'Kyrt Jurada', 35, 'F.Manalo', '2024-11-28 00:00:00', '19:45:00', 4),
+(10, 'Kyrt Jurada', 35, 'Bagong Silang 9', '2024-12-01 00:00:00', '14:00:00', 1),
+(11, 'Ronald Kim Amaro', 45, 'Project 4', '2024-11-28 00:00:00', '19:45:00', 3),
+(12, 'Ronald Kim Amaro', 45, 'Pasong Tamo Ext.', '2024-12-01 00:00:00', '10:00:00', 4),
+(13, 'Felix Pareja', 45, 'La loma', '2024-11-21 00:00:00', '18:45:00', 3),
+(14, 'Felix Pareja', 45, 'New Era University', '2024-11-24 00:00:00', '10:00:00', 3);
 
 -- --------------------------------------------------------
 
@@ -1486,9 +1630,9 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (43, 'executive.news', NULL, NULL, 'executive.news', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (44, 'pmd.it', NULL, NULL, 'pmd.it', '{SSHA}LYVyCEUbqbnRdJMh/NGuR38z6zbsDKG+', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (45, 'r.deguzman', NULL, NULL, 'r.deguzman', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(46, 'felix.pareja', 8, '', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-28 13:25:36'),
+(46, 'felix.pareja', 8, '/uploads/avatar/1732846376187_image.jpg', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-28 13:25:36'),
 (47, 'nsanchez', NULL, NULL, 'nsanchez', '{MD5}4vh3FhfOq3i3zcUJki6UBg==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(48, NULL, NULL, '', 'admin', '$2a$12$ZXhnczgjZG4QAa4oGMH5eOt0.a9urccMHJ0/FBYB5zCe2/zfh3dEO', 0, NULL, 'Local', NULL, NULL, NULL, NULL);
+(48, NULL, NULL, '/uploads/avatar/1732867059276_icons8-fitbit-50.png', 'admin', '$2a$12$ZXhnczgjZG4QAa4oGMH5eOt0.a9urccMHJ0/FBYB5zCe2/zfh3dEO', 1, NULL, 'Local', NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1737,6 +1881,12 @@ ALTER TABLE `educational_background`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `events`
+--
+ALTER TABLE `events`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `family_members`
 --
 ALTER TABLE `family_members`
@@ -1761,6 +1911,12 @@ ALTER TABLE `group_permission_mappings`
 -- Indexes for table `languages`
 --
 ALTER TABLE `languages`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `locations`
+--
+ALTER TABLE `locations`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -1919,7 +2075,7 @@ ALTER TABLE `apps`
 -- AUTO_INCREMENT for table `available_apps`
 --
 ALTER TABLE `available_apps`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3811;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3845;
 
 --
 -- AUTO_INCREMENT for table `children`
@@ -1961,13 +2117,19 @@ ALTER TABLE `designations`
 -- AUTO_INCREMENT for table `districts`
 --
 ALTER TABLE `districts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=85;
 
 --
 -- AUTO_INCREMENT for table `educational_background`
 --
 ALTER TABLE `educational_background`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `events`
+--
+ALTER TABLE `events`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `family_members`
@@ -1985,6 +2147,12 @@ ALTER TABLE `government_issued_id`
 -- AUTO_INCREMENT for table `languages`
 --
 ALTER TABLE `languages`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `locations`
+--
+ALTER TABLE `locations`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
@@ -2093,7 +2261,7 @@ ALTER TABLE `subsections`
 -- AUTO_INCREMENT for table `suguan`
 --
 ALTER TABLE `suguan`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `users`
