@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import crypto from "crypto-js";
@@ -26,6 +26,16 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const { fetchPermissions } = usePermissionContext();
+
+
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const startMusic = () => {
+    const audio = document.getElementById("background-audio");
+    audio.muted = false; // Unmute the audio
+    audio.play(); // Play the audio
+    setIsPlaying(true); // Hide the overlay
+  };
 
   const navigate = useNavigate();
 
@@ -134,6 +144,48 @@ const Login = () => {
       bg="#ffd559"
       p={4}
     >
+   {/* Add Background Music */}
+   <audio id="background-audio" autoPlay loop muted>
+        <source src="/music/wedding-music.mp3" type="audio/mpeg" />
+      </audio>
+   {/* Start Music Overlay */}
+   {!isPlaying && (
+        <div className="music-overlay fade-out" onClick={startMusic}>
+          <div className="start-button">
+            <span className="play-icon">▶</span>
+          </div>
+        </div>
+      )}
+
+      {/* Anniversary Ribbon */}
+<div className="effects-container">
+  
+  {/* Ribbon */}
+  <div className="ribbon-container">
+    <div className="ribbon">
+      <span className="anniversary-text">
+        Happy <strong>15th Wedding</strong> Anniversary po!
+      </span>
+    </div>
+  </div>
+  {/* Falling Confetti */}
+  <div className="confetti"></div>
+  <div className="confetti"></div>
+  <div className="confetti"></div>
+  <div className="confetti"></div>
+  <div className="confetti"></div>
+
+  {/* Floating Balloons */}
+  <div className="balloon balloon-1"></div>
+  <div className="balloon balloon-2"></div>
+  <div className="balloon balloon-3"></div>
+
+  {/* Heart Pops */}
+  <div className="heart heart-1"></div>
+  <div className="heart heart-2"></div>
+  <div className="heart heart-3"></div>
+
+</div>
       <Flex
         direction="column"
         bg="yellow.100"
@@ -202,6 +254,10 @@ const Login = () => {
           </Flex>
         </VStack>
       </Flex>
+
+
+
+
     </Flex>
   );
 };

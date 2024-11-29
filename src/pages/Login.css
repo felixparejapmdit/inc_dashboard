@@ -36,3 +36,311 @@
   border-color: #1e1e1f;
   box-shadow: 0 0 8px rgba(125, 0, 255, 0.4);
 }
+
+
+/* Ribbon Container */
+.ribbon-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: -30px;
+  z-index: 2;
+  animation: float 3s ease-in-out infinite, glow 2s ease-in-out infinite;
+}
+
+/* Ribbon Styling */
+.ribbon {
+  background: linear-gradient(to right, #ffb347, #ffcc33); /* Pastel gradient */
+  color: white;
+  text-align: center;
+  padding: 20px 50px; /* Bigger ribbon */
+  font-size: 2rem; /* Bigger text */
+  font-weight: bold;
+  font-family: "Dancing Script", cursive;
+  border-radius: 50px;
+  box-shadow: 0 6px 10px rgba(255, 179, 71, 0.4);
+  position: relative;
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.ribbon:hover {
+  transform: scale(1.1); /* Bigger zoom effect on hover */
+  box-shadow: 0 8px 20px rgba(255, 179, 71, 0.6);
+}
+
+/* Anniversary Text */
+.anniversary-text {
+  color: #fff;
+  font-size: 2.5rem; /* Larger text */
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  animation: text-glow 3s infinite alternate; /* Subtle glow effect */
+}
+
+/* Floating Animation */
+@keyframes float {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* Glow Animation */
+@keyframes glow {
+  0% {
+    box-shadow: 0 6px 10px rgba(255, 179, 71, 0.3);
+  }
+  50% {
+    box-shadow: 0 8px 20px rgba(255, 179, 71, 0.6);
+  }
+  100% {
+    box-shadow: 0 6px 10px rgba(255, 179, 71, 0.3);
+  }
+}
+
+/* Text Glow Animation */
+@keyframes text-glow {
+  0% {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  100% {
+    text-shadow: 2px 2px 10px rgba(255, 255, 255, 0.8);
+  }
+}
+
+
+.music-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100; /* Ensure it appears on top of everything */
+  cursor: pointer;
+  color: white;
+  font-size: 2rem;
+  font-weight: bold;
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+.music-overlay:hover {
+  background-color: rgba(0, 0, 0, 0.9); /* Darker on hover */
+}
+
+
+/* Play Button */
+.start-button {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(45deg, #ff4081, #f3c847); /* Gradient button */
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 0 20px rgba(255, 64, 129, 0.6);
+  animation: pulse 1.5s infinite; /* Pulsing effect */
+}
+
+.start-button:hover {
+  transform: scale(1.1); /* Slight zoom on hover */
+  box-shadow: 0 0 30px rgba(255, 64, 129, 0.8);
+}
+
+/* Container for All Effects */
+.effects-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px; /* Reduced gap */
+  margin-right:40px;
+  z-index: 10;
+}
+/* Ribbon Styling */
+.ribbon-container {
+  z-index: 3;
+}
+
+.ribbon {
+  background: linear-gradient(to right, #ffb347, #ffcc33);
+  color: white;
+  text-align: center;
+  padding: 20px 50px;
+  font-size: 2rem;
+  font-weight: bold;
+  font-family: "Dancing Script", cursive;
+  border-radius: 50px;
+  box-shadow: 0 6px 10px rgba(255, 179, 71, 0.4);
+  animation: pulse 3s infinite;
+}
+
+.anniversary-text {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Confetti Animation */
+@keyframes fall {
+  0% {
+    transform: translateY(-10px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+/* Confetti Styling */
+.confetti { 
+  position: absolute;
+  top: -10px; /* Start slightly above the viewport */
+  width: 10px;
+  height: 10px;
+  background: linear-gradient(45deg, #f1eeef, #f8f7f3); /* Adjust gradient colors as needed */
+  animation: fall 6s linear infinite; /* Ensure a smoother and continuous fall */
+  border-radius: 50%; /* Make them circular */
+}
+
+/* Positioning the Confetti */
+.confetti:nth-child(1) {
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.confetti:nth-child(2) {
+  left: 30%;
+  animation-delay: 0.5s;
+}
+
+.confetti:nth-child(3) {
+  left: 50%;
+  animation-delay: 1s;
+}
+
+.confetti:nth-child(4) {
+  left: 70%;
+  animation-delay: 1.5s;
+}
+
+.confetti:nth-child(5) {
+  left: 90%;
+  animation-delay: 2s;
+}
+
+/* Confetti Falling Animation */
+@keyframes fall {
+  0% {
+    transform: translateY(-10px) rotate(0deg); /* Start at the top */
+    opacity: 1; /* Fully visible at start */
+  }
+  50% {
+    opacity: 0.9; /* Slight fade effect during the fall */
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg); /* End at the bottom of the viewport */
+    opacity: 0; /* Disappear as it reaches the bottom */
+  }
+}
+
+
+/* Floating Balloons Animation */
+@keyframes floatUp {
+  0% {
+    transform: translateY(100vh) scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-10px) scale(1.2);
+    opacity: 1;
+  }
+}
+
+.balloon {
+  position: absolute;
+  bottom: 0;
+  width: 40px;
+  height: 60px;
+  background: linear-gradient(45deg, #ff4081, #f3c847);
+  border-radius: 50%;
+  animation: floatUp 5s ease-in-out infinite;
+}
+
+.balloon-1 {
+  left: 20%;
+  animation-delay: 0s;
+}
+
+.balloon-2 {
+  left: 50%;
+  animation-delay: 1s;
+}
+
+.balloon-3 {
+  left: 80%;
+  animation-delay: 2s;
+}
+
+/* Heart Pops Animation */
+@keyframes pop {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.heart {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: #ff4081;
+  clip-path: polygon(50% 0%, 100% 35%, 82% 100%, 50% 75%, 18% 100%, 0% 35%);
+  animation: pop 2s ease-out infinite;
+}
+
+.heart-1 {
+  top: 50%;
+  left: 40%;
+  animation-delay: 0s;
+}
+
+.heart-2 {
+  top: 60%;
+  left: 50%;
+  animation-delay: 1s;
+}
+
+.heart-3 {
+  top: 55%;
+  left: 60%;
+  animation-delay: 1.5s;
+}
+
+/* Glow Effect on Ribbon */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 6px 10px rgba(255, 179, 71, 0.4);
+  }
+  50% {
+    box-shadow: 0 8px 20px rgba(255, 179, 71, 0.8);
+  }
+  100% {
+    box-shadow: 0 6px 10px rgba(255, 179, 71, 0.4);
+  }
+}
