@@ -1,9 +1,11 @@
 const District = require("../models/District");
 
-// Get all districts
+// Get all districts ordered by name (ascending)
 exports.getAllDistricts = async (req, res) => {
   try {
-    const districts = await District.findAll();
+    const districts = await District.findAll({
+      order: [["name", "ASC"]], // Order by 'name' column in ascending order
+    });
     res.status(200).json(districts);
   } catch (error) {
     res.status(500).json({ message: "Error retrieving districts", error });

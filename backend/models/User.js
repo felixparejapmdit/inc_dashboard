@@ -33,7 +33,7 @@ const User = sequelize.define(
       allowNull: true,
     },
     avatar: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT("long"), // or DataTypes.LONGTEXT if available
       allowNull: true, // Make sure this matches your database schema
     },
     isLoggedIn: {

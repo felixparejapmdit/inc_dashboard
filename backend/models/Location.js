@@ -1,8 +1,8 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
-const District = sequelize.define(
-  "District",
+const Location = sequelize.define(
+  "Location",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -13,21 +13,13 @@ const District = sequelize.define(
       type: DataTypes.STRING(50),
       allowNull: false,
     },
-    code: {
-      type: DataTypes.STRING(10),
-      allowNull: false,
-    },
-    region: {
-      type: DataTypes.STRING(20),
-      allowNull: false,
-    },
   },
   {
-    tableName: "districts",
+    tableName: "locations",
     timestamps: true,
     createdAt: "created_at", // Map to 'created_at' column
     updatedAt: "updated_at", // Map to 'updated_at' column
   }
 );
 
-module.exports = District;
+module.exports = Location;

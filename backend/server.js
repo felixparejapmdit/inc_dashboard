@@ -4,6 +4,7 @@ const express = require("express");
 
 const path = require("path");
 
+const db = require("./db");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 
@@ -21,11 +22,16 @@ const permissionCategoriesRoutes = require("./routes/permissionCategoriesRoutes"
 
 const groupPermissionsRoutes = require("./routes/groupPermissionsRoutes");
 
+const permissionsAccessRoutes = require("./routes/permissionsAccessRoutes");
+
 const userRoutes = require("./routes/userRoutes");
 const ldapRoutes = require("./routes/ldapRoutes");
 const appRoutes = require("./routes/appRoutes");
-// const eventRoutes = require("./routes/eventRoutes");
+
 const suguanRoutes = require("./routes/suguanRoutes");
+const eventsRoutes = require("./routes/eventsRoutes");
+const locationRoutes = require("./routes/locationsRoutes");
+
 // const reminderRoutes = require("./routes/reminderRoutes");
 
 const personnelsRoutes = require("./routes/personnelsRoutes"); // Replace with actual route file path
@@ -52,7 +58,8 @@ const workExperienceRoutes = require("./routes/workExperienceRoutes");
 
 app.use(express.json()); // Middleware to parse JSON request bodies
 app.use(cors());
-app.use(bodyParser.json({ limit: "10mb" })); // Increased limit to handle Base64 images
+app.use(bodyParser.json({ limit: "50mb" })); // Increased limit to handle Base64 images
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
 app.use(userRoutes);
 app.use(express.urlencoded({ extended: true }));
@@ -61,8 +68,9 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use(ldapRoutes);
 app.use(appRoutes);
-// app.use(eventRoutes);
 app.use(suguanRoutes);
+app.use(eventsRoutes);
+app.use(locationRoutes);
 // app.use(reminderRoutes);
 
 app.use(personnelsRoutes);
@@ -92,6 +100,8 @@ app.use(workExperienceRoutes);
 app.use(groupRoutes);
 app.use(permissionRoutes);
 app.use(permissionCategoriesRoutes);
+
+app.use("/api/permissions_access", permissionsAccessRoutes);
 
 app.use("/api/groups", groupPermissionsRoutes);
 

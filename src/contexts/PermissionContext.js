@@ -1,34 +1,38 @@
 import React, { createContext, useContext, useState } from "react";
+import axios from "axios";
 
 const PermissionContext = createContext();
 
 export const PermissionProvider = ({ children }) => {
   const [permissions, setPermissions] = useState([]);
 
-  const loadPermissions = async (groupId) => {
-    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/permissions_access/${groupId}`);
-  
-    const data = await response.json();
-    setPermissions(data);
+  // Fetch permissions based on group ID
+  const fetchPermissions = async (groupId) => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/permissions_access/${groupId}`
+      );
+      setPermissions(response.data);
+    } catch (error) {
+      console.error("Error fetching permissions:", error);
+    }
   };
 
+  // Check if the user has a specific permission
   const hasPermission = (permissionName) => {
-    return permissions.some(
-      (perm) => perm.permission_name === permissionName && perm.accessrights === 1
+    const permission = permissions.find(
+      (perm) => perm.permission_name === permissionName
     );
+    console.log("Checking permission:", permission); // Debug log
+    return permission?.accessrights === 1;
   };
 
   return (
-    <PermissionContext.Provider value={{ hasPermission, loadPermissions }}>
+    <PermissionContext.Provider value={{ fetchPermissions, hasPermission }}>
       {children}
     </PermissionContext.Provider>
   );
 };
 
-export const usePermission = () => {
-  const context = useContext(PermissionContext);
-  if (!context) {
-    throw new Error("usePermission must be used within a PermissionProvider");
-  }
-  return context;
-};
+// Hook to use the PermissionContext
+export const usePermissionContext = () => useContext(PermissionContext);

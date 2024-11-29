@@ -3,6 +3,7 @@ const PermissionDefinition = require("../models/PermissionDefinition");
 const PermissionCategory = require("../models/PermissionCategory");
 const PermissionCategoryMapping = require("../models/PermissionCategoryMapping");
 const sequelize = require("../config/database"); // Ensure Sequelize instance is imported
+const { QueryTypes } = require("sequelize");
 
 // Get all permissions
 exports.getAllPermissions = async (req, res) => {
@@ -40,13 +41,41 @@ exports.getAllPermissions = async (req, res) => {
   }
 };
 
-// Get all permissions
-exports.getAllPermissions1 = async (req, res) => {
+// Fetch permissions for a specific group
+exports.getPermissionsByGroup = async (req, res) => {
+  const groupId = req.params.groupId;
+
   try {
-    const permissions = await PermissionDefinition.findAll();
+    const permissions = await db.sequelize.query(
+      `
+      SELECT 
+        pc.id AS category_id,
+        pc.name AS category_name,
+        pd.id AS permission_id,
+        pd.name AS permission_name,
+        pd.description AS permission_description,
+        COALESCE(gpm.accessrights, 0) AS accessrights
+      FROM permission_categories pc
+      LEFT JOIN permission_category_mappings pcm ON pcm.category_id = pc.id
+      LEFT JOIN permission_definitions pd ON pd.id = pcm.permission_id
+      LEFT JOIN group_permission_mappings gpm 
+        ON gpm.permission_id = pd.id 
+        AND gpm.group_id = ?
+      ORDER BY pc.id ASC, pd.id ASC;
+      `,
+      {
+        replacements: [groupId],
+        type: QueryTypes.SELECT,
+      }
+    );
+
     res.status(200).json(permissions);
   } catch (error) {
-    res.status(500).json({ message: "Error retrieving permissions", error });
+    console.error("Error fetching permissions:", error);
+    res.status(500).json({
+      message: "Error fetching permissions",
+      error: error.message,
+    });
   }
 };
 

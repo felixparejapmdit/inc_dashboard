@@ -50,7 +50,7 @@ router.put("/api/users/:userId/assign-group", UserController.assignGroup);
 // Set up Multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Directory to save uploaded files
+    cb(null, "uploads/avatar"); // Save files in the "uploads/avatars" directory
   },
   filename: (req, file, cb) => {
     cb(null, `${Date.now()}_${file.originalname}`);
@@ -176,6 +176,7 @@ router.get("/api/users/logged-in", async (req, res) => {
           // Update user object with LDAP details
           user.name = `${ldapUser.cn}`;
           user.username = ldapUser.uid;
+          user.email = ldapUser.mail; // Email from LDAP
         } catch (error) {
           console.error("Error connecting to LDAP server:", error);
           // Notify the user about LDAP server issues
@@ -579,6 +580,61 @@ router.post("/api/logout", (req, res) => {
     console.log("User logged out successfully:", userId);
     res.json({ message: "User logged out successfully" });
   });
+});
+
+const fs = require("fs");
+// Update User Profile with Avatar Upload
+router.put("/api/users_profile/:id", upload.single("avatar"), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    // Get user ID and new avatar path
+    const userId = req.params.id;
+    const newAvatarPath = `/uploads/avatar/${req.file.filename}`;
+
+    // Query to fetch the current avatar from the database
+    const fetchQuery = "SELECT avatar FROM users WHERE ID = ?";
+    db.query(fetchQuery, [userId], (fetchErr, results) => {
+      if (fetchErr) {
+        console.error(
+          "Error fetching current avatar from the database:",
+          fetchErr
+        );
+        return res.status(500).json({ error: "Database fetch failed" });
+      }
+
+      const currentAvatar = results[0]?.avatar; // Get the current avatar path
+
+      // Update user's avatar in the database
+      const updateQuery = "UPDATE users SET avatar = ? WHERE ID = ?";
+      db.query(updateQuery, [newAvatarPath, userId], (updateErr) => {
+        if (updateErr) {
+          console.error("Error updating avatar in the database:", updateErr);
+          return res.status(500).json({ error: "Database update failed" });
+        }
+
+        // Delete the old avatar file if it exists and is not the default avatar
+        if (currentAvatar && currentAvatar !== "/uploads/avatar/default.png") {
+          const oldAvatarPath = path.join(__dirname, "..", currentAvatar);
+          fs.unlink(oldAvatarPath, (unlinkErr) => {
+            if (unlinkErr) {
+              console.error("Error deleting old avatar:", unlinkErr);
+            } else {
+              console.log("Old avatar deleted successfully:", oldAvatarPath);
+            }
+          });
+        }
+
+        // Respond with the new avatar path
+        return res.status(200).json({ avatar: newAvatarPath });
+      });
+    });
+  } catch (error) {
+    console.error("Error handling file upload:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 module.exports = router;

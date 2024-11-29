@@ -17,10 +17,11 @@ const Suguan = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    local_id: {
-      type: DataTypes.INTEGER,
+    local_congregation: {
+      type: DataTypes.STRING(50),
       allowNull: false,
     },
+
     date: {
       type: DataTypes.DATE,
       allowNull: false,

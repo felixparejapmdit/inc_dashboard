@@ -17,11 +17,16 @@ import {
 } from "@chakra-ui/react";
 import "./Login.css"; // Custom CSS for animated input effect
 
+import { usePermissionContext } from "../contexts/PermissionContext";
+
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const { fetchPermissions } = usePermissionContext();
+
   const navigate = useNavigate();
 
   const handleEnroll = () => {
@@ -48,7 +53,7 @@ const Login = () => {
     // Attempt LDAP Authentication first
     try {
       const ldapResponse = await axios.get(
-        `http://localhost:5000/ldap/user_json/${username}`
+        `http://localhost:5000/ldap/user/${username}`
       );
       const ldapUser = ldapResponse.data;
       const hashedPassword = md5HashPassword(password);
@@ -58,6 +63,9 @@ const Login = () => {
         const fullName = ldapUser.cn?.[0] || "User"; // Adjust to the LDAP format
         localStorage.setItem("userFullName", fullName);
         localStorage.setItem("username", ldapUser.uid); // or response.data.user.username for local login
+
+        localStorage.setItem("groupId", 1); // Store group ID
+        fetchPermissions(1);
 
         navigate("/dashboard");
 

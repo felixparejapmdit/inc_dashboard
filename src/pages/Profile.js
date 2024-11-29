@@ -23,6 +23,7 @@ import {
   Input,
   useDisclosure,
   useToast,
+  Image,
 } from "@chakra-ui/react";
 import { FaEdit } from "react-icons/fa";
 import { FiLock, FiFile } from "react-icons/fi";
@@ -91,51 +92,78 @@ const Profile = () => {
 
   // Handle avatar image change
   const handleAvatarChange = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files[0]; // Get the selected file
     if (file) {
+      // Update state to store the file for upload
+      setEditUser((prevUser) => ({
+        ...prevUser,
+        avatarFile: file, // Store the file for backend upload
+      }));
+
+      // Generate a preview of the selected file
       const reader = new FileReader();
       reader.onloadend = () => {
         setEditUser((prevUser) => ({
           ...prevUser,
-          avatar: reader.result, // Convert image to base64 string
+          avatar: reader.result, // Base64 string for preview
         }));
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(file); // Read the file as Base64
     }
   };
 
   const handleSaveChanges = () => {
-    const formData = new FormData();
-    formData.append("name", editUser.name);
-    formData.append("email", editUser.email);
-    formData.append("username", editUser.username);
-
-    // Include avatar if it has been updated (base64 string or file)
-    if (editUser.avatarUrl && typeof editUser.avatarUrl !== "string") {
-      formData.append("avatar", editUser.avatarUrl);
+    if (!editUser.avatarFile) {
+      toast({
+        title: "No avatar selected.",
+        description: "Please select an avatar to update.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
     }
 
-    fetch(`${process.env.REACT_APP_API_URL}/api/users/${user.ID}`, {
+    const formData = new FormData();
+    formData.append("avatar", editUser.avatarFile); // Add the file to FormData
+
+    fetch(`${process.env.REACT_APP_API_URL}/api/users_profile/${user.ID}`, {
       method: "PUT",
-      body: formData,
+      body: formData, // Send the FormData with the avatar file
     })
-      .then((response) => response.json())
-      .then(() => {
-        setUser(editUser);
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Failed to update avatar: ${response.statusText}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        // Update the avatar in the local state
+        setUser((prevUser) => ({
+          ...prevUser,
+          avatar: data.avatar, // Update with the new avatar URL
+        }));
+
+        // Show success toast notification
         toast({
-          title: "Profile updated.",
-          description: "Your profile has been updated successfully.",
+          title: "Avatar updated.",
+          description: "Your avatar has been updated successfully.",
           status: "success",
           duration: 3000,
           isClosable: true,
         });
+
+        // Close the modal
         onClose();
       })
       .catch((error) => {
-        console.error("Error updating profile:", error);
+        console.error("Error updating avatar:", error);
+
+        // Show error toast notification
         toast({
-          title: "Error updating profile.",
-          description: "An error occurred while updating your profile.",
+          title: "Error updating avatar.",
+          description:
+            error.message || "An error occurred while updating your avatar.",
           status: "error",
           duration: 3000,
           isClosable: true,
@@ -243,12 +271,24 @@ const Profile = () => {
           boxShadow={boxShadow}
         >
           <VStack spacing={6} textAlign="center">
-            <Avatar size="2xl" name={user.name} src={user.avatar} />
+            {/* Display current or previewed avatar */}
+            <Image
+              boxSize="150px"
+              borderRadius="full"
+              src={
+                user.avatar
+                  ? `${process.env.REACT_APP_API_URL}${user.avatar}`
+                  : undefined
+              }
+              alt="User Avatar"
+            />
+
             <Heading as="h2" size="lg" color={headingColor}>
               {user.name}
             </Heading>
             <Text fontSize="lg" color="gray.600">
-              {user.email}
+              {user.email ? user.email : "Email not available"}{" "}
+              {/* Fallback if email is missing */}
             </Text>
 
             <Divider borderColor="teal.300" />
@@ -267,6 +307,7 @@ const Profile = () => {
                 colorScheme="blue"
                 variant="solid"
                 size="md"
+                display="none"
                 onClick={onChangePassOpen}
                 aria-label="Change Password"
               />
@@ -274,6 +315,7 @@ const Profile = () => {
                 icon={<FiFile />}
                 colorScheme="red"
                 variant="solid"
+                display="none"
                 onClick={generatePDF}
                 aria-label="Generate PDF"
               />
@@ -288,26 +330,32 @@ const Profile = () => {
               <ModalCloseButton />
               <ModalBody>
                 <VStack spacing={6} align="center">
-                  <Avatar
-                    size="2xl"
-                    name={editUser.name}
-                    src={editUser.avatar}
-                    mb={4}
+                  <Image
+                    boxSize="150px"
+                    borderRadius="full"
+                    src={
+                      editUser.avatarFile
+                        ? editUser.avatar // Show Base64 preview if a new file is selected
+                        : `${process.env.REACT_APP_API_URL}${user.avatar}` // Otherwise, show the server URL
+                    }
+                    alt="User Avatar"
                   />
                   <FormControl>
                     <FormLabel>Avatar</FormLabel>
                     <Input
                       type="file"
                       accept="image/*"
-                      onChange={handleAvatarChange}
+                      onChange={handleAvatarChange} // Updates the avatar file in the state
                     />
                   </FormControl>
+
                   <FormControl isRequired>
                     <FormLabel>Name</FormLabel>
                     <Input
                       name="name"
                       value={editUser.name}
                       onChange={handleInputChange}
+                      disabled // Disable editing name
                     />
                   </FormControl>
                   <FormControl isRequired>
@@ -316,6 +364,7 @@ const Profile = () => {
                       name="email"
                       value={editUser.email}
                       onChange={handleInputChange}
+                      disabled // Disable editing email
                     />
                   </FormControl>
                 </VStack>

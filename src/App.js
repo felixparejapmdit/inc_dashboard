@@ -1,4 +1,5 @@
 import { ChakraProvider } from "@chakra-ui/react";
+import React, { useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -29,6 +30,7 @@ import DesignationManagement from "./pages/managements/DesignationManagement .js
 import LanguagesManagement from "./pages/managements/LanguagesManagement.js";
 import ContactTypeInfoManagement from "./pages/managements/ContactTypeInfoManagement.js";
 import GovernmentIssuedIDManagement from "./pages/managements/GovernmentIssuedIDManagement.js";
+import LocationManagement from "./pages/managements/LocationManagement.js";
 
 import Step1 from "./pages/Step1";
 import Step2 from "./pages/Step2";
@@ -45,343 +47,357 @@ import GroupManagement from "./pages/managements/GroupManagement.js";
 import PermissionManagement from "./pages/managements/PermissionManagement.js";
 import PermissionCategoriesManagement from "./pages/managements/PermissionCategoriesManagement.js";
 
+//import { PermissionProvider } from "./contexts/PermissionContext";
 import { PermissionProvider } from "./contexts/PermissionContext";
-import Sidebar from "./components/Sidebar";
 
 function App() {
   return (
     <PermissionProvider>
-    <ChakraProvider theme={customTheme}>
-      <Router>
-        <Routes>
-          <Route path="/step1" element={<Step1 />} />
-          <Route path="/step2" element={<Step2 />} />
-          <Route path="/step3" element={<Step3 />} />
-          <Route path="/step4" element={<Step4 />} />
-          <Route path="/step5" element={<Step5 />} />
-          <Route path="/step6" element={<Step6 />} />
-          <Route path="/step7" element={<Step7 />} />
-          <Route path="/step8" element={<Step8 />} />
+      <ChakraProvider theme={customTheme}>
+        <Router>
+          <Routes>
+            <Route path="/step1" element={<Step1 />} />
+            <Route path="/step2" element={<Step2 />} />
+            <Route path="/step3" element={<Step3 />} />
+            <Route path="/step4" element={<Step4 />} />
+            <Route path="/step5" element={<Step5 />} />
+            <Route path="/step6" element={<Step6 />} />
+            <Route path="/step7" element={<Step7 />} />
+            <Route path="/step8" element={<Step8 />} />
 
-          {/* <Route path="/step9" element={<Step9 />} />
+            {/* <Route path="/step9" element={<Step9 />} />
           <Route path="/step10" element={<Step10 />} /> */}
 
-          {/* Redirect the root URL to /login */}
-          <Route path="/" element={<Navigate to="/login" />} />
-          {/* Standalone Route for Enrollment Page */}
-          <Route path="/enroll" element={<Enrollment />} />
-          {/* Define the login route */}
-          <Route path="/login" element={<Login />} />
-          {/* Routes wrapped with the sidebar layout */}
-          <Route
-            path="/dashboard"
-            element={
-              <Layout
-                currentUser={{
-                  name: "John Doe",
-                  avatarUrl: "/path/to/avatar.jpg",
-                }}
-              >
-                <Dashboard />
-              </Layout>
-            }
-          />
-          <Route
-            path="/application"
-            element={
-              <Layout
-                currentUser={{
-                  name: "John Doe",
-                  avatarUrl: "/path/to/avatar.jpg",
-                }}
-              >
-                <Applications />
-              </Layout>
-            }
-          />
-          <Route
-            path="/user"
-            element={
-              <Layout
-                currentUser={{
-                  name: "John Doe",
-                  avatarUrl: "/path/to/avatar.jpg",
-                }}
-              >
-                <Users />
-              </Layout>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <Layout
-                currentUser={{
-                  name: "John Doe",
-                  avatarUrl: "/path/to/avatar.jpg",
-                }}
-              >
-                <Profile />
-              </Layout>
-            }
-          />
-          {/* New Routes for Add Apps, Add Suguan, Add Events, Add Reminders */}
-          <Route
-            path="/add-apps"
-            element={
-              <Layout
-                currentUser={{
-                  name: "John Doe",
-                  avatarUrl: "/path/to/avatar.jpg",
-                }}
-              >
-                <Applications />
-              </Layout>
-            }
-          />
-          <Route
-            path="/add-suguan"
-            element={
-              <Layout
-                currentUser={{
-                  name: "John Doe",
-                  avatarUrl: "/path/to/avatar.jpg",
-                }}
-              >
-                <Suguan />
-              </Layout>
-            }
-          />
-          <Route
-            path="/add-events"
-            element={
-              <Layout
-                currentUser={{
-                  name: "John Doe",
-                  avatarUrl: "/path/to/avatar.jpg",
-                }}
-              >
-                <Events />
-              </Layout>
-            }
-          />
-          <Route
-            path="/add-reminders"
-            element={
-              <Layout
-                currentUser={{
-                  name: "John Doe",
-                  avatarUrl: "/path/to/avatar.jpg",
-                }}
-              >
-                <Reminders />
-              </Layout>
-            }
-          />
-          <Route
-            path="/Mastodon"
-            element={
-              <Layout
-                currentUser={{
-                  name: "John Doe",
-                  avatarUrl: "/path/to/avatar.jpg",
-                }}
-              >
-                <Mastodon />
-              </Layout>
-            }
-          />
-          {/* New Route for LdapUser */}
-          <Route
-            path="/ldap-users/"
-            element={
-              <Layout
-                currentUser={{
-                  name: "John Doe",
-                  avatarUrl: "/path/to/avatar.jpg",
-                }}
-              >
-                <LdapUser />
-              </Layout>
-            }
-          />
-          {/* New Route for Department Management */}
-          <Route
-            path="/managements/departments"
-            element={
-              <Layout
-                currentUser={{
-                  name: "John Doe",
-                  avatarUrl: "/path/to/avatar.jpg",
-                }}
-              >
-                <DepartmentManagement />
-              </Layout>
-            }
-          />
-          <Route
-            path="/managements/sections"
-            element={
-              <Layout
-                currentUser={{
-                  name: "John Doe",
-                  avatarUrl: "/path/to/avatar.jpg",
-                }}
-              >
-                <SectionManagement />
-              </Layout>
-            }
-          />
-          <Route
-            path="/managements/subsections"
-            element={
-              <Layout
-                currentUser={{
-                  name: "John Doe",
-                  avatarUrl: "/path/to/avatar.jpg",
-                }}
-              >
-                <SubsectionManagement />
-              </Layout>
-            }
-          />
-          <Route
-            path="/managements/designations"
-            element={
-              <Layout
-                currentUser={{
-                  name: "John Doe",
-                  avatarUrl: "/path/to/avatar.jpg",
-                }}
-              >
-                <DesignationManagement />
-              </Layout>
-            }
-          />
-          <Route
-            path="/managements/districts"
-            element={
-              <Layout
-                currentUser={{
-                  name: "John Doe",
-                  avatarUrl: "/path/to/avatar.jpg",
-                }}
-              >
-                <DistrictManagement />
-              </Layout>
-            }
-          />
-          <Route
-            path="/managements/citizenships"
-            element={
-              <Layout
-                currentUser={{
-                  name: "John Doe",
-                  avatarUrl: "/path/to/avatar.jpg",
-                }}
-              >
-                <CitizenshipManagement />
-              </Layout>
-            }
-          />
-          <Route
-            path="/managements/nationalities"
-            element={
-              <Layout
-                currentUser={{
-                  name: "John Doe",
-                  avatarUrl: "/path/to/avatar.jpg",
-                }}
-              >
-                <NationalityManagement />
-              </Layout>
-            }
-          />
-          <Route
-            path="/managements/languages"
-            element={
-              <Layout
-                currentUser={{
-                  name: "John Doe",
-                  avatarUrl: "/path/to/avatar.jpg",
-                }}
-              >
-                <LanguagesManagement />
-              </Layout>
-            }
-          />
-          <Route
-            path="/managements/contact_infos"
-            element={
-              <Layout
-                currentUser={{
-                  name: "John Doe",
-                  avatarUrl: "/path/to/avatar.jpg",
-                }}
-              >
-                <ContactTypeInfoManagement />
-              </Layout>
-            }
-          />
-          <Route
-            path="/managements/government_issued_ids"
-            element={
-              <Layout
-                currentUser={{
-                  name: "John Doe",
-                  avatarUrl: "/path/to/avatar.jpg",
-                }}
-              >
-                <GovernmentIssuedIDManagement />
-              </Layout>
-            }
-          />
+            {/* Redirect the root URL to /login */}
+            <Route path="/" element={<Navigate to="/login" />} />
+            {/* Standalone Route for Enrollment Page */}
+            <Route path="/enroll" element={<Enrollment />} />
+            {/* Define the login route */}
+            <Route path="/login" element={<Login />} />
+            {/* Routes wrapped with the sidebar layout */}
+            <Route
+              path="/dashboard"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <Dashboard />
+                </Layout>
+              }
+            />
+            <Route
+              path="/application"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <Applications />
+                </Layout>
+              }
+            />
+            <Route
+              path="/user"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <Users />
+                </Layout>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <Profile />
+                </Layout>
+              }
+            />
+            {/* New Routes for Add Apps, Add Suguan, Add Events, Add Reminders */}
+            <Route
+              path="/add-apps"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <Applications />
+                </Layout>
+              }
+            />
+            <Route
+              path="/add-suguan"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <Suguan />
+                </Layout>
+              }
+            />
+            <Route
+              path="/add-events"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <Events />
+                </Layout>
+              }
+            />
+            <Route
+              path="/add-reminders"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <Reminders />
+                </Layout>
+              }
+            />
+            <Route
+              path="/Mastodon"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <Mastodon />
+                </Layout>
+              }
+            />
+            {/* New Route for LdapUser */}
+            <Route
+              path="/ldap-users/"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <LdapUser />
+                </Layout>
+              }
+            />
+            {/* New Route for Department Management */}
+            <Route
+              path="/managements/departments"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <DepartmentManagement />
+                </Layout>
+              }
+            />
+            <Route
+              path="/managements/sections"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <SectionManagement />
+                </Layout>
+              }
+            />
+            <Route
+              path="/managements/subsections"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <SubsectionManagement />
+                </Layout>
+              }
+            />
+            <Route
+              path="/managements/designations"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <DesignationManagement />
+                </Layout>
+              }
+            />
+            <Route
+              path="/managements/districts"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <DistrictManagement />
+                </Layout>
+              }
+            />
+            <Route
+              path="/managements/citizenships"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <CitizenshipManagement />
+                </Layout>
+              }
+            />
+            <Route
+              path="/managements/nationalities"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <NationalityManagement />
+                </Layout>
+              }
+            />
+            <Route
+              path="/managements/languages"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <LanguagesManagement />
+                </Layout>
+              }
+            />
+            <Route
+              path="/managements/contact_infos"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <ContactTypeInfoManagement />
+                </Layout>
+              }
+            />
+            <Route
+              path="/managements/government_issued_ids"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <GovernmentIssuedIDManagement />
+                </Layout>
+              }
+            />
 
-          <Route
-            path="/managements/groupmanagement"
-            element={
-              <Layout
-                currentUser={{
-                  name: "John Doe",
-                  avatarUrl: "/path/to/avatar.jpg",
-                }}
-              >
-                <GroupManagement />
-              </Layout>
-            }
-          />
+            <Route
+              path="/managements/locations"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <LocationManagement />
+                </Layout>
+              }
+            />
 
-          <Route
-            path="/managements/permissionmanagement"
-            element={
-              <Layout
-                currentUser={{
-                  name: "John Doe",
-                  avatarUrl: "/path/to/avatar.jpg",
-                }}
-              >
-                <PermissionManagement />
-              </Layout>
-            }
-          />
+            <Route
+              path="/managements/groupmanagement"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <GroupManagement />
+                </Layout>
+              }
+            />
 
-          <Route
-            path="/managements/categorymanagement"
-            element={
-              <Layout
-                currentUser={{
-                  name: "John Doe",
-                  avatarUrl: "/path/to/avatar.jpg",
-                }}
-              >
-                <PermissionCategoriesManagement />
-              </Layout>
-            }
-          />
-        </Routes>
-      </Router>
-    </ChakraProvider>
-     </PermissionProvider>
+            <Route
+              path="/managements/permissionmanagement"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <PermissionManagement />
+                </Layout>
+              }
+            />
+
+            <Route
+              path="/managements/categorymanagement"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <PermissionCategoriesManagement />
+                </Layout>
+              }
+            />
+          </Routes>
+        </Router>
+      </ChakraProvider>
+    </PermissionProvider>
   );
 }
 

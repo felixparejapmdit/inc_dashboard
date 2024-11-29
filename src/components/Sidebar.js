@@ -36,11 +36,11 @@ import {
   FiGlobe,
   FiBookOpen,
   FiTool,
+  FiMap,
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
-
-import { usePermission } from "../contexts/PermissionContext";
+import { usePermissionContext } from "../contexts/PermissionContext";
 
 // Map labels to icons
 const getIconForLabel = (label) => {
@@ -65,14 +65,16 @@ const getIconForLabel = (label) => {
       return FiUsers;
     case "GovernmentIssuedID":
       return FiTool; // Choose an appropriate icon
+    case "Event Locations": // Add case for Locations
+      return FiMap; // Using FiMap as the icon for Locations
     default:
       return FiSettings;
   }
 };
 
 const Sidebar = ({ currentUser, onSidebarToggle }) => {
+  const { hasPermission } = usePermissionContext(); // Correct usage
 
-  const { hasPermission } = usePermission();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isSettingsExpanded, setIsSettingsExpanded] = useState(false); // State for expanding settings submenu
   const [isManagementsExpanded, setIsManagementsExpanded] = useState(false);
@@ -223,22 +225,22 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
         <Collapse in={isSettingsExpanded} animateOpacity>
           <VStack align="start" ml={isExpanded ? 4 : 0} spacing={3}>
             {/* Adjusted submenu spacing */}
-            {hasPermission("apps.view") && (
+            {/* {hasPermission("apps.view1") && ( )} */}
             <SidebarItem
               icon={FiGrid}
               label="Apps"
               isExpanded={isExpanded}
               onClick={() => navigate("/application")} // Redirect to application.js
             />
-            )}
-             {hasPermission("personnels.view") && (
+
+            {/* {hasPermission("personnels.view1") && (  )} */}
             <SidebarItem
               icon={FiUsers}
               label="Personnels"
               isExpanded={isExpanded}
               onClick={() => navigate("/user")} // Redirect to users.js
             />
-             )}
+
             <SidebarItem
               icon={FiUser}
               label="Suguan"
@@ -250,6 +252,12 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
               label="Events"
               isExpanded={isExpanded}
               onClick={() => navigate("/add-events")} // Redirect to Events.js
+            />
+            <SidebarItem
+              label="Event Locations"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/managements/locations")}
+              useDynamicIcon
             />
             <SidebarItem
               icon={FiCalendar}
