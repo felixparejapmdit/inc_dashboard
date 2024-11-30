@@ -153,6 +153,7 @@ const Login = () => {
       minH="100vh"
       alignItems="center"
       justifyContent="center"
+      className="login-page" // Added a className for scoping styles
       bg="#ffd559"
       p={4}
     >

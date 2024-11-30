@@ -185,6 +185,14 @@
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
+/* Ensure the login page hides overflow */
+.login-page {
+  overflow: hidden; /* Prevent scrollbar for this page */
+  position: relative; /* Ensure child animations are contained */
+  height: 100vh; /* Full viewport height */
+  width: 100vw; /* Full viewport width */
+}
+
 /* Confetti Animation */
 @keyframes fall {
   0% {
