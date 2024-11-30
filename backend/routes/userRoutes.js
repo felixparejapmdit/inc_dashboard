@@ -47,6 +47,8 @@ function verifyMD5(password, hash) {
 
 router.put("/api/users/:userId/assign-group", UserController.assignGroup);
 
+router.get("/api/users_access/:username", UserController.getUserByUsername);
+
 // Set up Multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {

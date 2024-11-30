@@ -37,7 +37,6 @@
   box-shadow: 0 0 8px rgba(125, 0, 255, 0.4);
 }
 
-
 /* Ribbon Container */
 .ribbon-container {
   display: flex;
@@ -112,7 +111,6 @@
   }
 }
 
-
 .music-overlay {
   position: fixed;
   top: 0;
@@ -135,7 +133,6 @@
 .music-overlay:hover {
   background-color: rgba(0, 0, 0, 0.9); /* Darker on hover */
 }
-
 
 /* Play Button */
 .start-button {
@@ -163,7 +160,7 @@
   justify-content: center;
   align-items: center;
   margin-bottom: 20px; /* Reduced gap */
-  margin-right:40px;
+  margin-right: 40px;
   z-index: 10;
 }
 /* Ribbon Styling */
@@ -200,12 +197,16 @@
   }
 }
 /* Confetti Styling */
-.confetti { 
+.confetti {
   position: absolute;
   top: -10px; /* Start slightly above the viewport */
   width: 10px;
   height: 10px;
-  background: linear-gradient(45deg, #f1eeef, #f8f7f3); /* Adjust gradient colors as needed */
+  background: linear-gradient(
+    45deg,
+    #f1eeef,
+    #f8f7f3
+  ); /* Adjust gradient colors as needed */
   animation: fall 6s linear infinite; /* Ensure a smoother and continuous fall */
   border-radius: 50%; /* Make them circular */
 }
@@ -251,8 +252,7 @@
   }
 }
 
-
-/* Floating Balloons Animation */
+/* Floating Hearts Animation */
 @keyframes floatUp {
   0% {
     transform: translateY(100vh) scale(1);
@@ -264,71 +264,53 @@
   }
 }
 
-.balloon {
+/* Perfect Heart */
+.heart {
   position: absolute;
   bottom: 0;
-  width: 40px;
+  width: 60px;
   height: 60px;
   background: linear-gradient(45deg, #ff4081, #f3c847);
-  border-radius: 50%;
+  transform: rotate(-45deg); /* Rotate to make the bottom point of the heart */
   animation: floatUp 5s ease-in-out infinite;
+  box-shadow: 0 0 15px rgba(255, 64, 129, 0.6), 0 0 30px rgba(255, 64, 129, 0.4); /* Glow effect */
 }
 
-.balloon-1 {
+/* Rounded Top of the Heart */
+.heart::before,
+.heart::after {
+  content: "";
+  position: absolute;
+  width: 60px; /* Match the size of the main heart */
+  height: 60px;
+  background: inherit; /* Use the same gradient as the heart */
+  border-radius: 50%; /* Create the round top part */
+}
+
+/* Position the Rounded Top */
+.heart::before {
+  top: -30px;
+  left: 0;
+}
+
+.heart::after {
+  top: 0;
+  left: -30px;
+}
+
+/* Positioning the Hearts */
+.heart-1 {
   left: 20%;
   animation-delay: 0s;
 }
 
-.balloon-2 {
-  left: 50%;
-  animation-delay: 1s;
-}
-
-.balloon-3 {
-  left: 80%;
-  animation-delay: 2s;
-}
-
-/* Heart Pops Animation */
-@keyframes pop {
-  0% {
-    transform: scale(0);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.2);
-    opacity: 0.8;
-  }
-  100% {
-    transform: scale(2);
-    opacity: 0;
-  }
-}
-
-.heart {
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  background: #ff4081;
-  clip-path: polygon(50% 0%, 100% 35%, 82% 100%, 50% 75%, 18% 100%, 0% 35%);
-  animation: pop 2s ease-out infinite;
-}
-
-.heart-1 {
-  top: 50%;
-  left: 40%;
-  animation-delay: 0s;
-}
-
 .heart-2 {
-  top: 60%;
   left: 50%;
   animation-delay: 1s;
 }
 
 .heart-3 {
-  top: 55%;
-  left: 60%;
+  left: 80%;
   animation-delay: 1.5s;
 }
 

@@ -8,10 +8,10 @@ const db = require("./db");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 
-const IP_Address = process.env.REACT_IP_ADDRESS;
+const IP_Address = process.env.REACT_IP_ADDRESS || "0.0.0.0"; // Default to listening on all interfaces
 
 const app = express();
-const PORT = process.env.REACT_PORT;
+const PORT = process.env.REACT_PORT || 5000;
 
 const groupRoutes = require("./routes/groupRoutes");
 const permissionRoutes = require("./routes/permissionRoutes");

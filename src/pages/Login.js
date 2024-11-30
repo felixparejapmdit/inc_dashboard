@@ -27,7 +27,6 @@ const Login = () => {
 
   const { fetchPermissions } = usePermissionContext();
 
-
   const [isPlaying, setIsPlaying] = useState(false);
 
   const startMusic = () => {
@@ -69,13 +68,26 @@ const Login = () => {
       const hashedPassword = md5HashPassword(password);
 
       if (ldapUser && ldapUser.userPassword === hashedPassword) {
+        // Fetch the user ID for the local login
+        const userResponse = await axios.get(
+          `${process.env.REACT_APP_API_URL}/api/users_access/${username}`
+        );
+        const userId = userResponse.data.id;
+
+        // Fetch the group ID using the user ID
+        const groupResponse = await axios.get(
+          `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`
+        );
+        const groupId = groupResponse.data.groupId;
+
         // Store user data and navigate to dashboard
         const fullName = ldapUser.cn?.[0] || "User"; // Adjust to the LDAP format
         localStorage.setItem("userFullName", fullName);
         localStorage.setItem("username", ldapUser.uid); // or response.data.user.username for local login
 
-        localStorage.setItem("groupId", 1); // Store group ID
-        fetchPermissions(1);
+        // Store the group ID in localStorage
+        localStorage.setItem("groupId", groupId);
+        fetchPermissions(groupId);
 
         navigate("/dashboard");
 
@@ -144,12 +156,12 @@ const Login = () => {
       bg="#ffd559"
       p={4}
     >
-   {/* Add Background Music */}
-   <audio id="background-audio" autoPlay loop muted>
+      {/* Add Background Music */}
+      <audio id="background-audio" autoPlay loop muted>
         <source src="/music/wedding-music.mp3" type="audio/mpeg" />
       </audio>
-   {/* Start Music Overlay */}
-   {!isPlaying && (
+      {/* Start Music Overlay */}
+      {!isPlaying && (
         <div className="music-overlay fade-out" onClick={startMusic}>
           <div className="start-button">
             <span className="play-icon">▶</span>
@@ -158,34 +170,27 @@ const Login = () => {
       )}
 
       {/* Anniversary Ribbon */}
-<div className="effects-container">
-  
-  {/* Ribbon */}
-  <div className="ribbon-container">
-    <div className="ribbon">
-      <span className="anniversary-text">
-        Happy <strong>15th Wedding</strong> Anniversary po!
-      </span>
-    </div>
-  </div>
-  {/* Falling Confetti */}
-  <div className="confetti"></div>
-  <div className="confetti"></div>
-  <div className="confetti"></div>
-  <div className="confetti"></div>
-  <div className="confetti"></div>
+      <div className="effects-container">
+        {/* Ribbon */}
+        <div className="ribbon-container">
+          <div className="ribbon">
+            <span className="anniversary-text">
+              Happy <strong>15th Wedding</strong> Anniversary po!
+            </span>
+          </div>
+        </div>
 
-  {/* Floating Balloons */}
-  <div className="balloon balloon-1"></div>
-  <div className="balloon balloon-2"></div>
-  <div className="balloon balloon-3"></div>
+        <div class="heart heart-1"></div>
+        <div class="heart heart-2"></div>
+        <div class="heart heart-3"></div>
 
-  {/* Heart Pops */}
-  <div className="heart heart-1"></div>
-  <div className="heart heart-2"></div>
-  <div className="heart heart-3"></div>
-
-</div>
+        {/* Falling Confetti */}
+        <div className="confetti"></div>
+        <div className="confetti"></div>
+        <div className="confetti"></div>
+        <div className="confetti"></div>
+        <div className="confetti"></div>
+      </div>
       <Flex
         direction="column"
         bg="yellow.100"
@@ -254,10 +259,6 @@ const Login = () => {
           </Flex>
         </VStack>
       </Flex>
-
-
-
-
     </Flex>
   );
 };

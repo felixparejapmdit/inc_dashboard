@@ -191,3 +191,26 @@ exports.getGroupPermissions = async (req, res) => {
     res.status(500).json({ message: "Error fetching permissions" });
   }
 };
+
+// Get group ID for a specific user
+exports.getGroupIdByUserId = async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    // Fetch the group ID from user_group_mappings
+    const mapping = await UserGroupMapping.findOne({
+      where: { user_id: userId },
+    });
+
+    if (!mapping) {
+      return res
+        .status(404)
+        .json({ message: "Group mapping not found for the user." });
+    }
+
+    res.status(200).json({ groupId: mapping.group_id });
+  } catch (error) {
+    console.error("Error fetching group ID for user:", error);
+    res.status(500).json({ message: "Error fetching group ID", error });
+  }
+};

@@ -8,6 +8,9 @@ router.get("/api/groups", groupsController.getAllGroups);
 // Get a single group by ID
 router.get("/api/groups/:id", groupsController.getGroupById);
 
+// Get group ID for a specific user
+router.get("/api/groups/user/:userId", groupsController.getGroupIdByUserId);
+
 // Get users in a specific group
 router.get("/api/groups/:groupId/users", groupsController.getGroupUsers);
 

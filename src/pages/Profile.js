@@ -278,7 +278,7 @@ const Profile = () => {
               src={
                 user.avatar
                   ? `${process.env.REACT_APP_API_URL}${user.avatar}`
-                  : undefined
+                  : "/default-avatar.png" // Provide the path to your default avatar image
               }
               alt="User Avatar"
             />

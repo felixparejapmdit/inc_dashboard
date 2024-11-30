@@ -23,6 +23,7 @@ import {
   FiSettings,
   FiLogOut,
   FiMenu,
+  FiArrowRight,
   FiUser,
   FiCalendar,
   FiArrowUp,
@@ -215,68 +216,83 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
           onClick={() => navigate("/profile")}
         />
         {/* Settings with submenu */}
-        <SidebarItem
-          icon={FiSettings}
-          label="Settings"
-          isExpanded={isExpanded}
-          onClick={handleSettingsToggle} // Toggle settings menu
-          rightIcon={isSettingsExpanded ? FiArrowUp : FiArrowDown} // Show arrow when expanded
-        />
+        {hasPermission("*settings.view") && (
+          <SidebarItem
+            icon={FiSettings}
+            label="Settings"
+            isExpanded={isExpanded}
+            onClick={handleSettingsToggle} // Toggle settings menu
+            rightIcon={isSettingsExpanded ? FiArrowUp : FiArrowDown} // Show arrow when expanded
+          />
+        )}
         <Collapse in={isSettingsExpanded} animateOpacity>
           <VStack align="start" ml={isExpanded ? 4 : 0} spacing={3}>
             {/* Adjusted submenu spacing */}
-            {/* {hasPermission("apps.view1") && ( )} */}
-            <SidebarItem
-              icon={FiGrid}
-              label="Apps"
-              isExpanded={isExpanded}
-              onClick={() => navigate("/application")} // Redirect to application.js
-            />
+            {hasPermission("apps.view") && (
+              <SidebarItem
+                icon={FiGrid}
+                label="Apps"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/application")} // Redirect to application.js
+              />
+            )}
+            {hasPermission("categories.view") && (
+              <SidebarItem
+                icon={FiCalendar}
+                label="Categories"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/managements/categorymanagement")} // Redirect to categorymanagement.js
+              />
+            )}
+            {hasPermission("events.view") && (
+              <SidebarItem
+                icon={FiCalendar}
+                label="Events"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/add-events")} // Redirect to Events.js
+              />
+            )}
+            {hasPermission("eventlocations.view") && (
+              <SidebarItem
+                label="Event Locations"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/managements/locations")}
+                useDynamicIcon
+              />
+            )}
+            {hasPermission("groups.view") && (
+              <SidebarItem
+                icon={FiCalendar}
+                label="Groups"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/managements/groupmanagement")} // Redirect to groupmanagement.js
+              />
+            )}
+            {hasPermission("permission.view") && (
+              <SidebarItem
+                icon={FiCalendar}
+                label="Permissions"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/managements/permissionmanagement")} // Redirect to permissionmanagement.js
+              />
+            )}
 
-            {/* {hasPermission("personnels.view1") && (  )} */}
-            <SidebarItem
-              icon={FiUsers}
-              label="Personnels"
-              isExpanded={isExpanded}
-              onClick={() => navigate("/user")} // Redirect to users.js
-            />
-
-            <SidebarItem
-              icon={FiUser}
-              label="Suguan"
-              isExpanded={isExpanded}
-              onClick={() => navigate("/add-suguan")} // Redirect to Suguan.js
-            />
-            <SidebarItem
-              icon={FiCalendar}
-              label="Events"
-              isExpanded={isExpanded}
-              onClick={() => navigate("/add-events")} // Redirect to Events.js
-            />
-            <SidebarItem
-              label="Event Locations"
-              isExpanded={isExpanded}
-              onClick={() => navigate("/managements/locations")}
-              useDynamicIcon
-            />
-            <SidebarItem
-              icon={FiCalendar}
-              label="Groups"
-              isExpanded={isExpanded}
-              onClick={() => navigate("/managements/groupmanagement")} // Redirect to groupmanagement.js
-            />
-            <SidebarItem
-              icon={FiCalendar}
-              label="Permissions"
-              isExpanded={isExpanded}
-              onClick={() => navigate("/managements/permissionmanagement")} // Redirect to permissionmanagement.js
-            />
-            <SidebarItem
-              icon={FiCalendar}
-              label="Categories"
-              isExpanded={isExpanded}
-              onClick={() => navigate("/managements/categorymanagement")} // Redirect to categorymanagement.js
-            />
+            {hasPermission("personnels.view") && (
+              <SidebarItem
+                icon={FiUsers}
+                label="Personnels"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/user")} // Redirect to users.js
+              />
+            )}
+            {hasPermission("suguan.view") && (
+              <SidebarItem
+                icon={FiUser}
+                label="Suguan"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/add-suguan")} // Redirect to Suguan.js
+              />
+            )}
             {showLdapUsers && (
               <SidebarItem
                 icon={FiUsers}
@@ -289,76 +305,99 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
         </Collapse>
 
         {/* Managements Section */}
-        <SidebarItem
-          icon={FiTool} // Change icon to FiBriefcase or any other appropriate icon
-          label="Managements"
-          isExpanded={isExpanded}
-          onClick={handleManagementsToggle}
-          rightIcon={isManagementsExpanded ? FiArrowUp : FiArrowDown}
-        />
+        {hasPermission("*management.view") && (
+          <SidebarItem
+            icon={FiTool} // Change icon to FiBriefcase or any other appropriate icon
+            label="Managements"
+            isExpanded={isExpanded}
+            onClick={handleManagementsToggle}
+            rightIcon={isManagementsExpanded ? FiArrowUp : FiArrowDown}
+          />
+        )}
 
         <Collapse in={isManagementsExpanded} animateOpacity>
           <VStack align="start" ml={isExpanded ? 4 : 0} spacing={3}>
-            <SidebarItem
-              label="Department"
-              isExpanded={isExpanded}
-              onClick={() => navigate("/managements/departments")}
-              useDynamicIcon // Use dynamic icon mapping
-            />
-            <SidebarItem
-              label="Section"
-              isExpanded={isExpanded}
-              onClick={() => navigate("/managements/sections")}
-              useDynamicIcon
-            />
-            <SidebarItem
-              label="Subsection"
-              isExpanded={isExpanded}
-              onClick={() => navigate("/managements/subsections")}
-              useDynamicIcon
-            />
-            <SidebarItem
-              label="Designation"
-              isExpanded={isExpanded}
-              onClick={() => navigate("/managements/designations")}
-              useDynamicIcon
-            />
-            <SidebarItem
-              label="District"
-              isExpanded={isExpanded}
-              onClick={() => navigate("/managements/districts")}
-              useDynamicIcon
-            />
-            <SidebarItem
-              label="Citizenship"
-              isExpanded={isExpanded}
-              onClick={() => navigate("/managements/citizenships")}
-              useDynamicIcon
-            />
-            <SidebarItem
-              label="Nationality"
-              isExpanded={isExpanded}
-              onClick={() => navigate("/managements/nationalities")}
-              useDynamicIcon
-            />
-            <SidebarItem
-              label="Language"
-              isExpanded={isExpanded}
-              onClick={() => navigate("/managements/languages")}
-              useDynamicIcon
-            />
-            <SidebarItem
-              label="Contact Info"
-              isExpanded={isExpanded}
-              onClick={() => navigate("/managements/contact_infos")}
-              useDynamicIcon
-            />
-            <SidebarItem
-              label="Issued ID"
-              isExpanded={isExpanded}
-              onClick={() => navigate("/managements/government_issued_ids")}
-              useDynamicIcon
-            />
+            {hasPermission("citizenship.view") && (
+              <SidebarItem
+                label="Citizenship"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/managements/citizenships")}
+                useDynamicIcon
+              />
+            )}
+            {hasPermission("contact.view") && (
+              <SidebarItem
+                label="Contact Info"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/managements/contact_infos")}
+                useDynamicIcon
+              />
+            )}
+            {hasPermission("department.view") && (
+              <SidebarItem
+                label="Department"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/managements/departments")}
+                useDynamicIcon // Use dynamic icon mapping
+              />
+            )}
+            {hasPermission("designation.view") && (
+              <SidebarItem
+                label="Designation"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/managements/designations")}
+                useDynamicIcon
+              />
+            )}
+            {hasPermission("district.view") && (
+              <SidebarItem
+                label="District"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/managements/districts")}
+                useDynamicIcon
+              />
+            )}
+            {hasPermission("issued_id.view") && (
+              <SidebarItem
+                label="Issued ID"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/managements/government_issued_ids")}
+                useDynamicIcon
+              />
+            )}
+            {hasPermission("language.view") && (
+              <SidebarItem
+                label="Language"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/managements/languages")}
+                useDynamicIcon
+              />
+            )}
+
+            {hasPermission("nationality.view") && (
+              <SidebarItem
+                label="Nationality"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/managements/nationalities")}
+                useDynamicIcon
+              />
+            )}
+            {hasPermission("section.view") && (
+              <SidebarItem
+                label="Section"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/managements/sections")}
+                useDynamicIcon
+              />
+            )}
+            {hasPermission("subsection.view") && (
+              <SidebarItem
+                label="Subsection"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/managements/subsections")}
+                useDynamicIcon
+              />
+            )}
           </VStack>
         </Collapse>
       </VStack>
@@ -368,69 +407,58 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
       {/* Current User Info */}
       <Flex
         direction="column"
-        align={isExpanded ? "start" : "center"}
+        align="center"
         mt="auto"
         py={4}
-        px={isExpanded ? 4 : 0}
-        bg={useColorModeValue("gray.100", "gray.700")} // Subtle background for user info
+        px={isExpanded ? 4 : 2}
+        bg={useColorModeValue("gray.100", "gray.800")}
         borderRadius="md"
         boxShadow="sm"
       >
-        <Flex align="center" mb={2}>
-          <Avatar
-            name={user.name || "User"}
-            src={user.avatar || ""}
-            size={isExpanded ? "lg" : "sm"} // Larger avatar when expanded
-            mr={isExpanded ? 4 : 0} // Add spacing when expanded
+        <Box
+          position="relative"
+          textAlign="center"
+          onClick={openLogoutDialog} // Handle logout when clicked
+          cursor="pointer"
+          bg="transparent" // No background, since the icon itself provides the design
+          _hover={{
+            transform: "scale(1.1)",
+            boxShadow: "lg",
+          }}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          flexDirection="column"
+        >
+          {/* User Icon */}
+          <Icon
+            as={FiUser} // User icon
+            color={useColorModeValue("blue.500", "blue.300")}
+            boxSize="40px"
+            mb={1} // Margin below the user icon
           />
+          {/* Forward Arrow Icon */}
+          <Icon
+            as={FiArrowRight} // Forward arrow icon
+            color={useColorModeValue("green.500", "green.300")}
+            boxSize="24px"
+          />
+          {/* Full Name */}
           {isExpanded && (
-            <VStack
-              align="start"
-              spacing={0}
-              animation="fadeIn 0.2s ease-in-out" // Add animation for smooth appearance
-              css={{
-                "@keyframes fadeIn": {
-                  "0%": { opacity: 0 },
-                  "100%": { opacity: 1 },
-                },
-              }}
+            <Text
+              mt={2}
+              fontSize="md"
+              fontWeight="bold"
+              color={iconColor}
+              textAlign="center"
             >
-              <Text fontSize="md" fontWeight="bold" color={iconColor}>
-                {user.name || "User"}
-              </Text>
-              <Text fontSize="sm" color={roleTextColor}>
-                {user.role || "User"}{" "}
-                {/* Add user role dynamically if available */}
-              </Text>
-            </VStack>
-          )}
-        </Flex>
-      </Flex>
-
-      {/* Logout */}
-      <Box
-        mt={4}
-        bg={useColorModeValue("red.50", "red.800")} // Subtle background for logout
-        p={isExpanded ? 3 : 2}
-        borderRadius="md"
-        textAlign="center"
-        _hover={{
-          bg: useColorModeValue("red.100", "red.700"), // Slight hover effect
-          cursor: "pointer",
-        }}
-        onClick={openLogoutDialog} // Show the logout confirmation dialog
-      >
-        <Flex align="center" justify="center">
-          <Icon as={FiLogOut} color="red.500" boxSize={isExpanded ? 5 : 4} />
-          {isExpanded && (
-            <Text ml={2} fontSize="md" fontWeight="semibold" color="red.500">
-              Log Out
+              {user.name || "User"}
             </Text>
           )}
-        </Flex>
-      </Box>
+        </Box>
+      </Flex>
 
-      {/* Logout Confirmation Alert Dialog */}
+      {/* Logout Confirmation Dialog */}
       <AlertDialog
         isOpen={isLogoutAlertOpen}
         leastDestructiveRef={cancelRef}

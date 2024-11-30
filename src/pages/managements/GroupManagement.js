@@ -492,43 +492,55 @@ const GroupManagement = () => {
                                     {category.categoryName}
                                   </Td>
                                 </Tr>
+                                {/* Render permissions under the category */}
                                 {category.permissions.map(
-                                  (permission, index) => (
+                                  (permission, permissionIndex) => (
                                     <Tr key={permission.id}>
-                                      <Td textAlign="center">{index + 1}</Td>
-                                      <Td>{permission.name}</Td>
                                       <Td textAlign="center">
-                                        <RadioGroup
-                                          onChange={(value) =>
-                                            handlePermissionChange(
-                                              selectedGroup.id,
-                                              permission.id,
-                                              category.categoryId,
-                                              parseInt(value)
-                                            )
-                                          }
-                                          value={String(
-                                            permission.accessrights
-                                          )}
-                                        >
-                                          <Radio value="1">Grant</Radio>
-                                        </RadioGroup>
+                                        {permissionIndex + 1}
                                       </Td>
-                                      <Td textAlign="center">
+                                      <Td>{permission.name}</Td>
+                                      <Td colSpan={2} textAlign="center">
+                                        {/* Single RadioGroup for Grant and Deny */}
                                         <RadioGroup
-                                          onChange={(value) =>
-                                            handlePermissionChange(
+                                          onChange={async (value) => {
+                                            // Optimistic UI update
+                                            const updatedPermissions = [
+                                              ...permissions,
+                                            ];
+                                            const categoryToUpdate =
+                                              updatedPermissions.find(
+                                                (cat) =>
+                                                  cat.categoryId ===
+                                                  category.categoryId
+                                              );
+                                            const permissionToUpdate =
+                                              categoryToUpdate.permissions.find(
+                                                (perm) =>
+                                                  perm.id === permission.id
+                                              );
+                                            permissionToUpdate.accessrights =
+                                              parseInt(value);
+
+                                            // Update state immediately
+                                            setPermissions(updatedPermissions);
+
+                                            // Make API call
+                                            await handlePermissionChange(
                                               selectedGroup.id,
                                               permission.id,
                                               category.categoryId,
                                               parseInt(value)
-                                            )
-                                          }
+                                            );
+                                          }}
                                           value={String(
                                             permission.accessrights
                                           )}
                                         >
-                                          <Radio value="0">Deny</Radio>
+                                          <Flex justifyContent="center" gap={6}>
+                                            <Radio value="1">Grant</Radio>
+                                            <Radio value="0">Deny</Radio>
+                                          </Flex>
                                         </RadioGroup>
                                       </Td>
                                     </Tr>
