@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 30, 2024 at 11:46 AM
+-- Generation Time: Nov 30, 2024 at 12:30 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -106,7 +106,15 @@ INSERT INTO `available_apps` (`id`, `user_id`, `app_id`, `ldap_group_cn`) VALUES
 (3898, 18, 6, ''),
 (3899, 18, 24, ''),
 (3900, 18, 25, ''),
-(3901, 18, 26, '');
+(3901, 18, 26, ''),
+(3902, 6, 1, ''),
+(3903, 8, 1, ''),
+(3904, 12, 1, ''),
+(3905, 10, 1, ''),
+(3906, 11, 1, ''),
+(3907, 13, 1, ''),
+(3908, 5, 1, ''),
+(3909, 47, 1, '');
 
 -- --------------------------------------------------------
 
@@ -1635,19 +1643,19 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `password`, `isLoggedIn`, `last_login`, `auth_type`, `failed_attempts`, `last_failed_attempt`, `created_at`, `updated_at`) VALUES
-(1, 'claudioarro', NULL, NULL, 'claudioarro', '{SSHA}+3VbtcZxSkn5v8nhLBdwPbRQPOBbcII3', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
+(1, 'claudioarro', NULL, '', 'claudioarro', '{SSHA}+3VbtcZxSkn5v8nhLBdwPbRQPOBbcII3', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (2, 'cmcervantes', NULL, NULL, 'cmcervantes', '{MD5}d5xp2teod+ZzCrsJ+3H1yQ==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (3, 'amagpile', NULL, NULL, 'amagpile', '{MD5}3PbHEQTkbxTTefuWRiARAg==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (4, 'rmmalabanan', NULL, NULL, 'rmmalabanan', '{MD5}dDdpUA4QjNwSG35UEFTD9Q==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(5, 'mcenriquez', NULL, NULL, 'mcenriquez', '{SSHA}K5M+sv8gd5M7zoxTutWZWQlDBUgpU9uu', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(6, 'pcdiaz', NULL, NULL, 'pcdiaz', '{MD5}cRox3Dh47pUtklaRnQMF9w==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
+(5, 'mcenriquez', NULL, '', 'mcenriquez', '{SSHA}K5M+sv8gd5M7zoxTutWZWQlDBUgpU9uu', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
+(6, 'pcdiaz', NULL, '', 'pcdiaz', '{MD5}cRox3Dh47pUtklaRnQMF9w==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (7, 'dvillamarzo', NULL, NULL, 'dvillamarzo', '{MD5}sUVO9gmCQXVMEGWc18MiVQ==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(8, 'jcabacungan', NULL, NULL, 'jcabacungan', '{MD5}ciPSWmnDFftvBezZ3JZR7Q==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
+(8, 'jcabacungan', NULL, '', 'jcabacungan', '{MD5}ciPSWmnDFftvBezZ3JZR7Q==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (9, 'jsarmiento', NULL, NULL, 'jsarmiento', '{MD5}4xlkqIDIMJQNZdevSRDPkg==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(10, 'kdeleon', NULL, NULL, 'kdeleon', '{MD5}jquH4+vzqn9KN0mZlEs2ew==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(11, 'jalcantara', NULL, NULL, 'jalcantara', '{MD5}0IyoNQCSDDbEMKLla4SxoQ==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(12, 'dpareña', NULL, NULL, 'dpareña', '{MD5}zemE0W2p/+wTKn1Bn8fGUQ==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(13, 'rporcado', NULL, NULL, 'rporcado', '{SSHA}O0qjoUzs1AgMpzE7Ig3HURYjjKNLduyN', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
+(10, 'kdeleon', NULL, '', 'kdeleon', '{MD5}jquH4+vzqn9KN0mZlEs2ew==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
+(11, 'jalcantara', NULL, '', 'jalcantara', '{MD5}0IyoNQCSDDbEMKLla4SxoQ==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
+(12, 'dpareña', NULL, '', 'dpareña', '{MD5}zemE0W2p/+wTKn1Bn8fGUQ==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
+(13, 'rporcado', NULL, '', 'rporcado', '{SSHA}O0qjoUzs1AgMpzE7Ig3HURYjjKNLduyN', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (14, 'rdprestoza', NULL, NULL, 'rdprestoza', '{MD5}MAvZAgOvfEpDo3OKrwzNHw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (15, 'kvdematera', NULL, '', 'kvdematera', '{SSHA}+728w4RErOoPkuPO2W5zP1n6+cAkj1Ru', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (16, 'rreyes', NULL, NULL, 'rreyes', '{MD5}WDUuJDKCc7XD+0pC/8DHwg==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
@@ -1790,11 +1798,19 @@ CREATE TABLE `user_group_mappings` (
 --
 
 INSERT INTO `user_group_mappings` (`user_id`, `group_id`) VALUES
+(1, 4),
+(5, 4),
+(6, 4),
+(8, 4),
+(10, 4),
+(11, 4),
+(12, 4),
+(13, 4),
 (15, 1),
 (18, 2),
 (22, 1),
 (24, 1),
-(45, 1),
+(45, 4),
 (46, 1),
 (47, 3);
 
@@ -2130,7 +2146,7 @@ ALTER TABLE `apps`
 -- AUTO_INCREMENT for table `available_apps`
 --
 ALTER TABLE `available_apps`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3902;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3910;
 
 --
 -- AUTO_INCREMENT for table `children`
