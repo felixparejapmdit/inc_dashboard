@@ -18,12 +18,34 @@ const LDAP_URL = process.env.LDAP_URL;
 const BIND_DN = process.env.BIND_DN;
 const BIND_PASSWORD = process.env.BIND_PASSWORD;
 const BASE_DN = process.env.BASE_DN;
+
 // Utility function to create LDAP client
 const createLdapClient = () => {
   return ldap.createClient({
     url: LDAP_URL,
+    timeout: 5000, // Timeout in milliseconds
+    connectTimeout: 10000, // Connection timeout in milliseconds
+    reconnect: true, // Enable automatic reconnection
   });
 };
+
+// Handle errors
+// createLdapClient.on('error', (err) => {
+//   console.error('LDAP connection error:', err);
+// });
+
+// Test the connection
+// ldap.bind(
+//   process.env.BIND_DN,
+//   process.env.BIND_PASSWORD,
+//   (err) => {
+//     if (err) {
+//       console.error('LDAP bind error:', err);
+//     } else {
+//       console.log('✅ Successfully connected to LDAP server.');
+//     }
+//   }
+// );
 
 // Function to verify SSHA hash
 function verifySSHA(password, hash) {
@@ -144,7 +166,7 @@ router.post("/api/users/change-password", (req, res) => {
 // Logged-In User Endpoint
 router.get("/api/users/logged-in", async (req, res) => {
   const { username } = req.query; // Extract username from query parameters
-  console.log("Received username in query:", username); // Debug log
+  console.log("Received username in query1:", username); // Debug log
 
   if (!username) {
     return res.status(400).json({ message: "Username is required" });
@@ -171,7 +193,7 @@ router.get("/api/users/logged-in", async (req, res) => {
         try {
           // Fetch user details from the LDAP API
           const ldapResponse = await axios.get(
-            `http://localhost:5000/ldap/user/${user.username}`
+            `${process.env.REACT_APP_API_URL}/ldap/user/${user.username}`
           );
           const ldapUser = ldapResponse.data;
 
@@ -220,7 +242,8 @@ router.get("/api/nextcloud-login", async (req, res) => {
     );
 
     // If the login flow is successful, return the polling endpoint and login URL
-    if (response.data && response.data.poll && response.data.login) {
+    if (response.data && response.data.poll && response.data.login) 
+    {
       res.json({
         nextcloudUrl: response.data.login, // Login URL for redirecting the user
         pollEndpoint: response.data.poll, // Polling endpoint for session confirmation

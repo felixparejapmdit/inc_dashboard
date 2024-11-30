@@ -57,7 +57,8 @@ const educationalBackgroundRoutes = require("./routes/educationalBackgroundRoute
 const workExperienceRoutes = require("./routes/workExperienceRoutes");
 
 app.use(express.json()); // Middleware to parse JSON request bodies
-app.use(cors());
+
+app.use(cors({ origin: '*' }));
 app.use(bodyParser.json({ limit: "50mb" })); // Increased limit to handle Base64 images
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
@@ -110,6 +111,6 @@ app.use("/api/user-groups", userGroupsRoutes);
 app.use("/uploads", express.static("uploads"));
 
 // --- Start server ---
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on ${IP_Address}:${PORT}`);
 });

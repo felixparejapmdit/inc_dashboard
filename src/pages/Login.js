@@ -62,7 +62,7 @@ const Login = () => {
     // Attempt LDAP Authentication first
     try {
       const ldapResponse = await axios.get(
-        `http://localhost:5000/ldap/user/${username}`
+        `${process.env.REACT_APP_API_URL}/ldap/user_json/${username}`
       );
       const ldapUser = ldapResponse.data;
       const hashedPassword = md5HashPassword(password);
@@ -121,8 +121,24 @@ const Login = () => {
         if (response.data.success) {
           // Set the username for local login as well
           const userName = response.data.user.username || "User";
+
+          const userResponse = await axios.get(
+            `${process.env.REACT_APP_API_URL}/api/users_access/${username}`
+          );
+          const userId = userResponse.data.id;
+  
+          // Fetch the group ID using the user ID
+          const groupResponse = await axios.get(
+            `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`
+          );
+          const groupId = groupResponse.data.groupId;
+
           localStorage.setItem("userFullName", userName);
           localStorage.setItem("username", userName); // or response.data.user.username for local login
+
+          // Store the group ID in localStorage
+          localStorage.setItem("groupId", groupId);
+          fetchPermissions(groupId);
 
           navigate("/dashboard");
 
