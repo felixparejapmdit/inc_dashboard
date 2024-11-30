@@ -294,7 +294,7 @@ const Users = () => {
 
   return (
     <Box p={6}>
-      <Heading mb={6}>Manage Personnels</Heading>
+      <Heading mb={6}>Manage Personnel</Heading>
       <Input
         placeholder="Search users..."
         value={searchTerm}

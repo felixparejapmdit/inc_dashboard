@@ -280,7 +280,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
             {hasPermission("personnels.view") && (
               <SidebarItem
                 icon={FiUsers}
-                label="Personnels"
+                label="Personnel"
                 isExpanded={isExpanded}
                 onClick={() => navigate("/user")} // Redirect to users.js
               />

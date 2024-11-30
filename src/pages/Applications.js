@@ -184,7 +184,25 @@ const Applications = () => {
       >
         App
       </Button>
-
+      {apps.length > ITEMS_PER_PAGE && (
+        <Flex justify="space-between" align="center" mt={4}>
+          <Button
+            onClick={() => handlePageChange("previous")}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </Button>
+          <Text>
+            Page {currentPage} of {totalPages}
+          </Text>
+          <Button
+            onClick={() => handlePageChange("next")}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </Button>
+        </Flex>
+      )}
       <Table variant="simple">
         <Thead>
           <Tr>
