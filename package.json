@@ -44,8 +44,8 @@
     "webrtc-adapter": "^9.0.1"
   },
   "scripts": {
-    "start": "concurrently \"npm run frontend\" \"npm run backend\"",
-    "frontend": "react-scripts start",
+    "start": "concurrently \"npm run react\" \"npm run backend\"",
+    "react": "react-scripts start",
     "backend": "nodemon backend/server.js",
     "build": "react-scripts build",
     "test": "react-scripts test",
