@@ -22,27 +22,29 @@ const BASE_DN = process.env.BASE_DN;
 // Utility function to create LDAP client
 const createLdapClient = () => {
   return ldap.createClient({
-    url: process.env.LDAP_URL,
-    timeout: 5000, // Timeout for LDAP operations
-    connectTimeout: 5000, // Timeout for connecting to LDAP server
+    url: LDAP_URL,
+    timeout: 5000, // Timeout in milliseconds
+    connectTimeout: 10000, // Connection timeout in milliseconds
   });
 };
 
+// Handle errors
+// createLdapClient.on('error', (err) => {
+//   console.error('LDAP connection error:', err);
+// });
 
-
-
-// Example usage: Bind to the LDAP server
-const testLdapConnection = async () => {
-  const client = createLdapClient();
-  client.bind(BIND_DN, BIND_PASSWORD, (err) => {
-    if (err) {
-      console.error("Error binding to LDAP server:", err);
-    } else {
-      console.log("Successfully connected and bound to LDAP server.");
-    }
-    client.unbind(); // Always unbind after testing
-  });
-};
+// Test the connection
+// ldap.bind(
+//   process.env.BIND_DN,
+//   process.env.BIND_PASSWORD,
+//   (err) => {
+//     if (err) {
+//       console.error('LDAP bind error:', err);
+//     } else {
+//       console.log('✅ Successfully connected to LDAP server.');
+//     }
+//   }
+// );
 
 // Function to verify SSHA hash
 function verifySSHA(password, hash) {
@@ -391,30 +393,27 @@ router.get("/api/users", async (req, res) => {
   }
 });
 
-// User Login Endpoint
+// User login
+// Login Endpoint
 router.post("/api/users/login", async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
     return res
       .status(400)
-      .json({ success: false, message: "Username and password are required" });
+      .json({ message: "Username and password are required" });
   }
-
-  console.log("Login attempt for username:", username);
-
+  console.error("Usernmame: ", username);
   try {
+    // Check if the user exists and retrieve hashed password
     const query = "SELECT * FROM users WHERE username = ?";
     db.query(query, [username], async (err, results) => {
       if (err) {
-        console.error("Database error during login:", err);
-        return res
-          .status(500)
-          .json({ success: false, message: "Database error" });
+        console.error("Database error:", err);
+        return res.status(500).json({ message: "Database error" });
       }
 
       if (results.length === 0) {
-        console.log("Invalid username or password for:", username);
         return res
           .status(401)
           .json({ success: false, message: "Invalid username or password" });
@@ -427,29 +426,31 @@ router.post("/api/users/login", async (req, res) => {
 
       // Determine hash type and verify accordingly
       if (storedHash.startsWith("$2b$") || storedHash.startsWith("$2a$")) {
-        isMatch = await bcrypt.compare(password, storedHash); // bcrypt hash
+        // bcrypt hash
+        isMatch = await bcrypt.compare(password, storedHash);
       } else if (storedHash.startsWith("{SSHA}")) {
-        isMatch = verifySSHA(password, storedHash); // SSHA hash
+        // SSHA hash
+        isMatch = verifySSHA(password, storedHash);
       } else if (storedHash.startsWith("{MD5}")) {
-        isMatch = verifyMD5(password, storedHash); // MD5 hash
+        // MD5 hash
+        isMatch = verifyMD5(password, storedHash);
       }
 
       if (!isMatch) {
-        console.log("Password mismatch for:", username);
         return res
           .status(401)
           .json({ success: false, message: "Invalid username or password" });
       }
 
+      // If password matches, return success and user data
       console.log("User authenticated:", username);
       res.json({ success: true, user });
     });
   } catch (error) {
-    console.error("Unexpected error during login:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    console.error("Error during login:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
-
 
 // Add new user with selected apps
 router.post("/api/users", (req, res) => {
