@@ -59,11 +59,14 @@ const Login = () => {
       return;
     }
 
-    // Attempt LDAP Authentication first
-    try {
-      const ldapResponse = await axios.get(
-        `${process.env.REACT_APP_API_URL}/ldap/user/${username}`
-      );
+    const ldapTimeout = 5000; // Set LDAP timeout to 5 seconds
+
+  // Attempt LDAP Authentication first
+  const ldapPromise = axios
+    .get(`${process.env.REACT_APP_API_URL}/ldap/user/${username}`, {
+      timeout: ldapTimeout,
+    })
+    .then(async (ldapResponse) => {
       const ldapUser = ldapResponse.data;
       const hashedPassword = md5HashPassword(password);
 
@@ -99,18 +102,15 @@ const Login = () => {
             isLoggedIn: true,
           }
         );
-
-        // Return after successful LDAP login to prevent further execution
-        return;
       } else {
-        setError("Invalid LDAP username or password");
+        throw new Error("Invalid LDAP username or password");
       }
-    } catch (err) {
-      console.error(
-        "LDAP connection failed, falling back to local login:",
-        err
-      );
-      setError("LDAP server is unreachable. Attempting local login...");
+    });
+  // Fall back to local login if LDAP fails
+  try {
+    await ldapPromise;
+  } catch (err) {
+    console.error("LDAP connection failed, falling back to local login:", err);
 
       // Attempt local login if LDAP fails
       try {
@@ -118,12 +118,17 @@ const Login = () => {
           `${process.env.REACT_APP_API_URL}/api/users/login`,
           { username, password }
         );
+
+        alert(response.data.success);
         if (response.data.success) {
           // Set the username for local login as well
-          const userName = response.data.user.username || "User";
+          //const userName = response.data.user.username || "User";
+
+
+          const user = response.data.user;
 
           const userResponse = await axios.get(
-            `${process.env.REACT_APP_API_URL}/api/users_access/${username}`
+            `${process.env.REACT_APP_API_URL}/api/users_access/${user.username}`
           );
           const userId = userResponse.data.id;
   
@@ -133,8 +138,8 @@ const Login = () => {
           );
           const groupId = groupResponse.data.groupId;
 
-          localStorage.setItem("userFullName", userName);
-          localStorage.setItem("username", userName); // or response.data.user.username for local login
+          localStorage.setItem("userFullName", user.username);
+          localStorage.setItem("username", user.username); // or response.data.user.username for local login
 
           // Store the group ID in localStorage
           localStorage.setItem("groupId", groupId);
@@ -146,22 +151,21 @@ const Login = () => {
           await axios.put(
             `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
             {
-              ID: response.data.user.username,
+              ID: user.ID,
               isLoggedIn: true,
             }
           );
-          // Return after successful local login to prevent further execution
-          return;
         } else {
           setError("Invalid username or password");
         }
       } catch (error) {
-        setError("Error connecting to the server. Please try again.");
         console.error("Error during local login:", error);
-      }
-    }
+        setError("Error connecting to the server. Please try again.");
 
-    setIsLoading(false);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

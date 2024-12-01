@@ -18,6 +18,13 @@ const permissionRoutes = require("./routes/permissionRoutes");
 
 const userGroupsRoutes = require("./routes/userGroupsRoutes");
 
+app.use(
+  cors({
+    origin: "*", // Allow all origins (update for production)
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  })
+);
+
 const permissionCategoriesRoutes = require("./routes/permissionCategoriesRoutes");
 
 const groupPermissionsRoutes = require("./routes/groupPermissionsRoutes");
