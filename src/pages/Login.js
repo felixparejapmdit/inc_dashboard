@@ -119,7 +119,7 @@ const Login = () => {
           { username, password }
         );
 
-        alert(response.data.success);
+        
         if (response.data.success) {
           // Set the username for local login as well
           //const userName = response.data.user.username || "User";
