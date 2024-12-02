@@ -39,7 +39,7 @@ const suguanRoutes = require("./routes/suguanRoutes");
 const eventsRoutes = require("./routes/eventsRoutes");
 const locationRoutes = require("./routes/locationsRoutes");
 
-// const reminderRoutes = require("./routes/reminderRoutes");
+const reminderRoutes = require("./routes/reminderRoutes");
 
 const personnelsRoutes = require("./routes/personnelsRoutes"); // Replace with actual route file path
 const personnelContactsRoutes = require("./routes/personnelContactsRoutes");
@@ -65,7 +65,7 @@ const workExperienceRoutes = require("./routes/workExperienceRoutes");
 
 app.use(express.json()); // Middleware to parse JSON request bodies
 
-app.use(cors({ origin: '*' }));
+app.use(cors({ origin: "*" }));
 app.use(bodyParser.json({ limit: "50mb" })); // Increased limit to handle Base64 images
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
@@ -76,10 +76,10 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use(ldapRoutes);
 app.use(appRoutes);
+app.use(reminderRoutes);
 app.use(suguanRoutes);
 app.use(eventsRoutes);
 app.use(locationRoutes);
-// app.use(reminderRoutes);
 
 app.use(personnelsRoutes);
 app.use(personnelContactsRoutes);
@@ -118,6 +118,6 @@ app.use("/api/user-groups", userGroupsRoutes);
 app.use("/uploads", express.static("uploads"));
 
 // --- Start server ---
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is running on ${IP_Address}:${PORT}`);
 });

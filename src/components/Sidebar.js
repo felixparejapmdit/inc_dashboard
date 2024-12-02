@@ -285,6 +285,14 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 onClick={() => navigate("/user")} // Redirect to users.js
               />
             )}
+            {hasPermission("reminders.view") && (
+              <SidebarItem
+                icon={FiUser}
+                label="Reminder"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/reminders")} // Redirect to Reminders.js
+              />
+            )}
             {hasPermission("suguan.view") && (
               <SidebarItem
                 icon={FiUser}

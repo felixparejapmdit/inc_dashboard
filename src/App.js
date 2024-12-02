@@ -168,7 +168,7 @@ function App() {
               }
             />
             <Route
-              path="/add-reminders"
+              path="/reminders"
               element={
                 <Layout
                   currentUser={{

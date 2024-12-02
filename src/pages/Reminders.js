@@ -1,18 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Button,
+  Text,
+  Stack,
   FormControl,
   FormLabel,
   Input,
   Heading,
   VStack,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
   IconButton,
   Modal,
   ModalOverlay,
@@ -22,6 +18,12 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
 } from "@chakra-ui/react";
 import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
 
@@ -30,7 +32,8 @@ const API_URL = process.env.REACT_APP_API_URL;
 const Reminders = () => {
   const [reminders, setReminders] = useState([]);
   const [title, setTitle] = useState("");
-  const [date, setDate] = useState("");
+  const [description, setDescription] = useState("");
+  const [reminderDate, setReminderDate] = useState("");
   const [time, setTime] = useState("");
   const [message, setMessage] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -41,7 +44,17 @@ const Reminders = () => {
   } = useDisclosure();
   const [editingReminder, setEditingReminder] = useState(null);
 
-  // Fetch reminders data
+  // State for delete confirmation dialog
+  const {
+    isOpen: isDeleteOpen,
+    onOpen: onDeleteOpen,
+    onClose: onDeleteClose,
+  } = useDisclosure();
+  const [deletingReminderId, setDeletingReminderId] = useState(null);
+  const cancelRef = useRef();
+
+  const userId = localStorage.getItem("userId");
+
   useEffect(() => {
     fetch(`${API_URL}/api/reminders`)
       .then((res) => res.json())
@@ -52,15 +65,15 @@ const Reminders = () => {
   const handleAddReminder = (e) => {
     e.preventDefault();
     const newReminder = {
-      id: editingReminder ? editingReminder.id : new Date().getTime(),
       title,
-      date,
+      description,
+      reminder_date: reminderDate,
       time,
       message,
+      created_by: userId,
     };
 
     if (editingReminder) {
-      // Update an existing reminder
       fetch(`${API_URL}/api/reminders/${editingReminder.id}`, {
         method: "PUT",
         headers: {
@@ -78,7 +91,6 @@ const Reminders = () => {
         })
         .catch(() => alert("Error updating reminder. Please try again."));
     } else {
-      // Add a new reminder
       fetch(`${API_URL}/api/reminders`, {
         method: "POST",
         headers: {
@@ -94,20 +106,32 @@ const Reminders = () => {
     }
   };
 
-  const handleDeleteReminder = (id) => {
-    fetch(`${API_URL}/api/reminders/${id}`, {
+  const handleDeleteReminder = () => {
+    fetch(`${API_URL}/api/reminders/${deletingReminderId}`, {
       method: "DELETE",
     })
       .then(() => {
-        setReminders(reminders.filter((item) => item.id !== id));
+        setReminders(
+          reminders.filter((item) => item.id !== deletingReminderId)
+        );
+        onDeleteClose();
       })
-      .catch((err) => console.error("Error deleting reminder:", err));
+      .catch((err) => {
+        console.error("Error deleting reminder:", err);
+        onDeleteClose();
+      });
+  };
+
+  const openDeleteDialog = (id) => {
+    setDeletingReminderId(id);
+    onDeleteOpen();
   };
 
   const handleEditReminder = (item) => {
     setEditingReminder(item);
     setTitle(item.title);
-    setDate(item.date);
+    setDescription(item.description);
+    setReminderDate(item.reminder_date);
     setTime(item.time);
     setMessage(item.message);
     onEditOpen();
@@ -115,48 +139,55 @@ const Reminders = () => {
 
   return (
     <Box p={6}>
-      <Heading mb={6}>Manage Reminders</Heading>
+      <Heading mb={6}>Reminders</Heading>
 
       <Button leftIcon={<AddIcon />} onClick={onOpen} colorScheme="teal" mb={4}>
         Add Reminder
       </Button>
 
-      <Table variant="simple">
-        <Thead>
-          <Tr>
-            <Th>Title</Th>
-            <Th>Date</Th>
-            <Th>Time</Th>
-            <Th>Message</Th>
-            <Th>Actions</Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-          {reminders.map((item) => (
-            <Tr key={item.id}>
-              <Td>{item.title}</Td>
-              <Td>{item.date}</Td>
-              <Td>{item.time}</Td>
-              <Td>{item.message}</Td>
-              <Td>
-                <IconButton
-                  icon={<EditIcon />}
-                  mr={2}
-                  colorScheme="blue"
-                  onClick={() => handleEditReminder(item)}
-                />
-                <IconButton
-                  icon={<DeleteIcon />}
-                  colorScheme="red"
-                  onClick={() => handleDeleteReminder(item.id)}
-                />
-              </Td>
-            </Tr>
-          ))}
-        </Tbody>
-      </Table>
+      <Stack spacing={4}>
+        {reminders.map((item) => (
+          <Box
+            key={item.id}
+            borderWidth="1px"
+            borderRadius="lg"
+            overflow="hidden"
+            boxShadow="sm"
+            p={4}
+            bg="white"
+            _hover={{ boxShadow: "md", bg: "gray.50" }}
+          >
+            <Heading fontSize="lg" mb={2}>
+              {item.title}
+            </Heading>
+            <Text fontSize="sm" color="gray.600" mb={2}>
+              {item.description}
+            </Text>
+            <Text fontSize="sm" mb={1}>
+              <strong>Date:</strong> {item.reminder_date}
+            </Text>
+            <Text fontSize="sm" mb={1}>
+              <strong>Time:</strong> {item.time}
+            </Text>
+            <Text fontSize="sm" mb={2}>
+              <strong>Message:</strong> {item.message}
+            </Text>
+            <Stack direction="row" spacing={2}>
+              <IconButton
+                icon={<EditIcon />}
+                colorScheme="blue"
+                onClick={() => handleEditReminder(item)}
+              />
+              <IconButton
+                icon={<DeleteIcon />}
+                colorScheme="red"
+                onClick={() => openDeleteDialog(item.id)}
+              />
+            </Stack>
+          </Box>
+        ))}
+      </Stack>
 
-      {/* Add/Edit Modal */}
       <Modal isOpen={isOpen || isEditOpen} onClose={onClose || onEditClose}>
         <ModalOverlay />
         <ModalContent>
@@ -175,12 +206,21 @@ const Reminders = () => {
                 />
               </FormControl>
 
+              <FormControl>
+                <FormLabel>Description</FormLabel>
+                <Input
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Enter Description"
+                />
+              </FormControl>
+
               <FormControl isRequired>
                 <FormLabel>Date</FormLabel>
                 <Input
                   type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
+                  value={reminderDate}
+                  onChange={(e) => setReminderDate(e.target.value)}
                 />
               </FormControl>
 
@@ -211,6 +251,35 @@ const Reminders = () => {
           </ModalFooter>
         </ModalContent>
       </Modal>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        isOpen={isDeleteOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={onDeleteClose}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Delete Reminder
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              Are you sure you want to delete this reminder? This action cannot
+              be undone.
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onDeleteClose}>
+                Cancel
+              </Button>
+              <Button colorScheme="red" onClick={handleDeleteReminder} ml={3}>
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </Box>
   );
 };

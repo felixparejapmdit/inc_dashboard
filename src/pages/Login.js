@@ -61,56 +61,59 @@ const Login = () => {
 
     const ldapTimeout = 5000; // Set LDAP timeout to 5 seconds
 
-  // Attempt LDAP Authentication first
-  const ldapPromise = axios
-    .get(`${process.env.REACT_APP_API_URL}/ldap/user/${username}`, {
-      timeout: ldapTimeout,
-    })
-    .then(async (ldapResponse) => {
-      const ldapUser = ldapResponse.data;
-      const hashedPassword = md5HashPassword(password);
+    // Attempt LDAP Authentication first
+    const ldapPromise = axios
+      .get(`${process.env.REACT_APP_API_URL}/ldap/user/${username}`, {
+        timeout: ldapTimeout,
+      })
+      .then(async (ldapResponse) => {
+        const ldapUser = ldapResponse.data;
+        const hashedPassword = md5HashPassword(password);
 
-      if (ldapUser && ldapUser.userPassword === hashedPassword) {
-        // Fetch the user ID for the local login
-        const userResponse = await axios.get(
-          `${process.env.REACT_APP_API_URL}/api/users_access/${username}`
-        );
-        const userId = userResponse.data.id;
+        if (ldapUser && ldapUser.userPassword === hashedPassword) {
+          // Fetch the user ID for the local login
+          const userResponse = await axios.get(
+            `${process.env.REACT_APP_API_URL}/api/users_access/${username}`
+          );
+          const userId = userResponse.data.id;
 
-        // Fetch the group ID using the user ID
-        const groupResponse = await axios.get(
-          `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`
-        );
-        const groupId = groupResponse.data.groupId;
+          // Fetch the group ID using the user ID
+          const groupResponse = await axios.get(
+            `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`
+          );
+          const groupId = groupResponse.data.groupId;
 
-        // Store user data and navigate to dashboard
-        const fullName = ldapUser.cn?.[0] || "User"; // Adjust to the LDAP format
-        localStorage.setItem("userFullName", fullName);
-        localStorage.setItem("username", ldapUser.uid); // or response.data.user.username for local login
+          // Store user data and navigate to dashboard
+          const fullName = ldapUser.cn?.[0] || "User"; // Adjust to the LDAP format
+          localStorage.setItem("userFullName", fullName);
+          localStorage.setItem("username", ldapUser.uid); // or response.data.user.username for local login
+          localStorage.setItem("userId", userId);
+          // Store the group ID in localStorage
+          localStorage.setItem("groupId", groupId);
+          fetchPermissions(groupId);
 
-        // Store the group ID in localStorage
-        localStorage.setItem("groupId", groupId);
-        fetchPermissions(groupId);
+          navigate("/dashboard");
 
-        navigate("/dashboard");
-
-        // Update isLoggedIn status in the database
-        await axios.put(
-          `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
-          {
-            ID: ldapUser.uid?.[0], // Ensure this matches the expected ID format
-            isLoggedIn: true,
-          }
-        );
-      } else {
-        throw new Error("Invalid LDAP username or password");
-      }
-    });
-  // Fall back to local login if LDAP fails
-  try {
-    await ldapPromise;
-  } catch (err) {
-    console.error("LDAP connection failed, falling back to local login:", err);
+          // Update isLoggedIn status in the database
+          await axios.put(
+            `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
+            {
+              ID: ldapUser.uid?.[0], // Ensure this matches the expected ID format
+              isLoggedIn: true,
+            }
+          );
+        } else {
+          throw new Error("Invalid LDAP username or password");
+        }
+      });
+    // Fall back to local login if LDAP fails
+    try {
+      await ldapPromise;
+    } catch (err) {
+      console.error(
+        "LDAP connection failed, falling back to local login:",
+        err
+      );
 
       // Attempt local login if LDAP fails
       try {
@@ -119,11 +122,9 @@ const Login = () => {
           { username, password }
         );
 
-        
         if (response.data.success) {
           // Set the username for local login as well
           //const userName = response.data.user.username || "User";
-
 
           const user = response.data.user;
 
@@ -131,7 +132,7 @@ const Login = () => {
             `${process.env.REACT_APP_API_URL}/api/users_access/${user.username}`
           );
           const userId = userResponse.data.id;
-  
+
           // Fetch the group ID using the user ID
           const groupResponse = await axios.get(
             `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`
@@ -140,6 +141,7 @@ const Login = () => {
 
           localStorage.setItem("userFullName", user.username);
           localStorage.setItem("username", user.username); // or response.data.user.username for local login
+          localStorage.setItem("userId", userId);
 
           // Store the group ID in localStorage
           localStorage.setItem("groupId", groupId);
@@ -161,7 +163,6 @@ const Login = () => {
       } catch (error) {
         console.error("Error during local login:", error);
         setError("Error connecting to the server. Please try again.");
-
       }
     } finally {
       setIsLoading(false);
