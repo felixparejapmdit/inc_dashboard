@@ -19,32 +19,41 @@ const BIND_DN = process.env.BIND_DN;
 const BIND_PASSWORD = process.env.BIND_PASSWORD;
 const BASE_DN = process.env.BASE_DN;
 
-// Utility function to create LDAP client
+// Utility to create an LDAP client
 const createLdapClient = () => {
-  return ldap.createClient({
-    url: LDAP_URL,
-    timeout: 5000, // Timeout in milliseconds
-    connectTimeout: 10000, // Connection timeout in milliseconds
+  const ldap = require("ldapjs");
+
+  const client = ldap.createClient({
+    url: process.env.LDAP_URL,
+    timeout: 5000, // 5 seconds timeout for operations
+    connectTimeout: 5000, // 5 seconds for connection timeout
+    reconnect: {
+      initialDelay: 1000, // Start with a 1-second delay
+      maxDelay: 60000, // Maximum delay of 1 minute
+      failAfter: 5, // Fail after 5 attempts
+    },
   });
+
+  // Catch any connection errors and prevent crashing
+  client.on("error", (err) => {
+    console.error("LDAP client error:", err.message);
+  });
+
+  client.on("connect", () => {
+    console.log("LDAP client connected successfully.");
+  });
+
+  return client;
 };
 
-// Handle errors
-// createLdapClient.on('error', (err) => {
-//   console.error('LDAP connection error:', err);
-// });
-
-// Test the connection
-// ldap.bind(
-//   process.env.BIND_DN,
-//   process.env.BIND_PASSWORD,
-//   (err) => {
-//     if (err) {
-//       console.error('LDAP bind error:', err);
-//     } else {
-//       console.log('✅ Successfully connected to LDAP server.');
-//     }
-//   }
-// );
+// Utility function to create LDAP client
+// const createLdapClient = () => {
+//   return ldap.createClient({
+//     url: LDAP_URL,
+//     timeout: 5000, // Timeout in milliseconds
+//     connectTimeout: 10000, // Connection timeout in milliseconds
+//   });
+// };
 
 // Function to verify SSHA hash
 function verifySSHA(password, hash) {
@@ -241,8 +250,7 @@ router.get("/api/nextcloud-login", async (req, res) => {
     );
 
     // If the login flow is successful, return the polling endpoint and login URL
-    if (response.data && response.data.poll && response.data.login) 
-    {
+    if (response.data && response.data.poll && response.data.login) {
       res.json({
         nextcloudUrl: response.data.login, // Login URL for redirecting the user
         pollEndpoint: response.data.poll, // Polling endpoint for session confirmation
