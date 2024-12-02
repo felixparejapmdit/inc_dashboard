@@ -356,6 +356,17 @@ router.get("/api/users", async (req, res) => {
     });
   };
 
+   // Fallback function to read from ldap_users.json
+   const readLdapFromFile = () => {
+    try {
+      const filePath = path.join(__dirname, "../data/ldap_users.json");
+      const data = fs.readFileSync(filePath, "utf-8");
+      return JSON.parse(data);
+    } catch (err) {
+      console.error("Error reading LDAP data from file:", err);
+      return [];
+    }
+  };
   try {
     // Fetch users from database
     const dbUsers = await new Promise((resolve, reject) => {
@@ -378,7 +389,16 @@ router.get("/api/users", async (req, res) => {
     });
 
     // Fetch users from LDAP
-    const ldapUsers = await fetchLdapUsers();
+    //const ldapUsers = await fetchLdapUsers();
+
+    let ldapUsers = [];
+    try {
+      // Attempt to fetch users from LDAP
+      ldapUsers = await fetchLdapUsers();
+    } catch (ldapError) {
+      console.error("LDAP fetch failed, falling back to local file:", ldapError);
+      ldapUsers = readLdapFromFile(); // Use fallback data
+    }
 
     // Combine the database users with LDAP attributes
     const combinedUsers = dbUsers.map((dbUser) => {
