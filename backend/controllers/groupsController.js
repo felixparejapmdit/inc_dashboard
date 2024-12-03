@@ -156,6 +156,7 @@ exports.getGroupPermissions = async (req, res) => {
   try {
     // Ensure the group exists
     const group = await Group.findByPk(groupId);
+
     if (!group) {
       return res.status(404).json({ message: "Group not found." });
     }

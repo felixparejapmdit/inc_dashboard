@@ -54,8 +54,11 @@ exports.getUsersFromJson = (req, res) => {
 
 // Fetch users and groups from LDAP
 exports.getLdapUsersAndGroups = async (req, res) => {
+  console.log("Fetching all users and groups from LDAP");
+
   const client = createLdapClient();
 
+  // Helper function to bind to the LDAP server
   const bindClient = () =>
     new Promise((resolve, reject) => {
       client.bind(BIND_DN, BIND_PASSWORD, (err) => {
@@ -68,6 +71,7 @@ exports.getLdapUsersAndGroups = async (req, res) => {
       });
     });
 
+  // Helper function to fetch users
   const fetchUsers = () =>
     new Promise((resolve, reject) => {
       const searchOptions = {
@@ -86,15 +90,110 @@ exports.getLdapUsersAndGroups = async (req, res) => {
           users.push(entry.attributes);
         });
 
-        result.on("end", () => resolve(users));
-        result.on("error", (err) => reject(err));
+        result.on("end", () => {
+          resolve(users);
+        });
+
+        result.on("error", (err) => {
+          reject(err);
+        });
+      });
+    });
+
+  // Helper function to fetch groups
+  const fetchGroups = () =>
+    new Promise((resolve, reject) => {
+      const searchOptions = {
+        filter: "(objectClass=posixGroup)",
+        scope: "sub",
+      };
+
+      const groups = [];
+      client.search(BASE_DN, searchOptions, (err, result) => {
+        if (err) {
+          client.unbind();
+          reject(err);
+        }
+
+        result.on("searchEntry", (entry) => {
+          const groupName =
+            entry.attributes.find((attr) => attr.type === "cn")?.vals[0] ||
+            "Unknown";
+          const gidNumber = entry.attributes.find(
+            (attr) => attr.type === "gidNumber"
+          )?.vals[0];
+          const memberUids =
+            entry.attributes.find((attr) => attr.type === "memberUid")?.vals ||
+            [];
+
+          if (groupName && gidNumber) {
+            groups.push({ groupName, gidNumber, memberUids });
+          }
+        });
+
+        result.on("end", () => {
+          resolve(groups);
+        });
+
+        result.on("error", (err) => {
+          reject(err);
+        });
       });
     });
 
   try {
-    await bindClient();
+    await bindClient(); // Bind to LDAP server
     const users = await fetchUsers();
-    res.json(users);
+    const groups = await fetchGroups();
+
+    // Utility function to extract attribute values with improved handling
+    const getAttributeValue = (attributes, type) => {
+      if (Array.isArray(attributes)) {
+        const attribute = attributes.find(
+          (attr) => attr.type === type || attr.name === type
+        );
+        if (attribute) {
+          return attribute.vals
+            ? attribute.vals[0]
+            : attribute.values
+            ? attribute.values[0]
+            : "N/A";
+        }
+      } else if (typeof attributes === "object" && attributes[type]) {
+        return attributes[type];
+      }
+      return "N/A";
+    };
+
+    // Log fetched users and groups for debugging
+    console.log("Fetched Users:", JSON.stringify(users, null, 2));
+    console.log("Fetched Groups:", JSON.stringify(groups, null, 2));
+
+    // Match each user to their respective group
+    const usersWithGroups = users.map((user) => {
+      const uid = getAttributeValue(user, "uid");
+      const gidNumber = getAttributeValue(user, "gidNumber");
+
+      // Find the group where this gidNumber or uid exists
+      const userGroup = groups.find(
+        (group) =>
+          group.gidNumber === gidNumber || group.memberUids.includes(uid)
+      );
+
+      // Add the group name to the user
+      return {
+        givenName: getAttributeValue(user, "givenName"),
+        sn: getAttributeValue(user, "sn"),
+        uid,
+        mail: getAttributeValue(user, "mail"),
+        uidNumber: getAttributeValue(user, "uidNumber"),
+        gidNumber,
+        userPassword: getAttributeValue(user, "userPassword"),
+        groupName: userGroup ? userGroup.groupName : "Unknown",
+      };
+    });
+
+    res.json(usersWithGroups); // Respond with the mapped users and groups
   } catch (err) {
     console.error("LDAP error:", err);
     res.status(500).json({ error: err.message });
@@ -134,5 +233,143 @@ exports.authenticateUserFromJson = (req, res) => {
     } else {
       res.status(401).json({ message: "Invalid credentials" });
     }
+  });
+};
+
+// Login using PMD LDAP credentials by username
+exports.getUserByUsername = async (req, res) => {
+  const username = req.params.username;
+  console.log("Received request for username:", username);
+
+  const client = createLdapClient();
+
+  const bindClient = () =>
+    new Promise((resolve, reject) => {
+      client.bind(BIND_DN, BIND_PASSWORD, (err) => {
+        if (err) {
+          client.unbind((unbindErr) => {
+            if (unbindErr) {
+              console.error("LDAP unbind error:", unbindErr);
+            }
+          });
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+
+  const searchLDAP = () =>
+    new Promise((resolve, reject) => {
+      const searchOptions = {
+        filter: `(uid=${username})`,
+        scope: "sub",
+        attributes: ["cn", "sn", "mail", "uid", "userPassword"], // Specify the attributes to retrieve
+      };
+
+      const user = {};
+
+      client.search(BASE_DN, searchOptions, (err, result) => {
+        if (err) {
+          client.unbind((unbindErr) => {
+            if (unbindErr) {
+              console.error("LDAP unbind error:", unbindErr);
+            }
+          });
+          reject(err);
+        }
+
+        result.on("searchEntry", (entry) => {
+          entry.attributes.forEach((attribute) => {
+            if (attribute.type === "userPassword") {
+              user[attribute.type] = attribute.vals[0];
+            } else {
+              user[attribute.type] = attribute.vals;
+            }
+          });
+        });
+
+        result.on("end", () => {
+          client.unbind((unbindErr) => {
+            if (unbindErr) {
+              console.error("LDAP unbind error:", unbindErr);
+            }
+          });
+
+          if (Object.keys(user).length > 0) {
+            resolve(user);
+          } else {
+            reject(new Error("User not found"));
+          }
+        });
+
+        result.on("error", (err) => {
+          client.unbind((unbindErr) => {
+            if (unbindErr) {
+              console.error("LDAP unbind error:", unbindErr);
+            }
+          });
+          reject(err);
+        });
+      });
+    });
+
+  try {
+    await bindClient();
+    const user = await searchLDAP();
+    res.json(user);
+  } catch (err) {
+    console.error("LDAP error:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Retrieve groups by common name (cn)
+exports.getGroups = (req, res) => {
+  const client = createLdapClient();
+
+  client.bind(BIND_DN, BIND_PASSWORD, (err) => {
+    if (err) {
+      console.error("LDAP bind error:", err);
+      return res.status(500).json({ error: "Failed to bind to LDAP server" });
+    }
+
+    const options = {
+      filter:
+        "(|(objectClass=posixGroup)(objectClass=groupOfNames)(objectClass=groupOfUniqueNames))", // Look for any group-related objectClass
+      scope: "sub",
+      attributes: ["cn", "gidNumber"], // Request the cn and gidNumber
+    };
+
+    const groups = [];
+    client.search(process.env.GROUP_BASE_DN, options, (err, result) => {
+      if (err) {
+        console.error("LDAP search error:", err);
+        client.unbind();
+        return res.status(500).json({ error: "LDAP search error" });
+      }
+
+      result.on("searchEntry", (entry) => {
+        if (entry.object) {
+          console.log("Group entry found:", entry.object);
+          groups.push({
+            cn: entry.object.cn || "N/A",
+            gidNumber: entry.object.gidNumber || "N/A",
+          });
+        }
+      });
+
+      result.on("end", (result) => {
+        console.log("LDAP search completed with result status:", result.status);
+        client.unbind();
+        res.json(groups);
+      });
+
+      result.on("error", (err) => {
+        console.error("LDAP search error:", err);
+        client.unbind();
+        res.status(500).json({ error: "LDAP search error" });
+      });
+    });
   });
 };

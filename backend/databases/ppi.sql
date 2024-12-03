@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 02, 2024 at 09:56 AM
+-- Generation Time: Dec 03, 2024 at 09:28 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -114,7 +114,8 @@ INSERT INTO `available_apps` (`id`, `user_id`, `app_id`, `ldap_group_cn`) VALUES
 (3910, 22, 1, ''),
 (3911, 22, 4, ''),
 (3912, 22, 6, ''),
-(3913, 22, 25, '');
+(3913, 22, 25, ''),
+(3914, 21, 4, '');
 
 -- --------------------------------------------------------
 
@@ -578,10 +579,7 @@ CREATE TABLE `events` (
 --
 
 INSERT INTO `events` (`id`, `eventName`, `date`, `time`, `location_id`, `recurrence`, `created_at`, `updated_at`) VALUES
-(11, 'PANATA', '2024-11-25', '08:30:00', 1, 'weekly', '2024-11-29 05:51:10', '2024-11-29 06:12:36'),
-(12, 'PANATA', '2024-12-02', '08:30:00', 1, 'weekly', '2024-11-29 05:51:10', '2024-11-29 05:51:10'),
-(13, 'PANATA', '2024-12-09', '08:30:00', 1, 'weekly', '2024-11-29 05:51:10', '2024-11-29 05:51:10'),
-(14, 'PANATA', '2024-12-16', '08:30:00', 1, 'weekly', '2024-11-29 05:51:10', '2024-11-29 05:51:10');
+(11, 'PANATA', '2024-11-25', '08:30:00', 1, 'weekly', '2024-11-29 05:51:10', '2024-11-29 06:12:36');
 
 -- --------------------------------------------------------
 
@@ -781,7 +779,8 @@ CREATE TABLE `locations` (
 
 INSERT INTO `locations` (`id`, `name`, `created_at`, `updated_at`) VALUES
 (1, 'MPH', '2024-11-29 05:13:47', '2024-11-29 05:58:14'),
-(3, 'Chapel 1', '2024-11-29 06:03:30', '2024-11-29 06:03:30');
+(3, 'Chapel 1', '2024-11-29 06:03:30', '2024-11-29 06:03:30'),
+(4, 'Chapel 2', '2024-12-03 07:51:05', '2024-12-03 07:51:05');
 
 -- --------------------------------------------------------
 
@@ -1672,21 +1671,21 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (4, 'rmmalabanan', NULL, NULL, 'rmmalabanan', '{MD5}dDdpUA4QjNwSG35UEFTD9Q==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (5, 'mcenriquez', NULL, '', 'mcenriquez', '{SSHA}K5M+sv8gd5M7zoxTutWZWQlDBUgpU9uu', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (6, 'pcdiaz', NULL, '', 'pcdiaz', '{MD5}cRox3Dh47pUtklaRnQMF9w==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(7, 'dvillamarzo', NULL, NULL, 'dvillamarzo', '{MD5}sUVO9gmCQXVMEGWc18MiVQ==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
+(7, 'dvillamarzo', NULL, '', 'dvillamarzo', '{MD5}sUVO9gmCQXVMEGWc18MiVQ==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (8, 'jcabacungan', NULL, '', 'jcabacungan', '{MD5}ciPSWmnDFftvBezZ3JZR7Q==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(9, 'jsarmiento', NULL, NULL, 'jsarmiento', '{MD5}4xlkqIDIMJQNZdevSRDPkg==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
+(9, 'jsarmiento', NULL, '', 'jsarmiento', '{MD5}4xlkqIDIMJQNZdevSRDPkg==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (10, 'kdeleon', NULL, '', 'kdeleon', '{MD5}jquH4+vzqn9KN0mZlEs2ew==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (11, 'jalcantara', NULL, '', 'jalcantara', '{MD5}0IyoNQCSDDbEMKLla4SxoQ==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (12, 'dpareña', NULL, '', 'dpareña', '{MD5}zemE0W2p/+wTKn1Bn8fGUQ==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (13, 'rporcado', NULL, '', 'rporcado', '{SSHA}O0qjoUzs1AgMpzE7Ig3HURYjjKNLduyN', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(14, 'rdprestoza', NULL, NULL, 'rdprestoza', '{MD5}MAvZAgOvfEpDo3OKrwzNHw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
+(14, 'rdprestoza', NULL, '', 'rdprestoza', '{MD5}MAvZAgOvfEpDo3OKrwzNHw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (15, 'kvdematera', NULL, '', 'kvdematera', '{SSHA}+728w4RErOoPkuPO2W5zP1n6+cAkj1Ru', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (16, 'rreyes', NULL, NULL, 'rreyes', '{MD5}WDUuJDKCc7XD+0pC/8DHwg==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (17, 'zpetorio', NULL, NULL, 'zpetorio', '{SSHA}Q2+NyJ1+Fhx4XN6H1W7n3xvmqmHK0Gvc', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (18, 'ATG', NULL, '', 'ATG', '{MD5}jMnoutNavel8/QA7J2mK3g==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (19, 'pmdit', NULL, NULL, 'pmdit', '{SSHA}1c2pNTw54K4Avjn7GQ90PMyXBD714zOt', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (20, 'atgstaff', NULL, NULL, 'atgstaff', '{SSHA}gy6OWTydaQLnRY11qhdccao0Add7gNdz', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(21, 'eeustaquio', NULL, NULL, 'eeustaquio', '{MD5}tRnpZ0iqYDF7QA4j1EFfkw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
+(21, 'eeustaquio', NULL, '', 'eeustaquio', '{MD5}tRnpZ0iqYDF7QA4j1EFfkw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (22, 'rolandkim.amaro', NULL, '/uploads/avatar/1732955269835_KIM.jpg', 'rolandkim.amaro', '{MD5}Mo44VG5oZyexF0jNwGQNiQ==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (23, 'test', NULL, NULL, 'test', '{SSHA}fwON2kpe0RkoPqda45A4uC7TfiXvd+Yh', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (24, 'kyrt.jurada', NULL, '', 'kyrt.jurada', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
@@ -1709,7 +1708,7 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (41, 'user.a', NULL, NULL, 'user.a', '{SSHA}GjHeaMA6xyjRtPHLc6oR+JTnmTIeJYv7', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (42, 'neu.stf', NULL, NULL, 'neu.stf', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (43, 'executive.news', NULL, NULL, 'executive.news', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(44, 'pmd.it', NULL, NULL, 'pmd.it', '{SSHA}LYVyCEUbqbnRdJMh/NGuR38z6zbsDKG+', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
+(44, 'pmd.it', NULL, '', 'pmd.it', '{SSHA}LYVyCEUbqbnRdJMh/NGuR38z6zbsDKG+', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (45, 'r.deguzman', NULL, NULL, 'r.deguzman', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (46, 'felix.pareja', 8, '/uploads/avatar/1732846376187_image.jpg', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-28 13:25:36'),
 (47, 'nsanchez', NULL, '', 'nsanchez', '{MD5}4vh3FhfOq3i3zcUJki6UBg==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
@@ -1824,15 +1823,20 @@ INSERT INTO `user_group_mappings` (`user_id`, `group_id`) VALUES
 (1, 4),
 (5, 4),
 (6, 4),
+(7, 4),
 (8, 4),
+(9, 4),
 (10, 4),
 (11, 4),
 (12, 4),
 (13, 4),
+(14, 4),
 (15, 1),
 (18, 2),
+(21, 3),
 (22, 1),
 (24, 1),
+(44, 1),
 (45, 4),
 (46, 1),
 (47, 3);
@@ -1978,7 +1982,8 @@ ALTER TABLE `educational_background`
 -- Indexes for table `events`
 --
 ALTER TABLE `events`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `events_ibfk_1` (`location_id`);
 
 --
 -- Indexes for table `family_members`
@@ -2169,7 +2174,7 @@ ALTER TABLE `apps`
 -- AUTO_INCREMENT for table `available_apps`
 --
 ALTER TABLE `available_apps`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3914;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3915;
 
 --
 -- AUTO_INCREMENT for table `children`
@@ -2247,7 +2252,7 @@ ALTER TABLE `languages`
 -- AUTO_INCREMENT for table `locations`
 --
 ALTER TABLE `locations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `login_attempts`
