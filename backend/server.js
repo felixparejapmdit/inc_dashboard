@@ -47,6 +47,8 @@ const personnelAddressesRoutes = require("./routes/personnelAddressesRoutes");
 const personnelGovIDsRoutes = require("./routes/personnelGovIDsRoutes");
 const familyMembersRoutes = require("./routes/familyMembersRoutes");
 
+const personnelImageRoutes = require("./routes/personnelImageRoutes");
+
 const departmentRoutes = require("./routes/departmentRoutes");
 const sectionsRoutes = require("./routes/sectionsRoutes");
 const subsectionsRoutes = require("./routes/subsectionsRoutes");
@@ -86,6 +88,8 @@ app.use(personnelContactsRoutes);
 app.use(personnelAddressesRoutes);
 app.use(personnelGovIDsRoutes);
 app.use(familyMembersRoutes);
+
+app.use(personnelImageRoutes);
 
 // Management
 app.use(departmentRoutes);

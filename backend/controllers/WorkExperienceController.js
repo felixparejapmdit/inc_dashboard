@@ -13,7 +13,12 @@ module.exports = {
 
   addWorkExperience: async (req, res) => {
     try {
-      const newRecord = await WorkExperience.create(req.body);
+      // Ensure that personnel_id is set
+      const personnelId = req.body.personnel_id || 9; // Default to 9 if not provided
+      const newRecord = await WorkExperience.create({
+        ...req.body,
+        personnel_id: personnelId, // Set personnel_id explicitly
+      });
       res.status(201).json(newRecord);
     } catch (error) {
       console.error("Error adding work experience:", error);

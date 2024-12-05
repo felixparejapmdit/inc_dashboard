@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   VStack,
   Box,
@@ -19,6 +19,8 @@ import {
   ModalBody,
   ModalCloseButton,
   Heading,
+  Grid,
+  GridItem,
 } from "@chakra-ui/react";
 import { BsUpload } from "react-icons/bs";
 import { MdPhotoCamera } from "react-icons/md";
@@ -30,6 +32,20 @@ const Step2 = ({ personnelId, onSaveImage }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const toast = useToast();
+  const [imageList, setImageList] = useState([]);
+
+  useEffect(() => {
+    fetch(
+      `${process.env.REACT_APP_API_URL}/api/personnel_images/${personnelId}`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setImageList(data.data); // Maintain a list of uploaded images
+        }
+      })
+      .catch((err) => console.error("Error fetching images:", err));
+  }, [personnelId]);
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
@@ -97,21 +113,49 @@ const Step2 = ({ personnelId, onSaveImage }) => {
     }
   };
 
-  const handleSaveImage = () => {
+  const handleSaveImage = async () => {
     if (image) {
       const payload = {
-        personnel_id: personnelId,
+        personnel_id: 9,
         type: `${imageSize} Picture`,
         image_url: image,
         created_at: new Date().toISOString(),
       };
-      onSaveImage(payload);
-      toast({
-        title: "Image saved successfully",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+
+      try {
+        // Assuming you have an API endpoint for saving images
+        const response = await fetch(
+          `${process.env.REACT_APP_API_URL}/api/personnel_images`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          }
+        );
+
+        if (response.ok) {
+          toast({
+            title: "Image saved successfully",
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
+          setImage(null); // Reset the image after saving
+        } else {
+          const error = await response.json();
+          throw new Error(error.message || "Failed to save the image.");
+        }
+      } catch (err) {
+        toast({
+          title: "Error saving image",
+          description: err.message || "Something went wrong. Please try again.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
     } else {
       toast({
         title: "No image to save",
@@ -165,7 +209,6 @@ const Step2 = ({ personnelId, onSaveImage }) => {
         alignItems="center"
         justifyContent="center"
         cursor="pointer"
-        transition="all 0.3s"
         _hover={{ bg: "yellow.200" }}
       >
         {image ? (
@@ -212,13 +255,40 @@ const Step2 = ({ personnelId, onSaveImage }) => {
           onClick={handleSaveImage}
           colorScheme="yellow"
           fontWeight="bold"
-          mt={4}
+          isDisabled={!image}
         >
           Submit Now
         </Button>
       </HStack>
 
-      {/* Modal for Camera */}
+      <VStack spacing={6} align="center" mt={6}>
+        <Heading as="h3" size="md">
+          Saved Images
+        </Heading>
+        <Grid templateColumns="repeat(auto-fill, minmax(150px, 1fr))" gap={4}>
+          {imageList.map((img) => (
+            <GridItem key={img.id}>
+              <Box
+                borderRadius="md"
+                overflow="hidden"
+                border="1px solid"
+                borderColor="gray.200"
+              >
+                <Image
+                  src={img.image_url}
+                  alt={img.type}
+                  boxSize="150px"
+                  objectFit="cover"
+                />
+                <Text fontSize="sm" textAlign="center" mt={2}>
+                  {img.type}
+                </Text>
+              </Box>
+            </GridItem>
+          ))}
+        </Grid>
+      </VStack>
+
       <Modal isOpen={isCameraOpen} onClose={closeCamera}>
         <ModalOverlay />
         <ModalContent>

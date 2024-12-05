@@ -10,8 +10,16 @@ import {
   IconButton,
   Grid,
   GridItem,
+  Table,
+  Tbody,
+  Tr,
+  Td,
+  useToast,
 } from "@chakra-ui/react";
 import { EditIcon, DeleteIcon, CheckIcon } from "@chakra-ui/icons";
+import axios from "axios";
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 const Step7 = () => {
   const [spouses, setSpouses] = useState([
@@ -21,14 +29,26 @@ const Step7 = () => {
       middleName: "",
       lastName: "",
       suffix: "",
-      gender: "",
+      gender: "Male",
       bloodType: "",
       civilStatus: "",
       dateOfBirth: "",
+      dateOfMarriage: "",
+      placeOfMarriage: "",
+      citizenship: "",
+      nationality: "",
       contactNumber: "",
+      churchDuties: "",
+      livelihood: "",
+      localCongregation: "",
+      districtId: "",
+      ministerOfficiated: "",
       employmentType: "",
       company: "",
+      address: "",
       position: "",
+      department: "",
+      section: "",
       startDate: "",
       endDate: "",
       reasonForLeaving: "",
@@ -37,9 +57,10 @@ const Step7 = () => {
       completionYear: "",
       school: "",
       fieldOfStudy: "",
+      degree: "",
       institution: "",
       professionalLicensureExamination: "",
-      isEditing: true,
+      isEditing: true, // Default is true for editable fields on load
     },
   ]);
 
@@ -51,14 +72,26 @@ const Step7 = () => {
         middleName: "",
         lastName: "",
         suffix: "",
-        gender: "",
+        gender: "Male",
         bloodType: "",
         civilStatus: "",
         dateOfBirth: "",
+        dateOfMarriage: "",
+        placeOfMarriage: "",
+        citizenship: "",
+        nationality: "",
         contactNumber: "",
+        churchDuties: "",
+        livelihood: "",
+        localCongregation: "",
+        districtId: "",
+        ministerOfficiated: "",
         employmentType: "",
         company: "",
+        address: "",
         position: "",
+        department: "",
+        section: "",
         startDate: "",
         endDate: "",
         reasonForLeaving: "",
@@ -67,9 +100,10 @@ const Step7 = () => {
         completionYear: "",
         school: "",
         fieldOfStudy: "",
+        degree: "",
         institution: "",
         professionalLicensureExamination: "",
-        isEditing: true,
+        isEditing: true, // Default to true for new spouses
       },
     ]);
   };
@@ -89,6 +123,122 @@ const Step7 = () => {
 
   const handleDeleteSpouse = (index) => {
     setSpouses(spouses.filter((_, i) => i !== index));
+  };
+
+  const [loading, setLoading] = useState(false);
+  const toast = useToast();
+
+  const handleSaveOrUpdate = async (index) => {
+    setLoading(true);
+    const spouse = spouses[index];
+    const {
+      id,
+      isEditing,
+      relationshipType,
+      givenName,
+      lastName,
+      gender,
+      ...spousesData
+    } = spouse;
+
+    // Map frontend fields to backend fields
+    const formattedData = {
+      ...spousesData,
+      givenname: givenName,
+      lastname: lastName, // Ensure lastname is sent
+      gender: gender, // Ensure gender is sent
+      relationship_type: relationshipType,
+      personnel_id: spousesData.personnel_id || 8,
+    };
+
+    // Validate required fields before saving/updating
+    const requiredFields = [
+      "personnel_id",
+      "relationship_type",
+      "givenname",
+      "lastname",
+      "gender",
+    ];
+    for (const field of requiredFields) {
+      if (
+        !formattedData[field] ||
+        (typeof formattedData[field] === "string" &&
+          formattedData[field].trim() === "")
+      ) {
+        toast({
+          title: "Validation Error",
+          description: `The field ${field} is required for ${relationshipType}.`,
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
+    }
+
+    try {
+      if (id) {
+        // Update existing spouses record
+        const response = await axios.put(
+          `${API_URL}/api/family-members/${id}`,
+          formattedData
+        );
+        const updatedspouses = response.data;
+
+        setSpouses((prev) =>
+          prev.map((item, i) =>
+            i === index ? { ...updatedspouses, isEditing: false } : item
+          )
+        );
+
+        toast({
+          title: "spouses Information Updated",
+          description: `${relationshipType} information has been updated successfully.`,
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        // Save new spouses record
+        const response = await axios.post(
+          `${API_URL}/api/family-members`,
+          formattedData
+        );
+        const savedspouses = response.data;
+
+        setSpouses((prev) =>
+          prev.map((item, i) =>
+            i === index
+              ? { ...item, id: savedspouses.id, isEditing: false }
+              : item
+          )
+        );
+
+        toast({
+          title: "spouses Information Saved",
+          description: `${relationshipType} information has been saved successfully.`,
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    } catch (error) {
+      console.error(
+        "Error saving/updating spouses information:",
+        error.response
+      );
+      toast({
+        title: "Error",
+        description: `Failed to save/update ${relationshipType} information. ${
+          error.response?.data?.message || "Please check the data."
+        }`,
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -114,224 +264,495 @@ const Step7 = () => {
               onClick={() => handleDeleteSpouse(index)}
             />
           </HStack>
-          <Grid templateColumns="repeat(4, 1fr)" gap={4} w="100%">
-            {/* Basic Information */}
-            <GridItem colSpan={1}>
-              <Input
-                placeholder="Given Name"
-                value={spouse.givenName}
-                onChange={(e) =>
-                  handleSpouseChange(index, "givenName", e.target.value)
-                }
-              />
-            </GridItem>
-            <GridItem colSpan={1}>
-              <Input
-                placeholder="Middle Name"
-                value={spouse.middleName}
-                onChange={(e) =>
-                  handleSpouseChange(index, "middleName", e.target.value)
-                }
-              />
-            </GridItem>
-            <GridItem colSpan={1}>
-              <Input
-                placeholder="Last Name"
-                value={spouse.lastName}
-                onChange={(e) =>
-                  handleSpouseChange(index, "lastName", e.target.value)
-                }
-              />
-            </GridItem>
-            <GridItem colSpan={1}>
-              <Input
-                placeholder="Suffix"
-                value={spouse.suffix}
-                onChange={(e) =>
-                  handleSpouseChange(index, "suffix", e.target.value)
-                }
-              />
-            </GridItem>
 
-            {/* Additional Information */}
-            <GridItem colSpan={1}>
-              <Select
-                placeholder="Gender"
-                value={spouse.gender}
-                onChange={(e) =>
-                  handleSpouseChange(index, "gender", e.target.value)
-                }
-              >
-                <option>Male</option>
-                <option>Female</option>
-              </Select>
-            </GridItem>
-            <GridItem colSpan={1}>
-              <Input
-                placeholder="Blood Type"
-                value={spouse.bloodType}
-                onChange={(e) =>
-                  handleSpouseChange(index, "bloodType", e.target.value)
-                }
-              />
-            </GridItem>
-            <GridItem colSpan={1}>
-              <Select
-                placeholder="Civil Status"
-                value={spouse.civilStatus}
-                onChange={(e) =>
-                  handleSpouseChange(index, "civilStatus", e.target.value)
-                }
-              >
-                <option>Single</option>
-                <option>Married</option>
-                <option>Widowed</option>
-                <option>Divorced</option>
-              </Select>
-            </GridItem>
-            <GridItem colSpan={1}>
-              <Input
-                placeholder="Date of Birth"
-                type="date"
-                value={spouse.dateOfBirth}
-                onChange={(e) =>
-                  handleSpouseChange(index, "dateOfBirth", e.target.value)
-                }
-              />
-            </GridItem>
+          <Table
+            key={spouse.id || spouse.generatedId}
+            size="md"
+            variant="simple"
+          >
+            <Tbody>
+              {/* Header */}
+              <Tr>
+                <Td colSpan={4} fontWeight="bold" fontSize="md">
+                  {spouse.relationshipType}
+                </Td>
+              </Tr>
 
-            {/* Educational Information */}
-            <GridItem colSpan={1}>
-              <Input
-                placeholder="Education Level"
-                value={spouse.educationLevel}
-                onChange={(e) =>
-                  handleSpouseChange(index, "educationLevel", e.target.value)
-                }
-              />
-            </GridItem>
-            <GridItem colSpan={1}>
-              <Input
-                placeholder="Start Year"
-                type="number"
-                value={spouse.startYear}
-                onChange={(e) =>
-                  handleSpouseChange(index, "startYear", e.target.value)
-                }
-              />
-            </GridItem>
-            <GridItem colSpan={1}>
-              <Input
-                placeholder="Completion Year"
-                type="number"
-                value={spouse.completionYear}
-                onChange={(e) =>
-                  handleSpouseChange(index, "completionYear", e.target.value)
-                }
-              />
-            </GridItem>
-            <GridItem colSpan={1}>
-              <Input
-                placeholder="School"
-                value={spouse.school}
-                onChange={(e) =>
-                  handleSpouseChange(index, "school", e.target.value)
-                }
-              />
-            </GridItem>
-            <GridItem colSpan={1}>
-              <Input
-                placeholder="Field of Study"
-                value={spouse.fieldOfStudy}
-                onChange={(e) =>
-                  handleSpouseChange(index, "fieldOfStudy", e.target.value)
-                }
-              />
-            </GridItem>
+              {/* Personal Information */}
+              <Tr bg="gray.50">
+                <Td colSpan={4}>
+                  <Text fontWeight="bold">Personal Information</Text>
+                </Td>
+              </Tr>
+              <Tr>
+                <Td>
+                  <Input
+                    placeholder="Given Name"
+                    value={spouses.givenName}
+                    onChange={(e) =>
+                      handleSpouseChange(index, "givenName", e.target.value)
+                    }
+                    isDisabled={!spouses.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Middle Name"
+                    value={spouses.middleName}
+                    onChange={(e) =>
+                      handleSpouseChange(index, "middleName", e.target.value)
+                    }
+                    isDisabled={!spouses.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Last Name"
+                    value={spouses.lastName}
+                    onChange={(e) =>
+                      handleSpouseChange(index, "lastName", e.target.value)
+                    }
+                    isDisabled={!spouses.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Suffix"
+                    value={spouses.suffix}
+                    onChange={(e) =>
+                      handleSpouseChange(index, "suffix", e.target.value)
+                    }
+                    isDisabled={!spouse.isEditing}
+                  />
+                </Td>
+              </Tr>
+              <Tr>
+                <Td>
+                  <Select
+                    placeholder="Gender"
+                    value={spouses.gender}
+                    onChange={(e) =>
+                      handleSpouseChange(index, "gender", e.target.value)
+                    }
+                    isDisabled={!spouse.isEditing}
+                  >
+                    <option>Male</option>
+                    <option>Female</option>
+                  </Select>
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Date of Birth"
+                    type="date"
+                    value={spouses.dateOfBirth}
+                    onChange={(e) =>
+                      handleSpouseChange(index, "dateOfBirth", e.target.value)
+                    }
+                    isDisabled={!spouse.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Contact Number"
+                    value={spouses.contactNumber}
+                    onChange={(e) =>
+                      handleSpouseChange(index, "contactNumber", e.target.value)
+                    }
+                    isDisabled={!spouses.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Select
+                    placeholder="Blood Type"
+                    value={spouses.bloodType}
+                    onChange={(e) =>
+                      handleSpouseChange(index, "bloodType", e.target.value)
+                    }
+                    isDisabled={!spouses.isEditing}
+                  >
+                    <option>A</option>
+                    <option>B</option>
+                    <option>AB</option>
+                    <option>O</option>
+                  </Select>
+                </Td>
+              </Tr>
+              <Tr>
+                <Td>
+                  <Input
+                    placeholder="Civil Status"
+                    value={spouses.civilStatus}
+                    onChange={(e) =>
+                      handleSpouseChange(index, "civilStatus", e.target.value)
+                    }
+                    isDisabled={!spouses.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Place of Marriage"
+                    value={spouses.placeOfMarriage}
+                    onChange={(e) =>
+                      handleSpouseChange(
+                        index,
+                        "placeOfMarriage",
+                        e.target.value
+                      )
+                    }
+                    isDisabled={!spouses.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Select
+                    placeholder="Citizenship"
+                    value={spouses.citizenship}
+                    onChange={(e) =>
+                      handleSpouseChange(index, "citizenship", e.target.value)
+                    }
+                    isDisabled={!spouses.isEditing}
+                  >
+                    <option>Filipino</option>
+                    <option>Other</option>
+                  </Select>
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Nationality"
+                    value={spouses.nationality}
+                    onChange={(e) =>
+                      handleSpouseChange(index, "nationality", e.target.value)
+                    }
+                    isDisabled={!spouses.isEditing}
+                  />
+                </Td>
+              </Tr>
+              <Tr>
+                <Td>
+                  <Input
+                    placeholder="Church Duties"
+                    value={spouses.churchDuties}
+                    onChange={(e) =>
+                      handleSpouseChange(index, "churchDuties", e.target.value)
+                    }
+                    isDisabled={!spouses.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Livelihood"
+                    value={spouses.livelihood}
+                    onChange={(e) =>
+                      handleSpouseChange(index, "livelihood", e.target.value)
+                    }
+                    isDisabled={!spouses.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Local Congregation"
+                    value={spouses.localCongregation}
+                    onChange={(e) =>
+                      handleSpouseChange(
+                        index,
+                        "localCongregation",
+                        e.target.value
+                      )
+                    }
+                    isDisabled={!spouses.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Select
+                    placeholder="District ID"
+                    value={spouses.districtId}
+                    onChange={(e) =>
+                      handleSpouseChange(index, "districtId", e.target.value)
+                    }
+                    isDisabled={!spouses.isEditing}
+                  >
+                    <option>District 1</option>
+                    <option>District 2</option>
+                    <option>District 3</option>
+                  </Select>
+                </Td>
+              </Tr>
 
-            {/* Employment Information */}
-            <GridItem colSpan={1}>
-              <Select
-                placeholder="Employment Type"
-                value={spouse.employmentType}
-                onChange={(e) =>
-                  handleSpouseChange(index, "employmentType", e.target.value)
-                }
-              >
-                <option>Self-employed</option>
-                <option>Employed</option>
-                <option>Government</option>
-                <option>Private</option>
-              </Select>
-            </GridItem>
-            <GridItem colSpan={1}>
-              <Input
-                placeholder="Company"
-                value={spouse.company}
-                onChange={(e) =>
-                  handleSpouseChange(index, "company", e.target.value)
-                }
-              />
-            </GridItem>
-            <GridItem colSpan={1}>
-              <Input
-                placeholder="Position"
-                value={spouse.position}
-                onChange={(e) =>
-                  handleSpouseChange(index, "position", e.target.value)
-                }
-              />
-            </GridItem>
-            <GridItem colSpan={1}>
-              <Input
-                placeholder="Start Date"
-                type="date"
-                value={spouse.startDate}
-                onChange={(e) =>
-                  handleSpouseChange(index, "startDate", e.target.value)
-                }
-              />
-            </GridItem>
-            <GridItem colSpan={1}>
-              <Input
-                placeholder="End Date"
-                type="date"
-                value={spouse.endDate}
-                onChange={(e) =>
-                  handleSpouseChange(index, "endDate", e.target.value)
-                }
-              />
-            </GridItem>
-            <GridItem colSpan={1}>
-              <Input
-                placeholder="Reason for Leaving"
-                value={spouse.reasonForLeaving}
-                onChange={(e) =>
-                  handleSpouseChange(index, "reasonForLeaving", e.target.value)
-                }
-              />
-            </GridItem>
-          </Grid>
-          <HStack spacing={2} mt={4}>
-            {spouse.isEditing ? (
-              <IconButton
-                icon={<CheckIcon />}
-                colorScheme="green"
-                onClick={() => toggleEditSpouse(index)}
-              />
-            ) : (
-              <IconButton
-                icon={<EditIcon />}
-                colorScheme="blue"
-                onClick={() => toggleEditSpouse(index)}
-              />
-            )}
-            <IconButton
-              icon={<DeleteIcon />}
-              colorScheme="red"
-              onClick={() => handleDeleteSpouse(index)}
-            />
-          </HStack>
+              <Tr>
+                <Td>
+                  <Input
+                    placeholder="Minister Officiated"
+                    value={spouses.ministerOfficiated}
+                    onChange={(e) =>
+                      handleSpouseChange(
+                        index,
+                        "ministerOfficiated",
+                        e.target.value
+                      )
+                    }
+                    isDisabled={!spouses.isEditing}
+                  />
+                </Td>
+              </Tr>
+
+              {/* Work Information Section */}
+              <Tr bg="gray.50">
+                <Td colSpan={4}>
+                  <Text fontWeight="bold">Work Information</Text>
+                </Td>
+              </Tr>
+              <Tr>
+                <Td>
+                  <Select
+                    placeholder="Employment Type"
+                    value={spouses.employmentType}
+                    onChange={(e) =>
+                      handleSpouseChange(
+                        index,
+                        "employmentType",
+                        e.target.value
+                      )
+                    }
+                    isDisabled={!spouses.isEditing}
+                  >
+                    <option>Self-employed</option>
+                    <option>Employed</option>
+                    <option>Government</option>
+                    <option>Private</option>
+                  </Select>
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Company"
+                    value={spouses.company}
+                    onChange={(e) =>
+                      handleSpouseChange(index, "company", e.target.value)
+                    }
+                    isDisabled={!spouses.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Position"
+                    value={spouses.position}
+                    onChange={(e) =>
+                      handleSpouseChange(index, "position", e.target.value)
+                    }
+                    isDisabled={!spouses.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Address"
+                    value={spouses.address}
+                    onChange={(e) =>
+                      handleSpouseChange(index, "address", e.target.value)
+                    }
+                    isDisabled={!spouses.isEditing}
+                  />
+                </Td>
+              </Tr>
+              <Tr>
+                <Td>
+                  <Input
+                    placeholder="Department"
+                    value={spouses.department}
+                    onChange={(e) =>
+                      handleSpouseChange(index, "department", e.target.value)
+                    }
+                    isDisabled={!spouses.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Section"
+                    value={spouses.section}
+                    onChange={(e) =>
+                      handleSpouseChange(index, "section", e.target.value)
+                    }
+                    isDisabled={!spouses.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Start Date"
+                    type="date"
+                    value={spouses.startDate}
+                    onChange={(e) =>
+                      handleSpouseChange(index, "startDate", e.target.value)
+                    }
+                    isDisabled={!spouses.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="End Date"
+                    type="date"
+                    value={spouses.endDate}
+                    onChange={(e) =>
+                      handleSpouseChange(index, "endDate", e.target.value)
+                    }
+                    isDisabled={!spouses.isEditing}
+                  />
+                </Td>
+              </Tr>
+              <Tr>
+                <Td>
+                  <Input
+                    placeholder="Reason for Leaving"
+                    value={spouses.reasonForLeaving}
+                    onChange={(e) =>
+                      handleSpouseChange(
+                        index,
+                        "reasonForLeaving",
+                        e.target.value
+                      )
+                    }
+                    isDisabled={!spouses.isEditing}
+                  />
+                </Td>
+              </Tr>
+
+              {/* Educational Information Section */}
+              <Tr bg="gray.50">
+                <Td colSpan={4}>
+                  <Text fontWeight="bold">Educational Information</Text>
+                </Td>
+              </Tr>
+              <Tr>
+                <Td>
+                  <Select
+                    placeholder="Education Level"
+                    value={spouses.educationLevel}
+                    onChange={(e) =>
+                      handleSpouseChange(
+                        index,
+                        "educationLevel",
+                        e.target.value
+                      )
+                    }
+                    isDisabled={!spouses.isEditing}
+                  >
+                    <option>Elementary</option>
+                    <option>Secondary</option>
+                    <option>Senior High School</option>
+                    <option>College</option>
+                  </Select>
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="School"
+                    value={spouses.school}
+                    onChange={(e) =>
+                      handleSpouseChange(index, "school", e.target.value)
+                    }
+                    isDisabled={!spouses.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Field of Study"
+                    value={spouses.fieldOfStudy}
+                    onChange={(e) =>
+                      handleSpouseChange(index, "fieldOfStudy", e.target.value)
+                    }
+                    isDisabled={!spouses.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Degree"
+                    value={spouses.degree}
+                    onChange={(e) =>
+                      handleSpouseChange(index, "degree", e.target.value)
+                    }
+                    isDisabled={!spouses.isEditing}
+                  />
+                </Td>
+              </Tr>
+              <Tr>
+                <Td>
+                  <Input
+                    placeholder="Institution"
+                    value={spouses.institution}
+                    onChange={(e) =>
+                      handleSpouseChange(index, "institution", e.target.value)
+                    }
+                    isDisabled={!spouses.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Professional Licensure"
+                    value={spouses.professionalLicensureExamination}
+                    onChange={(e) =>
+                      handleSpouseChange(
+                        index,
+                        "professionalLicensureExamination",
+                        e.target.value
+                      )
+                    }
+                    isDisabled={!spouses.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Start Year"
+                    type="number"
+                    value={spouses.startYear}
+                    onChange={(e) =>
+                      handleSpouseChange(index, "startYear", e.target.value)
+                    }
+                    isDisabled={!spouses.isEditing}
+                  />
+                </Td>
+                <Td>
+                  <Input
+                    placeholder="Completion Year"
+                    type="number"
+                    value={spouses.completionYear}
+                    onChange={(e) =>
+                      handleSpouseChange(
+                        index,
+                        "completionYear",
+                        e.target.value
+                      )
+                    }
+                    isDisabled={!spouses.isEditing}
+                  />
+                </Td>
+              </Tr>
+
+              {/* Save and Edit Button */}
+              <Tr>
+                <Td colSpan={4} textAlign="center">
+                  {spouse.isEditing ? (
+                    <IconButton
+                      icon={<CheckIcon />}
+                      colorScheme="green"
+                      onClick={
+                        () =>
+                          spouses.isEditing
+                            ? handleSaveOrUpdate(index) // Save on check
+                            : handleSpouseChange(index, "isEditing", true) // Enable editing
+                      }
+                    />
+                  ) : (
+                    <IconButton
+                      icon={<EditIcon />}
+                      colorScheme="blue"
+                      onClick={() => toggleEditSpouse(index)}
+                    />
+                  )}
+                  <IconButton
+                    icon={<DeleteIcon />}
+                    colorScheme="red"
+                    onClick={() => handleDeleteSpouse(index)}
+                  />
+                </Td>
+              </Tr>
+            </Tbody>
+          </Table>
+          <HStack spacing={2} mt={4}></HStack>
         </VStack>
       ))}
 
