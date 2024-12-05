@@ -178,6 +178,7 @@ const Step7 = () => {
 
     try {
       if (id) {
+        alert(id);
         // Update existing spouses record
         const response = await axios.put(
           `${API_URL}/api/family-members/${id}`,
@@ -204,8 +205,9 @@ const Step7 = () => {
           `${API_URL}/api/family-members`,
           formattedData
         );
+        alert(response.data);
         const savedspouses = response.data;
-
+alert(savedspouses);
         setSpouses((prev) =>
           prev.map((item, i) =>
             i === index
@@ -256,15 +258,6 @@ const Step7 = () => {
           bg="gray.50"
           spacing={4}
         >
-          <HStack w="100%" justify="space-between">
-            <Text fontWeight="bold">Spouse #{index + 1}</Text>
-            <IconButton
-              icon={<DeleteIcon />}
-              colorScheme="red"
-              onClick={() => handleDeleteSpouse(index)}
-            />
-          </HStack>
-
           <Table
             key={spouse.id || spouse.generatedId}
             size="md"
@@ -292,7 +285,7 @@ const Step7 = () => {
                     onChange={(e) =>
                       handleSpouseChange(index, "givenName", e.target.value)
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   />
                 </Td>
                 <Td>
@@ -302,7 +295,7 @@ const Step7 = () => {
                     onChange={(e) =>
                       handleSpouseChange(index, "middleName", e.target.value)
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   />
                 </Td>
                 <Td>
@@ -312,7 +305,7 @@ const Step7 = () => {
                     onChange={(e) =>
                       handleSpouseChange(index, "lastName", e.target.value)
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   />
                 </Td>
                 <Td>
@@ -358,7 +351,7 @@ const Step7 = () => {
                     onChange={(e) =>
                       handleSpouseChange(index, "contactNumber", e.target.value)
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   />
                 </Td>
                 <Td>
@@ -368,7 +361,7 @@ const Step7 = () => {
                     onChange={(e) =>
                       handleSpouseChange(index, "bloodType", e.target.value)
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   >
                     <option>A</option>
                     <option>B</option>
@@ -385,7 +378,7 @@ const Step7 = () => {
                     onChange={(e) =>
                       handleSpouseChange(index, "civilStatus", e.target.value)
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   />
                 </Td>
                 <Td>
@@ -399,7 +392,7 @@ const Step7 = () => {
                         e.target.value
                       )
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   />
                 </Td>
                 <Td>
@@ -409,7 +402,7 @@ const Step7 = () => {
                     onChange={(e) =>
                       handleSpouseChange(index, "citizenship", e.target.value)
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   >
                     <option>Filipino</option>
                     <option>Other</option>
@@ -422,7 +415,7 @@ const Step7 = () => {
                     onChange={(e) =>
                       handleSpouseChange(index, "nationality", e.target.value)
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   />
                 </Td>
               </Tr>
@@ -434,7 +427,7 @@ const Step7 = () => {
                     onChange={(e) =>
                       handleSpouseChange(index, "churchDuties", e.target.value)
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   />
                 </Td>
                 <Td>
@@ -444,7 +437,7 @@ const Step7 = () => {
                     onChange={(e) =>
                       handleSpouseChange(index, "livelihood", e.target.value)
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   />
                 </Td>
                 <Td>
@@ -458,7 +451,7 @@ const Step7 = () => {
                         e.target.value
                       )
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   />
                 </Td>
                 <Td>
@@ -468,7 +461,7 @@ const Step7 = () => {
                     onChange={(e) =>
                       handleSpouseChange(index, "districtId", e.target.value)
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   >
                     <option>District 1</option>
                     <option>District 2</option>
@@ -489,7 +482,7 @@ const Step7 = () => {
                         e.target.value
                       )
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   />
                 </Td>
               </Tr>
@@ -512,7 +505,7 @@ const Step7 = () => {
                         e.target.value
                       )
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   >
                     <option>Self-employed</option>
                     <option>Employed</option>
@@ -527,7 +520,7 @@ const Step7 = () => {
                     onChange={(e) =>
                       handleSpouseChange(index, "company", e.target.value)
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   />
                 </Td>
                 <Td>
@@ -537,7 +530,7 @@ const Step7 = () => {
                     onChange={(e) =>
                       handleSpouseChange(index, "position", e.target.value)
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   />
                 </Td>
                 <Td>
@@ -547,7 +540,7 @@ const Step7 = () => {
                     onChange={(e) =>
                       handleSpouseChange(index, "address", e.target.value)
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   />
                 </Td>
               </Tr>
@@ -559,7 +552,7 @@ const Step7 = () => {
                     onChange={(e) =>
                       handleSpouseChange(index, "department", e.target.value)
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   />
                 </Td>
                 <Td>
@@ -569,7 +562,7 @@ const Step7 = () => {
                     onChange={(e) =>
                       handleSpouseChange(index, "section", e.target.value)
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   />
                 </Td>
                 <Td>
@@ -580,7 +573,7 @@ const Step7 = () => {
                     onChange={(e) =>
                       handleSpouseChange(index, "startDate", e.target.value)
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   />
                 </Td>
                 <Td>
@@ -591,7 +584,7 @@ const Step7 = () => {
                     onChange={(e) =>
                       handleSpouseChange(index, "endDate", e.target.value)
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   />
                 </Td>
               </Tr>
@@ -607,7 +600,7 @@ const Step7 = () => {
                         e.target.value
                       )
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   />
                 </Td>
               </Tr>
@@ -630,7 +623,7 @@ const Step7 = () => {
                         e.target.value
                       )
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   >
                     <option>Elementary</option>
                     <option>Secondary</option>
@@ -645,7 +638,7 @@ const Step7 = () => {
                     onChange={(e) =>
                       handleSpouseChange(index, "school", e.target.value)
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   />
                 </Td>
                 <Td>
@@ -655,7 +648,7 @@ const Step7 = () => {
                     onChange={(e) =>
                       handleSpouseChange(index, "fieldOfStudy", e.target.value)
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   />
                 </Td>
                 <Td>
@@ -665,7 +658,7 @@ const Step7 = () => {
                     onChange={(e) =>
                       handleSpouseChange(index, "degree", e.target.value)
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   />
                 </Td>
               </Tr>
@@ -677,7 +670,7 @@ const Step7 = () => {
                     onChange={(e) =>
                       handleSpouseChange(index, "institution", e.target.value)
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   />
                 </Td>
                 <Td>
@@ -691,7 +684,7 @@ const Step7 = () => {
                         e.target.value
                       )
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   />
                 </Td>
                 <Td>
@@ -702,7 +695,7 @@ const Step7 = () => {
                     onChange={(e) =>
                       handleSpouseChange(index, "startYear", e.target.value)
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   />
                 </Td>
                 <Td>
@@ -717,7 +710,7 @@ const Step7 = () => {
                         e.target.value
                       )
                     }
-                    isDisabled={!spouses.isEditing}
+                    isDisabled={!spouse.isEditing}
                   />
                 </Td>
               </Tr>
@@ -731,7 +724,7 @@ const Step7 = () => {
                       colorScheme="green"
                       onClick={
                         () =>
-                          spouses.isEditing
+                          spouse.isEditing
                             ? handleSaveOrUpdate(index) // Save on check
                             : handleSpouseChange(index, "isEditing", true) // Enable editing
                       }
