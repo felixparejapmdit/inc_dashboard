@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 03, 2024 at 09:28 AM
+-- Generation Time: Dec 05, 2024 at 09:55 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -555,7 +555,8 @@ CREATE TABLE `educational_background` (
 INSERT INTO `educational_background` (`id`, `personnel_id`, `level`, `startfrom`, `completion_year`, `school`, `field_of_study`, `degree`, `institution`, `professional_licensure_examination`, `created_at`, `updated_at`) VALUES
 (1, 8, 'College Graduate', 2007, 2011, 'asd', 'ASD', 'AS', 'ASD', NULL, '2024-11-20 08:53:50', '2024-11-20 08:53:50'),
 (2, 8, 'College Graduate', 2007, 2011, 'asd', 'asd', 'asd', 'asd', NULL, '2024-11-22 02:15:03', '2024-11-22 02:15:03'),
-(3, 8, 'College Graduate', 2007, 2011, 'asd', 'asd', 'asd', 'asd', NULL, '2024-11-22 02:15:32', '2024-11-22 02:15:32');
+(3, 8, 'College Graduate', 2007, 2011, 'asd', 'asd', 'asd', 'asd', NULL, '2024-11-22 02:15:32', '2024-11-22 02:15:32'),
+(4, 8, 'College Graduate', 2007, 2011, 'NEU', 'BS', 'BS', 'asd', NULL, '2024-12-05 07:55:18', '2024-12-05 07:55:18');
 
 -- --------------------------------------------------------
 
@@ -579,7 +580,18 @@ CREATE TABLE `events` (
 --
 
 INSERT INTO `events` (`id`, `eventName`, `date`, `time`, `location_id`, `recurrence`, `created_at`, `updated_at`) VALUES
-(11, 'PANATA', '2024-11-25', '08:30:00', 1, 'weekly', '2024-11-29 05:51:10', '2024-11-29 06:12:36');
+(11, 'PANATA', '2024-11-25', '08:30:00', 1, 'weekly', '2024-11-29 05:51:10', '2024-11-29 06:12:36'),
+(19, 'PANATA', '2024-12-02', '16:00:00', 3, 'daily', '2024-12-05 03:47:50', '2024-12-05 03:47:50'),
+(20, 'PANATA', '2024-12-03', '16:00:00', 3, 'daily', '2024-12-05 03:47:50', '2024-12-05 03:47:50'),
+(21, 'PANATA', '2024-12-04', '16:00:00', 3, 'daily', '2024-12-05 03:47:50', '2024-12-05 03:47:50'),
+(22, 'PANATA', '2024-12-05', '16:00:00', 3, 'daily', '2024-12-05 03:47:50', '2024-12-05 03:47:50'),
+(23, 'PANATA', '2024-12-06', '16:00:00', 3, 'daily', '2024-12-05 03:47:50', '2024-12-05 03:47:50'),
+(24, 'PANATA', '2024-12-07', '16:00:00', 3, 'daily', '2024-12-05 03:47:50', '2024-12-05 03:47:50'),
+(25, 'PANATA', '2024-12-08', '16:00:00', 3, 'daily', '2024-12-05 03:47:50', '2024-12-05 03:47:50'),
+(26, 'TRG MEETING', '2024-12-02', '13:30:00', 1, 'weekly', '2024-12-05 03:48:34', '2024-12-05 03:48:34'),
+(27, 'TRG MEETING', '2024-12-09', '13:30:00', 1, 'weekly', '2024-12-05 03:48:34', '2024-12-05 03:48:34'),
+(28, 'TRG MEETING', '2024-12-16', '13:30:00', 1, 'weekly', '2024-12-05 03:48:34', '2024-12-05 03:48:34'),
+(29, 'TRG MEETING', '2024-12-23', '13:30:00', 1, 'weekly', '2024-12-05 03:48:34', '2024-12-05 03:48:34');
 
 -- --------------------------------------------------------
 
@@ -629,19 +641,6 @@ CREATE TABLE `family_members` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `family_members`
---
-
-INSERT INTO `family_members` (`id`, `personnel_id`, `relationship_type`, `givenname`, `middlename`, `lastname`, `suffix`, `gender`, `bloodtype`, `civil_status`, `date_of_marriage`, `place_of_marriage`, `citizenship`, `nationality`, `date_of_birth`, `contact_number`, `church_duties`, `livelihood`, `local_congregation`, `district_id`, `minister_officiated`, `employment_type`, `company`, `address`, `position`, `department`, `section`, `start_date`, `end_date`, `reason_for_leaving`, `education_level`, `start_year`, `completion_year`, `school`, `field_of_study`, `degree`, `institution`, `professional_licensure_examination`, `created_at`, `updated_at`) VALUES
-(1, 8, 'Father', 'asd', NULL, 'asd', 's', 'Male', NULL, NULL, NULL, NULL, 0, 0, '0000-00-00', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', 'd', 'asdas', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', NULL, NULL, NULL, NULL, '2024-11-25 02:50:26', '2024-11-25 02:50:26'),
-(2, 8, 'Mother', 'alicia', NULL, 'asd', '', 'Female', NULL, NULL, NULL, NULL, 0, 0, '0000-00-00', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', 'asd', 'asasd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', NULL, NULL, NULL, NULL, '2024-11-25 02:50:58', '2024-11-25 02:50:58'),
-(3, 8, 'Father', 'as12', NULL, 'asd', 'a', 'Male', NULL, NULL, NULL, NULL, 0, 0, '0000-00-00', NULL, NULL, 'asd', NULL, NULL, NULL, NULL, 'asd', 'asd', 'asd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', NULL, 'asd', 'asd', NULL, '2024-11-25 04:36:53', '2024-11-25 04:39:26'),
-(4, 8, 'Father', 'HEY', NULL, 'asd', '1', 'Male', NULL, NULL, NULL, NULL, 0, 0, '0000-00-00', NULL, NULL, 'asd', NULL, NULL, NULL, NULL, 'asd', 'asd', 'asd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', NULL, 'asd', 'asd', NULL, '2024-11-25 05:20:43', '2024-11-25 05:24:04'),
-(5, 8, 'Mother', 'ALICE', NULL, 'asd', '', 'Female', NULL, NULL, NULL, NULL, 0, 0, '0000-00-00', NULL, NULL, 'asd', NULL, NULL, NULL, NULL, 'asd', 'asd', 'asd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', NULL, 'asd', 'asd', NULL, '2024-11-25 05:53:15', '2024-11-25 05:53:15'),
-(6, 8, 'Sibling', 'asd', NULL, 'asd', '1', 'Male', NULL, NULL, NULL, NULL, 0, 0, '0000-00-00', NULL, NULL, 'asd', NULL, NULL, NULL, NULL, 'asd', 'asd', 'asd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', NULL, 'asd', 'as', NULL, '2024-11-25 08:15:39', '2024-11-25 08:15:39'),
-(7, 8, 'Child', 'asd', NULL, 'asd', 'asd', 'Male', NULL, NULL, NULL, NULL, 0, 0, '0000-00-00', NULL, NULL, 'asd', NULL, NULL, NULL, NULL, 'asd', 'asd', 'asd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', NULL, 'asd', 'asd', NULL, '2024-11-25 08:43:02', '2024-11-25 08:43:02');
 
 -- --------------------------------------------------------
 
@@ -1427,7 +1426,8 @@ CREATE TABLE `personnels` (
 --
 
 INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progress`, `personnel_progress`, `gender`, `civil_status`, `wedding_anniversary`, `givenname`, `middlename`, `surname_maiden`, `surname_husband`, `suffix`, `nickname`, `date_of_birth`, `place_of_birth`, `datejoined`, `language_id`, `bloodtype`, `email_address`, `citizenship`, `nationality`, `department_id`, `section_id`, `subsection_id`, `designation_id`, `district_id`, `local_congregation`, `personnel_type`, `assigned_number`, `m_status`, `panunumpa_date`, `ordination_date`, `created_at`, `updated_at`) VALUES
-(8, 'ENR-2411-EP1-1704', '1', 'District Office', 'Male', 'Single', '0000-00-00 00:00:00', 'Felix', 'Morales', '', 'Pareja', '', 'Felix', '2024-11-09 00:00:00', 'QC', '2024-11-19 00:00:00', NULL, 'O+', 'felixpareja@yahoo.com', 138, 138, 1, 2, 1, 1, 1, 'Bonifacio Drive', 'Regular', 20149, NULL, '2022-09-16 00:00:00', '0000-00-00 00:00:00', '2024-11-19 06:22:53', '2024-11-19 06:22:53');
+(8, 'ENR-2411-EP1-1704', '1', 'District Office', 'Male', 'Single', '0000-00-00 00:00:00', 'Felix', 'Morales', '', 'Pareja', '', 'Felix', '2024-11-09 00:00:00', 'QC', '2024-11-19 00:00:00', NULL, 'O+', 'felixpareja@yahoo.com', 138, 138, 1, 2, 1, 1, 1, 'Bonifacio Drive', 'Regular', 20149, NULL, '2022-09-16 00:00:00', '0000-00-00 00:00:00', '2024-11-19 06:22:53', '2024-11-19 06:22:53'),
+(9, 'ENR-2412-EP1-4324', '1', 'District Office', 'Male', 'Single', '0000-00-00 00:00:00', 'Felix', 'Morales', '', 'Pareja', '', 'Chok', '1990-11-09 00:00:00', 'QC', '2022-08-05 00:00:00', NULL, 'O+', 'felixpareja@yahoo.com', 138, 138, 1, 2, 1, 1, 45, 'Bonifacio Drive', 'Regular', 20149, NULL, '2022-09-16 00:00:00', '0000-00-00 00:00:00', '2024-12-05 06:09:26', '2024-12-05 06:09:26');
 
 -- --------------------------------------------------------
 
@@ -1444,6 +1444,13 @@ CREATE TABLE `personnel_address` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `personnel_address`
+--
+
+INSERT INTO `personnel_address` (`id`, `personnel_id`, `address_type`, `name`, `created_at`, `updated_at`) VALUES
+(1, 2, 'Home Address', 'abc', '2024-12-05 07:51:56', '2024-12-05 07:51:56');
+
 -- --------------------------------------------------------
 
 --
@@ -1458,6 +1465,13 @@ CREATE TABLE `personnel_contacts` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `personnel_contacts`
+--
+
+INSERT INTO `personnel_contacts` (`id`, `personnel_id`, `contactype_id`, `contact_info`, `created_at`, `updated_at`) VALUES
+(1, 2, 1, '1234', '2024-12-05 07:51:37', '2024-12-05 07:51:37');
 
 -- --------------------------------------------------------
 
@@ -1479,6 +1493,13 @@ CREATE TABLE `personnel_documents` (
   `status` enum('active','expired') DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `personnel_documents`
+--
+
+INSERT INTO `personnel_documents` (`id`, `document_id`, `personnel_id`, `document_type_id`, `file_name`, `file_path`, `uploaded_by`, `upload_date`, `description`, `expiration_date`, `status`) VALUES
+(1, 17, 2, 17, 'Album.jpg', 'C:\\Users\\felix\\Documents\\PMD Projects\\Dashboard\\inc_dashboard\\backend\\uploads\\1733385134081-Album.jpg', 1, '2024-12-05 07:52:14', 'Uploaded document', NULL, 'active');
+
 -- --------------------------------------------------------
 
 --
@@ -1490,6 +1511,35 @@ CREATE TABLE `personnel_gov_id` (
   `personnel_id` int(11) NOT NULL,
   `gov_id` varchar(250) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `personnel_gov_id`
+--
+
+INSERT INTO `personnel_gov_id` (`id`, `personnel_id`, `gov_id`) VALUES
+(1, 2, '17');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `personnel_images`
+--
+
+CREATE TABLE `personnel_images` (
+  `id` int(11) NOT NULL,
+  `personnel_id` int(11) NOT NULL,
+  `type` varchar(25) NOT NULL,
+  `image_url` text NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `personnel_images`
+--
+
+INSERT INTO `personnel_images` (`id`, `personnel_id`, `type`, `image_url`, `created_at`, `updated_at`) VALUES
+(1, 9, '2x2 Picture', 'data:image/jpeg;base64,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', '2024-12-05 07:50:18', '2024-12-05 07:50:18');
 
 -- --------------------------------------------------------
 
@@ -1710,7 +1760,7 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (43, 'executive.news', NULL, NULL, 'executive.news', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (44, 'pmd.it', NULL, '', 'pmd.it', '{SSHA}LYVyCEUbqbnRdJMh/NGuR38z6zbsDKG+', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (45, 'r.deguzman', NULL, NULL, 'r.deguzman', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(46, 'felix.pareja', 8, '/uploads/avatar/1732846376187_image.jpg', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-28 13:25:36'),
+(46, 'felix.pareja', 8, '/uploads/avatar/1732846376187_image.jpg', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-28 13:25:36'),
 (47, 'nsanchez', NULL, '', 'nsanchez', '{MD5}4vh3FhfOq3i3zcUJki6UBg==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (48, NULL, NULL, '/uploads/avatar/1732867059276_icons8-fitbit-50.png', 'admin', '$2a$12$ZXhnczgjZG4QAa4oGMH5eOt0.a9urccMHJ0/FBYB5zCe2/zfh3dEO', 0, NULL, 'Local', NULL, NULL, NULL, NULL);
 
@@ -1913,6 +1963,13 @@ CREATE TABLE `work_experience` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- Dumping data for table `work_experience`
+--
+
+INSERT INTO `work_experience` (`id`, `personnel_id`, `employment_type`, `company`, `address`, `position`, `department`, `section`, `start_date`, `end_date`, `reason_for_leaving`, `created_at`, `updated_at`) VALUES
+(1, 9, 'Private', 'SENCOR', 'asd', 'programmer', 'asd', 'asd', '2024-12-05', '2024-12-05', 'confi', '2024-12-05 08:16:49', '2024-12-05 08:16:49');
+
+--
 -- Indexes for dumped tables
 --
 
@@ -2093,6 +2150,12 @@ ALTER TABLE `personnel_gov_id`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `personnel_images`
+--
+ALTER TABLE `personnel_images`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `reminders`
 --
 ALTER TABLE `reminders`
@@ -2222,19 +2285,19 @@ ALTER TABLE `districts`
 -- AUTO_INCREMENT for table `educational_background`
 --
 ALTER TABLE `educational_background`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `events`
 --
 ALTER TABLE `events`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `family_members`
 --
 ALTER TABLE `family_members`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `government_issued_id`
@@ -2300,31 +2363,37 @@ ALTER TABLE `permission_groups`
 -- AUTO_INCREMENT for table `personnels`
 --
 ALTER TABLE `personnels`
-  MODIFY `personnel_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `personnel_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `personnel_address`
 --
 ALTER TABLE `personnel_address`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `personnel_contacts`
 --
 ALTER TABLE `personnel_contacts`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `personnel_documents`
 --
 ALTER TABLE `personnel_documents`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `personnel_gov_id`
 --
 ALTER TABLE `personnel_gov_id`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `personnel_images`
+--
+ALTER TABLE `personnel_images`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `reminders`
@@ -2384,7 +2453,7 @@ ALTER TABLE `user_groups`
 -- AUTO_INCREMENT for table `work_experience`
 --
 ALTER TABLE `work_experience`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Constraints for dumped tables
