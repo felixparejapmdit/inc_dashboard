@@ -207,7 +207,7 @@ const Step7 = () => {
         );
         alert(response.data);
         const savedspouses = response.data;
-alert(savedspouses);
+        alert(savedspouses);
         setSpouses((prev) =>
           prev.map((item, i) =>
             i === index
@@ -264,13 +264,6 @@ alert(savedspouses);
             variant="simple"
           >
             <Tbody>
-              {/* Header */}
-              <Tr>
-                <Td colSpan={4} fontWeight="bold" fontSize="md">
-                  {spouse.relationshipType}
-                </Td>
-              </Tr>
-
               {/* Personal Information */}
               <Tr bg="gray.50">
                 <Td colSpan={4}>
