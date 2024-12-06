@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 05, 2024 at 09:55 AM
+-- Generation Time: Dec 06, 2024 at 09:45 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -641,6 +641,15 @@ CREATE TABLE `family_members` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `family_members`
+--
+
+INSERT INTO `family_members` (`id`, `personnel_id`, `relationship_type`, `givenname`, `middlename`, `lastname`, `suffix`, `gender`, `bloodtype`, `civil_status`, `date_of_marriage`, `place_of_marriage`, `citizenship`, `nationality`, `date_of_birth`, `contact_number`, `church_duties`, `livelihood`, `local_congregation`, `district_id`, `minister_officiated`, `employment_type`, `company`, `address`, `position`, `department`, `section`, `start_date`, `end_date`, `reason_for_leaving`, `education_level`, `start_year`, `completion_year`, `school`, `field_of_study`, `degree`, `institution`, `professional_licensure_examination`, `created_at`, `updated_at`) VALUES
+(1, 8, 'Spouse', 'Jay', NULL, 'asd', 'asd', 'Female', NULL, NULL, NULL, NULL, 0, 0, '0000-00-00', NULL, NULL, 'asd', NULL, NULL, NULL, NULL, 'asd', 'asd', 'asd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', NULL, 'asd', 'asd', NULL, '2024-12-06 08:41:34', '2024-12-06 08:41:34'),
+(2, 8, 'Spouse', 'as', NULL, 'asd', '1', 'Male', NULL, NULL, NULL, NULL, 0, 0, '0000-00-00', NULL, NULL, 'asd', NULL, NULL, NULL, NULL, 'asd', 'asd', 'asd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', NULL, 'asd', 'asd', NULL, '2024-12-06 08:42:52', '2024-12-06 08:42:52'),
+(3, 8, 'Child', 'asd', NULL, 'asd', 'asd', 'Male', NULL, NULL, NULL, NULL, 0, 0, '0000-00-00', NULL, NULL, 'asd', NULL, NULL, NULL, NULL, 'asd', 'asd', 'asd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', NULL, 'asd', 'asd', NULL, '2024-12-06 08:44:09', '2024-12-06 08:44:51');
 
 -- --------------------------------------------------------
 
@@ -2297,7 +2306,7 @@ ALTER TABLE `events`
 -- AUTO_INCREMENT for table `family_members`
 --
 ALTER TABLE `family_members`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `government_issued_id`

@@ -177,8 +177,7 @@ const Step7 = () => {
     }
 
     try {
-      if (id) {
-        alert(id);
+      if (spouse.id) {
         // Update existing spouses record
         const response = await axios.put(
           `${API_URL}/api/family-members/${id}`,
@@ -201,13 +200,15 @@ const Step7 = () => {
         });
       } else {
         // Save new spouses record
+        alert(formattedData);
+        // Save new spouse
         const response = await axios.post(
           `${API_URL}/api/family-members`,
           formattedData
         );
-        alert(response.data);
+
         const savedspouses = response.data;
-        alert(savedspouses);
+
         setSpouses((prev) =>
           prev.map((item, i) =>
             i === index
@@ -225,14 +226,12 @@ const Step7 = () => {
         });
       }
     } catch (error) {
-      console.error(
-        "Error saving/updating spouses information:",
-        error.response
-      );
+      console.error("Error saving/updating spouses information:", error); // Log the full error
       toast({
         title: "Error",
         description: `Failed to save/update ${relationshipType} information. ${
-          error.response?.data?.message || "Please check the data."
+          error.response?.data?.message ||
+          "Please check the data or server connectivity."
         }`,
         status: "error",
         duration: 3000,
