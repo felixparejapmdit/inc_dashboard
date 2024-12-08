@@ -24,7 +24,15 @@ import { CheckIcon, EditIcon } from "@chakra-ui/icons";
 import axios from "axios";
 
 const API_URL = process.env.REACT_APP_API_URL;
-const Step5 = () => {
+const Step5 = ({
+  citizenships,
+  nationalities,}) => {
+
+  
+  const bloodtypes = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
+
+  const suffixOptions = ["No Suffix", "Jr.", "Sr.", "II", "III", "IV", "V", "VI"];
+
   const [parents, setParents] = useState([
     {
       relationshipType: "Father",
@@ -310,14 +318,24 @@ const Step5 = () => {
                         />
                       </Td>
                       <Td>
-                        <Input
-                          placeholder="Suffix"
-                          value={parent.suffix}
-                          onChange={(e) =>
-                            handleParentChange(index, "suffix", e.target.value)
-                          }
-                          isDisabled={!parent.isEditing}
-                        />
+                
+                      <Select
+                        name="suffix"
+                        value={parent.suffix}
+                        onChange={handleParentChange}
+                        width="100%"
+                      >
+                        <option value="" disabled>
+                          Select Suffix
+                        </option>
+                        {suffixOptions.map((suffix) => (
+                          <option key={suffix} value={suffix}>
+                            {suffix}
+                          </option>
+                        ))}
+                      </Select>
+
+
                       </Td>
                     </Tr>
                     <Tr>
@@ -365,8 +383,9 @@ const Step5 = () => {
                       </Td>
                       <Td>
                         <Select
-                          placeholder="Blood Type"
-                          value={parent.bloodType}
+                          placeholder="Select Blood Type"
+                          name="bloodtype"
+                          value={parent.bloodtype}
                           onChange={(e) =>
                             handleParentChange(
                               index,
@@ -374,12 +393,13 @@ const Step5 = () => {
                               e.target.value
                             )
                           }
-                          isDisabled={!parent.isEditing}
+                          width="100%"
                         >
-                          <option>A</option>
-                          <option>B</option>
-                          <option>AB</option>
-                          <option>O</option>
+                          {bloodtypes.map((type) => (
+                            <option key={type} value={type}>
+                              {type}
+                            </option>
+                          ))}
                         </Select>
                       </Td>
                     </Tr>
@@ -414,34 +434,42 @@ const Step5 = () => {
                       </Td>
                       <Td>
                         <Select
-                          placeholder="Citizenship"
-                          value={parent.citizenship}
-                          onChange={(e) =>
-                            handleParentChange(
-                              index,
-                              "citizenship",
-                              e.target.value
-                            )
-                          }
-                          isDisabled={!parent.isEditing}
-                        >
-                          <option>Filipino</option>
-                          <option>Other</option>
-                        </Select>
+                placeholder="Select Citizenship"
+                name="citizenship"
+                value={parent.citizenship}
+                onChange={(e) =>
+                  handleParentChange({
+                    target: { name: "citizenship", value: e.target.value },
+                  })
+                }
+                width="100%"
+              >
+                {citizenships.map((citizenship) => (
+                  <option key={citizenship.id} value={citizenship.id}>
+                    {citizenship.citizenship}
+                  </option>
+                ))}
+              </Select>
+
                       </Td>
                       <Td>
-                        <Input
-                          placeholder="Nationality"
-                          value={parent.nationality}
-                          onChange={(e) =>
-                            handleParentChange(
-                              index,
-                              "nationality",
-                              e.target.value
-                            )
-                          }
-                          isDisabled={!parent.isEditing}
-                        />
+                      <Select
+                        placeholder="Select Nationality"
+                        name="nationality"
+                        value={parent.nationality}
+                        onChange={(e) =>
+                          handleParentChange({
+                            target: { name: "nationality", value: e.target.value },
+                          })
+                        }
+                        width="100%"
+                      >
+                        {nationalities.map((nationality) => (
+                          <option key={nationality.id} value={nationality.id}>
+                            {nationality.nationality}
+                          </option>
+                        ))}
+                      </Select>
                       </Td>
                     </Tr>
                     <Tr>

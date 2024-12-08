@@ -660,6 +660,8 @@ const EnrollmentForm = () => {
           parents={parents}
           handleParentChange={handleParentChange}
           toggleEditParent={toggleEditParent}
+          citizenships={citizenships}
+          nationalities={nationalities}
         />
       )}
 
@@ -668,6 +670,8 @@ const EnrollmentForm = () => {
           siblings={siblings}
           handleSiblingChange={handleSiblingChange}
           handleAddSibling={handleAddSibling}
+          citizenships={citizenships}
+          nationalities={nationalities}
         />
       )}
 
@@ -678,6 +682,8 @@ const EnrollmentForm = () => {
           handleAddSpouse={handleAddSpouse}
           toggleEditSpouse={toggleEditSpouse}
           handleDeleteSpouse={handleDeleteSpouse}
+          citizenships={citizenships}
+          nationalities={nationalities}
         />
       )}
 
@@ -688,6 +694,8 @@ const EnrollmentForm = () => {
           handleChildChange={handleChildChange}
           toggleEditChild={toggleEditChild}
           handleDeleteChild={handleDeleteChild}
+          citizenships={citizenships}
+          nationalities={nationalities}
         />
       )}
 

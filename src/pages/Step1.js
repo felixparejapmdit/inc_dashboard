@@ -37,7 +37,7 @@ const Step1 = ({
   const bloodtypes = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
   const civilStatuses = ["Single", "Married"];
 
-  const suffixOptions = ["Jr.", "Sr.", "II", "III", "IV", "V", "VI"];
+  const suffixOptions = ["No Suffix", "Jr.", "Sr.", "II", "III", "IV", "V", "VI"];
 
   return (
     <Box width="100%" bg="white" boxShadow="sm" my={85}>
@@ -254,13 +254,11 @@ const Step1 = ({
                   onChange={handleChange}
                   width="100%"
                 >
-                  <option value="Jr.">Jr.</option>
-                  <option value="Sr.">Sr.</option>
-                  <option value="II">II</option>
-                  <option value="III">III</option>
-                  <option value="IV">IV</option>
-                  <option value="V">V</option>
-                  <option value="VI">VI</option>
+                {suffixOptions.map((suffix) => (
+                    <option key={suffix} value={suffix}>
+                      {suffix}
+                    </option>
+                  ))}
                 </Select>
               </Flex>
             </Box>

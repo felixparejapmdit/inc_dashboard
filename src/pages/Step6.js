@@ -21,7 +21,13 @@ import axios from "axios";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
-const Step6 = () => {
+const Step6 = ({
+  citizenships,
+  nationalities,}) => {
+  
+  const bloodtypes = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
+  
+  const suffixOptions = ["No Suffix", "Jr.", "Sr.", "II", "III", "IV", "V", "VI"];
   const [siblings, setSiblings] = useState([
     {
       relationshipType: "Sibling",
@@ -313,15 +319,25 @@ const Step6 = () => {
                   />
                 </Td>
                 <Td>
-                  <Input
-                    placeholder="Suffix"
-                    value={siblings.suffix}
-                    onChange={(e) =>
-                      handleSiblingChange(index, "suffix", e.target.value)
-                    }
-                    isDisabled={!sibling.isEditing}
-                  />
+
+                <Select
+                        name="suffix"
+                        value={siblings.suffix}
+                        onChange={handleSiblingChange}
+                        width="100%"
+                      >
+                        <option value="" disabled>
+                          Select Suffix
+                        </option>
+                        {suffixOptions.map((suffix) => (
+                          <option key={suffix} value={suffix}>
+                            {suffix}
+                          </option>
+                        ))}
+                      </Select>
+
                 </Td>
+
               </Tr>
               <Tr>
                 <Td>
@@ -364,18 +380,26 @@ const Step6 = () => {
                 </Td>
                 <Td>
                   <Select
-                    placeholder="Blood Type"
-                    value={siblings.bloodType}
-                    onChange={(e) =>
-                      handleSiblingChange(index, "bloodType", e.target.value)
-                    }
-                    isDisabled={!sibling.isEditing}
-                  >
-                    <option>A</option>
-                    <option>B</option>
-                    <option>AB</option>
-                    <option>O</option>
-                  </Select>
+                          placeholder="Select Blood Type"
+                          name="bloodtype"
+                          value={siblings.bloodtype}
+                          onChange={(e) =>
+                            handleSiblingChange(
+                              index,
+                              "bloodType",
+                              e.target.value
+                            )
+                          }
+                          width="100%"
+                        >
+                          {bloodtypes.map((type) => (
+                            <option key={type} value={type}>
+                              {type}
+                            </option>
+                          ))}
+                        </Select>
+
+
                 </Td>
               </Tr>
               <Tr>
@@ -404,28 +428,45 @@ const Step6 = () => {
                   />
                 </Td>
                 <Td>
-                  <Select
-                    placeholder="Citizenship"
-                    value={siblings.citizenship}
-                    onChange={(e) =>
-                      handleSiblingChange(index, "citizenship", e.target.value)
-                    }
-                    isDisabled={!sibling.isEditing}
-                  >
-                    <option>Filipino</option>
-                    <option>Other</option>
-                  </Select>
-                </Td>
-                <Td>
-                  <Input
-                    placeholder="Nationality"
-                    value={siblings.nationality}
-                    onChange={(e) =>
-                      handleSiblingChange(index, "nationality", e.target.value)
-                    }
-                    isDisabled={!sibling.isEditing}
-                  />
-                </Td>
+                        <Select
+                placeholder="Select Citizenship"
+                name="citizenship"
+                value={siblings.citizenship}
+                onChange={(e) =>
+                  handleSiblingChange({
+                    target: { name: "citizenship", value: e.target.value },
+                  })
+                }
+                width="100%"
+              >
+                {citizenships.map((citizenship) => (
+                  <option key={citizenship.id} value={citizenship.id}>
+                    {citizenship.citizenship}
+                  </option>
+                ))}
+              </Select>
+
+                      </Td>
+                      <Td>
+                      <Select
+                        placeholder="Select Nationality"
+                        name="nationality"
+                        value={siblings.nationality}
+                        onChange={(e) =>
+                          handleSiblingChange({
+                            target: { name: "nationality", value: e.target.value },
+                          })
+                        }
+                        width="100%"
+                      >
+                        {nationalities.map((nationality) => (
+                          <option key={nationality.id} value={nationality.id}>
+                            {nationality.nationality}
+                          </option>
+                        ))}
+                      </Select>
+                      </Td>
+
               </Tr>
               <Tr>
                 <Td>

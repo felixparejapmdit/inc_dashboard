@@ -21,7 +21,13 @@ import axios from "axios";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
-const Step7 = () => {
+const Step7 = ({
+  citizenships,
+  nationalities,}) => {
+  
+  const bloodtypes = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
+  
+  const suffixOptions = ["No Suffix", "Jr.", "Sr.", "II", "III", "IV", "V", "VI"];
   const [spouses, setSpouses] = useState([
     {
       relationshipType: "Spouse",
@@ -301,14 +307,21 @@ const Step7 = () => {
                   />
                 </Td>
                 <Td>
-                  <Input
-                    placeholder="Suffix"
-                    value={spouses.suffix}
-                    onChange={(e) =>
-                      handleSpouseChange(index, "suffix", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                  />
+                    <Select
+                      name="suffix"
+                      value={spouses.suffix}
+                      onChange={handleSpouseChange}
+                      width="100%"
+                    >
+                      <option value="" disabled>
+                        Select Suffix
+                      </option>
+                      {suffixOptions.map((suffix) => (
+                        <option key={suffix} value={suffix}>
+                          {suffix}
+                        </option>
+                      ))}
+                    </Select>
                 </Td>
               </Tr>
               <Tr>
@@ -348,18 +361,24 @@ const Step7 = () => {
                 </Td>
                 <Td>
                   <Select
-                    placeholder="Blood Type"
-                    value={spouses.bloodType}
-                    onChange={(e) =>
-                      handleSpouseChange(index, "bloodType", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                  >
-                    <option>A</option>
-                    <option>B</option>
-                    <option>AB</option>
-                    <option>O</option>
-                  </Select>
+                          placeholder="Select Blood Type"
+                          name="bloodtype"
+                          value={spouses.bloodtype}
+                          onChange={(e) =>
+                            handleSpouseChange(
+                              index,
+                              "bloodType",
+                              e.target.value
+                            )
+                          }
+                          width="100%"
+                        >
+                          {bloodtypes.map((type) => (
+                            <option key={type} value={type}>
+                              {type}
+                            </option>
+                          ))}
+                        </Select>
                 </Td>
               </Tr>
               <Tr>
@@ -387,29 +406,47 @@ const Step7 = () => {
                     isDisabled={!spouse.isEditing}
                   />
                 </Td>
+                
                 <Td>
-                  <Select
-                    placeholder="Citizenship"
-                    value={spouses.citizenship}
-                    onChange={(e) =>
-                      handleSpouseChange(index, "citizenship", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                  >
-                    <option>Filipino</option>
-                    <option>Other</option>
-                  </Select>
-                </Td>
-                <Td>
-                  <Input
-                    placeholder="Nationality"
-                    value={spouses.nationality}
-                    onChange={(e) =>
-                      handleSpouseChange(index, "nationality", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                  />
-                </Td>
+                        <Select
+                placeholder="Select Citizenship"
+                name="citizenship"
+                value={spouses.citizenship}
+                onChange={(e) =>
+                  handleSpouseChange({
+                    target: { name: "citizenship", value: e.target.value },
+                  })
+                }
+                width="100%"
+              >
+                {citizenships.map((citizenship) => (
+                  <option key={citizenship.id} value={citizenship.id}>
+                    {citizenship.citizenship}
+                  </option>
+                ))}
+              </Select>
+
+                      </Td>
+                      <Td>
+                      <Select
+                        placeholder="Select Nationality"
+                        name="nationality"
+                        value={spouses.nationality}
+                        onChange={(e) =>
+                          handleSpouseChange({
+                            target: { name: "nationality", value: e.target.value },
+                          })
+                        }
+                        width="100%"
+                      >
+                        {nationalities.map((nationality) => (
+                          <option key={nationality.id} value={nationality.id}>
+                            {nationality.nationality}
+                          </option>
+                        ))}
+                      </Select>
+                      </Td>
+                
               </Tr>
               <Tr>
                 <Td>
