@@ -324,6 +324,7 @@ const Step5 = ({
                         value={parent.suffix}
                         onChange={handleParentChange}
                         width="100%"
+                        isDisabled={parent.gender === "Female"}
                       >
                         <option value="" disabled>
                           Select Suffix

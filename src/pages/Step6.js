@@ -35,7 +35,7 @@ const Step6 = ({
       middleName: "",
       lastName: "",
       suffix: "",
-      gender: "Male",
+      gender: "",
       bloodType: "",
       civilStatus: "",
       dateOfBirth: "",
@@ -79,7 +79,7 @@ const Step6 = ({
         middleName: "",
         lastName: "",
         suffix: "",
-        gender: "Male",
+        gender: "",
         bloodType: "",
         civilStatus: "",
         dateOfBirth: "",
@@ -288,6 +288,20 @@ const Step6 = ({
                 </Td>
               </Tr>
               <Tr>
+                
+              <Td>
+                  <Select
+                    placeholder="Select Gender"
+                    value={siblings.gender}
+                    onChange={(e) =>
+                      handleSiblingChange(index, "gender", e.target.value)
+                    }
+                    isDisabled={!sibling.isEditing}
+                  >
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  </Select>
+                </Td>
                 <Td>
                   <Input
                     placeholder="Given Name"
@@ -318,41 +332,31 @@ const Step6 = ({
                     isDisabled={!sibling.isEditing}
                   />
                 </Td>
-                <Td>
-
-                <Select
-                        name="suffix"
-                        value={siblings.suffix}
-                        onChange={handleSiblingChange}
-                        width="100%"
-                      >
-                        <option value="" disabled>
-                          Select Suffix
-                        </option>
-                        {suffixOptions.map((suffix) => (
-                          <option key={suffix} value={suffix}>
-                            {suffix}
-                          </option>
-                        ))}
-                      </Select>
-
-                </Td>
 
               </Tr>
               <Tr>
-                <Td>
-                  <Select
-                    placeholder="Gender"
-                    value={siblings.gender}
-                    onChange={(e) =>
-                      handleSiblingChange(index, "gender", e.target.value)
-                    }
-                    isDisabled={!sibling.isEditing}
-                  >
-                    <option>Male</option>
-                    <option>Female</option>
-                  </Select>
-                </Td>
+                
+              <Td>
+  <Select
+    name="suffix"
+    value={siblings[index]?.suffix || ""}
+    onChange={(e) =>
+      handleSiblingChange(index, "suffix", e.target.value)
+    }
+    width="100%"
+    isDisabled={siblings[index]?.gender === "Female"}
+  >
+    <option value="" disabled>
+      Select Suffix
+    </option>
+    {suffixOptions.map((suffix) => (
+      <option key={suffix} value={suffix}>
+        {suffix}
+      </option>
+    ))}
+  </Select>
+</Td>
+
                 <Td>
                   <Input
                     placeholder="Date of Birth"

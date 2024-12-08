@@ -248,18 +248,22 @@ const Step1 = ({
             >
               <Flex align="center">
                 <Select
-                  placeholder="Select Suffix"
-                  name="suffix"
-                  value={personnelData.suffix}
-                  onChange={handleChange}
-                  width="100%"
-                >
-                {suffixOptions.map((suffix) => (
-                    <option key={suffix} value={suffix}>
-                      {suffix}
-                    </option>
-                  ))}
-                </Select>
+                      name="suffix"
+                      value={personnelData.suffix}
+                      onChange={handleChange}
+                      width="100%"
+                      isDisabled={personnelData.gender === "Female"}
+                    >
+                      <option value="" disabled>
+                        Select Suffix
+                      </option>
+                      {suffixOptions.map((suffix) => (
+                        <option key={suffix} value={suffix}>
+                          {suffix}
+                        </option>
+                      ))}
+                    </Select>
+
               </Flex>
             </Box>
 
