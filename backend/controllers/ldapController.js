@@ -4,6 +4,10 @@ const fs = require("fs");
 const path = require("path");
 const bcrypt = require("bcryptjs");
 
+const Personnel = require("../models/Personnel");
+const LdapUser = require("../models/LdapUser");
+const User = require("../models/User");
+
 // Load environment variables
 const LDAP_URL = process.env.LDAP_URL;
 const BIND_DN = process.env.BIND_DN;
@@ -372,4 +376,38 @@ exports.getGroups = (req, res) => {
       });
     });
   });
+};
+
+exports.SyncLdapUser = async (req, res) => {
+  const { personnelId } = req.body;
+
+  try {
+    // Fetch personnel details
+    const personnel = await Personnel.findByPk(personnelId);
+    if (!personnel) {
+      return res.status(404).json({ message: "Personnel not found" });
+    }
+
+    // Fetch the corresponding LDAP user
+    const ldapUser = await LdapUser.findOne({
+      where: { cn: personnel.full_name }, // Assuming `cn` matches personnel's full name
+    });
+    if (!ldapUser) {
+      return res.status(404).json({ message: "LDAP user not found" });
+    }
+
+    // Create an entry in the users table
+    const user = await User.create({
+      personnel_id: personnelId,
+      uid: ldapUser.uidNumber,
+      username: ldapUser.uid,
+      auth_type: "LDAP",
+      password: ldapUser.userPassword, // Hash this if necessary
+    });
+
+    res.status(201).json({ message: "User synced successfully", user });
+  } catch (error) {
+    console.error("Error syncing LDAP user:", error);
+    res.status(500).json({ message: "Error syncing LDAP user", error });
+  }
 };

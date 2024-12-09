@@ -25,6 +25,8 @@ router.get(
 router.get("/ldap/user/:username", ldapController.getUserByUsername);
 router.get("/ldap/groups", ldapController.getGroups);
 
+router.post("/sync-ldap-user", ldapController.SyncLdapUser);
+
 // Utility function to create LDAP client
 // const createLdapClient = () => {
 //   return ldap.createClient({

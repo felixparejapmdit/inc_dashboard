@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useToast } from "react";
 import {
   Box,
   Button,
@@ -34,11 +34,11 @@ import {
   Select,
 } from "@chakra-ui/react";
 import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
-
+import axios from "axios";
 const API_URL = process.env.REACT_APP_API_URL;
 const ITEMS_PER_PAGE = 15;
 
-const Users = () => {
+const Users = ({ personnelId }) => {
   const [users, setUsers] = useState([]);
   const [groups, setGroups] = useState([]);
   const [avatarFile, setAvatarFile] = useState(null);
@@ -292,9 +292,68 @@ const Users = () => {
     );
   };
 
+  const [loading, setLoading] = useState(false);
+  const toast = useToast();
+
+  const handleSync = async () => {
+    if (!personnelId) {
+      toast({
+        title: "Validation Error",
+        description: "Personnel ID is required to sync.",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/sync-ldap-user`,
+        { personnelId }
+      );
+
+      toast({
+        title: "Success",
+        description: response.data.message,
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error("Error syncing LDAP user:", error);
+
+      // Improved error handling
+      const errorMessage =
+        error.response?.data?.message || "An unexpected error occurred.";
+      toast({
+        title: "Error",
+        description: errorMessage,
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Box p={6}>
       <Heading mb={6}>Manage Personnel</Heading>
+
+      <Button
+        onClick={handleSync}
+        isLoading={loading}
+        colorScheme="teal"
+        variant="solid"
+        disabled={!personnelId} // Disable button if personnelId is not provided
+      >
+        Sync to Users Table
+      </Button>
+
       <Input
         placeholder="Search users..."
         value={searchTerm}
