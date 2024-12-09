@@ -57,6 +57,27 @@ const EnrollmentForm = () => {
   const [emailError, setEmailError] = useState("");
   const [age, setAge] = useState("");
 
+  // Update the age whenever date_of_birth changes
+  useEffect(() => {
+    if (personnelData.date_of_birth) {
+      const birthDate = new Date(personnelData.date_of_birth);
+      const today = new Date();
+      let computedAge = today.getFullYear() - birthDate.getFullYear();
+      const monthDifference = today.getMonth() - birthDate.getMonth();
+
+      // Adjust age if the birth date hasn't occurred yet this year
+      if (
+        monthDifference < 0 ||
+        (monthDifference === 0 && today.getDate() < birthDate.getDate())
+      ) {
+        computedAge--;
+      }
+      setAge(computedAge);
+    } else {
+      setAge(""); // Clear age if no birth date
+    }
+  }, [personnelData.date_of_birth]);
+  
   const [languages, setLanguages] = useState([]);
   const [citizenships, setCitizenships] = useState([]);
   const [nationalities, setNationalities] = useState([]);
@@ -495,7 +516,6 @@ const EnrollmentForm = () => {
         });
         setStep(2); // Move to Step 2
       } catch (error) {
-        setStep(2); // Move to Step 2
         console.error("Error saving data:", error);
         alert("Failed to save data. Please try again.");
       }

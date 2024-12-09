@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 06, 2024 at 09:45 AM
+-- Generation Time: Dec 08, 2024 at 08:56 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -647,9 +647,7 @@ CREATE TABLE `family_members` (
 --
 
 INSERT INTO `family_members` (`id`, `personnel_id`, `relationship_type`, `givenname`, `middlename`, `lastname`, `suffix`, `gender`, `bloodtype`, `civil_status`, `date_of_marriage`, `place_of_marriage`, `citizenship`, `nationality`, `date_of_birth`, `contact_number`, `church_duties`, `livelihood`, `local_congregation`, `district_id`, `minister_officiated`, `employment_type`, `company`, `address`, `position`, `department`, `section`, `start_date`, `end_date`, `reason_for_leaving`, `education_level`, `start_year`, `completion_year`, `school`, `field_of_study`, `degree`, `institution`, `professional_licensure_examination`, `created_at`, `updated_at`) VALUES
-(1, 8, 'Spouse', 'Jay', NULL, 'asd', 'asd', 'Female', NULL, NULL, NULL, NULL, 0, 0, '0000-00-00', NULL, NULL, 'asd', NULL, NULL, NULL, NULL, 'asd', 'asd', 'asd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', NULL, 'asd', 'asd', NULL, '2024-12-06 08:41:34', '2024-12-06 08:41:34'),
-(2, 8, 'Spouse', 'as', NULL, 'asd', '1', 'Male', NULL, NULL, NULL, NULL, 0, 0, '0000-00-00', NULL, NULL, 'asd', NULL, NULL, NULL, NULL, 'asd', 'asd', 'asd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', NULL, 'asd', 'asd', NULL, '2024-12-06 08:42:52', '2024-12-06 08:42:52'),
-(3, 8, 'Child', 'asd', NULL, 'asd', 'asd', 'Male', NULL, NULL, NULL, NULL, 0, 0, '0000-00-00', NULL, NULL, 'asd', NULL, NULL, NULL, NULL, 'asd', 'asd', 'asd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', NULL, 'asd', 'asd', NULL, '2024-12-06 08:44:09', '2024-12-06 08:44:51');
+(1, 8, 'Spouse', 'Jai', NULL, 'Ramos', '', 'Female', NULL, NULL, NULL, NULL, 0, 0, '0000-00-00', NULL, NULL, 'asd', NULL, NULL, NULL, NULL, 'asd', 'asd', 'sda', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', NULL, 'asd', 'asd', NULL, '2024-12-07 16:12:33', '2024-12-07 16:12:33');
 
 -- --------------------------------------------------------
 
@@ -1480,7 +1478,8 @@ CREATE TABLE `personnel_contacts` (
 --
 
 INSERT INTO `personnel_contacts` (`id`, `personnel_id`, `contactype_id`, `contact_info`, `created_at`, `updated_at`) VALUES
-(1, 2, 1, '1234', '2024-12-05 07:51:37', '2024-12-05 07:51:37');
+(1, 2, 1, '1234', '2024-12-05 07:51:37', '2024-12-05 07:51:37'),
+(2, 2, 1, '66666', '2024-12-07 16:16:04', '2024-12-07 16:16:04');
 
 -- --------------------------------------------------------
 
@@ -2306,7 +2305,7 @@ ALTER TABLE `events`
 -- AUTO_INCREMENT for table `family_members`
 --
 ALTER TABLE `family_members`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `government_issued_id`
@@ -2384,7 +2383,7 @@ ALTER TABLE `personnel_address`
 -- AUTO_INCREMENT for table `personnel_contacts`
 --
 ALTER TABLE `personnel_contacts`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `personnel_documents`
