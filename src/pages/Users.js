@@ -295,11 +295,11 @@ const Users = ({ personnelId }) => {
   const [loading, setLoading] = useState(false);
   const toast = useToast();
 
-  const handleSync = async () => {
+  const handleSyncLdapUser = async () => {
     if (!personnelId) {
       toast({
         title: "Validation Error",
-        description: "Personnel ID is required to sync.",
+        description: "Personnel ID is required to sync LDAP user.",
         status: "warning",
         duration: 3000,
         isClosable: true,
@@ -308,29 +308,28 @@ const Users = ({ personnelId }) => {
     }
 
     setLoading(true);
-
     try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/sync-ldap-user`,
-        { personnelId }
-      );
+      const res = await axios.post(`${API_URL}/api/sync-ldap-user`, {
+        personnelId,
+      });
 
       toast({
         title: "Success",
-        description: response.data.message,
+        description: res.data.message,
         status: "success",
         duration: 3000,
         isClosable: true,
       });
+
+      // Refresh users after syncing
+      const updatedUsers = await axios.get(`${API_URL}/api/users`);
+      setUsers(updatedUsers.data || []);
     } catch (error) {
       console.error("Error syncing LDAP user:", error);
-
-      // Improved error handling
-      const errorMessage =
-        error.response?.data?.message || "An unexpected error occurred.";
       toast({
         title: "Error",
-        description: errorMessage,
+        description:
+          error.response?.data?.message || "Failed to sync LDAP user.",
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -345,13 +344,14 @@ const Users = ({ personnelId }) => {
       <Heading mb={6}>Manage Personnel</Heading>
 
       <Button
-        onClick={handleSync}
+        onClick={handleSyncLdapUser}
         isLoading={loading}
         colorScheme="teal"
         variant="solid"
-        disabled={!personnelId} // Disable button if personnelId is not provided
+        disabled={!personnelId}
+        mb={4}
       >
-        Sync to Users Table
+        Sync LDAP User
       </Button>
 
       <Input
