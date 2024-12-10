@@ -1,6 +1,6 @@
 // models/LDAP_Users.js
 const { DataTypes } = require("sequelize");
-const sequelize = require("./config/database"); // Adjust the path to your database configuration
+const sequelize = require("../config/database"); // Adjust the path to your database configuration
 
 const LDAP_Users = sequelize.define(
   "LDAP_Users",

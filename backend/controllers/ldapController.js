@@ -4,8 +4,8 @@ const fs = require("fs");
 const path = require("path");
 const bcrypt = require("bcryptjs");
 
-const Personnel = require("../models/Personnel");
-const LdapUser = require("../models/LdapUser");
+const Personnel = require("../models/personnels");
+const LdapUser = require("../models/LDAP_Users");
 const User = require("../models/User");
 
 // Load environment variables

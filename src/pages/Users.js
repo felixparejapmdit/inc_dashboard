@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useToast } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -32,6 +32,7 @@ import {
   AlertIcon,
   Flex,
   Select,
+  useToast,
 } from "@chakra-ui/react";
 import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
 import axios from "axios";
