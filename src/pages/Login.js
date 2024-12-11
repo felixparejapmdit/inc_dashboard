@@ -183,7 +183,7 @@ const Login = () => {
         <source src="/music/wedding-music.mp3" type="audio/mpeg" />
       </audio>
       {/* Start Music Overlay */}
-      {!isPlaying && (
+      {isPlaying && (
         <div className="music-overlay fade-out" onClick={startMusic}>
           <div className="start-button">
             <span className="play-icon">▶</span>
