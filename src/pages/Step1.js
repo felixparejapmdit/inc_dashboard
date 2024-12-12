@@ -31,13 +31,12 @@ const Step1 = ({
   subsections,
   designations,
   districts,
+  suffixOptions,
 }) => {
   const [step, setStep] = useState(1);
   const totalSteps = 10;
   const bloodtypes = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
   const civilStatuses = ["Single", "Married"];
-
-  const suffixOptions = ["No Suffix", "Jr.", "Sr.", "II", "III", "IV", "V", "VI"];
 
   return (
     <Box width="100%" bg="white" boxShadow="sm" my={85}>
@@ -248,22 +247,21 @@ const Step1 = ({
             >
               <Flex align="center">
                 <Select
-                      name="suffix"
-                      value={personnelData.suffix}
-                      onChange={handleChange}
-                      width="100%"
-                      isDisabled={personnelData.gender === "Female"}
-                    >
-                      <option value="" disabled>
-                        Select Suffix
-                      </option>
-                      {suffixOptions.map((suffix) => (
-                        <option key={suffix} value={suffix}>
-                          {suffix}
-                        </option>
-                      ))}
-                    </Select>
-
+                  name="suffix"
+                  value={personnelData.suffix}
+                  onChange={handleChange}
+                  width="100%"
+                  isDisabled={personnelData.gender === "Female"}
+                >
+                  <option value="" disabled>
+                    Select Suffix
+                  </option>
+                  {suffixOptions.map((suffix) => (
+                    <option key={suffix} value={suffix}>
+                      {suffix}
+                    </option>
+                  ))}
+                </Select>
               </Flex>
             </Box>
 

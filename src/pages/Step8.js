@@ -22,13 +22,9 @@ import { Children } from "react";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
-const Step8 = ({
-  citizenships,
-  nationalities,}) => {
-  
+const Step8 = ({ citizenships, nationalities, suffixOptions, districts }) => {
   const bloodtypes = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
-  
-  const suffixOptions = ["No Suffix", "Jr.", "Sr.", "II", "III", "IV", "V", "VI"];
+
   const [children, setChildren] = useState([
     {
       relationshipType: "Child",
@@ -47,8 +43,8 @@ const Step8 = ({
       contactNumber: "",
       churchDuties: "",
       livelihood: "",
-      localCongregation: "",
       districtId: "",
+      localCongregation: "",
       ministerOfficiated: "",
       employmentType: "",
       company: "",
@@ -91,8 +87,8 @@ const Step8 = ({
         contactNumber: "",
         churchDuties: "",
         livelihood: "",
-        localCongregation: "",
         districtId: "",
+        localCongregation: "",
         ministerOfficiated: "",
         employmentType: "",
         company: "",
@@ -291,8 +287,8 @@ const Step8 = ({
                     }
                     isDisabled={!child.isEditing}
                   >
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
                   </Select>
                 </Td>
                 <Td>
@@ -325,30 +321,28 @@ const Step8 = ({
                     isDisabled={!child.isEditing}
                   />
                 </Td>
-               
               </Tr>
               <Tr>
-
                 <Td>
-                <Select
-                  name="suffix"
-                  value={children[index]?.suffix || ""}
-                  onChange={(e) =>
-                    handleChildChange(index, "suffix", e.target.value)
-                  }
-                  width="100%"
-                  isDisabled={children[index]?.gender === "Female"}
-                >
-                  <option value="" disabled>
-                    Select Suffix
-                  </option>
-                  {suffixOptions.map((suffix) => (
-                    <option key={suffix} value={suffix}>
-                      {suffix}
+                  <Select
+                    name="suffix"
+                    value={children[index]?.suffix || ""}
+                    onChange={(e) =>
+                      handleChildChange(index, "suffix", e.target.value)
+                    }
+                    width="100%"
+                    isDisabled={children[index]?.gender === "Female"}
+                  >
+                    <option value="" disabled>
+                      Select Suffix
                     </option>
-                  ))}
-                </Select>
-              </Td>
+                    {suffixOptions.map((suffix) => (
+                      <option key={suffix} value={suffix}>
+                        {suffix}
+                      </option>
+                    ))}
+                  </Select>
+                </Td>
 
                 <Td>
                   <Input
@@ -373,24 +367,20 @@ const Step8 = ({
                 </Td>
                 <Td>
                   <Select
-                          placeholder="Select Blood Type"
-                          name="bloodtype"
-                          value={child.bloodtype}
-                          onChange={(e) =>
-                            handleChildChange(
-                              index,
-                              "bloodType",
-                              e.target.value
-                            )
-                          }
-                          width="100%"
-                        >
-                          {bloodtypes.map((type) => (
-                            <option key={type} value={type}>
-                              {type}
-                            </option>
-                          ))}
-                        </Select>
+                    placeholder="Select Blood Type"
+                    name="bloodtype"
+                    value={child.bloodtype}
+                    onChange={(e) =>
+                      handleChildChange(index, "bloodType", e.target.value)
+                    }
+                    width="100%"
+                  >
+                    {bloodtypes.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </Select>
                 </Td>
               </Tr>
               <Tr>
@@ -420,46 +410,43 @@ const Step8 = ({
                 </Td>
 
                 <Td>
-                        <Select
-                placeholder="Select Citizenship"
-                name="citizenship"
-                value={child.citizenship}
-                onChange={(e) =>
-                  handleChildChange({
-                    target: { name: "citizenship", value: e.target.value },
-                  })
-                }
-                width="100%"
-              >
-                {citizenships.map((citizenship) => (
-                  <option key={citizenship.id} value={citizenship.id}>
-                    {citizenship.citizenship}
-                  </option>
-                ))}
-              </Select>
-
-                      </Td>
-                      <Td>
-                      <Select
-                        placeholder="Select Nationality"
-                        name="nationality"
-                        value={child.nationality}
-                        onChange={(e) =>
-                          handleChildChange({
-                            target: { name: "nationality", value: e.target.value },
-                          })
-                        }
-                        width="100%"
-                      >
-                        {nationalities.map((nationality) => (
-                          <option key={nationality.id} value={nationality.id}>
-                            {nationality.nationality}
-                          </option>
-                        ))}
-                      </Select>
-                      </Td>
-
-
+                  <Select
+                    placeholder="Select Citizenship"
+                    name="citizenship"
+                    value={child.citizenship}
+                    onChange={(e) =>
+                      handleChildChange({
+                        target: { name: "citizenship", value: e.target.value },
+                      })
+                    }
+                    width="100%"
+                  >
+                    {citizenships.map((citizenship) => (
+                      <option key={citizenship.id} value={citizenship.id}>
+                        {citizenship.citizenship}
+                      </option>
+                    ))}
+                  </Select>
+                </Td>
+                <Td>
+                  <Select
+                    placeholder="Select Nationality"
+                    name="nationality"
+                    value={child.nationality}
+                    onChange={(e) =>
+                      handleChildChange({
+                        target: { name: "nationality", value: e.target.value },
+                      })
+                    }
+                    width="100%"
+                  >
+                    {nationalities.map((nationality) => (
+                      <option key={nationality.id} value={nationality.id}>
+                        {nationality.nationality}
+                      </option>
+                    ))}
+                  </Select>
+                </Td>
               </Tr>
               <Tr>
                 <Td>
@@ -498,16 +485,24 @@ const Step8 = ({
                 </Td>
                 <Td>
                   <Select
-                    placeholder="District ID"
+                    placeholder="Select District"
+                    name="district_id"
                     value={child.districtId}
                     onChange={(e) =>
-                      handleChildChange(index, "districtId", e.target.value)
+                      handleChildChange({
+                        target: {
+                          name: "districtId",
+                          value: e.target.value,
+                        },
+                      })
                     }
-                    isDisabled={!child.isEditing}
+                    width="100%"
                   >
-                    <option>District 1</option>
-                    <option>District 2</option>
-                    <option>District 3</option>
+                    {districts.map((district) => (
+                      <option key={district.id} value={district.id}>
+                        {district.name}
+                      </option>
+                    ))}
                   </Select>
                 </Td>
               </Tr>

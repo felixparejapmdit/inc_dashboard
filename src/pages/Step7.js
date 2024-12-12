@@ -21,19 +21,8 @@ import axios from "axios";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
-const Step7 = ({ citizenships, nationalities }) => {
+const Step7 = ({ citizenships, nationalities, suffixOptions, districts }) => {
   const bloodtypes = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
-
-  const suffixOptions = [
-    "No Suffix",
-    "Jr.",
-    "Sr.",
-    "II",
-    "III",
-    "IV",
-    "V",
-    "VI",
-  ];
   const [spouses, setSpouses] = useState([
     {
       relationshipType: "Spouse",
@@ -52,8 +41,8 @@ const Step7 = ({ citizenships, nationalities }) => {
       contactNumber: "",
       churchDuties: "",
       livelihood: "",
-      localCongregation: "",
       districtId: "",
+      localCongregation: "",
       ministerOfficiated: "",
       employmentType: "",
       company: "",
@@ -95,8 +84,8 @@ const Step7 = ({ citizenships, nationalities }) => {
         contactNumber: "",
         churchDuties: "",
         livelihood: "",
-        localCongregation: "",
         districtId: "",
+        localCongregation: "",
         ministerOfficiated: "",
         employmentType: "",
         company: "",
@@ -487,16 +476,24 @@ const Step7 = ({ citizenships, nationalities }) => {
                 </Td>
                 <Td>
                   <Select
-                    placeholder="District ID"
+                    placeholder="Select District"
+                    name="district_id"
                     value={spouses.districtId}
                     onChange={(e) =>
-                      handleSpouseChange(index, "districtId", e.target.value)
+                      handleSpouseChange({
+                        target: {
+                          name: "districtId",
+                          value: e.target.value,
+                        },
+                      })
                     }
-                    isDisabled={!spouse.isEditing}
+                    width="100%"
                   >
-                    <option>District 1</option>
-                    <option>District 2</option>
-                    <option>District 3</option>
+                    {districts.map((district) => (
+                      <option key={district.id} value={district.id}>
+                        {district.name}
+                      </option>
+                    ))}
                   </Select>
                 </Td>
               </Tr>

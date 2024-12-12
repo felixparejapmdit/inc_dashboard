@@ -77,7 +77,7 @@ const EnrollmentForm = () => {
       setAge(""); // Clear age if no birth date
     }
   }, [personnelData.date_of_birth]);
-  
+
   const [languages, setLanguages] = useState([]);
   const [citizenships, setCitizenships] = useState([]);
   const [nationalities, setNationalities] = useState([]);
@@ -87,6 +87,16 @@ const EnrollmentForm = () => {
   const [designations, setDesignations] = useState([]);
   const [districts, setDistricts] = useState([]);
 
+  const suffixOptions = [
+    "No Suffix",
+    "Jr.",
+    "Sr.",
+    "II",
+    "III",
+    "IV",
+    "V",
+    "VI",
+  ];
   // Fetch data on component load
   useEffect(() => {
     // Helper function to fetch and set data
@@ -116,6 +126,91 @@ const EnrollmentForm = () => {
   const [education, setEducation] = useState([]);
   const [workExperience, setWorkExperience] = useState([]);
 
+  const initialFamilyMember = {
+    relationshipType: "",
+    givenName: "",
+    middleName: "",
+    lastName: "",
+    suffix: "",
+    gender: "Female",
+    bloodType: "",
+    civilStatus: "",
+    dateOfBirth: "",
+    dateOfMarriage: "",
+    placeOfMarriage: "",
+    citizenship: "",
+    nationality: "",
+    contactNumber: "",
+    churchDuties: "",
+    livelihood: "",
+    districtId: "",
+    localCongregation: "",
+    ministerOfficiated: "",
+    employmentType: "",
+    company: "",
+    address: "",
+    position: "",
+    department: "",
+    section: "",
+    startDate: "",
+    endDate: "",
+    reasonForLeaving: "",
+    educationLevel: "",
+    startYear: "",
+    completionYear: "",
+    school: "",
+    fieldOfStudy: "",
+    degree: "",
+    institution: "",
+    professionalLicensureExamination: "",
+    isEditing: true,
+  };
+
+  const [family, setFamily] = useState({
+    parents: [
+      { ...initialFamilyMember, relationshipType: "Father1", gender: "Male" },
+      { ...initialFamilyMember, relationshipType: "Mother", gender: "Female" },
+    ],
+    siblings: [{ ...initialFamilyMember, relationshipType: "Sibling" }], // Add default sibling
+    spouses: [{ ...initialFamilyMember, relationshipType: "Spouse" }], // Add default spouse
+    children: [{ ...initialFamilyMember, relationshipType: "Child" }], // Add default child
+  });
+
+  const handleAddFamilyMember = (type, relationshipType = "") => {
+    setFamily((prevFamily) => ({
+      ...prevFamily,
+      [type]: [
+        ...prevFamily[type],
+        { ...initialFamilyMember, relationshipType, isEditing: true },
+      ],
+    }));
+  };
+
+  const handleFamilyMemberChange = (type, index, field, value) => {
+    setFamily((prevFamily) => ({
+      ...prevFamily,
+      [type]: prevFamily[type].map((member, i) =>
+        i === index ? { ...member, [field]: value } : member
+      ),
+    }));
+  };
+
+  const handleDeleteFamilyMember = (type, index) => {
+    setFamily((prevFamily) => ({
+      ...prevFamily,
+      [type]: prevFamily[type].filter((_, i) => i !== index),
+    }));
+  };
+
+  const toggleEditFamilyMember = (type, index) => {
+    setFamily((prevFamily) => ({
+      ...prevFamily,
+      [type]: prevFamily[type].map((member, i) =>
+        i === index ? { ...member, isEditing: !member.isEditing } : member
+      ),
+    }));
+  };
+
   // State to manage parents' data for Step4
   const [parents, setParents] = useState([
     {
@@ -124,7 +219,7 @@ const EnrollmentForm = () => {
       middleName: "",
       lastName: "",
       suffix: "",
-      gender: "Male",
+      gender: "Female",
       bloodType: "",
       civilStatus: "",
       dateOfBirth: "",
@@ -135,8 +230,8 @@ const EnrollmentForm = () => {
       contactNumber: "",
       churchDuties: "",
       livelihood: "",
-      localCongregation: "",
       districtId: "",
+      localCongregation: "",
       ministerOfficiated: "",
       employmentType: "",
       company: "",
@@ -174,8 +269,8 @@ const EnrollmentForm = () => {
       contactNumber: "",
       churchDuties: "",
       livelihood: "",
-      localCongregation: "",
       districtId: "",
+      localCongregation: "",
       ministerOfficiated: "",
       employmentType: "",
       company: "",
@@ -279,11 +374,29 @@ const EnrollmentForm = () => {
       middleName: "",
       lastName: "",
       suffix: "",
-      gender: "Male",
+      gender: "Female",
       bloodType: "",
       civilStatus: "",
       dateOfBirth: "",
+      dateOfMarriage: "",
+      placeOfMarriage: "",
+      citizenship: "",
+      nationality: "",
       contactNumber: "",
+      churchDuties: "",
+      livelihood: "",
+      districtId: "",
+      localCongregation: "",
+      ministerOfficiated: "",
+      employmentType: "",
+      company: "",
+      address: "",
+      position: "",
+      department: "",
+      section: "",
+      startDate: "",
+      endDate: "",
+      reasonForLeaving: "",
       educationLevel: "",
       startYear: "",
       completionYear: "",
@@ -337,20 +450,20 @@ const EnrollmentForm = () => {
       middleName: "",
       lastName: "",
       suffix: "",
-      gender: "Male", // Default gender
-      status: "Alive", // Default status
+      gender: "",
       bloodType: "",
       civilStatus: "",
       dateOfBirth: "",
+      dateOfMarriage: "",
+      placeOfMarriage: "",
+      citizenship: "",
+      nationality: "",
       contactNumber: "",
-      educationLevel: "",
-      startYear: "",
-      completionYear: "",
-      school: "",
-      fieldOfStudy: "",
-      degree: "",
-      institution: "",
-      professionalLicensureExamination: "",
+      churchDuties: "",
+      livelihood: "",
+      districtId: "",
+      localCongregation: "",
+      ministerOfficiated: "",
       employmentType: "",
       company: "",
       address: "",
@@ -360,7 +473,15 @@ const EnrollmentForm = () => {
       startDate: "",
       endDate: "",
       reasonForLeaving: "",
-      isEditing: true,
+      educationLevel: "",
+      startYear: "",
+      completionYear: "",
+      school: "",
+      fieldOfStudy: "",
+      degree: "",
+      institution: "",
+      professionalLicensureExamination: "",
+      isEditing: true, // Default is true for editable fields on load
     },
   ]);
 
@@ -643,6 +764,7 @@ const EnrollmentForm = () => {
           subsections={subsections}
           designations={designations}
           districts={districts}
+          suffixOptions={suffixOptions}
         />
       )}
 
@@ -677,11 +799,26 @@ const EnrollmentForm = () => {
 
       {step === 5 && (
         <Step5
-          parents={parents}
-          handleParentChange={handleParentChange}
-          toggleEditParent={toggleEditParent}
+          // parents={parents}
+          // handleParentChange={handleParentChange}
+          // toggleEditParent={toggleEditParent}
+          data={family.parents}
+          setData={(updatedParents) =>
+            setFamily((prevFamily) => ({
+              ...prevFamily,
+              parents: updatedParents,
+            }))
+          }
+          onAdd={() => handleAddFamilyMember("parents", "Parent")}
+          onChange={(index, field, value) =>
+            handleFamilyMemberChange("parents", index, field, value)
+          }
+          onDelete={(index) => handleDeleteFamilyMember("parents", index)}
+          onToggleEdit={(index) => toggleEditFamilyMember("parents", index)}
           citizenships={citizenships}
           nationalities={nationalities}
+          suffixOptions={suffixOptions}
+          districts={districts}
         />
       )}
 
@@ -692,6 +829,8 @@ const EnrollmentForm = () => {
           handleAddSibling={handleAddSibling}
           citizenships={citizenships}
           nationalities={nationalities}
+          suffixOptions={suffixOptions}
+          districts={districts}
         />
       )}
 
@@ -704,6 +843,8 @@ const EnrollmentForm = () => {
           handleDeleteSpouse={handleDeleteSpouse}
           citizenships={citizenships}
           nationalities={nationalities}
+          suffixOptions={suffixOptions}
+          districts={districts}
         />
       )}
 
@@ -716,6 +857,8 @@ const EnrollmentForm = () => {
           handleDeleteChild={handleDeleteChild}
           citizenships={citizenships}
           nationalities={nationalities}
+          suffixOptions={suffixOptions}
+          districts={districts}
         />
       )}
 

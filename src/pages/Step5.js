@@ -25,114 +25,119 @@ import axios from "axios";
 
 const API_URL = process.env.REACT_APP_API_URL;
 const Step5 = ({
+  data,
+  onAdd,
+  onChange,
+  onDelete,
+  onToggleEdit,
   citizenships,
-  nationalities,}) => {
-
-  
+  nationalities,
+  suffixOptions,
+  districts,
+}) => {
   const bloodtypes = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
 
-  const suffixOptions = ["No Suffix", "Jr.", "Sr.", "II", "III", "IV", "V", "VI"];
+  // const [parents, setParents] = useState([
+  //   {
+  //     relationshipType: "Father",
+  //     givenName: "",
+  //     middleName: "",
+  //     lastName: "",
+  //     suffix: "",
+  //     gender: "Male",
+  //     bloodType: "",
+  //     civilStatus: "",
+  //     dateOfBirth: "",
+  //     dateOfMarriage: "",
+  //     placeOfMarriage: "",
+  //     citizenship: "",
+  //     nationality: "",
+  //     contactNumber: "",
+  //     churchDuties: "",
+  //     livelihood: "",
+  //     districtId: "",
+  //     localCongregation: "",
+  //     ministerOfficiated: "",
+  //     employmentType: "",
+  //     company: "",
+  //     address: "",
+  //     position: "",
+  //     department: "",
+  //     section: "",
+  //     startDate: "",
+  //     endDate: "",
+  //     reasonForLeaving: "",
+  //     educationLevel: "",
+  //     startYear: "",
+  //     completionYear: "",
+  //     school: "",
+  //     fieldOfStudy: "",
+  //     degree: "",
+  //     institution: "",
+  //     professionalLicensureExamination: "",
+  //     isEditing: true,
+  //   },
+  //   {
+  //     relationshipType: "Mother",
+  //     givenName: "",
+  //     middleName: "",
+  //     lastName: "",
+  //     suffix: "",
+  //     gender: "Female",
+  //     bloodType: "",
+  //     civilStatus: "",
+  //     dateOfBirth: "",
+  //     dateOfMarriage: "",
+  //     placeOfMarriage: "",
+  //     citizenship: "",
+  //     nationality: "",
+  //     contactNumber: "",
+  //     churchDuties: "",
+  //     livelihood: "",
+  //     districtId: "",
+  //     localCongregation: "",
+  //     ministerOfficiated: "",
+  //     employmentType: "",
+  //     company: "",
+  //     address: "",
+  //     position: "",
+  //     department: "",
+  //     section: "",
+  //     startDate: "",
+  //     endDate: "",
+  //     reasonForLeaving: "",
+  //     educationLevel: "",
+  //     startYear: "",
+  //     completionYear: "",
+  //     school: "",
+  //     fieldOfStudy: "",
+  //     degree: "",
+  //     institution: "",
+  //     professionalLicensureExamination: "",
+  //     isEditing: true,
+  //   },
+  // ]);
 
-  const [parents, setParents] = useState([
-    {
-      relationshipType: "Father",
-      givenName: "",
-      middleName: "",
-      lastName: "",
-      suffix: "",
-      gender: "Male",
-      bloodType: "",
-      civilStatus: "",
-      dateOfBirth: "",
-      dateOfMarriage: "",
-      placeOfMarriage: "",
-      citizenship: "",
-      nationality: "",
-      contactNumber: "",
-      churchDuties: "",
-      livelihood: "",
-      localCongregation: "",
-      districtId: "",
-      ministerOfficiated: "",
-      employmentType: "",
-      company: "",
-      address: "",
-      position: "",
-      department: "",
-      section: "",
-      startDate: "",
-      endDate: "",
-      reasonForLeaving: "",
-      educationLevel: "",
-      startYear: "",
-      completionYear: "",
-      school: "",
-      fieldOfStudy: "",
-      degree: "",
-      institution: "",
-      professionalLicensureExamination: "",
-      isEditing: true,
-    },
-    {
-      relationshipType: "Mother",
-      givenName: "",
-      middleName: "",
-      lastName: "",
-      suffix: "",
-      gender: "Female",
-      bloodType: "",
-      civilStatus: "",
-      dateOfBirth: "",
-      dateOfMarriage: "",
-      placeOfMarriage: "",
-      citizenship: "",
-      nationality: "",
-      contactNumber: "",
-      churchDuties: "",
-      livelihood: "",
-      localCongregation: "",
-      districtId: "",
-      ministerOfficiated: "",
-      employmentType: "",
-      company: "",
-      address: "",
-      position: "",
-      department: "",
-      section: "",
-      startDate: "",
-      endDate: "",
-      reasonForLeaving: "",
-      educationLevel: "",
-      startYear: "",
-      completionYear: "",
-      school: "",
-      fieldOfStudy: "",
-      degree: "",
-      institution: "",
-      professionalLicensureExamination: "",
-      isEditing: true,
-    },
-  ]);
+  // const toggleEditParent = (index) => {
+  //   const updatedParents = [...parents];
+  //   updatedParents[index].isEditing = !updatedParents[index].isEditing;
+  //   setParents(updatedParents);
+  // };
 
-  const toggleEditParent = (index) => {
-    const updatedParents = [...parents];
-    updatedParents[index].isEditing = !updatedParents[index].isEditing;
-    setParents(updatedParents);
-  };
+  // // Handle input change
+  // const onChange = (index, field, value) => {
+  //   const updatedParents = parents.map((parent, i) =>
+  //     i === index ? { ...parent, [field]: value } : parent
+  //   );
+  //   setParents(updatedParents);
+  // };
+
   const [loading, setLoading] = useState(false);
   const toast = useToast();
 
-  // Handle input change
-  const handleParentChange = (index, field, value) => {
-    const updatedParents = parents.map((parent, i) =>
-      i === index ? { ...parent, [field]: value } : parent
-    );
-    setParents(updatedParents);
-  };
-
   const handleSaveOrUpdate = async (index) => {
     setLoading(true);
-    const parent = parents[index];
+    const parent = data[index];
     const {
       id,
       isEditing,
@@ -187,7 +192,7 @@ const Step5 = ({
         );
         const updatedParent = response.data;
 
-        setParents((prev) =>
+        onAdd((prev) =>
           prev.map((item, i) =>
             i === index ? { ...updatedParent, isEditing: false } : item
           )
@@ -208,7 +213,7 @@ const Step5 = ({
         );
         const savedParent = response.data;
 
-        setParents((prev) =>
+        onAdd((prev) =>
           prev.map((item, i) =>
             i === index
               ? { ...item, id: savedParent.id, isEditing: false }
@@ -251,13 +256,13 @@ const Step5 = ({
       <VStack align="start" spacing={4} mb={8} w="100%">
         <Tabs variant="enclosed" colorScheme="blue">
           <TabList>
-            {parents.map((parent, index) => (
+            {data.map((parent, index) => (
               <Tab key={index}>{parent.relationshipType}</Tab>
             ))}
           </TabList>
 
           <TabPanels>
-            {parents.map((parent, index) => (
+            {data.map((parent, index) => (
               <TabPanel key={index}>
                 <Table size="md" variant="simple">
                   <Tbody>
@@ -280,11 +285,7 @@ const Step5 = ({
                           placeholder="Given Name"
                           value={parent.givenName}
                           onChange={(e) =>
-                            handleParentChange(
-                              index,
-                              "givenName",
-                              e.target.value
-                            )
+                            onChange(index, "givenName", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -294,11 +295,7 @@ const Step5 = ({
                           placeholder="Middle Name"
                           value={parent.middleName}
                           onChange={(e) =>
-                            handleParentChange(
-                              index,
-                              "middleName",
-                              e.target.value
-                            )
+                            onChange(index, "middleName", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -308,35 +305,28 @@ const Step5 = ({
                           placeholder="Last Name"
                           value={parent.lastName}
                           onChange={(e) =>
-                            handleParentChange(
-                              index,
-                              "lastName",
-                              e.target.value
-                            )
+                            onChange(index, "lastName", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
                       </Td>
                       <Td>
-                
-                      <Select
-                        name="suffix"
-                        value={parent.suffix}
-                        onChange={handleParentChange}
-                        width="100%"
-                        isDisabled={parent.gender === "Female"}
-                      >
-                        <option value="" disabled>
-                          Select Suffix
-                        </option>
-                        {suffixOptions.map((suffix) => (
-                          <option key={suffix} value={suffix}>
-                            {suffix}
+                        <Select
+                          name="suffix"
+                          value={parent.suffix}
+                          onChange={onChange}
+                          width="100%"
+                          isDisabled={parent.gender === "Female"}
+                        >
+                          <option value="" disabled>
+                            Select Suffix
                           </option>
-                        ))}
-                      </Select>
-
-
+                          {suffixOptions.map((suffix) => (
+                            <option key={suffix} value={suffix}>
+                              {suffix}
+                            </option>
+                          ))}
+                        </Select>
                       </Td>
                     </Tr>
                     <Tr>
@@ -345,7 +335,7 @@ const Step5 = ({
                           placeholder="Gender"
                           value={parent.gender}
                           onChange={(e) =>
-                            handleParentChange(index, "gender", e.target.value)
+                            onChange(index, "gender", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         >
@@ -359,11 +349,7 @@ const Step5 = ({
                           type="date"
                           value={parent.dateOfBirth}
                           onChange={(e) =>
-                            handleParentChange(
-                              index,
-                              "dateOfBirth",
-                              e.target.value
-                            )
+                            onChange(index, "dateOfBirth", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -373,11 +359,7 @@ const Step5 = ({
                           placeholder="Contact Number"
                           value={parent.contactNumber}
                           onChange={(e) =>
-                            handleParentChange(
-                              index,
-                              "contactNumber",
-                              e.target.value
-                            )
+                            onChange(index, "contactNumber", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -388,11 +370,7 @@ const Step5 = ({
                           name="bloodtype"
                           value={parent.bloodtype}
                           onChange={(e) =>
-                            handleParentChange(
-                              index,
-                              "bloodType",
-                              e.target.value
-                            )
+                            onChange(index, "bloodType", e.target.value)
                           }
                           width="100%"
                         >
@@ -410,11 +388,7 @@ const Step5 = ({
                           placeholder="Civil Status"
                           value={parent.civilStatus}
                           onChange={(e) =>
-                            handleParentChange(
-                              index,
-                              "civilStatus",
-                              e.target.value
-                            )
+                            onChange(index, "civilStatus", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -424,53 +398,54 @@ const Step5 = ({
                           placeholder="Place of Marriage"
                           value={parent.placeOfMarriage}
                           onChange={(e) =>
-                            handleParentChange(
-                              index,
-                              "placeOfMarriage",
-                              e.target.value
-                            )
+                            onChange(index, "placeOfMarriage", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
                       </Td>
                       <Td>
                         <Select
-                placeholder="Select Citizenship"
-                name="citizenship"
-                value={parent.citizenship}
-                onChange={(e) =>
-                  handleParentChange({
-                    target: { name: "citizenship", value: e.target.value },
-                  })
-                }
-                width="100%"
-              >
-                {citizenships.map((citizenship) => (
-                  <option key={citizenship.id} value={citizenship.id}>
-                    {citizenship.citizenship}
-                  </option>
-                ))}
-              </Select>
-
+                          placeholder="Select Citizenship"
+                          name="citizenship"
+                          value={parent.citizenship}
+                          onChange={(e) =>
+                            onChange({
+                              target: {
+                                name: "citizenship",
+                                value: e.target.value,
+                              },
+                            })
+                          }
+                          width="100%"
+                        >
+                          {citizenships.map((citizenship) => (
+                            <option key={citizenship.id} value={citizenship.id}>
+                              {citizenship.citizenship}
+                            </option>
+                          ))}
+                        </Select>
                       </Td>
                       <Td>
-                      <Select
-                        placeholder="Select Nationality"
-                        name="nationality"
-                        value={parent.nationality}
-                        onChange={(e) =>
-                          handleParentChange({
-                            target: { name: "nationality", value: e.target.value },
-                          })
-                        }
-                        width="100%"
-                      >
-                        {nationalities.map((nationality) => (
-                          <option key={nationality.id} value={nationality.id}>
-                            {nationality.nationality}
-                          </option>
-                        ))}
-                      </Select>
+                        <Select
+                          placeholder="Select Nationality"
+                          name="nationality"
+                          value={parent.nationality}
+                          onChange={(e) =>
+                            onChange({
+                              target: {
+                                name: "nationality",
+                                value: e.target.value,
+                              },
+                            })
+                          }
+                          width="100%"
+                        >
+                          {nationalities.map((nationality) => (
+                            <option key={nationality.id} value={nationality.id}>
+                              {nationality.nationality}
+                            </option>
+                          ))}
+                        </Select>
                       </Td>
                     </Tr>
                     <Tr>
@@ -479,11 +454,7 @@ const Step5 = ({
                           placeholder="Church Duties"
                           value={parent.churchDuties}
                           onChange={(e) =>
-                            handleParentChange(
-                              index,
-                              "churchDuties",
-                              e.target.value
-                            )
+                            onChange(index, "churchDuties", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -493,11 +464,7 @@ const Step5 = ({
                           placeholder="Livelihood"
                           value={parent.livelihood}
                           onChange={(e) =>
-                            handleParentChange(
-                              index,
-                              "livelihood",
-                              e.target.value
-                            )
+                            onChange(index, "livelihood", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -507,31 +474,31 @@ const Step5 = ({
                           placeholder="Local Congregation"
                           value={parent.localCongregation}
                           onChange={(e) =>
-                            handleParentChange(
-                              index,
-                              "localCongregation",
-                              e.target.value
-                            )
+                            onChange(index, "localCongregation", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
                       </Td>
                       <Td>
                         <Select
-                          placeholder="District ID"
+                          placeholder="Select District"
+                          name="district_id"
                           value={parent.districtId}
                           onChange={(e) =>
-                            handleParentChange(
-                              index,
-                              "districtId",
-                              e.target.value
-                            )
+                            onChange({
+                              target: {
+                                name: "districtId",
+                                value: e.target.value,
+                              },
+                            })
                           }
-                          isDisabled={!parent.isEditing}
+                          width="100%"
                         >
-                          <option>District 1</option>
-                          <option>District 2</option>
-                          <option>District 3</option>
+                          {districts.map((district) => (
+                            <option key={district.id} value={district.id}>
+                              {district.name}
+                            </option>
+                          ))}
                         </Select>
                       </Td>
                     </Tr>
@@ -542,7 +509,7 @@ const Step5 = ({
                           placeholder="Minister Officiated"
                           value={parent.ministerOfficiated}
                           onChange={(e) =>
-                            handleParentChange(
+                            onChange(
                               index,
                               "ministerOfficiated",
                               e.target.value
@@ -565,11 +532,7 @@ const Step5 = ({
                           placeholder="Employment Type"
                           value={parent.employmentType}
                           onChange={(e) =>
-                            handleParentChange(
-                              index,
-                              "employmentType",
-                              e.target.value
-                            )
+                            onChange(index, "employmentType", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         >
@@ -584,7 +547,7 @@ const Step5 = ({
                           placeholder="Company"
                           value={parent.company}
                           onChange={(e) =>
-                            handleParentChange(index, "company", e.target.value)
+                            onChange(index, "company", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -594,11 +557,7 @@ const Step5 = ({
                           placeholder="Position"
                           value={parent.position}
                           onChange={(e) =>
-                            handleParentChange(
-                              index,
-                              "position",
-                              e.target.value
-                            )
+                            onChange(index, "position", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -608,7 +567,7 @@ const Step5 = ({
                           placeholder="Address"
                           value={parent.address}
                           onChange={(e) =>
-                            handleParentChange(index, "address", e.target.value)
+                            onChange(index, "address", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -620,11 +579,7 @@ const Step5 = ({
                           placeholder="Department"
                           value={parent.department}
                           onChange={(e) =>
-                            handleParentChange(
-                              index,
-                              "department",
-                              e.target.value
-                            )
+                            onChange(index, "department", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -634,7 +589,7 @@ const Step5 = ({
                           placeholder="Section"
                           value={parent.section}
                           onChange={(e) =>
-                            handleParentChange(index, "section", e.target.value)
+                            onChange(index, "section", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -645,11 +600,7 @@ const Step5 = ({
                           type="date"
                           value={parent.startDate}
                           onChange={(e) =>
-                            handleParentChange(
-                              index,
-                              "startDate",
-                              e.target.value
-                            )
+                            onChange(index, "startDate", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -660,7 +611,7 @@ const Step5 = ({
                           type="date"
                           value={parent.endDate}
                           onChange={(e) =>
-                            handleParentChange(index, "endDate", e.target.value)
+                            onChange(index, "endDate", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -672,11 +623,7 @@ const Step5 = ({
                           placeholder="Reason for Leaving"
                           value={parent.reasonForLeaving}
                           onChange={(e) =>
-                            handleParentChange(
-                              index,
-                              "reasonForLeaving",
-                              e.target.value
-                            )
+                            onChange(index, "reasonForLeaving", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -695,11 +642,7 @@ const Step5 = ({
                           placeholder="Education Level"
                           value={parent.educationLevel}
                           onChange={(e) =>
-                            handleParentChange(
-                              index,
-                              "educationLevel",
-                              e.target.value
-                            )
+                            onChange(index, "educationLevel", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         >
@@ -714,7 +657,7 @@ const Step5 = ({
                           placeholder="School"
                           value={parent.school}
                           onChange={(e) =>
-                            handleParentChange(index, "school", e.target.value)
+                            onChange(index, "school", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -724,11 +667,7 @@ const Step5 = ({
                           placeholder="Field of Study"
                           value={parent.fieldOfStudy}
                           onChange={(e) =>
-                            handleParentChange(
-                              index,
-                              "fieldOfStudy",
-                              e.target.value
-                            )
+                            onChange(index, "fieldOfStudy", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -738,7 +677,7 @@ const Step5 = ({
                           placeholder="Degree"
                           value={parent.degree}
                           onChange={(e) =>
-                            handleParentChange(index, "degree", e.target.value)
+                            onChange(index, "degree", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -750,11 +689,7 @@ const Step5 = ({
                           placeholder="Institution"
                           value={parent.institution}
                           onChange={(e) =>
-                            handleParentChange(
-                              index,
-                              "institution",
-                              e.target.value
-                            )
+                            onChange(index, "institution", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -764,7 +699,7 @@ const Step5 = ({
                           placeholder="Professional Licensure"
                           value={parent.professionalLicensureExamination}
                           onChange={(e) =>
-                            handleParentChange(
+                            onChange(
                               index,
                               "professionalLicensureExamination",
                               e.target.value
@@ -779,11 +714,7 @@ const Step5 = ({
                           type="number"
                           value={parent.startYear}
                           onChange={(e) =>
-                            handleParentChange(
-                              index,
-                              "startYear",
-                              e.target.value
-                            )
+                            onChange(index, "startYear", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -794,11 +725,7 @@ const Step5 = ({
                           type="number"
                           value={parent.completionYear}
                           onChange={(e) =>
-                            handleParentChange(
-                              index,
-                              "completionYear",
-                              e.target.value
-                            )
+                            onChange(index, "completionYear", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -813,7 +740,7 @@ const Step5 = ({
                           onClick={() =>
                             parent.isEditing
                               ? handleSaveOrUpdate(index)
-                              : handleParentChange(index, "isEditing", true)
+                              : onChange(index, "isEditing", true)
                           }
                           colorScheme={parent.isEditing ? "green" : "blue"}
                         />

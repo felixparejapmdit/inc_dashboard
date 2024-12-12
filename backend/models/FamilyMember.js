@@ -77,12 +77,12 @@ const FamilyMember = db.define(
       type: DataTypes.STRING(50),
       allowNull: true,
     },
-    local_congregation: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-    },
     district_id: {
       type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    local_congregation: {
+      type: DataTypes.STRING(50),
       allowNull: true,
     },
     minister_officiated: {
