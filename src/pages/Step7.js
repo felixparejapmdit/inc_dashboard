@@ -21,8 +21,19 @@ import axios from "axios";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
-const Step7 = ({ citizenships, nationalities, suffixOptions, districts }) => {
-  const bloodtypes = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
+const Step7 = ({
+  data,
+  onChange,
+  onToggleEdit,
+  citizenships,
+  nationalities,
+  suffixOptions,
+  districts,
+  civilStatusOptions,
+  employmentTypeOptions,
+  educationalLevelOptions,
+  bloodtypes,
+}) => {
   const [spouses, setSpouses] = useState([
     {
       relationshipType: "Spouse",
@@ -376,11 +387,29 @@ const Step7 = ({ citizenships, nationalities, suffixOptions, districts }) => {
               </Tr>
               <Tr>
                 <Td>
-                  <Input
+                  <Select
                     placeholder="Civil Status"
                     value={spouses.civilStatus}
                     onChange={(e) =>
                       handleSpouseChange(index, "civilStatus", e.target.value)
+                    }
+                    isDisabled={!spouse.isEditing}
+                  >
+                    {civilStatusOptions.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+                  </Select>
+                </Td>
+
+                <Td>
+                  <Input
+                    placeholder="Date of Marriage"
+                    type="date"
+                    value={data.date_of_marriage}
+                    onChange={(e) =>
+                      onChange(index, "date_of_marriage", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   />
@@ -419,6 +448,8 @@ const Step7 = ({ citizenships, nationalities, suffixOptions, districts }) => {
                     ))}
                   </Select>
                 </Td>
+              </Tr>
+              <Tr>
                 <Td>
                   <Select
                     placeholder="Select Nationality"
@@ -438,38 +469,12 @@ const Step7 = ({ citizenships, nationalities, suffixOptions, districts }) => {
                     ))}
                   </Select>
                 </Td>
-              </Tr>
-              <Tr>
-                <Td>
-                  <Input
-                    placeholder="Church Duties"
-                    value={spouses.churchDuties}
-                    onChange={(e) =>
-                      handleSpouseChange(index, "churchDuties", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                  />
-                </Td>
                 <Td>
                   <Input
                     placeholder="Livelihood"
                     value={spouses.livelihood}
                     onChange={(e) =>
                       handleSpouseChange(index, "livelihood", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                  />
-                </Td>
-                <Td>
-                  <Input
-                    placeholder="Local Congregation"
-                    value={spouses.localCongregation}
-                    onChange={(e) =>
-                      handleSpouseChange(
-                        index,
-                        "localCongregation",
-                        e.target.value
-                      )
                     }
                     isDisabled={!spouse.isEditing}
                   />
@@ -496,9 +501,33 @@ const Step7 = ({ citizenships, nationalities, suffixOptions, districts }) => {
                     ))}
                   </Select>
                 </Td>
+                <Td>
+                  <Input
+                    placeholder="Local Congregation"
+                    value={spouses.localCongregation}
+                    onChange={(e) =>
+                      handleSpouseChange(
+                        index,
+                        "localCongregation",
+                        e.target.value
+                      )
+                    }
+                    isDisabled={!spouse.isEditing}
+                  />
+                </Td>
               </Tr>
 
               <Tr>
+                <Td>
+                  <Input
+                    placeholder="Church Duties"
+                    value={spouses.churchDuties}
+                    onChange={(e) =>
+                      handleSpouseChange(index, "churchDuties", e.target.value)
+                    }
+                    isDisabled={!spouse.isEditing}
+                  />
+                </Td>
                 <Td>
                   <Input
                     placeholder="Minister Officiated"
@@ -535,10 +564,11 @@ const Step7 = ({ citizenships, nationalities, suffixOptions, districts }) => {
                     }
                     isDisabled={!spouse.isEditing}
                   >
-                    <option>Self-employed</option>
-                    <option>Employed</option>
-                    <option>Government</option>
-                    <option>Private</option>
+                    {employmentTypeOptions.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
                   </Select>
                 </Td>
                 <Td>
@@ -653,10 +683,11 @@ const Step7 = ({ citizenships, nationalities, suffixOptions, districts }) => {
                     }
                     isDisabled={!spouse.isEditing}
                   >
-                    <option>Elementary</option>
-                    <option>Secondary</option>
-                    <option>Senior High School</option>
-                    <option>College</option>
+                    {educationalLevelOptions.map((level) => (
+                      <option key={level} value={level}>
+                        {level}
+                      </option>
+                    ))}
                   </Select>
                 </Td>
                 <Td>

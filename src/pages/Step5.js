@@ -26,118 +26,24 @@ import axios from "axios";
 const API_URL = process.env.REACT_APP_API_URL;
 const Step5 = ({
   data,
-  onAdd,
   onChange,
-  onDelete,
   onToggleEdit,
   citizenships,
   nationalities,
   suffixOptions,
   districts,
+  civilStatusOptions,
+  employmentTypeOptions,
+  educationalLevelOptions,
+  bloodtypes,
 }) => {
-  const bloodtypes = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
-
-  // const [parents, setParents] = useState([
-  //   {
-  //     relationshipType: "Father",
-  //     givenName: "",
-  //     middleName: "",
-  //     lastName: "",
-  //     suffix: "",
-  //     gender: "Male",
-  //     bloodType: "",
-  //     civilStatus: "",
-  //     dateOfBirth: "",
-  //     dateOfMarriage: "",
-  //     placeOfMarriage: "",
-  //     citizenship: "",
-  //     nationality: "",
-  //     contactNumber: "",
-  //     churchDuties: "",
-  //     livelihood: "",
-  //     districtId: "",
-  //     localCongregation: "",
-  //     ministerOfficiated: "",
-  //     employmentType: "",
-  //     company: "",
-  //     address: "",
-  //     position: "",
-  //     department: "",
-  //     section: "",
-  //     startDate: "",
-  //     endDate: "",
-  //     reasonForLeaving: "",
-  //     educationLevel: "",
-  //     startYear: "",
-  //     completionYear: "",
-  //     school: "",
-  //     fieldOfStudy: "",
-  //     degree: "",
-  //     institution: "",
-  //     professionalLicensureExamination: "",
-  //     isEditing: true,
-  //   },
-  //   {
-  //     relationshipType: "Mother",
-  //     givenName: "",
-  //     middleName: "",
-  //     lastName: "",
-  //     suffix: "",
-  //     gender: "Female",
-  //     bloodType: "",
-  //     civilStatus: "",
-  //     dateOfBirth: "",
-  //     dateOfMarriage: "",
-  //     placeOfMarriage: "",
-  //     citizenship: "",
-  //     nationality: "",
-  //     contactNumber: "",
-  //     churchDuties: "",
-  //     livelihood: "",
-  //     districtId: "",
-  //     localCongregation: "",
-  //     ministerOfficiated: "",
-  //     employmentType: "",
-  //     company: "",
-  //     address: "",
-  //     position: "",
-  //     department: "",
-  //     section: "",
-  //     startDate: "",
-  //     endDate: "",
-  //     reasonForLeaving: "",
-  //     educationLevel: "",
-  //     startYear: "",
-  //     completionYear: "",
-  //     school: "",
-  //     fieldOfStudy: "",
-  //     degree: "",
-  //     institution: "",
-  //     professionalLicensureExamination: "",
-  //     isEditing: true,
-  //   },
-  // ]);
-
-  // const toggleEditParent = (index) => {
-  //   const updatedParents = [...parents];
-  //   updatedParents[index].isEditing = !updatedParents[index].isEditing;
-  //   setParents(updatedParents);
-  // };
-
-  // // Handle input change
-  // const onChange = (index, field, value) => {
-  //   const updatedParents = parents.map((parent, i) =>
-  //     i === index ? { ...parent, [field]: value } : parent
-  //   );
-  //   setParents(updatedParents);
-  // };
-
   const [loading, setLoading] = useState(false);
   const toast = useToast();
 
   const handleSaveOrUpdate = async (index) => {
     setLoading(true);
     const parent = data[index];
+
     const {
       id,
       isEditing,
@@ -152,10 +58,10 @@ const Step5 = ({
     const formattedData = {
       ...parentData,
       givenname: givenName,
-      lastname: lastName, // Ensure lastname is sent
-      gender: gender, // Ensure gender is sent
+      lastname: lastName,
+      gender: gender,
       relationship_type: relationshipType,
-      personnel_id: parentData.personnel_id || 8,
+      personnel_id: parentData.personnel_id || 8, // Default personnel ID if not present
     };
 
     // Validate required fields before saving/updating
@@ -166,69 +72,56 @@ const Step5 = ({
       "lastname",
       "gender",
     ];
-    for (const field of requiredFields) {
-      if (
+    const missingField = requiredFields.find(
+      (field) =>
         !formattedData[field] ||
         (typeof formattedData[field] === "string" &&
           formattedData[field].trim() === "")
-      ) {
-        toast({
-          title: "Validation Error",
-          description: `The field ${field} is required for ${relationshipType}.`,
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-        return;
-      }
+    );
+
+    if (missingField) {
+      toast({
+        title: "Validation Error",
+        description: `The field "${missingField}" is required for ${relationshipType}.`,
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      setLoading(false); // Reset loading state
+      return;
     }
 
     try {
+      let updatedParent;
       if (id) {
         // Update existing parent record
         const response = await axios.put(
           `${API_URL}/api/family-members/${id}`,
           formattedData
         );
-        const updatedParent = response.data;
-
-        onAdd((prev) =>
-          prev.map((item, i) =>
-            i === index ? { ...updatedParent, isEditing: false } : item
-          )
-        );
-
-        toast({
-          title: "Parent Information Updated",
-          description: `${relationshipType} information has been updated successfully.`,
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
+        updatedParent = response.data;
       } else {
         // Save new parent record
         const response = await axios.post(
           `${API_URL}/api/family-members`,
           formattedData
         );
-        const savedParent = response.data;
-
-        onAdd((prev) =>
-          prev.map((item, i) =>
-            i === index
-              ? { ...item, id: savedParent.id, isEditing: false }
-              : item
-          )
-        );
-
-        toast({
-          title: "Parent Information Saved",
-          description: `${relationshipType} information has been saved successfully.`,
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
+        updatedParent = response.data;
       }
+
+      // Update parent in state
+      onToggleEdit(index); // Disable editing mode for the updated parent
+      onChange(index, "id", updatedParent.id); // Update the `id` field if it was a new record
+
+      toast({
+        title: id ? "Parent Updated" : "Parent Added",
+        description: `${relationshipType} information has been ${
+          id ? "updated" : "added"
+        } successfully.`,
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
     } catch (error) {
       console.error(
         "Error saving/updating parent information:",
@@ -236,15 +129,17 @@ const Step5 = ({
       );
       toast({
         title: "Error",
-        description: `Failed to save/update ${relationshipType} information. ${
-          error.response?.data?.message || "Please check the data."
+        description: `Failed to ${
+          id ? "update" : "add"
+        } ${relationshipType} information. ${
+          error.response?.data?.message || "Please try again later."
         }`,
         status: "error",
         duration: 3000,
         isClosable: true,
       });
     } finally {
-      setLoading(false);
+      setLoading(false); // Reset loading state
     }
   };
 
@@ -266,13 +161,6 @@ const Step5 = ({
               <TabPanel key={index}>
                 <Table size="md" variant="simple">
                   <Tbody>
-                    {/* Header */}
-                    <Tr>
-                      <Td colSpan={4} fontWeight="bold" fontSize="md">
-                        {parent.relationshipType}
-                      </Td>
-                    </Tr>
-
                     {/* Personal Information */}
                     <Tr bg="gray.50">
                       <Td colSpan={4}>
@@ -283,7 +171,7 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Given Name"
-                          value={parent.givenName}
+                          value={data.givenname}
                           onChange={(e) =>
                             onChange(index, "givenName", e.target.value)
                           }
@@ -293,7 +181,7 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Middle Name"
-                          value={parent.middleName}
+                          value={data.middlename}
                           onChange={(e) =>
                             onChange(index, "middleName", e.target.value)
                           }
@@ -303,7 +191,7 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Last Name"
-                          value={parent.lastName}
+                          value={data.lastname}
                           onChange={(e) =>
                             onChange(index, "lastName", e.target.value)
                           }
@@ -313,7 +201,7 @@ const Step5 = ({
                       <Td>
                         <Select
                           name="suffix"
-                          value={parent.suffix}
+                          value={data.suffix}
                           onChange={onChange}
                           width="100%"
                           isDisabled={parent.gender === "Female"}
@@ -332,7 +220,6 @@ const Step5 = ({
                     <Tr>
                       <Td>
                         <Select
-                          placeholder="Gender"
                           value={parent.gender}
                           onChange={(e) =>
                             onChange(index, "gender", e.target.value)
@@ -347,9 +234,9 @@ const Step5 = ({
                         <Input
                           placeholder="Date of Birth"
                           type="date"
-                          value={parent.dateOfBirth}
+                          value={data.date_of_birth}
                           onChange={(e) =>
-                            onChange(index, "dateOfBirth", e.target.value)
+                            onChange(index, "date_of_birth", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -357,23 +244,26 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Contact Number"
-                          value={parent.contactNumber}
+                          value={data.contact_number}
+                          type="number"
                           onChange={(e) =>
-                            onChange(index, "contactNumber", e.target.value)
+                            onChange(index, "contact_number", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
                       </Td>
                       <Td>
                         <Select
-                          placeholder="Select Blood Type"
                           name="bloodtype"
-                          value={parent.bloodtype}
+                          value={data.bloodtype}
                           onChange={(e) =>
-                            onChange(index, "bloodType", e.target.value)
+                            onChange(index, "bloodtype", e.target.value)
                           }
                           width="100%"
                         >
+                          <option value="" disabled>
+                            Select Blood Type
+                          </option>
                           {bloodtypes.map((type) => (
                             <option key={type} value={type}>
                               {type}
@@ -384,11 +274,31 @@ const Step5 = ({
                     </Tr>
                     <Tr>
                       <Td>
-                        <Input
-                          placeholder="Civil Status"
-                          value={parent.civilStatus}
+                        <Select
+                          value={data.civil_status}
                           onChange={(e) =>
-                            onChange(index, "civilStatus", e.target.value)
+                            onChange(index, "civil_status", e.target.value)
+                          }
+                          isDisabled={!parent.isEditing}
+                        >
+                          <option value="" disabled>
+                            Select Civil Status
+                          </option>
+                          {civilStatusOptions.map((status) => (
+                            <option key={status} value={status}>
+                              {status}
+                            </option>
+                          ))}
+                        </Select>
+                      </Td>
+
+                      <Td>
+                        <Input
+                          placeholder="Date of Marriage"
+                          type="date"
+                          value={data.date_of_marriage}
+                          onChange={(e) =>
+                            onChange(index, "date_of_marriage", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -396,28 +306,25 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Place of Marriage"
-                          value={parent.placeOfMarriage}
+                          value={data.place_of_marriage}
                           onChange={(e) =>
-                            onChange(index, "placeOfMarriage", e.target.value)
+                            onChange(index, "place_of_marriage", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
                       </Td>
                       <Td>
                         <Select
-                          placeholder="Select Citizenship"
                           name="citizenship"
-                          value={parent.citizenship}
+                          value={data.citizenship} // Ensure the correct value is being passed
                           onChange={(e) =>
-                            onChange({
-                              target: {
-                                name: "citizenship",
-                                value: e.target.value,
-                              },
-                            })
-                          }
+                            onChange(index, "citizenship", e.target.value)
+                          } // Correctly pass the index, field, and value
                           width="100%"
                         >
+                          <option value="" disabled>
+                            Select Citizenship
+                          </option>
                           {citizenships.map((citizenship) => (
                             <option key={citizenship.id} value={citizenship.id}>
                               {citizenship.citizenship}
@@ -425,21 +332,20 @@ const Step5 = ({
                           ))}
                         </Select>
                       </Td>
+                    </Tr>
+                    <Tr>
                       <Td>
                         <Select
-                          placeholder="Select Nationality"
                           name="nationality"
-                          value={parent.nationality}
+                          value={data.nationality} // Ensure it matches the correct value
                           onChange={(e) =>
-                            onChange({
-                              target: {
-                                name: "nationality",
-                                value: e.target.value,
-                              },
-                            })
-                          }
+                            onChange(index, "nationality", e.target.value)
+                          } // Correctly pass index, field, and value
                           width="100%"
                         >
+                          <option value="" disabled>
+                            Select Nationality
+                          </option>
                           {nationalities.map((nationality) => (
                             <option key={nationality.id} value={nationality.id}>
                               {nationality.nationality}
@@ -447,22 +353,10 @@ const Step5 = ({
                           ))}
                         </Select>
                       </Td>
-                    </Tr>
-                    <Tr>
-                      <Td>
-                        <Input
-                          placeholder="Church Duties"
-                          value={parent.churchDuties}
-                          onChange={(e) =>
-                            onChange(index, "churchDuties", e.target.value)
-                          }
-                          isDisabled={!parent.isEditing}
-                        />
-                      </Td>
                       <Td>
                         <Input
                           placeholder="Livelihood"
-                          value={parent.livelihood}
+                          value={data.livelihood}
                           onChange={(e) =>
                             onChange(index, "livelihood", e.target.value)
                           }
@@ -470,30 +364,18 @@ const Step5 = ({
                         />
                       </Td>
                       <Td>
-                        <Input
-                          placeholder="Local Congregation"
-                          value={parent.localCongregation}
-                          onChange={(e) =>
-                            onChange(index, "localCongregation", e.target.value)
-                          }
-                          isDisabled={!parent.isEditing}
-                        />
-                      </Td>
-                      <Td>
+                        {/* District Select */}
                         <Select
-                          placeholder="Select District"
                           name="district_id"
-                          value={parent.districtId}
+                          value={data.district_id} // Ensure it matches the correct value
                           onChange={(e) =>
-                            onChange({
-                              target: {
-                                name: "districtId",
-                                value: e.target.value,
-                              },
-                            })
-                          }
+                            onChange(index, "district_id", e.target.value)
+                          } // Correctly pass index, field, and value
                           width="100%"
                         >
+                          <option value="" disabled>
+                            Select District
+                          </option>
                           {districts.map((district) => (
                             <option key={district.id} value={district.id}>
                               {district.name}
@@ -501,17 +383,41 @@ const Step5 = ({
                           ))}
                         </Select>
                       </Td>
+                      <Td>
+                        <Input
+                          placeholder="Local Congregation"
+                          value={data.local_congregation}
+                          onChange={(e) =>
+                            onChange(
+                              index,
+                              "local_congregation",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
                     </Tr>
 
                     <Tr>
                       <Td>
                         <Input
+                          placeholder="Church Duties"
+                          value={data.church_duties}
+                          onChange={(e) =>
+                            onChange(index, "church_duties", e.target.value)
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Input
                           placeholder="Minister Officiated"
-                          value={parent.ministerOfficiated}
+                          value={data.minister_officiated}
                           onChange={(e) =>
                             onChange(
                               index,
-                              "ministerOfficiated",
+                              "minister_officiated",
                               e.target.value
                             )
                           }
@@ -528,24 +434,29 @@ const Step5 = ({
                     </Tr>
                     <Tr>
                       <Td>
+                        {/* Employment Type Select */}
                         <Select
-                          placeholder="Employment Type"
-                          value={parent.employmentType}
-                          onChange={(e) =>
-                            onChange(index, "employmentType", e.target.value)
+                          value={data.employment_type} // Ensure correct binding to state
+                          onChange={
+                            (e) =>
+                              onChange(index, "employment_type", e.target.value) // Pass index, field, and value
                           }
-                          isDisabled={!parent.isEditing}
+                          isDisabled={!parent.isEditing} // Enable/disable based on editing state
                         >
-                          <option>Self-employed</option>
-                          <option>Employed</option>
-                          <option>Government</option>
-                          <option>Private</option>
+                          <option value="" disabled>
+                            Select Employment Type
+                          </option>
+                          {employmentTypeOptions.map((type) => (
+                            <option key={type} value={type}>
+                              {type}
+                            </option>
+                          ))}
                         </Select>
                       </Td>
                       <Td>
                         <Input
                           placeholder="Company"
-                          value={parent.company}
+                          value={data.company}
                           onChange={(e) =>
                             onChange(index, "company", e.target.value)
                           }
@@ -555,7 +466,7 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Position"
-                          value={parent.position}
+                          value={data.position}
                           onChange={(e) =>
                             onChange(index, "position", e.target.value)
                           }
@@ -565,7 +476,7 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Address"
-                          value={parent.address}
+                          value={data.address}
                           onChange={(e) =>
                             onChange(index, "address", e.target.value)
                           }
@@ -574,33 +485,37 @@ const Step5 = ({
                       </Td>
                     </Tr>
                     <Tr>
+                      {/* Department Field */}
                       <Td>
                         <Input
                           placeholder="Department"
-                          value={parent.department}
-                          onChange={(e) =>
-                            onChange(index, "department", e.target.value)
+                          value={data.department} // Ensure binding to state
+                          onChange={
+                            (e) => onChange(index, "department", e.target.value) // Pass index, field, and value
                           }
-                          isDisabled={!parent.isEditing}
+                          isDisabled={!parent.isEditing} // Enable/disable based on editing state
                         />
                       </Td>
+
+                      {/* Section Field */}
                       <Td>
                         <Input
                           placeholder="Section"
-                          value={parent.section}
-                          onChange={(e) =>
-                            onChange(index, "section", e.target.value)
+                          value={data.section} // Ensure binding to state
+                          onChange={
+                            (e) => onChange(index, "section", e.target.value) // Pass index, field, and value
                           }
-                          isDisabled={!parent.isEditing}
+                          isDisabled={!parent.isEditing} // Enable/disable based on editing state
                         />
                       </Td>
+
                       <Td>
                         <Input
                           placeholder="Start Date"
                           type="date"
-                          value={parent.startDate}
+                          value={data.start_date}
                           onChange={(e) =>
-                            onChange(index, "startDate", e.target.value)
+                            onChange(index, "start_date", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -609,9 +524,9 @@ const Step5 = ({
                         <Input
                           placeholder="End Date"
                           type="date"
-                          value={parent.endDate}
+                          value={data.end_date}
                           onChange={(e) =>
-                            onChange(index, "endDate", e.target.value)
+                            onChange(index, "end_date", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -621,9 +536,13 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Reason for Leaving"
-                          value={parent.reasonForLeaving}
+                          value={data.reason_for_leaving}
                           onChange={(e) =>
-                            onChange(index, "reasonForLeaving", e.target.value)
+                            onChange(
+                              index,
+                              "reason_for_leaving",
+                              e.target.value
+                            )
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -638,24 +557,29 @@ const Step5 = ({
                     </Tr>
                     <Tr>
                       <Td>
+                        {/* Education Level Select */}
                         <Select
-                          placeholder="Education Level"
-                          value={parent.educationLevel}
-                          onChange={(e) =>
-                            onChange(index, "educationLevel", e.target.value)
+                          value={data.education_level} // Ensure correct binding to state
+                          onChange={
+                            (e) =>
+                              onChange(index, "education_level", e.target.value) // Pass index, field, and value
                           }
-                          isDisabled={!parent.isEditing}
+                          isDisabled={!parent.isEditing} // Enable/disable based on editing state
                         >
-                          <option>Elementary</option>
-                          <option>Secondary</option>
-                          <option>Senior High School</option>
-                          <option>College</option>
+                          <option value="" disabled>
+                            Select Education Level
+                          </option>
+                          {educationalLevelOptions.map((level) => (
+                            <option key={level} value={level}>
+                              {level}
+                            </option>
+                          ))}
                         </Select>
                       </Td>
                       <Td>
                         <Input
                           placeholder="School"
-                          value={parent.school}
+                          value={data.school}
                           onChange={(e) =>
                             onChange(index, "school", e.target.value)
                           }
@@ -665,9 +589,9 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Field of Study"
-                          value={parent.fieldOfStudy}
+                          value={data.field_of_study}
                           onChange={(e) =>
-                            onChange(index, "fieldOfStudy", e.target.value)
+                            onChange(index, "field_of_study", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -675,7 +599,7 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Degree"
-                          value={parent.degree}
+                          value={data.degree}
                           onChange={(e) =>
                             onChange(index, "degree", e.target.value)
                           }
@@ -687,7 +611,7 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Institution"
-                          value={parent.institution}
+                          value={data.institution}
                           onChange={(e) =>
                             onChange(index, "institution", e.target.value)
                           }
@@ -697,11 +621,11 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Professional Licensure"
-                          value={parent.professionalLicensureExamination}
+                          value={data.professional_licensure_examination}
                           onChange={(e) =>
                             onChange(
                               index,
-                              "professionalLicensureExamination",
+                              "professional_licensure_examination",
                               e.target.value
                             )
                           }
@@ -712,9 +636,9 @@ const Step5 = ({
                         <Input
                           placeholder="Start Year"
                           type="number"
-                          value={parent.startYear}
+                          value={data.start_year}
                           onChange={(e) =>
-                            onChange(index, "startYear", e.target.value)
+                            onChange(index, "start_year", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -723,9 +647,9 @@ const Step5 = ({
                         <Input
                           placeholder="Completion Year"
                           type="number"
-                          value={parent.completionYear}
+                          value={data.completion_year}
                           onChange={(e) =>
-                            onChange(index, "completionYear", e.target.value)
+                            onChange(index, "completion_year", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />

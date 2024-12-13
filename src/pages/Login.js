@@ -175,7 +175,7 @@ const Login = () => {
       alignItems="center"
       justifyContent="center"
       className="login-page" // Added a className for scoping styles
-      bg="#ffd559"
+      bg="#fcdc7c"
       p={4}
     >
       {/* Add Background Music */}

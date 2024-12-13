@@ -49,6 +49,10 @@ const FamilyMember = db.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    contact_number: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     date_of_marriage: {
       type: DataTypes.DATE,
       allowNull: true,
@@ -63,10 +67,6 @@ const FamilyMember = db.define(
     },
     nationality: {
       type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    contact_number: {
-      type: DataTypes.STRING(50),
       allowNull: true,
     },
     church_duties: {
@@ -107,6 +107,14 @@ const FamilyMember = db.define(
       allowNull: true,
     },
     position: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    department: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    section: {
       type: DataTypes.STRING(50),
       allowNull: true,
     },

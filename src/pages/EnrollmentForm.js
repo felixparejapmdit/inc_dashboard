@@ -1,6 +1,6 @@
 // src/pages/EnrollmentForm.js
 import React, { useState, useEffect } from "react";
-import { Box, Button, VStack, Heading, Flex } from "@chakra-ui/react";
+import { Box, Button, VStack, Heading, Flex, useToast } from "@chakra-ui/react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { CheckIcon } from "@chakra-ui/icons";
@@ -97,6 +97,51 @@ const EnrollmentForm = () => {
     "V",
     "VI",
   ];
+
+  const civilStatusOptions = [
+    "Annulled",
+    "Cohabitating",
+    "Divorced",
+    "Engaged",
+    "Married",
+    "Separated",
+    "Single",
+    "Widowed",
+  ];
+
+  const employmentTypeOptions = [
+    "Casual",
+    "Contract",
+    "Freelance",
+    "Full-Time",
+    "Internship",
+    "Part-Time",
+    "Retired",
+    "Seasonal",
+    "Self-Employed",
+    "Temporary",
+    "Unemployed",
+    "Volunteer",
+  ];
+
+  const educationalLevelOptions = [
+    "No Formal Education",
+    "Primary Education",
+    "Secondary Education",
+    "Vocational Training",
+    "Associate Degree",
+    "Bachelor's Degree",
+    "Master's Degree",
+    "Doctorate Degree",
+    "Post-Doctorate",
+    "Certificate Programs",
+    "Professional Degree",
+    "Continuing Education",
+    "Alternative Learning System",
+  ];
+
+  const bloodtypes = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
+
   // Fetch data on component load
   useEffect(() => {
     // Helper function to fetch and set data
@@ -128,55 +173,68 @@ const EnrollmentForm = () => {
 
   const initialFamilyMember = {
     relationshipType: "",
-    givenName: "",
-    middleName: "",
+    givenname: "",
+    middlename: "",
     lastName: "",
     suffix: "",
-    gender: "Female",
-    bloodType: "",
-    civilStatus: "",
-    dateOfBirth: "",
-    dateOfMarriage: "",
-    placeOfMarriage: "",
+    gender: "",
+    bloodtype: "",
+    civil_status: "",
+    date_of_marriage: "",
+    place_of_marriage: "",
     citizenship: "",
     nationality: "",
-    contactNumber: "",
-    churchDuties: "",
+    date_of_birth: "",
+    contact_number: "",
+    church_duties: "",
     livelihood: "",
-    districtId: "",
-    localCongregation: "",
-    ministerOfficiated: "",
-    employmentType: "",
+    district_id: "",
+    local_congregation: "",
+    minister_officiated: "",
+    employment_type: "",
     company: "",
     address: "",
     position: "",
     department: "",
     section: "",
-    startDate: "",
-    endDate: "",
-    reasonForLeaving: "",
-    educationLevel: "",
-    startYear: "",
-    completionYear: "",
+    start_date: "",
+    end_date: "",
+    reason_for_leaving: "",
+    education_level: "",
+    start_year: "",
+    completion_year: "",
     school: "",
-    fieldOfStudy: "",
+    field_of_study: "",
     degree: "",
     institution: "",
-    professionalLicensureExamination: "",
+    professional_licensure_examination: "",
     isEditing: true,
   };
 
+  const toast = useToast();
   const [family, setFamily] = useState({
     parents: [
-      { ...initialFamilyMember, relationshipType: "Father1", gender: "Male" },
+      { ...initialFamilyMember, relationshipType: "Father", gender: "Male" },
       { ...initialFamilyMember, relationshipType: "Mother", gender: "Female" },
     ],
-    siblings: [{ ...initialFamilyMember, relationshipType: "Sibling" }], // Add default sibling
-    spouses: [{ ...initialFamilyMember, relationshipType: "Spouse" }], // Add default spouse
-    children: [{ ...initialFamilyMember, relationshipType: "Child" }], // Add default child
+    siblings: [{ ...initialFamilyMember, relationshipType: "Sibling" }],
+    spouses: [{ ...initialFamilyMember, relationshipType: "Spouse" }],
+    children: [{ ...initialFamilyMember, relationshipType: "Child" }],
   });
 
+  // Add Family Member
   const handleAddFamilyMember = (type, relationshipType = "") => {
+    if (type === "parents") {
+      toast({
+        title: "Error",
+        description: "Only Father and Mother are allowed in Parents.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
     setFamily((prevFamily) => ({
       ...prevFamily,
       [type]: [
@@ -186,6 +244,7 @@ const EnrollmentForm = () => {
     }));
   };
 
+  // Edit Family Member
   const handleFamilyMemberChange = (type, index, field, value) => {
     setFamily((prevFamily) => ({
       ...prevFamily,
@@ -195,13 +254,7 @@ const EnrollmentForm = () => {
     }));
   };
 
-  const handleDeleteFamilyMember = (type, index) => {
-    setFamily((prevFamily) => ({
-      ...prevFamily,
-      [type]: prevFamily[type].filter((_, i) => i !== index),
-    }));
-  };
-
+  // Toggle Edit Mode
   const toggleEditFamilyMember = (type, index) => {
     setFamily((prevFamily) => ({
       ...prevFamily,
@@ -212,87 +265,88 @@ const EnrollmentForm = () => {
   };
 
   // State to manage parents' data for Step4
-  const [parents, setParents] = useState([
-    {
-      relationshipType: "Father",
-      givenName: "",
-      middleName: "",
-      lastName: "",
-      suffix: "",
-      gender: "Female",
-      bloodType: "",
-      civilStatus: "",
-      dateOfBirth: "",
-      dateOfMarriage: "",
-      placeOfMarriage: "",
-      citizenship: "",
-      nationality: "",
-      contactNumber: "",
-      churchDuties: "",
-      livelihood: "",
-      districtId: "",
-      localCongregation: "",
-      ministerOfficiated: "",
-      employmentType: "",
-      company: "",
-      address: "",
-      position: "",
-      department: "",
-      section: "",
-      startDate: "",
-      endDate: "",
-      reasonForLeaving: "",
-      educationLevel: "",
-      startYear: "",
-      completionYear: "",
-      school: "",
-      fieldOfStudy: "",
-      degree: "",
-      institution: "",
-      professionalLicensureExamination: "",
-      isEditing: true,
-    },
-    {
-      relationshipType: "Mother",
-      givenName: "",
-      middleName: "",
-      lastName: "",
-      suffix: "",
-      gender: "Female",
-      bloodType: "",
-      civilStatus: "",
-      dateOfBirth: "",
-      dateOfMarriage: "",
-      placeOfMarriage: "",
-      citizenship: "",
-      nationality: "",
-      contactNumber: "",
-      churchDuties: "",
-      livelihood: "",
-      districtId: "",
-      localCongregation: "",
-      ministerOfficiated: "",
-      employmentType: "",
-      company: "",
-      address: "",
-      position: "",
-      department: "",
-      section: "",
-      startDate: "",
-      endDate: "",
-      reasonForLeaving: "",
-      educationLevel: "",
-      startYear: "",
-      completionYear: "",
-      school: "",
-      fieldOfStudy: "",
-      degree: "",
-      institution: "",
-      professionalLicensureExamination: "",
-      isEditing: true,
-    },
-  ]);
+  // const [parents, setParents] = useState([
+  //   {
+  //     relationshipType: "Father",
+  //     givenName: "",
+  //     middleName: "",
+  //     lastName: "",
+  //     suffix: "",
+  //     gender: "Female",
+  //     bloodType: "",
+  //     civilStatus: "",
+  //     dateOfBirth: "",
+  //     dateOfMarriage: "",
+  //     placeOfMarriage: "",
+  //     citizenship: "",
+  //     nationality: "",
+  //     contactNumber: "",
+  //     churchDuties: "",
+  //     livelihood: "",
+  //     districtId: "",
+  //     localCongregation: "",
+  //     ministerOfficiated: "",
+  //     employmentType: "",
+  //     company: "",
+  //     address: "",
+  //     position: "",
+  //     department: "",
+  //     section: "",
+  //     startDate: "",
+  //     endDate: "",
+  //     reasonForLeaving: "",
+  //     educationLevel: "",
+  //     startYear: "",
+  //     completionYear: "",
+  //     school: "",
+  //     fieldOfStudy: "",
+  //     degree: "",
+  //     institution: "",
+  //     professionalLicensureExamination: "",
+  //     isEditing: true,
+  //   },
+  //   {
+  //     relationshipType: "Mother",
+  //     givenName: "",
+  //     middleName: "",
+  //     lastName: "",
+  //     suffix: "",
+  //     gender: "Female",
+  //     bloodType: "",
+  //     civilStatus: "",
+  //     dateOfBirth: "",
+  //     dateOfMarriage: "",
+  //     placeOfMarriage: "",
+  //     citizenship: "",
+  //     nationality: "",
+  //     contactNumber: "",
+  //     churchDuties: "",
+  //     livelihood: "",
+  //     districtId: "",
+  //     localCongregation: "",
+  //     ministerOfficiated: "",
+  //     employmentType: "",
+  //     company: "",
+  //     address: "",
+  //     position: "",
+  //     department: "",
+  //     section: "",
+  //     startDate: "",
+  //     endDate: "",
+  //     reasonForLeaving: "",
+  //     educationLevel: "",
+  //     startYear: "",
+  //     completionYear: "",
+  //     school: "",
+  //     fieldOfStudy: "",
+  //     degree: "",
+  //     institution: "",
+  //     professionalLicensureExamination: "",
+  //     isEditing: true,
+  //   },
+  // ]);
 
+  //Add Family Member
   const handleAddContact = () =>
     setContacts([...contacts, { contactType: "", contactInfo: "" }]);
   const handleAddAddress = () =>
@@ -300,6 +354,7 @@ const EnrollmentForm = () => {
   const handleAddGovID = () =>
     setGovIDs([...govIDs, { govIDType: "", govIDNumber: "" }]);
 
+  //Edit Family Member
   const handleContactChange = (idx, field, value) => {
     const updatedContacts = contacts.map((contact, i) =>
       i === idx ? { ...contact, [field]: value } : contact
@@ -353,266 +408,6 @@ const EnrollmentForm = () => {
         isEditing: true,
       },
     ]);
-
-  const toggleEditParent = (index) => {
-    const updatedParents = [...parents];
-    updatedParents[index].isEditing = !updatedParents[index].isEditing;
-    setParents(updatedParents);
-  };
-
-  const handleParentChange = (index, field, value) => {
-    const updatedParents = parents.map((parent, i) =>
-      i === index ? { ...parent, [field]: value } : parent
-    );
-    setParents(updatedParents);
-  };
-
-  const [siblings, setSiblings] = useState([
-    {
-      relationshipType: "Sibling",
-      givenName: "",
-      middleName: "",
-      lastName: "",
-      suffix: "",
-      gender: "Female",
-      bloodType: "",
-      civilStatus: "",
-      dateOfBirth: "",
-      dateOfMarriage: "",
-      placeOfMarriage: "",
-      citizenship: "",
-      nationality: "",
-      contactNumber: "",
-      churchDuties: "",
-      livelihood: "",
-      districtId: "",
-      localCongregation: "",
-      ministerOfficiated: "",
-      employmentType: "",
-      company: "",
-      address: "",
-      position: "",
-      department: "",
-      section: "",
-      startDate: "",
-      endDate: "",
-      reasonForLeaving: "",
-      educationLevel: "",
-      startYear: "",
-      completionYear: "",
-      school: "",
-      fieldOfStudy: "",
-      degree: "",
-      institution: "",
-      professionalLicensureExamination: "",
-      isEditing: true,
-    },
-  ]);
-
-  // 3. Functions for managing siblings
-  const handleAddSibling = () =>
-    setSiblings([
-      ...siblings,
-      {
-        relationshipType: "Sibling",
-        givenName: "",
-        middleName: "",
-        lastName: "",
-        suffix: "",
-        gender: "Male",
-        bloodType: "",
-        civilStatus: "",
-        dateOfBirth: "",
-        contactNumber: "",
-        educationLevel: "",
-        startYear: "",
-        completionYear: "",
-        school: "",
-        fieldOfStudy: "",
-        degree: "",
-        institution: "",
-        professionalLicensureExamination: "",
-        isEditing: true,
-      },
-    ]);
-
-  const handleSiblingChange = (index, field, value) => {
-    const updatedSiblings = siblings.map((sibling, i) =>
-      i === index ? { ...sibling, [field]: value } : sibling
-    );
-    setSiblings(updatedSiblings);
-  };
-
-  const [spouses, setSpouses] = useState([
-    {
-      relationshipType: "Spouse",
-      givenName: "",
-      middleName: "",
-      lastName: "",
-      suffix: "",
-      gender: "",
-      bloodType: "",
-      civilStatus: "",
-      dateOfBirth: "",
-      dateOfMarriage: "",
-      placeOfMarriage: "",
-      citizenship: "",
-      nationality: "",
-      contactNumber: "",
-      churchDuties: "",
-      livelihood: "",
-      districtId: "",
-      localCongregation: "",
-      ministerOfficiated: "",
-      employmentType: "",
-      company: "",
-      address: "",
-      position: "",
-      department: "",
-      section: "",
-      startDate: "",
-      endDate: "",
-      reasonForLeaving: "",
-      educationLevel: "",
-      startYear: "",
-      completionYear: "",
-      school: "",
-      fieldOfStudy: "",
-      degree: "",
-      institution: "",
-      professionalLicensureExamination: "",
-      isEditing: true, // Default is true for editable fields on load
-    },
-  ]);
-
-  const handleAddSpouse = () => {
-    setSpouses([
-      ...spouses,
-      {
-        relationshipType: "Spouse",
-        givenName: "",
-        middleName: "",
-        lastName: "",
-        suffix: "",
-        gender: "Female",
-        bloodType: "",
-        civilStatus: "",
-        dateOfBirth: "",
-        dateOfMarriage: "",
-        placeOfMarriage: "",
-        citizenship: "",
-        nationality: "",
-        contactNumber: "",
-        churchDuties: "",
-        livelihood: "",
-        localCongregation: "",
-        districtId: "",
-        ministerOfficiated: "",
-        employmentType: "",
-        company: "",
-        address: "",
-        position: "",
-        department: "",
-        section: "",
-        startDate: "",
-        endDate: "",
-        reasonForLeaving: "",
-        educationLevel: "",
-        startYear: "",
-        completionYear: "",
-        school: "",
-        fieldOfStudy: "",
-        degree: "",
-        institution: "",
-        professionalLicensureExamination: "",
-        status: "Alive",
-        isEditing: true,
-      },
-    ]);
-  };
-
-  const handleSpouseChange = (index, field, value) => {
-    const updatedSpouses = spouses.map((spouse, i) =>
-      i === index ? { ...spouse, [field]: value } : spouse
-    );
-    setSpouses(updatedSpouses);
-  };
-
-  const toggleEditSpouse = (index) => {
-    const updatedSpouses = [...spouses];
-    updatedSpouses[index].isEditing = !updatedSpouses[index].isEditing;
-    setSpouses(updatedSpouses);
-  };
-
-  const handleDeleteSpouse = (index) => {
-    setSpouses(spouses.filter((_, i) => i !== index));
-  };
-
-  const [children, setChildren] = useState([
-    {
-      givenName: "",
-      middleName: "",
-      lastName: "",
-      suffix: "",
-      gender: "",
-      bloodType: "",
-      civilStatus: "",
-      dateOfBirth: "",
-      contactNumber: "",
-      educationLevel: "",
-      startYear: "",
-      completionYear: "",
-      school: "",
-      fieldOfStudy: "",
-      degree: "",
-      institution: "",
-      professionalLicensureExamination: "",
-      isEditing: true,
-    },
-  ]);
-
-  const handleAddChild = () => {
-    setChildren([
-      ...children,
-      {
-        givenName: "",
-        middleName: "",
-        lastName: "",
-        suffix: "",
-        gender: "",
-        bloodType: "",
-        civilStatus: "",
-        dateOfBirth: "",
-        contactNumber: "",
-        educationLevel: "",
-        startYear: "",
-        completionYear: "",
-        school: "",
-        fieldOfStudy: "",
-        degree: "",
-        institution: "",
-        professionalLicensureExamination: "",
-        isEditing: true,
-      },
-    ]);
-  };
-
-  const toggleEditChild = (index) => {
-    const updatedChildren = [...children];
-    updatedChildren[index].isEditing = !updatedChildren[index].isEditing;
-    setChildren(updatedChildren);
-  };
-
-  const handleChildChange = (index, field, value) => {
-    const updatedChildren = children.map((child, i) =>
-      i === index ? { ...child, [field]: value } : child
-    );
-    setChildren(updatedChildren);
-  };
-
-  const handleDeleteChild = (index) => {
-    setChildren(children.filter((_, i) => i !== index));
-  };
 
   const [personnelImage, setPersonnelImage] = useState(null);
   const [personnelId, setPersonnelId] = useState(null);
@@ -765,6 +560,7 @@ const EnrollmentForm = () => {
           designations={designations}
           districts={districts}
           suffixOptions={suffixOptions}
+          civilStatusOptions={civilStatusOptions}
         />
       )}
 
@@ -799,9 +595,6 @@ const EnrollmentForm = () => {
 
       {step === 5 && (
         <Step5
-          // parents={parents}
-          // handleParentChange={handleParentChange}
-          // toggleEditParent={toggleEditParent}
           data={family.parents}
           setData={(updatedParents) =>
             setFamily((prevFamily) => ({
@@ -809,56 +602,93 @@ const EnrollmentForm = () => {
               parents: updatedParents,
             }))
           }
-          onAdd={() => handleAddFamilyMember("parents", "Parent")}
           onChange={(index, field, value) =>
             handleFamilyMemberChange("parents", index, field, value)
           }
-          onDelete={(index) => handleDeleteFamilyMember("parents", index)}
           onToggleEdit={(index) => toggleEditFamilyMember("parents", index)}
           citizenships={citizenships}
           nationalities={nationalities}
           suffixOptions={suffixOptions}
           districts={districts}
+          civilStatusOptions={civilStatusOptions}
+          employmentTypeOptions={employmentTypeOptions}
+          educationalLevelOptions={educationalLevelOptions}
+          bloodtypes={bloodtypes}
         />
       )}
 
       {step === 6 && (
         <Step6
-          siblings={siblings}
-          handleSiblingChange={handleSiblingChange}
-          handleAddSibling={handleAddSibling}
+          data={family.siblings}
+          setData={(updatedSiblings) =>
+            setFamily((prevFamily) => ({
+              ...prevFamily,
+              siblings: updatedSiblings,
+            }))
+          }
+          onAdd={() => handleAddFamilyMember("siblings", "Sibling")}
+          onChange={(index, field, value) =>
+            handleFamilyMemberChange("siblings", index, field, value)
+          }
+          onToggleEdit={(index) => toggleEditFamilyMember("siblings", index)}
           citizenships={citizenships}
           nationalities={nationalities}
           suffixOptions={suffixOptions}
           districts={districts}
+          civilStatusOptions={civilStatusOptions}
+          employmentTypeOptions={employmentTypeOptions}
+          educationalLevelOptions={educationalLevelOptions}
+          bloodtypes={bloodtypes}
         />
       )}
 
       {step === 7 && (
         <Step7
-          spouses={spouses}
-          handleSpouseChange={handleSpouseChange}
-          handleAddSpouse={handleAddSpouse}
-          toggleEditSpouse={toggleEditSpouse}
-          handleDeleteSpouse={handleDeleteSpouse}
+          data={family.spouses}
+          setData={(updatedSpouses) =>
+            setFamily((prevFamily) => ({
+              ...prevFamily,
+              spouses: updatedSpouses,
+            }))
+          }
+          onAdd={() => handleAddFamilyMember("spouses", "Spouse")}
+          onChange={(index, field, value) =>
+            handleFamilyMemberChange("spouses", index, field, value)
+          }
+          onToggleEdit={(index) => toggleEditFamilyMember("spouses", index)}
           citizenships={citizenships}
           nationalities={nationalities}
           suffixOptions={suffixOptions}
           districts={districts}
+          civilStatusOptions={civilStatusOptions}
+          employmentTypeOptions={employmentTypeOptions}
+          educationalLevelOptions={educationalLevelOptions}
+          bloodtypes={bloodtypes}
         />
       )}
 
       {step === 8 && (
         <Step8
-          children={children}
-          handleAddChild={handleAddChild}
-          handleChildChange={handleChildChange}
-          toggleEditChild={toggleEditChild}
-          handleDeleteChild={handleDeleteChild}
+          data={family.children}
+          setData={(updatedChildren) =>
+            setFamily((prevFamily) => ({
+              ...prevFamily,
+              children: updatedChildren,
+            }))
+          }
+          onAdd={() => handleAddFamilyMember("children", "Child")}
+          onChange={(index, field, value) =>
+            handleFamilyMemberChange("children", index, field, value)
+          }
+          onToggleEdit={(index) => toggleEditFamilyMember("children", index)}
           citizenships={citizenships}
           nationalities={nationalities}
           suffixOptions={suffixOptions}
           districts={districts}
+          civilStatusOptions={civilStatusOptions}
+          employmentTypeOptions={employmentTypeOptions}
+          educationalLevelOptions={educationalLevelOptions}
+          bloodtypes={bloodtypes}
         />
       )}
 

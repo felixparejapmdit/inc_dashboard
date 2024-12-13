@@ -22,9 +22,19 @@ import { Children } from "react";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
-const Step8 = ({ citizenships, nationalities, suffixOptions, districts }) => {
-  const bloodtypes = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
-
+const Step8 = ({
+  data,
+  onChange,
+  onToggleEdit,
+  citizenships,
+  nationalities,
+  suffixOptions,
+  districts,
+  civilStatusOptions,
+  employmentTypeOptions,
+  educationalLevelOptions,
+  bloodtypes,
+}) => {
   const [children, setChildren] = useState([
     {
       relationshipType: "Child",
@@ -41,6 +51,7 @@ const Step8 = ({ citizenships, nationalities, suffixOptions, districts }) => {
       citizenship: "",
       nationality: "",
       contactNumber: "",
+
       churchDuties: "",
       livelihood: "",
       districtId: "",
@@ -385,11 +396,29 @@ const Step8 = ({ citizenships, nationalities, suffixOptions, districts }) => {
               </Tr>
               <Tr>
                 <Td>
-                  <Input
+                  <Select
                     placeholder="Civil Status"
                     value={child.civilStatus}
                     onChange={(e) =>
                       handleChildChange(index, "civilStatus", e.target.value)
+                    }
+                    isDisabled={!child.isEditing}
+                  >
+                    {civilStatusOptions.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+                  </Select>
+                </Td>
+
+                <Td>
+                  <Input
+                    placeholder="Date of Marriage"
+                    type="date"
+                    value={data.date_of_marriage}
+                    onChange={(e) =>
+                      onChange(index, "date_of_marriage", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   />
@@ -428,6 +457,8 @@ const Step8 = ({ citizenships, nationalities, suffixOptions, districts }) => {
                     ))}
                   </Select>
                 </Td>
+              </Tr>
+              <Tr>
                 <Td>
                   <Select
                     placeholder="Select Nationality"
@@ -447,38 +478,12 @@ const Step8 = ({ citizenships, nationalities, suffixOptions, districts }) => {
                     ))}
                   </Select>
                 </Td>
-              </Tr>
-              <Tr>
-                <Td>
-                  <Input
-                    placeholder="Church Duties"
-                    value={child.churchDuties}
-                    onChange={(e) =>
-                      handleChildChange(index, "churchDuties", e.target.value)
-                    }
-                    isDisabled={!child.isEditing}
-                  />
-                </Td>
                 <Td>
                   <Input
                     placeholder="Livelihood"
                     value={child.livelihood}
                     onChange={(e) =>
                       handleChildChange(index, "livelihood", e.target.value)
-                    }
-                    isDisabled={!child.isEditing}
-                  />
-                </Td>
-                <Td>
-                  <Input
-                    placeholder="Local Congregation"
-                    value={child.localCongregation}
-                    onChange={(e) =>
-                      handleChildChange(
-                        index,
-                        "localCongregation",
-                        e.target.value
-                      )
                     }
                     isDisabled={!child.isEditing}
                   />
@@ -505,9 +510,33 @@ const Step8 = ({ citizenships, nationalities, suffixOptions, districts }) => {
                     ))}
                   </Select>
                 </Td>
+                <Td>
+                  <Input
+                    placeholder="Local Congregation"
+                    value={child.localCongregation}
+                    onChange={(e) =>
+                      handleChildChange(
+                        index,
+                        "localCongregation",
+                        e.target.value
+                      )
+                    }
+                    isDisabled={!child.isEditing}
+                  />
+                </Td>
               </Tr>
 
               <Tr>
+                <Td>
+                  <Input
+                    placeholder="Church Duties"
+                    value={child.churchDuties}
+                    onChange={(e) =>
+                      handleChildChange(index, "churchDuties", e.target.value)
+                    }
+                    isDisabled={!child.isEditing}
+                  />
+                </Td>
                 <Td>
                   <Input
                     placeholder="Minister Officiated"
@@ -540,10 +569,11 @@ const Step8 = ({ citizenships, nationalities, suffixOptions, districts }) => {
                     }
                     isDisabled={!child.isEditing}
                   >
-                    <option>Self-employed</option>
-                    <option>Employed</option>
-                    <option>Government</option>
-                    <option>Private</option>
+                    {employmentTypeOptions.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
                   </Select>
                 </Td>
                 <Td>
@@ -654,10 +684,11 @@ const Step8 = ({ citizenships, nationalities, suffixOptions, districts }) => {
                     }
                     isDisabled={!child.isEditing}
                   >
-                    <option>Elementary</option>
-                    <option>Secondary</option>
-                    <option>Senior High School</option>
-                    <option>College</option>
+                    {educationalLevelOptions.map((level) => (
+                      <option key={level} value={level}>
+                        {level}
+                      </option>
+                    ))}
                   </Select>
                 </Td>
                 <Td>
