@@ -275,7 +275,7 @@ const Step5 = ({
                     <Tr>
                       <Td>
                         <Select
-                          value={data.civil_status}
+                          value={data.civil_status || ""} // Default to empty value
                           onChange={(e) =>
                             onChange(index, "civil_status", e.target.value)
                           }
@@ -314,12 +314,13 @@ const Step5 = ({
                         />
                       </Td>
                       <Td>
+                        {/* Citizenship Select */}
                         <Select
                           name="citizenship"
-                          value={data.citizenship} // Ensure the correct value is being passed
+                          value={data.citizenship || ""} // Default to empty value if not set
                           onChange={(e) =>
                             onChange(index, "citizenship", e.target.value)
-                          } // Correctly pass the index, field, and value
+                          } // Correctly pass index, field, and value
                           width="100%"
                         >
                           <option value="" disabled>
@@ -335,9 +336,10 @@ const Step5 = ({
                     </Tr>
                     <Tr>
                       <Td>
+                        {/* Nationality Select */}
                         <Select
                           name="nationality"
-                          value={data.nationality} // Ensure it matches the correct value
+                          value={data.nationality || ""} // Default to empty value if not set
                           onChange={(e) =>
                             onChange(index, "nationality", e.target.value)
                           } // Correctly pass index, field, and value
@@ -367,7 +369,7 @@ const Step5 = ({
                         {/* District Select */}
                         <Select
                           name="district_id"
-                          value={data.district_id} // Ensure it matches the correct value
+                          value={data.district_id || ""} // Default to empty value if not set
                           onChange={(e) =>
                             onChange(index, "district_id", e.target.value)
                           } // Correctly pass index, field, and value
@@ -436,11 +438,10 @@ const Step5 = ({
                       <Td>
                         {/* Employment Type Select */}
                         <Select
-                          value={data.employment_type} // Ensure correct binding to state
-                          onChange={
-                            (e) =>
-                              onChange(index, "employment_type", e.target.value) // Pass index, field, and value
-                          }
+                          value={data.employment_type || ""} // Default to empty value if not set
+                          onChange={(e) =>
+                            onChange(index, "employment_type", e.target.value)
+                          } // Pass index, field, and value
                           isDisabled={!parent.isEditing} // Enable/disable based on editing state
                         >
                           <option value="" disabled>
@@ -559,11 +560,10 @@ const Step5 = ({
                       <Td>
                         {/* Education Level Select */}
                         <Select
-                          value={data.education_level} // Ensure correct binding to state
-                          onChange={
-                            (e) =>
-                              onChange(index, "education_level", e.target.value) // Pass index, field, and value
-                          }
+                          value={data.education_level || ""} // Default to empty value if not set
+                          onChange={(e) =>
+                            onChange(index, "education_level", e.target.value)
+                          } // Pass index, field, and value
                           isDisabled={!parent.isEditing} // Enable/disable based on editing state
                         >
                           <option value="" disabled>
