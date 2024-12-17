@@ -200,15 +200,15 @@ const Step5 = ({
                       </Td>
                       <Td>
                         <Select
+                          placeholder="Select Suffix"
                           name="suffix"
-                          value={data.suffix}
-                          onChange={onChange}
+                          value={data.suffix} // Default to "" on page load
+                          onChange={(e) => {
+                            onChange(index, "suffix", e.target.value); // Update the state
+                          }}
                           width="100%"
-                          isDisabled={parent.gender === "Female"}
+                          isDisabled={data.gender === "Female"} // Conditionally disable for Female
                         >
-                          <option value="" disabled>
-                            Select Suffix
-                          </option>
                           {suffixOptions.map((suffix) => (
                             <option key={suffix} value={suffix}>
                               {suffix}
@@ -254,16 +254,14 @@ const Step5 = ({
                       </Td>
                       <Td>
                         <Select
+                          placeholder="Select Blood Type"
                           name="bloodtype"
-                          value={data.bloodtype}
+                          value={data.bloodtype} // Default to empty value if not set
                           onChange={(e) =>
                             onChange(index, "bloodtype", e.target.value)
                           }
                           width="100%"
                         >
-                          <option value="" disabled>
-                            Select Blood Type
-                          </option>
                           {bloodtypes.map((type) => (
                             <option key={type} value={type}>
                               {type}
@@ -275,15 +273,13 @@ const Step5 = ({
                     <Tr>
                       <Td>
                         <Select
-                          value={data.civil_status || ""} // Default to empty value
+                          placeholder="Select Civil Status"
+                          value={data.civil_status} // Default to empty value if not set
                           onChange={(e) =>
                             onChange(index, "civil_status", e.target.value)
                           }
-                          isDisabled={!parent.isEditing}
+                          isDisabled={!parent.isEditing} // Conditionally disable dropdown
                         >
-                          <option value="" disabled>
-                            Select Civil Status
-                          </option>
                           {civilStatusOptions.map((status) => (
                             <option key={status} value={status}>
                               {status}
@@ -314,18 +310,15 @@ const Step5 = ({
                         />
                       </Td>
                       <Td>
-                        {/* Citizenship Select */}
                         <Select
+                          placeholder="Select Citizenship"
                           name="citizenship"
-                          value={data.citizenship || ""} // Default to empty value if not set
+                          value={data.citizenship} // Default to empty value if not set
                           onChange={(e) =>
                             onChange(index, "citizenship", e.target.value)
-                          } // Correctly pass index, field, and value
+                          }
                           width="100%"
                         >
-                          <option value="" disabled>
-                            Select Citizenship
-                          </option>
                           {citizenships.map((citizenship) => (
                             <option key={citizenship.id} value={citizenship.id}>
                               {citizenship.citizenship}
@@ -336,18 +329,15 @@ const Step5 = ({
                     </Tr>
                     <Tr>
                       <Td>
-                        {/* Nationality Select */}
                         <Select
+                          placeholder="Select Nationality"
                           name="nationality"
-                          value={data.nationality || ""} // Default to empty value if not set
+                          value={data.nationality} // Default to empty value if not set
                           onChange={(e) =>
                             onChange(index, "nationality", e.target.value)
-                          } // Correctly pass index, field, and value
+                          }
                           width="100%"
                         >
-                          <option value="" disabled>
-                            Select Nationality
-                          </option>
                           {nationalities.map((nationality) => (
                             <option key={nationality.id} value={nationality.id}>
                               {nationality.nationality}
@@ -366,18 +356,15 @@ const Step5 = ({
                         />
                       </Td>
                       <Td>
-                        {/* District Select */}
                         <Select
+                          placeholder="Select District"
                           name="district_id"
-                          value={data.district_id || ""} // Default to empty value if not set
+                          value={data.district_id} // Default to empty value if not set
                           onChange={(e) =>
                             onChange(index, "district_id", e.target.value)
-                          } // Correctly pass index, field, and value
+                          }
                           width="100%"
                         >
-                          <option value="" disabled>
-                            Select District
-                          </option>
                           {districts.map((district) => (
                             <option key={district.id} value={district.id}>
                               {district.name}
@@ -436,17 +423,14 @@ const Step5 = ({
                     </Tr>
                     <Tr>
                       <Td>
-                        {/* Employment Type Select */}
                         <Select
-                          value={data.employment_type || ""} // Default to empty value if not set
+                          placeholder="Select Employment Type"
+                          value={data.employment_type} // Default to empty value if not set
                           onChange={(e) =>
                             onChange(index, "employment_type", e.target.value)
-                          } // Pass index, field, and value
-                          isDisabled={!parent.isEditing} // Enable/disable based on editing state
+                          }
+                          isDisabled={!parent.isEditing} // Conditionally disable dropdown
                         >
-                          <option value="" disabled>
-                            Select Employment Type
-                          </option>
                           {employmentTypeOptions.map((type) => (
                             <option key={type} value={type}>
                               {type}
@@ -558,17 +542,14 @@ const Step5 = ({
                     </Tr>
                     <Tr>
                       <Td>
-                        {/* Education Level Select */}
                         <Select
-                          value={data.education_level || ""} // Default to empty value if not set
+                          placeholder="Select Education Level"
+                          value={data.education_level} // Default to empty value if not set
                           onChange={(e) =>
                             onChange(index, "education_level", e.target.value)
-                          } // Pass index, field, and value
-                          isDisabled={!parent.isEditing} // Enable/disable based on editing state
+                          }
+                          isDisabled={!parent.isEditing} // Conditionally disable dropdown
                         >
-                          <option value="" disabled>
-                            Select Education Level
-                          </option>
                           {educationalLevelOptions.map((level) => (
                             <option key={level} value={level}>
                               {level}

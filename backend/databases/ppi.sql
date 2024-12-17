@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 16, 2024 at 09:22 AM
+-- Generation Time: Dec 17, 2024 at 09:27 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -635,10 +635,8 @@ CREATE TABLE `family_members` (
 --
 
 INSERT INTO `family_members` (`id`, `personnel_id`, `relationship_type`, `givenname`, `middlename`, `lastname`, `suffix`, `gender`, `bloodtype`, `civil_status`, `date_of_marriage`, `place_of_marriage`, `citizenship`, `nationality`, `date_of_birth`, `contact_number`, `church_duties`, `livelihood`, `district_id`, `local_congregation`, `minister_officiated`, `employment_type`, `company`, `address`, `position`, `department`, `section`, `start_date`, `end_date`, `reason_for_leaving`, `education_level`, `start_year`, `completion_year`, `school`, `field_of_study`, `degree`, `institution`, `professional_licensure_examination`, `created_at`, `updated_at`) VALUES
-(1, 8, 'Spouse', 'Jay', NULL, 'asd', 'asd', 'Female', NULL, NULL, NULL, NULL, 0, 0, '0000-00-00', NULL, NULL, 'asd', NULL, NULL, NULL, NULL, 'asd', 'asd', 'asd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', NULL, 'asd', 'asd', NULL, '2024-12-06 08:41:34', '2024-12-06 08:41:34'),
-(2, 8, 'Spouse', 'as', NULL, 'asd', '1', 'Male', NULL, NULL, NULL, NULL, 0, 0, '0000-00-00', NULL, NULL, 'asd', NULL, NULL, NULL, NULL, 'asd', 'asd', 'asd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', NULL, 'asd', 'asd', NULL, '2024-12-06 08:42:52', '2024-12-06 08:42:52'),
-(3, 8, 'Child', 'asd', NULL, 'asd', 'asd', 'Male', NULL, NULL, NULL, NULL, 0, 0, '0000-00-00', NULL, NULL, 'asd', NULL, NULL, NULL, NULL, 'asd', 'asd', 'asd', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'asd', NULL, 'asd', 'asd', NULL, '2024-12-06 08:44:09', '2024-12-06 08:44:51'),
-(10, 8, 'Father', 'NEPTHALIE', '', 'asd', '', 'Male', 'B-', 'Married', '2024-12-13', 'asd', 138, 138, '2024-12-12', 21323, '', 'asd', 45, 'asd', 'asd', 'Part-Time', 'asd', 'asd', 'asd', 'ADMIN', 'TRG', '2024-12-13', '2024-12-13', 'asd', 'Post-Doctorate', 1, 12, 'asd', 'asd', 'asd', 'asd', 'asd123', '2024-12-13 07:35:53', '2024-12-13 07:56:58');
+(11, 8, 'Father', 'NEPTA', '', 'asd', 'Jr.', 'Male', 'A+', 'Married', '2024-12-17', 'asd', 17, 16, '2024-12-17', 12, 'asd', 'asd', 19, 'asd', 'asd', 'Temporary', 'asd', 'asd', 'asd', 'asd', 'asd', '2024-12-17', '2024-12-17', 'asd', 'Professional Degree', 1, 12, 'asd', 'asd', 'asd', 'asd', 'asd', '2024-12-17 06:38:14', '2024-12-17 06:38:39'),
+(44, 8, 'Sibling', 'asd', 'asd', 'asd', 'Jr.', 'Male', '', 'Annulled', '2024-12-17', 'asd', 0, 0, '2024-12-17', 12, 'asd', 'asd', 0, 'asd', 'asd', 'Unemployed', 'asd', 'asd', 'asd', 'asd', 'asd', '2024-12-17', '2024-12-17', 'asd', 'Professional Degree', 1, 2, 'asd', 'asd', 'asd', 'asd', 'asd', '2024-12-17 08:27:17', '2024-12-17 08:27:17');
 
 -- --------------------------------------------------------
 
@@ -1708,7 +1706,7 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (43, 'executive.news', NULL, NULL, 'executive.news', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (44, 'pmd.it', NULL, '', 'pmd.it', '{SSHA}LYVyCEUbqbnRdJMh/NGuR38z6zbsDKG+', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (45, 'r.deguzman', NULL, NULL, 'r.deguzman', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(46, 'felix.pareja', 8, '/uploads/avatar/1732846376187_image.jpg', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-28 13:25:36'),
+(46, 'felix.pareja', 8, '/uploads/avatar/1732846376187_image.jpg', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-28 13:25:36'),
 (47, 'nsanchez', NULL, '', 'nsanchez', '{MD5}4vh3FhfOq3i3zcUJki6UBg==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (48, NULL, NULL, '/uploads/avatar/1732867059276_icons8-fitbit-50.png', 'admin', '$2a$12$ZXhnczgjZG4QAa4oGMH5eOt0.a9urccMHJ0/FBYB5zCe2/zfh3dEO', 0, NULL, 'Local', NULL, NULL, NULL, NULL);
 
@@ -2225,7 +2223,7 @@ ALTER TABLE `events`
 -- AUTO_INCREMENT for table `family_members`
 --
 ALTER TABLE `family_members`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=45;
 
 --
 -- AUTO_INCREMENT for table `government_issued_id`

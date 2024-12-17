@@ -175,7 +175,7 @@ const EnrollmentForm = () => {
     relationshipType: "",
     givenname: "",
     middlename: "",
-    lastName: "",
+    lastname: "",
     suffix: "",
     gender: "",
     bloodtype: "",
@@ -255,6 +255,15 @@ const EnrollmentForm = () => {
   };
 
   // Toggle Edit Mode
+  // const toggleEditFamilyMember = (type, index) => {
+  //   setFamily((prevFamily) => ({
+  //     ...prevFamily,
+  //     [type]: prevFamily[type].map((member, i) =>
+  //       i === index ? { ...member, isEditing: !member.isEditing } : member
+  //     ),
+  //   }));
+  // };
+
   const toggleEditFamilyMember = (type, index) => {
     setFamily((prevFamily) => ({
       ...prevFamily,
@@ -626,11 +635,12 @@ const EnrollmentForm = () => {
               siblings: updatedSiblings,
             }))
           }
-          onAdd={() => handleAddFamilyMember("siblings", "Sibling")}
+          // onAdd={() => handleAddFamilyMember("siblings", "Sibling")}
           onChange={(index, field, value) =>
             handleFamilyMemberChange("siblings", index, field, value)
           }
           onToggleEdit={(index) => toggleEditFamilyMember("siblings", index)}
+          onAddSibling={() => handleAddFamilyMember("siblings", "Sibling")}
           citizenships={citizenships}
           nationalities={nationalities}
           suffixOptions={suffixOptions}

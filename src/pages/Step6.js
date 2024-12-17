@@ -39,7 +39,7 @@ const Step6 = ({
       relationshipType: "Sibling",
       givenname: "",
       middlename: "",
-      lastName: "",
+      lastname: "",
       suffix: "",
       gender: "",
       bloodtype: "",
@@ -83,7 +83,7 @@ const Step6 = ({
         relationshipType: "Sibling",
         givenname: "",
         middlename: "",
-        lastName: "",
+        lastname: "",
         suffix: "",
         gender: "",
         bloodtype: "",
@@ -131,32 +131,10 @@ const Step6 = ({
   const [loading, setLoading] = useState(false);
   const toast = useToast();
 
-  // const toggleEditSibling = (index) => {
-  //   const updatedSiblings = [...siblings];
-  //   updatedSiblings[index].isEditing = !updatedSiblings[index].isEditing;
-  //   setSiblings(updatedSiblings);
-  // };
-
-  // const onChange = (index, field, value) => {
-  //   const updatedSiblings = siblings.map((sibling, i) =>
-  //     i === index ? { ...sibling, [field]: value } : sibling
-  //   );
-  //   setSiblings(updatedSiblings);
-  // };
-
-  // const handleDeleteSibling = (index) => {
-  //   setSiblings(siblings.filter((_, i) => i !== index));
-  //   toast({
-  //     title: "Sibling Deleted",
-  //     description: `Sibling ${index + 1} removed.`,
-  //     status: "warning",
-  //     duration: 3000,
-  //     isClosable: true,
-  //   });
-  // };
-  const handleSaveOrUpdate = async (index, setData) => {
+  const handleSaveOrUpdate = async (index) => {
     setLoading(true);
     const sibling = data[index];
+
     const {
       id,
       isEditing,
@@ -164,20 +142,19 @@ const Step6 = ({
       givenName,
       lastName,
       gender,
-      ...siblingsData
+      ...otherData
     } = sibling;
 
-    // Map frontend fields to backend fields
     const formattedData = {
-      ...siblingsData,
+      ...otherData,
       givenname: givenName,
-      lastname: lastName, // Ensure lastname is sent
-      gender: gender, // Ensure gender is sent
+      lastname: lastName,
+      gender: gender,
       relationship_type: relationshipType,
-      personnel_id: siblingsData.personnel_id || 8, // Ensure personnel_id exists
+      personnel_id: otherData.personnel_id || 8,
     };
 
-    // Validate required fields before saving/updating
+    // Validate required fields
     const requiredFields = [
       "personnel_id",
       "relationship_type",
@@ -185,88 +162,62 @@ const Step6 = ({
       "lastname",
       "gender",
     ];
+    const missingField = requiredFields.find((field) => !formattedData[field]);
 
-    for (const field of requiredFields) {
-      if (
-        !formattedData[field] ||
-        (typeof formattedData[field] === "string" &&
-          formattedData[field].trim() === "")
-      ) {
-        toast({
-          title: "Validation Error",
-          description: `The field ${field} is required for ${relationshipType}.`,
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-        setLoading(false); // Reset loading state
-        return;
-      }
+    if (missingField) {
+      toast({
+        title: "Validation Error",
+        description: `The field "${missingField}" is required.`,
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      setLoading(false);
+      return;
     }
+    alert(id);
 
     try {
       let updatedSibling;
       if (id) {
-        // Update existing sibling record
+        alert("update");
         const response = await axios.put(
           `${API_URL}/api/family-members/${id}`,
           formattedData
         );
+
         updatedSibling = response.data;
-
-        setData((prev) =>
-          prev.map((item, i) =>
-            i === index ? { ...updatedSibling, isEditing: false } : item
-          )
-        );
-
-        toast({
-          title: "Sibling Information Updated",
-          description: `${relationshipType} information has been updated successfully.`,
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
       } else {
-        // Save new sibling record
+        alert("add new");
         const response = await axios.post(
           `${API_URL}/api/family-members`,
           formattedData
         );
-        const savedSibling = response.data;
-
-        setData((prev) =>
-          prev.map((item, i) =>
-            i === index
-              ? { ...item, id: savedSibling.id, isEditing: false }
-              : item
-          )
-        );
-
-        toast({
-          title: "Sibling Information Saved",
-          description: `${relationshipType} information has been saved successfully.`,
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
+        updatedSibling = response.data;
       }
+
+      // Update parent in state
+      onToggleEdit(index); // Disable editing mode for the updated parent
+      onChange(index, "id", updatedSibling.id); // Update the `id` field if it was a new record
+
+      toast({
+        title: id ? "Sibling Updated" : "Sibling Added",
+        description: "Information has been saved successfully.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
     } catch (error) {
-      console.error(
-        "Error saving/updating sibling information:",
-        error.response
-      );
+      console.error("Error saving/updating sibling:", error.response);
       toast({
         title: "Error",
-        description: `Failed to save/update ${relationshipType} information. ${
-          error.response?.data?.message || "Please check the data."
-        }`,
+        description: "Failed to save sibling information.",
         status: "error",
         duration: 3000,
         isClosable: true,
       });
     } finally {
-      setLoading(false); // Reset loading state
+      setLoading(false);
     }
   };
 
@@ -311,20 +262,22 @@ const Step6 = ({
                     isDisabled={!sibling.isEditing}
                   />
                 </Td>
+
                 <Td>
                   <Input
                     placeholder="Middle Name"
                     value={data.middlename}
                     onChange={(e) =>
-                      onChange(index, "middleName", e.target.value)
+                      onChange(index, "middlename", e.target.value)
                     }
                     isDisabled={!sibling.isEditing}
                   />
                 </Td>
+
                 <Td>
                   <Input
                     placeholder="Last Name"
-                    value={data.lastName}
+                    value={data.lastname}
                     onChange={(e) =>
                       onChange(index, "lastName", e.target.value)
                     }
@@ -356,9 +309,9 @@ const Step6 = ({
                   <Input
                     placeholder="Date of Birth"
                     type="date"
-                    value={data.dateOfBirth}
+                    value={data.date_of_birth}
                     onChange={(e) =>
-                      onChange(index, "dateOfBirth", e.target.value)
+                      onChange(index, "date_of_birth", e.target.value)
                     }
                     isDisabled={!sibling.isEditing}
                   />
@@ -366,9 +319,9 @@ const Step6 = ({
                 <Td>
                   <Input
                     placeholder="Contact Number"
-                    value={data.contactNumber}
+                    value={data.contact_number}
                     onChange={(e) =>
-                      onChange(index, "contactNumber", e.target.value)
+                      onChange(index, "contact_number", e.target.value)
                     }
                     isDisabled={!sibling.isEditing}
                   />
@@ -395,9 +348,9 @@ const Step6 = ({
                 <Td>
                   <Select
                     placeholder="Civil Status"
-                    value={data.civilStatus}
+                    value={data.civil_status}
                     onChange={(e) =>
-                      onChange(index, "civilStatus", e.target.value)
+                      onChange(index, "civil_status", e.target.value)
                     }
                     isDisabled={!sibling.isEditing}
                   >
@@ -423,9 +376,9 @@ const Step6 = ({
                 <Td>
                   <Input
                     placeholder="Place of Marriage"
-                    value={data.placeOfMarriage}
+                    value={data.place_of_marriage}
                     onChange={(e) =>
-                      onChange(index, "placeOfMarriage", e.target.value)
+                      onChange(index, "place_of_marriage", e.target.value)
                     }
                     isDisabled={!sibling.isEditing}
                   />
@@ -484,11 +437,11 @@ const Step6 = ({
                   <Select
                     placeholder="Select District"
                     name="district_id"
-                    value={data.districtId}
+                    value={data.district_id}
                     onChange={(e) =>
                       onChange({
                         target: {
-                          name: "districtId",
+                          name: "district_id",
                           value: e.target.value,
                         },
                       })
@@ -505,9 +458,9 @@ const Step6 = ({
                 <Td>
                   <Input
                     placeholder="Local Congregation"
-                    value={data.localCongregation}
+                    value={data.local_congregation}
                     onChange={(e) =>
-                      onChange(index, "localCongregation", e.target.value)
+                      onChange(index, "local_congregation", e.target.value)
                     }
                     isDisabled={!sibling.isEditing}
                   />
@@ -518,9 +471,9 @@ const Step6 = ({
                 <Td>
                   <Input
                     placeholder="Church Duties"
-                    value={data.churchDuties}
+                    value={data.church_duties}
                     onChange={(e) =>
-                      onChange(index, "churchDuties", e.target.value)
+                      onChange(index, "church_duties", e.target.value)
                     }
                     isDisabled={!sibling.isEditing}
                   />
@@ -528,9 +481,9 @@ const Step6 = ({
                 <Td>
                   <Input
                     placeholder="Minister Officiated"
-                    value={data.ministerOfficiated}
+                    value={data.minister_officiated}
                     onChange={(e) =>
-                      onChange(index, "ministerOfficiated", e.target.value)
+                      onChange(index, "minister_officiated", e.target.value)
                     }
                     isDisabled={!sibling.isEditing}
                   />
@@ -547,9 +500,9 @@ const Step6 = ({
                 <Td>
                   <Select
                     placeholder="Employment Type"
-                    value={data.employmentType}
+                    value={data.employment_type}
                     onChange={(e) =>
-                      onChange(index, "employmentType", e.target.value)
+                      onChange(index, "employment_type", e.target.value)
                     }
                     isDisabled={!sibling.isEditing}
                   >
@@ -610,9 +563,9 @@ const Step6 = ({
                   <Input
                     placeholder="Start Date"
                     type="date"
-                    value={data.startDate}
+                    value={data.start_date}
                     onChange={(e) =>
-                      onChange(index, "startDate", e.target.value)
+                      onChange(index, "start_date", e.target.value)
                     }
                     isDisabled={!sibling.isEditing}
                   />
@@ -621,8 +574,10 @@ const Step6 = ({
                   <Input
                     placeholder="End Date"
                     type="date"
-                    value={data.endDate}
-                    onChange={(e) => onChange(index, "endDate", e.target.value)}
+                    value={data.end_date}
+                    onChange={(e) =>
+                      onChange(index, "end_date", e.target.value)
+                    }
                     isDisabled={!sibling.isEditing}
                   />
                 </Td>
@@ -631,9 +586,9 @@ const Step6 = ({
                 <Td>
                   <Input
                     placeholder="Reason for Leaving"
-                    value={data.reasonForLeaving}
+                    value={data.reason_for_leaving}
                     onChange={(e) =>
-                      onChange(index, "reasonForLeaving", e.target.value)
+                      onChange(index, "reason_for_leaving", e.target.value)
                     }
                     isDisabled={!sibling.isEditing}
                   />
@@ -650,9 +605,9 @@ const Step6 = ({
                 <Td>
                   <Select
                     placeholder="Education Level"
-                    value={data.educationLevel}
+                    value={data.education_level}
                     onChange={(e) =>
-                      onChange(index, "educationLevel", e.target.value)
+                      onChange(index, "education_level", e.target.value)
                     }
                     isDisabled={!sibling.isEditing}
                   >
@@ -674,9 +629,9 @@ const Step6 = ({
                 <Td>
                   <Input
                     placeholder="Field of Study"
-                    value={data.fieldOfStudy}
+                    value={data.field_of_study}
                     onChange={(e) =>
-                      onChange(index, "fieldOfStudy", e.target.value)
+                      onChange(index, "field_of_study", e.target.value)
                     }
                     isDisabled={!sibling.isEditing}
                   />
@@ -704,11 +659,11 @@ const Step6 = ({
                 <Td>
                   <Input
                     placeholder="Professional Licensure"
-                    value={data.professionalLicensureExamination}
+                    value={data.professional_licensure_examination}
                     onChange={(e) =>
                       onChange(
                         index,
-                        "professionalLicensureExamination",
+                        "professional_licensure_examination",
                         e.target.value
                       )
                     }
@@ -719,9 +674,9 @@ const Step6 = ({
                   <Input
                     placeholder="Start Year"
                     type="number"
-                    value={data.startYear}
+                    value={data.start_year}
                     onChange={(e) =>
-                      onChange(index, "startYear", e.target.value)
+                      onChange(index, "start_year", e.target.value)
                     }
                     isDisabled={!sibling.isEditing}
                   />
@@ -730,9 +685,9 @@ const Step6 = ({
                   <Input
                     placeholder="Completion Year"
                     type="number"
-                    value={data.completionYear}
+                    value={data.completion_year}
                     onChange={(e) =>
-                      onChange(index, "completionYear", e.target.value)
+                      onChange(index, "completion_year", e.target.value)
                     }
                     isDisabled={!sibling.isEditing}
                   />
@@ -744,13 +699,13 @@ const Step6 = ({
                 <Td colSpan={4} textAlign="center">
                   <IconButton
                     icon={sibling.isEditing ? <CheckIcon /> : <EditIcon />}
-                    onClick={
-                      () =>
-                        sibling.isEditing
-                          ? handleSaveOrUpdate(index) // Save on check
-                          : onChange(index, "isEditing", true) // Enable editing
+                    onClick={() =>
+                      sibling.isEditing
+                        ? handleSaveOrUpdate(index)
+                        : onChange(index, "isEditing", true)
                     }
                     colorScheme={sibling.isEditing ? "green" : "blue"}
+                    isLoading={loading}
                   />
                 </Td>
               </Tr>
