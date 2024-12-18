@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 17, 2024 at 09:27 AM
+-- Generation Time: Dec 18, 2024 at 11:44 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -635,8 +635,12 @@ CREATE TABLE `family_members` (
 --
 
 INSERT INTO `family_members` (`id`, `personnel_id`, `relationship_type`, `givenname`, `middlename`, `lastname`, `suffix`, `gender`, `bloodtype`, `civil_status`, `date_of_marriage`, `place_of_marriage`, `citizenship`, `nationality`, `date_of_birth`, `contact_number`, `church_duties`, `livelihood`, `district_id`, `local_congregation`, `minister_officiated`, `employment_type`, `company`, `address`, `position`, `department`, `section`, `start_date`, `end_date`, `reason_for_leaving`, `education_level`, `start_year`, `completion_year`, `school`, `field_of_study`, `degree`, `institution`, `professional_licensure_examination`, `created_at`, `updated_at`) VALUES
-(11, 8, 'Father', 'NEPTA', '', 'asd', 'Jr.', 'Male', 'A+', 'Married', '2024-12-17', 'asd', 17, 16, '2024-12-17', 12, 'asd', 'asd', 19, 'asd', 'asd', 'Temporary', 'asd', 'asd', 'asd', 'asd', 'asd', '2024-12-17', '2024-12-17', 'asd', 'Professional Degree', 1, 12, 'asd', 'asd', 'asd', 'asd', 'asd', '2024-12-17 06:38:14', '2024-12-17 06:38:39'),
-(44, 8, 'Sibling', 'asd', 'asd', 'asd', 'Jr.', 'Male', '', 'Annulled', '2024-12-17', 'asd', 0, 0, '2024-12-17', 12, 'asd', 'asd', 0, 'asd', 'asd', 'Unemployed', 'asd', 'asd', 'asd', 'asd', 'asd', '2024-12-17', '2024-12-17', 'asd', 'Professional Degree', 1, 2, 'asd', 'asd', 'asd', 'asd', 'asd', '2024-12-17 08:27:17', '2024-12-17 08:27:17');
+(75, 8, 'Father', 'HAY', 'asd', 'dsa', 'No Suffix', 'Male', 'A+', 'Cohabitati', '2024-12-18', 'asd', 16, 16, '2024-12-18', 232, 'asd', 'asd', 19, 'asdsad', 'asd', 'Retired', 'asd', 'asd', 'asd', 'asd', 'asd', '2024-12-18', '2024-12-18', 'as', 'Post-Doctorate', 1, 21, 'asd', 'asd', 'asde', 'asd', 'asd', '2024-12-18 05:44:03', '2024-12-18 06:11:02'),
+(172, 8, 'Sibling', 'Christopher', 'Morales', 'Pareja', 'Jr.', 'Male', 'B-', 'Annulled', '2024-12-04', 'frisco', 14, 17, '2024-12-18', 121, 'asd', 'asd', 45, 'test123', 'asd', '', 'asd', 'asd', 'asd', 'asd', 'asd', '2024-12-18', '2024-12-18', 'asd', '', 1, 2, 'asd', 'asd', 'asd', 'asd', 'asd', '2024-12-18 15:53:08', '2024-12-18 16:08:19'),
+(173, 8, 'Sibling', 'asd123', 'asd', 'asd', 'Jr.', 'Male', 'A+', '', '0000-00-00', '', 0, 0, '0000-00-00', 123, '', '', 0, '', '', '', '', '', '', '', '', '0000-00-00', '0000-00-00', '', '', 0, 0, '', '', '', '', '', '2024-12-18 16:42:23', '2024-12-18 16:42:46'),
+(174, 8, 'Spouse', 'JAI', 'dsa', 'asd', 'No Suffix', 'Male', 'A+', 'Married', '2024-12-19', 'asd', 15, 0, '2024-12-19', 1212, '', '', 0, '', '', 'Casual', 'aas', 'dsa', 'asd', 'asd', 'dsa', '2024-12-19', '2024-12-24', '', 'Professional Degree', 11, 22, 'asd', 'asd', 'asd', 'asd', 'asdadsa', '2024-12-18 17:43:21', '2024-12-18 17:51:21'),
+(175, 8, 'Child', 'test', 'ads', 'asd', 'No Suffix', 'Female', 'A+', 'Cohabitati', '2024-12-19', 'asd', 15, 14, '2024-12-19', 123, 'asd', 'asd', 20, 'asd', 'asd', 'Contract', 'asd', 'asd', 'asd', 'asd', 'asd', '2024-12-05', '2024-12-03', '', 'Primary Education', 1, 12, 'asd', 'asd', 'asd', 'asd', '1asdas', '2024-12-18 18:04:44', '2024-12-18 18:09:05'),
+(176, 8, 'Child', 'asd', '', 'asd', '', 'Male', '', '', '0000-00-00', '', 0, 0, '0000-00-00', 0, '', '', 0, '', '', '', '', '', '', '', '', '0000-00-00', '0000-00-00', '', '', 0, 0, '', '', '', '', '', '2024-12-18 18:11:33', '2024-12-18 18:11:33');
 
 -- --------------------------------------------------------
 
@@ -1443,7 +1447,8 @@ CREATE TABLE `personnels` (
 --
 
 INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progress`, `personnel_progress`, `gender`, `civil_status`, `wedding_anniversary`, `givenname`, `middlename`, `surname_maiden`, `surname_husband`, `suffix`, `nickname`, `date_of_birth`, `place_of_birth`, `datejoined`, `language_id`, `bloodtype`, `email_address`, `citizenship`, `nationality`, `department_id`, `section_id`, `subsection_id`, `designation_id`, `district_id`, `local_congregation`, `personnel_type`, `assigned_number`, `m_status`, `panunumpa_date`, `ordination_date`, `created_at`, `updated_at`) VALUES
-(10, 'ENR-2412-EP1-8972', '1', 'District Office', 'Male', 'Single', '0000-00-00 00:00:00', 'Felix', 'Morales', '', 'Pareja', '', 'Chok', '1990-11-09 00:00:00', 'QC', '2024-12-09 00:00:00', NULL, 'A+', 'felixpareja@yahoo.com', 138, 138, 1, 2, 1, 1, 45, 'Bonifacio Drive', 'Regular', 20149, NULL, '2022-09-16 00:00:00', '0000-00-00 00:00:00', '2024-12-09 04:43:34', '2024-12-09 04:43:34');
+(10, 'ENR-2412-EP1-8972', '1', 'District Office', 'Male', 'Single', '0000-00-00 00:00:00', 'Felix', 'Morales', '', 'Pareja', '', 'Chok', '1990-11-09 00:00:00', 'QC', '2024-12-09 00:00:00', NULL, 'A+', 'felixpareja@yahoo.com', 138, 138, 1, 2, 1, 1, 45, 'Bonifacio Drive', 'Regular', 20149, NULL, '2022-09-16 00:00:00', '0000-00-00 00:00:00', '2024-12-09 04:43:34', '2024-12-09 04:43:34'),
+(12, 'ENR-2412-EP1-3101', '1', 'Enrollment', 'Male', 'Single', '0000-00-00 00:00:00', 'TEST', 'asd', '', 'asd', 'No Suffix', 'asd', '2024-12-19 00:00:00', 'asd', '2024-12-19 00:00:00', NULL, 'A+', 'felixpareja@yahoo.com', 18, 16, 1, 2, 1, 1, 20, 'asdas', 'Regular', 2323, NULL, '2024-12-19 00:00:00', '0000-00-00 00:00:00', '2024-12-18 19:06:28', '2024-12-18 19:06:28');
 
 -- --------------------------------------------------------
 
@@ -1936,7 +1941,8 @@ ALTER TABLE `available_apps`
 -- Indexes for table `children`
 --
 ALTER TABLE `children`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `children_ibfk_1` (`personnel_id`);
 
 --
 -- Indexes for table `citizenships`
@@ -2223,7 +2229,7 @@ ALTER TABLE `events`
 -- AUTO_INCREMENT for table `family_members`
 --
 ALTER TABLE `family_members`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=45;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=177;
 
 --
 -- AUTO_INCREMENT for table `government_issued_id`
@@ -2295,7 +2301,7 @@ ALTER TABLE `permission_groups`
 -- AUTO_INCREMENT for table `personnels`
 --
 ALTER TABLE `personnels`
-  MODIFY `personnel_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `personnel_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `personnel_address`
