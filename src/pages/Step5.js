@@ -54,17 +54,17 @@ const Step5 = ({
       ...parentData
     } = parent;
 
-    // Map frontend fields to backend fields
+    // Prepare the data to send
     const formattedData = {
       ...parentData,
-      givenname: givenName,
-      lastname: lastName,
-      gender: gender,
+      givenname: parent.givenname,
+      lastname: parent.lastname,
+      gender: parent.gender,
       relationship_type: relationshipType,
-      personnel_id: parentData.personnel_id || 8, // Default personnel ID if not present
+      personnel_id: parentData.personnel_id || 8,
     };
-
-    // Validate required fields before saving/updating
+    console.log("Formatted Data:", formattedData);
+    // Validate required fields
     const requiredFields = [
       "personnel_id",
       "relationship_type",
@@ -173,7 +173,7 @@ const Step5 = ({
                           placeholder="Given Name"
                           value={data.givenname}
                           onChange={(e) =>
-                            onChange(index, "givenName", e.target.value)
+                            onChange(index, "givenname", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -183,7 +183,7 @@ const Step5 = ({
                           placeholder="Middle Name"
                           value={data.middlename}
                           onChange={(e) =>
-                            onChange(index, "middleName", e.target.value)
+                            onChange(index, "middlename", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />
@@ -193,7 +193,7 @@ const Step5 = ({
                           placeholder="Last Name"
                           value={data.lastname}
                           onChange={(e) =>
-                            onChange(index, "lastName", e.target.value)
+                            onChange(index, "lastname", e.target.value)
                           }
                           isDisabled={!parent.isEditing}
                         />

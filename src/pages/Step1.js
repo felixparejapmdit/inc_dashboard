@@ -50,7 +50,7 @@ const Step1 = ({
               color="#0a5856"
               textAlign="center"
             >
-              Step 1: Basic Information
+              Step 1: Primary Information
             </Text>
           </Flex>
 

@@ -23,6 +23,7 @@ const API_URL = process.env.REACT_APP_API_URL;
 
 const Step6 = ({
   data,
+  setData, // Added setData as a prop
   onChange,
   onToggleEdit,
   citizenships,
@@ -142,18 +143,19 @@ const Step6 = ({
       givenName,
       lastName,
       gender,
-      ...otherData
+      ...siblingData
     } = sibling;
 
+    // Prepare the data to send
     const formattedData = {
-      ...otherData,
-      givenname: givenName,
-      lastname: lastName,
-      gender: gender,
+      ...siblingData,
+      givenname: sibling.givenname,
+      lastname: sibling.lastname,
+      gender: sibling.gender,
       relationship_type: relationshipType,
-      personnel_id: otherData.personnel_id || 8,
+      personnel_id: siblingData.personnel_id || 8,
     };
-
+    console.log("Formatted Data:", formattedData);
     // Validate required fields
     const requiredFields = [
       "personnel_id",
@@ -162,62 +164,82 @@ const Step6 = ({
       "lastname",
       "gender",
     ];
-    const missingField = requiredFields.find((field) => !formattedData[field]);
+    const missingField = requiredFields.find(
+      (field) =>
+        !formattedData[field] ||
+        (typeof formattedData[field] === "string" &&
+          formattedData[field].trim() === "")
+    );
 
     if (missingField) {
       toast({
         title: "Validation Error",
-        description: `The field "${missingField}" is required.`,
+        description: `The field "${missingField}" is required for ${relationshipType}.`,
         status: "error",
         duration: 3000,
         isClosable: true,
       });
-      setLoading(false);
+      setLoading(false); // Reset loading state
       return;
     }
-    alert(id);
 
     try {
       let updatedSibling;
       if (id) {
-        alert("update");
+        // Update existing sibling record
         const response = await axios.put(
           `${API_URL}/api/family-members/${id}`,
           formattedData
         );
-
         updatedSibling = response.data;
       } else {
-        alert("add new");
+        // Save new sibling record
         const response = await axios.post(
           `${API_URL}/api/family-members`,
           formattedData
         );
         updatedSibling = response.data;
       }
+      // Update the sibling in state
+      // const updatedData = [...data];
+      // updatedData[index] = {
+      //   ...updatedSibling,
+      //   isEditing: true, // Exit editing mode
+      // };
 
-      // Update parent in state
-      onToggleEdit(index); // Disable editing mode for the updated parent
+      // setData(updatedData); // Update the entire siblings array
+
+      // Update sibling in state
+      onToggleEdit(index); // Disable editing mode for the updated sibling
       onChange(index, "id", updatedSibling.id); // Update the `id` field if it was a new record
 
       toast({
         title: id ? "Sibling Updated" : "Sibling Added",
-        description: "Information has been saved successfully.",
+        description: `${relationshipType} information has been ${
+          id ? "updated" : "added"
+        } successfully.`,
         status: "success",
         duration: 3000,
         isClosable: true,
       });
     } catch (error) {
-      console.error("Error saving/updating sibling:", error.response);
+      console.error(
+        "Error saving/updating sibling information:",
+        error.response
+      );
       toast({
         title: "Error",
-        description: "Failed to save sibling information.",
+        description: `Failed to ${
+          id ? "update" : "add"
+        } ${relationshipType} information. ${
+          error.response?.data?.message || "Please try again later."
+        }`,
         status: "error",
         duration: 3000,
         isClosable: true,
       });
     } finally {
-      setLoading(false);
+      setLoading(false); // Reset loading state
     }
   };
 
@@ -257,7 +279,7 @@ const Step6 = ({
                     placeholder="Given Name"
                     value={data.givenname}
                     onChange={(e) =>
-                      onChange(index, "givenName", e.target.value)
+                      onChange(index, "givenname", e.target.value)
                     }
                     isDisabled={!sibling.isEditing}
                   />
@@ -279,7 +301,7 @@ const Step6 = ({
                     placeholder="Last Name"
                     value={data.lastname}
                     onChange={(e) =>
-                      onChange(index, "lastName", e.target.value)
+                      onChange(index, "lastname", e.target.value)
                     }
                     isDisabled={!sibling.isEditing}
                   />
@@ -705,7 +727,6 @@ const Step6 = ({
                         : onChange(index, "isEditing", true)
                     }
                     colorScheme={sibling.isEditing ? "green" : "blue"}
-                    isLoading={loading}
                   />
                 </Td>
               </Tr>
