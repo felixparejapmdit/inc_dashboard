@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate for navigation
+
 import {
   Box,
   Button,
@@ -75,6 +77,14 @@ const Users = ({ personnelId }) => {
       .then((data) => setGroups(Array.isArray(data) ? data : []))
       .catch(() => setStatus("Failed to load groups."));
   }, []);
+
+
+  const navigate = useNavigate(); // Initialize navigation
+
+  const handleRowClick = (personnelId) => {
+    // Navigate to Step6 page with the personnelId as a query parameter
+    navigate(`/step6/${personnelId}`);
+  };
 
   const handleAddUser = async (e) => {
     e.preventDefault();
@@ -403,7 +413,10 @@ const Users = ({ personnelId }) => {
             // Prepend the base URL if needed
             const avatarSrc = item.avatar ? `${API_URL}${item.avatar}` : "";
             return (
-              <Tr key={item.ID}>
+              <Tr key={item.ID}
+              cursor="pointer"
+              onClick={() => handleRowClick(item.personnel_id)} // Pass personnel_id to Step6
+            >
                 <Td>
                   <Avatar
                     size="sm"

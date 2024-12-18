@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
+import { useParams } from "react-router-dom"; // Import useParams for retrieving URL parameters
 import {
+  Box,
   VStack,
   HStack,
   Text,
@@ -7,13 +9,11 @@ import {
   Input,
   Select,
   Button,
-  IconButton,
-  Grid,
-  GridItem,
   Table,
   Tbody,
   Tr,
   Td,
+  IconButton,
   useToast,
 } from "@chakra-ui/react";
 import { EditIcon, DeleteIcon, CheckIcon } from "@chakra-ui/icons";
@@ -22,7 +22,9 @@ import axios from "axios";
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Step7 = ({
-  data,
+  data = [], // Ensure data defaults to an empty array
+  setData, // Added setData as a prop
+  onAdd,
   onChange,
   onToggleEdit,
   citizenships,
@@ -34,221 +36,137 @@ const Step7 = ({
   educationalLevelOptions,
   bloodtypes,
 }) => {
-  const [spouses, setSpouses] = useState([
-    {
-      relationshipType: "Spouse",
-      givenName: "",
-      middleName: "",
-      lastName: "",
-      suffix: "",
-      gender: "",
-      bloodType: "",
-      civilStatus: "",
-      dateOfBirth: "",
-      dateOfMarriage: "",
-      placeOfMarriage: "",
-      citizenship: "",
-      nationality: "",
-      contactNumber: "",
-      churchDuties: "",
-      livelihood: "",
-      districtId: "",
-      localCongregation: "",
-      ministerOfficiated: "",
-      employmentType: "",
-      company: "",
-      address: "",
-      position: "",
-      department: "",
-      section: "",
-      startDate: "",
-      endDate: "",
-      reasonForLeaving: "",
-      educationLevel: "",
-      startYear: "",
-      completionYear: "",
-      school: "",
-      fieldOfStudy: "",
-      degree: "",
-      institution: "",
-      professionalLicensureExamination: "",
-      isEditing: true, // Default is true for editable fields on load
-    },
-  ]);
+  
 
-  const handleAddSpouse = () => {
-    setSpouses([
-      ...spouses,
-      {
-        givenName: "",
-        middleName: "",
-        lastName: "",
-        suffix: "",
-        gender: "",
-        bloodType: "",
-        civilStatus: "",
-        dateOfBirth: "",
-        dateOfMarriage: "",
-        placeOfMarriage: "",
-        citizenship: "",
-        nationality: "",
-        contactNumber: "",
-        churchDuties: "",
-        livelihood: "",
-        districtId: "",
-        localCongregation: "",
-        ministerOfficiated: "",
-        employmentType: "",
-        company: "",
-        address: "",
-        position: "",
-        department: "",
-        section: "",
-        startDate: "",
-        endDate: "",
-        reasonForLeaving: "",
-        educationLevel: "",
-        startYear: "",
-        completionYear: "",
-        school: "",
-        fieldOfStudy: "",
-        degree: "",
-        institution: "",
-        professionalLicensureExamination: "",
-        isEditing: true, // Default to true for new spouses
-      },
-    ]);
-  };
+  const { personnelId } = useParams(); // Retrieve personnelId from URL
 
-  const toggleEditSpouse = (index) => {
-    const updatedSpouses = [...spouses];
-    updatedSpouses[index].isEditing = !updatedSpouses[index].isEditing;
-    setSpouses(updatedSpouses);
-  };
-
-  const handleSpouseChange = (index, field, value) => {
-    const updatedSpouses = spouses.map((spouse, i) =>
-      i === index ? { ...spouse, [field]: value } : spouse
-    );
-    setSpouses(updatedSpouses);
-  };
-
-  const handleDeleteSpouse = (index) => {
-    setSpouses(spouses.filter((_, i) => i !== index));
-  };
-
+  const [spouses, setSpouses] = useState([]);
+  const getRowBgColor = (index) => (index % 2 === 0 ? "gray.50" : "green.50"); // Alternate colors
   const [loading, setLoading] = useState(false);
   const toast = useToast();
 
+  useEffect(() => {
+    if (personnelId) {
+      // Fetch spouses related to the personnelId
+      axios
+        .get(`${API_URL}/api/family-members?personnel_id=${personnelId}`)
+        .then((res) => {
+          setSpouses(res.data || []);
+        })
+        .catch((err) => {
+          console.error("Error fetching spouses:", err);
+          toast({
+            title: "Error",
+            description: "Failed to fetch spouse data.",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+        });
+    }
+  }, [personnelId]);
+
+
   const handleSaveOrUpdate = async (index) => {
     setLoading(true);
-    const spouse = spouses[index];
+    const spouse = data[index];
+
     const {
       id,
       isEditing,
       relationshipType,
+      gender,
       givenName,
       lastName,
-      gender,
-      ...spousesData
+      ...spouseData
     } = spouse;
 
-    // Map frontend fields to backend fields
+    // Prepare the data to send
     const formattedData = {
-      ...spousesData,
-      givenname: givenName,
-      lastname: lastName, // Ensure lastname is sent
-      gender: gender, // Ensure gender is sent
+      ...spouseData,
+      gender: spouse.gender,
+      givenname: spouse.givenname,
+      lastname: spouse.lastname,
       relationship_type: relationshipType,
-      personnel_id: spousesData.personnel_id || 8,
+      personnel_id: spouseData.personnel_id || 8,
     };
-
-    // Validate required fields before saving/updating
+    console.log("Formatted Data:", formattedData);
+    // Validate required fields
     const requiredFields = [
       "personnel_id",
       "relationship_type",
+      "gender",
       "givenname",
       "lastname",
-      "gender",
     ];
-    for (const field of requiredFields) {
-      if (
+    const missingField = requiredFields.find(
+      (field) =>
         !formattedData[field] ||
         (typeof formattedData[field] === "string" &&
           formattedData[field].trim() === "")
-      ) {
-        toast({
-          title: "Validation Error",
-          description: `The field ${field} is required for ${relationshipType}.`,
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-        return;
-      }
+    );
+
+    if (missingField) {
+      toast({
+        title: "Validation Error",
+        description: `The field "${missingField}" is required for ${relationshipType}.`,
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      setLoading(false); // Reset loading state
+      return;
     }
 
     try {
-      if (spouse.id) {
-        // Update existing spouses record
+      let updatedSpouse;
+      if (id) {
+        // Update existing spouse record
         const response = await axios.put(
           `${API_URL}/api/family-members/${id}`,
           formattedData
         );
-        const updatedspouses = response.data;
-
-        setSpouses((prev) =>
-          prev.map((item, i) =>
-            i === index ? { ...updatedspouses, isEditing: false } : item
-          )
-        );
-
-        toast({
-          title: "spouses Information Updated",
-          description: `${relationshipType} information has been updated successfully.`,
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
+        updatedSpouse = response.data;
       } else {
-        // Save new spouses record
+        // Save new spouse record
         const response = await axios.post(
           `${API_URL}/api/family-members`,
           formattedData
         );
-
-        const savedspouses = response.data;
-
-        setSpouses((prev) =>
-          prev.map((item, i) =>
-            i === index
-              ? { ...item, id: savedspouses.id, isEditing: false }
-              : item
-          )
-        );
-
-        toast({
-          title: "spouses Information Saved",
-          description: `${relationshipType} information has been saved successfully.`,
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
+        updatedSpouse = response.data;
       }
+
+      // Update spouse in state
+      onToggleEdit(index); // Disable editing mode for the updated spouse
+      onChange(index, "id", updatedSpouse.id); // Update the `id` field if it was a new record
+
+      toast({
+        title: id ? "Spouse Updated" : "Spouse Added",
+        description: `${relationshipType} information has been ${
+          id ? "updated" : "added"
+        } successfully.`,
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
     } catch (error) {
-      console.error("Error saving/updating spouses information:", error); // Log the full error
+      console.error(
+        "Error saving/updating spouse information:",
+        error.response
+      );
       toast({
         title: "Error",
-        description: `Failed to save/update ${relationshipType} information. ${
-          error.response?.data?.message ||
-          "Please check the data or server connectivity."
+        description: `Failed to ${
+          id ? "update" : "add"
+        } ${relationshipType} information. ${
+          error.response?.data?.message || "Please try again later."
         }`,
         status: "error",
         duration: 3000,
         isClosable: true,
       });
     } finally {
-      setLoading(false);
+      setLoading(false); // Reset loading state
     }
   };
 
@@ -257,24 +175,18 @@ const Step7 = ({
       <Heading as="h2" size="lg" textAlign="center" mb={6}>
         Step 7: Spouse Information
       </Heading>
-      {spouses.map((spouse, index) => (
+      {data.map((spouse, index) => (
         <VStack
-          key={index}
-          p={4}
-          borderWidth="1px"
-          borderRadius="md"
-          w="100%"
-          bg="gray.50"
-          spacing={4}
+          align="start" spacing={4} mb={8} w="100%"
         >
           <Table
-            key={spouse.id || spouse.generatedId}
-            size="md"
-            variant="simple"
+             key={spouse.id || spouse.generatedId}
+             size="md"
+             variant="simple"
           >
             <Tbody>
               {/* Personal Information */}
-              <Tr bg="gray.50">
+              <Tr bg={getRowBgColor(index)}>
                 <Td colSpan={4}>
                   <Text fontWeight="bold">Personal Information</Text>
                 </Td>
@@ -283,9 +195,9 @@ const Step7 = ({
                 <Td>
                   <Select
                     placeholder="Select Gender"
-                    value={spouses.gender}
+                    value={spouse.gender}
                     onChange={(e) =>
-                      handleSpouseChange(index, "gender", e.target.value)
+                      onChange(index, "gender", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   >
@@ -296,9 +208,9 @@ const Step7 = ({
                 <Td>
                   <Input
                     placeholder="Given Name"
-                    value={spouses.givenName}
+                    value={spouse.givenname}
                     onChange={(e) =>
-                      handleSpouseChange(index, "givenName", e.target.value)
+                      onChange(index, "givenname", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   />
@@ -306,9 +218,9 @@ const Step7 = ({
                 <Td>
                   <Input
                     placeholder="Middle Name"
-                    value={spouses.middleName}
+                    value={spouse.middlename}
                     onChange={(e) =>
-                      handleSpouseChange(index, "middleName", e.target.value)
+                      onChange(index, "middlename", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   />
@@ -316,9 +228,9 @@ const Step7 = ({
                 <Td>
                   <Input
                     placeholder="Last Name"
-                    value={spouses.lastName}
+                    value={spouse.lastname}
                     onChange={(e) =>
-                      handleSpouseChange(index, "lastName", e.target.value)
+                      onChange(index, "lastname", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   />
@@ -328,12 +240,12 @@ const Step7 = ({
                 <Td>
                   <Select
                     name="suffix"
-                    value={spouses[index]?.suffix || ""}
+                    value={spouse.suffix || ""}
                     onChange={(e) =>
-                      handleSpouseChange(index, "suffix", e.target.value)
+                      onChange(index, "suffix", e.target.value)
                     }
                     width="100%"
-                    isDisabled={spouses[index]?.gender === "Female"}
+                    isDisabled={spouse.gender === "Female"}
                   >
                     <option value="" disabled>
                       Select Suffix
@@ -350,9 +262,9 @@ const Step7 = ({
                   <Input
                     placeholder="Date of Birth"
                     type="date"
-                    value={spouses.dateOfBirth}
+                    value={spouse.date_of_birth}
                     onChange={(e) =>
-                      handleSpouseChange(index, "dateOfBirth", e.target.value)
+                      onChange(index, "date_of_birth", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   />
@@ -360,9 +272,9 @@ const Step7 = ({
                 <Td>
                   <Input
                     placeholder="Contact Number"
-                    value={spouses.contactNumber}
+                    value={spouse.contact_number}
                     onChange={(e) =>
-                      handleSpouseChange(index, "contactNumber", e.target.value)
+                      onChange(index, "contact_number", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   />
@@ -371,10 +283,11 @@ const Step7 = ({
                   <Select
                     placeholder="Select Blood Type"
                     name="bloodtype"
-                    value={spouses.bloodtype}
+                    value={spouse.bloodtype}
                     onChange={(e) =>
-                      handleSpouseChange(index, "bloodType", e.target.value)
+                      onChange(index, "bloodtype", e.target.value)
                     }
+                    isDisabled={!spouse.isEditing}
                     width="100%"
                   >
                     {bloodtypes.map((type) => (
@@ -389,9 +302,9 @@ const Step7 = ({
                 <Td>
                   <Select
                     placeholder="Civil Status"
-                    value={spouses.civilStatus}
+                    value={spouse.civil_status}
                     onChange={(e) =>
-                      handleSpouseChange(index, "civilStatus", e.target.value)
+                      onChange(index, "civil_status", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   >
@@ -417,11 +330,11 @@ const Step7 = ({
                 <Td>
                   <Input
                     placeholder="Place of Marriage"
-                    value={spouses.placeOfMarriage}
+                    value={spouse.place_of_marriage}
                     onChange={(e) =>
-                      handleSpouseChange(
+                      onChange(
                         index,
-                        "placeOfMarriage",
+                        "place_of_marriage",
                         e.target.value
                       )
                     }
@@ -433,12 +346,11 @@ const Step7 = ({
                   <Select
                     placeholder="Select Citizenship"
                     name="citizenship"
-                    value={spouses.citizenship}
+                    value={spouse.citizenship}
                     onChange={(e) =>
-                      handleSpouseChange({
-                        target: { name: "citizenship", value: e.target.value },
-                      })
+                      onChange(index, "citizenship", e.target.value)
                     }
+                    isDisabled={!spouse.isEditing}
                     width="100%"
                   >
                     {citizenships.map((citizenship) => (
@@ -454,12 +366,11 @@ const Step7 = ({
                   <Select
                     placeholder="Select Nationality"
                     name="nationality"
-                    value={spouses.nationality}
+                    value={spouse.nationality}
                     onChange={(e) =>
-                      handleSpouseChange({
-                        target: { name: "nationality", value: e.target.value },
-                      })
+                      onChange(index, "nationality", e.target.value)
                     }
+                    isDisabled={!spouse.isEditing}
                     width="100%"
                   >
                     {nationalities.map((nationality) => (
@@ -472,9 +383,9 @@ const Step7 = ({
                 <Td>
                   <Input
                     placeholder="Livelihood"
-                    value={spouses.livelihood}
+                    value={spouse.livelihood}
                     onChange={(e) =>
-                      handleSpouseChange(index, "livelihood", e.target.value)
+                      onChange(index, "livelihood", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   />
@@ -483,15 +394,11 @@ const Step7 = ({
                   <Select
                     placeholder="Select District"
                     name="district_id"
-                    value={spouses.districtId}
+                    value={spouse.district_id}
                     onChange={(e) =>
-                      handleSpouseChange({
-                        target: {
-                          name: "districtId",
-                          value: e.target.value,
-                        },
-                      })
+                      onChange(index, "district_id", e.target.value)
                     }
+                    isDisabled={!spouse.isEditing}
                     width="100%"
                   >
                     {districts.map((district) => (
@@ -504,11 +411,11 @@ const Step7 = ({
                 <Td>
                   <Input
                     placeholder="Local Congregation"
-                    value={spouses.localCongregation}
+                    value={spouse.local_congregation}
                     onChange={(e) =>
-                      handleSpouseChange(
+                      onChange(
                         index,
-                        "localCongregation",
+                        "local_congregation",
                         e.target.value
                       )
                     }
@@ -521,9 +428,9 @@ const Step7 = ({
                 <Td>
                   <Input
                     placeholder="Church Duties"
-                    value={spouses.churchDuties}
+                    value={spouse.church_duties}
                     onChange={(e) =>
-                      handleSpouseChange(index, "churchDuties", e.target.value)
+                      onChange(index, "church_duties", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   />
@@ -531,11 +438,11 @@ const Step7 = ({
                 <Td>
                   <Input
                     placeholder="Minister Officiated"
-                    value={spouses.ministerOfficiated}
+                    value={spouse.minister_officiated}
                     onChange={(e) =>
-                      handleSpouseChange(
+                      onChange(
                         index,
-                        "ministerOfficiated",
+                        "minister_officiated",
                         e.target.value
                       )
                     }
@@ -545,7 +452,7 @@ const Step7 = ({
               </Tr>
 
               {/* Work Information Section */}
-              <Tr bg="gray.50">
+              <Tr bg={getRowBgColor(index)}>
                 <Td colSpan={4}>
                   <Text fontWeight="bold">Work Information</Text>
                 </Td>
@@ -554,13 +461,9 @@ const Step7 = ({
                 <Td>
                   <Select
                     placeholder="Employment Type"
-                    value={spouses.employmentType}
+                    value={spouse.employment_type}
                     onChange={(e) =>
-                      handleSpouseChange(
-                        index,
-                        "employmentType",
-                        e.target.value
-                      )
+                      onChange(index, "employment_type", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   >
@@ -574,9 +477,9 @@ const Step7 = ({
                 <Td>
                   <Input
                     placeholder="Company"
-                    value={spouses.company}
+                    value={spouse.company}
                     onChange={(e) =>
-                      handleSpouseChange(index, "company", e.target.value)
+                      onChange(index, "company", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   />
@@ -584,9 +487,9 @@ const Step7 = ({
                 <Td>
                   <Input
                     placeholder="Position"
-                    value={spouses.position}
+                    value={spouse.position}
                     onChange={(e) =>
-                      handleSpouseChange(index, "position", e.target.value)
+                      onChange(index, "position", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   />
@@ -594,9 +497,9 @@ const Step7 = ({
                 <Td>
                   <Input
                     placeholder="Address"
-                    value={spouses.address}
+                    value={spouse.address}
                     onChange={(e) =>
-                      handleSpouseChange(index, "address", e.target.value)
+                      onChange(index, "address", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   />
@@ -606,9 +509,9 @@ const Step7 = ({
                 <Td>
                   <Input
                     placeholder="Department"
-                    value={spouses.department}
+                    value={spouse.department}
                     onChange={(e) =>
-                      handleSpouseChange(index, "department", e.target.value)
+                      onChange(index, "department", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   />
@@ -616,9 +519,9 @@ const Step7 = ({
                 <Td>
                   <Input
                     placeholder="Section"
-                    value={spouses.section}
+                    value={spouse.section}
                     onChange={(e) =>
-                      handleSpouseChange(index, "section", e.target.value)
+                      onChange(index, "section", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   />
@@ -627,9 +530,9 @@ const Step7 = ({
                   <Input
                     placeholder="Start Date"
                     type="date"
-                    value={spouses.startDate}
+                    value={spouse.start_date}
                     onChange={(e) =>
-                      handleSpouseChange(index, "startDate", e.target.value)
+                      onChange(index, "start_date", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   />
@@ -638,9 +541,9 @@ const Step7 = ({
                   <Input
                     placeholder="End Date"
                     type="date"
-                    value={spouses.endDate}
+                    value={spouse.end_date}
                     onChange={(e) =>
-                      handleSpouseChange(index, "endDate", e.target.value)
+                      onChange(index, "end_date", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   />
@@ -650,11 +553,11 @@ const Step7 = ({
                 <Td>
                   <Input
                     placeholder="Reason for Leaving"
-                    value={spouses.reasonForLeaving}
+                    value={spouse.reason_for_leaving}
                     onChange={(e) =>
-                      handleSpouseChange(
+                      onChange(
                         index,
-                        "reasonForLeaving",
+                        "reason_for_leaving",
                         e.target.value
                       )
                     }
@@ -664,7 +567,7 @@ const Step7 = ({
               </Tr>
 
               {/* Educational Information Section */}
-              <Tr bg="gray.50">
+              <Tr bg={getRowBgColor(index)}>
                 <Td colSpan={4}>
                   <Text fontWeight="bold">Educational Information</Text>
                 </Td>
@@ -673,11 +576,11 @@ const Step7 = ({
                 <Td>
                   <Select
                     placeholder="Education Level"
-                    value={spouses.educationLevel}
+                    value={spouse.education_level}
                     onChange={(e) =>
-                      handleSpouseChange(
+                      onChange(
                         index,
-                        "educationLevel",
+                        "education_level",
                         e.target.value
                       )
                     }
@@ -693,9 +596,9 @@ const Step7 = ({
                 <Td>
                   <Input
                     placeholder="School"
-                    value={spouses.school}
+                    value={spouse.school}
                     onChange={(e) =>
-                      handleSpouseChange(index, "school", e.target.value)
+                      onChange(index, "school", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   />
@@ -703,9 +606,9 @@ const Step7 = ({
                 <Td>
                   <Input
                     placeholder="Field of Study"
-                    value={spouses.fieldOfStudy}
+                    value={spouse.field_of_study}
                     onChange={(e) =>
-                      handleSpouseChange(index, "fieldOfStudy", e.target.value)
+                      onChange(index, "field_of_study", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   />
@@ -713,9 +616,9 @@ const Step7 = ({
                 <Td>
                   <Input
                     placeholder="Degree"
-                    value={spouses.degree}
+                    value={spouse.degree}
                     onChange={(e) =>
-                      handleSpouseChange(index, "degree", e.target.value)
+                      onChange(index, "degree", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   />
@@ -725,9 +628,9 @@ const Step7 = ({
                 <Td>
                   <Input
                     placeholder="Institution"
-                    value={spouses.institution}
+                    value={spouse.institution}
                     onChange={(e) =>
-                      handleSpouseChange(index, "institution", e.target.value)
+                      onChange(index, "institution", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   />
@@ -735,11 +638,11 @@ const Step7 = ({
                 <Td>
                   <Input
                     placeholder="Professional Licensure"
-                    value={spouses.professionalLicensureExamination}
+                    value={spouse.professional_licensure_examination}
                     onChange={(e) =>
-                      handleSpouseChange(
+                      onChange(
                         index,
-                        "professionalLicensureExamination",
+                        "professional_licensure_examination",
                         e.target.value
                       )
                     }
@@ -750,9 +653,9 @@ const Step7 = ({
                   <Input
                     placeholder="Start Year"
                     type="number"
-                    value={spouses.startYear}
+                    value={spouse.start_year}
                     onChange={(e) =>
-                      handleSpouseChange(index, "startYear", e.target.value)
+                      onChange(index, "start_year", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   />
@@ -761,11 +664,11 @@ const Step7 = ({
                   <Input
                     placeholder="Completion Year"
                     type="number"
-                    value={spouses.completionYear}
+                    value={spouse.completion_year}
                     onChange={(e) =>
-                      handleSpouseChange(
+                      onChange(
                         index,
-                        "completionYear",
+                        "completion_year",
                         e.target.value
                       )
                     }
@@ -776,29 +679,15 @@ const Step7 = ({
 
               {/* Save and Edit Button */}
               <Tr>
-                <Td colSpan={4} textAlign="center">
-                  {spouse.isEditing ? (
-                    <IconButton
-                      icon={<CheckIcon />}
-                      colorScheme="green"
-                      onClick={
-                        () =>
-                          spouse.isEditing
-                            ? handleSaveOrUpdate(index) // Save on check
-                            : handleSpouseChange(index, "isEditing", true) // Enable editing
-                      }
-                    />
-                  ) : (
-                    <IconButton
-                      icon={<EditIcon />}
-                      colorScheme="blue"
-                      onClick={() => toggleEditSpouse(index)}
-                    />
-                  )}
+              <Td colSpan={4} textAlign="center">
                   <IconButton
-                    icon={<DeleteIcon />}
-                    colorScheme="red"
-                    onClick={() => handleDeleteSpouse(index)}
+                    icon={spouse.isEditing ? <CheckIcon /> : <EditIcon />}
+                    onClick={() =>
+                      spouse.isEditing
+                        ? handleSaveOrUpdate(index)
+                        : onChange(index, "isEditing", true)
+                    }
+                    colorScheme={spouse.isEditing ? "green" : "blue"}
                   />
                 </Td>
               </Tr>
@@ -811,7 +700,7 @@ const Step7 = ({
       {/* Conditional add spouse button */}
       {spouses.length > 0 &&
         spouses[spouses.length - 1]?.status === "Deceased" && (
-          <Button onClick={handleAddSpouse} colorScheme="teal" mt={4}>
+          <Button onClick={onAdd} colorScheme="teal" mt={4}>
             Add Spouse
           </Button>
         )}

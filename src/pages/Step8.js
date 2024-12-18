@@ -1,5 +1,6 @@
 // src/pages/Step8.js
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
+import { useParams } from "react-router-dom"; // Import useParams for retrieving URL parameters
 import {
   Box,
   VStack,
@@ -18,12 +19,13 @@ import {
 } from "@chakra-ui/react";
 import { EditIcon, DeleteIcon, CheckIcon } from "@chakra-ui/icons";
 import axios from "axios";
-import { Children } from "react";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Step8 = ({
-  data,
+  data = [], // Ensure data defaults to an empty array
+  setData, // Added setData as a prop
+  onAdd,
   onChange,
   onToggleEdit,
   citizenships,
@@ -35,236 +37,139 @@ const Step8 = ({
   educationalLevelOptions,
   bloodtypes,
 }) => {
-  const [children, setChildren] = useState([
-    {
-      relationshipType: "Child",
-      givenName: "",
-      middleName: "",
-      lastName: "",
-      suffix: "",
-      gender: "",
-      bloodType: "",
-      civilStatus: "",
-      dateOfBirth: "",
-      dateOfMarriage: "",
-      placeOfMarriage: "",
-      citizenship: "",
-      nationality: "",
-      contactNumber: "",
+  const { personnelId } = useParams(); // Retrieve personnelId from URL
 
-      churchDuties: "",
-      livelihood: "",
-      districtId: "",
-      localCongregation: "",
-      ministerOfficiated: "",
-      employmentType: "",
-      company: "",
-      address: "",
-      position: "",
-      department: "",
-      section: "",
-      startDate: "",
-      endDate: "",
-      reasonForLeaving: "",
-      educationLevel: "",
-      startYear: "",
-      completionYear: "",
-      school: "",
-      fieldOfStudy: "",
-      degree: "",
-      institution: "",
-      professionalLicensureExamination: "",
-      isEditing: true, // Default is true for editable fields on load
-    },
-  ]);
-
-  const handleAddChild = () => {
-    setChildren([
-      ...children,
-      {
-        relationshipType: "Child",
-        givenName: "",
-        middleName: "",
-        lastName: "",
-        suffix: "",
-        gender: "",
-        bloodType: "",
-        civilStatus: "",
-        dateOfBirth: "",
-        dateOfMarriage: "",
-        placeOfMarriage: "",
-        citizenship: "",
-        nationality: "",
-        contactNumber: "",
-        churchDuties: "",
-        livelihood: "",
-        districtId: "",
-        localCongregation: "",
-        ministerOfficiated: "",
-        employmentType: "",
-        company: "",
-        address: "",
-        position: "",
-        department: "",
-        section: "",
-        startDate: "",
-        endDate: "",
-        reasonForLeaving: "",
-        educationLevel: "",
-        startYear: "",
-        completionYear: "",
-        school: "",
-        fieldOfStudy: "",
-        degree: "",
-        institution: "",
-        professionalLicensureExamination: "",
-        isEditing: true, // Default to true for new child
-      },
-    ]);
-    toast({
-      title: "Child Added",
-      description: "A new child has been added.",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-    });
-  };
-
+  const [children, setChildren] = useState([]);
+  const getRowBgColor = (index) => (index % 2 === 0 ? "gray.50" : "green.50"); // Alternate colors
   const [loading, setLoading] = useState(false);
   const toast = useToast();
 
-  const toggleEditChildren = (index) => {
-    const updatedchild = [...children];
-    updatedchild[index].isEditing = !updatedchild[index].isEditing;
-    setChildren(updatedchild);
-  };
 
-  const handleChildChange = (index, field, value) => {
-    const updatedchild = children.map((child, i) =>
-      i === index ? { ...child, [field]: value } : child
-    );
-    setChildren(updatedchild);
-  };
+  useEffect(() => {
+    if (personnelId) {
+      // Fetch children related to the personnelId
+      axios
+        .get(`${API_URL}/api/family-members?personnel_id=${personnelId}`)
+        .then((res) => {
+          setChildren(res.data || []);
+        })
+        .catch((err) => {
+          console.error("Error fetching children:", err);
+          toast({
+            title: "Error",
+            description: "Failed to fetch child data.",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+        });
+    }
+  }, [personnelId]);
 
-  const handleDeleteChildren = (index) => {
-    setChildren(children.filter((_, i) => i !== index));
-    toast({
-      title: "Child Deleted",
-      description: `Child ${index + 1} removed.`,
-      status: "warning",
-      duration: 3000,
-      isClosable: true,
-    });
-  };
+
   const handleSaveOrUpdate = async (index) => {
     setLoading(true);
-    const child = children[index];
+    const child = data[index];
+
     const {
       id,
       isEditing,
       relationshipType,
+      gender,
       givenName,
       lastName,
-      gender,
       ...childData
     } = child;
 
-    // Map frontend fields to backend fields
+    // Prepare the data to send
     const formattedData = {
       ...childData,
-      givenname: givenName,
-      lastname: lastName, // Ensure lastname is sent
-      gender: gender, // Ensure gender is sent
+      gender: child.gender,
+      givenname: child.givenname,
+      lastname: child.lastname,
       relationship_type: relationshipType,
       personnel_id: childData.personnel_id || 8,
     };
-
-    // Validate required fields before saving/updating
+    console.log("Formatted Data:", formattedData);
+    // Validate required fields
     const requiredFields = [
       "personnel_id",
       "relationship_type",
+      "gender",
       "givenname",
       "lastname",
-      "gender",
     ];
-    for (const field of requiredFields) {
-      if (
+    const missingField = requiredFields.find(
+      (field) =>
         !formattedData[field] ||
         (typeof formattedData[field] === "string" &&
           formattedData[field].trim() === "")
-      ) {
-        toast({
-          title: "Validation Error",
-          description: `The field ${field} is required for ${relationshipType}.`,
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-        return;
-      }
+    );
+
+    if (missingField) {
+      toast({
+        title: "Validation Error",
+        description: `The field "${missingField}" is required for ${relationshipType}.`,
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      setLoading(false); // Reset loading state
+      return;
     }
 
     try {
+      let updateChildren;
       if (id) {
-        // Update existing child record
+        // Update existing children record
         const response = await axios.put(
           `${API_URL}/api/family-members/${id}`,
           formattedData
         );
-        const updatedchild = response.data;
-
-        setChildren((prev) =>
-          prev.map((item, i) =>
-            i === index ? { ...updatedchild, isEditing: false } : item
-          )
-        );
-
-        toast({
-          title: "child Information Updated",
-          description: `${relationshipType} information has been updated successfully.`,
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
+        updateChildren = response.data;
       } else {
-        // Save new child record
+        // Save new children record
         const response = await axios.post(
           `${API_URL}/api/family-members`,
           formattedData
         );
-        const savedchild = response.data;
-
-        setChildren((prev) =>
-          prev.map((item, i) =>
-            i === index
-              ? { ...item, id: savedchild.id, isEditing: false }
-              : item
-          )
-        );
-
-        toast({
-          title: "child Information Saved",
-          description: `${relationshipType} information has been saved successfully.`,
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
+        updateChildren = response.data;
       }
+
+      // Update children in state
+      onToggleEdit(index); // Disable editing mode for the updated children
+      onChange(index, "id", updateChildren.id); // Update the `id` field if it was a new record
+
+      toast({
+        title: id ? "Child Updated" : "Child Added",
+        description: `${relationshipType} information has been ${
+          id ? "updated" : "added"
+        } successfully.`,
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
     } catch (error) {
-      console.error("Error saving/updating child information:", error.response);
+      console.error(
+        "Error saving/updating children information:",
+        error.response
+      );
       toast({
         title: "Error",
-        description: `Failed to save/update ${relationshipType} information. ${
-          error.response?.data?.message || "Please check the data."
+        description: `Failed to ${
+          id ? "update" : "add"
+        } ${relationshipType} information. ${
+          error.response?.data?.message || "Please try again later."
         }`,
         status: "error",
         duration: 3000,
         isClosable: true,
       });
     } finally {
-      setLoading(false);
+      setLoading(false); // Reset loading state
     }
   };
+
 
   return (
     <Box width="100%" bg="white" boxShadow="sm" my={85} p={5}>
@@ -272,8 +177,10 @@ const Step8 = ({
         Step 8: Child Information
       </Heading>
       <VStack align="start" spacing={4} mb={8} w="100%">
-        {children.map((child, index) => (
-          <Table key={child.id || child.generatedId} size="md" variant="simple">
+        {data.map((child, index) => (
+          <Table   key={child.id || child.generatedId}
+          size="md"
+          variant="simple">
             <Tbody>
               {/* Header */}
               <Tr>
@@ -283,7 +190,7 @@ const Step8 = ({
               </Tr>
 
               {/* Personal Information */}
-              <Tr bg="gray.50">
+              <Tr bg={getRowBgColor(index)}>
                 <Td colSpan={4}>
                   <Text fontWeight="bold">Personal Information</Text>
                 </Td>
@@ -292,9 +199,9 @@ const Step8 = ({
                 <Td>
                   <Select
                     placeholder="Select Gender"
-                    value={children.gender}
+                    value={child.gender}
                     onChange={(e) =>
-                      handleChildChange(index, "gender", e.target.value)
+                      onChange(index, "gender", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   >
@@ -305,9 +212,9 @@ const Step8 = ({
                 <Td>
                   <Input
                     placeholder="Given Name"
-                    value={children.givenName}
+                    value={child.givenname}
                     onChange={(e) =>
-                      handleChildChange(index, "givenName", e.target.value)
+                      onChange(index, "givenname", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   />
@@ -315,9 +222,9 @@ const Step8 = ({
                 <Td>
                   <Input
                     placeholder="Middle Name"
-                    value={child.middleName}
+                    value={child.middlename}
                     onChange={(e) =>
-                      handleChildChange(index, "middleName", e.target.value)
+                      onChange(index, "middlename", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   />
@@ -325,9 +232,9 @@ const Step8 = ({
                 <Td>
                   <Input
                     placeholder="Last Name"
-                    value={child.lastName}
+                    value={child.lastname}
                     onChange={(e) =>
-                      handleChildChange(index, "lastName", e.target.value)
+                      onChange(index, "lastname", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   />
@@ -339,7 +246,7 @@ const Step8 = ({
                     name="suffix"
                     value={children[index]?.suffix || ""}
                     onChange={(e) =>
-                      handleChildChange(index, "suffix", e.target.value)
+                      onChange(index, "suffix", e.target.value)
                     }
                     width="100%"
                     isDisabled={children[index]?.gender === "Female"}
@@ -359,9 +266,9 @@ const Step8 = ({
                   <Input
                     placeholder="Date of Birth"
                     type="date"
-                    value={child.dateOfBirth}
+                    value={child.date_of_birth}
                     onChange={(e) =>
-                      handleChildChange(index, "dateOfBirth", e.target.value)
+                      onChange(index, "date_of_birth", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   />
@@ -369,9 +276,9 @@ const Step8 = ({
                 <Td>
                   <Input
                     placeholder="Contact Number"
-                    value={child.contactNumber}
+                    value={child.contact_number}
                     onChange={(e) =>
-                      handleChildChange(index, "contactNumber", e.target.value)
+                      onChange(index, "contact_number", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   />
@@ -382,8 +289,9 @@ const Step8 = ({
                     name="bloodtype"
                     value={child.bloodtype}
                     onChange={(e) =>
-                      handleChildChange(index, "bloodType", e.target.value)
+                      onChange(index, "bloodtype", e.target.value)
                     }
+                    isDisabled={!child.isEditing}
                     width="100%"
                   >
                     {bloodtypes.map((type) => (
@@ -398,9 +306,9 @@ const Step8 = ({
                 <Td>
                   <Select
                     placeholder="Civil Status"
-                    value={child.civilStatus}
+                    value={child.civil_status}
                     onChange={(e) =>
-                      handleChildChange(index, "civilStatus", e.target.value)
+                      onChange(index, "civil_status", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   >
@@ -426,11 +334,11 @@ const Step8 = ({
                 <Td>
                   <Input
                     placeholder="Place of Marriage"
-                    value={child.placeOfMarriage}
+                    value={child.place_of_marriage}
                     onChange={(e) =>
-                      handleChildChange(
+                      onChange(
                         index,
-                        "placeOfMarriage",
+                        "place_of_marriage",
                         e.target.value
                       )
                     }
@@ -444,10 +352,9 @@ const Step8 = ({
                     name="citizenship"
                     value={child.citizenship}
                     onChange={(e) =>
-                      handleChildChange({
-                        target: { name: "citizenship", value: e.target.value },
-                      })
+                      onChange(index, "citizenship", e.target.value)
                     }
+                    isDisabled={!child.isEditing}
                     width="100%"
                   >
                     {citizenships.map((citizenship) => (
@@ -465,10 +372,9 @@ const Step8 = ({
                     name="nationality"
                     value={child.nationality}
                     onChange={(e) =>
-                      handleChildChange({
-                        target: { name: "nationality", value: e.target.value },
-                      })
+                      onChange(index, "nationality", e.target.value)
                     }
+                    isDisabled={!child.isEditing}
                     width="100%"
                   >
                     {nationalities.map((nationality) => (
@@ -483,7 +389,7 @@ const Step8 = ({
                     placeholder="Livelihood"
                     value={child.livelihood}
                     onChange={(e) =>
-                      handleChildChange(index, "livelihood", e.target.value)
+                      onChange(index, "livelihood", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   />
@@ -492,15 +398,12 @@ const Step8 = ({
                   <Select
                     placeholder="Select District"
                     name="district_id"
-                    value={child.districtId}
+                    value={child.district_id}
                     onChange={(e) =>
-                      handleChildChange({
-                        target: {
-                          name: "districtId",
-                          value: e.target.value,
-                        },
-                      })
+                      onChange(index, "district_id", e.target.value)
                     }
+                    isD
+                    isDisabled={!child.isEditing}
                     width="100%"
                   >
                     {districts.map((district) => (
@@ -513,13 +416,9 @@ const Step8 = ({
                 <Td>
                   <Input
                     placeholder="Local Congregation"
-                    value={child.localCongregation}
+                    value={child.local_congregation}
                     onChange={(e) =>
-                      handleChildChange(
-                        index,
-                        "localCongregation",
-                        e.target.value
-                      )
+                      onChange(index, "local_congregation", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   />
@@ -530,9 +429,9 @@ const Step8 = ({
                 <Td>
                   <Input
                     placeholder="Church Duties"
-                    value={child.churchDuties}
+                    value={child.church_duties}
                     onChange={(e) =>
-                      handleChildChange(index, "churchDuties", e.target.value)
+                      onChange(index, "church_duties", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   />
@@ -540,13 +439,9 @@ const Step8 = ({
                 <Td>
                   <Input
                     placeholder="Minister Officiated"
-                    value={child.ministerOfficiated}
+                    value={child.minister_officiated}
                     onChange={(e) =>
-                      handleChildChange(
-                        index,
-                        "ministerOfficiated",
-                        e.target.value
-                      )
+                      onChange(index, "minister_officiated", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   />
@@ -554,7 +449,7 @@ const Step8 = ({
               </Tr>
 
               {/* Work Information Section */}
-              <Tr bg="gray.50">
+              <Tr bg={getRowBgColor(index)}>
                 <Td colSpan={4}>
                   <Text fontWeight="bold">Work Information</Text>
                 </Td>
@@ -563,9 +458,9 @@ const Step8 = ({
                 <Td>
                   <Select
                     placeholder="Employment Type"
-                    value={child.employmentType}
+                    value={child.employment_type}
                     onChange={(e) =>
-                      handleChildChange(index, "employmentType", e.target.value)
+                      onChange(index, "employment_type", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   >
@@ -581,7 +476,7 @@ const Step8 = ({
                     placeholder="Company"
                     value={child.company}
                     onChange={(e) =>
-                      handleChildChange(index, "company", e.target.value)
+                      onChange(index, "company", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   />
@@ -591,7 +486,7 @@ const Step8 = ({
                     placeholder="Position"
                     value={child.position}
                     onChange={(e) =>
-                      handleChildChange(index, "position", e.target.value)
+                      onChange(index, "position", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   />
@@ -601,7 +496,7 @@ const Step8 = ({
                     placeholder="Address"
                     value={child.address}
                     onChange={(e) =>
-                      handleChildChange(index, "address", e.target.value)
+                      onChange(index, "address", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   />
@@ -613,7 +508,7 @@ const Step8 = ({
                     placeholder="Department"
                     value={child.department}
                     onChange={(e) =>
-                      handleChildChange(index, "department", e.target.value)
+                      onChange(index, "department", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   />
@@ -623,7 +518,7 @@ const Step8 = ({
                     placeholder="Section"
                     value={child.section}
                     onChange={(e) =>
-                      handleChildChange(index, "section", e.target.value)
+                      onChange(index, "section", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   />
@@ -632,9 +527,9 @@ const Step8 = ({
                   <Input
                     placeholder="Start Date"
                     type="date"
-                    value={child.startDate}
+                    value={child.start_date}
                     onChange={(e) =>
-                      handleChildChange(index, "startDate", e.target.value)
+                      onChange(index, "start_date", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   />
@@ -643,9 +538,9 @@ const Step8 = ({
                   <Input
                     placeholder="End Date"
                     type="date"
-                    value={child.endDate}
+                    value={child.end_date}
                     onChange={(e) =>
-                      handleChildChange(index, "endDate", e.target.value)
+                      onChange(index, "end_date", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   />
@@ -655,13 +550,9 @@ const Step8 = ({
                 <Td>
                   <Input
                     placeholder="Reason for Leaving"
-                    value={child.reasonForLeaving}
+                    value={child.reason_for_leaving}
                     onChange={(e) =>
-                      handleChildChange(
-                        index,
-                        "reasonForLeaving",
-                        e.target.value
-                      )
+                      onChange(index, "reason_for_leaving", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   />
@@ -669,7 +560,7 @@ const Step8 = ({
               </Tr>
 
               {/* Educational Information Section */}
-              <Tr bg="gray.50">
+              <Tr bg={getRowBgColor(index)}>
                 <Td colSpan={4}>
                   <Text fontWeight="bold">Educational Information</Text>
                 </Td>
@@ -678,9 +569,9 @@ const Step8 = ({
                 <Td>
                   <Select
                     placeholder="Education Level"
-                    value={child.educationLevel}
+                    value={child.education_level}
                     onChange={(e) =>
-                      handleChildChange(index, "educationLevel", e.target.value)
+                      onChange(index, "education_level", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   >
@@ -696,7 +587,7 @@ const Step8 = ({
                     placeholder="School"
                     value={child.school}
                     onChange={(e) =>
-                      handleChildChange(index, "school", e.target.value)
+                      onChange(index, "school", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   />
@@ -704,9 +595,9 @@ const Step8 = ({
                 <Td>
                   <Input
                     placeholder="Field of Study"
-                    value={child.fieldOfStudy}
+                    value={child.field_of_study}
                     onChange={(e) =>
-                      handleChildChange(index, "fieldOfStudy", e.target.value)
+                      onChange(index, "field_of_study", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   />
@@ -716,7 +607,7 @@ const Step8 = ({
                     placeholder="Degree"
                     value={child.degree}
                     onChange={(e) =>
-                      handleChildChange(index, "degree", e.target.value)
+                      onChange(index, "degree", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   />
@@ -728,7 +619,7 @@ const Step8 = ({
                     placeholder="Institution"
                     value={child.institution}
                     onChange={(e) =>
-                      handleChildChange(index, "institution", e.target.value)
+                      onChange(index, "institution", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   />
@@ -736,11 +627,11 @@ const Step8 = ({
                 <Td>
                   <Input
                     placeholder="Professional Licensure"
-                    value={child.professionalLicensureExamination}
+                    value={child.professional_licensure_examination}
                     onChange={(e) =>
-                      handleChildChange(
+                      onChange(
                         index,
-                        "professionalLicensureExamination",
+                        "professional_licensure_examination",
                         e.target.value
                       )
                     }
@@ -751,9 +642,9 @@ const Step8 = ({
                   <Input
                     placeholder="Start Year"
                     type="number"
-                    value={child.startYear}
+                    value={child.start_year}
                     onChange={(e) =>
-                      handleChildChange(index, "startYear", e.target.value)
+                      onChange(index, "start_year", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   />
@@ -762,9 +653,9 @@ const Step8 = ({
                   <Input
                     placeholder="Completion Year"
                     type="number"
-                    value={child.completionYear}
+                    value={child.completion_year}
                     onChange={(e) =>
-                      handleChildChange(index, "completionYear", e.target.value)
+                      onChange(index, "completion_year", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   />
@@ -773,14 +664,13 @@ const Step8 = ({
 
               {/* Save and Edit Button */}
               <Tr>
-                <Td colSpan={4} textAlign="center">
+              <Td colSpan={4} textAlign="center">
                   <IconButton
                     icon={child.isEditing ? <CheckIcon /> : <EditIcon />}
-                    onClick={
-                      () =>
-                        child.isEditing
-                          ? handleSaveOrUpdate(index) // Save on check
-                          : handleChildChange(index, "isEditing", true) // Enable editing
+                    onClick={() =>
+                      child.isEditing
+                        ? handleSaveOrUpdate(index)
+                        : onChange(index, "isEditing", true)
                     }
                     colorScheme={child.isEditing ? "green" : "blue"}
                   />
@@ -789,7 +679,7 @@ const Step8 = ({
             </Tbody>
           </Table>
         ))}
-        <Button onClick={handleAddChild} colorScheme="teal">
+        <Button onClick={onAdd} colorScheme="teal">
           Add Child
         </Button>
       </VStack>
