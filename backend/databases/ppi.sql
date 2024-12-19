@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 18, 2024 at 11:44 PM
+-- Generation Time: Dec 19, 2024 at 09:51 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -635,12 +635,16 @@ CREATE TABLE `family_members` (
 --
 
 INSERT INTO `family_members` (`id`, `personnel_id`, `relationship_type`, `givenname`, `middlename`, `lastname`, `suffix`, `gender`, `bloodtype`, `civil_status`, `date_of_marriage`, `place_of_marriage`, `citizenship`, `nationality`, `date_of_birth`, `contact_number`, `church_duties`, `livelihood`, `district_id`, `local_congregation`, `minister_officiated`, `employment_type`, `company`, `address`, `position`, `department`, `section`, `start_date`, `end_date`, `reason_for_leaving`, `education_level`, `start_year`, `completion_year`, `school`, `field_of_study`, `degree`, `institution`, `professional_licensure_examination`, `created_at`, `updated_at`) VALUES
-(75, 8, 'Father', 'HAY', 'asd', 'dsa', 'No Suffix', 'Male', 'A+', 'Cohabitati', '2024-12-18', 'asd', 16, 16, '2024-12-18', 232, 'asd', 'asd', 19, 'asdsad', 'asd', 'Retired', 'asd', 'asd', 'asd', 'asd', 'asd', '2024-12-18', '2024-12-18', 'as', 'Post-Doctorate', 1, 21, 'asd', 'asd', 'asde', 'asd', 'asd', '2024-12-18 05:44:03', '2024-12-18 06:11:02'),
-(172, 8, 'Sibling', 'Christopher', 'Morales', 'Pareja', 'Jr.', 'Male', 'B-', 'Annulled', '2024-12-04', 'frisco', 14, 17, '2024-12-18', 121, 'asd', 'asd', 45, 'test123', 'asd', '', 'asd', 'asd', 'asd', 'asd', 'asd', '2024-12-18', '2024-12-18', 'asd', '', 1, 2, 'asd', 'asd', 'asd', 'asd', 'asd', '2024-12-18 15:53:08', '2024-12-18 16:08:19'),
-(173, 8, 'Sibling', 'asd123', 'asd', 'asd', 'Jr.', 'Male', 'A+', '', '0000-00-00', '', 0, 0, '0000-00-00', 123, '', '', 0, '', '', '', '', '', '', '', '', '0000-00-00', '0000-00-00', '', '', 0, 0, '', '', '', '', '', '2024-12-18 16:42:23', '2024-12-18 16:42:46'),
-(174, 8, 'Spouse', 'JAI', 'dsa', 'asd', 'No Suffix', 'Male', 'A+', 'Married', '2024-12-19', 'asd', 15, 0, '2024-12-19', 1212, '', '', 0, '', '', 'Casual', 'aas', 'dsa', 'asd', 'asd', 'dsa', '2024-12-19', '2024-12-24', '', 'Professional Degree', 11, 22, 'asd', 'asd', 'asd', 'asd', 'asdadsa', '2024-12-18 17:43:21', '2024-12-18 17:51:21'),
-(175, 8, 'Child', 'test', 'ads', 'asd', 'No Suffix', 'Female', 'A+', 'Cohabitati', '2024-12-19', 'asd', 15, 14, '2024-12-19', 123, 'asd', 'asd', 20, 'asd', 'asd', 'Contract', 'asd', 'asd', 'asd', 'asd', 'asd', '2024-12-05', '2024-12-03', '', 'Primary Education', 1, 12, 'asd', 'asd', 'asd', 'asd', '1asdas', '2024-12-18 18:04:44', '2024-12-18 18:09:05'),
-(176, 8, 'Child', 'asd', '', 'asd', '', 'Male', '', '', '0000-00-00', '', 0, 0, '0000-00-00', 0, '', '', 0, '', '', '', '', '', '', '', '', '0000-00-00', '0000-00-00', '', '', 0, 0, '', '', '', '', '', '2024-12-18 18:11:33', '2024-12-18 18:11:33');
+(75, 10, 'Father', 'Nepthalie', 'Verano', 'Pareja', 'No Suffix', 'Male', 'A+', 'Cohabitati', '2024-12-18', 'asd', 16, 16, '2024-12-18', 232, 'asd', 'asd', 19, 'asdsad', 'asd', 'Retired', 'asd', 'asd', 'asd', 'asd', 'asd', '2024-12-18', '2024-12-18', 'as', 'Post-Doctorate', 1, 21, 'asd', 'asd', 'asde', 'asd', 'asd', '2024-12-18 05:44:03', '2024-12-19 17:06:26'),
+(172, 10, 'Sibling', 'Christopher', 'Morales', 'Pareja', 'Jr.', 'Male', 'B-', 'Annulled', '2024-12-04', 'frisco', 14, 17, '2024-12-18', 121, 'asd', 'asd', 45, 'test123', 'asd', '', 'asd', 'asd', 'asd', 'asd', 'asd', '2024-12-18', '2024-12-18', 'asd', '', 1, 2, 'asd', 'asd', 'asd', 'asd', 'asd', '2024-12-18 15:53:08', '2024-12-19 15:50:04'),
+(173, 10, 'Sibling', 'Lizbeth', 'asd', 'asd', 'Jr.', 'Male', 'A+', '', '0000-00-00', '', 0, 0, '0000-00-00', 123, '', '', 0, '', '', '', '', '', '', '', '', '0000-00-00', '0000-00-00', '', '', 0, 0, '', '', '', '', '', '2024-12-18 16:42:23', '2024-12-19 15:50:04'),
+(174, 10, 'Spouse', 'JAI', 'M', 'RAMOS', 'No Suffix', 'Male', 'A+', 'Married', '2024-12-19', 'asd', 15, 0, '2024-12-19', 1212, '', '', 0, '', '', 'Casual', 'aas', 'dsa', 'asd', 'asd', 'dsa', '2024-12-19', '2024-12-24', '', 'Professional Degree', 11, 22, 'asd', 'asd', 'asd', 'asd', 'asdadsa', '2024-12-18 17:43:21', '2024-12-19 17:57:04'),
+(175, 10, 'Child', 'Child 11', 'ads', 'asd', 'No Suffix', 'Female', 'A+', 'Cohabitati', '2024-12-19', 'asd', 15, 14, '2024-12-19', 123, 'asd', 'asd', 20, 'asd', 'asd', 'Contract', 'asd', 'asd', 'asd', 'asd', 'asd', '2024-12-05', '2024-12-03', '', 'Primary Education', 1, 12, 'asd', 'asd', 'asd', 'asd', '1asdas', '2024-12-18 18:04:44', '2024-12-19 16:46:50'),
+(176, 10, 'Child', 'Child 2', '', 'asd', '', 'Male', '', '', '0000-00-00', '', 0, 0, '0000-00-00', 0, '', '', 0, '', '', '', '', '', '', '', '', '0000-00-00', '0000-00-00', '', '', 0, 0, '', '', '', '', '', '2024-12-18 18:11:33', '2024-12-19 15:55:57'),
+(177, 10, 'Mother', 'Alicia', 'Luha', 'Morales', 'No Suffix', 'Female', 'A-', '', '0000-00-00', '', 0, 0, '2024-12-20', 121, '', '', 0, '', '', '', '', '', '', '', '', '0000-00-00', '0000-00-00', '', '', 0, 0, '', '', '', '', '', '2024-12-19 16:10:01', '2024-12-19 17:06:50'),
+(179, 10, 'Sibling', 'Paul John', 'asd', 'Pareja', 'No Suffix', 'Male', 'A+', 'Single', '0000-00-00', '', 0, 0, '1991-10-19', 1212, '', '', 0, '', '', '', '', '', '', '', '', '0000-00-00', '0000-00-00', '', '', 0, 0, '', '', '', '', '', '2024-12-19 16:59:24', '2024-12-19 16:59:24'),
+(180, 13, 'Sibling', 'asd', 'asd', 'asd', 'No Suffix', 'Male', 'A+', 'Annulled', '2024-12-20', '', 0, 0, '2024-12-20', 12, '', '', 0, '', '', '', '', '', '', '', '', '0000-00-00', '0000-00-00', '', '', 0, 0, '', '', '', '', '', '2024-12-19 18:27:24', '2024-12-19 18:27:24'),
+(181, 20, 'Spouse', 'asd', 'asd', 'asd', NULL, 'Female', NULL, NULL, '0000-00-00', '', NULL, NULL, '2024-12-20', 1212, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-12-19 19:05:49', '2024-12-19 19:05:49');
 
 -- --------------------------------------------------------
 
@@ -1407,24 +1411,24 @@ INSERT INTO `permission_groups` (`id`, `name`, `permissions`, `created_at`, `upd
 
 CREATE TABLE `personnels` (
   `personnel_id` bigint(20) NOT NULL,
-  `reference_number` varchar(25) DEFAULT NULL,
-  `enrollment_progress` enum('1','2','3','4','5','6','7','8','9','10') DEFAULT NULL,
-  `personnel_progress` enum('District Office','Section Chief(first_attempt)','Enrollment','Security Section','ATG Office','PMD-IT','Personnel Office','Section Chief') DEFAULT NULL,
-  `gender` enum('Male','Female') DEFAULT NULL,
-  `civil_status` enum('Single','Married','Divorced') DEFAULT NULL,
+  `reference_number` varchar(25) NOT NULL,
+  `enrollment_progress` enum('1','2','3','4','5','6','7','8','9','10') NOT NULL DEFAULT '1',
+  `personnel_progress` enum('District Office','Section Chief(first_attempt)','Enrollment','Security Section','ATG Office','PMD-IT','Personnel Office','Section Chief') NOT NULL DEFAULT 'District Office',
+  `gender` enum('Male','Female') NOT NULL,
+  `civil_status` enum('Single','Married','Divorced') NOT NULL,
   `wedding_anniversary` datetime DEFAULT NULL,
-  `givenname` varchar(50) DEFAULT NULL,
+  `givenname` varchar(50) NOT NULL,
   `middlename` text DEFAULT NULL,
   `surname_maiden` varchar(50) DEFAULT NULL,
   `surname_husband` varchar(50) NOT NULL,
   `suffix` text DEFAULT NULL,
   `nickname` varchar(50) DEFAULT NULL,
-  `date_of_birth` datetime DEFAULT NULL,
+  `date_of_birth` datetime NOT NULL,
   `place_of_birth` varchar(50) DEFAULT NULL,
   `datejoined` datetime DEFAULT NULL,
   `language_id` varchar(50) DEFAULT NULL,
   `bloodtype` varchar(10) DEFAULT NULL,
-  `email_address` varchar(50) DEFAULT NULL,
+  `email_address` varchar(50) NOT NULL,
   `citizenship` int(11) DEFAULT NULL,
   `nationality` int(11) DEFAULT NULL,
   `department_id` int(11) DEFAULT NULL,
@@ -1447,8 +1451,9 @@ CREATE TABLE `personnels` (
 --
 
 INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progress`, `personnel_progress`, `gender`, `civil_status`, `wedding_anniversary`, `givenname`, `middlename`, `surname_maiden`, `surname_husband`, `suffix`, `nickname`, `date_of_birth`, `place_of_birth`, `datejoined`, `language_id`, `bloodtype`, `email_address`, `citizenship`, `nationality`, `department_id`, `section_id`, `subsection_id`, `designation_id`, `district_id`, `local_congregation`, `personnel_type`, `assigned_number`, `m_status`, `panunumpa_date`, `ordination_date`, `created_at`, `updated_at`) VALUES
-(10, 'ENR-2412-EP1-8972', '1', 'District Office', 'Male', 'Single', '0000-00-00 00:00:00', 'Felix', 'Morales', '', 'Pareja', '', 'Chok', '1990-11-09 00:00:00', 'QC', '2024-12-09 00:00:00', NULL, 'A+', 'felixpareja@yahoo.com', 138, 138, 1, 2, 1, 1, 45, 'Bonifacio Drive', 'Regular', 20149, NULL, '2022-09-16 00:00:00', '0000-00-00 00:00:00', '2024-12-09 04:43:34', '2024-12-09 04:43:34'),
-(12, 'ENR-2412-EP1-3101', '1', 'Enrollment', 'Male', 'Single', '0000-00-00 00:00:00', 'TEST', 'asd', '', 'asd', 'No Suffix', 'asd', '2024-12-19 00:00:00', 'asd', '2024-12-19 00:00:00', NULL, 'A+', 'felixpareja@yahoo.com', 18, 16, 1, 2, 1, 1, 20, 'asdas', 'Regular', 2323, NULL, '2024-12-19 00:00:00', '0000-00-00 00:00:00', '2024-12-18 19:06:28', '2024-12-18 19:06:28');
+(10, 'ENR-2412-EP1-8972', '1', 'District Office', 'Male', 'Single', NULL, 'Felix', 'Morales', '', 'Pareja', 'No Suffix', 'Chok', '1990-11-09 00:00:00', 'QC', '2024-12-09 00:00:00', NULL, 'A+', 'felixpareja@yahoo.com', 138, 138, 1, 2, 1, 1, 45, 'Bonifacio Drive', 'Regular', 20149, 'May Destino', '2022-09-16 00:00:00', NULL, '2024-12-09 04:43:34', '2024-12-19 15:50:48'),
+(13, 'ENR-2412-EP1-6371', '1', 'Enrollment', 'Female', 'Single', NULL, 'asd22', 'asd', 'asd', 'asd', '', 'asd', '2000-12-20 00:00:00', 'asd', '2024-12-20 00:00:00', NULL, '', 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', 'Lay Member', 0, NULL, '0000-00-00 00:00:00', NULL, '2024-12-19 17:31:20', '2024-12-19 17:32:01'),
+(20, 'ENR-2412-EP1-7874', '1', 'Enrollment', 'Male', 'Single', '0000-00-00 00:00:00', 'Kim Roland', 'asd', '', 'asd', '', 'asd', '2024-12-20 00:00:00', '', '0000-00-00 00:00:00', NULL, '', 'kim@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', '', 0, NULL, '0000-00-00 00:00:00', '0000-00-00 00:00:00', '2024-12-19 18:57:28', '2024-12-19 18:57:28');
 
 -- --------------------------------------------------------
 
@@ -1470,7 +1475,7 @@ CREATE TABLE `personnel_address` (
 --
 
 INSERT INTO `personnel_address` (`id`, `personnel_id`, `address_type`, `name`, `created_at`, `updated_at`) VALUES
-(1, 2, 'Home Address', 'abc', '2024-12-05 07:51:56', '2024-12-05 07:51:56');
+(1, 20, 'Home Address', 'abc', '2024-12-05 07:51:56', '2024-12-19 20:05:18');
 
 -- --------------------------------------------------------
 
@@ -1486,6 +1491,14 @@ CREATE TABLE `personnel_contacts` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `personnel_contacts`
+--
+
+INSERT INTO `personnel_contacts` (`id`, `personnel_id`, `contactype_id`, `contact_info`, `created_at`, `updated_at`) VALUES
+(1, 20, 1, 'asd', '2024-12-19 20:04:50', '2024-12-19 20:04:50'),
+(2, 20, 1, '123', '2024-12-19 20:09:33', '2024-12-19 20:09:33');
 
 -- --------------------------------------------------------
 
@@ -1516,8 +1529,25 @@ CREATE TABLE `personnel_documents` (
 CREATE TABLE `personnel_gov_id` (
   `id` int(11) NOT NULL,
   `personnel_id` int(11) NOT NULL,
-  `gov_id` varchar(250) NOT NULL
+  `gov_id` varchar(20) NOT NULL,
+  `gov_issued_id` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `personnel_gov_id`
+--
+
+INSERT INTO `personnel_gov_id` (`id`, `personnel_id`, `gov_id`, `gov_issued_id`) VALUES
+(1, 20, '1', '12321321'),
+(3, 20, '17', '222'),
+(4, 20, '14', '1111'),
+(5, 20, '17', '2221'),
+(6, 20, '17', '2221'),
+(7, 20, '17', '2221'),
+(8, 20, '17', '22212'),
+(9, 20, '17', '22212000'),
+(10, 20, '14', '12'),
+(11, 20, '14', '1233');
 
 -- --------------------------------------------------------
 
@@ -1533,6 +1563,14 @@ CREATE TABLE `personnel_images` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `personnel_images`
+--
+
+INSERT INTO `personnel_images` (`id`, `personnel_id`, `type`, `image_url`, `created_at`, `updated_at`) VALUES
+(1, 20, '2x2 Picture', 'data:image/jpeg;base64,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', '2024-12-19 19:08:25', '2024-12-19 19:33:18'),
+(3, 20, '2x2 Picture', 'data:image/jpeg;base64,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', '2024-12-19 19:11:41', '2024-12-19 19:11:41');
 
 -- --------------------------------------------------------
 
@@ -1711,7 +1749,7 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (43, 'executive.news', NULL, NULL, 'executive.news', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (44, 'pmd.it', NULL, '', 'pmd.it', '{SSHA}LYVyCEUbqbnRdJMh/NGuR38z6zbsDKG+', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (45, 'r.deguzman', NULL, NULL, 'r.deguzman', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(46, 'felix.pareja', 8, '/uploads/avatar/1732846376187_image.jpg', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-28 13:25:36'),
+(46, 'felix.pareja', 10, '/uploads/avatar/1732846376187_image.jpg', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-28 13:25:36'),
 (47, 'nsanchez', NULL, '', 'nsanchez', '{MD5}4vh3FhfOq3i3zcUJki6UBg==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (48, NULL, NULL, '/uploads/avatar/1732867059276_icons8-fitbit-50.png', 'admin', '$2a$12$ZXhnczgjZG4QAa4oGMH5eOt0.a9urccMHJ0/FBYB5zCe2/zfh3dEO', 0, NULL, 'Local', NULL, NULL, NULL, NULL);
 
@@ -2229,7 +2267,7 @@ ALTER TABLE `events`
 -- AUTO_INCREMENT for table `family_members`
 --
 ALTER TABLE `family_members`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=177;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=182;
 
 --
 -- AUTO_INCREMENT for table `government_issued_id`
@@ -2301,7 +2339,7 @@ ALTER TABLE `permission_groups`
 -- AUTO_INCREMENT for table `personnels`
 --
 ALTER TABLE `personnels`
-  MODIFY `personnel_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `personnel_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `personnel_address`
@@ -2313,7 +2351,7 @@ ALTER TABLE `personnel_address`
 -- AUTO_INCREMENT for table `personnel_contacts`
 --
 ALTER TABLE `personnel_contacts`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `personnel_documents`
@@ -2325,13 +2363,13 @@ ALTER TABLE `personnel_documents`
 -- AUTO_INCREMENT for table `personnel_gov_id`
 --
 ALTER TABLE `personnel_gov_id`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `personnel_images`
 --
 ALTER TABLE `personnel_images`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `reminders`
