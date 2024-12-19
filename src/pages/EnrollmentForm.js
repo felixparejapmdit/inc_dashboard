@@ -445,10 +445,15 @@ const EnrollmentForm = ({ referenceNumber }) => {
       if (step === 1) {
         if (!personnelId) {
           // First-time enrollment: Validate Required Fields
-          if (!personnelData.givenname || !personnelData.date_of_birth) {
+          if (
+            !personnelData.givenname ||
+            !personnelData.date_of_birth ||
+            !personnelData.email_address
+          ) {
             toast({
               title: "Validation Error",
-              description: "Please fill out all required fields.",
+              description:
+                "Please fill out all required fields, including Email Address.",
               status: "error",
               duration: 3000,
               isClosable: true,
@@ -463,6 +468,18 @@ const EnrollmentForm = ({ referenceNumber }) => {
           return;
         } else {
           // If personnel_id exists, update the data directly
+          if (!personnelData.email_address) {
+            toast({
+              title: "Validation Error",
+              description: "Email Address is required for updating data.",
+              status: "error",
+              duration: 3000,
+              isClosable: true,
+            });
+            setIsLoading(false);
+            return;
+          }
+
           await axios.put(`${API_URL}/api/personnels/${personnelId}`, {
             ...personnelData,
             enrollment_progress: "1", // Update enrollment_progress

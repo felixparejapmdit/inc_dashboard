@@ -180,7 +180,7 @@ router.get("/api/users/logged-in", async (req, res) => {
     return res.status(400).json({ message: "Username is required" });
   }
   const query = `
-  SELECT u.ID, u.username, u.avatar, u.auth_type, GROUP_CONCAT(a.name) AS availableApps
+  SELECT u.ID, u.username, u.avatar, u.auth_type, personnel_id, GROUP_CONCAT(a.name) AS availableApps
   FROM users u
   LEFT JOIN available_apps ua ON u.ID = ua.user_id
   LEFT JOIN apps a ON ua.app_id = a.id
@@ -356,8 +356,8 @@ router.get("/api/users", async (req, res) => {
     });
   };
 
-   // Fallback function to read from ldap_users.json
-   const readLdapFromFile = () => {
+  // Fallback function to read from ldap_users.json
+  const readLdapFromFile = () => {
     try {
       const filePath = path.join(__dirname, "../data/ldap_users.json");
       const data = fs.readFileSync(filePath, "utf-8");
@@ -396,7 +396,10 @@ router.get("/api/users", async (req, res) => {
       // Attempt to fetch users from LDAP
       ldapUsers = await fetchLdapUsers();
     } catch (ldapError) {
-      console.error("LDAP fetch failed, falling back to local file:", ldapError);
+      console.error(
+        "LDAP fetch failed, falling back to local file:",
+        ldapError
+      );
       ldapUsers = readLdapFromFile(); // Use fallback data
     }
 

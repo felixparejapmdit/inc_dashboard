@@ -319,6 +319,28 @@ const Profile = () => {
                 onClick={generatePDF}
                 aria-label="Generate PDF"
               />
+              {/* Add Redirect Button */}
+              <Button
+                colorScheme="green"
+                variant="solid"
+                size="md"
+                onClick={() => {
+                  const personnelId = user.personnel_id; // Adjust based on how personnel ID is stored in your `user` object
+                  if (personnelId) {
+                    window.location.href = `/enroll?personnel_id=${personnelId}`;
+                  } else {
+                    toast({
+                      title: "Error",
+                      description: "Personnel ID not found.",
+                      status: "error",
+                      duration: 3000,
+                      isClosable: true,
+                    });
+                  }
+                }}
+              >
+                Edit Personnel Information
+              </Button>
             </HStack>
           </VStack>
 
