@@ -1,5 +1,6 @@
 // src/pages/Step5.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom"; // Import useParams for retrieving URL parameters
 import {
   Box,
   Tabs,
@@ -25,7 +26,9 @@ import axios from "axios";
 
 const API_URL = process.env.REACT_APP_API_URL;
 const Step5 = ({
-  data,
+  data = [], // Ensure data defaults to an empty array
+  setData, // Added setData as a prop
+  onAdd,
   onChange,
   onToggleEdit,
   citizenships,
@@ -37,8 +40,32 @@ const Step5 = ({
   educationalLevelOptions,
   bloodtypes,
 }) => {
+  const { personnelId } = useParams(); // Retrieve personnelId from URL
+
+  const [parents, setParents] = useState([]);
   const [loading, setLoading] = useState(false);
   const toast = useToast();
+
+  useEffect(() => {
+    if (personnelId) {
+      // Fetch siblings related to the personnelId
+      axios
+        .get(`${API_URL}/api/family-members?personnel_id=${personnelId}`)
+        .then((res) => {
+          setParents(res.data || []);
+        })
+        .catch((err) => {
+          console.error("Error fetching parents:", err);
+          toast({
+            title: "Error",
+            description: "Failed to fetch parents data.",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+        });
+    }
+  }, [personnelId]);
 
   const handleSaveOrUpdate = async (index) => {
     setLoading(true);
@@ -47,7 +74,7 @@ const Step5 = ({
     const {
       id,
       isEditing,
-      relationshipType,
+      relationshipType = parent.relationship_type, // Fallback to the existing key if relationshipType is undefined,
       givenName,
       lastName,
       gender,
@@ -171,7 +198,7 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Given Name"
-                          value={data.givenname}
+                          value={parent.givenname}
                           onChange={(e) =>
                             onChange(index, "givenname", e.target.value)
                           }
@@ -181,7 +208,7 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Middle Name"
-                          value={data.middlename}
+                          value={parent.middlename}
                           onChange={(e) =>
                             onChange(index, "middlename", e.target.value)
                           }
@@ -191,7 +218,7 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Last Name"
-                          value={data.lastname}
+                          value={parent.lastname}
                           onChange={(e) =>
                             onChange(index, "lastname", e.target.value)
                           }
@@ -202,12 +229,12 @@ const Step5 = ({
                         <Select
                           placeholder="Select Suffix"
                           name="suffix"
-                          value={data.suffix} // Default to "" on page load
+                          value={parent.suffix} // Default to "" on page load
                           onChange={(e) => {
                             onChange(index, "suffix", e.target.value); // Update the state
                           }}
                           width="100%"
-                          isDisabled={data.gender === "Female"} // Conditionally disable for Female
+                          isDisabled={parent.gender === "Female"} // Conditionally disable for Female
                         >
                           {suffixOptions.map((suffix) => (
                             <option key={suffix} value={suffix}>
@@ -234,7 +261,7 @@ const Step5 = ({
                         <Input
                           placeholder="Date of Birth"
                           type="date"
-                          value={data.date_of_birth}
+                          value={parent.date_of_birth}
                           onChange={(e) =>
                             onChange(index, "date_of_birth", e.target.value)
                           }
@@ -244,7 +271,7 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Contact Number"
-                          value={data.contact_number}
+                          value={parent.contact_number}
                           type="number"
                           onChange={(e) =>
                             onChange(index, "contact_number", e.target.value)
@@ -256,7 +283,7 @@ const Step5 = ({
                         <Select
                           placeholder="Select Blood Type"
                           name="bloodtype"
-                          value={data.bloodtype} // Default to empty value if not set
+                          value={parent.bloodtype} // Default to empty value if not set
                           onChange={(e) =>
                             onChange(index, "bloodtype", e.target.value)
                           }
@@ -274,7 +301,7 @@ const Step5 = ({
                       <Td>
                         <Select
                           placeholder="Select Civil Status"
-                          value={data.civil_status} // Default to empty value if not set
+                          value={parent.civil_status} // Default to empty value if not set
                           onChange={(e) =>
                             onChange(index, "civil_status", e.target.value)
                           }
@@ -292,7 +319,7 @@ const Step5 = ({
                         <Input
                           placeholder="Date of Marriage"
                           type="date"
-                          value={data.date_of_marriage}
+                          value={parent.date_of_marriage}
                           onChange={(e) =>
                             onChange(index, "date_of_marriage", e.target.value)
                           }
@@ -302,7 +329,7 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Place of Marriage"
-                          value={data.place_of_marriage}
+                          value={parent.place_of_marriage}
                           onChange={(e) =>
                             onChange(index, "place_of_marriage", e.target.value)
                           }
@@ -313,7 +340,7 @@ const Step5 = ({
                         <Select
                           placeholder="Select Citizenship"
                           name="citizenship"
-                          value={data.citizenship} // Default to empty value if not set
+                          value={parent.citizenship} // Default to empty value if not set
                           onChange={(e) =>
                             onChange(index, "citizenship", e.target.value)
                           }
@@ -332,7 +359,7 @@ const Step5 = ({
                         <Select
                           placeholder="Select Nationality"
                           name="nationality"
-                          value={data.nationality} // Default to empty value if not set
+                          value={parent.nationality} // Default to empty value if not set
                           onChange={(e) =>
                             onChange(index, "nationality", e.target.value)
                           }
@@ -348,7 +375,7 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Livelihood"
-                          value={data.livelihood}
+                          value={parent.livelihood}
                           onChange={(e) =>
                             onChange(index, "livelihood", e.target.value)
                           }
@@ -359,7 +386,7 @@ const Step5 = ({
                         <Select
                           placeholder="Select District"
                           name="district_id"
-                          value={data.district_id} // Default to empty value if not set
+                          value={parent.district_id} // Default to empty value if not set
                           onChange={(e) =>
                             onChange(index, "district_id", e.target.value)
                           }
@@ -375,7 +402,7 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Local Congregation"
-                          value={data.local_congregation}
+                          value={parent.local_congregation}
                           onChange={(e) =>
                             onChange(
                               index,
@@ -392,7 +419,7 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Church Duties"
-                          value={data.church_duties}
+                          value={parent.church_duties}
                           onChange={(e) =>
                             onChange(index, "church_duties", e.target.value)
                           }
@@ -402,7 +429,7 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Minister Officiated"
-                          value={data.minister_officiated}
+                          value={parent.minister_officiated}
                           onChange={(e) =>
                             onChange(
                               index,
@@ -425,7 +452,7 @@ const Step5 = ({
                       <Td>
                         <Select
                           placeholder="Select Employment Type"
-                          value={data.employment_type} // Default to empty value if not set
+                          value={parent.employment_type} // Default to empty value if not set
                           onChange={(e) =>
                             onChange(index, "employment_type", e.target.value)
                           }
@@ -441,7 +468,7 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Company"
-                          value={data.company}
+                          value={parent.company}
                           onChange={(e) =>
                             onChange(index, "company", e.target.value)
                           }
@@ -451,7 +478,7 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Position"
-                          value={data.position}
+                          value={parent.position}
                           onChange={(e) =>
                             onChange(index, "position", e.target.value)
                           }
@@ -461,7 +488,7 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Address"
-                          value={data.address}
+                          value={parent.address}
                           onChange={(e) =>
                             onChange(index, "address", e.target.value)
                           }
@@ -474,7 +501,7 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Department"
-                          value={data.department} // Ensure binding to state
+                          value={parent.department} // Ensure binding to state
                           onChange={
                             (e) => onChange(index, "department", e.target.value) // Pass index, field, and value
                           }
@@ -486,7 +513,7 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Section"
-                          value={data.section} // Ensure binding to state
+                          value={parent.section} // Ensure binding to state
                           onChange={
                             (e) => onChange(index, "section", e.target.value) // Pass index, field, and value
                           }
@@ -498,7 +525,7 @@ const Step5 = ({
                         <Input
                           placeholder="Start Date"
                           type="date"
-                          value={data.start_date}
+                          value={parent.start_date}
                           onChange={(e) =>
                             onChange(index, "start_date", e.target.value)
                           }
@@ -509,7 +536,7 @@ const Step5 = ({
                         <Input
                           placeholder="End Date"
                           type="date"
-                          value={data.end_date}
+                          value={parent.end_date}
                           onChange={(e) =>
                             onChange(index, "end_date", e.target.value)
                           }
@@ -521,7 +548,7 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Reason for Leaving"
-                          value={data.reason_for_leaving}
+                          value={parent.reason_for_leaving}
                           onChange={(e) =>
                             onChange(
                               index,
@@ -544,7 +571,7 @@ const Step5 = ({
                       <Td>
                         <Select
                           placeholder="Select Education Level"
-                          value={data.education_level} // Default to empty value if not set
+                          value={parent.education_level} // Default to empty value if not set
                           onChange={(e) =>
                             onChange(index, "education_level", e.target.value)
                           }
@@ -560,7 +587,7 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="School"
-                          value={data.school}
+                          value={parent.school}
                           onChange={(e) =>
                             onChange(index, "school", e.target.value)
                           }
@@ -570,7 +597,7 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Field of Study"
-                          value={data.field_of_study}
+                          value={parent.field_of_study}
                           onChange={(e) =>
                             onChange(index, "field_of_study", e.target.value)
                           }
@@ -580,7 +607,7 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Degree"
-                          value={data.degree}
+                          value={parent.degree}
                           onChange={(e) =>
                             onChange(index, "degree", e.target.value)
                           }
@@ -592,7 +619,7 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Institution"
-                          value={data.institution}
+                          value={parent.institution}
                           onChange={(e) =>
                             onChange(index, "institution", e.target.value)
                           }
@@ -602,7 +629,7 @@ const Step5 = ({
                       <Td>
                         <Input
                           placeholder="Professional Licensure"
-                          value={data.professional_licensure_examination}
+                          value={parent.professional_licensure_examination}
                           onChange={(e) =>
                             onChange(
                               index,
@@ -617,7 +644,7 @@ const Step5 = ({
                         <Input
                           placeholder="Start Year"
                           type="number"
-                          value={data.start_year}
+                          value={parent.start_year}
                           onChange={(e) =>
                             onChange(index, "start_year", e.target.value)
                           }
@@ -628,7 +655,7 @@ const Step5 = ({
                         <Input
                           placeholder="Completion Year"
                           type="number"
-                          value={data.completion_year}
+                          value={parent.completion_year}
                           onChange={(e) =>
                             onChange(index, "completion_year", e.target.value)
                           }

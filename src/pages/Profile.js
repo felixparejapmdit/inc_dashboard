@@ -339,7 +339,7 @@ const Profile = () => {
                   }
                 }}
               >
-                Edit Personnel Information
+                Update Info
               </Button>
             </HStack>
           </VStack>
