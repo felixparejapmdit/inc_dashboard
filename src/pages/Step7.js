@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom"; // Import useParams for retrieving URL parameters
 import {
   Box,
@@ -36,8 +36,6 @@ const Step7 = ({
   educationalLevelOptions,
   bloodtypes,
 }) => {
-  
-
   const { personnelId } = useParams(); // Retrieve personnelId from URL
 
   const [spouses, setSpouses] = useState([]);
@@ -66,7 +64,6 @@ const Step7 = ({
     }
   }, [personnelId]);
 
-
   const handleSaveOrUpdate = async (index) => {
     setLoading(true);
     const spouse = data[index];
@@ -74,7 +71,7 @@ const Step7 = ({
     const {
       id,
       isEditing,
-      relationshipType,
+      relationshipType = spouse.relationship_type, // Fallback to the existing key if relationshipType is undefined
       gender,
       givenName,
       lastName,
@@ -88,7 +85,7 @@ const Step7 = ({
       givenname: spouse.givenname,
       lastname: spouse.lastname,
       relationship_type: relationshipType,
-      personnel_id: spouseData.personnel_id || 8,
+      personnel_id: spouseData.personnel_id || 12,
     };
     console.log("Formatted Data:", formattedData);
     // Validate required fields
@@ -176,13 +173,11 @@ const Step7 = ({
         Step 7: Spouse Information
       </Heading>
       {data.map((spouse, index) => (
-        <VStack
-          align="start" spacing={4} mb={8} w="100%"
-        >
+        <VStack align="start" spacing={4} mb={8} w="100%">
           <Table
-             key={spouse.id || spouse.generatedId}
-             size="md"
-             variant="simple"
+            key={spouse.id || spouse.generatedId}
+            size="md"
+            variant="simple"
           >
             <Tbody>
               {/* Personal Information */}
@@ -196,9 +191,7 @@ const Step7 = ({
                   <Select
                     placeholder="Select Gender"
                     value={spouse.gender}
-                    onChange={(e) =>
-                      onChange(index, "gender", e.target.value)
-                    }
+                    onChange={(e) => onChange(index, "gender", e.target.value)}
                     isDisabled={!spouse.isEditing}
                   >
                     <option value="Male">Male</option>
@@ -241,9 +234,7 @@ const Step7 = ({
                   <Select
                     name="suffix"
                     value={spouse.suffix || ""}
-                    onChange={(e) =>
-                      onChange(index, "suffix", e.target.value)
-                    }
+                    onChange={(e) => onChange(index, "suffix", e.target.value)}
                     width="100%"
                     isDisabled={spouse.gender === "Female"}
                   >
@@ -332,11 +323,7 @@ const Step7 = ({
                     placeholder="Place of Marriage"
                     value={spouse.place_of_marriage}
                     onChange={(e) =>
-                      onChange(
-                        index,
-                        "place_of_marriage",
-                        e.target.value
-                      )
+                      onChange(index, "place_of_marriage", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   />
@@ -413,11 +400,7 @@ const Step7 = ({
                     placeholder="Local Congregation"
                     value={spouse.local_congregation}
                     onChange={(e) =>
-                      onChange(
-                        index,
-                        "local_congregation",
-                        e.target.value
-                      )
+                      onChange(index, "local_congregation", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   />
@@ -440,11 +423,7 @@ const Step7 = ({
                     placeholder="Minister Officiated"
                     value={spouse.minister_officiated}
                     onChange={(e) =>
-                      onChange(
-                        index,
-                        "minister_officiated",
-                        e.target.value
-                      )
+                      onChange(index, "minister_officiated", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   />
@@ -478,9 +457,7 @@ const Step7 = ({
                   <Input
                     placeholder="Company"
                     value={spouse.company}
-                    onChange={(e) =>
-                      onChange(index, "company", e.target.value)
-                    }
+                    onChange={(e) => onChange(index, "company", e.target.value)}
                     isDisabled={!spouse.isEditing}
                   />
                 </Td>
@@ -498,9 +475,7 @@ const Step7 = ({
                   <Input
                     placeholder="Address"
                     value={spouse.address}
-                    onChange={(e) =>
-                      onChange(index, "address", e.target.value)
-                    }
+                    onChange={(e) => onChange(index, "address", e.target.value)}
                     isDisabled={!spouse.isEditing}
                   />
                 </Td>
@@ -520,9 +495,7 @@ const Step7 = ({
                   <Input
                     placeholder="Section"
                     value={spouse.section}
-                    onChange={(e) =>
-                      onChange(index, "section", e.target.value)
-                    }
+                    onChange={(e) => onChange(index, "section", e.target.value)}
                     isDisabled={!spouse.isEditing}
                   />
                 </Td>
@@ -555,11 +528,7 @@ const Step7 = ({
                     placeholder="Reason for Leaving"
                     value={spouse.reason_for_leaving}
                     onChange={(e) =>
-                      onChange(
-                        index,
-                        "reason_for_leaving",
-                        e.target.value
-                      )
+                      onChange(index, "reason_for_leaving", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   />
@@ -578,11 +547,7 @@ const Step7 = ({
                     placeholder="Education Level"
                     value={spouse.education_level}
                     onChange={(e) =>
-                      onChange(
-                        index,
-                        "education_level",
-                        e.target.value
-                      )
+                      onChange(index, "education_level", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   >
@@ -597,9 +562,7 @@ const Step7 = ({
                   <Input
                     placeholder="School"
                     value={spouse.school}
-                    onChange={(e) =>
-                      onChange(index, "school", e.target.value)
-                    }
+                    onChange={(e) => onChange(index, "school", e.target.value)}
                     isDisabled={!spouse.isEditing}
                   />
                 </Td>
@@ -617,9 +580,7 @@ const Step7 = ({
                   <Input
                     placeholder="Degree"
                     value={spouse.degree}
-                    onChange={(e) =>
-                      onChange(index, "degree", e.target.value)
-                    }
+                    onChange={(e) => onChange(index, "degree", e.target.value)}
                     isDisabled={!spouse.isEditing}
                   />
                 </Td>
@@ -666,11 +627,7 @@ const Step7 = ({
                     type="number"
                     value={spouse.completion_year}
                     onChange={(e) =>
-                      onChange(
-                        index,
-                        "completion_year",
-                        e.target.value
-                      )
+                      onChange(index, "completion_year", e.target.value)
                     }
                     isDisabled={!spouse.isEditing}
                   />
@@ -679,7 +636,7 @@ const Step7 = ({
 
               {/* Save and Edit Button */}
               <Tr>
-              <Td colSpan={4} textAlign="center">
+                <Td colSpan={4} textAlign="center">
                   <IconButton
                     icon={spouse.isEditing ? <CheckIcon /> : <EditIcon />}
                     onClick={() =>

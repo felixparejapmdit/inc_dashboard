@@ -1,5 +1,5 @@
 // src/pages/Step8.js
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom"; // Import useParams for retrieving URL parameters
 import {
   Box,
@@ -44,7 +44,6 @@ const Step8 = ({
   const [loading, setLoading] = useState(false);
   const toast = useToast();
 
-
   useEffect(() => {
     if (personnelId) {
       // Fetch children related to the personnelId
@@ -66,7 +65,6 @@ const Step8 = ({
     }
   }, [personnelId]);
 
-
   const handleSaveOrUpdate = async (index) => {
     setLoading(true);
     const child = data[index];
@@ -74,7 +72,7 @@ const Step8 = ({
     const {
       id,
       isEditing,
-      relationshipType,
+      relationshipType = child.relationship_type, // Fallback to the existing key if relationshipType is undefined,
       gender,
       givenName,
       lastName,
@@ -170,7 +168,6 @@ const Step8 = ({
     }
   };
 
-
   return (
     <Box width="100%" bg="white" boxShadow="sm" my={85} p={5}>
       <Heading as="h2" size="lg" textAlign="center" mb={6}>
@@ -178,9 +175,7 @@ const Step8 = ({
       </Heading>
       <VStack align="start" spacing={4} mb={8} w="100%">
         {data.map((child, index) => (
-          <Table   key={child.id || child.generatedId}
-          size="md"
-          variant="simple">
+          <Table key={child.id || child.generatedId} size="md" variant="simple">
             <Tbody>
               {/* Header */}
               <Tr>
@@ -200,9 +195,7 @@ const Step8 = ({
                   <Select
                     placeholder="Select Gender"
                     value={child.gender}
-                    onChange={(e) =>
-                      onChange(index, "gender", e.target.value)
-                    }
+                    onChange={(e) => onChange(index, "gender", e.target.value)}
                     isDisabled={!child.isEditing}
                   >
                     <option value="Male">Male</option>
@@ -245,9 +238,7 @@ const Step8 = ({
                   <Select
                     name="suffix"
                     value={children[index]?.suffix || ""}
-                    onChange={(e) =>
-                      onChange(index, "suffix", e.target.value)
-                    }
+                    onChange={(e) => onChange(index, "suffix", e.target.value)}
                     width="100%"
                     isDisabled={children[index]?.gender === "Female"}
                   >
@@ -336,11 +327,7 @@ const Step8 = ({
                     placeholder="Place of Marriage"
                     value={child.place_of_marriage}
                     onChange={(e) =>
-                      onChange(
-                        index,
-                        "place_of_marriage",
-                        e.target.value
-                      )
+                      onChange(index, "place_of_marriage", e.target.value)
                     }
                     isDisabled={!child.isEditing}
                   />
@@ -475,9 +462,7 @@ const Step8 = ({
                   <Input
                     placeholder="Company"
                     value={child.company}
-                    onChange={(e) =>
-                      onChange(index, "company", e.target.value)
-                    }
+                    onChange={(e) => onChange(index, "company", e.target.value)}
                     isDisabled={!child.isEditing}
                   />
                 </Td>
@@ -495,9 +480,7 @@ const Step8 = ({
                   <Input
                     placeholder="Address"
                     value={child.address}
-                    onChange={(e) =>
-                      onChange(index, "address", e.target.value)
-                    }
+                    onChange={(e) => onChange(index, "address", e.target.value)}
                     isDisabled={!child.isEditing}
                   />
                 </Td>
@@ -517,9 +500,7 @@ const Step8 = ({
                   <Input
                     placeholder="Section"
                     value={child.section}
-                    onChange={(e) =>
-                      onChange(index, "section", e.target.value)
-                    }
+                    onChange={(e) => onChange(index, "section", e.target.value)}
                     isDisabled={!child.isEditing}
                   />
                 </Td>
@@ -586,9 +567,7 @@ const Step8 = ({
                   <Input
                     placeholder="School"
                     value={child.school}
-                    onChange={(e) =>
-                      onChange(index, "school", e.target.value)
-                    }
+                    onChange={(e) => onChange(index, "school", e.target.value)}
                     isDisabled={!child.isEditing}
                   />
                 </Td>
@@ -606,9 +585,7 @@ const Step8 = ({
                   <Input
                     placeholder="Degree"
                     value={child.degree}
-                    onChange={(e) =>
-                      onChange(index, "degree", e.target.value)
-                    }
+                    onChange={(e) => onChange(index, "degree", e.target.value)}
                     isDisabled={!child.isEditing}
                   />
                 </Td>
@@ -664,7 +641,7 @@ const Step8 = ({
 
               {/* Save and Edit Button */}
               <Tr>
-              <Td colSpan={4} textAlign="center">
+                <Td colSpan={4} textAlign="center">
                   <IconButton
                     icon={child.isEditing ? <CheckIcon /> : <EditIcon />}
                     onClick={() =>

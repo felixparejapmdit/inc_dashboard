@@ -14,20 +14,82 @@ import {
   Text,
   Image,
   Spinner,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+  useToast,
 } from "@chakra-ui/react";
 import "./Login.css"; // Custom CSS for animated input effect
 
 import { usePermissionContext } from "../contexts/PermissionContext";
 
+const API_URL = process.env.REACT_APP_API_URL;
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [referenceNumber, setReferenceNumber] = useState("");
   const [error, setError] = useState("");
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const [isLoading, setIsLoading] = useState(false);
+
+  const navigate = useNavigate();
+  const toast = useToast();
 
   const { fetchPermissions } = usePermissionContext();
 
   const [isPlaying, setIsPlaying] = useState(false);
+
+  // Track Enrollment Progress
+  const handleTrackProgress = async () => {
+    if (!referenceNumber) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid Reference Number.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/getreference?reference_number=${referenceNumber}`
+      );
+
+      if (response.data && response.data.personnel_id) {
+        const { personnel_id, enrollment_progress } = response.data;
+
+        // Navigate to the EnrollmentForm with the appropriate step
+        navigate(
+          `/enroll?personnel_id=${personnel_id}&step=${enrollment_progress}`
+        );
+      } else {
+        toast({
+          title: "Not Found",
+          description: "Reference number not found. Please try again.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching personnel:", error);
+      toast({
+        title: "Error",
+        description:
+          "Unable to retrieve enrollment progress. Please try again later.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
 
   const startMusic = () => {
     const audio = document.getElementById("background-audio");
@@ -35,8 +97,6 @@ const Login = () => {
     audio.play(); // Play the audio
     setIsPlaying(true); // Hide the overlay
   };
-
-  const navigate = useNavigate();
 
   const handleEnroll = () => {
     navigate("/enroll");
@@ -271,14 +331,51 @@ const Login = () => {
           >
             Log In
           </Button>
-          <Flex justifyContent="space-between" width="100%" alignItems="center">
-            <Text fontSize="sm" color="gray.500">
-              Don’t have an account?
-            </Text>
+          <Flex direction="column" width="100%" alignItems="center">
             <Button variant="link" colorScheme="orange" onClick={handleEnroll}>
               Enroll
             </Button>
+            <Text
+              as="button"
+              color="blue.500"
+              onClick={onOpen}
+              fontSize="sm"
+              mt={2} // Add margin-top to create spacing between the button and text
+              _hover={{ textDecoration: "underline" }}
+            >
+              Track your enrollment progress
+            </Text>
           </Flex>
+          {/* Modal for Reference Number */}
+          <Modal isOpen={isOpen} onClose={onClose}>
+            <ModalOverlay />
+            <ModalContent>
+              <ModalHeader>Track Enrollment Progress</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+                <FormControl isRequired>
+                  <FormLabel>Reference No. / Tracking No.</FormLabel>
+                  <Input
+                    placeholder="Enter Tracking No."
+                    value={referenceNumber}
+                    onChange={(e) => setReferenceNumber(e.target.value)}
+                  />
+                </FormControl>
+              </ModalBody>
+              <ModalFooter>
+                <Button
+                  colorScheme="yellow"
+                  onClick={handleTrackProgress}
+                  mr={3}
+                >
+                  Proceed
+                </Button>
+                <Button variant="ghost" onClick={onClose}>
+                  Cancel
+                </Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
         </VStack>
       </Flex>
     </Flex>

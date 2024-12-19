@@ -1,15 +1,23 @@
 // src/pages/EnrollmentForm.js
 import React, { useState, useEffect } from "react";
-import { Box, Button, VStack, Heading, Flex, useToast,
+import {
+  Box,
+  Button,
+  VStack,
+  Heading,
+  Flex,
+  useToast,
   Modal,
   ModalOverlay,
   ModalContent,
   ModalHeader,
   ModalCloseButton,
   ModalBody,
-  ModalFooter, } from "@chakra-ui/react";
+  ModalFooter,
+  Text,
+} from "@chakra-ui/react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { CheckIcon } from "@chakra-ui/icons";
 import Step1 from "./Step1";
 import Step2 from "./Step2"; // Update the path if needed
@@ -22,11 +30,15 @@ import Step8 from "./Step8";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
-const EnrollmentForm = () => {
+const EnrollmentForm = ({ referenceNumber }) => {
   const [step, setStep] = useState(1);
   const totalSteps = 8;
   const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
+  const [isFinishModalOpen, setIsFinishModalOpen] = useState(false); // Modal state
+  const [searchParams] = useSearchParams();
+  const personnelId = searchParams.get("personnel_id");
+  const stepParam = searchParams.get("step");
 
   // Step 1 values
   const [personnelData, setPersonnelData] = useState({
@@ -231,36 +243,36 @@ const EnrollmentForm = () => {
   });
 
   // Add Family Member
-const handleAddFamilyMember = (type, relationshipType = "") => {
-  if (type === "parents") {
+  const handleAddFamilyMember = (type, relationshipType = "") => {
+    if (type === "parents") {
+      toast({
+        title: "Error",
+        description: "Only Father and Mother are allowed in Parents.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    // Correctly interpolate the relationshipType in the toast message
     toast({
-      title: "Error",
-      description: "Only Father and Mother are allowed in Parents.",
-      status: "error",
+      title: `${relationshipType} Added`,
+      description: `A new ${relationshipType} has been added.`,
+      status: "success",
       duration: 3000,
       isClosable: true,
     });
-    return;
-  }
 
-  // Correctly interpolate the relationshipType in the toast message
-  toast({
-    title: `${relationshipType} Added`,
-    description: `A new ${relationshipType} has been added.`,
-    status: "success",
-    duration: 3000,
-    isClosable: true,
-  });
-
-  // Add the new family member to the state
-  setFamily((prevFamily) => ({
-    ...prevFamily,
-    [type]: [
-      ...prevFamily[type],
-      { ...initialFamilyMember, relationshipType, isEditing: true },
-    ],
-  }));
-};
+    // Add the new family member to the state
+    setFamily((prevFamily) => ({
+      ...prevFamily,
+      [type]: [
+        ...prevFamily[type],
+        { ...initialFamilyMember, relationshipType, isEditing: true },
+      ],
+    }));
+  };
 
   // Edit Family Member
   const handleFamilyMemberChange = (type, index, field, value) => {
@@ -350,7 +362,7 @@ const handleAddFamilyMember = (type, relationshipType = "") => {
     ]);
 
   const [personnelImage, setPersonnelImage] = useState(null);
-  const [personnelId, setPersonnelId] = useState(null);
+  //const [personnelId, setPersonnelId] = useState(null);
 
   const handleSaveImage = (imageData) => {
     setPersonnelImage(imageData);
@@ -361,6 +373,30 @@ const handleAddFamilyMember = (type, relationshipType = "") => {
 
   const handleBackToLogin = () => {
     navigate("/login"); // Navigate back to login page
+  };
+
+  const handleFinish = () => {
+    // Close the modal
+    setIsFinishModalOpen(false);
+
+    // Show a success toast message
+    toast({
+      title: "Enrollment Process",
+      description:
+        "You will be redirected to the login page. Please ensure all updates are complete.",
+      status: "success",
+      duration: 3000,
+      isClosable: true,
+    });
+
+    // Redirect to the login page after a short delay
+    setTimeout(() => {
+      navigate("/login");
+    }, 1000);
+  };
+
+  const openFinishModal = () => {
+    setIsFinishModalOpen(true);
   };
 
   const handleChange = (e) => {
@@ -401,77 +437,191 @@ const handleAddFamilyMember = (type, relationshipType = "") => {
     );
   };
 
-  
   const handleNext = async () => {
-    //setIsLoading(true);
-    if (step === 1) {
-      // try {
-      //   await axios.post(`${API_URL}/api/personnels`, personnelData, {
-      //     headers: { "Content-Type": "application/json" },
-      //   });
-      //   setStep(2); // Move to Step 2
-      // } catch (error) {
-      //   console.error("Error saving data:", error);
-      //   alert("Failed to save data. Please try again.");
-      // }
-       // Validate Required Fields
-       if (!personnelData.givenname || !personnelData.date_of_birth) {
-        toast({
-          title: "Validation Error",
-          description: "Please fill out all required fields.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-        return;
+    setIsLoading(true);
+
+    try {
+      // Check if we are on the first step
+      if (step === 1) {
+        if (!personnelId) {
+          // First-time enrollment: Validate Required Fields
+          if (!personnelData.givenname || !personnelData.date_of_birth) {
+            toast({
+              title: "Validation Error",
+              description: "Please fill out all required fields.",
+              status: "error",
+              duration: 3000,
+              isClosable: true,
+            });
+            setIsLoading(false);
+            return;
+          }
+
+          // Show confirmation modal for new enrollment
+          setIsModalOpen(true);
+          setIsLoading(false);
+          return;
+        } else {
+          // If personnel_id exists, update the data directly
+          await axios.put(`${API_URL}/api/personnels/${personnelId}`, {
+            ...personnelData,
+            enrollment_progress: "1", // Update enrollment_progress
+          });
+
+          toast({
+            title: "Enrollment Updated",
+            description: "Your enrollment data has been updated successfully.",
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
+        }
       }
-        // Show Confirmation Modal
-        setIsModalOpen(true);
-    } else {
-      setStep(step + 1);
+
+      // Move to the next step
+      setStep((prevStep) => prevStep + 1);
+    } catch (error) {
+      console.error("Error handling next step:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save enrollment data. Please try again.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setIsLoading(false);
     }
-   // setIsLoading(false);
   };
 
   const handlePrevious = () => {
     setStep(step - 1);
   };
 
+  // Confirm Early Completion and Save Step 1 Data
+  const handleConfirm = async () => {
+    //setIsLoading(true);
+    try {
+      const response = await axios.post(`${API_URL}/api/personnels`, {
+        ...personnelData,
+        enrollment_progress: "1",
+        personnel_progress: "Enrollment",
+      });
 
- // Confirm Early Completion and Save Step 1 Data
- const handleConfirm = async () => {
-  //setIsLoading(true);
-  try {
-    const response = await axios.post(`${API_URL}/api/personnels`, {
-      ...personnelData,
-      enrollment_progress: "1",
-      personnel_progress: "Enrollment",
-    });
+      toast({
+        title: "Enrollment Saved",
+        description: `Your reference number is ${response.data.personnel.reference_number}.`,
+        status: "success",
+        duration: 4000,
+        isClosable: true,
+      });
 
-    toast({
-      title: "Enrollment Saved",
-      description: `Your reference number is ${response.data.personnel.reference_number}.`,
-      status: "success",
-      duration: 4000,
-      isClosable: true,
-    });
+      setIsModalOpen(false);
+      setStep(2); // Move to the next step (optional behavior)
+    } catch (error) {
+      console.error("Error saving personnel data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save enrollment data. Please try again.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    setIsModalOpen(false);
-    setStep(2); // Move to the next step (optional behavior)
-  } catch (error) {
-    console.error("Error saving personnel data:", error);
-    toast({
-      title: "Error",
-      description: "Failed to save enrollment data. Please try again.",
-      status: "error",
-      duration: 3000,
-      isClosable: true,
-    });
-  } finally {
-    setIsLoading(false);
-  }
-};
+  // Fetch personnel and family member data and determine the current step based on enrollment_progress
+  useEffect(() => {
+    const fetchEnrollmentData = async () => {
+      try {
+        // Fetch personnel data
+        const personnelResponse = await axios.get(
+          `${API_URL}/api/personnels/${personnelId}`
+        );
 
+        if (personnelResponse.data) {
+          const personnel = personnelResponse.data;
+
+          // Adjust date fields to the correct format
+          setPersonnelData({
+            ...personnel,
+            panunumpa_date: personnel.panunumpa_date
+              ? new Date(personnel.panunumpa_date).toISOString().split("T")[0]
+              : "",
+            date_of_birth: personnel.date_of_birth
+              ? new Date(personnel.date_of_birth).toISOString().split("T")[0]
+              : "",
+            datejoined: personnel.datejoined
+              ? new Date(personnel.datejoined).toISOString().split("T")[0]
+              : "",
+          });
+
+          // Set step based on enrollment_progress
+          if (!stepParam) {
+            const enrollmentProgress = parseInt(
+              personnel.enrollment_progress,
+              10
+            );
+            setStep(enrollmentProgress || 1);
+          }
+        } else {
+          toast({
+            title: "Not Found",
+            description: "Personnel data not found.",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+          navigate("/"); // Redirect to home or login page
+          return;
+        }
+
+        // Fetch family members for the personnel
+        const familyMembersResponse = await axios.get(
+          `${API_URL}/api/family-members?personnel_id=${personnelId}`
+        );
+        if (familyMembersResponse.data) {
+          const members = familyMembersResponse.data;
+
+          // Organize family members by relationship type
+          const organizedFamily = {
+            parents: members.filter(
+              (member) =>
+                member.relationship_type === "Father" ||
+                member.relationship_type === "Mother"
+            ),
+            siblings: members.filter(
+              (member) => member.relationship_type === "Sibling"
+            ),
+            spouses: members.filter(
+              (member) => member.relationship_type === "Spouse"
+            ),
+            children: members.filter(
+              (member) => member.relationship_type === "Child"
+            ),
+          };
+
+          setFamily(organizedFamily);
+        }
+      } catch (error) {
+        console.error("Error fetching enrollment data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to retrieve enrollment data.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        navigate("/"); // Redirect to home or login page
+      }
+    };
+
+    if (personnelId) {
+      fetchEnrollmentData();
+    }
+  }, [personnelId, navigate, toast, stepParam]);
 
   return (
     <VStack
@@ -607,8 +757,8 @@ const handleAddFamilyMember = (type, relationshipType = "") => {
           bloodtypes={bloodtypes}
         />
       )}
-{step === 6 && (
-      <Step6
+      {step === 6 && (
+        <Step6
           data={family.siblings}
           setData={(updatedSiblings) =>
             setFamily((prevFamily) => ({
@@ -616,37 +766,35 @@ const handleAddFamilyMember = (type, relationshipType = "") => {
               siblings: updatedSiblings, // Update the siblings array only
             }))
           }
-        onAdd={() => handleAddFamilyMember("siblings", "Sibling")}
+          onAdd={() => handleAddFamilyMember("siblings", "Sibling")}
           onChange={(index, field, value) =>
             handleFamilyMemberChange("siblings", index, field, value)
           }
-        onToggleEdit={(index) => toggleEditFamilyMember("siblings", index)}
-        citizenships={citizenships}
-        nationalities={nationalities}
-        suffixOptions={suffixOptions}
-        districts={districts}
-        civilStatusOptions={civilStatusOptions}
-        employmentTypeOptions={employmentTypeOptions}
-        educationalLevelOptions={educationalLevelOptions}
-        bloodtypes={bloodtypes}
-      />
-    )}
+          onToggleEdit={(index) => toggleEditFamilyMember("siblings", index)}
+          citizenships={citizenships}
+          nationalities={nationalities}
+          suffixOptions={suffixOptions}
+          districts={districts}
+          civilStatusOptions={civilStatusOptions}
+          employmentTypeOptions={employmentTypeOptions}
+          educationalLevelOptions={educationalLevelOptions}
+          bloodtypes={bloodtypes}
+        />
+      )}
       {step === 7 && (
         <Step7
-        data={family.spouses}
-        setData={(updatedSpouses) =>
-          setFamily((prevFamily) => ({
-            ...prevFamily,
-            spouses: updatedSpouses, // Update the spouses array only
-          }))
-        }
-      onAdd={() => handleAddFamilyMember("spouses", "Spouse")}
-        onChange={(index, field, value) =>
-          handleFamilyMemberChange("spouses", index, field, value)
-        }
-      onToggleEdit={(index) => toggleEditFamilyMember("spouses", index)}
-
-
+          data={family.spouses}
+          setData={(updatedSpouses) =>
+            setFamily((prevFamily) => ({
+              ...prevFamily,
+              spouses: updatedSpouses, // Update the spouses array only
+            }))
+          }
+          onAdd={() => handleAddFamilyMember("spouses", "Spouse")}
+          onChange={(index, field, value) =>
+            handleFamilyMemberChange("spouses", index, field, value)
+          }
+          onToggleEdit={(index) => toggleEditFamilyMember("spouses", index)}
           citizenships={citizenships}
           nationalities={nationalities}
           suffixOptions={suffixOptions}
@@ -660,19 +808,18 @@ const handleAddFamilyMember = (type, relationshipType = "") => {
 
       {step === 8 && (
         <Step8
-        data={family.children}
-        setData={(updatedChildren) =>
-          setFamily((prevFamily) => ({
-            ...prevFamily,
-            children: updatedChildren, // Update the children array only
-          }))
-        }
-      onAdd={() => handleAddFamilyMember("children", "Child")}
-        onChange={(index, field, value) =>
-          handleFamilyMemberChange("children", index, field, value)
-        }
-      onToggleEdit={(index) => toggleEditFamilyMember("children", index)}
-          
+          data={family.children}
+          setData={(updatedChildren) =>
+            setFamily((prevFamily) => ({
+              ...prevFamily,
+              children: updatedChildren, // Update the children array only
+            }))
+          }
+          onAdd={() => handleAddFamilyMember("children", "Child")}
+          onChange={(index, field, value) =>
+            handleFamilyMemberChange("children", index, field, value)
+          }
+          onToggleEdit={(index) => toggleEditFamilyMember("children", index)}
           citizenships={citizenships}
           nationalities={nationalities}
           suffixOptions={suffixOptions}
@@ -706,21 +853,60 @@ const handleAddFamilyMember = (type, relationshipType = "") => {
             Next
           </Button>
         ) : (
-          <Button colorScheme="teal">Finish</Button>
+          <Button onClick={openFinishModal} colorScheme="teal">
+            Finish
+          </Button>
         )}
       </Box>
 
-         {/* Confirmation Modal */}
-         <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} isCentered>
+      {/* Confirmation Modal */}
+      <Modal
+        isOpen={isFinishModalOpen}
+        onClose={() => setIsFinishModalOpen(false)}
+        isCentered
+      >
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Confirmation</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Text>
+              Are you sure you want to finish? Any incomplete updates may not be
+              saved.
+            </Text>
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" mr={3} onClick={handleFinish}>
+              Yes, Finish
+            </Button>
+            <Button variant="ghost" onClick={() => setIsFinishModalOpen(false)}>
+              Cancel
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Confirmation Modal */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        isCentered
+      >
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Complete Enrollment</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            Do you want to complete the enrollment now? A reference number will be generated.
+            Do you want to complete the enrollment now? A reference number will
+            be generated.
           </ModalBody>
           <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={handleConfirm} isLoading={isLoading}>
+            <Button
+              colorScheme="blue"
+              mr={3}
+              onClick={handleConfirm}
+              isLoading={isLoading}
+            >
               Confirm
             </Button>
             <Button onClick={() => setIsModalOpen(false)} variant="ghost">
@@ -729,8 +915,6 @@ const handleAddFamilyMember = (type, relationshipType = "") => {
           </ModalFooter>
         </ModalContent>
       </Modal>
-
-
     </VStack>
   );
 };

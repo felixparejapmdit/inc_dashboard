@@ -781,11 +781,11 @@ const Step1 = ({
                   Ministerial Status:
                 </Text>
                 <RadioGroup
-                  name="m_type"
+                  name="m_status"
                   onChange={(value) =>
-                    handleChange({ target: { name: "m_type", value } })
+                    handleChange({ target: { name: "m_status", value } })
                   }
-                  value={personnelData.m_type}
+                  value={personnelData.m_status}
                 >
                   <Stack direction="row" spacing={4} wrap="wrap">
                     <Radio value="May Destino">May Destino</Radio>

@@ -27,6 +27,38 @@ exports.getPersonnelById = async (req, res) => {
   }
 };
 
+// Get a personnel record by reference_number
+exports.getPersonnelByReferenceNumber = async (req, res) => {
+  try {
+    const { reference_number } = req.query; // Extract query parameter
+
+    // Validate the input
+    if (!reference_number) {
+      return res.status(400).json({ message: "Reference number is required" });
+    }
+
+    // Use Sequelize's `findOne` to retrieve the specific record
+    const personnel = await Personnel.findOne({
+      where: { reference_number: reference_number.trim() },
+    });
+
+    // If no matching personnel is found, return 404
+    if (!personnel) {
+      return res
+        .status(404)
+        .json({ message: "Personnel with this reference number not found" });
+    }
+
+    // Return the matched personnel record
+    res.status(200).json(personnel);
+  } catch (error) {
+    console.error("Error fetching personnel by reference number:", error);
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
+  }
+};
+
 const generateReferenceNumber = () => {
   const prefix = "ENR";
   const year = new Date().getFullYear().toString().slice(-2); // Get last 2 digits of the year

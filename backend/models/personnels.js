@@ -10,7 +10,7 @@ const Personnel = sequelize.define(
       autoIncrement: true,
     },
     reference_number: {
-      type: DataTypes.STRING(25),
+      type: DataTypes.STRING(50),
       allowNull: false,
     },
     enrollment_progress: {

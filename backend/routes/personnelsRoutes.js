@@ -11,6 +11,12 @@ router.get("/api/personnels/:id", personnelsController.getPersonnelById);
 // Route to create a new personnel
 router.post("/api/personnels", personnelsController.createPersonnel);
 
+// Route to get a personnel by reference number or all
+router.get(
+  "/api/getreference",
+  personnelsController.getPersonnelByReferenceNumber
+);
+
 // Route to update a personnel by ID
 router.put("/api/personnels/:id", personnelsController.updatePersonnel);
 

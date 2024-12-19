@@ -72,6 +72,12 @@ function App() {
             <Route path="/" element={<Navigate to="/login" />} />
             {/* Standalone Route for Enrollment Page */}
             <Route path="/enroll" element={<Enrollment />} />
+
+            <Route
+              path="/enrollment/:referenceNumber"
+              element={<Enrollment />}
+            />
+
             {/* Define the login route */}
             <Route path="/login" element={<Login />} />
             {/* Routes wrapped with the sidebar layout */}

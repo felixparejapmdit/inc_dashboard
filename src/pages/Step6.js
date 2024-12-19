@@ -1,5 +1,5 @@
 // src/pages/Step6.js
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom"; // Import useParams for retrieving URL parameters
 import {
   Box,
@@ -37,14 +37,12 @@ const Step6 = ({
   educationalLevelOptions,
   bloodtypes,
 }) => {
-
   const { personnelId } = useParams(); // Retrieve personnelId from URL
 
   const [siblings, setSiblings] = useState([]);
   const getRowBgColor = (index) => (index % 2 === 0 ? "gray.50" : "green.50"); // Alternate colors
   const [loading, setLoading] = useState(false);
   const toast = useToast();
-
 
   useEffect(() => {
     if (personnelId) {
@@ -67,8 +65,6 @@ const Step6 = ({
     }
   }, [personnelId]);
 
-
-
   const handleSaveOrUpdate = async (index) => {
     setLoading(true);
     const sibling = data[index];
@@ -76,7 +72,7 @@ const Step6 = ({
     const {
       id,
       isEditing,
-      relationshipType,
+      relationshipType = sibling.relationship_type, // Fallback to the existing key if relationshipType is undefined,
       gender,
       givenName,
       lastName,
@@ -282,8 +278,8 @@ const Step6 = ({
                     placeholder="Select Blood Type"
                     name="bloodtype"
                     value={sibling.bloodtype || ""}
-                    onChange={(e) =>
-                      onChange(index, "bloodtype", e.target.value) // Correct field name
+                    onChange={
+                      (e) => onChange(index, "bloodtype", e.target.value) // Correct field name
                     }
                     isDisabled={!sibling.isEditing}
                     width="100%"
@@ -437,7 +433,7 @@ const Step6 = ({
               </Tr>
 
               {/* Work Information Section */}
-              <Tr  bg={getRowBgColor(index)}>
+              <Tr bg={getRowBgColor(index)}>
                 <Td colSpan={4}>
                   <Text fontWeight="bold">Work Information</Text>
                 </Td>
@@ -657,7 +653,7 @@ const Step6 = ({
             </Tbody>
           </Table>
         ))}
-          <Button onClick={onAdd} colorScheme="teal">
+        <Button onClick={onAdd} colorScheme="teal">
           Add Sibling
         </Button>
       </VStack>
