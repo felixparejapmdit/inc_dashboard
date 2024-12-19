@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   VStack,
   Box,
@@ -25,7 +26,7 @@ import {
 import { BsUpload } from "react-icons/bs";
 import { MdPhotoCamera } from "react-icons/md";
 
-const Step2 = ({ personnelId, onSaveImage }) => {
+const Step2 = ({ onSaveImage }) => {
   const [image, setImage] = useState(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [imageSize, setImageSize] = useState("2x2"); // Default to 2x2
@@ -33,6 +34,9 @@ const Step2 = ({ personnelId, onSaveImage }) => {
   const canvasRef = useRef(null);
   const toast = useToast();
   const [imageList, setImageList] = useState([]);
+
+  const [searchParams] = useSearchParams(); // Retrieve query parameters
+  const personnelId = searchParams.get("personnel_id"); // Get personnel_id from URL
 
   useEffect(() => {
     fetch(
@@ -116,7 +120,7 @@ const Step2 = ({ personnelId, onSaveImage }) => {
   const handleSaveImage = async () => {
     if (image) {
       const payload = {
-        personnel_id: 9,
+        personnel_id: personnelId,
         type: `${imageSize} Picture`,
         image_url: image,
         created_at: new Date().toISOString(),
@@ -261,32 +265,54 @@ const Step2 = ({ personnelId, onSaveImage }) => {
         </Button>
       </HStack>
 
-      <VStack spacing={6} align="center" mt={6}>
-        <Heading as="h3" size="md">
+      <VStack spacing={6} align="center" mt={6} width="100%">
+        <Heading as="h3" size="lg" color="teal.600" textAlign="center">
           Saved Images
         </Heading>
-        <Grid templateColumns="repeat(auto-fill, minmax(150px, 1fr))" gap={4}>
+        <HStack
+          spacing={12}
+          justify="center"
+          align="center"
+          wrap="nowrap"
+          overflowX="auto"
+          py={6}
+        >
           {imageList.map((img) => (
-            <GridItem key={img.id}>
-              <Box
-                borderRadius="md"
-                overflow="hidden"
-                border="1px solid"
-                borderColor="gray.200"
-              >
-                <Image
-                  src={img.image_url}
-                  alt={img.type}
-                  boxSize="150px"
-                  objectFit="cover"
-                />
-                <Text fontSize="sm" textAlign="center" mt={2}>
+            <Box
+              key={img.id}
+              borderRadius="md"
+              overflow="hidden"
+              border="1px solid"
+              borderColor="gray.300"
+              shadow="md"
+              transition="all 0.2s"
+              _hover={{
+                transform: "scale(1.05)",
+                shadow: "lg",
+                borderColor: "teal.400",
+              }}
+              maxW="200px"
+            >
+              <Image
+                src={img.image_url}
+                alt={img.type}
+                boxSize="150px"
+                objectFit="cover"
+                mx="auto" // Centers the image horizontally
+              />
+              <Box p={2} bg="teal.50">
+                <Text
+                  fontSize="md"
+                  fontWeight="bold"
+                  color="teal.700"
+                  textAlign="center"
+                >
                   {img.type}
                 </Text>
               </Box>
-            </GridItem>
+            </Box>
           ))}
-        </Grid>
+        </HStack>
       </VStack>
 
       <Modal isOpen={isCameraOpen} onClose={closeCamera}>

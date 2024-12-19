@@ -1,6 +1,6 @@
 // src/pages/Step6.js
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom"; // Import useParams for retrieving URL parameters
+import { useSearchParams } from "react-router-dom"; // Import useParams for retrieving URL parameters
 import {
   Box,
   VStack,
@@ -37,7 +37,8 @@ const Step6 = ({
   educationalLevelOptions,
   bloodtypes,
 }) => {
-  const { personnelId } = useParams(); // Retrieve personnelId from URL
+  const [searchParams] = useSearchParams(); // Retrieve query parameters
+  const personnelId = searchParams.get("personnel_id"); // Get personnel_id from URL
 
   const [siblings, setSiblings] = useState([]);
   const getRowBgColor = (index) => (index % 2 === 0 ? "gray.50" : "green.50"); // Alternate colors
@@ -46,22 +47,41 @@ const Step6 = ({
 
   useEffect(() => {
     if (personnelId) {
-      // Fetch siblings related to the personnelId
+      // Fetch siblings related to the personnelId and relationship_type
       axios
-        .get(`${API_URL}/api/family-members?personnel_id=${personnelId}`)
+        .get(`${API_URL}/api/get-family-members`, {
+          params: {
+            personnel_id: personnelId,
+            relationship_type: "Sibling", // Specify relationship_type for siblings
+          },
+        })
         .then((res) => {
-          setSiblings(res.data || []);
+          if (Array.isArray(res.data) && res.data.length === 0) {
+            setData([]); // Clear the siblings table if no data
+          } else {
+            setData(res.data || []); // Set siblings if data exists
+          }
         })
         .catch((err) => {
           console.error("Error fetching siblings:", err);
+          setData([]); // Clear the table on error
           toast({
             title: "Error",
-            description: "Failed to fetch sibling data.",
+            description: "Failed to fetch sibling data1.",
             status: "error",
             duration: 3000,
             isClosable: true,
           });
         });
+    } else {
+      setData([]); // Clear siblings if no personnelId
+      toast({
+        title: "Missing Personnel ID",
+        description: "Personnel ID is required to proceed.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
     }
   }, [personnelId]);
 
@@ -72,7 +92,7 @@ const Step6 = ({
     const {
       id,
       isEditing,
-      relationshipType = sibling.relationship_type, // Fallback to the existing key if relationshipType is undefined,
+      relationship_type = sibling.relationship_type, // Fallback to the existing key if relationship_type is undefined,
       gender,
       givenName,
       lastName,
@@ -85,8 +105,8 @@ const Step6 = ({
       gender: sibling.gender,
       givenname: sibling.givenname,
       lastname: sibling.lastname,
-      relationship_type: relationshipType,
-      personnel_id: siblingData.personnel_id || 8,
+      relationship_type: relationship_type,
+      personnel_id: personnelId,
     };
     console.log("Formatted Data:", formattedData);
     // Validate required fields
@@ -107,7 +127,7 @@ const Step6 = ({
     if (missingField) {
       toast({
         title: "Validation Error",
-        description: `The field "${missingField}" is required for ${relationshipType}.`,
+        description: `The field "${missingField}" is required for ${relationship_type}.`,
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -140,7 +160,7 @@ const Step6 = ({
 
       toast({
         title: id ? "Sibling Updated" : "Sibling Added",
-        description: `${relationshipType} information has been ${
+        description: `${relationship_type} information has been ${
           id ? "updated" : "added"
         } successfully.`,
         status: "success",
@@ -156,7 +176,7 @@ const Step6 = ({
         title: "Error",
         description: `Failed to ${
           id ? "update" : "add"
-        } ${relationshipType} information. ${
+        } ${relationship_type} information. ${
           error.response?.data?.message || "Please try again later."
         }`,
         status: "error",

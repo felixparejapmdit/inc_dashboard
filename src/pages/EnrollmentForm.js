@@ -40,6 +40,22 @@ const EnrollmentForm = ({ referenceNumber }) => {
   const personnelId = searchParams.get("personnel_id");
   const stepParam = searchParams.get("step");
 
+  const [id, setPersonnelId] = useState(null);
+  useEffect(() => {
+    // Get step and personnel_id from URL parameters
+    const stepFromUrl = searchParams.get("step");
+    const personnelIdFromUrl = searchParams.get("personnel_id");
+
+    // Set the step from the URL if available
+    if (stepFromUrl) {
+      setStep(Number(stepFromUrl));
+    }
+
+    // Set the personnel_id from the URL
+    if (personnelIdFromUrl) {
+      setPersonnelId(personnelIdFromUrl);
+    }
+  }, [searchParams]);
   // Step 1 values
   const [personnelData, setPersonnelData] = useState({
     gender: "",
@@ -192,7 +208,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
   const [workExperience, setWorkExperience] = useState([]);
 
   const initialFamilyMember = {
-    relationshipType: "",
+    relationship_type: "",
     givenname: "",
     middlename: "",
     lastname: "",
@@ -234,16 +250,16 @@ const EnrollmentForm = ({ referenceNumber }) => {
   const toast = useToast();
   const [family, setFamily] = useState({
     parents: [
-      { ...initialFamilyMember, relationshipType: "Father", gender: "Male" },
-      { ...initialFamilyMember, relationshipType: "Mother", gender: "Female" },
+      { ...initialFamilyMember, relationship_type: "Father", gender: "Male" },
+      { ...initialFamilyMember, relationship_type: "Mother", gender: "Female" },
     ],
-    siblings: [{ ...initialFamilyMember, relationshipType: "Sibling" }],
-    spouses: [{ ...initialFamilyMember, relationshipType: "Spouse" }],
-    children: [{ ...initialFamilyMember, relationshipType: "Child" }],
+    siblings: [{ ...initialFamilyMember, relationship_type: "Sibling" }],
+    spouses: [{ ...initialFamilyMember, relationship_type: "Spouse" }],
+    children: [{ ...initialFamilyMember, relationship_type: "Child" }],
   });
 
   // Add Family Member
-  const handleAddFamilyMember = (type, relationshipType = "") => {
+  const handleAddFamilyMember = (type, relationship_type = "") => {
     if (type === "parents") {
       toast({
         title: "Error",
@@ -255,10 +271,10 @@ const EnrollmentForm = ({ referenceNumber }) => {
       return;
     }
 
-    // Correctly interpolate the relationshipType in the toast message
+    // Correctly interpolate the relationship_type in the toast message
     toast({
-      title: `${relationshipType} Added`,
-      description: `A new ${relationshipType} has been added.`,
+      title: `${relationship_type} Added`,
+      description: `A new ${relationship_type} has been added.`,
       status: "success",
       duration: 3000,
       isClosable: true,
@@ -269,7 +285,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
       ...prevFamily,
       [type]: [
         ...prevFamily[type],
-        { ...initialFamilyMember, relationshipType, isEditing: true },
+        { ...initialFamilyMember, relationship_type, isEditing: true },
       ],
     }));
   };
@@ -517,26 +533,38 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
   // Confirm Early Completion and Save Step 1 Data
   const handleConfirm = async () => {
-    //setIsLoading(true);
     try {
+      setIsLoading(true); // Start loading indicator
+
+      // Save personnel data with enrollment progress
       const response = await axios.post(`${API_URL}/api/personnels`, {
         ...personnelData,
         enrollment_progress: "1",
         personnel_progress: "Enrollment",
       });
 
+      // Extract the personnel_id from the response
+      const { personnel } = response.data;
+      const { personnel_id, reference_number } = personnel;
+
+      // Display a success message with the reference number
       toast({
         title: "Enrollment Saved",
-        description: `Your reference number is ${response.data.personnel.reference_number}.`,
+        description: `Your reference number is ${reference_number}.`,
         status: "success",
         duration: 4000,
         isClosable: true,
       });
 
+      // Close modal and move to the next step
       setIsModalOpen(false);
-      setStep(2); // Move to the next step (optional behavior)
+
+      // Redirect to Step 2 with personnel_id
+      window.location.href = `/enroll?personnel_id=${personnel_id}&step=2`;
     } catch (error) {
       console.error("Error saving personnel data:", error);
+
+      // Display an error message
       toast({
         title: "Error",
         description: "Failed to save enrollment data. Please try again.",
@@ -545,7 +573,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
         isClosable: true,
       });
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Stop loading indicator
     }
   };
 

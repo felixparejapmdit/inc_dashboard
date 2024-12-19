@@ -1,5 +1,6 @@
 // src/pages/Step4.js
 import React, { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Box,
   Heading,
@@ -22,10 +23,13 @@ import axios from "axios";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
-const Step4 = ({ personnelId }) => {
+const Step4 = () => {
   const [education, setEducation] = useState([]);
   const [workExperience, setWorkExperience] = useState([]);
   const toast = useToast();
+
+  const [searchParams] = useSearchParams(); // Retrieve query parameters
+  const personnelId = searchParams.get("personnel_id"); // Get personnel_id from URL
 
   // Validation Function
   const validateEducation = (edu) => {

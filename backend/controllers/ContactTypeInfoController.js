@@ -12,6 +12,30 @@ module.exports = {
     }
   },
 
+  // Get contact types by personnel_id
+  getContactTypesByPersonnelId: async (req, res) => {
+    const { personnel_id } = req.query;
+    if (!personnel_id) {
+      return res.status(400).json({ message: "Personnel ID is required" });
+    }
+    try {
+      const contactTypes = await ContactTypeInfo.findAll({
+        where: { personnel_id }, // Filter by personnel_id
+      });
+      if (!contactTypes || contactTypes.length === 0) {
+        return res
+          .status(404)
+          .json({ message: "No contact types found for this personnel ID" });
+      }
+      res.status(200).json(contactTypes);
+    } catch (error) {
+      console.error("Error fetching contact types by personnel_id:", error);
+      res.status(500).json({
+        message: "Error fetching contact types by personnel_id",
+      });
+    }
+  },
+
   // Add a new contact type
   addContactType: async (req, res) => {
     const { name } = req.body;

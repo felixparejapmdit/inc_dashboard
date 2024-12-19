@@ -8,6 +8,12 @@ router.get(
   contactTypeInfoController.getAllContactTypes
 );
 
+// Route to get contact types by personnel_id
+router.get(
+  "/api/contact-type-info/personnel",
+  contactTypeInfoController.getContactTypesByPersonnelId
+);
+
 // Route to add a new contact type
 router.post("/api/contact-type-info", contactTypeInfoController.addContactType);
 

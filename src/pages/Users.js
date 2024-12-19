@@ -78,7 +78,6 @@ const Users = ({ personnelId }) => {
       .catch(() => setStatus("Failed to load groups."));
   }, []);
 
-
   const navigate = useNavigate(); // Initialize navigation
 
   const handleRowClick = (personnelId) => {
@@ -413,10 +412,11 @@ const Users = ({ personnelId }) => {
             // Prepend the base URL if needed
             const avatarSrc = item.avatar ? `${API_URL}${item.avatar}` : "";
             return (
-              <Tr key={item.ID}
-              cursor="pointer"
-              onClick={() => handleRowClick(item.personnel_id)} // Pass personnel_id to Step6
-            >
+              <Tr
+                key={item.ID}
+                cursor="pointer"
+                onClick={() => handleRowClick(item.personnel_id)} // Pass personnel_id to Step6
+              >
                 <Td>
                   <Avatar
                     size="sm"

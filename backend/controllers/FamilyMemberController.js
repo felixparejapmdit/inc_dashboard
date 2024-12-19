@@ -16,24 +16,62 @@ exports.getAllFamilyMembers = async (req, res) => {
   }
 };
 
+// exports.getFamilyMemberById = async (req, res) => {
+//   try {
+//     const member = await FamilyMember.findByPk(req.params.id);
+//     if (!member) {
+//       return res.status(404).json({ message: "Family member not found" });
+//     }
+//     res.status(200).json(member);
+//   } catch (error) {
+//     console.error(
+//       "Error fetching family member by ID:",
+//       error.stack || error.message
+//     );
+//     res.status(500).json({
+//       error:
+//         error.message || "An error occurred while fetching the family member.",
+//     });
+//   }
+// };
+
 exports.getFamilyMemberById = async (req, res) => {
   try {
-    const member = await FamilyMember.findByPk(req.params.id);
-    if (!member) {
-      return res.status(404).json({ message: "Family member not found" });
+    const { personnel_id, relationship_type } = req.query;
+
+    if (!personnel_id) {
+      return res.status(400).json({ message: "Personnel ID is required." });
     }
-    res.status(200).json(member);
+
+    // Build query conditions
+    const whereConditions = { personnel_id };
+    if (relationship_type) {
+      whereConditions.relationship_type = relationship_type; // Add relationship_type filter
+    }
+
+    // Fetch family members based on conditions
+    const members = await FamilyMember.findAll({
+      where: whereConditions,
+    });
+
+    if (!members || members.length === 0) {
+      return res.status(200).json([]); // Return an empty array
+    }
+
+    res.status(200).json(members);
   } catch (error) {
     console.error(
-      "Error fetching family member by ID:",
+      "Error fetching family members by personnel_id:",
       error.stack || error.message
     );
     res.status(500).json({
       error:
-        error.message || "An error occurred while fetching the family member.",
+        error.message ||
+        "An error occurred while fetching family members by personnel_id.",
     });
   }
 };
+
 exports.createFamilyMember = async (req, res) => {
   try {
     const requiredFields = [

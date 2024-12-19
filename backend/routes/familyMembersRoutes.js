@@ -7,8 +7,14 @@ const FamilyMemberController = require("../controllers/FamilyMemberController");
 router.get("/api/family-members", FamilyMemberController.getAllFamilyMembers);
 
 // Get a specific family member by ID
+// router.get(
+//   "/api/family-members/:id",
+//   FamilyMemberController.getFamilyMemberById
+// );
+
+// Get family members by personnel_id
 router.get(
-  "/api/family-members/:id",
+  "/api/get-family-members",
   FamilyMemberController.getFamilyMemberById
 );
 

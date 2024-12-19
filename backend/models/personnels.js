@@ -56,7 +56,7 @@ const Personnel = sequelize.define(
     },
     surname_husband: {
       type: DataTypes.STRING(50),
-      allowNull: true,
+      allowNull: false,
     },
     suffix: {
       type: DataTypes.TEXT,
@@ -76,7 +76,7 @@ const Personnel = sequelize.define(
     },
     datejoined: {
       type: DataTypes.DATE,
-      allowNull: false,
+      allowNull: true,
     },
     language_id: {
       type: DataTypes.INTEGER,

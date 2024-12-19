@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom"; // Import useParams for retrieving URL parameters
+import { useSearchParams } from "react-router-dom"; // Import useParams for retrieving URL parameters
 import {
   Box,
   VStack,
@@ -36,7 +36,8 @@ const Step7 = ({
   educationalLevelOptions,
   bloodtypes,
 }) => {
-  const { personnelId } = useParams(); // Retrieve personnelId from URL
+  const [searchParams] = useSearchParams(); // Retrieve query parameters
+  const personnelId = searchParams.get("personnel_id"); // Get personnel_id from URL
 
   const [spouses, setSpouses] = useState([]);
   const getRowBgColor = (index) => (index % 2 === 0 ? "gray.50" : "green.50"); // Alternate colors
@@ -45,14 +46,46 @@ const Step7 = ({
 
   useEffect(() => {
     if (personnelId) {
-      // Fetch spouses related to the personnelId
+      // Fetch spouses related to the personnelId and relationship_type
       axios
-        .get(`${API_URL}/api/family-members?personnel_id=${personnelId}`)
+        .get(`${API_URL}/api/get-family-members`, {
+          params: {
+            personnel_id: personnelId,
+            relationship_type: "Spouse", // Specify relationship_type for spouses
+          },
+        })
         .then((res) => {
-          setSpouses(res.data || []);
+          // Ensure at least one spouse row is present
+          const defaultSpouse = {
+            relationship_type: "Spouse",
+            givenname: "",
+            lastname: "",
+            middlename: "",
+            date_of_marriage: "",
+            place_of_marriage: "",
+            contact_number: "",
+          };
+
+          if (Array.isArray(res.data) && res.data.length === 0) {
+            setData([defaultSpouse]); // Default empty spouse row
+          } else {
+            setData(res.data || [defaultSpouse]); // Use fetched data or default row
+          }
         })
         .catch((err) => {
           console.error("Error fetching spouses:", err);
+          // Show a default spouse row in case of an error
+          setData([
+            {
+              relationship_type: "Spouse",
+              givenname: "",
+              lastname: "",
+              middlename: "",
+              date_of_marriage: "",
+              place_of_marriage: "",
+              contact_number: "",
+            },
+          ]);
           toast({
             title: "Error",
             description: "Failed to fetch spouse data.",
@@ -61,6 +94,26 @@ const Step7 = ({
             isClosable: true,
           });
         });
+    } else {
+      // Default empty spouse row if no personnelId
+      setData([
+        {
+          relationship_type: "Spouse",
+          givenname: "",
+          lastname: "",
+          middlename: "",
+          date_of_marriage: "",
+          place_of_marriage: "",
+          contact_number: "",
+        },
+      ]);
+      toast({
+        title: "Missing Personnel ID",
+        description: "Personnel ID is required to proceed.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
     }
   }, [personnelId]);
 
@@ -71,7 +124,7 @@ const Step7 = ({
     const {
       id,
       isEditing,
-      relationshipType = spouse.relationship_type, // Fallback to the existing key if relationshipType is undefined
+      relationship_type = spouse.relationship_type, // Fallback to the existing key if relationship_type is undefined
       gender,
       givenName,
       lastName,
@@ -84,8 +137,8 @@ const Step7 = ({
       gender: spouse.gender,
       givenname: spouse.givenname,
       lastname: spouse.lastname,
-      relationship_type: relationshipType,
-      personnel_id: spouseData.personnel_id || 12,
+      relationship_type: relationship_type,
+      personnel_id: personnelId,
     };
     console.log("Formatted Data:", formattedData);
     // Validate required fields
@@ -106,7 +159,7 @@ const Step7 = ({
     if (missingField) {
       toast({
         title: "Validation Error",
-        description: `The field "${missingField}" is required for ${relationshipType}.`,
+        description: `The field "${missingField}" is required for ${relationship_type}.`,
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -139,7 +192,7 @@ const Step7 = ({
 
       toast({
         title: id ? "Spouse Updated" : "Spouse Added",
-        description: `${relationshipType} information has been ${
+        description: `${relationship_type} information has been ${
           id ? "updated" : "added"
         } successfully.`,
         status: "success",
@@ -155,7 +208,7 @@ const Step7 = ({
         title: "Error",
         description: `Failed to ${
           id ? "update" : "add"
-        } ${relationshipType} information. ${
+        } ${relationship_type} information. ${
           error.response?.data?.message || "Please try again later."
         }`,
         status: "error",

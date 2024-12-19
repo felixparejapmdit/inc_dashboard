@@ -1,6 +1,6 @@
 // src/pages/Step5.js
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom"; // Import useParams for retrieving URL parameters
+import { useSearchParams } from "react-router-dom"; // Import useParams for retrieving URL parameters
 import {
   Box,
   Tabs,
@@ -40,7 +40,8 @@ const Step5 = ({
   educationalLevelOptions,
   bloodtypes,
 }) => {
-  const { personnelId } = useParams(); // Retrieve personnelId from URL
+  const [searchParams] = useSearchParams(); // Retrieve query parameters
+  const personnelId = searchParams.get("personnel_id"); // Get personnel_id from URL
 
   const [parents, setParents] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -48,22 +49,87 @@ const Step5 = ({
 
   useEffect(() => {
     if (personnelId) {
-      // Fetch siblings related to the personnelId
+      // Fetch parents (Father and Mother) related to the personnelId
       axios
-        .get(`${API_URL}/api/family-members?personnel_id=${personnelId}`)
+        .get(`${API_URL}/api/get-family-members`, {
+          params: {
+            personnel_id: personnelId,
+            relationship_type: ["Father", "Mother"], // Specify relationship types for parents
+          },
+        })
         .then((res) => {
-          setParents(res.data || []);
+          // Check if data exists and ensure "Father" and "Mother" rows are always present
+          const parents = [
+            {
+              relationship_type: "Father",
+              givenname: "",
+              lastname: "",
+            },
+            {
+              relationship_type: "Mother",
+              givenname: "",
+              lastname: "",
+            },
+          ];
+
+          if (Array.isArray(res.data) && res.data.length === 0) {
+            setData(parents); // Default empty fields for Father and Mother
+          } else {
+            // Merge returned data with defaults to ensure Father and Mother rows
+            const mergedParents = parents.map(
+              (defaultParent) =>
+                res.data.find(
+                  (item) =>
+                    item.relationship_type === defaultParent.relationship_type
+                ) || defaultParent
+            );
+            setData(mergedParents);
+          }
         })
         .catch((err) => {
           console.error("Error fetching parents:", err);
+          // Default empty fields for Father and Mother in case of an error
+          setData([
+            {
+              relationship_type: "Father",
+              givenname: "",
+              lastname: "",
+            },
+            {
+              relationship_type: "Mother",
+              givenname: "",
+              lastname: "",
+            },
+          ]);
           toast({
             title: "Error",
-            description: "Failed to fetch parents data.",
+            description: "Failed to fetch parent data.",
             status: "error",
             duration: 3000,
             isClosable: true,
           });
         });
+    } else {
+      // Default empty fields for Father and Mother if no personnelId
+      setData([
+        {
+          relationship_type: "Father",
+          givenname: "",
+          lastname: "",
+        },
+        {
+          relationship_type: "Mother",
+          givenname: "",
+          lastname: "",
+        },
+      ]);
+      toast({
+        title: "Missing Personnel ID",
+        description: "Personnel ID is required to proceed.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
     }
   }, [personnelId]);
 
@@ -74,7 +140,7 @@ const Step5 = ({
     const {
       id,
       isEditing,
-      relationshipType = parent.relationship_type, // Fallback to the existing key if relationshipType is undefined,
+      relationship_type = parent.relationship_type, // Fallback to the existing key if relationship_type is undefined,
       givenName,
       lastName,
       gender,
@@ -87,8 +153,8 @@ const Step5 = ({
       givenname: parent.givenname,
       lastname: parent.lastname,
       gender: parent.gender,
-      relationship_type: relationshipType,
-      personnel_id: parentData.personnel_id || 8,
+      relationship_type: relationship_type,
+      personnel_id: personnelId,
     };
     console.log("Formatted Data:", formattedData);
     // Validate required fields
@@ -109,7 +175,7 @@ const Step5 = ({
     if (missingField) {
       toast({
         title: "Validation Error",
-        description: `The field "${missingField}" is required for ${relationshipType}.`,
+        description: `The field "${missingField}" is required for ${relationship_type}.`,
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -142,7 +208,7 @@ const Step5 = ({
 
       toast({
         title: id ? "Parent Updated" : "Parent Added",
-        description: `${relationshipType} information has been ${
+        description: `${relationship_type} information has been ${
           id ? "updated" : "added"
         } successfully.`,
         status: "success",
@@ -158,7 +224,7 @@ const Step5 = ({
         title: "Error",
         description: `Failed to ${
           id ? "update" : "add"
-        } ${relationshipType} information. ${
+        } ${relationship_type} information. ${
           error.response?.data?.message || "Please try again later."
         }`,
         status: "error",
@@ -179,7 +245,7 @@ const Step5 = ({
         <Tabs variant="enclosed" colorScheme="blue">
           <TabList>
             {data.map((parent, index) => (
-              <Tab key={index}>{parent.relationshipType}</Tab>
+              <Tab key={index}>{parent.relationship_type}</Tab>
             ))}
           </TabList>
 

@@ -2,7 +2,13 @@ const PersonnelContact = require("../models/PersonnelContact");
 
 exports.getAllContacts = async (req, res) => {
   try {
-    const contacts = await PersonnelContact.findAll();
+    const { personnel_id } = req.query; // Get personnel_id from query
+    const whereClause = personnel_id ? { personnel_id } : {}; // Filter by personnel_id if provided
+
+    const contacts = await PersonnelContact.findAll({ where: whereClause }); // Apply the where clause
+    if (contacts.length === 0) {
+      return res.status(404).json({ message: "No contacts found" });
+    }
     res.status(200).json(contacts);
   } catch (error) {
     res.status(500).json({ error: error.message });

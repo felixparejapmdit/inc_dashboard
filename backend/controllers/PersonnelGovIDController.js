@@ -2,10 +2,13 @@ const PersonnelGovID = require("../models/PersonnelGovID");
 
 exports.getAllGovIDs = async (req, res) => {
   try {
-    const govIDs = await PersonnelGovID.findAll();
+    const { personnel_id } = req.query;
+    const whereClause = personnel_id ? { personnel_id } : {};
+    const govIDs = await PersonnelGovID.findAll({ where: whereClause });
     res.status(200).json(govIDs);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error fetching government IDs:", error);
+    res.status(500).json({ error: "Failed to fetch government IDs." });
   }
 };
 
@@ -22,11 +25,31 @@ exports.getGovIDById = async (req, res) => {
 };
 
 exports.createGovID = async (req, res) => {
+  const { personnel_id, gov_id, gov_issued_id } = req.body;
+
+  // Validate required fields
+  if (!personnel_id || !gov_id || !gov_issued_id) {
+    return res.status(400).json({
+      error:
+        "Personnel ID, Government ID type, and Government Issued ID are required.",
+    });
+  }
+
   try {
-    const newGovID = await PersonnelGovID.create(req.body);
+    // Create new government ID entry
+    const newGovID = await PersonnelGovID.create({
+      personnel_id,
+      gov_id,
+      gov_issued_id,
+    });
+
+    // Send success response
     res.status(201).json(newGovID);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error creating government ID:", error);
+    res.status(500).json({
+      error: "Failed to create government ID. Please try again later.",
+    });
   }
 };
 

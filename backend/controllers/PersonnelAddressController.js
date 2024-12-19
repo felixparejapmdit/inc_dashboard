@@ -2,10 +2,13 @@ const PersonnelAddress = require("../models/PersonnelAddress");
 
 exports.getAllAddresses = async (req, res) => {
   try {
-    const addresses = await PersonnelAddress.findAll();
+    const { personnel_id } = req.query;
+    const whereClause = personnel_id ? { personnel_id } : {};
+    const addresses = await PersonnelAddress.findAll({ where: whereClause });
     res.status(200).json(addresses);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error fetching addresses:", error);
+    res.status(500).json({ error: "Failed to fetch addresses." });
   }
 };
 
