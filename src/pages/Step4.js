@@ -1,27 +1,27 @@
-// src/pages/Step4.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+
 import { useSearchParams } from "react-router-dom";
 import {
   Box,
   Heading,
-  VStack,
-  HStack,
-  Text,
-  Input,
-  Select,
-  Button,
-  IconButton,
   Table,
+  Thead,
   Tbody,
   Tr,
-  Td,
   Th,
+  Td,
+  Grid,
+  GridItem,
+  Select,
+  Input,
+  IconButton,
+  Button,
+  Text,
   useToast,
+  Flex,
 } from "@chakra-ui/react";
 import { EditIcon, DeleteIcon, CheckIcon } from "@chakra-ui/icons";
 import axios from "axios";
-
-const API_URL = process.env.REACT_APP_API_URL;
 
 const Step4 = () => {
   const [education, setEducation] = useState([]);
@@ -31,639 +31,583 @@ const Step4 = () => {
   const [searchParams] = useSearchParams(); // Retrieve query parameters
   const personnelId = searchParams.get("personnel_id"); // Get personnel_id from URL
 
-  // Validation Function
-  const validateEducation = (edu) => {
-    return (
-      edu.level &&
-      edu.startFrom &&
-      edu.completionYear &&
-      edu.school &&
-      edu.fieldOfStudy &&
-      edu.degree &&
-      edu.institution
-    );
-  };
+  const [loading, setLoading] = useState(true);
 
-  const validateWorkExperience = (work) => {
-    return (
-      work.employmentType &&
-      work.company &&
-      work.position &&
-      work.department &&
-      work.startDate
-    );
-  };
-
-  // Save Education to Database
-  // Save Education to Database
-  const saveEducationToDatabase = async (edu) => {
-    console.log("Saving Education:", edu); // Debugging log
-    console.log("Personnel ID:", personnelId); // Debugging log for personnel ID
-
-    try {
-      const response = await axios.post(
-        `${API_URL}/api/educational-backgrounds`,
-        {
-          personnel_id: personnelId,
-          level: edu.level,
-          startfrom: edu.startFrom,
-          completion_year: edu.completionYear,
-          school: edu.school,
-          field_of_study: edu.fieldOfStudy,
-          degree: edu.degree,
-          institution: edu.institution,
-          professional_licensure_examination: edu.professionalLicensure,
-        }
-      );
-
-      console.log("Response:", response.data); // Debugging log
+  // Fetch educational and work experience data
+  useEffect(() => {
+    if (!personnelId) {
       toast({
-        title: "Educational Background Saved",
-        description: "Entry has been saved to the database.",
-        status: "success",
+        title: "Missing Personnel ID",
+        description: "Personnel ID is required to fetch data.",
+        status: "error",
         duration: 3000,
         isClosable: true,
       });
+      return;
+    }
+
+    const fetchData = async () => {
+      try {
+        const [educationRes, workExperienceRes] = await Promise.all([
+          axios.get(
+            `${process.env.REACT_APP_API_URL}/api/educational-backgrounds`,
+            {
+              params: { personnel_id: personnelId },
+            }
+          ),
+          axios.get(`${process.env.REACT_APP_API_URL}/api/work-experiences`, {
+            params: { personnel_id: personnelId },
+          }),
+        ]);
+        setEducation(educationRes.data || []);
+        setWorkExperience(workExperienceRes.data || []);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        toast({
+          title: "Error loading data",
+          description:
+            "Failed to fetch educational background or work experience.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    setLoading(true);
+    fetchData();
+  }, [personnelId, toast]);
+
+  // Handle changes for educational background fields
+  const handleEducationChange = (index, field, value) => {
+    const updatedEducation = [...education];
+    updatedEducation[index][field] = value;
+    setEducation(updatedEducation);
+  };
+
+  // Handle changes for work experience fields
+  const handleWorkExperienceChange = (index, field, value) => {
+    const updatedWorkExperience = [...workExperience];
+    updatedWorkExperience[index][field] = value;
+    setWorkExperience(updatedWorkExperience);
+  };
+
+  // Save or update educational background
+  const handleSaveOrUpdateEducation = async (index) => {
+    const edu = education[index];
+    const payload = {
+      personnel_id: personnelId,
+      level: edu.level,
+      startfrom: edu.startFrom,
+      completion_year: edu.completion_year,
+      school: edu.school,
+      field_of_study: edu.field_of_study,
+      degree: edu.degree,
+      institution: edu.institution,
+      professional_licensure_examination:
+        edu.professional_licensure_examination,
+    };
+
+    try {
+      if (edu.id) {
+        console.log("Updating education:", edu.id, payload);
+        await axios.put(
+          `${process.env.REACT_APP_API_URL}/api/educational-backgrounds/${edu.id}`,
+          payload
+        );
+        toast({
+          title: "Educational background updated successfully.",
+          status: "success",
+          duration: 3000,
+        });
+      } else {
+        console.log("Saving new education:", payload);
+        const response = await axios.post(
+          `${process.env.REACT_APP_API_URL}/api/educational-backgrounds`,
+          payload
+        );
+        edu.id = response.data.id; // Assign new ID to the record
+        toast({
+          title: "Educational background saved successfully.",
+          status: "success",
+          duration: 3000,
+        });
+      }
+      toggleEditEducation(index);
     } catch (error) {
-      console.error("Error saving education:", error.response || error.message);
+      console.error("Error saving/updating education:", error);
       toast({
         title: "Error",
         description:
           error.response?.data?.message ||
-          "Failed to save educational background.",
+          "Failed to save or update education.",
         status: "error",
         duration: 3000,
-        isClosable: true,
       });
     }
   };
 
-  // Save Work Experience to Database
-  const saveWorkExperienceToDatabase = async (work) => {
+  // Save or update work experience
+  const handleSaveOrUpdateWorkExperience = async (index) => {
+    const work = workExperience[index];
+    const payload = {
+      personnel_id: personnelId,
+      employment_type: work.employment_type,
+      company: work.company,
+      address: work.address,
+      position: work.position,
+      department: work.department,
+      section: work.section,
+      start_date: work.start_date,
+      end_date: work.end_date,
+      reason_for_leaving: work.reason_for_leaving,
+    };
+
     try {
-      await axios.post(`${API_URL}/api/work-experiences`, {
-        personnel_id: personnelId,
-        employment_type: work.employmentType,
-        company: work.company,
-        address: work.address,
-        position: work.position,
-        department: work.department,
-        section: work.section,
-        start_date: work.startDate,
-        end_date: work.endDate,
-        reason_for_leaving: work.reasonForLeaving,
-      });
-      toast({
-        title: "Work Experience Saved",
-        description: "Entry has been saved to the database.",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      if (work.id) {
+        console.log("Updating work experience:", work.id, payload);
+        await axios.put(
+          `${process.env.REACT_APP_API_URL}/api/work-experiences/${work.id}`,
+          payload
+        );
+        toast({
+          title: "Work experience updated successfully.",
+          status: "success",
+          duration: 3000,
+        });
+      } else {
+        console.log("Saving new work experience:", payload);
+        const response = await axios.post(
+          `${process.env.REACT_APP_API_URL}/api/work-experiences`,
+          payload
+        );
+        work.id = response.data.id; // Assign new ID to the record
+        toast({
+          title: "Work experience saved successfully.",
+          status: "success",
+          duration: 3000,
+        });
+      }
+      toggleEditWorkExperience(index);
     } catch (error) {
-      console.error("Error saving work experience:", error);
+      console.error("Error saving/updating work experience:", error);
       toast({
         title: "Error",
-        description: "Failed to save work experience.",
+        description:
+          error.response?.data?.message ||
+          "Failed to save or update work experience.",
         status: "error",
         duration: 3000,
-        isClosable: true,
       });
     }
   };
 
-  // Add new entry handlers
+  // Add new educational background
   const handleAddEducation = () => {
     setEducation([
       ...education,
       {
         level: "",
         startFrom: "",
-        completionYear: "",
+        completion_year: "",
         school: "",
-        fieldOfStudy: "",
+        field_of_study: "",
         degree: "",
         institution: "",
-        professionalLicensure: "",
+        professional_licensure_examination: "",
         isEditing: true,
       },
     ]);
   };
 
+  // Add new work experience
   const handleAddWorkExperience = () => {
     setWorkExperience([
       ...workExperience,
       {
-        employmentType: "",
+        employment_type: "",
         company: "",
         address: "",
         position: "",
         department: "",
         section: "",
-        startDate: "",
-        endDate: "",
-        reasonForLeaving: "",
+        start_date: "",
+        end_date: "",
+        reason_for_leaving: "",
         isEditing: true,
       },
     ]);
   };
 
-  // Save handlers for education and work experience
-  const handleSaveEducation = (index) => {
-    const edu = education[index];
-    console.log("Education Entry to Save:", edu); // Debugging log
-
-    if (!validateEducation(edu)) {
-      toast({
-        title: "Validation Error",
-        description: "All fields are required for Educational Background.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    saveEducationToDatabase(edu); // Save to database
-    const updatedEducation = [...education];
-    updatedEducation[index].isEditing = false;
-    setEducation(updatedEducation);
-  };
-
-  const handleSaveWorkExperience = (index) => {
-    const work = workExperience[index];
-    if (!validateWorkExperience(work)) {
-      toast({
-        title: "Validation Error",
-        description: "All required fields must be filled for Work Experience.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-    saveWorkExperienceToDatabase(work); // Save to database
-    const updatedExperience = [...workExperience];
-    updatedExperience[index].isEditing = false;
-    setWorkExperience(updatedExperience);
-  };
-
-  // Delete handlers
-  const handleDeleteEducation = (index) => {
-    setEducation(education.filter((_, i) => i !== index));
-    toast({
-      title: "Deleted Successfully",
-      description: "Education entry has been removed.",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-    });
-  };
-
-  const handleDeleteWorkExperience = (index) => {
-    setWorkExperience(workExperience.filter((_, i) => i !== index));
-    toast({
-      title: "Deleted Successfully",
-      description: "Work Experience entry has been removed.",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-    });
-  };
-
-  // Edit and save entry handlers
+  // Toggle editing for educational background
   const toggleEditEducation = (index) => {
     const updatedEducation = [...education];
     updatedEducation[index].isEditing = !updatedEducation[index].isEditing;
     setEducation(updatedEducation);
   };
 
+  // Toggle editing for work experience
   const toggleEditWorkExperience = (index) => {
-    const updatedExperience = [...workExperience];
-    updatedExperience[index].isEditing = !updatedExperience[index].isEditing;
-    setWorkExperience(updatedExperience);
+    const updatedWorkExperience = [...workExperience];
+    updatedWorkExperience[index].isEditing =
+      !updatedWorkExperience[index].isEditing;
+    setWorkExperience(updatedWorkExperience);
+  };
+
+  // Function to remove an education entry
+  const handleRemoveEducation = async (idx) => {
+    const educationEntry = education[idx];
+
+    if (educationEntry.id) {
+      const confirmed = window.confirm(
+        "Are you sure you want to delete this educational background?"
+      );
+      if (!confirmed) return;
+
+      try {
+        // Delete the record from the database
+        await axios.delete(
+          `${process.env.REACT_APP_API_URL}/api/educational-backgrounds/${educationEntry.id}`
+        );
+
+        toast({
+          title: "Educational background deleted successfully.",
+          status: "success",
+          duration: 3000,
+        });
+      } catch (error) {
+        console.error("Error deleting educational background:", error);
+        toast({
+          title: "Error deleting educational background.",
+          description:
+            error.response?.data?.error ||
+            "Failed to delete the educational background.",
+          status: "error",
+          duration: 3000,
+        });
+      }
+    }
+
+    // Remove the entry from the state
+    setEducation(education.filter((_, i) => i !== idx));
+  };
+
+  // Function to remove a work experience entry
+  const handleRemoveWorkExperience = async (idx) => {
+    const workEntry = workExperience[idx];
+
+    if (workEntry.id) {
+      const confirmed = window.confirm(
+        "Are you sure you want to delete this work experience?"
+      );
+      if (!confirmed) return;
+
+      try {
+        // Delete the record from the database
+        await axios.delete(
+          `${process.env.REACT_APP_API_URL}/api/work-experiences/${workEntry.id}`
+        );
+
+        toast({
+          title: "Work experience deleted successfully.",
+          status: "success",
+          duration: 3000,
+        });
+      } catch (error) {
+        console.error("Error deleting work experience:", error);
+        toast({
+          title: "Error deleting work experience.",
+          description:
+            error.response?.data?.error ||
+            "Failed to delete the work experience.",
+          status: "error",
+          duration: 3000,
+        });
+      }
+    }
+
+    // Remove the entry from the state
+    setWorkExperience(workExperience.filter((_, i) => i !== idx));
   };
 
   return (
-    <Box width="100%" bg="white" boxShadow="sm" p={5} my={85}>
+    <Box width="100%" bg="white" boxShadow="sm" p={5} mt={20}>
       <Heading as="h2" size="lg" textAlign="center" mb={6}>
         Step 4: Educational Background & Work Experience
       </Heading>
 
-      <VStack align="start" spacing={4} w="100%">
-        <Text fontWeight="bold" fontSize="lg" mb={2}>
-          Educational Background:
-        </Text>
-        {education.map((edu, index) => (
-          <Box
-            key={index}
-            bg="gray.50"
-            p={4}
-            borderRadius="md"
-            boxShadow="sm"
-            mb={4}
-            width="100%"
-          >
-            <HStack spacing={4} mb={4} w="100%">
-              <Box flex="1">
-                <Text fontWeight="bold">Level</Text>
-                {edu.isEditing ? (
-                  <Select
-                    placeholder="Select Level"
-                    value={edu.level}
-                    onChange={(e) =>
-                      setEducation((prev) => {
-                        const updated = [...prev];
-                        updated[index].level = e.target.value;
-                        return updated;
-                      })
-                    }
-                  >
-                    <option>Elementary</option>
-                    <option>Secondary</option>
-                    <option>Senior High School</option>
-                    <option>College Graduate</option>
-                    <option>Undergrad</option>
-                  </Select>
-                ) : (
-                  <Text>{edu.level}</Text>
-                )}
-              </Box>
-              <Box flex="1">
-                <Text fontWeight="bold">Start From</Text>
-                {edu.isEditing ? (
-                  <Input
-                    placeholder="Start Year"
-                    type="number"
-                    value={edu.startFrom}
-                    onChange={(e) =>
-                      setEducation((prev) => {
-                        const updated = [...prev];
-                        updated[index].startFrom = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{edu.startFrom}</Text>
-                )}
-              </Box>
-              <Box flex="1">
-                <Text fontWeight="bold">Completion Year</Text>
-                {edu.isEditing ? (
-                  <Input
-                    placeholder="Completion Year"
-                    type="number"
-                    value={edu.completionYear}
-                    onChange={(e) =>
-                      setEducation((prev) => {
-                        const updated = [...prev];
-                        updated[index].completionYear = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{edu.completionYear}</Text>
-                )}
-              </Box>
-            </HStack>
+      {/* Educational Background Section */}
+      <Text fontWeight="bold" fontSize="lg" mt={6} mb={2}>
+        Educational Background
+      </Text>
+      {education.map((edu, idx) => (
+        <Box
+          key={idx}
+          p={4}
+          bg="cyan.50"
+          borderRadius="md"
+          mb={4}
+          boxShadow="md"
+        >
+          <Grid templateColumns="repeat(4, 1fr)" gap={4}>
+            <GridItem>
+              <Select
+                placeholder="Level"
+                value={edu.level}
+                isDisabled={!edu.isEditing}
+                onChange={(e) =>
+                  handleEducationChange(idx, "level", e.target.value)
+                }
+              >
+                <option value="Elementary">Elementary</option>
+                <option value="Secondary">Secondary</option>
+                <option value="Senior High School">Senior High School</option>
+                <option value="College Graduate">College Graduate</option>
+                <option value="Undergrad">Undergrad</option>
+              </Select>
+            </GridItem>
+            <GridItem>
+              <Input
+                placeholder="Start Year"
+                type="number"
+                value={edu.startFrom}
+                isDisabled={!edu.isEditing}
+                onChange={(e) =>
+                  handleEducationChange(idx, "startFrom", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Input
+                placeholder="Completion Year"
+                type="number"
+                value={edu.completion_year}
+                isDisabled={!edu.isEditing}
+                onChange={(e) =>
+                  handleEducationChange(idx, "completion_year", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Input
+                placeholder="School"
+                value={edu.school}
+                isDisabled={!edu.isEditing}
+                onChange={(e) =>
+                  handleEducationChange(idx, "school", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Input
+                placeholder="Field of Study"
+                value={edu.field_of_study}
+                isDisabled={!edu.isEditing}
+                onChange={(e) =>
+                  handleEducationChange(idx, "field_of_study", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Input
+                placeholder="Degree"
+                value={edu.degree}
+                isDisabled={!edu.isEditing}
+                onChange={(e) =>
+                  handleEducationChange(idx, "degree", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Input
+                placeholder="Institution"
+                value={edu.institution}
+                isDisabled={!edu.isEditing}
+                onChange={(e) =>
+                  handleEducationChange(idx, "institution", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Input
+                placeholder="Professional Licensure"
+                value={edu.professional_licensure_examination}
+                isDisabled={!edu.isEditing}
+                onChange={(e) =>
+                  handleEducationChange(
+                    idx,
+                    "professional_licensure_examination",
+                    e.target.value
+                  )
+                }
+              />
+            </GridItem>
+          </Grid>
+          <Flex justifyContent="flex-end" mt={4}>
+            <IconButton
+              icon={edu.isEditing ? <CheckIcon /> : <EditIcon />}
+              colorScheme={edu.isEditing ? "green" : "blue"}
+              onClick={() =>
+                edu.isEditing
+                  ? handleSaveOrUpdateEducation(idx)
+                  : toggleEditEducation(idx)
+              }
+              mr={2}
+            />
+            <IconButton
+              icon={<DeleteIcon />}
+              colorScheme="red"
+              onClick={() => handleRemoveEducation(idx)}
+            />
+          </Flex>
+        </Box>
+      ))}
+      <Button onClick={handleAddEducation} colorScheme="teal" mt={4}>
+        Add Educational Background
+      </Button>
 
-            <HStack spacing={4} mb={4} w="100%">
-              <Box flex="1">
-                <Text fontWeight="bold">School</Text>
-                {edu.isEditing ? (
-                  <Input
-                    placeholder="School"
-                    value={edu.school}
-                    onChange={(e) =>
-                      setEducation((prev) => {
-                        const updated = [...prev];
-                        updated[index].school = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{edu.school}</Text>
-                )}
-              </Box>
-              <Box flex="1">
-                <Text fontWeight="bold">Field of Study</Text>
-                {edu.isEditing ? (
-                  <Input
-                    placeholder="Field of Study"
-                    value={edu.fieldOfStudy}
-                    onChange={(e) =>
-                      setEducation((prev) => {
-                        const updated = [...prev];
-                        updated[index].fieldOfStudy = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{edu.fieldOfStudy}</Text>
-                )}
-              </Box>
-              <Box flex="1">
-                <Text fontWeight="bold">Degree</Text>
-                {edu.isEditing ? (
-                  <Input
-                    placeholder="Degree"
-                    value={edu.degree}
-                    onChange={(e) =>
-                      setEducation((prev) => {
-                        const updated = [...prev];
-                        updated[index].degree = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{edu.degree}</Text>
-                )}
-              </Box>
-            </HStack>
-
-            <HStack spacing={4} mb={4} w="100%">
-              <Box flex="1">
-                <Text fontWeight="bold">Institution</Text>
-                {edu.isEditing ? (
-                  <Input
-                    placeholder="Institution"
-                    value={edu.institution}
-                    onChange={(e) =>
-                      setEducation((prev) => {
-                        const updated = [...prev];
-                        updated[index].institution = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{edu.institution}</Text>
-                )}
-              </Box>
-              <Box flex="1">
-                <Text fontWeight="bold">Professional Licensure</Text>
-                {edu.isEditing ? (
-                  <Input
-                    placeholder="Professional Licensure"
-                    value={edu.professionalLicensure}
-                    onChange={(e) =>
-                      setEducation((prev) => {
-                        const updated = [...prev];
-                        updated[index].professionalLicensure = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{edu.professionalLicensure}</Text>
-                )}
-              </Box>
-              <HStack>
-                {edu.isEditing ? (
-                  <IconButton
-                    icon={<CheckIcon />}
-                    onClick={() => handleSaveEducation(index)}
-                    colorScheme="green"
-                  />
-                ) : (
-                  <IconButton
-                    icon={<EditIcon />}
-                    onClick={() => toggleEditEducation(index)}
-                  />
-                )}
-                <IconButton
-                  icon={<DeleteIcon />}
-                  onClick={() => handleDeleteEducation(index)}
-                  colorScheme="red"
-                />
-              </HStack>
-            </HStack>
-          </Box>
-        ))}
-        <Button onClick={handleAddEducation} colorScheme="teal">
-          Add Education
-        </Button>
-      </VStack>
-
-      <VStack align="start" spacing={4} w="100%">
-        <Text fontWeight="bold" fontSize="lg" mb={2}>
-          Work Experience:
-        </Text>
-        {workExperience.map((work, index) => (
-          <Box
-            key={index}
-            bg="gray.50"
-            p={4}
-            borderRadius="md"
-            boxShadow="sm"
-            mb={4}
-            width="100%"
-          >
-            <HStack spacing={4} mb={4} w="100%">
-              <Box flex="1">
-                <Text fontWeight="bold">Employment Type</Text>
-                {work.isEditing ? (
-                  <Select
-                    placeholder="Select Type"
-                    value={work.employmentType}
-                    onChange={(e) =>
-                      setWorkExperience((prev) => {
-                        const updated = [...prev];
-                        updated[index].employmentType = e.target.value;
-                        return updated;
-                      })
-                    }
-                  >
-                    <option>Self-employed</option>
-                    <option>Employed</option>
-                    <option>Government</option>
-                    <option>Private</option>
-                  </Select>
-                ) : (
-                  <Text>{work.employmentType}</Text>
-                )}
-              </Box>
-              <Box flex="1">
-                <Text fontWeight="bold">Company</Text>
-                {work.isEditing ? (
-                  <Input
-                    placeholder="Company"
-                    value={work.company}
-                    onChange={(e) =>
-                      setWorkExperience((prev) => {
-                        const updated = [...prev];
-                        updated[index].company = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{work.company}</Text>
-                )}
-              </Box>
-              <Box flex="1">
-                <Text fontWeight="bold">Address</Text>
-                {work.isEditing ? (
-                  <Input
-                    placeholder="Address"
-                    value={work.address}
-                    onChange={(e) =>
-                      setWorkExperience((prev) => {
-                        const updated = [...prev];
-                        updated[index].address = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{work.address}</Text>
-                )}
-              </Box>
-              <Box flex="1">
-                <Text fontWeight="bold">Position</Text>
-                {work.isEditing ? (
-                  <Input
-                    placeholder="Position"
-                    value={work.position}
-                    onChange={(e) =>
-                      setWorkExperience((prev) => {
-                        const updated = [...prev];
-                        updated[index].position = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{work.position}</Text>
-                )}
-              </Box>
-            </HStack>
-
-            <HStack spacing={4} mb={4} w="100%">
-              <Box flex="1">
-                <Text fontWeight="bold">Department</Text>
-                {work.isEditing ? (
-                  <Input
-                    placeholder="Department"
-                    value={work.department}
-                    onChange={(e) =>
-                      setWorkExperience((prev) => {
-                        const updated = [...prev];
-                        updated[index].department = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{work.department}</Text>
-                )}
-              </Box>
-              <Box flex="1">
-                <Text fontWeight="bold">Section</Text>
-                {work.isEditing ? (
-                  <Input
-                    placeholder="Section"
-                    value={work.section}
-                    onChange={(e) =>
-                      setWorkExperience((prev) => {
-                        const updated = [...prev];
-                        updated[index].section = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{work.section}</Text>
-                )}
-              </Box>
-              <Box flex="1">
-                <Text fontWeight="bold">Start Date</Text>
-                {work.isEditing ? (
-                  <Input
-                    type="date"
-                    value={work.startDate}
-                    onChange={(e) =>
-                      setWorkExperience((prev) => {
-                        const updated = [...prev];
-                        updated[index].startDate = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{work.startDate}</Text>
-                )}
-              </Box>
-              <Box flex="1">
-                <Text fontWeight="bold">End Date</Text>
-                {work.isEditing ? (
-                  <Input
-                    type="date"
-                    value={work.endDate}
-                    onChange={(e) =>
-                      setWorkExperience((prev) => {
-                        const updated = [...prev];
-                        updated[index].endDate = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{work.endDate}</Text>
-                )}
-              </Box>
-            </HStack>
-
-            <HStack spacing={4} mb={4} w="100%">
-              <Box flex="1">
-                <Text fontWeight="bold">Reason for Leaving</Text>
-                {work.isEditing ? (
-                  <Input
-                    placeholder="Reason for Leaving"
-                    value={work.reasonForLeaving}
-                    onChange={(e) =>
-                      setWorkExperience((prev) => {
-                        const updated = [...prev];
-                        updated[index].reasonForLeaving = e.target.value;
-                        return updated;
-                      })
-                    }
-                  />
-                ) : (
-                  <Text>{work.reasonForLeaving}</Text>
-                )}
-              </Box>
-              <HStack>
-                {work.isEditing ? (
-                  <IconButton
-                    icon={<CheckIcon />}
-                    onClick={() => handleSaveWorkExperience(index)}
-                    colorScheme="green"
-                  />
-                ) : (
-                  <IconButton
-                    icon={<EditIcon />}
-                    onClick={() => toggleEditWorkExperience(index)}
-                  />
-                )}
-                <IconButton
-                  icon={<DeleteIcon />}
-                  onClick={() => handleDeleteWorkExperience(index)}
-                  colorScheme="red"
-                />
-              </HStack>
-            </HStack>
-          </Box>
-        ))}
-        <Button onClick={handleAddWorkExperience} colorScheme="teal">
-          Add Work Experience
-        </Button>
-      </VStack>
+      {/* Work Experience Section */}
+      <Text fontWeight="bold" fontSize="lg" mt={6} mb={2}>
+        Work Experience
+      </Text>
+      {workExperience.map((work, idx) => (
+        <Box
+          key={idx}
+          p={4}
+          bg="cyan.50"
+          borderRadius="md"
+          mb={4}
+          boxShadow="md"
+        >
+          <Grid templateColumns="repeat(4, 1fr)" gap={4}>
+            <GridItem>
+              <Select
+                placeholder="Employment Type"
+                value={work.employment_type}
+                isDisabled={!work.isEditing}
+                onChange={(e) =>
+                  handleWorkExperienceChange(
+                    idx,
+                    "employment_type",
+                    e.target.value
+                  )
+                }
+              >
+                <option value="Self-employed">Self-employed</option>
+                <option value="Employed">Employed</option>
+                <option value="Government">Government</option>
+                <option value="Private">Private</option>
+              </Select>
+            </GridItem>
+            <GridItem>
+              <Input
+                placeholder="Company"
+                value={work.company}
+                isDisabled={!work.isEditing}
+                onChange={(e) =>
+                  handleWorkExperienceChange(idx, "company", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Input
+                placeholder="Address"
+                value={work.address}
+                isDisabled={!work.isEditing}
+                onChange={(e) =>
+                  handleWorkExperienceChange(idx, "address", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Input
+                placeholder="Position"
+                value={work.position}
+                isDisabled={!work.isEditing}
+                onChange={(e) =>
+                  handleWorkExperienceChange(idx, "position", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Input
+                placeholder="Department"
+                value={work.department}
+                isDisabled={!work.isEditing}
+                onChange={(e) =>
+                  handleWorkExperienceChange(idx, "department", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Input
+                placeholder="Section"
+                value={work.section}
+                isDisabled={!work.isEditing}
+                onChange={(e) =>
+                  handleWorkExperienceChange(idx, "section", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Input
+                type="date"
+                value={work.start_date}
+                isDisabled={!work.isEditing}
+                onChange={(e) =>
+                  handleWorkExperienceChange(idx, "start_date", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Input
+                type="date"
+                value={work.end_date}
+                isDisabled={!work.isEditing}
+                onChange={(e) =>
+                  handleWorkExperienceChange(idx, "end_date", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Input
+                placeholder="Reason for Leaving"
+                value={work.reason_for_leaving}
+                isDisabled={!work.isEditing}
+                onChange={(e) =>
+                  handleWorkExperienceChange(
+                    idx,
+                    "reason_for_leaving",
+                    e.target.value
+                  )
+                }
+              />
+            </GridItem>
+          </Grid>
+          <Flex justifyContent="flex-end" mt={4}>
+            <IconButton
+              icon={work.isEditing ? <CheckIcon /> : <EditIcon />}
+              colorScheme={work.isEditing ? "green" : "blue"}
+              onClick={() =>
+                work.isEditing
+                  ? handleSaveOrUpdateWorkExperience(idx)
+                  : toggleEditWorkExperience(idx)
+              }
+              mr={2}
+            />
+            <IconButton
+              icon={<DeleteIcon />}
+              colorScheme="red"
+              onClick={() => handleRemoveWorkExperience(idx)}
+            />
+          </Flex>
+        </Box>
+      ))}
+      <Button onClick={handleAddWorkExperience} colorScheme="teal" mt={4}>
+        Add Work Experience
+      </Button>
     </Box>
   );
 };

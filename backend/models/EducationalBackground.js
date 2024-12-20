@@ -47,7 +47,7 @@ const EducationalBackground = sequelize.define(
       type: DataTypes.STRING(50),
       allowNull: true,
     },
-    Professional_Licensure_Examination: {
+    professional_licensure_examination: {
       type: DataTypes.STRING(150),
       allowNull: true,
     },

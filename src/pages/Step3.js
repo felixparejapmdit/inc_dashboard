@@ -15,6 +15,7 @@ import {
   Button,
   Text,
   useToast,
+  Flex,
 } from "@chakra-ui/react";
 import {
   EditIcon,
@@ -95,15 +96,7 @@ const Step3 = () => {
         // Update state based on fetched data or set empty if no data
         setContacts(Array.isArray(contactsRes.data) ? contactsRes.data : []);
         setAddresses(Array.isArray(addressesRes.data) ? addressesRes.data : []);
-        // Initialize govIDs with disabled based on whether they have an existing ID
-        const initializedGovIDs = (
-          Array.isArray(govIDsRes.data) ? govIDsRes.data : []
-        ).map((govID) => ({
-          ...govID,
-          disabled: false, // Existing IDs are editable on load
-        }));
-
-        setGovIDs(initializedGovIDs);
+        setGovIDs(Array.isArray(govIDsRes.data) ? govIDsRes.data : []);
       } catch (error) {
         // Log error to the console but do not show toast
         console.error("Error fetching table data:", error);
@@ -122,39 +115,12 @@ const Step3 = () => {
     fetchTableData();
   }, [personnelId, toast]);
 
-  // useEffect(() => {
-  //   fetchDropdownData();
-  // }, []);
-
-  // const fetchDropdownData = async () => {
-  //   setLoading(true);
-  //   try {
-  //     const [contactTypeRes, governmentIDRes] = await Promise.all([
-  //       axios.get(`${process.env.REACT_APP_API_URL}/api/contact-type-info`),
-  //       axios.get(`${process.env.REACT_APP_API_URL}/api/government-issued-ids`),
-  //     ]);
-  //     setContactTypes(contactTypeRes.data || []);
-  //     setGovernmentIDs(governmentIDRes.data || []);
-  //   } catch (error) {
-  //     toast({
-  //       title: "Error loading dropdown data",
-  //       description: error.message,
-  //       status: "error",
-  //       duration: 3000,
-  //     });
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  const handleAddContact = () =>
-    setContacts([...contacts, { contactType: "", contactInfo: "" }]);
-
-  const handleAddAddress = () =>
-    setAddresses([...addresses, { addressType: "", name: "" }]);
-
-  const handleAddGovID = () =>
-    setGovIDs([...govIDs, { govIDType: "", govIDNumber: "", document: null }]);
+  const handleAddGovID = () => {
+    setGovIDs([
+      ...govIDs,
+      { gov_id: "", gov_issued_id: "", isEditing: true }, // New row is editable by default
+    ]);
+  };
 
   const handleContactChange = (idx, field, value) => {
     const updatedContacts = contacts.map((contact, i) =>
@@ -170,97 +136,254 @@ const Step3 = () => {
     setAddresses(updatedAddresses);
   };
 
-  const handleSaveContact = async (idx) => {
+  const handleSaveOrUpdateContact = async (idx) => {
     const contact = contacts[idx];
-    try {
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/personnel-contacts`,
-        {
-          personnel_id: personnelId, // Replace with actual personnel ID
-          contactype_id: contact.contactType,
-          contact_info: contact.contactInfo,
-        }
-      );
-      toast({
-        title: "Contact saved successfully.",
-        status: "success",
-        duration: 3000,
-      });
-    } catch (error) {
-      console.error("Error saving contact:", error);
-      toast({
-        title: "Error saving contact.",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
-    }
-  };
-
-  const handleSaveAddress = async (idx) => {
-    const address = addresses[idx];
-    try {
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/personnel-addresses`,
-        {
-          personnel_id: personnelId, // Replace with actual personnel ID
-          address_type: address.addressType,
-          name: address.name,
-        }
-      );
-      toast({
-        title: "Address saved successfully.",
-        status: "success",
-        duration: 3000,
-      });
-    } catch (error) {
-      console.error("Error saving address:", error);
-      toast({
-        title: "Error saving address.",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
-    }
-  };
-
-  const handleSaveGovID = async (idx) => {
-    const govID = govIDs[idx];
     const payload = {
-      personnel_id: personnelId, // Correct personnel ID
-      gov_id: govID.gov_id, // Ensure this matches the selected ID type
-      gov_issued_id: govID.gov_issued_id, // Ensure this matches the input for the government-issued ID
+      personnel_id: personnelId,
+      contactype_id: contact.contactype_id,
+      contact_info: contact.contact_info,
     };
 
-    console.log("Payload being sent:", payload); // Debugging to ensure correct data structure
+    try {
+      if (contact.id) {
+        // **Force update even if the data is unchanged**
+        console.log(
+          "Updating contact with ID:",
+          contact.id,
+          "Payload:",
+          payload
+        );
+        alert("UPDATE: " + contact.id);
+        await axios.put(
+          `${process.env.REACT_APP_API_URL}/api/personnel-contacts/${contact.id}`,
+          payload
+        );
+
+        toast({
+          title: "Contact updated successfully.",
+          status: "success",
+          duration: 3000,
+        });
+      } else {
+        // Save new record
+        console.log("Saving new contact with payload:", payload);
+        const response = await axios.post(
+          `${process.env.REACT_APP_API_URL}/api/personnel-contacts`,
+          payload
+        );
+        // Assign the new ID to the record
+        contact.id = response.data.id;
+
+        toast({
+          title: "Contact saved successfully.",
+          status: "success",
+          duration: 3000,
+        });
+      }
+
+      // Disable editing after save
+      toggleEditContact(idx);
+    } catch (error) {
+      console.error("Error saving/updating contact:", error);
+
+      toast({
+        title: "Error saving/updating contact.",
+        description:
+          error.response?.data?.error || "Failed to save or update contact.",
+        status: "error",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleAddContact = () =>
+    setContacts([
+      ...contacts,
+      { contactype_id: "", contact_info: "", isEditing: true },
+    ]);
+
+  const toggleEditContact = (idx) => {
+    const updatedContacts = [...contacts];
+    updatedContacts[idx].isEditing = !updatedContacts[idx].isEditing;
+    setContacts(updatedContacts);
+  };
+
+  const handleRemoveContact = async (idx) => {
+    const contact = contacts[idx];
+    if (contact.id) {
+      const confirmed = window.confirm(
+        "Are you sure you want to delete this contact?"
+      );
+      if (!confirmed) return;
+
+      try {
+        await axios.delete(
+          `${process.env.REACT_APP_API_URL}/api/personnel-contacts/${contact.id}`
+        );
+        toast({
+          title: "Contact deleted successfully.",
+          status: "success",
+          duration: 3000,
+        });
+      } catch (error) {
+        console.error("Error deleting contact:", error);
+        toast({
+          title: "Error deleting contact.",
+          description:
+            error.response?.data?.error || "Failed to delete contact.",
+          status: "error",
+          duration: 3000,
+        });
+      }
+    }
+    // Remove contact from the state
+    setContacts(contacts.filter((_, i) => i !== idx));
+  };
+
+  const handleSaveOrUpdateAddress = async (idx) => {
+    const address = addresses[idx];
+    const payload = {
+      personnel_id: personnelId,
+      address_type: address.address_type,
+      name: address.name,
+    };
+
+    try {
+      if (address.id) {
+        // Update existing record
+        console.log(
+          "Updating record with ID:",
+          address.id,
+          "Payload:",
+          payload
+        );
+        await axios.put(
+          `${process.env.REACT_APP_API_URL}/api/personnel-addresses/${address.id}`,
+          payload
+        );
+
+        toast({
+          title: "Address updated successfully.",
+          status: "success",
+          duration: 3000,
+        });
+      } else {
+        // Save new record
+        console.log("Saving new record with payload:", payload);
+        const response = await axios.post(
+          `${process.env.REACT_APP_API_URL}/api/personnel-addresses`,
+          payload
+        );
+
+        // Assign the new ID to the record
+        address.id = response.data.id;
+
+        toast({
+          title: "Address saved successfully.",
+          status: "success",
+          duration: 3000,
+        });
+      }
+
+      // Disable editing after save
+      toggleEditAddress(idx);
+    } catch (error) {
+      console.error("Error saving/updating address:", error);
+
+      toast({
+        title: "Error saving/updating address.",
+        description:
+          error.response?.data?.error || "Failed to save or update address.",
+        status: "error",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleAddAddress = () => {
+    setAddresses([
+      ...addresses,
+      { address_type: "", name: "", isEditing: true }, // New row starts in editing mode
+    ]);
+  };
+
+  const toggleEditAddress = (idx) => {
+    const updatedAddresses = [...addresses];
+    updatedAddresses[idx].isEditing = !updatedAddresses[idx].isEditing;
+    setAddresses(updatedAddresses);
+  };
+
+  const handleRemoveAddress = (idx) => {
+    const address = addresses[idx];
+    if (address.id) {
+      // Confirm before deleting existing record
+      if (window.confirm("Are you sure you want to delete this address?")) {
+        axios
+          .delete(
+            `${process.env.REACT_APP_API_URL}/api/personnel-addresses/${address.id}`
+          )
+          .then(() => {
+            toast({
+              title: "Address deleted successfully.",
+              status: "success",
+              duration: 3000,
+            });
+
+            // Remove from state
+            const updatedAddresses = addresses.filter((_, i) => i !== idx);
+            setAddresses(updatedAddresses);
+          })
+          .catch((error) => {
+            console.error("Error deleting address:", error);
+            toast({
+              title: "Error deleting address.",
+              description:
+                error.response?.data?.error || "Failed to delete address.",
+              status: "error",
+              duration: 3000,
+            });
+          });
+      }
+    } else {
+      // Remove unsaved row
+      const updatedAddresses = addresses.filter((_, i) => i !== idx);
+      setAddresses(updatedAddresses);
+    }
+  };
+
+  const handleSaveOrUpdateGovID = async (idx) => {
+    const govID = govIDs[idx];
+    const payload = {
+      personnel_id: personnelId,
+      gov_id: govID.gov_id,
+      gov_issued_id: govID.gov_issued_id,
+    };
 
     try {
       if (govID.id) {
-        // Update existing government-issued ID
+        // **Force update even if the data is unchanged**
+        console.log("Updating record with ID:", govID.id, "Payload:", payload);
+        alert("UPDATE: " + govID.id);
         await axios.put(
           `${process.env.REACT_APP_API_URL}/api/personnel-gov-ids/${govID.id}`,
           payload
         );
 
-        // Success notification for update
         toast({
           title: "Government ID updated successfully.",
           status: "success",
           duration: 3000,
         });
       } else {
-        // Create new government-issued ID
+        // Save new record
+        console.log("Saving new record with payload:", payload);
         const response = await axios.post(
           `${process.env.REACT_APP_API_URL}/api/personnel-gov-ids`,
           payload
         );
+        // Assign the new ID to the record
+        govID.id = response.data.id;
 
-        // Add returned ID to the row data
-        const updatedGovIDs = [...govIDs];
-        updatedGovIDs[idx] = { ...govID, id: response.data.id, disabled: true };
-        setGovIDs(updatedGovIDs);
-
-        // Success notification for creation
         toast({
           title: "Government ID saved successfully.",
           status: "success",
@@ -268,27 +391,37 @@ const Step3 = () => {
         });
       }
 
-      // Mark the row as disabled
-      const updatedGovIDs = [...govIDs];
-      updatedGovIDs[idx].disabled = true;
-      setGovIDs(updatedGovIDs);
+      // Disable editing after save
+      toggleEditGovID(idx);
     } catch (error) {
       console.error("Error saving/updating government ID:", error);
 
-      // Error notification
       toast({
-        title: "Error saving/updating government ID.",
+        title: "Error saving/updating government ID...",
         description:
-          error.response?.data?.error || "Failed to save/update government ID.",
+          error.response?.data?.error ||
+          "Failed to save or update government ID.",
         status: "error",
         duration: 3000,
       });
     }
   };
 
-  const handleEditGovID = (idx) => {
+  const confirmDeleteGovID = (idx) => {
+    if (window.confirm("Are you sure you want to delete this government ID?")) {
+      handleRemoveGovID(idx);
+    }
+  };
+
+  const toggleEditGovID = (idx) => {
     const updatedGovIDs = [...govIDs];
-    updatedGovIDs[idx].disabled = false; // Enable the row for editing
+    updatedGovIDs[idx].isEditing = !updatedGovIDs[idx].isEditing;
+
+    // Reset fields to reflect saved data if disabling edit mode
+    if (!updatedGovIDs[idx].isEditing) {
+      updatedGovIDs[idx].disabled = true; // Lock the row
+    }
+
     setGovIDs(updatedGovIDs);
   };
 
@@ -348,14 +481,6 @@ const Step3 = () => {
     }
   };
 
-  const handleRemoveContact = (index) => {
-    setContacts(contacts.filter((_, idx) => idx !== index));
-  };
-
-  const handleRemoveAddress = (index) => {
-    setAddresses(addresses.filter((_, idx) => idx !== index));
-  };
-
   const handleRemoveGovID = (index) => {
     setGovIDs(govIDs.filter((_, idx) => idx !== index));
   };
@@ -398,6 +523,7 @@ const Step3 = () => {
                       <Select
                         placeholder="Select Type"
                         value={contact.contactype_id}
+                        isDisabled={!contact.isEditing} // Disable if not editing
                         onChange={(e) =>
                           handleContactChange(
                             idx,
@@ -417,6 +543,7 @@ const Step3 = () => {
                       <Input
                         placeholder="Contact Info"
                         value={contact.contact_info}
+                        isDisabled={!contact.isEditing} // Disable if not editing
                         onChange={(e) =>
                           handleContactChange(
                             idx,
@@ -427,19 +554,28 @@ const Step3 = () => {
                       />
                     </Td>
                     <Td>
-                      <IconButton
-                        icon={<CheckIcon />}
-                        size="sm"
-                        colorScheme="green"
-                        mr={2}
-                        onClick={() => handleSaveContact(idx)}
-                      />
-                      <IconButton
-                        icon={<DeleteIcon />}
-                        size="sm"
-                        colorScheme="red"
-                        onClick={() => handleRemoveContact(idx)}
-                      />
+                      <Flex>
+                        {/* Save/Edit Button */}
+                        <IconButton
+                          icon={
+                            contact.isEditing ? <CheckIcon /> : <EditIcon />
+                          }
+                          size="sm"
+                          colorScheme={contact.isEditing ? "green" : "blue"}
+                          mr={2}
+                          onClick={() =>
+                            contact.isEditing
+                              ? handleSaveOrUpdateContact(idx)
+                              : toggleEditContact(idx)
+                          }
+                        />
+                        <IconButton
+                          icon={<DeleteIcon />}
+                          size="sm"
+                          colorScheme="red"
+                          onClick={() => handleRemoveContact(idx)}
+                        />
+                      </Flex>
                     </Td>
                   </Tr>
                 ))
@@ -476,6 +612,7 @@ const Step3 = () => {
                       <Select
                         placeholder="Address Type"
                         value={address.address_type}
+                        isDisabled={!address.isEditing} // Disable unless editing
                         onChange={(e) =>
                           handleAddressChange(
                             idx,
@@ -493,25 +630,34 @@ const Step3 = () => {
                       <Input
                         placeholder="Address"
                         value={address.name}
+                        isDisabled={!address.isEditing} // Disable unless editing
                         onChange={(e) =>
                           handleAddressChange(idx, "name", e.target.value)
                         }
                       />
                     </Td>
                     <Td>
-                      <IconButton
-                        icon={<CheckIcon />}
-                        size="sm"
-                        colorScheme="green"
-                        mr={2}
-                        onClick={() => handleSaveAddress(idx)}
-                      />
-                      <IconButton
-                        icon={<DeleteIcon />}
-                        size="sm"
-                        colorScheme="red"
-                        onClick={() => handleRemoveAddress(idx)}
-                      />
+                      <Flex>
+                        {/* Save/Edit Button */}
+                        <IconButton
+                          icon={
+                            address.isEditing ? <CheckIcon /> : <EditIcon />
+                          }
+                          size="sm"
+                          colorScheme={address.isEditing ? "green" : "blue"}
+                          onClick={() =>
+                            address.isEditing
+                              ? handleSaveOrUpdateAddress(idx)
+                              : toggleEditAddress(idx)
+                          }
+                        />
+                        <IconButton
+                          icon={<DeleteIcon />}
+                          size="sm"
+                          colorScheme="red"
+                          onClick={() => handleRemoveAddress(idx)}
+                        />
+                      </Flex>
                     </Td>
                   </Tr>
                 ))
@@ -549,7 +695,7 @@ const Step3 = () => {
                       <Select
                         placeholder="Select ID Type"
                         value={id.gov_id}
-                        isDisabled={id.disabled} // Disable if the row is marked as saved
+                        isDisabled={!id.isEditing} // Disable if not in editing mode
                         onChange={(e) =>
                           handleGovIDChange(idx, "gov_id", e.target.value)
                         }
@@ -565,7 +711,7 @@ const Step3 = () => {
                       <Input
                         placeholder="ID Number"
                         value={id.gov_issued_id}
-                        isDisabled={id.disabled} // Disable if the row is marked as saved
+                        isDisabled={!id.isEditing} // Disable if not in editing mode
                         onChange={(e) =>
                           handleGovIDChange(
                             idx,
@@ -577,10 +723,10 @@ const Step3 = () => {
                     </Td>
                     <Td>
                       <Button
-                        leftIcon={<AttachmentIcon />}
+                        rightIcon={<AttachmentIcon />}
                         size="sm"
                         colorScheme="teal"
-                        isDisabled={id.disabled} // Disable if the row is marked as saved
+                        isDisabled={!id.isEditing} // Disable if not in editing mode
                         onClick={() =>
                           document.getElementById(`file-upload-${idx}`).click()
                         }
@@ -600,29 +746,25 @@ const Step3 = () => {
                       />
                     </Td>
                     <Td>
-                      {id.disabled ? (
+                      <Flex>
+                        {/* Save and Edit Button */}
                         <IconButton
-                          icon={<EditIcon />}
+                          icon={id.isEditing ? <CheckIcon /> : <EditIcon />}
                           size="sm"
-                          colorScheme="blue"
-                          mr={2}
-                          onClick={() => handleEditGovID(idx)}
+                          colorScheme={id.isEditing ? "green" : "blue"}
+                          onClick={() =>
+                            id.isEditing
+                              ? handleSaveOrUpdateGovID(idx)
+                              : toggleEditGovID(idx)
+                          }
                         />
-                      ) : (
                         <IconButton
-                          icon={<CheckIcon />}
+                          icon={<DeleteIcon />}
                           size="sm"
-                          colorScheme="green"
-                          mr={2}
-                          onClick={() => handleSaveGovID(idx)}
+                          colorScheme="red"
+                          onClick={() => confirmDeleteGovID(idx)}
                         />
-                      )}
-                      <IconButton
-                        icon={<DeleteIcon />}
-                        size="sm"
-                        colorScheme="red"
-                        onClick={() => handleRemoveGovID(idx)}
-                      />
+                      </Flex>
                     </Td>
                   </Tr>
                 ))

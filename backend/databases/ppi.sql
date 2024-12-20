@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 19, 2024 at 09:51 PM
+-- Generation Time: Dec 20, 2024 at 09:32 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -541,10 +541,8 @@ CREATE TABLE `educational_background` (
 --
 
 INSERT INTO `educational_background` (`id`, `personnel_id`, `level`, `startfrom`, `completion_year`, `school`, `field_of_study`, `degree`, `institution`, `professional_licensure_examination`, `created_at`, `updated_at`) VALUES
-(1, 8, 'College Graduate', 2007, 2011, 'asd', 'ASD', 'AS', 'ASD', NULL, '2024-11-20 08:53:50', '2024-11-20 08:53:50'),
-(2, 8, 'College Graduate', 2007, 2011, 'asd', 'asd', 'asd', 'asd', NULL, '2024-11-22 02:15:03', '2024-11-22 02:15:03'),
-(3, 8, 'College Graduate', 2007, 2011, 'asd', 'asd', 'asd', 'asd', NULL, '2024-11-22 02:15:32', '2024-11-22 02:15:32'),
-(4, 8, 'College Graduate', 2007, 2011, 'NEU', 'BS', 'BS', 'asd', NULL, '2024-12-05 07:55:18', '2024-12-05 07:55:18');
+(1, 20, 'College Graduate', 2007, 2012, 'asd1122', 'ASD1', 'AS123000', 'ASD12334', 'as', '2024-11-20 08:53:50', '2024-12-20 08:10:11'),
+(5, 10, 'Undergrad', 1, 1, 'asd', 'asd', '', '', NULL, '2024-12-20 06:27:55', '2024-12-20 07:46:30');
 
 -- --------------------------------------------------------
 
@@ -1452,7 +1450,7 @@ CREATE TABLE `personnels` (
 
 INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progress`, `personnel_progress`, `gender`, `civil_status`, `wedding_anniversary`, `givenname`, `middlename`, `surname_maiden`, `surname_husband`, `suffix`, `nickname`, `date_of_birth`, `place_of_birth`, `datejoined`, `language_id`, `bloodtype`, `email_address`, `citizenship`, `nationality`, `department_id`, `section_id`, `subsection_id`, `designation_id`, `district_id`, `local_congregation`, `personnel_type`, `assigned_number`, `m_status`, `panunumpa_date`, `ordination_date`, `created_at`, `updated_at`) VALUES
 (10, 'ENR-2412-EP1-8972', '1', 'District Office', 'Male', 'Single', NULL, 'Felix', 'Morales', '', 'Pareja', 'No Suffix', 'Chok', '1990-11-09 00:00:00', 'QC', '2024-12-09 00:00:00', NULL, 'A+', 'felixpareja@yahoo.com', 138, 138, 1, 2, 1, 1, 45, 'Bonifacio Drive', 'Regular', 20149, 'May Destino', '2022-09-16 00:00:00', NULL, '2024-12-09 04:43:34', '2024-12-19 15:50:48'),
-(13, 'ENR-2412-EP1-6371', '1', 'Enrollment', 'Female', 'Single', NULL, 'asd22', 'asd', 'asd', 'asd', '', 'asd', '2000-12-20 00:00:00', 'asd', '2024-12-20 00:00:00', NULL, '', 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', 'Lay Member', 0, NULL, '0000-00-00 00:00:00', NULL, '2024-12-19 17:31:20', '2024-12-19 17:32:01'),
+(13, 'ENR-2412-EP1-6371', '1', 'Enrollment', 'Male', 'Single', NULL, 'Kyrt', 'asd', '', '', '', 'asd', '2000-12-20 00:00:00', 'asd', '2024-12-20 00:00:00', NULL, '', 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', 'Lay Member', 0, NULL, '0000-00-00 00:00:00', NULL, '2024-12-19 17:31:20', '2024-12-20 04:47:40'),
 (20, 'ENR-2412-EP1-7874', '1', 'Enrollment', 'Male', 'Single', '0000-00-00 00:00:00', 'Kim Roland', 'asd', '', 'asd', '', 'asd', '2024-12-20 00:00:00', '', '0000-00-00 00:00:00', NULL, '', 'kim@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', '', 0, NULL, '0000-00-00 00:00:00', '0000-00-00 00:00:00', '2024-12-19 18:57:28', '2024-12-19 18:57:28');
 
 -- --------------------------------------------------------
@@ -1475,7 +1473,10 @@ CREATE TABLE `personnel_address` (
 --
 
 INSERT INTO `personnel_address` (`id`, `personnel_id`, `address_type`, `name`, `created_at`, `updated_at`) VALUES
-(1, 20, 'Home Address', 'abc', '2024-12-05 07:51:56', '2024-12-19 20:05:18');
+(1, 20, 'Home Address', '160 Tandang Sora Avenue, Quezon City', '2024-12-05 07:51:56', '2024-12-20 04:45:24'),
+(2, 20, 'Provincial Address', 'fede', '2024-12-20 04:45:45', '2024-12-20 04:45:45'),
+(3, 10, 'Home Address', 'green condo', '2024-12-20 04:48:02', '2024-12-20 07:28:53'),
+(5, 20, 'Work Address', 'wwww', '2024-12-20 06:58:59', '2024-12-20 06:58:59');
 
 -- --------------------------------------------------------
 
@@ -1497,8 +1498,10 @@ CREATE TABLE `personnel_contacts` (
 --
 
 INSERT INTO `personnel_contacts` (`id`, `personnel_id`, `contactype_id`, `contact_info`, `created_at`, `updated_at`) VALUES
-(1, 20, 1, 'asd', '2024-12-19 20:04:50', '2024-12-19 20:04:50'),
-(2, 20, 1, '123', '2024-12-19 20:09:33', '2024-12-19 20:09:33');
+(1, 20, 1, '09063258273', '2024-12-19 20:04:50', '2024-12-20 04:39:07'),
+(2, 20, 1, '123', '2024-12-19 20:09:33', '2024-12-19 20:09:33'),
+(3, 20, 1, '1234', '2024-12-20 04:47:49', '2024-12-20 07:16:15'),
+(4, 20, 1, '2222', '2024-12-20 06:58:47', '2024-12-20 07:34:40');
 
 -- --------------------------------------------------------
 
@@ -1538,16 +1541,15 @@ CREATE TABLE `personnel_gov_id` (
 --
 
 INSERT INTO `personnel_gov_id` (`id`, `personnel_id`, `gov_id`, `gov_issued_id`) VALUES
-(1, 20, '1', '12321321'),
+(1, 20, '9', '12331122'),
 (3, 20, '17', '222'),
 (4, 20, '14', '1111'),
-(5, 20, '17', '2221'),
-(6, 20, '17', '2221'),
-(7, 20, '17', '2221'),
-(8, 20, '17', '22212'),
-(9, 20, '17', '22212000'),
 (10, 20, '14', '12'),
-(11, 20, '14', '1233');
+(12, 10, '12', '321'),
+(13, 10, '11', 'asa'),
+(14, 20, '17', '222444'),
+(15, 20, '16', '3312'),
+(16, 10, '12', '55');
 
 -- --------------------------------------------------------
 
@@ -1957,7 +1959,9 @@ CREATE TABLE `work_experience` (
 --
 
 INSERT INTO `work_experience` (`id`, `personnel_id`, `employment_type`, `company`, `address`, `position`, `department`, `section`, `start_date`, `end_date`, `reason_for_leaving`, `created_at`, `updated_at`) VALUES
-(1, 9, 'Private', 'SENCOR', 'asd', 'programmer', 'asd', 'asd', '2024-12-05', '2024-12-05', 'confi', '2024-12-05 08:16:49', '2024-12-05 08:16:49');
+(1, 10, 'Private', 'SENCOR', 'asd', 'programmer', 'asd', 'asd', '2024-12-05', '2024-12-05', 'confi', '2024-12-05 08:16:49', '2024-12-20 08:14:12'),
+(2, 20, 'Self-employed', 'asd_1', 'asd_1', 'asd_1', 'asd_1', 'asd_1', '2024-12-20', '2024-12-24', 'asdsa', '2024-12-20 07:47:41', '2024-12-20 08:13:20'),
+(3, 10, 'Private', 'TEST', 'asd', 'asd', 'as', 'asd', '2024-12-20', '2024-12-20', 'tetete', '2024-12-20 08:14:26', '2024-12-20 08:14:26');
 
 --
 -- Indexes for dumped tables
@@ -2255,7 +2259,7 @@ ALTER TABLE `districts`
 -- AUTO_INCREMENT for table `educational_background`
 --
 ALTER TABLE `educational_background`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `events`
@@ -2345,13 +2349,13 @@ ALTER TABLE `personnels`
 -- AUTO_INCREMENT for table `personnel_address`
 --
 ALTER TABLE `personnel_address`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `personnel_contacts`
 --
 ALTER TABLE `personnel_contacts`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `personnel_documents`
@@ -2363,7 +2367,7 @@ ALTER TABLE `personnel_documents`
 -- AUTO_INCREMENT for table `personnel_gov_id`
 --
 ALTER TABLE `personnel_gov_id`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `personnel_images`
@@ -2417,7 +2421,7 @@ ALTER TABLE `user_groups`
 -- AUTO_INCREMENT for table `work_experience`
 --
 ALTER TABLE `work_experience`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Constraints for dumped tables

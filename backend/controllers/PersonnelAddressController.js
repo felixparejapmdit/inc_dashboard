@@ -34,16 +34,58 @@ exports.createAddress = async (req, res) => {
 };
 
 exports.updateAddress = async (req, res) => {
-  try {
-    const updated = await PersonnelAddress.update(req.body, {
-      where: { id: req.params.id },
+  const { personnel_id, address_type, name } = req.body;
+
+  console.log("Received ID for update:", req.params.id); // Log the ID
+  console.log("Received Payload:", { personnel_id, address_type, name }); // Log the payload
+
+  if (!personnel_id || !address_type || !name) {
+    return res.status(400).json({
+      error: "Personnel ID, Address Type, and Address are required.",
     });
-    if (updated[0] === 0) {
-      return res.status(404).json({ message: "Address not found" });
+  }
+
+  try {
+    // Check if the record exists
+    const existingRecord = await PersonnelAddress.findByPk(req.params.id);
+
+    if (!existingRecord) {
+      return res.status(404).json({ error: "Address not found." });
     }
-    res.status(200).json({ message: "Address updated successfully" });
+
+    // Compare existing data with the new payload
+    const isUnchanged =
+      existingRecord.personnel_id === personnel_id &&
+      existingRecord.address_type === address_type &&
+      existingRecord.name === name;
+
+    if (isUnchanged) {
+      console.log("No changes detected in the data.");
+      return res.status(200).json({
+        message: "No changes were made.",
+        data: existingRecord,
+      });
+    }
+
+    // Perform the update
+    await PersonnelAddress.update(
+      { personnel_id, address_type, name },
+      { where: { id: req.params.id } }
+    );
+
+    // Return the updated record
+    const updatedRecord = await PersonnelAddress.findByPk(req.params.id);
+    console.log("Updated Record:", updatedRecord);
+
+    return res.status(200).json({
+      message: "Address updated successfully.",
+      data: updatedRecord,
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error updating address:", error.message);
+    return res.status(500).json({
+      error: "Failed to update address. Please try again later.",
+    });
   }
 };
 

@@ -13,9 +13,15 @@ router.get("/api/personnel-gov-ids/:id", PersonnelGovIDController.getGovIDById);
 router.post("/api/personnel-gov-ids", PersonnelGovIDController.createGovID);
 
 // Update an existing personnel government ID
-router.put("/api/personnel-gov-ids/:id", PersonnelGovIDController.updateGovID);
+router.put(
+  "/api/personnel-gov-ids/:id", // Correct route
+  PersonnelGovIDController.updateGovID
+);
 
 // Delete a personnel government ID
-router.delete("/api/personnel-gov-ids/:id", PersonnelGovIDController.deleteGovID);
+router.delete(
+  "/api/personnel-gov-ids/:id",
+  PersonnelGovIDController.deleteGovID
+);
 
 module.exports = router;

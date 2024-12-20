@@ -315,34 +315,34 @@ const EnrollmentForm = ({ referenceNumber }) => {
     }));
   };
 
-  const handleAddContact = () =>
-    setContacts([...contacts, { contactType: "", contactInfo: "" }]);
-  const handleAddAddress = () =>
-    setAddresses([...addresses, { addressType: "", name: "" }]);
-  const handleAddGovID = () =>
-    setGovIDs([...govIDs, { govIDType: "", govIDNumber: "" }]);
+  // const handleAddContact = () =>
+  //   setContacts([...contacts, { contactType: "", contactInfo: "" }]);
+  // const handleAddAddress = () =>
+  //   setAddresses([...addresses, { addressType: "", name: "" }]);
+  // const handleAddGovID = () =>
+  //   setGovIDs([...govIDs, { govIDType: "", govIDNumber: "" }]);
 
-  //Edit Family Member
-  const handleContactChange = (idx, field, value) => {
-    const updatedContacts = contacts.map((contact, i) =>
-      i === idx ? { ...contact, [field]: value } : contact
-    );
-    setContacts(updatedContacts);
-  };
+  // //Edit Family Member
+  // const handleContactChange = (idx, field, value) => {
+  //   const updatedContacts = contacts.map((contact, i) =>
+  //     i === idx ? { ...contact, [field]: value } : contact
+  //   );
+  //   setContacts(updatedContacts);
+  // };
 
-  const handleAddressChange = (idx, field, value) => {
-    const updatedAddresses = addresses.map((address, i) =>
-      i === idx ? { ...address, [field]: value } : address
-    );
-    setAddresses(updatedAddresses);
-  };
+  // const handleAddressChange = (idx, field, value) => {
+  //   const updatedAddresses = addresses.map((address, i) =>
+  //     i === idx ? { ...address, [field]: value } : address
+  //   );
+  //   setAddresses(updatedAddresses);
+  // };
 
-  const handleGovIDChange = (idx, field, value) => {
-    const updatedGovIDs = govIDs.map((id, i) =>
-      i === idx ? { ...id, [field]: value } : id
-    );
-    setGovIDs(updatedGovIDs);
-  };
+  // const handleGovIDChange = (idx, field, value) => {
+  //   const updatedGovIDs = govIDs.map((id, i) =>
+  //     i === idx ? { ...id, [field]: value } : id
+  //   );
+  //   setGovIDs(updatedGovIDs);
+  // };
 
   const handleAddEducation = () =>
     setEducation([
@@ -709,7 +709,15 @@ const EnrollmentForm = ({ referenceNumber }) => {
             <Box
               key={index}
               as="button"
-              onClick={() => setStep(index + 1)}
+              onClick={() => {
+                if (index + 1 > 1 && !personnelId) {
+                  alert(
+                    "Please complete the primary information before proceeding to the next step."
+                  );
+                  return;
+                }
+                setStep(index + 1);
+              }}
               display="flex"
               alignItems="center"
               justifyContent="center"
@@ -759,12 +767,12 @@ const EnrollmentForm = ({ referenceNumber }) => {
           contacts={contacts}
           addresses={addresses}
           govIDs={govIDs}
-          handleAddContact={handleAddContact}
-          handleAddAddress={handleAddAddress}
-          handleAddGovID={handleAddGovID}
-          handleContactChange={handleContactChange}
-          handleAddressChange={handleAddressChange}
-          handleGovIDChange={handleGovIDChange}
+          // handleAddContact={handleAddContact}
+          // handleAddAddress={handleAddAddress}
+          // handleAddGovID={handleAddGovID}
+          // handleContactChange={handleContactChange}
+          // handleAddressChange={handleAddressChange}
+          // handleGovIDChange={handleGovIDChange}
         />
       )}
 
