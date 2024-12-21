@@ -59,6 +59,9 @@ const Users = ({ personnelId }) => {
   const [editingUser, setEditingUser] = useState(null);
   const [status, setStatus] = useState("");
 
+  const [existingPersonnel, setExistingPersonnel] = useState([]); // Personnel already in LDAP but no personnel_id
+  const [newPersonnel, setNewPersonnel] = useState([]); // Newly enrolled personnel
+
   const avatarBaseUrl = `${API_URL}/uploads/`;
 
   useEffect(() => {
@@ -349,6 +352,76 @@ const Users = ({ personnelId }) => {
     }
   };
 
+  // Sync personnel_id for existing personnel
+  const handleSyncPersonnelId = async (personnel) => {
+    setLoading(true);
+    try {
+      const response = await axios.post(`${API_URL}/api/sync-personnel-id`, {
+        uid: personnel.uid, // Use LDAP uid to find the personnel
+      });
+
+      toast({
+        title: "Success",
+        description: response.data.message,
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+
+      // Refresh the existing personnel table
+      setExistingPersonnel((prev) =>
+        prev.filter((item) => item.uid !== personnel.uid)
+      );
+    } catch (error) {
+      console.error("Error syncing personnel ID:", error);
+      toast({
+        title: "Error",
+        description:
+          error.response?.data?.message || "Failed to sync personnel ID.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Sync to users table for new personnel
+  const handleSyncToUsersTable = async (personnel) => {
+    setLoading(true);
+    try {
+      const response = await axios.post(`${API_URL}/api/sync-to-users`, {
+        personnelId: personnel.id, // Sync using the personnel ID
+      });
+
+      toast({
+        title: "Success",
+        description: response.data.message,
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+
+      // Refresh the new personnel table
+      setNewPersonnel((prev) =>
+        prev.filter((item) => item.id !== personnel.id)
+      );
+    } catch (error) {
+      console.error("Error syncing to users table:", error);
+      toast({
+        title: "Error",
+        description:
+          error.response?.data?.message || "Failed to sync to users table.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Box p={6}>
       <Heading mb={6}>Manage Personnel</Heading>
@@ -379,97 +452,136 @@ const Users = ({ personnelId }) => {
           {status}
         </Alert>
       )}
-      <Flex justify="space-between" align="center" mt={4}>
-        <Button
-          onClick={() => handlePageChange("previous")}
-          disabled={currentPage === 1}
-        >
-          Previous
-        </Button>
-        <Text>
-          Page {currentPage} of {totalPages}
-        </Text>
-        <Button
-          onClick={() => handlePageChange("next")}
-          disabled={currentPage === totalPages}
-        >
-          Next
-        </Button>
-      </Flex>
-      <Table variant="simple">
-        <Thead>
-          <Tr>
-            <Th>Avatar</Th>
-            <Th>Full Name</Th>
-            <Th>Username</Th>
-            <Th>Email</Th>
-            <Th>Group</Th>
-            <Th>Actions</Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-          {currentItems.map((item) => {
-            // Prepend the base URL if needed
-            const avatarSrc = item.avatar ? `${API_URL}${item.avatar}` : "";
-            return (
-              <Tr
-                key={item.ID}
-                cursor="pointer"
-                onClick={() => handleRowClick(item.personnel_id)} // Pass personnel_id to Step6
-              >
+
+      {/* Existing Personnel Table */}
+      <VStack align="start" spacing={4} mb={6}>
+        <Heading size="md">Existing Personnel (LDAP Users)</Heading>
+
+        <Flex justify="space-between" align="center" mt={4}>
+          <Button
+            onClick={() => handlePageChange("previous")}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </Button>
+          <Text>
+            Page {currentPage} of {totalPages}
+          </Text>
+          <Button
+            onClick={() => handlePageChange("next")}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </Button>
+        </Flex>
+        <Table variant="simple">
+          <Thead>
+            <Tr>
+              <Th>Avatar</Th>
+              <Th>Full Name</Th>
+              <Th>Username</Th>
+              <Th>Email</Th>
+              <Th>Group</Th>
+              <Th>Actions</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {currentItems.map((item) => {
+              // Prepend the base URL if needed
+              const avatarSrc = item.avatar ? `${API_URL}${item.avatar}` : "";
+              return (
+                <Tr
+                  key={item.ID}
+                  cursor="pointer"
+                  onClick={() => handleRowClick(item.personnel_id)} // Pass personnel_id to Step6
+                >
+                  <Td>
+                    <Avatar
+                      size="sm"
+                      src={avatarSrc}
+                      name={`${item.givenName || "N/A"} ${item.sn || "N/A"}`}
+                    />
+                  </Td>
+                  <Td>
+                    <HStack spacing={3}>
+                      <Text>{`${item.givenName || "N/A"} ${
+                        item.sn || "N/A"
+                      }`}</Text>
+                    </HStack>
+                  </Td>
+                  <Td>{item.username || "N/A"}</Td>
+                  <Td>{item.mail || "N/A"}</Td>
+                  <Td>{item.groupname || "N/A"}</Td>
+                  <Td>
+                    <IconButton
+                      icon={<EditIcon />}
+                      mr={2}
+                      colorScheme="blue"
+                      onClick={() => handleEditUser(item)}
+                    />
+                    <IconButton
+                      icon={<DeleteIcon />}
+                      colorScheme="red"
+                      onClick={() => handleDeleteUser(item.ID)}
+                    />
+                  </Td>
+                </Tr>
+              );
+            })}
+          </Tbody>
+        </Table>
+
+        <Flex justify="space-between" align="center" mt={4}>
+          <Button
+            onClick={() => handlePageChange("previous")}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </Button>
+          <Text>
+            Page {currentPage} of {totalPages}
+          </Text>
+          <Button
+            onClick={() => handlePageChange("next")}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </Button>
+        </Flex>
+      </VStack>
+
+      {/* New Personnel Table */}
+      <VStack align="start" spacing={4}>
+        <Heading size="md">Newly Enrolled Personnel</Heading>
+        <Table variant="simple">
+          <Thead>
+            <Tr>
+              <Th>Personnel ID</Th>
+              <Th>Full Name</Th>
+              <Th>Department</Th>
+              <Th>Action</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {newPersonnel.map((personnel) => (
+              <Tr key={personnel.id}>
+                <Td>{personnel.id}</Td>
+                <Td>{personnel.fullname}</Td>
+                <Td>{personnel.department}</Td>
                 <Td>
-                  <Avatar
-                    size="sm"
-                    src={avatarSrc}
-                    name={`${item.givenName || "N/A"} ${item.sn || "N/A"}`}
-                  />
-                </Td>
-                <Td>
-                  <HStack spacing={3}>
-                    <Text>{`${item.givenName || "N/A"} ${
-                      item.sn || "N/A"
-                    }`}</Text>
-                  </HStack>
-                </Td>
-                <Td>{item.username || "N/A"}</Td>
-                <Td>{item.mail || "N/A"}</Td>
-                <Td>{item.groupname || "N/A"}</Td>
-                <Td>
-                  <IconButton
-                    icon={<EditIcon />}
-                    mr={2}
-                    colorScheme="blue"
-                    onClick={() => handleEditUser(item)}
-                  />
-                  <IconButton
-                    icon={<DeleteIcon />}
-                    colorScheme="red"
-                    onClick={() => handleDeleteUser(item.ID)}
-                  />
+                  <Button
+                    colorScheme="teal"
+                    onClick={() => handleSyncToUsersTable(personnel)}
+                    isLoading={loading}
+                  >
+                    Sync to Users Table
+                  </Button>
                 </Td>
               </Tr>
-            );
-          })}
-        </Tbody>
-      </Table>
-
-      <Flex justify="space-between" align="center" mt={4}>
-        <Button
-          onClick={() => handlePageChange("previous")}
-          disabled={currentPage === 1}
-        >
-          Previous
-        </Button>
-        <Text>
-          Page {currentPage} of {totalPages}
-        </Text>
-        <Button
-          onClick={() => handlePageChange("next")}
-          disabled={currentPage === totalPages}
-        >
-          Next
-        </Button>
-      </Flex>
+            ))}
+          </Tbody>
+        </Table>
+      </VStack>
       <Modal isOpen={isOpen} onClose={closeModal}>
         <ModalOverlay />
         <ModalContent>

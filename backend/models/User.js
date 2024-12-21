@@ -1,6 +1,7 @@
 // models/User.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database"); // Adjust the path to your database configuration
+const Personnel = require("./personnels"); // Import Personnel model
 
 const User = sequelize.define(
   "users",
@@ -72,5 +73,5 @@ const User = sequelize.define(
     updatedAt: "updated_at",
   }
 );
-
+User.belongsTo(Personnel, { foreignKey: "personnel_id", as: "personnel" }); // Define association
 module.exports = User;

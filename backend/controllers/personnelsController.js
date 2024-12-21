@@ -1,4 +1,6 @@
 const Personnel = require("../models/personnels"); // Ensure the correct path
+const User = require("../models/User"); // Ensure this model is correctly defined
+const { Sequelize, Op } = require("sequelize"); // Import Sequelize and Op
 
 // Get all personnels
 exports.getAllPersonnels = async (req, res) => {
@@ -8,6 +10,40 @@ exports.getAllPersonnels = async (req, res) => {
   } catch (error) {
     console.error("Error retrieving personnels:", error);
     res.status(500).json({ message: "Error retrieving personnels", error });
+  }
+};
+
+// Get all new personnels
+exports.getAllNewPersonnels = async (req, res) => {
+  try {
+    const newPersonnels = await Personnel.findAll({
+      attributes: [
+        ["id", "personnel_id"], // Alias for personnel_id
+        [
+          Sequelize.literal(
+            "CONCAT(personnels.givenname, ' ', personnels.surname_husband)"
+          ),
+          "fullname",
+        ],
+        "email_address",
+      ],
+      include: [
+        {
+          model: User,
+          attributes: [], // Exclude any user attributes from the response
+          required: false, // Perform LEFT JOIN
+          where: { personnel_id: { [Op.eq]: Sequelize.col("personnels.id") } },
+        },
+      ],
+      where: {
+        "$user.personnel_id$": null, // Filter where no related user exists
+      },
+    });
+
+    res.status(200).json(newPersonnels); // Return the results
+  } catch (error) {
+    console.error("Error retrieving new personnels:", error);
+    res.status(500).json({ message: "Error retrieving new personnels", error });
   }
 };
 

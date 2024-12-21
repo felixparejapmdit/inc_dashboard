@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
+const User = require("./User"); // Import User model
 
 const Personnel = sequelize.define(
   "Personnel",
@@ -167,5 +168,5 @@ const Personnel = sequelize.define(
     timestamps: false, // Disable automatic timestamps
   }
 );
-
+//Personnel.hasOne(User, { foreignKey: "personnel_id", as: "user" }); // Define association
 module.exports = Personnel;
