@@ -8,6 +8,7 @@ const crypto = require("crypto");
 const multer = require("multer");
 const path = require("path");
 const User = require("../models/User");
+const Personnel = require("../models/personnels");
 const UserController = require("../controllers/userController");
 
 const db1 = require("../config/database");
@@ -45,15 +46,6 @@ const createLdapClient = () => {
 
   return client;
 };
-
-// Utility function to create LDAP client
-// const createLdapClient = () => {
-//   return ldap.createClient({
-//     url: LDAP_URL,
-//     timeout: 5000, // Timeout in milliseconds
-//     connectTimeout: 10000, // Connection timeout in milliseconds
-//   });
-// };
 
 // Function to verify SSHA hash
 function verifySSHA(password, hash) {
@@ -117,6 +109,178 @@ router.put(
     }
   }
 );
+
+// Update user's personnel_id
+router.put("/api/users/update", async (req, res) => {
+  const { username, personnel_id } = req.body;
+
+  // Validate input
+  if (!username || !personnel_id) {
+    return res.status(400).json({
+      message: "Username and personnel_id are required to update the user.",
+    });
+  }
+
+  try {
+    // Find the user by username
+    const user = await User.findOne({ where: { username } });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    // Update the personnel_id for the user
+    await user.update({ personnel_id });
+
+    res.status(200).json({
+      message: "User's personnel_id updated successfully.",
+      user,
+    });
+  } catch (error) {
+    console.error("Error updating user:", error.message);
+    res.status(500).json({
+      message: "Internal server error. Failed to update user.",
+      error: error.message,
+    });
+  }
+});
+
+router.post("/api/sync-to-users", async (req, res) => {
+  const { personnelId, personnelName } = req.body;
+
+  try {
+    // Step 1: Find personnel by ID
+    const personnel = await Personnel.findOne({
+      where: { personnel_id: personnelId },
+    });
+    if (!personnel) {
+      return res.status(404).json({ message: "Personnel not found." });
+    }
+
+    // Step 2: Search for the LDAP user by full name
+    const ldapUser = await ldapSearchByFullname(personnelName);
+    if (!ldapUser) {
+      return res.status(404).json({
+        message:
+          "LDAP user not found for the given name. Please add the personnel to the LDAP server first.",
+      });
+    }
+
+    // Ensure `ldapUser.uid` is a valid string
+    const uid = Array.isArray(ldapUser.uid) ? ldapUser.uid[0] : ldapUser.uid;
+    if (typeof uid !== "string") {
+      return res.status(400).json({
+        message: "Invalid LDAP UID format. Please check the LDAP server data.",
+      });
+    }
+
+    // Step 3: Check if the user already exists in the users table
+    const existingUser = await User.findOne({ where: { uid } });
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ message: "User already exists in the users table." });
+    }
+
+    // Step 4: Save the user in the users table
+    await User.create({
+      uid,
+      personnel_id: personnelId,
+      username: uid, // Use `uid` as username
+      password: ldapUser.userPassword || "", // Default to an empty string if undefined
+      auth_type: "LDAP",
+    });
+
+    res.status(200).json({ message: "User synced successfully." });
+  } catch (error) {
+    console.error("Error syncing user:", error.message);
+    res.status(500).json({ message: "Internal server error." });
+  }
+});
+
+const ldapSearchByFullname = async (fullname) => {
+  const client = createLdapClient();
+
+  const bindClient = () =>
+    new Promise((resolve, reject) => {
+      client.bind(BIND_DN, BIND_PASSWORD, (err) => {
+        if (err) {
+          client.unbind((unbindErr) => {
+            if (unbindErr) {
+              console.error("LDAP unbind error:", unbindErr);
+            }
+          });
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+
+  const searchLDAP = () =>
+    new Promise((resolve, reject) => {
+      const searchOptions = {
+        filter: `(cn=${fullname})`, // Search by common name (fullname)
+        scope: "sub",
+        attributes: ["cn", "sn", "mail", "uid", "userPassword"], // Specify attributes to retrieve
+      };
+
+      const user = {};
+
+      client.search(process.env.BASE_DN, searchOptions, (err, result) => {
+        if (err) {
+          client.unbind((unbindErr) => {
+            if (unbindErr) {
+              console.error("LDAP unbind error during search:", unbindErr);
+            }
+          });
+          reject(err);
+        }
+
+        result.on("searchEntry", (entry) => {
+          entry.attributes.forEach((attribute) => {
+            if (attribute.type === "userPassword") {
+              user[attribute.type] = attribute.vals[0];
+            } else {
+              user[attribute.type] = attribute.vals;
+            }
+          });
+        });
+
+        result.on("end", () => {
+          client.unbind((unbindErr) => {
+            if (unbindErr) {
+              console.error("LDAP unbind error on end:", unbindErr);
+            }
+          });
+
+          if (Object.keys(user).length > 0) {
+            resolve(user);
+          } else {
+            reject(new Error("User not found in LDAP"));
+          }
+        });
+
+        result.on("error", (err) => {
+          client.unbind((unbindErr) => {
+            if (unbindErr) {
+              console.error("LDAP unbind error on error:", unbindErr);
+            }
+          });
+          reject(err);
+        });
+      });
+    });
+
+  try {
+    await bindClient();
+    const user = await searchLDAP();
+    return user;
+  } catch (error) {
+    console.error("Error during LDAP search:", error.message);
+    throw new Error("LDAP search failed: " + error.message);
+  }
+};
 
 // Change Password Endpoint
 router.post("/api/users/change-password", (req, res) => {

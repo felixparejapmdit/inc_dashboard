@@ -5,11 +5,11 @@ const personnelsController = require("../controllers/personnelsController");
 // Route to get all personnels
 router.get("/api/personnels", personnelsController.getAllPersonnels);
 
-// Route to get a specific personnel by ID
-router.get("/api/personnels/:id", personnelsController.getPersonnelById);
-
 // Route to get all new personnel
 router.get("/api/personnels/new", personnelsController.getAllNewPersonnels);
+
+// Route to get a specific personnel by ID
+router.get("/api/personnels/:id", personnelsController.getPersonnelById);
 
 // Route to create a new personnel
 router.post("/api/personnels", personnelsController.createPersonnel);

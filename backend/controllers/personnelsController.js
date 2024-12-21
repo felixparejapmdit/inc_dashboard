@@ -2,6 +2,41 @@ const Personnel = require("../models/personnels"); // Ensure the correct path
 const User = require("../models/User"); // Ensure this model is correctly defined
 const { Sequelize, Op } = require("sequelize"); // Import Sequelize and Op
 
+// Get all new personnels
+exports.getAllNewPersonnels = async (req, res) => {
+  try {
+    const newPersonnels = await Personnel.findAll({
+      attributes: [
+        ["personnel_id", "personnel_id"], // Correct column name for personnel_id
+        "givenname", // Include givenname as a separate field
+        "surname_husband", // Include surname_husband as a separate field
+        [
+          Sequelize.literal(
+            "CONCAT(Personnel.givenname, ' ', Personnel.surname_husband)"
+          ),
+          "fullname", // Alias for the concatenated full name
+        ],
+        "email_address", // Include email address
+      ],
+      include: [
+        {
+          model: User,
+          attributes: [], // Exclude user attributes
+          required: false, // LEFT JOIN logic
+        },
+      ],
+      where: {
+        "$user.personnel_id$": null, // Filter to include personnels without associated users
+      },
+    });
+
+    res.status(200).json(newPersonnels); // Return the results
+  } catch (error) {
+    console.error("Error retrieving new personnels:", error);
+    res.status(500).json({ message: "Error retrieving new personnels", error });
+  }
+};
+
 // Get all personnels
 exports.getAllPersonnels = async (req, res) => {
   try {
@@ -13,46 +48,12 @@ exports.getAllPersonnels = async (req, res) => {
   }
 };
 
-// Get all new personnels
-exports.getAllNewPersonnels = async (req, res) => {
-  try {
-    const newPersonnels = await Personnel.findAll({
-      attributes: [
-        ["id", "personnel_id"], // Alias for personnel_id
-        [
-          Sequelize.literal(
-            "CONCAT(personnels.givenname, ' ', personnels.surname_husband)"
-          ),
-          "fullname",
-        ],
-        "email_address",
-      ],
-      include: [
-        {
-          model: User,
-          attributes: [], // Exclude any user attributes from the response
-          required: false, // Perform LEFT JOIN
-          where: { personnel_id: { [Op.eq]: Sequelize.col("personnels.id") } },
-        },
-      ],
-      where: {
-        "$user.personnel_id$": null, // Filter where no related user exists
-      },
-    });
-
-    res.status(200).json(newPersonnels); // Return the results
-  } catch (error) {
-    console.error("Error retrieving new personnels:", error);
-    res.status(500).json({ message: "Error retrieving new personnels", error });
-  }
-};
-
 // Retrieve a single personnel record by ID
 exports.getPersonnelById = async (req, res) => {
   try {
     const personnel = await Personnel.findByPk(req.params.id);
     if (!personnel) {
-      return res.status(404).json({ message: "Personnel not found" });
+      return res.status(404).json({ message: "Personnel not found1" });
     }
     res.status(200).json(personnel);
   } catch (error) {
@@ -144,7 +145,7 @@ exports.updatePersonnel = async (req, res) => {
   try {
     const personnel = await Personnel.findByPk(req.params.id);
     if (!personnel) {
-      return res.status(404).json({ message: "Personnel not found" });
+      return res.status(404).json({ message: "Personnel not found2" });
     }
 
     // Update personnel data
@@ -166,7 +167,7 @@ exports.deletePersonnel = async (req, res) => {
   try {
     const personnel = await Personnel.findByPk(req.params.id);
     if (!personnel) {
-      return res.status(404).json({ message: "Personnel not found" });
+      return res.status(404).json({ message: "Personnel not found3" });
     }
 
     // Delete personnel record

@@ -3,10 +3,11 @@ require("dotenv").config();
 const axios = require("axios");
 const users = require("./models/users"); // Ensure path is correct
 
+const API_URL = process.env.REACT_APP_API_URL;
 // Function to fetch LDAP users from the API
 async function fetchLdapUsers() {
   try {
-    const response = await axios.get("http://localhost:5000/api/ldap/users"); // Ensure this URL is correct
+    const response = await axios.get(`${API_URL}/api/ldap/users`); // Ensure this URL is correct
     return response.data; // Assuming the API response is an array of LDAP user objects
   } catch (error) {
     console.error("Error fetching LDAP users:", error);

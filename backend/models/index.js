@@ -1,6 +1,7 @@
 const sequelize = require("../config/database"); // Ensure Sequelize is initialized
 const Group = require("./Group");
 const User = require("./User");
+const Personnel = require("./personnels");
 const UserGroupMapping = require("./UserGroupMapping");
 const PermissionDefinition = require("./PermissionDefinition");
 const PermissionCategory = require("./PermissionCategory");
@@ -16,6 +17,10 @@ sequelize
   .catch((err) => {
     console.error("Failed to sync database:", err);
   });
+
+// Define associations after all models are initialized
+Personnel.hasOne(User, { foreignKey: "personnel_id" });
+User.belongsTo(Personnel, { foreignKey: "personnel_id" });
 
 // Define associations for groups and users
 Group.hasMany(UserGroupMapping, { foreignKey: "group_id" });
@@ -53,6 +58,7 @@ module.exports = {
   sequelize, // Optional if needed elsewhere
   Group,
   User,
+  Personnel,
   UserGroupMapping,
   PermissionDefinition,
   PermissionCategory,

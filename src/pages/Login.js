@@ -143,6 +143,15 @@ const Login = () => {
           );
           const groupId = groupResponse.data.groupId;
 
+          // Check if the group ID exists
+          if (!groupId) {
+            setError(
+              "User does not belong to any group. Please contact the administrator to Assign."
+            );
+            setIsLoading(false);
+            return;
+          }
+
           // Store user data and navigate to dashboard
           const fullName = ldapUser.cn?.[0] || "User"; // Adjust to the LDAP format
           localStorage.setItem("userFullName", fullName);
@@ -198,6 +207,15 @@ const Login = () => {
             `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`
           );
           const groupId = groupResponse.data.groupId;
+
+          // Check if the group ID exists
+          if (!groupId) {
+            setError(
+              "User does not belong to any group. Please contact the administrator to Assign."
+            );
+            setIsLoading(false);
+            return;
+          }
 
           localStorage.setItem("userFullName", user.username);
           localStorage.setItem("username", user.username); // or response.data.user.username for local login

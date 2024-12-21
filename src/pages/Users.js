@@ -37,6 +37,8 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
+import { InfoIcon } from "@chakra-ui/icons";
+
 import axios from "axios";
 const API_URL = process.env.REACT_APP_API_URL;
 const ITEMS_PER_PAGE = 15;
@@ -60,7 +62,7 @@ const Users = ({ personnelId }) => {
   const [status, setStatus] = useState("");
 
   const [existingPersonnel, setExistingPersonnel] = useState([]); // Personnel already in LDAP but no personnel_id
-  const [newPersonnel, setNewPersonnel] = useState([]); // Newly enrolled personnel
+  const [newPersonnels, setNewPersonnels] = useState([]);
 
   const avatarBaseUrl = `${API_URL}/uploads/`;
 
@@ -79,6 +81,12 @@ const Users = ({ personnelId }) => {
       .then((res) => res.json())
       .then((data) => setGroups(Array.isArray(data) ? data : []))
       .catch(() => setStatus("Failed to load groups."));
+
+    // Fetch new personnels
+    fetch(`${API_URL}/api/personnels/new`)
+      .then((res) => res.json())
+      .then((data) => setNewPersonnels(Array.isArray(data) ? data : []))
+      .catch(() => setStatus("Failed to load new personnels."));
   }, []);
 
   const navigate = useNavigate(); // Initialize navigation
@@ -388,11 +396,13 @@ const Users = ({ personnelId }) => {
   };
 
   // Sync to users table for new personnel
-  const handleSyncToUsersTable = async (personnel) => {
-    setLoading(true);
+  const handleSyncToUsersTable = async (personnelId, personnelName) => {
+    alert(personnelId);
+    setLoading((prevLoading) => ({ ...prevLoading, [personnelId]: true })); // Set loading for the specific button
     try {
       const response = await axios.post(`${API_URL}/api/sync-to-users`, {
-        personnelId: personnel.id, // Sync using the personnel ID
+        personnelId,
+        personnelName, // Pass the dynamically constructed name
       });
 
       toast({
@@ -403,9 +413,9 @@ const Users = ({ personnelId }) => {
         isClosable: true,
       });
 
-      // Refresh the new personnel table
-      setNewPersonnel((prev) =>
-        prev.filter((item) => item.id !== personnel.id)
+      // Refresh the new personnel table by removing the synced personnel
+      setNewPersonnels((prev) =>
+        prev.filter((item) => item.personnel_id !== personnelId)
       );
     } catch (error) {
       console.error("Error syncing to users table:", error);
@@ -418,24 +428,13 @@ const Users = ({ personnelId }) => {
         isClosable: true,
       });
     } finally {
-      setLoading(false);
+      setLoading((prevLoading) => ({ ...prevLoading, [personnelId]: false })); // Reset loading for the specific button
     }
   };
 
   return (
     <Box p={6}>
       <Heading mb={6}>Manage Personnel</Heading>
-
-      <Button
-        onClick={handleSyncLdapUser}
-        isLoading={loading}
-        colorScheme="teal"
-        variant="solid"
-        disabled={!personnelId}
-        mb={4}
-      >
-        Sync LDAP User
-      </Button>
 
       <Input
         placeholder="Search users..."
@@ -493,7 +492,7 @@ const Users = ({ personnelId }) => {
                 <Tr
                   key={item.ID}
                   cursor="pointer"
-                  onClick={() => handleRowClick(item.personnel_id)} // Pass personnel_id to Step6
+                  //onClick={() => handleRowClick(item.personnel_id)} // Pass personnel_id to Step6
                 >
                   <Td>
                     <Avatar
@@ -519,6 +518,20 @@ const Users = ({ personnelId }) => {
                       colorScheme="blue"
                       onClick={() => handleEditUser(item)}
                     />
+                    <IconButton
+                      icon={<InfoIcon />} // Change this to your preferred enrollment icon
+                      mr={2}
+                      colorScheme="teal"
+                      onClick={() => {
+                        const personnelId = item.personnel_id; // Adjust based on how `personnel_id` is stored in your `item` object
+                        if (personnelId) {
+                          window.location.href = `/enroll?personnel_id=${personnelId}`;
+                        } else {
+                          window.location.href = `/enroll?not_enrolled=${item.username}`;
+                        }
+                      }}
+                    />
+
                     <IconButton
                       icon={<DeleteIcon />}
                       colorScheme="red"
@@ -553,35 +566,50 @@ const Users = ({ personnelId }) => {
       {/* New Personnel Table */}
       <VStack align="start" spacing={4}>
         <Heading size="md">Newly Enrolled Personnel</Heading>
+        {/* Updated Table with Row Numbers and Action Button */}
         <Table variant="simple">
           <Thead>
             <Tr>
+              <Th>#</Th> {/* Row number column */}
               <Th>Personnel ID</Th>
-              <Th>Full Name</Th>
-              <Th>Department</Th>
+              <Th>First Name</Th>
+              <Th>Last Name</Th>
+              <Th>Email</Th>
               <Th>Action</Th>
             </Tr>
           </Thead>
           <Tbody>
-            {newPersonnel.map((personnel) => (
-              <Tr key={personnel.id}>
-                <Td>{personnel.id}</Td>
-                <Td>{personnel.fullname}</Td>
-                <Td>{personnel.department}</Td>
-                <Td>
-                  <Button
-                    colorScheme="teal"
-                    onClick={() => handleSyncToUsersTable(personnel)}
-                    isLoading={loading}
-                  >
-                    Sync to Users Table
-                  </Button>
-                </Td>
-              </Tr>
-            ))}
+            {newPersonnels.map((personnel, index) => {
+              const personnelName = `${personnel.givenname} ${personnel.surname_husband}`; // Construct the full name dynamically
+              return (
+                <Tr key={personnel.personnel_id}>
+                  <Td>{index + 1}</Td> {/* Display the row number */}
+                  <Td>{personnel.personnel_id}</Td>
+                  <Td>{personnel.givenname}</Td>
+                  <Td>{personnel.surname_husband}</Td>
+                  <Td>{personnel.email_address}</Td>
+                  <Td>
+                    <Button
+                      colorScheme="teal"
+                      onClick={() =>
+                        handleSyncToUsersTable(
+                          personnel.personnel_id,
+                          personnelName
+                        )
+                      }
+                      isLoading={loading[personnel.personnel_id]} // Loading state specific to this button
+                    >
+                      Sync to Users Table
+                    </Button>
+                  </Td>
+                </Tr>
+              );
+            })}
           </Tbody>
         </Table>
+        ;
       </VStack>
+
       <Modal isOpen={isOpen} onClose={closeModal}>
         <ModalOverlay />
         <ModalContent>

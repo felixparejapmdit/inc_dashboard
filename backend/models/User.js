@@ -74,4 +74,5 @@ const User = sequelize.define(
   }
 );
 User.belongsTo(Personnel, { foreignKey: "personnel_id", as: "personnel" }); // Define association
+
 module.exports = User;

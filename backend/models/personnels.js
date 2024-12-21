@@ -1,6 +1,5 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
-const User = require("./User"); // Import User model
 
 const Personnel = sequelize.define(
   "Personnel",
@@ -165,8 +164,10 @@ const Personnel = sequelize.define(
   },
   {
     tableName: "personnels", // Ensure this matches your actual table name
-    timestamps: false, // Disable automatic timestamps
+    timestamps: true, // Disable automatic timestamps
+    createdAt: "created_at",
+    updatedAt: "updated_at",
   }
 );
-//Personnel.hasOne(User, { foreignKey: "personnel_id", as: "user" }); // Define association
+
 module.exports = Personnel;

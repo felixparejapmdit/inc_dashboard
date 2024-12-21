@@ -536,6 +536,9 @@ const EnrollmentForm = ({ referenceNumber }) => {
     try {
       setIsLoading(true); // Start loading indicator
 
+      const searchParams = new URLSearchParams(window.location.search);
+      const notEnrolledId = searchParams.get("not_enrolled");
+
       // Save personnel data with enrollment progress
       const response = await axios.post(`${API_URL}/api/personnels`, {
         ...personnelData,
@@ -555,6 +558,23 @@ const EnrollmentForm = ({ referenceNumber }) => {
         duration: 4000,
         isClosable: true,
       });
+
+      // Step 2: If `not_enrolled` exists, update the users table
+      if (notEnrolledId) {
+        const userResponse = await axios.get(
+          `${API_URL}/api/users_access/${notEnrolledId}`
+        );
+
+        if (!userResponse.data) {
+          throw new Error("User not found in the database.");
+        }
+        alert(notEnrolledId);
+        // Update the personnel_id in the users table
+        await axios.put(`${API_URL}/api/users/update`, {
+          username: notEnrolledId,
+          personnel_id: personnel_id, // Use the newly created personnel_id
+        });
+      }
 
       // Close modal and move to the next step
       setIsModalOpen(false);
@@ -625,7 +645,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
         // Fetch family members for the personnel
         const familyMembersResponse = await axios.get(
-          `${API_URL}/api/family-members?personnel_id=${personnelId}`
+          `${API_URL}/api/get-family-members?personnel_id=${personnelId}`
         );
         if (familyMembersResponse.data) {
           const members = familyMembersResponse.data;
