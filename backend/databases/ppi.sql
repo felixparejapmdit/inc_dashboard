@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 20, 2024 at 09:32 AM
+-- Generation Time: Dec 21, 2024 at 01:43 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -1751,7 +1751,7 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (43, 'executive.news', NULL, NULL, 'executive.news', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (44, 'pmd.it', NULL, '', 'pmd.it', '{SSHA}LYVyCEUbqbnRdJMh/NGuR38z6zbsDKG+', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (45, 'r.deguzman', NULL, NULL, 'r.deguzman', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(46, 'felix.pareja', 10, '/uploads/avatar/1732846376187_image.jpg', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-28 13:25:36'),
+(46, 'felix.pareja', 10, '/uploads/avatar/1732846376187_image.jpg', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-28 13:25:36'),
 (47, 'nsanchez', NULL, '', 'nsanchez', '{MD5}4vh3FhfOq3i3zcUJki6UBg==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (48, NULL, NULL, '/uploads/avatar/1732867059276_icons8-fitbit-50.png', 'admin', '$2a$12$ZXhnczgjZG4QAa4oGMH5eOt0.a9urccMHJ0/FBYB5zCe2/zfh3dEO', 0, NULL, 'Local', NULL, NULL, NULL, NULL);
 
