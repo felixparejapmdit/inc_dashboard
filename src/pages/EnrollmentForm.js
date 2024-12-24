@@ -315,35 +315,6 @@ const EnrollmentForm = ({ referenceNumber }) => {
     }));
   };
 
-  // const handleAddContact = () =>
-  //   setContacts([...contacts, { contactType: "", contactInfo: "" }]);
-  // const handleAddAddress = () =>
-  //   setAddresses([...addresses, { addressType: "", name: "" }]);
-  // const handleAddGovID = () =>
-  //   setGovIDs([...govIDs, { govIDType: "", govIDNumber: "" }]);
-
-  // //Edit Family Member
-  // const handleContactChange = (idx, field, value) => {
-  //   const updatedContacts = contacts.map((contact, i) =>
-  //     i === idx ? { ...contact, [field]: value } : contact
-  //   );
-  //   setContacts(updatedContacts);
-  // };
-
-  // const handleAddressChange = (idx, field, value) => {
-  //   const updatedAddresses = addresses.map((address, i) =>
-  //     i === idx ? { ...address, [field]: value } : address
-  //   );
-  //   setAddresses(updatedAddresses);
-  // };
-
-  // const handleGovIDChange = (idx, field, value) => {
-  //   const updatedGovIDs = govIDs.map((id, i) =>
-  //     i === idx ? { ...id, [field]: value } : id
-  //   );
-  //   setGovIDs(updatedGovIDs);
-  // };
-
   const handleAddEducation = () =>
     setEducation([
       ...education,
