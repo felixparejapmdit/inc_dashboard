@@ -18,16 +18,7 @@ const Personnel = sequelize.define(
       allowNull: false,
     },
     personnel_progress: {
-      type: DataTypes.ENUM(
-        "District Office",
-        "Section Chief(first_attempt)",
-        "Enrollment",
-        "Security Section",
-        "ATG Office",
-        "PMD-IT",
-        "Personnel Office",
-        "Section Chief"
-      ),
+      type: DataTypes.TEXT,
       allowNull: false,
     },
     gender: {

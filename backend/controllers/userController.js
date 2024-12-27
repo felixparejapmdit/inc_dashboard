@@ -3,6 +3,7 @@
 const User = require("../models/User");
 const Group = require("../models/Group");
 const UserGroupMapping = require("../models/UserGroupMapping");
+const Personnel = require("../models/personnels"); // Import your Personnel model
 
 exports.assignGroup = async (req, res) => {
   const { userId } = req.params;
@@ -60,5 +61,39 @@ exports.getUserByUsername = async (req, res) => {
   } catch (error) {
     console.error("Error fetching user by username:", error);
     res.status(500).json({ message: "Error fetching user.", error });
+  }
+};
+
+exports.updateProgress = async (req, res) => {
+  const { personnel_id, personnel_progress } = req.body;
+
+  if (!personnel_id || !personnel_progress) {
+    return res.status(400).json({
+      message: "Personnel ID and progress stage are required.",
+    });
+  }
+
+  try {
+    console.log("Checking if User model is defined:", User !== undefined); // Debugging
+    console.log("Searching for user with ID:", personnel_id);
+
+    const user = await Personnel.findOne({ where: { personnel_id } });
+
+    if (!user) {
+      return res.status(404).json({ message: "Personnel not found." });
+    }
+
+    await user.update({ personnel_progress });
+
+    res.status(200).json({
+      message: "Personnel's progress updated successfully.",
+      user,
+    });
+  } catch (error) {
+    console.error("Error updating personnel progress:", error);
+    res.status(500).json({
+      message: "Internal server error. Failed to update progress.",
+      error: error.message,
+    });
   }
 };

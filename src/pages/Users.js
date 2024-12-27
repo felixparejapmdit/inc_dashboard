@@ -452,27 +452,26 @@ const Users = ({ personnelId }) => {
         </Alert>
       )}
 
+      <Heading size="md">Existing Personnel (LDAP Users)</Heading>
+      <Flex justify="space-between" align="center" mt={4}>
+        <Button
+          onClick={() => handlePageChange("previous")}
+          disabled={currentPage === 1}
+        >
+          Previous
+        </Button>
+        <Text>
+          Page {currentPage} of {totalPages}
+        </Text>
+        <Button
+          onClick={() => handlePageChange("next")}
+          disabled={currentPage === totalPages}
+        >
+          Next
+        </Button>
+      </Flex>
       {/* Existing Personnel Table */}
       <VStack align="start" spacing={4} mb={6}>
-        <Heading size="md">Existing Personnel (LDAP Users)</Heading>
-
-        <Flex justify="space-between" align="center" mt={4}>
-          <Button
-            onClick={() => handlePageChange("previous")}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </Button>
-          <Text>
-            Page {currentPage} of {totalPages}
-          </Text>
-          <Button
-            onClick={() => handlePageChange("next")}
-            disabled={currentPage === totalPages}
-          >
-            Next
-          </Button>
-        </Flex>
         <Table variant="simple">
           <Thead>
             <Tr>
@@ -543,25 +542,25 @@ const Users = ({ personnelId }) => {
             })}
           </Tbody>
         </Table>
-
-        <Flex justify="space-between" align="center" mt={4}>
-          <Button
-            onClick={() => handlePageChange("previous")}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </Button>
-          <Text>
-            Page {currentPage} of {totalPages}
-          </Text>
-          <Button
-            onClick={() => handlePageChange("next")}
-            disabled={currentPage === totalPages}
-          >
-            Next
-          </Button>
-        </Flex>
       </VStack>
+
+      <Flex justify="space-between" align="center" mt={4}>
+        <Button
+          onClick={() => handlePageChange("previous")}
+          disabled={currentPage === 1}
+        >
+          Previous
+        </Button>
+        <Text>
+          Page {currentPage} of {totalPages}
+        </Text>
+        <Button
+          onClick={() => handlePageChange("next")}
+          disabled={currentPage === totalPages}
+        >
+          Next
+        </Button>
+      </Flex>
 
       {/* New Personnel Table */}
       <VStack align="start" spacing={4}>

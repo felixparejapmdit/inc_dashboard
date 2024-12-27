@@ -13,6 +13,7 @@ import Profile from "./pages/Profile"; // Import Profile Page
 import Layout from "./components/Layout"; // Import Layout to wrap around pages
 import Applications from "./pages/Applications"; // Import AddApps Page
 import Users from "./pages/Users"; // Import User Page
+import ProgressTracking from "./pages/ProgressTracking"; // Import User Page
 import Suguan from "./pages/Suguan"; // Import Suguan Page
 import Events from "./pages/Events"; // Import Events Page
 import Reminders from "./pages/Reminders"; // Import ldap-users Page
@@ -117,6 +118,19 @@ function App() {
                   }}
                 >
                   <Users />
+                </Layout>
+              }
+            />
+            <Route
+              path="/progresstracking"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <ProgressTracking />
                 </Layout>
               }
             />

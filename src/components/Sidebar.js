@@ -285,6 +285,14 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 onClick={() => navigate("/user")} // Redirect to users.js
               />
             )}
+            {hasPermission("progresstracking.view") && (
+              <SidebarItem
+                icon={FiUsers}
+                label="Progress Tracker"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/progresstracking")} // Redirect to users.js
+              />
+            )}
             {hasPermission("reminders.view") && (
               <SidebarItem
                 icon={FiUser}

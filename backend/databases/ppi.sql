@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 21, 2024 at 04:27 PM
+-- Generation Time: Dec 27, 2024 at 08:14 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -724,6 +724,7 @@ INSERT INTO `group_permission_mappings` (`group_id`, `permission_id`, `category_
 (1, 25, 5, 1),
 (1, 26, 5, 1),
 (1, 28, 4, 1),
+(1, 29, 4, 1),
 (2, 1, 4, 1),
 (2, 14, 4, 1),
 (2, 17, 3, 1),
@@ -1328,7 +1329,8 @@ INSERT INTO `permission_category_mappings` (`id`, `permission_id`, `category_id`
 (25, 25, 5, '2024-11-30 07:24:33', '2024-11-30 07:24:33'),
 (26, 26, 5, '2024-11-30 07:24:58', '2024-11-30 07:24:58'),
 (27, 27, 6, '2024-12-02 03:20:54', '2024-12-02 03:20:54'),
-(28, 28, 4, '2024-12-02 07:07:53', '2024-12-02 07:07:53');
+(28, 28, 4, '2024-12-02 07:07:53', '2024-12-02 07:07:53'),
+(29, 29, 4, '2024-12-27 06:03:02', '2024-12-27 06:03:02');
 
 -- --------------------------------------------------------
 
@@ -1376,7 +1378,8 @@ INSERT INTO `permission_definitions` (`id`, `name`, `description`, `created_at`,
 (25, 'contact.view', 'View Contact', '2024-11-30 07:24:33', '2024-11-30 07:24:33'),
 (26, 'issued_id.view', 'View Issued ID', '2024-11-30 07:24:58', '2024-11-30 07:24:58'),
 (27, 'test', '', '2024-12-02 03:20:54', '2024-12-02 03:20:54'),
-(28, 'reminders.view', 'View Reminders', '2024-12-02 07:07:53', '2024-12-02 07:07:53');
+(28, 'reminders.view', 'View Reminders', '2024-12-02 07:07:53', '2024-12-02 07:07:53'),
+(29, 'progresstracking.view', 'View Progress View', '2024-12-27 06:03:02', '2024-12-27 06:03:02');
 
 -- --------------------------------------------------------
 
@@ -1412,7 +1415,7 @@ CREATE TABLE `personnels` (
   `personnel_id` bigint(20) NOT NULL,
   `reference_number` varchar(25) NOT NULL,
   `enrollment_progress` enum('1','2','3','4','5','6','7','8','9','10') NOT NULL DEFAULT '1',
-  `personnel_progress` enum('District Office','Section Chief(first_attempt)','Enrollment','Security Section','ATG Office','PMD-IT','Personnel Office','Section Chief') NOT NULL DEFAULT 'District Office',
+  `personnel_progress` text NOT NULL,
   `gender` enum('Male','Female') NOT NULL,
   `civil_status` enum('Single','Married','Divorced') NOT NULL,
   `wedding_anniversary` datetime DEFAULT NULL,
@@ -1450,11 +1453,12 @@ CREATE TABLE `personnels` (
 --
 
 INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progress`, `personnel_progress`, `gender`, `civil_status`, `wedding_anniversary`, `givenname`, `middlename`, `surname_maiden`, `surname_husband`, `suffix`, `nickname`, `date_of_birth`, `place_of_birth`, `datejoined`, `language_id`, `bloodtype`, `email_address`, `citizenship`, `nationality`, `department_id`, `section_id`, `subsection_id`, `designation_id`, `district_id`, `local_congregation`, `personnel_type`, `assigned_number`, `m_status`, `panunumpa_date`, `ordination_date`, `created_at`, `updated_at`) VALUES
-(10, 'ENR-2412-EP1-8972', '1', 'District Office', 'Male', 'Single', NULL, 'Felixxx', 'Morales', '', 'Pareja', 'No Suffix', 'Chok', '1992-11-09 00:00:00', 'QC', '2024-12-09 00:00:00', NULL, 'A+', 'felixpareja@yahoo.com', 138, 138, 1, 2, 1, 1, 45, 'Bonifacio Drive', 'Regular', 20149, 'May Destino', '2022-09-16 00:00:00', NULL, '2024-12-09 04:43:34', '2024-12-21 13:30:38'),
-(13, 'ENR-2412-EP1-6371', '1', 'Enrollment', 'Male', 'Single', NULL, 'Aldrin', 'asd', '', 'Salvador', '', 'asd', '2000-12-20 00:00:00', 'asd', '2024-12-20 00:00:00', NULL, '', 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', 'Lay Member', 0, NULL, '0000-00-00 00:00:00', NULL, '2024-12-19 17:31:20', '2024-12-21 12:24:09'),
-(20, 'ENR-2412-EP1-7874', '1', 'Enrollment', 'Male', 'Single', '0000-00-00 00:00:00', 'Michael', 'asd', '', 'Shody', '', 'asd', '2024-12-20 00:00:00', '', '0000-00-00 00:00:00', NULL, '', 'kim@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', '', 0, NULL, '0000-00-00 00:00:00', '0000-00-00 00:00:00', '2024-12-19 18:57:28', '2024-12-21 12:24:21'),
-(21, 'ENR-2412-EP1-5712', '1', 'Enrollment', 'Male', 'Single', '0000-00-00 00:00:00', 'Kyrt', '', '', 'Jyd', '', 'asd', '2024-12-21 00:00:00', '', '2024-12-21 00:00:00', NULL, '', 'kyrt@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', 'Regular', 213, 'Fulltime', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '2024-12-21 13:25:02', '2024-12-21 13:25:02'),
-(26, 'ENR-2412-EP1-8118', '1', 'Enrollment', 'Female', 'Married', '2024-12-21 00:00:00', 'Nichole', 'asd', '', 'asd', '', 'asd', '2024-12-21 00:00:00', 'asd', '0000-00-00 00:00:00', NULL, '', 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', 'Lay Member', 0, NULL, '0000-00-00 00:00:00', NULL, '2024-12-21 15:10:18', '2024-12-21 15:11:22');
+(10, 'ENR-2412-EP1-8972', '1', '1', 'Male', 'Single', NULL, 'Felixxx', 'Morales', '', 'Pareja', 'No Suffix', 'Chok', '1992-11-09 00:00:00', 'QC', '2024-12-09 00:00:00', NULL, 'A+', 'felixpareja@yahoo.com', 138, 138, 1, 2, 1, 1, 45, 'Bonifacio Drive', 'Regular', 20149, 'May Destino', '2022-09-16 00:00:00', NULL, '2024-12-09 04:43:34', '2024-12-21 13:30:38'),
+(13, 'ENR-2412-EP1-6371', '1', '3', 'Male', 'Single', NULL, 'Aldrin', 'asd', '', 'Salvador', '', 'asd', '2000-12-20 00:00:00', 'asd', '2024-12-20 00:00:00', NULL, '', 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', 'Lay Member', 0, NULL, '0000-00-00 00:00:00', NULL, '2024-12-19 17:31:20', '2024-12-21 12:24:09'),
+(20, 'ENR-2412-EP1-7874', '1', '2', 'Male', 'Single', '0000-00-00 00:00:00', 'Michael', 'asd', '', 'Shody', '', 'asd', '2024-12-20 00:00:00', '', '0000-00-00 00:00:00', NULL, '', 'kim@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', '', 0, NULL, '0000-00-00 00:00:00', '0000-00-00 00:00:00', '2024-12-19 18:57:28', '2024-12-27 06:44:51'),
+(21, 'ENR-2412-EP1-5712', '1', '6', 'Male', 'Single', '0000-00-00 00:00:00', 'Kyrt', '', '', 'Jyd', '', 'asd', '2024-12-21 00:00:00', '', '2024-12-21 00:00:00', NULL, '', 'kyrt@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', 'Regular', 213, 'Fulltime', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '2024-12-21 13:25:02', '2024-12-27 06:48:16'),
+(26, 'ENR-2412-EP1-8118', '1', '3', 'Female', 'Married', '2024-12-21 00:00:00', 'Nichole', 'asd', '', 'asd', '', 'asd', '2024-12-21 00:00:00', 'asd', '0000-00-00 00:00:00', NULL, '', 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', 'Lay Member', 0, NULL, '0000-00-00 00:00:00', NULL, '2024-12-21 15:10:18', '2024-12-21 15:11:22'),
+(27, 'ENR-2412-EP1-2077', '1', '3', 'Male', 'Married', '2024-12-24 00:00:00', 'Christian Marco', '', '', 'Cervantes', '', 'Marco', '2024-12-24 00:00:00', 'QC', '2024-12-24 00:00:00', NULL, '', 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', 'Minister', 123, 'Fulltime', '2024-12-24 00:00:00', '2024-12-24 00:00:00', '2024-12-24 05:51:32', '2024-12-27 06:47:53');
 
 -- --------------------------------------------------------
 
@@ -1977,12 +1981,6 @@ INSERT INTO `work_experience` (`id`, `personnel_id`, `employment_type`, `company
 --
 
 --
--- Indexes for table `apps`
---
-ALTER TABLE `apps`
-  ADD PRIMARY KEY (`id`);
-
---
 -- Indexes for table `available_apps`
 --
 ALTER TABLE `available_apps`
@@ -2217,12 +2215,6 @@ ALTER TABLE `work_experience`
 --
 
 --
--- AUTO_INCREMENT for table `apps`
---
-ALTER TABLE `apps`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
-
---
 -- AUTO_INCREMENT for table `available_apps`
 --
 ALTER TABLE `available_apps`
@@ -2334,13 +2326,13 @@ ALTER TABLE `permission_categories`
 -- AUTO_INCREMENT for table `permission_category_mappings`
 --
 ALTER TABLE `permission_category_mappings`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `permission_definitions`
 --
 ALTER TABLE `permission_definitions`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `permission_groups`
@@ -2352,7 +2344,7 @@ ALTER TABLE `permission_groups`
 -- AUTO_INCREMENT for table `personnels`
 --
 ALTER TABLE `personnels`
-  MODIFY `personnel_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `personnel_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT for table `personnel_address`

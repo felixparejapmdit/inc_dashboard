@@ -329,13 +329,6 @@ const Profile = () => {
                   if (personnelId) {
                     window.location.href = `/enroll?personnel_id=${personnelId}`;
                   } else {
-                    // toast({
-                    //   title: "Error",
-                    //   description: "Personnel ID not found.",
-                    //   status: "error",
-                    //   duration: 3000,
-                    //   isClosable: true,
-                    // });
                     window.location.href = `/enroll?not_enrolled=${user.username}`;
                   }
                 }}

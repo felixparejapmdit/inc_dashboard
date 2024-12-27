@@ -71,6 +71,9 @@ router.put("/api/users/:userId/assign-group", UserController.assignGroup);
 
 router.get("/api/users_access/:username", UserController.getUserByUsername);
 
+// Update user's progress stage
+router.put("/api/users/update-progress", UserController.updateProgress);
+
 // Set up Multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -158,7 +161,17 @@ router.post("/api/sync-to-users", async (req, res) => {
     }
 
     // Step 2: Search for the LDAP user by full name
-    const ldapUser = await ldapSearchByFullname(personnelName);
+    let ldapUser;
+    try {
+      ldapUser = await ldapSearchByFullname(personnelName);
+    } catch (error) {
+      return res.status(404).json({
+        message:
+          "LDAP user not found for the given name. Please ensure the full name is correctly entered or add the personnel to the LDAP server.",
+        details: error.message, // Optional for additional debugging information
+      });
+    }
+
     if (!ldapUser) {
       return res.status(404).json({
         message:
@@ -176,10 +189,17 @@ router.post("/api/sync-to-users", async (req, res) => {
 
     // Step 3: Check if the user already exists in the users table
     const existingUser = await User.findOne({ where: { uid } });
+    if (!existingUser) {
+      return res.status(404).json({
+        message:
+          "User does not exist in the users table. Please add the user first.",
+      });
+    }
+
     if (existingUser) {
-      return res
-        .status(400)
-        .json({ message: "User already exists in the users table." });
+      return res.status(400).json({
+        message: "User already exists in the users table.",
+      });
     }
 
     // Step 4: Save the user in the users table
