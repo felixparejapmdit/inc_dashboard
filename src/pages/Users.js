@@ -397,7 +397,7 @@ const Users = ({ personnelId }) => {
 
   // Sync to users table for new personnel
   const handleSyncToUsersTable = async (personnelId, personnelName) => {
-    alert(personnelId);
+    // alert(personnelId);
     setLoading((prevLoading) => ({ ...prevLoading, [personnelId]: true })); // Set loading for the specific button
     try {
       const response = await axios.post(`${API_URL}/api/sync-to-users`, {
