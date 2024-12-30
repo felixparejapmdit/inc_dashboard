@@ -511,6 +511,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
       const notEnrolledId = searchParams.get("not_enrolled");
 
       // Save personnel data with enrollment progress
+      alert(`${API_URL}/api/personnels`);
       const response = await axios.post(`${API_URL}/api/personnels`, {
         ...personnelData,
         enrollment_progress: "1",
