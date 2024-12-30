@@ -4,11 +4,11 @@ const mysql = require("mysql");
 
 // Create MySQL connection with fallback defaults
 const connection = mysql.createConnection({
-  host: process.env.MYSQL_HOST || "127.0.0.1", // Fallback to localhost for development
-  user: process.env.MYSQL_USER || "root",
-  password: process.env.MYSQL_PASSWORD || "",
-  database: process.env.MYSQL_DATABASE || "ppi",
-  port: process.env.MYSQL_PORT || 3306, // Default MySQL port
+  host: process.env.MYSQL_HOST, //|| "127.0.0.1", // Fallback to localhost for development
+  user: process.env.MYSQL_USER, // || "root",
+  password: process.env.MYSQL_PASSWORD, // || "",
+  database: process.env.MYSQL_DATABASE, // || "ppi",
+  port: process.env.MYSQL_PORT, // || 3306, // Default MySQL port
 });
 
 // Establish connection and handle potential errors
