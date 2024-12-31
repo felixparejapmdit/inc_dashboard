@@ -510,12 +510,35 @@ const EnrollmentForm = ({ referenceNumber }) => {
       const searchParams = new URLSearchParams(window.location.search);
       const notEnrolledId = searchParams.get("not_enrolled");
 
-      // Save personnel data with enrollment progress
-      alert(`${API_URL}/api/personnels`);
+      // Destructure necessary fields from personnelData
+      const {
+        gender,
+        civil_status,
+        givenname,
+        surname_husband,
+        date_of_birth,
+        email_address,
+        personnel_type,
+        panunumpa_date,
+        ordination_date,
+        m_status,
+      } = personnelData;
+
+      // Prepare the API payload dynamically
       const response = await axios.post(`${API_URL}/api/personnels`, {
-        ...personnelData,
-        enrollment_progress: "1",
-        personnel_progress: "Enrollment",
+        reference_number: null, // Can be generated later
+        enrollment_progress: "1", // Required value
+        personnel_progress: "Enrollment", // Required value
+        gender: gender || null, // Use null if empty
+        civil_status: civil_status || null, // Use null if empty
+        givenname: givenname || null, // Use null if empty
+        surname_husband: surname_husband || null, // Use null if empty
+        date_of_birth: date_of_birth || null, // Use null if empty
+        email_address: email_address || null, // Use null if empty
+        personnel_type: personnel_type || null, // Use null if empty
+        panunumpa_date: panunumpa_date || null, // Use null if empty
+        ordination_date: ordination_date || null, // Use null if empty
+        m_status: m_status || null, // Use null if empty
       });
 
       // Extract the personnel_id from the response
