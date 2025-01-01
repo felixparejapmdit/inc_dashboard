@@ -486,14 +486,21 @@ router.put("/api/users/update-login-status", (req, res) => {
 // Get all users with their available apps and LDAP attributes
 router.get("/api/users", async (req, res) => {
   const query = `
-    SELECT u.ID, u.username, u.password,
-    ug.id AS groupId,  u.avatar, ug.name as groupname, GROUP_CONCAT(a.name) AS availableApps 
+    SELECT 
+      u.ID, 
+      u.username, 
+      u.password,
+      MAX(ug.id) AS groupId,  
+      u.avatar, 
+      MAX(ug.name) as groupname, 
+      GROUP_CONCAT(a.name) AS availableApps 
     FROM users u 
     LEFT JOIN user_group_mappings ugm ON ugm.user_id = u.ID 
     LEFT JOIN user_groups ug ON ug.id = ugm.group_id 
     LEFT JOIN available_apps ua ON u.ID = ua.user_id 
     LEFT JOIN apps a ON ua.app_id = a.id 
-    GROUP BY u.ID`;
+    GROUP BY u.ID, u.username, u.password, u.avatar;
+  `;
 
   console.log("1");
 
