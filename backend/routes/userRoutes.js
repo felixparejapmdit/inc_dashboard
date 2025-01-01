@@ -11,14 +11,14 @@ const User = require("../models/User");
 const Personnel = require("../models/personnels");
 const UserController = require("../controllers/userController");
 
-const db1 = require("../config/database");
+//const db1 = require("../config/database");
 const axios = require("axios");
 
-const ldap = require("ldapjs");
-const LDAP_URL = process.env.LDAP_URL;
-const BIND_DN = process.env.BIND_DN;
-const BIND_PASSWORD = process.env.BIND_PASSWORD;
-const BASE_DN = process.env.BASE_DN;
+//const ldap = require("ldapjs");
+//const LDAP_URL = process.env.LDAP_URL;
+// const BIND_DN = process.env.BIND_DN;
+// const BIND_PASSWORD = process.env.BIND_PASSWORD;
+// const BASE_DN = process.env.BASE_DN;
 
 // Utility to create an LDAP client
 const createLdapClient = () => {
@@ -223,7 +223,7 @@ const ldapSearchByFullname = async (fullname) => {
 
   const bindClient = () =>
     new Promise((resolve, reject) => {
-      client.bind(BIND_DN, BIND_PASSWORD, (err) => {
+      client.bind(process.env.BIND_DN, process.env.BIND_PASSWORD, (err) => {
         if (err) {
           client.unbind((unbindErr) => {
             if (unbindErr) {
@@ -493,14 +493,13 @@ router.get("/api/users", async (req, res) => {
     LEFT JOIN user_groups ug ON ug.id = ugm.group_id 
     LEFT JOIN available_apps ua ON u.ID = ua.user_id 
     LEFT JOIN apps a ON ua.app_id = a.id 
-    GROUP BY u.ID
-  `;
+    GROUP BY u.ID`;
 
   // Function to fetch users from LDAP
   const fetchLdapUsers = () => {
     return new Promise((resolve, reject) => {
       const client = createLdapClient();
-      client.bind(BIND_DN, BIND_PASSWORD, (err) => {
+      client.bind(process.env.BIND_DN, process.env.BIND_PASSWORD, (err) => {
         if (err) return reject("LDAP bind error");
 
         const searchOptions = {
@@ -509,7 +508,7 @@ router.get("/api/users", async (req, res) => {
         };
         const users = [];
 
-        client.search(BASE_DN, searchOptions, (err, result) => {
+        client.search(process.env.BASE_DN, searchOptions, (err, result) => {
           if (err) return reject("LDAP search error");
 
           result.on("searchEntry", (entry) => {
