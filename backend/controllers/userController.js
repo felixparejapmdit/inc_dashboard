@@ -4,6 +4,85 @@ const User = require("../models/User");
 const Group = require("../models/Group");
 const UserGroupMapping = require("../models/UserGroupMapping");
 const Personnel = require("../models/personnels"); // Import your Personnel model
+const axios = require("axios");
+
+// Environment variables
+const API_URL = process.env.REACT_APP_API_URL;
+
+// Controller function for migrating LDAP users
+exports.migrateLdapToPmdLoginUsers = async (req, res) => {
+  try {
+    // Fetch LDAP users
+    const fetchLdapUsers = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/api/ldap/users`);
+        return response.data; // Assuming the API response is an array of LDAP user objects
+      } catch (error) {
+        console.error("Error fetching LDAP users:", error);
+        throw new Error("Failed to fetch LDAP users.");
+      }
+    };
+
+    const ldapUsers = await fetchLdapUsers();
+
+    if (!ldapUsers || ldapUsers.length === 0) {
+      return res.status(404).json({
+        message: "No LDAP users found or unable to connect to LDAP API.",
+      });
+    }
+
+    // Process each LDAP user
+    const migrationResults = [];
+    for (const ldapUser of ldapUsers) {
+      // Check if the user already exists in the users table by UID
+      const existingUser = await User.findOne({
+        where: { username: ldapUser.uid },
+      });
+
+      if (!existingUser) {
+        // Map LDAP data to user fields
+        const newUser = {
+          uid: ldapUser.uid,
+          personnel_id: null, // Set to null or map if personnel_id exists elsewhere
+          username: ldapUser.uid,
+          password: ldapUser.userPassword, // Assuming password format matches
+          avatar: null, // Set avatar if needed
+          isLoggedIn: 0, // Default to not logged in
+          last_login: null,
+          auth_type: "LDAP", // LDAP as the auth type
+          failed_attempts: 0, // Initialize failed attempts
+          last_failed_attempt: null,
+          created_at: new Date(),
+          updated_at: new Date(),
+        };
+
+        // Insert the new user
+        await User.create(newUser);
+        migrationResults.push({
+          uid: ldapUser.uid,
+          status: "Migrated successfully",
+        });
+      } else {
+        migrationResults.push({
+          uid: ldapUser.uid,
+          status: "Already exists in users table",
+        });
+      }
+    }
+
+    // Return the migration summary
+    res.status(200).json({
+      message: "LDAP to PMD Login Users migration completed.",
+      results: migrationResults,
+    });
+  } catch (error) {
+    console.error("Error during LDAP migration:", error.message);
+    res.status(500).json({
+      message: "An error occurred during the migration process.",
+      error: error.message,
+    });
+  }
+};
 
 exports.assignGroup = async (req, res) => {
   const { userId } = req.params;

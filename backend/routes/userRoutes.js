@@ -74,6 +74,12 @@ router.get("/api/users_access/:username", UserController.getUserByUsername);
 // Update user's progress stage
 router.put("/api/users/update-progress", UserController.updateProgress);
 
+// Route to trigger the migration of LDAP users
+router.post(
+  "/api/migrateLdapToPmdLoginUsers",
+  UserController.migrateLdapToPmdLoginUsers
+);
+
 // Set up Multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {

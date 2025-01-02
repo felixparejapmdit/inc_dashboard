@@ -45,6 +45,8 @@ const ITEMS_PER_PAGE = 15;
 
 const Users = ({ personnelId }) => {
   const [users, setUsers] = useState([]);
+
+  const [setFilteredUsers] = useState([]);
   const [groups, setGroups] = useState([]);
   const [avatarFile, setAvatarFile] = useState(null);
   const [selectedGroup, setSelectedGroup] = useState(""); // For group assignment
@@ -432,9 +434,54 @@ const Users = ({ personnelId }) => {
     }
   };
 
+  const fetchUsers = async () => {
+    fetch(`${API_URL}/api/users`)
+      .then((res) => res.json())
+      .then((data) => setUsers(Array.isArray(data) ? data : []))
+      .catch(() =>
+        setStatus("Failed to load users from Sync users from ldap.")
+      );
+  };
+
+  const handleSyncUsers = async () => {
+    setLoading(true);
+    try {
+      await axios.post(`${API_URL}/api/migrateLdapToPmdLoginUsers`);
+      toast({
+        title: "Sync Successful",
+        description: "Users have been successfully synchronized from LDAP.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+      fetchUsers(); // Refresh the users list
+    } catch (error) {
+      console.error("Error synchronizing users:", error);
+      toast({
+        title: "Error",
+        description: "Failed to synchronize users from LDAP.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Box p={6}>
       <Heading mb={6}>Manage Personnel</Heading>
+
+      {/* Sync Users Button */}
+      <Button
+        colorScheme="blue"
+        mb={4}
+        isLoading={loading}
+        onClick={handleSyncUsers}
+      >
+        Sync Users from LDAP
+      </Button>
 
       <Input
         placeholder="Search users..."
