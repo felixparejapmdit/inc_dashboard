@@ -502,8 +502,6 @@ router.get("/api/users", async (req, res) => {
     GROUP BY u.ID, u.username, u.password, u.avatar;
   `;
 
-  console.log("1");
-
   // Function to fetch users from LDAP
   const fetchLdapUsers = () => {
     return new Promise((resolve, reject) => {
@@ -547,7 +545,7 @@ router.get("/api/users", async (req, res) => {
       });
     });
   };
-  console.log("2");
+
   // Fallback function to read from ldap_users.json
   const readLdapFromFile = () => {
     try {
@@ -580,7 +578,6 @@ router.get("/api/users", async (req, res) => {
       });
     });
 
-    console.log("3");
     // Fetch users from LDAP
     //const ldapUsers = await fetchLdapUsers();
 
@@ -596,8 +593,6 @@ router.get("/api/users", async (req, res) => {
       ldapUsers = readLdapFromFile(); // Use fallback data
     }
 
-    console.log("4");
-
     // Combine the database users with LDAP attributes
     const combinedUsers = dbUsers.map((dbUser) => {
       // Find the matching LDAP user by username (or another unique field)
@@ -611,7 +606,6 @@ router.get("/api/users", async (req, res) => {
       };
     });
 
-    console.log("5");
     // Send combined users data as JSON response
     res.json(combinedUsers);
   } catch (err) {
