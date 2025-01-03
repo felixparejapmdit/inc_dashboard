@@ -79,7 +79,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isSettingsExpanded, setIsSettingsExpanded] = useState(false); // State for expanding settings submenu
   const [isManagementsExpanded, setIsManagementsExpanded] = useState(false);
-
+  const [isProgressStepsExpanded, setIsProgressStepsExpanded] = useState(false);
   const [user, setUser] = useState({ name: "", avatarUrl: "" }); // State to store logged-in user
   const [isLogoutAlertOpen, setIsLogoutAlertOpen] = useState(false); // State for the alert dialog
   const bgGradient = useColorModeValue(
@@ -143,6 +143,11 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
 
   const handleManagementsToggle = () => {
     setIsManagementsExpanded(!isManagementsExpanded);
+  };
+
+  // Handle Settings toggle
+  const handleProgressToggle = () => {
+    setIsProgressStepsExpanded(!isProgressStepsExpanded); // Toggle the settings sub-menu
   };
 
   // Open Logout Confirmation Dialog
@@ -285,14 +290,6 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 onClick={() => navigate("/user")} // Redirect to users.js
               />
             )}
-            {hasPermission("progresstracking.view") && (
-              <SidebarItem
-                icon={FiUsers}
-                label="Progress Tracker"
-                isExpanded={isExpanded}
-                onClick={() => navigate("/progresstracking")} // Redirect to users.js
-              />
-            )}
             {hasPermission("reminders.view") && (
               <SidebarItem
                 icon={FiUser}
@@ -315,6 +312,86 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 label="LdapUsers" // Added LdapUsers page
                 isExpanded={isExpanded}
                 onClick={() => navigate("/ldap-users")}
+              />
+            )}
+          </VStack>
+        </Collapse>
+
+        {/* Add Progress Steps Menu */}
+        {hasPermission("*progress.view") && (
+          <SidebarItem
+            icon={FiLayers} // Choose an appropriate icon
+            label="Progress Steps"
+            isExpanded={isExpanded}
+            onClick={handleProgressToggle} // Toggle settings menu
+            rightIcon={isProgressStepsExpanded ? FiArrowUp : FiArrowDown}
+          />
+        )}
+        <Collapse in={isProgressStepsExpanded} animateOpacity>
+          <VStack align="start" ml={isExpanded ? 4 : 0} spacing={3}>
+            {hasPermission("progresstracking.view") && (
+              <SidebarItem
+                icon={FiUsers}
+                label="Progress Tracker"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/progresstracking")} // Redirect to the main progress tracking page
+              />
+            )}
+
+            {hasPermission("sectionchief.view") && (
+              <SidebarItem
+                label="Step 1: Section Chief"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/progress/step1")} // Step 1: Section Chief
+              />
+            )}
+            {hasPermission("adminoffice.view") && (
+              <SidebarItem
+                label="Step 2: Admin Office"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/progress/step2")} // Step 2: Admin Office
+              />
+            )}
+            {hasPermission("securityoverseer.view") && (
+              <SidebarItem
+                label="Step 3: Security Overseer"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/progress/step3")} // Step 3: Security Overseer
+              />
+            )}
+            {hasPermission("pmdit.view") && (
+              <SidebarItem
+                label="Step 4: PMD IT"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/progress/step4")} // Step 4: PMD IT
+              />
+            )}
+            {hasPermission("mc.view") && (
+              <SidebarItem
+                label="Step 5: Ka Marco Cervantes"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/progress/step5")} // Step 5: Marco Cervantes
+              />
+            )}
+            {hasPermission("kd.view") && (
+              <SidebarItem
+                label="Step 6: Ka Karl Dematera"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/progress/step6")} // Step 6: Karl Dematera
+              />
+            )}
+            {hasPermission("atgapproval.view") && (
+              <SidebarItem
+                label="Step 7: ATG Office Approval"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/progress/step7")} // Step 7: ATG Office
+              />
+            )}
+            {hasPermission("personneloffice.view") && (
+              <SidebarItem
+                label="Step 8: Personnel Office"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/progress/step8")} // Step 8: Personnel Office
               />
             )}
           </VStack>

@@ -14,6 +14,16 @@ import Layout from "./components/Layout"; // Import Layout to wrap around pages
 import Applications from "./pages/Applications"; // Import AddApps Page
 import Users from "./pages/Users"; // Import User Page
 import ProgressTracking from "./pages/ProgressTracking"; // Import User Page
+
+import ProgressStep1 from "./pages/progress/Step1";
+import ProgressStep2 from "./pages/progress/Step2";
+import ProgressStep3 from "./pages/progress/Step3";
+import ProgressStep4 from "./pages/progress/Step4";
+import ProgressStep5 from "./pages/progress/Step5";
+import ProgressStep6 from "./pages/progress/Step6";
+import ProgressStep7 from "./pages/progress/Step7";
+import ProgressStep8 from "./pages/progress/Step8";
+
 import Suguan from "./pages/Suguan"; // Import Suguan Page
 import Events from "./pages/Events"; // Import Events Page
 import Reminders from "./pages/Reminders"; // Import ldap-users Page
@@ -134,6 +144,115 @@ function App() {
                 </Layout>
               }
             />
+
+            <Route
+              path="/progress/step1"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <ProgressStep1 />
+                </Layout>
+              }
+            />
+
+            {/* <Route path="/progress/step1" element={<ProgressStep1 />} /> */}
+            <Route
+              path="/progress/step2"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <ProgressStep2 />
+                </Layout>
+              }
+            />
+            <Route
+              path="/progress/step3"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <ProgressStep3 />
+                </Layout>
+              }
+            />
+            <Route
+              path="/progress/step4"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <ProgressStep4 />
+                </Layout>
+              }
+            />
+
+            <Route
+              path="/progress/step5"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <ProgressStep5 />
+                </Layout>
+              }
+            />
+            <Route
+              path="/progress/step6"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <ProgressStep6 />
+                </Layout>
+              }
+            />
+            <Route
+              path="/progress/step7"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <ProgressStep7 />
+                </Layout>
+              }
+            />
+            <Route
+              path="/progress/step8"
+              element={
+                <Layout
+                  currentUser={{
+                    name: "John Doe",
+                    avatarUrl: "/path/to/avatar.jpg",
+                  }}
+                >
+                  <ProgressStep8 />
+                </Layout>
+              }
+            />
+
             <Route
               path="/profile"
               element={
