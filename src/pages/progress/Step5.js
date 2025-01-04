@@ -1,5 +1,4 @@
-// src/pages/progress/Step5.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Heading,
@@ -10,21 +9,70 @@ import {
   Alert,
   AlertIcon,
   useToast,
-  Image,
   Spinner,
+  Input,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Divider,
+  Flex,
 } from "@chakra-ui/react";
 import axios from "axios";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
-const Step5 = ({ user }) => {
+const Step5 = () => {
   const [photos, setPhotos] = useState({
     twoByTwo: false,
     halfBody: false,
     fullBody: false,
   });
   const [loading, setLoading] = useState(false);
+  const [personnelList, setPersonnelList] = useState([]);
+  const [filteredPersonnel, setFilteredPersonnel] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [search, setSearch] = useState("");
+  const [personnelInfo, setPersonnelInfo] = useState(null);
   const toast = useToast();
+
+  // Fetch new personnel list
+  useEffect(() => {
+    const fetchPersonnel = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get(`${API_URL}/api/personnels/new`);
+        setPersonnelList(response.data);
+        setFilteredPersonnel(response.data);
+      } catch (error) {
+        console.error("Error fetching personnel list:", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch personnel list.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPersonnel();
+  }, [toast]);
+
+  const handleSearch = (e) => {
+    const query = e.target.value.toLowerCase();
+    setSearch(query);
+    const filtered = personnelList.filter(
+      (personnel) =>
+        personnel.fullname?.toLowerCase().includes(query) ||
+        personnel.username?.toLowerCase().includes(query) ||
+        personnel.email?.toLowerCase().includes(query)
+    );
+    setFilteredPersonnel(filtered);
+  };
 
   const handleVerify = async () => {
     const allChecked = Object.values(photos).every((photo) => photo);
@@ -40,12 +88,23 @@ const Step5 = ({ user }) => {
       return;
     }
 
+    if (!selectedUser?.personnel_id) {
+      toast({
+        title: "Verification Failed",
+        description: "No personnel selected for verification.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      await axios.put(`${API_URL}/api/personnels/${user.personnel_id}/step5`, {
-        photosVerified: true,
+      await axios.put(`${API_URL}/api/users/update-progress`, {
+        personnel_id: selectedUser.personnel_id,
+        personnel_progress: 5, // Update to Step 5
       });
-
       toast({
         title: "Step Verified",
         description: "Photoshoot and interview verification complete.",
@@ -67,6 +126,27 @@ const Step5 = ({ user }) => {
     }
   };
 
+  const handleUserSelect = async (user) => {
+    setSelectedUser(user);
+
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/personnels/${user.personnel_id}`
+      );
+      setPersonnelInfo(response.data);
+    } catch (error) {
+      console.error("Error fetching personnel information:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch personnel information.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      setPersonnelInfo(null);
+    }
+  };
+
   const handlePhotoChange = (field) => {
     setPhotos((prev) => ({ ...prev, [field]: !prev[field] }));
   };
@@ -79,36 +159,139 @@ const Step5 = ({ user }) => {
       {loading ? (
         <Spinner size="lg" />
       ) : (
-        <VStack align="start" spacing={4}>
-          <Text fontSize="lg">Checklist:</Text>
-          <Checkbox
-            isChecked={photos.twoByTwo}
-            onChange={() => handlePhotoChange("twoByTwo")}
-          >
-            2x2 Photo
-          </Checkbox>
-          <Checkbox
-            isChecked={photos.halfBody}
-            onChange={() => handlePhotoChange("halfBody")}
-          >
-            Half Body Photo
-          </Checkbox>
-          <Checkbox
-            isChecked={photos.fullBody}
-            onChange={() => handlePhotoChange("fullBody")}
-          >
-            Full Body Photo
-          </Checkbox>
-          <Button colorScheme="teal" mt={4} onClick={handleVerify}>
-            Verify and Proceed
-          </Button>
-          {!user?.personnel_id && (
-            <Alert status="error" borderRadius="md" mt={4}>
-              <AlertIcon />
-              The personnel is not enrolled yet.
-            </Alert>
+        <>
+          {/* Search Input */}
+          <Input
+            placeholder="Search by fullname, username, or email"
+            value={search}
+            onChange={handleSearch}
+            mb={4}
+            size="lg"
+            variant="outline"
+          />
+          {/* Personnel List */}
+          <Table variant="striped" colorScheme="gray" mb={6}>
+            <Thead>
+              <Tr>
+                <Th>#</Th>
+                <Th>Full Name</Th>
+                <Th>Username</Th>
+                <Th>Email</Th>
+                <Th>Action</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {filteredPersonnel.map((personnel, index) => (
+                <Tr key={personnel.id}>
+                  <Td>{index + 1}</Td>
+                  <Td>{personnel.fullname || "N/A"}</Td>
+                  <Td>{personnel.username || "N/A"}</Td>
+                  <Td>{personnel.email || "N/A"}</Td>
+                  <Td>
+                    <Button
+                      colorScheme="blue"
+                      size="sm"
+                      onClick={() => handleUserSelect(personnel)}
+                    >
+                      Select
+                    </Button>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+          {/* Checklist */}
+          {selectedUser && (
+            <VStack
+              align="start"
+              spacing={6}
+              w="100%"
+              maxWidth="600px"
+              mx="auto"
+            >
+              <Text fontSize="xl" fontWeight="bold" color="teal.500">
+                Personnel Information
+              </Text>
+              <Box
+                p={6}
+                bg="white"
+                borderRadius="lg"
+                boxShadow="lg"
+                border="1px solid"
+                borderColor="gray.200"
+                w="100%"
+              >
+                <Text>
+                  <b>Reference Number:</b>{" "}
+                  {personnelInfo?.reference_number || "N/A"}
+                </Text>
+                <Divider />
+                <Text fontSize="lg" mt={2}>
+                  <b>Name:</b>{" "}
+                  {`${personnelInfo?.givenname || ""} ${
+                    personnelInfo?.middlename || ""
+                  } ${personnelInfo?.surname_husband || ""}`}
+                </Text>
+                <Divider />
+                <Text fontSize="lg" mt={2}>
+                  <b>Email Address:</b> {personnelInfo?.email_address || "N/A"}
+                </Text>
+              </Box>
+              <Flex
+                direction="column"
+                align="center"
+                justify="center"
+                w="100%"
+                bg="white"
+                p={6}
+                borderRadius="lg"
+                boxShadow="md"
+                maxWidth="500px"
+                mx="auto"
+              >
+                <Text fontSize="xl" fontWeight="bold" mb={4}>
+                  Photo Checklist
+                </Text>
+                <VStack align="start" spacing={3} w="100%">
+                  <Checkbox
+                    isChecked={photos.twoByTwo}
+                    onChange={() => handlePhotoChange("twoByTwo")}
+                    colorScheme="teal"
+                    size="lg"
+                  >
+                    2x2 Photo
+                  </Checkbox>
+                  <Checkbox
+                    isChecked={photos.halfBody}
+                    onChange={() => handlePhotoChange("halfBody")}
+                    colorScheme="teal"
+                    size="lg"
+                  >
+                    Half Body Photo
+                  </Checkbox>
+                  <Checkbox
+                    isChecked={photos.fullBody}
+                    onChange={() => handlePhotoChange("fullBody")}
+                    colorScheme="teal"
+                    size="lg"
+                  >
+                    Full Body Photo
+                  </Checkbox>
+                </VStack>
+                <Button
+                  colorScheme="teal"
+                  mt={6}
+                  size="lg"
+                  w="100%"
+                  onClick={handleVerify}
+                  isDisabled={!Object.values(photos).every((photo) => photo)}
+                >
+                  Verify and Proceed
+                </Button>
+              </Flex>
+            </VStack>
           )}
-        </VStack>
+        </>
       )}
     </Box>
   );
