@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 03, 2025 at 04:35 AM
+-- Generation Time: Jan 04, 2025 at 09:13 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -1496,9 +1496,9 @@ CREATE TABLE `personnels` (
 
 INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progress`, `personnel_progress`, `gender`, `civil_status`, `wedding_anniversary`, `givenname`, `middlename`, `surname_maiden`, `surname_husband`, `suffix`, `nickname`, `date_of_birth`, `place_of_birth`, `datejoined`, `language_id`, `bloodtype`, `email_address`, `citizenship`, `nationality`, `department_id`, `section_id`, `subsection_id`, `designation_id`, `district_id`, `local_congregation`, `personnel_type`, `assigned_number`, `m_status`, `panunumpa_date`, `ordination_date`, `created_at`, `updated_at`) VALUES
 (10, 'ENR-2412-EP1-8972', '1', '1', 'Male', 'Single', NULL, 'Felix', 'Morales', '', 'Pareja', 'No Suffix', 'Chok', '1992-11-09 00:00:00', 'QC', '2024-12-09 00:00:00', NULL, 'A+', 'felixpareja@yahoo.com', 138, 138, 1, 2, 1, 1, 45, 'Bonifacio Drive', 'Regular', 20149, 'May Destino', '2022-09-16 00:00:00', NULL, '2024-12-09 04:43:34', '2025-01-03 00:55:52'),
-(13, 'ENR-2412-EP1-6371', '1', '3', 'Male', 'Single', NULL, 'Aldrin', 'asd', '', 'Salvador', '', 'asd', '2000-12-20 00:00:00', 'asd', '2024-12-20 00:00:00', NULL, '', 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', 'Lay Member', 0, NULL, '0000-00-00 00:00:00', NULL, '2024-12-19 17:31:20', '2024-12-21 12:24:09'),
-(20, 'ENR-2412-EP1-7874', '1', '2', 'Male', 'Single', '0000-00-00 00:00:00', 'Michael', 'asd', '', 'Shody', '', 'asd', '2024-12-20 00:00:00', '', '0000-00-00 00:00:00', NULL, '', 'kim@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', '', 0, NULL, '0000-00-00 00:00:00', '0000-00-00 00:00:00', '2024-12-19 18:57:28', '2024-12-27 06:44:51'),
-(26, 'ENR-2412-EP1-8118', '1', '3', 'Female', 'Married', '2024-12-21 00:00:00', 'Nichole', 'asd', '', 'asd', '', 'asd', '2024-12-21 00:00:00', 'asd', '0000-00-00 00:00:00', NULL, '', 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', 'Lay Member', 0, NULL, '0000-00-00 00:00:00', NULL, '2024-12-21 15:10:18', '2024-12-21 15:11:22');
+(13, 'ENR-2412-EP1-6371', '1', '2', 'Male', 'Single', NULL, 'Aldrin', 'asd', '', 'Salvador', '', 'asd', '2000-12-20 00:00:00', 'asd', '2024-12-20 00:00:00', NULL, '', 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', 'Regular', 20148, NULL, '2022-09-16 14:55:51', NULL, '2024-12-19 17:31:20', '2025-01-04 07:55:43'),
+(20, 'ENR-2412-EP1-7874', '1', '3', 'Male', 'Single', '0000-00-00 00:00:00', 'Michael', 'asd', '', 'Shody', '', 'asd', '2024-12-20 00:00:00', '', '0000-00-00 00:00:00', NULL, '', 'kim@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', 'Ministerial Student', 22100, NULL, '0000-00-00 00:00:00', '0000-00-00 00:00:00', '2024-12-19 18:57:28', '2025-01-04 08:03:30'),
+(26, 'ENR-2412-EP1-8118', '1', '1', 'Female', 'Married', '2024-12-21 00:00:00', 'Nichole', 'asd', '', 'asd', '', 'asd', '2024-12-21 00:00:00', 'asd', '0000-00-00 00:00:00', NULL, '', 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', 'Lay Member', 0, NULL, '0000-00-00 00:00:00', NULL, '2024-12-21 15:10:18', '2025-01-04 07:07:04');
 
 -- --------------------------------------------------------
 
@@ -1771,7 +1771,7 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (12, 'dpareña', NULL, '', 'dpareña', '{MD5}zemE0W2p/+wTKn1Bn8fGUQ==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (13, 'rporcado', NULL, '', 'rporcado', '{SSHA}O0qjoUzs1AgMpzE7Ig3HURYjjKNLduyN', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (14, 'rdprestoza', NULL, '', 'rdprestoza', '{MD5}MAvZAgOvfEpDo3OKrwzNHw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(15, 'kvdematera', NULL, '', 'kvdematera', '{SSHA}+728w4RErOoPkuPO2W5zP1n6+cAkj1Ru', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
+(15, 'kvdematera', NULL, '', 'kvdematera', '{SSHA}+728w4RErOoPkuPO2W5zP1n6+cAkj1Ru', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (16, 'rreyes', NULL, NULL, 'rreyes', '{MD5}WDUuJDKCc7XD+0pC/8DHwg==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (17, 'zpetorio', NULL, NULL, 'zpetorio', '{SSHA}Q2+NyJ1+Fhx4XN6H1W7n3xvmqmHK0Gvc', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (18, 'ATG', NULL, '', 'ATG', '{MD5}jMnoutNavel8/QA7J2mK3g==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
@@ -1802,7 +1802,7 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (43, 'executive.news', NULL, NULL, 'executive.news', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (44, 'pmd.it', NULL, '', 'pmd.it', '{SSHA}LYVyCEUbqbnRdJMh/NGuR38z6zbsDKG+', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (45, 'r.deguzman', NULL, NULL, 'r.deguzman', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(46, 'felix.pareja', 10, '/uploads/avatar/1732846376187_image.jpg', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-28 13:25:36'),
+(46, 'felix.pareja', 10, '/uploads/avatar/1732846376187_image.jpg', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-28 13:25:36'),
 (47, 'nsanchez', 26, '', 'nsanchez', '{MD5}4vh3FhfOq3i3zcUJki6UBg==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-12-21 15:10:20'),
 (48, NULL, NULL, '/uploads/avatar/1732867059276_icons8-fitbit-50.png', 'admin', '$2a$12$ZXhnczgjZG4QAa4oGMH5eOt0.a9urccMHJ0/FBYB5zCe2/zfh3dEO', 0, NULL, 'Local', NULL, NULL, NULL, NULL),
 (50, 'dalferez', NULL, NULL, 'dalferez', '{MD5}/DfLoL+7ApalWUrlZU0Q0Q==', 0, NULL, 'LDAP', 0, NULL, '2025-01-02 08:54:55', '2025-01-02 08:54:55'),
