@@ -15,6 +15,8 @@ import Applications from "./pages/Applications"; // Import AddApps Page
 import Users from "./pages/Users"; // Import User Page
 import ProgressTracking from "./pages/ProgressTracking"; // Import User Page
 
+import PersonnelPreview from "./pages/PersonnelPreview";
+
 import ProgressStep1 from "./pages/progress/Step1";
 import ProgressStep2 from "./pages/progress/Step2";
 import ProgressStep3 from "./pages/progress/Step3";
@@ -131,6 +133,12 @@ function App() {
                 </Layout>
               }
             />
+
+            <Route
+              path="/personnel-preview/:personnelId"
+              element={<PersonnelPreview />}
+            />
+
             <Route
               path="/progresstracking"
               element={

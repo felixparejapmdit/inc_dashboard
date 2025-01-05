@@ -36,8 +36,13 @@ import {
   Select,
   useToast,
 } from "@chakra-ui/react";
-import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
-import { InfoIcon } from "@chakra-ui/icons";
+import {
+  AddIcon,
+  EditIcon,
+  DeleteIcon,
+  InfoIcon,
+  ViewIcon,
+} from "@chakra-ui/icons";
 
 import axios from "axios";
 const API_URL = process.env.REACT_APP_API_URL;
@@ -469,6 +474,10 @@ const Users = ({ personnelId }) => {
     }
   };
 
+  const handleViewUser = (personnelId) => {
+    window.open(`/personnel-preview/${personnelId}`, "_blank");
+  };
+
   return (
     <Box p={6}>
       <Heading mb={6}>Manage Personnel</Heading>
@@ -558,6 +567,13 @@ const Users = ({ personnelId }) => {
                   <Td>{item.mail || "N/A"}</Td>
                   <Td>{item.groupname || "N/A"}</Td>
                   <Td>
+                    <IconButton
+                      icon={<ViewIcon />}
+                      mr={2}
+                      colorScheme="teal"
+                      onClick={() => handleViewUser(item.personnel_id)}
+                    />
+
                     <IconButton
                       icon={<EditIcon />}
                       mr={2}

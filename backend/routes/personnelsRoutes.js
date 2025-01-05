@@ -8,6 +8,12 @@ router.get("/api/personnels", personnelsController.getAllPersonnels);
 // Route to get all new personnel
 router.get("/api/personnels/new", personnelsController.getAllNewPersonnels);
 
+// Route to get personnels by progress
+router.get(
+  "/api/personnels/progress/:step",
+  personnelsController.getPersonnelsByProgress
+);
+
 // Route to get a specific personnel by ID
 router.get("/api/personnels/:id", personnelsController.getPersonnelById);
 

@@ -50,7 +50,12 @@ const Step4 = () => {
     const fetchPersonnel = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(`${API_URL}/api/personnels/new`);
+        //const response = await axios.get(`${API_URL}/api/personnels/new`);
+
+        const response = await axios.get(
+          `${API_URL}/api/personnels/progress/3`
+        );
+
         setPersonnelList(response.data);
         setFilteredPersonnel(response.data);
       } catch (error) {

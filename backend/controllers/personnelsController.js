@@ -37,6 +37,45 @@ exports.getAllNewPersonnels = async (req, res) => {
   }
 };
 
+// Get personnels by progress
+exports.getPersonnelsByProgress = async (req, res) => {
+  const { step } = req.params; // Step represents personnel_progress (1-8)
+  try {
+    const personnels = await Personnel.findAll({
+      attributes: [
+        ["personnel_id", "personnel_id"],
+        "givenname",
+        "surname_husband",
+        [
+          Sequelize.literal(
+            "CONCAT(Personnel.givenname, ' ', Personnel.surname_husband)"
+          ),
+          "fullname",
+        ],
+        "email_address",
+      ],
+      include: [
+        {
+          model: User,
+          attributes: [],
+          required: false,
+        },
+      ],
+      where: {
+        "$user.personnel_id$": null,
+        personnel_progress: step, // Filter by progress step
+      },
+    });
+
+    res.status(200).json(personnels);
+  } catch (error) {
+    console.error("Error retrieving personnels by progress:", error);
+    res
+      .status(500)
+      .json({ message: "Error retrieving personnels by progress", error });
+  }
+};
+
 // Get all personnels
 exports.getAllPersonnels = async (req, res) => {
   try {

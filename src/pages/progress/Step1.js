@@ -41,7 +41,10 @@ const Step1 = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get(`${API_URL}/api/personnels/new`);
+        //const response = await axios.get(`${API_URL}/api/personnels/new`);
+        const response = await axios.get(
+          `${API_URL}/api/personnels/progress/0`
+        );
         setUsers(response.data);
         setFilteredUsers(response.data);
       } catch (error) {

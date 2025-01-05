@@ -493,7 +493,8 @@ router.put("/api/users/update-login-status", (req, res) => {
 router.get("/api/users", async (req, res) => {
   const query = `
     SELECT 
-      u.ID, 
+      u.ID,
+      u.personnel_id, 
       u.username, 
       u.password,
       MAX(ug.id) AS groupId,  

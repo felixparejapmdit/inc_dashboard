@@ -43,7 +43,11 @@ const Step5 = () => {
     const fetchPersonnel = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(`${API_URL}/api/personnels/new`);
+        //const response = await axios.get(`${API_URL}/api/personnels/new`);
+        const response = await axios.get(
+          `${API_URL}/api/personnels/progress/4`
+        );
+
         setPersonnelList(response.data);
         setFilteredPersonnel(response.data);
       } catch (error) {
@@ -209,7 +213,15 @@ const Step5 = () => {
               maxWidth="600px"
               mx="auto"
             >
-              <Text fontSize="xl" fontWeight="bold" color="teal.500">
+              {/* Display Selected Personnel Info */}
+
+              <Text
+                fontSize="xl"
+                fontWeight="bold"
+                color="teal.500"
+                textAlign="center"
+                w="100%"
+              >
                 Personnel Information
               </Text>
               <Box
@@ -223,18 +235,52 @@ const Step5 = () => {
               >
                 <Text>
                   <b>Reference Number:</b>{" "}
-                  {personnelInfo?.reference_number || "N/A"}
+                  {personnelInfo.reference_number || "N/A"}
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
                   <b>Name:</b>{" "}
-                  {`${personnelInfo?.givenname || ""} ${
-                    personnelInfo?.middlename || ""
-                  } ${personnelInfo?.surname_husband || ""}`}
+                  {`${personnelInfo.givenname} ${
+                    personnelInfo.middlename || ""
+                  } ${personnelInfo.surname_husband}`}
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
-                  <b>Email Address:</b> {personnelInfo?.email_address || "N/A"}
+                  <b>Gender:</b> {personnelInfo.gender}
+                </Text>
+                <Divider />
+                <Text fontSize="lg" mt={2}>
+                  <b>Date of Birth:</b>{" "}
+                  {new Date(personnelInfo.date_of_birth).toLocaleDateString()}
+                </Text>
+                <Divider />
+                <Text fontSize="lg" mt={2}>
+                  <b>Email Address:</b> {personnelInfo.email_address}
+                </Text>
+                <Divider />
+                <Text fontSize="lg" mt={2}>
+                  <b>Civil Status:</b> {personnelInfo.civil_status}
+                </Text>
+                <Divider />
+                <Text fontSize="lg" mt={2}>
+                  <b>Department:</b> {personnelInfo.department_id || "N/A"}
+                </Text>
+                <Divider />
+                <Text fontSize="lg" mt={2}>
+                  <b>Designation:</b> {personnelInfo.designation_id || "N/A"}
+                </Text>
+                <Divider />
+                <Text fontSize="lg" mt={2}>
+                  <b>District:</b> {personnelInfo.district_id || "N/A"}
+                </Text>
+                <Divider />
+                <Text fontSize="lg" mt={2}>
+                  <b>Local Congregation:</b>{" "}
+                  {personnelInfo.local_congregation || "N/A"}
+                </Text>
+                <Divider />
+                <Text fontSize="lg" mt={2}>
+                  <b>Personnel Type:</b> {personnelInfo.personnel_type}
                 </Text>
               </Box>
               <Flex
