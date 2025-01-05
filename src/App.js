@@ -13,7 +13,7 @@ import Profile from "./pages/Profile"; // Import Profile Page
 import Layout from "./components/Layout"; // Import Layout to wrap around pages
 import Applications from "./pages/Applications"; // Import AddApps Page
 import Users from "./pages/Users"; // Import User Page
-import ProgressTracking from "./pages/ProgressTracking"; // Import User Page
+import ProgressTracking from "./pages/progress/ProgressTracking"; // Import User Page
 
 import PersonnelPreview from "./pages/PersonnelPreview";
 
