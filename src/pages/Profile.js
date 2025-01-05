@@ -24,11 +24,13 @@ import {
   useDisclosure,
   useToast,
   Image,
+  Tooltip,
 } from "@chakra-ui/react";
 import { FaEdit } from "react-icons/fa";
 import { FiLock, FiFile } from "react-icons/fi";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { ViewIcon, EditIcon, ExternalLinkIcon } from "@chakra-ui/icons";
 
 const Profile = () => {
   const [user, setUser] = useState({ name: "", email: "", avatar: "" });
@@ -230,25 +232,16 @@ const Profile = () => {
       });
   };
 
-  // Generate PDF for user profile
-  const generatePDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(20);
-    doc.text(user.name, 10, 20);
-    doc.setFontSize(14);
-    doc.text(user.email, 10, 30);
-    if (user.avatar) {
-      doc.addImage(user.avatar, "JPEG", 150, 10, 40, 40);
-    }
-    doc.save(`${user.name}_Profile.pdf`);
-  };
-
   const bgGradient = useColorModeValue(
     "linear(to-r, teal.100, green.100)",
     "linear(to-r, teal.700, green.700)"
   );
   const boxShadow = useColorModeValue("lg", "dark-lg");
   const headingColor = useColorModeValue("teal.600", "teal.300");
+
+  const handleViewUser = (personnelId) => {
+    window.open(`/personnel-preview/${personnelId}`, "_blank");
+  };
 
   return (
     <Box
@@ -294,6 +287,21 @@ const Profile = () => {
             <Divider borderColor="teal.300" />
 
             <HStack spacing={4} mt={4} justifyContent="center">
+              <Tooltip
+                label={
+                  !user.personnel_id
+                    ? "No personnel data is available. To view, please click the Info icon to proceed."
+                    : ""
+                }
+              >
+                <IconButton
+                  icon={<ViewIcon />}
+                  mr={2}
+                  colorScheme="teal"
+                  onClick={() => handleViewUser(user.personnel_id)}
+                  isDisabled={!user.personnel_id}
+                />
+              </Tooltip>
               <IconButton
                 icon={<FaEdit />}
                 colorScheme="teal"
@@ -307,23 +315,16 @@ const Profile = () => {
                 colorScheme="blue"
                 variant="solid"
                 size="md"
-                display="none"
                 onClick={onChangePassOpen}
                 aria-label="Change Password"
               />
+              {/* Add Redirect IconButton */}
               <IconButton
-                icon={<FiFile />}
-                colorScheme="red"
-                variant="solid"
-                display="none"
-                onClick={generatePDF}
-                aria-label="Generate PDF"
-              />
-              {/* Add Redirect Button */}
-              <Button
+                icon={<ExternalLinkIcon />} // Replace with an appropriate icon for "Update Info"
                 colorScheme="green"
                 variant="solid"
                 size="md"
+                aria-label="Update Info" // Accessibility label
                 onClick={() => {
                   const personnelId = user.personnel_id; // Adjust based on how personnel ID is stored in your `user` object
                   if (personnelId) {
@@ -332,9 +333,7 @@ const Profile = () => {
                     window.location.href = `/enroll?not_enrolled=${user.username}`;
                   }
                 }}
-              >
-                Update Info
-              </Button>
+              />
             </HStack>
           </VStack>
 

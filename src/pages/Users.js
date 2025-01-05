@@ -35,6 +35,7 @@ import {
   Flex,
   Select,
   useToast,
+  Tooltip,
 } from "@chakra-ui/react";
 import {
   AddIcon,
@@ -43,7 +44,6 @@ import {
   InfoIcon,
   ViewIcon,
 } from "@chakra-ui/icons";
-
 import axios from "axios";
 const API_URL = process.env.REACT_APP_API_URL;
 const ITEMS_PER_PAGE = 15;
@@ -567,12 +567,21 @@ const Users = ({ personnelId }) => {
                   <Td>{item.mail || "N/A"}</Td>
                   <Td>{item.groupname || "N/A"}</Td>
                   <Td>
-                    <IconButton
-                      icon={<ViewIcon />}
-                      mr={2}
-                      colorScheme="teal"
-                      onClick={() => handleViewUser(item.personnel_id)}
-                    />
+                    <Tooltip
+                      label={
+                        !item.personnel_id
+                          ? "No personnel data is available. To view, please click the Info icon to proceed."
+                          : ""
+                      }
+                    >
+                      <IconButton
+                        icon={<ViewIcon />}
+                        mr={2}
+                        colorScheme="teal"
+                        onClick={() => handleViewUser(item.personnel_id)}
+                        isDisabled={!item.personnel_id}
+                      />
+                    </Tooltip>
 
                     <IconButton
                       icon={<EditIcon />}
