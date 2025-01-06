@@ -228,24 +228,6 @@ const SubsectionManagement = () => {
                 </Td>
                 <Td>
                   <Select
-                    placeholder="Select Section"
-                    value={newSubsection.section_id}
-                    onChange={(e) =>
-                      setNewSubsection({
-                        ...newSubsection,
-                        section_id: e.target.value,
-                      })
-                    }
-                  >
-                    {sections.map((section) => (
-                      <option key={section.id} value={section.id}>
-                        {section.name}
-                      </option>
-                    ))}
-                  </Select>
-                </Td>
-                <Td>
-                  <Select
                     placeholder="Select Department"
                     value={newSubsection.department_id}
                     onChange={(e) =>
@@ -258,6 +240,24 @@ const SubsectionManagement = () => {
                     {departments.map((dept) => (
                       <option key={dept.id} value={dept.id}>
                         {dept.name}
+                      </option>
+                    ))}
+                  </Select>
+                </Td>
+                <Td>
+                  <Select
+                    placeholder="Select Section"
+                    value={newSubsection.section_id}
+                    onChange={(e) =>
+                      setNewSubsection({
+                        ...newSubsection,
+                        section_id: e.target.value,
+                      })
+                    }
+                  >
+                    {sections.map((section) => (
+                      <option key={section.id} value={section.id}>
+                        {section.name}
                       </option>
                     ))}
                   </Select>
