@@ -567,6 +567,12 @@ const Users = ({ personnelId }) => {
                   <Td>{item.mail || "N/A"}</Td>
                   <Td>{item.groupname || "N/A"}</Td>
                   <Td>
+                    <IconButton
+                      icon={<EditIcon />}
+                      mr={2}
+                      colorScheme="blue"
+                      onClick={() => handleEditUser(item)}
+                    />
                     <Tooltip
                       label={
                         !item.personnel_id
@@ -582,13 +588,6 @@ const Users = ({ personnelId }) => {
                         isDisabled={!item.personnel_id}
                       />
                     </Tooltip>
-
-                    <IconButton
-                      icon={<EditIcon />}
-                      mr={2}
-                      colorScheme="blue"
-                      onClick={() => handleEditUser(item)}
-                    />
                     <IconButton
                       icon={<InfoIcon />} // Change this to your preferred enrollment icon
                       mr={2}
