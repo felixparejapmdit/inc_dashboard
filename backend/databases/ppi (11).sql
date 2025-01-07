@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 05, 2025 at 11:24 AM
+-- Generation Time: Jan 07, 2025 at 09:31 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -388,7 +388,12 @@ CREATE TABLE `departments` (
 --
 
 INSERT INTO `departments` (`id`, `name`, `image_url`, `created_at`, `updated_at`) VALUES
-(1, 'Admin', NULL, '2024-11-12 01:31:23', '2024-11-12 02:27:39');
+(1, 'Admin', NULL, '2024-11-12 01:31:23', '2024-11-12 02:27:39'),
+(8, 'CEBSI', NULL, '2025-01-07 00:59:34', '2025-01-07 00:59:34'),
+(9, 'Legal', NULL, '2025-01-07 00:59:41', '2025-01-07 00:59:48'),
+(10, 'Finance', NULL, '2025-01-07 00:59:57', '2025-01-07 00:59:57'),
+(11, 'CFO', NULL, '2025-01-07 01:00:09', '2025-01-07 01:00:09'),
+(12, 'Music', NULL, '2025-01-07 03:41:02', '2025-01-07 03:41:02');
 
 -- --------------------------------------------------------
 
@@ -1495,9 +1500,9 @@ CREATE TABLE `personnels` (
 --
 
 INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progress`, `personnel_progress`, `gender`, `civil_status`, `wedding_anniversary`, `givenname`, `middlename`, `surname_maiden`, `surname_husband`, `suffix`, `nickname`, `date_of_birth`, `place_of_birth`, `datejoined`, `language_id`, `bloodtype`, `email_address`, `citizenship`, `nationality`, `department_id`, `section_id`, `subsection_id`, `designation_id`, `district_id`, `local_congregation`, `personnel_type`, `assigned_number`, `m_status`, `panunumpa_date`, `ordination_date`, `created_at`, `updated_at`) VALUES
-(10, 'ENR-2412-EP1-8972', '1', '1', 'Male', 'Single', NULL, 'Felix', 'Morales', '', 'Pareja', 'No Suffix', 'Chok', '1992-11-09 00:00:00', 'QC', '2024-12-09 00:00:00', NULL, 'A+', 'felixpareja@yahoo.com', 138, 138, 1, 2, 1, 1, 45, 'Bonifacio Drive', 'Regular', 20149, 'May Destino', '2022-09-16 00:00:00', NULL, '2024-12-09 04:43:34', '2025-01-03 00:55:52'),
-(13, 'ENR-2412-EP1-6371', '1', '0', 'Male', 'Single', NULL, 'Aldrin', 'asd', '', 'Salvador', '', 'asd', '2000-12-20 00:00:00', 'asd', '2024-12-20 00:00:00', NULL, '', 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', 'Regular', 20148, NULL, '2022-09-16 14:55:51', NULL, '2024-12-19 17:31:20', '2025-01-05 09:09:22'),
-(20, 'ENR-2412-EP1-7874', '1', '1', 'Male', 'Single', '0000-00-00 00:00:00', 'Michael', 'asd', '', 'Shody', '', 'asd', '2024-12-20 00:00:00', '', '0000-00-00 00:00:00', NULL, '', 'kim@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', 'Ministerial Student', 22100, NULL, '0000-00-00 00:00:00', '0000-00-00 00:00:00', '2024-12-19 18:57:28', '2025-01-05 09:06:31'),
+(10, 'ENR-2412-EP1-8972', '1', '1', 'Male', 'Single', NULL, 'Felix', 'Morales', '', 'Pareja', 'No Suffix', 'Chok', '1992-11-09 00:00:00', 'QC', '2024-12-09 00:00:00', '1', 'A+', 'felixpareja@yahoo.com', 138, 138, 1, 2, 1, 1, 45, 'Bonifacio Drive', 'Regular', 20149, 'May Destino', '2022-09-16 00:00:00', NULL, '2024-12-09 04:43:34', '2025-01-05 22:50:03'),
+(13, 'ENR-2412-EP1-6371', '1', '0', 'Male', 'Single', NULL, 'Aldrin', 'asd', '', 'Salvador', '', 'asd', '2000-12-20 00:00:00', 'asd', '2024-12-20 00:00:00', NULL, '', 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', 'Regular', 20148, 'May Destino', '2022-09-16 00:00:00', NULL, '2024-12-19 17:31:20', '2025-01-07 07:34:15'),
+(20, 'ENR-2412-EP1-7874', '1', '4', 'Male', 'Single', '0000-00-00 00:00:00', 'Michael', 'asd', '', 'Shody', '', 'asd', '2024-12-20 00:00:00', '', '0000-00-00 00:00:00', NULL, '', 'kim@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', 'Ministerial Student', 22100, NULL, '0000-00-00 00:00:00', '0000-00-00 00:00:00', '2024-12-19 18:57:28', '2025-01-07 06:46:30'),
 (26, 'ENR-2412-EP1-8118', '1', '1', 'Female', 'Married', '2024-12-21 00:00:00', 'Nichole', 'asd', '', 'asd', '', 'asd', '2024-12-21 00:00:00', 'asd', '0000-00-00 00:00:00', NULL, '', 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', 'Lay Member', 0, NULL, '0000-00-00 00:00:00', NULL, '2024-12-21 15:10:18', '2025-01-04 07:07:04');
 
 -- --------------------------------------------------------
@@ -1672,7 +1677,14 @@ CREATE TABLE `sections` (
 
 INSERT INTO `sections` (`id`, `department_id`, `name`, `image_url`, `created_at`, `updated_at`) VALUES
 (2, 1, 'TRG', NULL, '2024-11-12 03:55:24', '2024-11-12 03:55:24'),
-(3, 1, 'Music', NULL, '2024-11-12 06:26:53', '2024-11-12 06:26:53');
+(3, 12, 'INC Organ', NULL, '2025-01-07 03:41:43', '2025-01-07 03:41:43'),
+(4, 8, 'Engineering', NULL, '2025-01-07 01:02:01', '2025-01-07 01:02:01'),
+(5, 8, 'Marketing', NULL, '2025-01-07 01:02:21', '2025-01-07 01:02:21'),
+(6, 8, 'Promotion and Advertising', NULL, '2025-01-07 01:04:42', '2025-01-07 01:04:42'),
+(7, 1, 'Graphics and Design', NULL, '2025-01-07 01:24:43', '2025-01-07 01:24:43'),
+(8, 1, 'EV Media', NULL, '2025-01-07 01:04:03', '2025-01-07 01:04:03'),
+(9, 1, 'ATG Office', NULL, '2025-01-07 03:39:41', '2025-01-07 03:39:41'),
+(10, 12, 'INC Hymns', NULL, '2025-01-07 03:42:25', '2025-01-07 03:42:25');
 
 -- --------------------------------------------------------
 
@@ -1695,8 +1707,13 @@ CREATE TABLE `subsections` (
 --
 
 INSERT INTO `subsections` (`id`, `department_id`, `section_id`, `name`, `image_url`, `created_at`, `updated_at`) VALUES
-(1, 1, 2, 'PMD IT', '', '2024-11-12 06:26:27', '2024-11-12 06:26:27'),
-(2, 1, 3, 'INC Hymns', '', '2024-11-13 01:04:44', '2024-11-13 01:04:44');
+(1, 1, 2, 'PMD IT', '', '2025-01-07 04:53:23', '2025-01-07 04:53:23'),
+(3, 1, 2, 'TSV', '', '2025-01-07 01:07:29', '2025-01-07 01:07:29'),
+(4, 1, 2, 'Network', '', '2025-01-07 01:07:40', '2025-01-07 01:07:40'),
+(5, 1, 7, 'INC Animations', '', '2025-01-07 01:25:00', '2025-01-07 01:25:00'),
+(6, 1, 7, 'Layout Design', '', '2025-01-07 01:25:09', '2025-01-07 01:25:09'),
+(7, 1, 7, 'Special Projects', '', '2025-01-07 01:25:20', '2025-01-07 01:25:20'),
+(8, 1, 7, 'Children\'s Museum', '', '2025-01-07 01:25:29', '2025-01-07 01:25:29');
 
 -- --------------------------------------------------------
 
@@ -1802,9 +1819,10 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (43, 'executive.news', NULL, NULL, 'executive.news', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (44, 'pmd.it', NULL, '', 'pmd.it', '{SSHA}LYVyCEUbqbnRdJMh/NGuR38z6zbsDKG+', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (45, 'r.deguzman', NULL, NULL, 'r.deguzman', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(46, 'felix.pareja', 10, '/uploads/avatar/1732846376187_image.jpg', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-28 13:25:36'),
+(46, 'felix.pareja', 10, '/uploads/avatar/1732846376187_image.jpg', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-28 13:25:36'),
 (47, 'nsanchez', 26, '', 'nsanchez', '{MD5}4vh3FhfOq3i3zcUJki6UBg==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-12-21 15:10:20'),
 (48, NULL, NULL, '/uploads/avatar/1732867059276_icons8-fitbit-50.png', 'admin', '$2a$12$ZXhnczgjZG4QAa4oGMH5eOt0.a9urccMHJ0/FBYB5zCe2/zfh3dEO', 0, NULL, 'Local', NULL, NULL, NULL, NULL),
+(64, 'asalvador', NULL, NULL, 'asalvador', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2025-01-06 08:13:53', '2025-01-06 08:13:53'),
 (50, 'dalferez', NULL, NULL, 'dalferez', '{MD5}/DfLoL+7ApalWUrlZU0Q0Q==', 0, NULL, 'LDAP', 0, NULL, '2025-01-02 08:54:55', '2025-01-02 08:54:55'),
 (51, 'joel.cabacungan', NULL, NULL, 'joel.cabacungan', '{MD5}ZJ9NyhABEfZ4A2gX1oCndQ==', 0, NULL, 'LDAP', 0, NULL, '2025-01-02 08:54:55', '2025-01-02 08:54:55'),
 (52, 'mark.cresino', NULL, NULL, 'mark.cresino', '{MD5}U2OXW6l/7U1fjK+d+7MZGA==', 0, NULL, 'LDAP', 0, NULL, '2025-01-02 08:54:55', '2025-01-02 08:54:55'),
@@ -1818,7 +1836,7 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (60, 'ruben.tamayo', NULL, NULL, 'ruben.tamayo', '{MD5}Sk35KMSFOzWQxwAjh+nAIg==', 0, NULL, 'LDAP', 0, NULL, '2025-01-02 08:54:55', '2025-01-02 08:54:55'),
 (61, 'benjie.zamudio', NULL, NULL, 'benjie.zamudio', '{MD5}2KxpXP4eitbKyQ4qBHcYXg==', 0, NULL, 'LDAP', 0, NULL, '2025-01-02 08:54:55', '2025-01-02 08:54:55'),
 (62, 'jilmark.regencia', NULL, NULL, 'jilmark.regencia', '{MD5}xJ9BRRU8UiAVyi7KgJp1Pg==', 0, NULL, 'LDAP', 0, NULL, '2025-01-02 08:54:55', '2025-01-02 08:54:55'),
-(63, 'lumayam', NULL, '', 'lumayam', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2025-01-02 08:54:55', '2025-01-02 08:54:55');
+(63, 'lumayam', NULL, '', 'lumayam', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2025-01-02 08:54:55', '2025-01-02 08:54:55');
 
 -- --------------------------------------------------------
 
@@ -2297,7 +2315,7 @@ ALTER TABLE `contact_type_info`
 -- AUTO_INCREMENT for table `departments`
 --
 ALTER TABLE `departments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `designations`
@@ -2441,13 +2459,13 @@ ALTER TABLE `reminders`
 -- AUTO_INCREMENT for table `sections`
 --
 ALTER TABLE `sections`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `subsections`
 --
 ALTER TABLE `subsections`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `suguan`
@@ -2459,7 +2477,7 @@ ALTER TABLE `suguan`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=64;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
 
 --
 -- AUTO_INCREMENT for table `user_appslist`
