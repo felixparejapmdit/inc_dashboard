@@ -30,6 +30,7 @@ const Step6 = () => {
     confidentiality: false,
     informationSheet: false,
   });
+  const [isVerified, setIsVerified] = useState(false);
   const [loading, setLoading] = useState(false);
   const [personnelList, setPersonnelList] = useState([]);
   const [filteredPersonnel, setFilteredPersonnel] = useState([]);
@@ -130,9 +131,32 @@ const Step6 = () => {
     }
   };
 
+  const fetchPersonnelDetails = async (personnelId) => {
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/personnels/${personnelId}`
+      );
+      setPersonnelInfo(response.data);
+      setIsVerified(response.data.isVerified || false);
+    } catch (error) {
+      console.error("Error fetching personnel details:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch personnel details.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleUserSelect = async (user) => {
     setSelectedUser(user);
 
+    fetchPersonnelDetails(user.personnel_id);
     try {
       const response = await axios.get(
         `${API_URL}/api/personnels/${user.personnel_id}`

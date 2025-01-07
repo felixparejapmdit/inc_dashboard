@@ -88,12 +88,10 @@ const Step7 = () => {
 
     setLoading(true);
     try {
-      await axios.put(
-        `${API_URL}/api/personnels/${selectedUser.personnel_id}/step7`,
-        {
-          formsSubmitted: true,
-        }
-      );
+      await axios.put(`${API_URL}/api/users/update-progress`, {
+        personnel_id: selectedUser.personnel_id,
+        personnel_progress: 7, // Update to Step 7
+      });
 
       setIsVerified(true);
       toast({
@@ -117,8 +115,32 @@ const Step7 = () => {
     }
   };
 
+  const fetchPersonnelDetails = async (personnelId) => {
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/personnels/${personnelId}`
+      );
+      setPersonnelInfo(response.data);
+      setIsVerified(response.data.isVerified || false);
+    } catch (error) {
+      console.error("Error fetching personnel details:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch personnel details.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleUserSelect = async (user) => {
     setSelectedUser(user);
+
+    fetchPersonnelDetails(user.personnel_id);
     try {
       const response = await axios.get(
         `${API_URL}/api/personnels/${user.personnel_id}`

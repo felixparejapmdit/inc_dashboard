@@ -30,6 +30,7 @@ const SubsectionManagement = () => {
   const [subsections, setSubsections] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [sections, setSections] = useState([]);
+  const [filteredSections, setFilteredSections] = useState([]); // Add this state for filtered sections
   const [newSubsection, setNewSubsection] = useState({
     name: "",
     department_id: "",
@@ -95,6 +96,7 @@ const SubsectionManagement = () => {
     }
   };
 
+  // Updated handleAddSubsection function
   const handleAddSubsection = async () => {
     if (
       !newSubsection.name ||
@@ -114,8 +116,9 @@ const SubsectionManagement = () => {
         `${process.env.REACT_APP_API_URL}/api/subsections`,
         newSubsection
       );
-      fetchSubsections();
+      fetchSubsections(); // Refresh the list of subsections
       setNewSubsection({ name: "", department_id: "", section_id: "" });
+      setFilteredSections([]); // Reset the filtered sections after adding
       setIsAdding(false);
       toast({
         title: "Subsection added",
@@ -179,6 +182,21 @@ const SubsectionManagement = () => {
     }
   };
 
+  const handleDepartmentChange = (departmentId) => {
+    // Update newSubsection with selected department ID
+    setNewSubsection({
+      ...newSubsection,
+      department_id: departmentId,
+      section_id: "", // Reset section_id when department changes
+    });
+
+    // Filter sections based on the selected department ID
+    const filtered = sections.filter(
+      (section) => section.department_id === parseInt(departmentId)
+    );
+    setFilteredSections(filtered);
+  };
+
   return (
     <Box p={5}>
       <Stack spacing={4}>
@@ -191,7 +209,7 @@ const SubsectionManagement = () => {
         <Table variant="striped">
           <Thead>
             <Tr>
-              <Th>Name</Th>
+              <Th>Team</Th>
               <Th>Department</Th>
               <Th>
                 <Flex justify="space-between" align="center">
@@ -226,16 +244,12 @@ const SubsectionManagement = () => {
                     autoFocus
                   />
                 </Td>
+                {/* Rendering logic for department and section dropdowns */}
                 <Td>
                   <Select
                     placeholder="Select Department"
                     value={newSubsection.department_id}
-                    onChange={(e) =>
-                      setNewSubsection({
-                        ...newSubsection,
-                        department_id: e.target.value,
-                      })
-                    }
+                    onChange={(e) => handleDepartmentChange(e.target.value)}
                   >
                     {departments.map((dept) => (
                       <option key={dept.id} value={dept.id}>
@@ -254,14 +268,16 @@ const SubsectionManagement = () => {
                         section_id: e.target.value,
                       })
                     }
+                    isDisabled={!newSubsection.department_id} // Disable if no department is selected
                   >
-                    {sections.map((section) => (
+                    {filteredSections.map((section) => (
                       <option key={section.id} value={section.id}>
                         {section.name}
                       </option>
                     ))}
                   </Select>
                 </Td>
+
                 <Td>
                   <Flex justify="flex-end">
                     <Button

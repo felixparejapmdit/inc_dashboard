@@ -704,7 +704,12 @@ const EnrollmentForm = ({ referenceNumber }) => {
         boxShadow="sm"
       >
         <Flex alignItems="center" my={2}>
-          <Button colorScheme="gray" onClick={handleBackToLogin} mr={4}>
+          <Button
+            display="none"
+            colorScheme="gray"
+            onClick={handleBackToLogin}
+            mr={4}
+          >
             Back to Login
           </Button>
 

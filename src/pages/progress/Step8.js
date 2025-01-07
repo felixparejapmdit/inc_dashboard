@@ -88,12 +88,10 @@ const Step8 = () => {
 
     setLoading(true);
     try {
-      await axios.put(
-        `${API_URL}/api/personnels/${selectedUser.personnel_id}/step8`,
-        {
-          idIssued: true,
-        }
-      );
+      await axios.put(`${API_URL}/api/users/update-progress`, {
+        personnel_id: selectedUser.personnel_id,
+        personnel_progress: 8, // Update to Step 8
+      });
 
       setIsVerified(true);
       toast({

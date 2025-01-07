@@ -1,5 +1,5 @@
 // src/pages/Step1.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -37,6 +37,77 @@ const Step1 = ({
   const totalSteps = 10;
   const bloodtypes = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
   const civilStatuses = ["Single", "Married"];
+  // States for filtered sections and subsections
+  const [filteredSections, setFilteredSections] = useState([]);
+  const [filteredSubsections, setFilteredSubsections] = useState([]);
+  const [filteredDesignations, setFilteredDesignations] = useState([]);
+
+  // Filter sections based on department
+  useEffect(() => {
+    if (personnelData.department_id) {
+      const filtered = sections.filter(
+        (section) =>
+          section.department_id === parseInt(personnelData.department_id)
+      );
+      setFilteredSections(filtered);
+    } else {
+      setFilteredSections([]);
+    }
+
+    // Reset section, subsection, and designation when department changes
+    setPersonnelData((prevData) => ({
+      ...prevData,
+      section_id: "",
+      subsection_id: "",
+      designation_id: "",
+    }));
+  }, [personnelData.department_id, sections, setPersonnelData]);
+
+  // Filter subsections based on section
+  useEffect(() => {
+    if (personnelData.section_id) {
+      const filtered = subsections.filter(
+        (subsection) =>
+          subsection.section_id === parseInt(personnelData.section_id)
+      );
+      setFilteredSubsections(filtered);
+    } else {
+      setFilteredSubsections([]);
+    }
+
+    // Reset subsection and designation when section changes
+    setPersonnelData((prevData) => ({
+      ...prevData,
+      subsection_id: "",
+      designation_id: "",
+    }));
+  }, [personnelData.section_id, subsections, setPersonnelData]);
+
+  // Filter designations based on section and subsection
+  useEffect(() => {
+    if (personnelData.section_id) {
+      const filtered = designations.filter(
+        (designation) =>
+          designation.section_id === parseInt(personnelData.section_id) &&
+          (!personnelData.subsection_id ||
+            designation.subsection_id === parseInt(personnelData.subsection_id))
+      );
+      setFilteredDesignations(filtered);
+    } else {
+      setFilteredDesignations([]);
+    }
+
+    // Reset designation when subsection changes
+    setPersonnelData((prevData) => ({
+      ...prevData,
+      designation_id: "",
+    }));
+  }, [
+    personnelData.section_id,
+    personnelData.subsection_id,
+    designations,
+    setPersonnelData,
+  ]);
 
   return (
     <Box width="100%" bg="white" boxShadow="sm" my={85}>
@@ -438,12 +509,14 @@ const Step1 = ({
             mb="3"
             width="100%"
             gap="4"
+            position="relative" // Added for tooltip positioning
           >
             {/* Email Input Field */}
             <Flex
               align="center"
               width={{ base: "100%", md: "35%" }}
               mb={{ base: "3", md: "0" }}
+              position="relative" // Added for tooltip positioning
             >
               <Text
                 fontWeight="bold"
@@ -467,21 +540,23 @@ const Step1 = ({
                 isInvalid={!!emailError}
                 errorBorderColor="red.300"
               />
+              {emailError && (
+                <Box
+                  position="absolute"
+                  bottom="-20px" // Positioned below the input
+                  left="0"
+                  color="red.500"
+                  fontSize="sm"
+                  bg="white"
+                  p="1"
+                  borderRadius="md"
+                  boxShadow="md"
+                  zIndex="10" // Ensure tooltip is above other elements
+                >
+                  {emailError}
+                </Box>
+              )}
             </Flex>
-
-            {/* Email Error Message */}
-            {emailError && (
-              <Box
-                color="red.500"
-                fontSize="sm"
-                mt="-2"
-                mb="2"
-                ml={{ base: "0", md: "140px" }}
-                width={{ base: "100%", md: "auto" }}
-              >
-                {emailError}
-              </Box>
-            )}
 
             {/* Citizenship Selector */}
             <Box
@@ -544,6 +619,15 @@ const Step1 = ({
               width={{ base: "100%", md: "48%" }}
               mb={{ base: "3", md: "3" }}
             >
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Department:
+              </Text>
               <Select
                 placeholder="Select Department"
                 name="department_id"
@@ -568,6 +652,15 @@ const Step1 = ({
               width={{ base: "100%", md: "48%" }}
               mb={{ base: "3", md: "3" }}
             >
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Section:
+              </Text>
               <Select
                 placeholder="Select Section"
                 name="section_id"
@@ -578,8 +671,9 @@ const Step1 = ({
                   })
                 }
                 width="100%"
+                isDisabled={!personnelData.department_id} // Disable if no department is selected
               >
-                {sections.map((section) => (
+                {filteredSections.map((section) => (
                   <option key={section.id} value={section.id}>
                     {section.name}
                   </option>
@@ -592,6 +686,15 @@ const Step1 = ({
               width={{ base: "100%", md: "48%" }}
               mb={{ base: "3", md: "3" }}
             >
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Subsection/Team:
+              </Text>
               <Select
                 placeholder="Select Subsection"
                 name="subsection_id"
@@ -602,8 +705,9 @@ const Step1 = ({
                   })
                 }
                 width="100%"
+                isDisabled={!personnelData.section_id} // Disable if no section is selected
               >
-                {subsections.map((subsection) => (
+                {filteredSubsections.map((subsection) => (
                   <option key={subsection.id} value={subsection.id}>
                     {subsection.name}
                   </option>
@@ -616,6 +720,15 @@ const Step1 = ({
               width={{ base: "100%", md: "48%" }}
               mb={{ base: "3", md: "3" }}
             >
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Designation:
+              </Text>
               <Select
                 placeholder="Select Designation"
                 name="designation_id"
@@ -626,8 +739,9 @@ const Step1 = ({
                   })
                 }
                 width="100%"
+                isDisabled={!personnelData.section_id} // Disable if no section is selected
               >
-                {designations.map((designation) => (
+                {filteredDesignations.map((designation) => (
                   <option key={designation.id} value={designation.id}>
                     {designation.name}
                   </option>
@@ -667,6 +781,15 @@ const Step1 = ({
               width={{ base: "100%", md: "48%" }}
               mb={{ base: "3", md: "0" }}
             >
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                District:
+              </Text>
               <Select
                 placeholder="Select District"
                 name="district_id"
@@ -688,6 +811,15 @@ const Step1 = ({
 
             {/* Local Congregation */}
             <Box width={{ base: "100%", md: "48%" }}>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Local Congregation:
+              </Text>
               <Input
                 placeholder="Local Congregation"
                 name="local_congregation"
