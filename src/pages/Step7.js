@@ -241,6 +241,15 @@ const Step7 = ({
               </Tr>
               <Tr>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Gender:
+                  </Text>
                   <Select
                     placeholder="Select Gender"
                     value={spouse.gender}
@@ -252,6 +261,15 @@ const Step7 = ({
                   </Select>
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Given Name:
+                  </Text>
                   <Input
                     placeholder="Given Name"
                     value={spouse.givenname}
@@ -262,6 +280,15 @@ const Step7 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Middle Name:
+                  </Text>
                   <Input
                     placeholder="Middle Name"
                     value={spouse.middlename}
@@ -272,6 +299,15 @@ const Step7 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Last Name:
+                  </Text>
                   <Input
                     placeholder="Last Name"
                     value={spouse.lastname}
@@ -284,6 +320,15 @@ const Step7 = ({
               </Tr>
               <Tr>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Suffix:
+                  </Text>
                   <Select
                     name="suffix"
                     value={spouse.suffix || ""}
@@ -303,6 +348,15 @@ const Step7 = ({
                 </Td>
 
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Date of Birth:
+                  </Text>
                   <Input
                     placeholder="Date of Birth"
                     type="date"
@@ -314,6 +368,15 @@ const Step7 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Contact Number:
+                  </Text>
                   <Input
                     placeholder="Contact Number"
                     value={spouse.contact_number}
@@ -324,6 +387,15 @@ const Step7 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Blood Type:
+                  </Text>
                   <Select
                     placeholder="Select Blood Type"
                     name="bloodtype"
@@ -344,6 +416,15 @@ const Step7 = ({
               </Tr>
               <Tr>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Civil Status:
+                  </Text>
                   <Select
                     placeholder="Civil Status"
                     value={spouse.civil_status}
@@ -361,6 +442,15 @@ const Step7 = ({
                 </Td>
 
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Date of Marriage:
+                  </Text>
                   <Input
                     placeholder="Date of Marriage"
                     type="date"
@@ -372,6 +462,15 @@ const Step7 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Place of Marriage:
+                  </Text>
                   <Input
                     placeholder="Place of Marriage"
                     value={spouse.place_of_marriage}
@@ -383,6 +482,15 @@ const Step7 = ({
                 </Td>
 
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Citizenship:
+                  </Text>
                   <Select
                     placeholder="Select Citizenship"
                     name="citizenship"
@@ -403,6 +511,15 @@ const Step7 = ({
               </Tr>
               <Tr>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Nationality:
+                  </Text>
                   <Select
                     placeholder="Select Nationality"
                     name="nationality"
@@ -421,6 +538,15 @@ const Step7 = ({
                   </Select>
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Livelihood:
+                  </Text>
                   <Input
                     placeholder="Livelihood"
                     value={spouse.livelihood}
@@ -431,6 +557,15 @@ const Step7 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    District:
+                  </Text>
                   <Select
                     placeholder="Select District"
                     name="district_id"
@@ -449,6 +584,15 @@ const Step7 = ({
                   </Select>
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Local Congregation:
+                  </Text>
                   <Input
                     placeholder="Local Congregation"
                     value={spouse.local_congregation}
@@ -462,6 +606,15 @@ const Step7 = ({
 
               <Tr>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Church Duties:
+                  </Text>
                   <Input
                     placeholder="Church Duties"
                     value={spouse.church_duties}
@@ -472,6 +625,15 @@ const Step7 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Minister Officiated:
+                  </Text>
                   <Input
                     placeholder="Minister Officiated"
                     value={spouse.minister_officiated}
@@ -491,6 +653,15 @@ const Step7 = ({
               </Tr>
               <Tr>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Employment Type:
+                  </Text>
                   <Select
                     placeholder="Employment Type"
                     value={spouse.employment_type}
@@ -507,6 +678,15 @@ const Step7 = ({
                   </Select>
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Company:
+                  </Text>
                   <Input
                     placeholder="Company"
                     value={spouse.company}
@@ -515,6 +695,15 @@ const Step7 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Position:
+                  </Text>
                   <Input
                     placeholder="Position"
                     value={spouse.position}
@@ -525,6 +714,15 @@ const Step7 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Address:
+                  </Text>
                   <Input
                     placeholder="Address"
                     value={spouse.address}
@@ -535,6 +733,15 @@ const Step7 = ({
               </Tr>
               <Tr>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Department:
+                  </Text>
                   <Input
                     placeholder="Department"
                     value={spouse.department}
@@ -545,6 +752,15 @@ const Step7 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Section:
+                  </Text>
                   <Input
                     placeholder="Section"
                     value={spouse.section}
@@ -553,6 +769,15 @@ const Step7 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Start Date:
+                  </Text>
                   <Input
                     placeholder="Start Date"
                     type="date"
@@ -564,6 +789,15 @@ const Step7 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    End Date:
+                  </Text>
                   <Input
                     placeholder="End Date"
                     type="date"
@@ -577,6 +811,15 @@ const Step7 = ({
               </Tr>
               <Tr>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Reason for Leaving:
+                  </Text>
                   <Input
                     placeholder="Reason for Leaving"
                     value={spouse.reason_for_leaving}
@@ -596,6 +839,15 @@ const Step7 = ({
               </Tr>
               <Tr>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Educational Level:
+                  </Text>
                   <Select
                     placeholder="Education Level"
                     value={spouse.education_level}
@@ -612,6 +864,15 @@ const Step7 = ({
                   </Select>
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    School:
+                  </Text>
                   <Input
                     placeholder="School"
                     value={spouse.school}
@@ -620,6 +881,15 @@ const Step7 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Field of Study:
+                  </Text>
                   <Input
                     placeholder="Field of Study"
                     value={spouse.field_of_study}
@@ -630,6 +900,15 @@ const Step7 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Degree:
+                  </Text>
                   <Input
                     placeholder="Degree"
                     value={spouse.degree}
@@ -640,6 +919,15 @@ const Step7 = ({
               </Tr>
               <Tr>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Institution:
+                  </Text>
                   <Input
                     placeholder="Institution"
                     value={spouse.institution}
@@ -650,6 +938,15 @@ const Step7 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Professional Licensure:
+                  </Text>
                   <Input
                     placeholder="Professional Licensure"
                     value={spouse.professional_licensure_examination}
@@ -664,6 +961,15 @@ const Step7 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Start Year:
+                  </Text>
                   <Input
                     placeholder="Start Year"
                     type="number"
@@ -675,6 +981,15 @@ const Step7 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Completion Year:
+                  </Text>
                   <Input
                     placeholder="Completion Year"
                     type="number"

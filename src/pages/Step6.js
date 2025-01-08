@@ -209,6 +209,15 @@ const Step6 = ({
               </Tr>
               <Tr>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Gender:
+                  </Text>
                   <Select
                     placeholder="Select Gender"
                     value={sibling.gender}
@@ -220,6 +229,15 @@ const Step6 = ({
                   </Select>
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Given Name:
+                  </Text>
                   <Input
                     placeholder="Given Name"
                     value={sibling.givenname}
@@ -231,6 +249,15 @@ const Step6 = ({
                 </Td>
 
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Middle Name:
+                  </Text>
                   <Input
                     placeholder="Middle Name"
                     value={sibling.middlename}
@@ -242,6 +269,15 @@ const Step6 = ({
                 </Td>
 
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Last Name:
+                  </Text>
                   <Input
                     placeholder="Last Name"
                     value={sibling.lastname}
@@ -254,6 +290,15 @@ const Step6 = ({
               </Tr>
               <Tr>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Suffix:
+                  </Text>
                   <Select
                     name="suffix"
                     value={sibling.suffix || ""}
@@ -273,6 +318,15 @@ const Step6 = ({
                 </Td>
 
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Date of Birth:
+                  </Text>
                   <Input
                     placeholder="Date of Birth"
                     type="date"
@@ -284,6 +338,15 @@ const Step6 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Contact Number:
+                  </Text>
                   <Input
                     placeholder="Contact Number"
                     value={sibling.contact_number}
@@ -294,6 +357,15 @@ const Step6 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Blood Type:
+                  </Text>
                   <Select
                     placeholder="Select Blood Type"
                     name="bloodtype"
@@ -314,6 +386,15 @@ const Step6 = ({
               </Tr>
               <Tr>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Civil Status:
+                  </Text>
                   <Select
                     placeholder="Civil Status"
                     value={sibling.civil_status}
@@ -331,6 +412,15 @@ const Step6 = ({
                 </Td>
 
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Date of Marriage:
+                  </Text>
                   <Input
                     placeholder="Date of Marriage"
                     type="date"
@@ -342,6 +432,15 @@ const Step6 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Place of Marriage:
+                  </Text>
                   <Input
                     placeholder="Place of Marriage"
                     value={sibling.place_of_marriage}
@@ -352,6 +451,15 @@ const Step6 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Citizenship:
+                  </Text>
                   <Select
                     placeholder="Select Citizenship"
                     name="citizenship"
@@ -372,6 +480,15 @@ const Step6 = ({
               </Tr>
               <Tr>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Nationality:
+                  </Text>
                   <Select
                     placeholder="Select Nationality"
                     name="nationality"
@@ -390,6 +507,15 @@ const Step6 = ({
                   </Select>
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Livelihood:
+                  </Text>
                   <Input
                     placeholder="Livelihood"
                     value={sibling.livelihood}
@@ -400,6 +526,15 @@ const Step6 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    District:
+                  </Text>
                   <Select
                     placeholder="Select District"
                     name="district_id"
@@ -418,6 +553,15 @@ const Step6 = ({
                   </Select>
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Local Congregation:
+                  </Text>
                   <Input
                     placeholder="Local Congregation"
                     value={sibling.local_congregation}
@@ -431,6 +575,15 @@ const Step6 = ({
 
               <Tr>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Church Duties:
+                  </Text>
                   <Input
                     placeholder="Church Duties"
                     value={sibling.church_duties}
@@ -441,6 +594,15 @@ const Step6 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Minister Officiated:
+                  </Text>
                   <Input
                     placeholder="Minister Officiated"
                     value={sibling.minister_officiated}
@@ -460,6 +622,15 @@ const Step6 = ({
               </Tr>
               <Tr>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Employment Type:
+                  </Text>
                   <Select
                     placeholder="Employment Type"
                     value={sibling.employment_type}
@@ -476,6 +647,15 @@ const Step6 = ({
                   </Select>
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Company:
+                  </Text>
                   <Input
                     placeholder="Company"
                     value={sibling.company}
@@ -484,6 +664,15 @@ const Step6 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Position:
+                  </Text>
                   <Input
                     placeholder="Position"
                     value={sibling.position}
@@ -494,6 +683,15 @@ const Step6 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Address:
+                  </Text>
                   <Input
                     placeholder="Address"
                     value={sibling.address}
@@ -504,6 +702,15 @@ const Step6 = ({
               </Tr>
               <Tr>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Department:
+                  </Text>
                   <Input
                     placeholder="Department"
                     value={sibling.department}
@@ -514,6 +721,15 @@ const Step6 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Section:
+                  </Text>
                   <Input
                     placeholder="Section"
                     value={sibling.section}
@@ -522,6 +738,15 @@ const Step6 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Start Date:
+                  </Text>
                   <Input
                     placeholder="Start Date"
                     type="date"
@@ -533,6 +758,15 @@ const Step6 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    End Date:
+                  </Text>
                   <Input
                     placeholder="End Date"
                     type="date"
@@ -546,6 +780,15 @@ const Step6 = ({
               </Tr>
               <Tr>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Reason for Leaving:
+                  </Text>
                   <Input
                     placeholder="Reason for Leaving"
                     value={sibling.reason_for_leaving}
@@ -565,6 +808,15 @@ const Step6 = ({
               </Tr>
               <Tr>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Educational Level:
+                  </Text>
                   <Select
                     placeholder="Education Level"
                     value={sibling.education_level}
@@ -581,6 +833,15 @@ const Step6 = ({
                   </Select>
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    School:
+                  </Text>
                   <Input
                     placeholder="School"
                     value={sibling.school}
@@ -589,6 +850,15 @@ const Step6 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Field of Study:
+                  </Text>
                   <Input
                     placeholder="Field of Study"
                     value={sibling.field_of_study}
@@ -599,6 +869,15 @@ const Step6 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Degree:
+                  </Text>
                   <Input
                     placeholder="Degree"
                     value={sibling.degree}
@@ -609,6 +888,15 @@ const Step6 = ({
               </Tr>
               <Tr>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Institution:
+                  </Text>
                   <Input
                     placeholder="Institution"
                     value={sibling.institution}
@@ -619,6 +907,15 @@ const Step6 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Professional Licensure:
+                  </Text>
                   <Input
                     placeholder="Professional Licensure"
                     value={sibling.professional_licensure_examination}
@@ -633,6 +930,15 @@ const Step6 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Start Year:
+                  </Text>
                   <Input
                     placeholder="Start Year"
                     type="number"
@@ -644,6 +950,15 @@ const Step6 = ({
                   />
                 </Td>
                 <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Completion Year:
+                  </Text>
                   <Input
                     placeholder="Completion Year"
                     type="number"

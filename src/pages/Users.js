@@ -45,11 +45,16 @@ import {
   ViewIcon,
 } from "@chakra-ui/icons";
 import axios from "axios";
+
+import { usePermissionContext } from "../contexts/PermissionContext";
+
 const API_URL = process.env.REACT_APP_API_URL;
 const ITEMS_PER_PAGE = 15;
 
 const Users = ({ personnelId }) => {
   const [users, setUsers] = useState([]);
+
+  const { hasPermission } = usePermissionContext(); // Correct usage
 
   const [setFilteredUsers] = useState([]);
   const [groups, setGroups] = useState([]);
@@ -480,23 +485,24 @@ const Users = ({ personnelId }) => {
 
   return (
     <Box p={6}>
-      <Heading mb={6}>Manage Personnel</Heading>
+      <Heading mb={6}>Personnel Management</Heading>
 
       {/* Sync Users Button */}
-      <Button
-        colorScheme="blue"
-        mb={4}
-        isLoading={loading}
-        onClick={handleSyncUsers}
-      >
-        Sync Users from LDAP
-      </Button>
-
+      {hasPermission("personnels.syncfromldap") && (
+        <Button
+          colorScheme="blue"
+          mb={4}
+          isLoading={loading}
+          onClick={handleSyncUsers}
+        >
+          Sync Users from LDAP
+        </Button>
+      )}
       <Input
-        placeholder="Search users..."
+        placeholder="Search personnel..."
         value={searchTerm}
         onChange={handleSearchChange}
-        mb={4}
+        mb={6}
       />
       {status && (
         <Alert
@@ -508,8 +514,8 @@ const Users = ({ personnelId }) => {
         </Alert>
       )}
 
-      <Heading size="md">Existing Personnel (LDAP Users)</Heading>
-      <Flex justify="space-between" align="center" mt={4}>
+      <Heading size="md"> Personnel List</Heading>
+      <Flex justify="space-between" align="center" mt={4} mb={6}>
         <Button
           onClick={() => handlePageChange("previous")}
           disabled={currentPage === 1}
@@ -567,46 +573,53 @@ const Users = ({ personnelId }) => {
                   <Td>{item.mail || "N/A"}</Td>
                   <Td>{item.groupname || "N/A"}</Td>
                   <Td>
-                    <IconButton
-                      icon={<EditIcon />}
-                      mr={2}
-                      colorScheme="blue"
-                      onClick={() => handleEditUser(item)}
-                    />
-                    <Tooltip
-                      label={
-                        !item.personnel_id
-                          ? "No personnel data is available. To view, please click the Info icon to proceed."
-                          : ""
-                      }
-                    >
+                    {hasPermission("personnels.edit") && (
                       <IconButton
-                        icon={<ViewIcon />}
+                        icon={<EditIcon />}
+                        mr={2}
+                        colorScheme="blue"
+                        onClick={() => handleEditUser(item)}
+                      />
+                    )}
+                    {hasPermission("personnels.view") && (
+                      <Tooltip
+                        label={
+                          !item.personnel_id
+                            ? "No personnel data is available. To view, please click the Info icon to proceed."
+                            : ""
+                        }
+                      >
+                        <IconButton
+                          icon={<ViewIcon />}
+                          mr={2}
+                          colorScheme="teal"
+                          onClick={() => handleViewUser(item.personnel_id)}
+                          isDisabled={!item.personnel_id}
+                        />
+                      </Tooltip>
+                    )}
+                    {hasPermission("personnels.info") && (
+                      <IconButton
+                        icon={<InfoIcon />} // Change this to your preferred enrollment icon
                         mr={2}
                         colorScheme="teal"
-                        onClick={() => handleViewUser(item.personnel_id)}
-                        isDisabled={!item.personnel_id}
+                        onClick={() => {
+                          const personnelId = item.personnel_id; // Adjust based on how `personnel_id` is stored in your `item` object
+                          if (personnelId) {
+                            window.location.href = `/enroll?personnel_id=${personnelId}`;
+                          } else {
+                            window.location.href = `/enroll?not_enrolled=${item.username}`;
+                          }
+                        }}
                       />
-                    </Tooltip>
-                    <IconButton
-                      icon={<InfoIcon />} // Change this to your preferred enrollment icon
-                      mr={2}
-                      colorScheme="teal"
-                      onClick={() => {
-                        const personnelId = item.personnel_id; // Adjust based on how `personnel_id` is stored in your `item` object
-                        if (personnelId) {
-                          window.location.href = `/enroll?personnel_id=${personnelId}`;
-                        } else {
-                          window.location.href = `/enroll?not_enrolled=${item.username}`;
-                        }
-                      }}
-                    />
-
-                    <IconButton
-                      icon={<DeleteIcon />}
-                      colorScheme="red"
-                      onClick={() => handleDeleteUser(item.ID)}
-                    />
+                    )}
+                    {hasPermission("personnels.delete") && (
+                      <IconButton
+                        icon={<DeleteIcon />}
+                        colorScheme="red"
+                        onClick={() => handleDeleteUser(item.ID)}
+                      />
+                    )}
                   </Td>
                 </Tr>
               );
@@ -635,49 +648,54 @@ const Users = ({ personnelId }) => {
 
       {/* New Personnel Table */}
       <VStack align="start" spacing={4}>
-        <Heading size="md">Newly Enrolled Personnel</Heading>
+        {hasPermission("personnels.newly_enrolled_personnel") && (
+          <Heading size="md">Newly Enrolled Personnel</Heading>
+        )}
         {/* Updated Table with Row Numbers and Action Button */}
-        <Table variant="simple">
-          <Thead>
-            <Tr>
-              <Th>#</Th> {/* Row number column */}
-              <Th>Personnel ID</Th>
-              <Th>First Name</Th>
-              <Th>Last Name</Th>
-              <Th>Email</Th>
-              <Th>Action</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {newPersonnels.map((personnel, index) => {
-              const personnelName = `${personnel.givenname} ${personnel.surname_husband}`; // Construct the full name dynamically
-              return (
-                <Tr key={personnel.personnel_id}>
-                  <Td>{index + 1}</Td> {/* Display the row number */}
-                  <Td>{personnel.personnel_id}</Td>
-                  <Td>{personnel.givenname}</Td>
-                  <Td>{personnel.surname_husband}</Td>
-                  <Td>{personnel.email_address}</Td>
-                  <Td>
-                    <Button
-                      colorScheme="teal"
-                      onClick={() =>
-                        handleSyncToUsersTable(
-                          personnel.personnel_id,
-                          personnelName
-                        )
-                      }
-                      isLoading={loading[personnel.personnel_id]} // Loading state specific to this button
-                    >
-                      Sync to Users Table
-                    </Button>
-                  </Td>
-                </Tr>
-              );
-            })}
-          </Tbody>
-        </Table>
-        ;
+        {hasPermission("personnels.newly_enrolled_personnel") && (
+          <Table variant="simple">
+            <Thead>
+              <Tr>
+                <Th>#</Th> {/* Row number column */}
+                <Th>Personnel ID</Th>
+                <Th>First Name</Th>
+                <Th>Last Name</Th>
+                <Th>Email</Th>
+                <Th>Action</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {newPersonnels.map((personnel, index) => {
+                const personnelName = `${personnel.givenname} ${personnel.surname_husband}`; // Construct the full name dynamically
+                return (
+                  <Tr key={personnel.personnel_id}>
+                    <Td>{index + 1}</Td> {/* Display the row number */}
+                    <Td>{personnel.personnel_id}</Td>
+                    <Td>{personnel.givenname}</Td>
+                    <Td>{personnel.surname_husband}</Td>
+                    <Td>{personnel.email_address}</Td>
+                    {hasPermission("personnels.sync_to_users") && (
+                      <Td>
+                        <Button
+                          colorScheme="teal"
+                          onClick={() =>
+                            handleSyncToUsersTable(
+                              personnel.personnel_id,
+                              personnelName
+                            )
+                          }
+                          isLoading={loading[personnel.personnel_id]} // Loading state specific to this button
+                        >
+                          Sync to Users Table
+                        </Button>
+                      </Td>
+                    )}
+                  </Tr>
+                );
+              })}
+            </Tbody>
+          </Table>
+        )}
       </VStack>
 
       <Modal isOpen={isOpen} onClose={closeModal}>

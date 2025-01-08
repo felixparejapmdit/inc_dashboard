@@ -431,16 +431,18 @@ const EnrollmentForm = ({ referenceNumber }) => {
       // Check if we are on the first step
       if (step === 1) {
         if (!personnelId) {
-          // First-time enrollment: Validate Required Fields
-          if (
-            !personnelData.givenname ||
-            !personnelData.date_of_birth ||
-            !personnelData.email_address
-          ) {
+          const missingFields = [];
+          if (!personnelData.givenname) missingFields.push("Given Name");
+          if (!personnelData.date_of_birth) missingFields.push("Date of Birth");
+          if (!personnelData.civil_status) missingFields.push("Civil Status");
+          if (!personnelData.email_address) missingFields.push("Email Address");
+
+          if (missingFields.length > 0) {
             toast({
               title: "Validation Error",
-              description:
-                "Please fill out all required fields, including Email Address.",
+              description: `The following fields are required: ${missingFields.join(
+                ", "
+              )}.`,
               status: "error",
               duration: 3000,
               isClosable: true,
@@ -563,7 +565,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
         if (!userResponse.data) {
           throw new Error("User not found in the database.");
         }
-        alert(notEnrolledId);
+        //alert(notEnrolledId);
         // Update the personnel_id in the users table
         await axios.put(`${API_URL}/api/users/update`, {
           username: notEnrolledId,

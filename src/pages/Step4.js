@@ -353,6 +353,15 @@ const Step4 = () => {
         >
           <Grid templateColumns="repeat(4, 1fr)" gap={4}>
             <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Level:
+              </Text>
               <Select
                 placeholder="Level"
                 value={edu.level}
@@ -369,6 +378,15 @@ const Step4 = () => {
               </Select>
             </GridItem>
             <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Start Year:
+              </Text>
               <Input
                 placeholder="Start Year"
                 type="number"
@@ -380,6 +398,15 @@ const Step4 = () => {
               />
             </GridItem>
             <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Completion Year:
+              </Text>
               <Input
                 placeholder="Completion Year"
                 type="number"
@@ -391,6 +418,15 @@ const Step4 = () => {
               />
             </GridItem>
             <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                School:
+              </Text>
               <Input
                 placeholder="School"
                 value={edu.school}
@@ -401,6 +437,15 @@ const Step4 = () => {
               />
             </GridItem>
             <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Field Of Study:
+              </Text>
               <Input
                 placeholder="Field of Study"
                 value={edu.field_of_study}
@@ -411,6 +456,15 @@ const Step4 = () => {
               />
             </GridItem>
             <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Degree:
+              </Text>
               <Input
                 placeholder="Degree"
                 value={edu.degree}
@@ -421,6 +475,15 @@ const Step4 = () => {
               />
             </GridItem>
             <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Institution:
+              </Text>
               <Input
                 placeholder="Institution"
                 value={edu.institution}
@@ -431,6 +494,15 @@ const Step4 = () => {
               />
             </GridItem>
             <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Professional Licensure:
+              </Text>
               <Input
                 placeholder="Professional Licensure"
                 value={edu.professional_licensure_examination}
@@ -483,6 +555,15 @@ const Step4 = () => {
         >
           <Grid templateColumns="repeat(4, 1fr)" gap={4}>
             <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Employment Type:
+              </Text>
               <Select
                 placeholder="Employment Type"
                 value={work.employment_type}
@@ -502,6 +583,15 @@ const Step4 = () => {
               </Select>
             </GridItem>
             <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Company:
+              </Text>
               <Input
                 placeholder="Company"
                 value={work.company}
@@ -512,6 +602,15 @@ const Step4 = () => {
               />
             </GridItem>
             <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Address:
+              </Text>
               <Input
                 placeholder="Address"
                 value={work.address}
@@ -522,6 +621,15 @@ const Step4 = () => {
               />
             </GridItem>
             <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Position:
+              </Text>
               <Input
                 placeholder="Position"
                 value={work.position}
@@ -532,6 +640,15 @@ const Step4 = () => {
               />
             </GridItem>
             <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Department:
+              </Text>
               <Input
                 placeholder="Department"
                 value={work.department}
@@ -542,6 +659,15 @@ const Step4 = () => {
               />
             </GridItem>
             <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Section:
+              </Text>
               <Input
                 placeholder="Section"
                 value={work.section}
@@ -552,6 +678,15 @@ const Step4 = () => {
               />
             </GridItem>
             <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Start Date:
+              </Text>
               <Input
                 type="date"
                 value={work.start_date}
@@ -562,6 +697,15 @@ const Step4 = () => {
               />
             </GridItem>
             <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                End Date:
+              </Text>
               <Input
                 type="date"
                 value={work.end_date}
@@ -572,6 +716,15 @@ const Step4 = () => {
               />
             </GridItem>
             <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Reason for Leaving:
+              </Text>
               <Input
                 placeholder="Reason for Leaving"
                 value={work.reason_for_leaving}

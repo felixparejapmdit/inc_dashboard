@@ -195,12 +195,12 @@ router.post("/api/sync-to-users", async (req, res) => {
 
     // Step 3: Check if the user already exists in the users table
     const existingUser = await User.findOne({ where: { uid } });
-    if (!existingUser) {
-      return res.status(404).json({
-        message:
-          "User does not exist in the users table. Please add the user first.",
-      });
-    }
+    // if (!existingUser) {
+    //   return res.status(404).json({
+    //     message:
+    //       "User does not exist in the users table. Please add the user first.",
+    //   });
+    // }
 
     if (existingUser) {
       return res.status(400).json({

@@ -242,6 +242,15 @@ const Step1 = ({
               width={{ base: "100%", sm: "48%", md: "24%" }}
               mb={{ base: "3", md: "0" }}
             >
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Given Name:
+              </Text>
               <Input
                 placeholder="Given Name"
                 name="givenname"
@@ -256,6 +265,15 @@ const Step1 = ({
               width={{ base: "100%", sm: "48%", md: "24%" }}
               mb={{ base: "3", md: "0" }}
             >
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Middle Name:
+              </Text>
               <Input
                 placeholder="Middle Name"
                 name="middlename"
@@ -270,6 +288,15 @@ const Step1 = ({
               width={{ base: "100%", sm: "48%", md: "24%" }}
               mb={{ base: "3", md: "0" }}
             >
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Surname Name(Maiden):
+              </Text>
               <Input
                 placeholder="Surname (Maiden)"
                 name="surname_maiden"
@@ -285,6 +312,15 @@ const Step1 = ({
               width={{ base: "100%", sm: "48%", md: "24%" }}
               mb={{ base: "3", md: "0" }}
             >
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Surname Name(Husband):
+              </Text>
               <Input
                 placeholder="Surname (Husband)"
                 name="surname_husband"
@@ -295,15 +331,6 @@ const Step1 = ({
             </Box>
           </Flex>
 
-          <Text
-            fontSize="md"
-            fontWeight="bold"
-            mr="2"
-            whiteSpace="nowrap"
-            color="#0a5856"
-          >
-            Extension Name eg. Jr, III (If applicable)
-          </Text>
           <Flex
             alignItems="center"
             mb="5"
@@ -316,24 +343,31 @@ const Step1 = ({
               width={{ base: "100%", md: "48%" }}
               mb={{ base: "3", md: "0" }}
             >
-              <Flex align="center">
-                <Select
-                  name="suffix"
-                  value={personnelData.suffix}
-                  onChange={handleChange}
-                  width="100%"
-                  isDisabled={personnelData.gender === "Female"}
-                >
-                  <option value="" disabled>
-                    Select Suffix
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Suffix:
+              </Text>
+              <Select
+                name="suffix"
+                value={personnelData.suffix}
+                onChange={handleChange}
+                width="100%"
+                isDisabled={personnelData.gender === "Female"}
+              >
+                <option value="" disabled>
+                  Select Suffix
+                </option>
+                {suffixOptions.map((suffix) => (
+                  <option key={suffix} value={suffix}>
+                    {suffix}
                   </option>
-                  {suffixOptions.map((suffix) => (
-                    <option key={suffix} value={suffix}>
-                      {suffix}
-                    </option>
-                  ))}
-                </Select>
-              </Flex>
+                ))}
+              </Select>
             </Box>
 
             {/* Nickname Input */}
@@ -341,15 +375,22 @@ const Step1 = ({
               width={{ base: "100%", md: "48%" }}
               mb={{ base: "3", md: "0" }}
             >
-              <Flex align="center">
-                <Input
-                  placeholder="Nickname"
-                  name="nickname"
-                  value={personnelData.nickname}
-                  onChange={handleChange}
-                  width="100%"
-                />
-              </Flex>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Nickname:
+              </Text>
+              <Input
+                placeholder="Nickname"
+                name="nickname"
+                value={personnelData.nickname}
+                onChange={handleChange}
+                width="100%"
+              />
             </Box>
           </Flex>
 
