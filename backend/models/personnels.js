@@ -14,19 +14,19 @@ const Personnel = sequelize.define(
       allowNull: false,
     },
     enrollment_progress: {
-      type: DataTypes.ENUM("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"),
+      type: DataTypes.STRING(255),
       allowNull: false,
     },
     personnel_progress: {
-      type: DataTypes.TEXT,
+      type: DataTypes.STRING(255),
       allowNull: false,
     },
     gender: {
-      type: DataTypes.ENUM("Male", "Female"),
+      type: DataTypes.STRING(50),
       allowNull: false,
     },
     civil_status: {
-      type: DataTypes.ENUM("Single", "Married", "Divorced"),
+      type: DataTypes.STRING(50),
       allowNull: false,
     },
     wedding_anniversary: {
@@ -59,7 +59,7 @@ const Personnel = sequelize.define(
     },
     date_of_birth: {
       type: DataTypes.DATE,
-      allowNull: false,
+      allowNull: true,
     },
     place_of_birth: {
       type: DataTypes.STRING(50),
@@ -119,13 +119,7 @@ const Personnel = sequelize.define(
       allowNull: true,
     },
     personnel_type: {
-      type: DataTypes.ENUM(
-        "Minister",
-        "Regular",
-        "Ministerial Student",
-        "Minister's Wife",
-        "Lay Member"
-      ),
+      type: DataTypes.STRING(50),
       allowNull: false,
     },
     assigned_number: {
@@ -133,7 +127,7 @@ const Personnel = sequelize.define(
       allowNull: true,
     },
     m_status: {
-      type: DataTypes.ENUM("May Destino", "Fulltime"),
+      type: DataTypes.STRING(50),
       allowNull: true,
     },
     panunumpa_date: {
