@@ -143,6 +143,7 @@ const Step5 = ({
       relationship_type = parent.relationship_type, // Fallback to the existing key if relationship_type is undefined,
       givenName,
       lastName,
+      gender,
       ...parentData
     } = parent;
 
@@ -151,6 +152,7 @@ const Step5 = ({
       ...parentData,
       givenname: parent.givenname,
       lastname: parent.lastname,
+      gender: parent.gender,
       relationship_type: relationship_type,
       personnel_id: personnelId,
     };
@@ -161,6 +163,7 @@ const Step5 = ({
       "relationship_type",
       "givenname",
       "lastname",
+      "gender",
     ];
     const missingField = requiredFields.find(
       (field) =>
@@ -355,15 +358,14 @@ const Step5 = ({
                           Gender:
                         </Text>
                         <Select
-                          value={
-                            parent.relationship_type === "Father"
-                              ? "Male"
-                              : "Female"
-                          } // Automatically set based on tab
-                          isDisabled // Always disabled
+                          value={parent.gender}
+                          onChange={(e) =>
+                            onChange(index, "gender", e.target.value)
+                          }
+                          isDisabled={!parent.isEditing}
                         >
-                          <option value="Male">Male</option>
-                          <option value="Female">Female</option>
+                          <option>Male</option>
+                          <option>Female</option>
                         </Select>
                       </Td>
                       <Td>
