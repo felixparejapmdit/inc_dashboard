@@ -530,7 +530,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
       const response = await axios.post(`${API_URL}/api/personnels`, {
         reference_number: null, // Can be generated later
         enrollment_progress: "1", // Required value
-        personnel_progress: "Enrollment", // Required value
+        personnel_progress: "1", // Required value
         gender: gender || null, // Use null if empty
         civil_status: civil_status || null, // Use null if empty
         givenname: givenname || null, // Use null if empty

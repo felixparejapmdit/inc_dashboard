@@ -184,17 +184,60 @@ exports.updatePersonnel = async (req, res) => {
   try {
     const personnel = await Personnel.findByPk(req.params.id);
     if (!personnel) {
-      return res.status(404).json({ message: "Personnel not found2" });
+      return res.status(404).json({ message: "Personnel not found" });
+    }
+
+    // Ensure the request body contains valid fields
+    const validFields = [
+      "reference_number",
+      "enrollment_progress",
+      "personnel_progress",
+      "gender",
+      "civil_status",
+      "wedding_anniversary",
+      "givenname",
+      "middlename",
+      "surname_maiden",
+      "surname_husband",
+      "suffix",
+      "nickname",
+      "date_of_birth",
+      "place_of_birth",
+      "datejoined",
+      "language_id",
+      "bloodtype",
+      "email_address",
+      "citizenship",
+      "nationality",
+      "department_id",
+      "section_id",
+      "subsection_id",
+      "designation_id",
+      "district_id",
+      "local_congregation",
+      "personnel_type",
+      "assigned_number",
+      "m_status",
+      "panunumpa_date",
+      "ordination_date",
+    ];
+
+    const updates = {};
+    for (const key of validFields) {
+      if (req.body[key] !== undefined) {
+        updates[key] = req.body[key];
+      }
     }
 
     // Update personnel data
-    await personnel.update(req.body);
+    await personnel.update(updates);
     res.status(200).json({
       message: "Personnel record updated successfully",
       personnel,
     });
   } catch (error) {
-    res.status(400).json({
+    console.error("Error updating personnel:", error);
+    res.status(500).json({
       message: "Error updating personnel record",
       error: error.message,
     });

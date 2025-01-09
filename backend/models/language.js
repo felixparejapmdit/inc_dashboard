@@ -22,6 +22,8 @@ const Language = sequelize.define(
     timestamps: true,
     createdAt: "created_at", // Map to 'created_at' column
     updatedAt: "updated_at", // Map to 'updated_at' column
+
+    tableName: "languages", // Ensure Sequelize maps to the correct table name
   }
 );
 

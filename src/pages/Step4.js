@@ -449,7 +449,12 @@ const Step4 = () => {
               <Input
                 placeholder="Field of Study"
                 value={edu.field_of_study}
-                isDisabled={!edu.isEditing}
+                isDisabled={
+                  !edu.isEditing ||
+                  edu.level === "Elementary" ||
+                  edu.level === "Secondary" ||
+                  edu.level === "Senior High School"
+                }
                 onChange={(e) =>
                   handleEducationChange(idx, "field_of_study", e.target.value)
                 }
@@ -468,7 +473,12 @@ const Step4 = () => {
               <Input
                 placeholder="Degree"
                 value={edu.degree}
-                isDisabled={!edu.isEditing}
+                isDisabled={
+                  !edu.isEditing ||
+                  edu.level === "Elementary" ||
+                  edu.level === "Secondary" ||
+                  edu.level === "Senior High School"
+                }
                 onChange={(e) =>
                   handleEducationChange(idx, "degree", e.target.value)
                 }
@@ -487,7 +497,12 @@ const Step4 = () => {
               <Input
                 placeholder="Institution"
                 value={edu.institution}
-                isDisabled={!edu.isEditing}
+                isDisabled={
+                  !edu.isEditing ||
+                  edu.level === "Elementary" ||
+                  edu.level === "Secondary" ||
+                  edu.level === "Senior High School"
+                }
                 onChange={(e) =>
                   handleEducationChange(idx, "institution", e.target.value)
                 }
@@ -506,7 +521,12 @@ const Step4 = () => {
               <Input
                 placeholder="Professional Licensure"
                 value={edu.professional_licensure_examination}
-                isDisabled={!edu.isEditing}
+                isDisabled={
+                  !edu.isEditing ||
+                  edu.level === "Elementary" ||
+                  edu.level === "Secondary" ||
+                  edu.level === "Senior High School"
+                }
                 onChange={(e) =>
                   handleEducationChange(
                     idx,

@@ -34,6 +34,8 @@ const Section = sequelize.define(
     timestamps: true, // Enables automatic 'createdAt' and 'updatedAt' fields
     createdAt: "created_at",
     updatedAt: "updated_at",
+
+    tableName: "sections", // Ensure Sequelize maps to the correct table name
   }
 );
 

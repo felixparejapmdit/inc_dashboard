@@ -30,6 +30,7 @@ const Subsection = sequelize.define(
     timestamps: true,
     createdAt: "created_at", // Map to existing 'created_at' column
     updatedAt: "updated_at", // Map to existing 'updated_at' column
+    tableName: "subsections", // Ensure Sequelize maps to the correct table name
   }
 );
 
