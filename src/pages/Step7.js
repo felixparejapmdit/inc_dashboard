@@ -257,7 +257,7 @@ const Step7 = ({
                     Gender:
                   </Text>
                   <Select
-                    value={enrolleeGender === "Male" ? "Female" : "Male"}
+                    value="Female"
                     onChange={(e) => onChange(index, "gender", e.target.value)}
                     isDisabled={!spouse.isEditing}
                   >
