@@ -256,8 +256,9 @@ const Step7 = ({
                   </Text>
                   <Select
                     value={
-                      spouse.relationship_type === "Father" ? "Male" : "Female"
-                    } // Automatically set based on tab
+                      spouse.gender ||
+                      (enrolleeGender === "Male" ? "Female" : "Male")
+                    } // Dynamically set default based on enrolleeGender
                     onChange={(e) => onChange(index, "gender", e.target.value)}
                     isDisabled={!spouse.isEditing}
                   >
