@@ -64,11 +64,13 @@ const Step5 = ({
               relationship_type: "Father",
               givenname: "",
               lastname: "",
+              isEditing: true, // Ensure editing is enabled
             },
             {
               relationship_type: "Mother",
               givenname: "",
               lastname: "",
+              isEditing: true, // Ensure editing is enabled
             },
           ];
 
@@ -81,7 +83,7 @@ const Step5 = ({
                 res.data.find(
                   (item) =>
                     item.relationship_type === defaultParent.relationship_type
-                ) || defaultParent
+                ) || { ...defaultParent, isEditing: true } // Ensure isEditing is true
             );
             setData(mergedParents);
           }
@@ -94,11 +96,13 @@ const Step5 = ({
               relationship_type: "Father",
               givenname: "",
               lastname: "",
+              isEditing: true, // Ensure editing is enabled
             },
             {
               relationship_type: "Mother",
               givenname: "",
               lastname: "",
+              isEditing: true, // Ensure editing is enabled
             },
           ]);
           toast({
@@ -116,11 +120,13 @@ const Step5 = ({
           relationship_type: "Father",
           givenname: "",
           lastname: "",
+          isEditing: true, // Ensure editing is enabled
         },
         {
           relationship_type: "Mother",
           givenname: "",
           lastname: "",
+          isEditing: true, // Ensure editing is enabled
         },
       ]);
       toast({
@@ -152,7 +158,12 @@ const Step5 = ({
       ...parentData,
       givenname: parent.givenname,
       lastname: parent.lastname,
-      gender: parent.gender,
+      gender:
+        relationship_type === "Father"
+          ? "Male"
+          : relationship_type === "Mother"
+          ? "Female"
+          : parent.gender, // Automatically set gender for Father and Mother
       relationship_type: relationship_type,
       personnel_id: personnelId,
     };

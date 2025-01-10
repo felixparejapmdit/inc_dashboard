@@ -182,12 +182,14 @@ exports.createPersonnel = async (req, res) => {
 // Update an existing personnel record by ID
 exports.updatePersonnel = async (req, res) => {
   try {
+    console.log("Request Body:", req.body);
+
     const personnel = await Personnel.findByPk(req.params.id);
     if (!personnel) {
       return res.status(404).json({ message: "Personnel not found" });
     }
 
-    // Ensure the request body contains valid fields
+    // Validate and update
     const validFields = [
       "reference_number",
       "enrollment_progress",
@@ -229,7 +231,8 @@ exports.updatePersonnel = async (req, res) => {
       }
     }
 
-    // Update personnel data
+    console.log("Updates to Apply:", updates);
+
     await personnel.update(updates);
     res.status(200).json({
       message: "Personnel record updated successfully",

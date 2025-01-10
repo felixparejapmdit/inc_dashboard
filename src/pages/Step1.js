@@ -54,12 +54,10 @@ const Step1 = ({
       setFilteredSections([]);
     }
 
-    // Reset section, subsection, and designation when department changes
+    // Pre-fill section if already set
     setPersonnelData((prevData) => ({
       ...prevData,
-      section_id: "",
-      subsection_id: "",
-      designation_id: "",
+      section_id: prevData.section_id || "",
     }));
   }, [personnelData.department_id, sections, setPersonnelData]);
 
@@ -75,11 +73,10 @@ const Step1 = ({
       setFilteredSubsections([]);
     }
 
-    // Reset subsection and designation when section changes
+    // Pre-fill subsection if already set
     setPersonnelData((prevData) => ({
       ...prevData,
-      subsection_id: "",
-      designation_id: "",
+      subsection_id: prevData.subsection_id || "",
     }));
   }, [personnelData.section_id, subsections, setPersonnelData]);
 
@@ -97,10 +94,10 @@ const Step1 = ({
       setFilteredDesignations([]);
     }
 
-    // Reset designation when subsection changes
+    // Pre-fill designation if already set
     setPersonnelData((prevData) => ({
       ...prevData,
-      designation_id: "",
+      designation_id: prevData.designation_id || "",
     }));
   }, [
     personnelData.section_id,
@@ -705,7 +702,7 @@ const Step1 = ({
               <Select
                 placeholder="Select Section"
                 name="section_id"
-                value={personnelData.section_id}
+                value={personnelData.section_id} // Bind current value
                 onChange={(e) =>
                   handleChange({
                     target: { name: "section_id", value: e.target.value },
