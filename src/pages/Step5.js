@@ -166,6 +166,7 @@ const Step5 = ({
           : parent.gender, // Automatically set gender for Father and Mother
       relationship_type: relationship_type,
       personnel_id: personnelId,
+      date_of_birth: parent.date_of_birth || null, // Ensure empty date is set to null
     };
     console.log("Formatted Data:", formattedData);
     // Validate required fields
@@ -175,6 +176,7 @@ const Step5 = ({
       "givenname",
       "lastname",
       "gender",
+      "date_of_birth", // Add date_of_birth as required
     ];
     const missingField = requiredFields.find(
       (field) =>
