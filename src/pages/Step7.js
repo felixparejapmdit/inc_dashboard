@@ -129,7 +129,6 @@ const Step7 = ({
       id,
       isEditing,
       relationship_type = spouse.relationship_type, // Fallback to the existing key if relationship_type is undefined
-      gender, // Removed from required fields
       givenName,
       lastName,
       ...spouseData
@@ -154,6 +153,7 @@ const Step7 = ({
       "lastname",
       "date_of_birth", // Add date_of_birth as required
     ];
+
     const missingField = requiredFields.find(
       (field) =>
         !formattedData[field] ||
@@ -256,7 +256,10 @@ const Step7 = ({
                     Gender:
                   </Text>
                   <Select
-                    value={enrolleeGender === "Male" ? "Female" : "Male"}
+                    value={
+                      spouse.gender ||
+                      (enrolleeGender === "Male" ? "Female" : "Male")
+                    } // Dynamically set the value
                     onChange={(e) => onChange(index, "gender", e.target.value)}
                     isDisabled={!spouse.isEditing}
                   >

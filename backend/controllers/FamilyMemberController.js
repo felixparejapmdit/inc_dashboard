@@ -79,7 +79,6 @@ exports.createFamilyMember = async (req, res) => {
       "relationship_type",
       "givenname",
       "lastname",
-      "gender",
     ];
     for (const field of requiredFields) {
       if (

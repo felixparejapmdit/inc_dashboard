@@ -34,8 +34,8 @@ const FamilyMember = db.define(
       allowNull: true,
     },
     gender: {
-      type: DataTypes.ENUM("Male", "Female"),
-      allowNull: false,
+      type: DataTypes.STRING(50),
+      allowNull: true,
     },
     bloodtype: {
       type: DataTypes.STRING(10),
