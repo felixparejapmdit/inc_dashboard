@@ -129,7 +129,7 @@ const Step7 = ({
       id,
       isEditing,
       relationship_type = spouse.relationship_type, // Fallback to the existing key if relationship_type is undefined
-      gender,
+      gender, // Removed from required fields
       givenName,
       lastName,
       ...spouseData
@@ -145,6 +145,7 @@ const Step7 = ({
       date_of_birth: spouse.date_of_birth || null, // Ensure empty date is set to null
     };
     console.log("Formatted Data:", formattedData);
+
     // Validate required fields
     const requiredFields = [
       "personnel_id",
