@@ -436,6 +436,8 @@ const EnrollmentForm = ({ referenceNumber }) => {
           if (!personnelData.date_of_birth) missingFields.push("Date of Birth");
           if (!personnelData.civil_status) missingFields.push("Civil Status");
           if (!personnelData.email_address) missingFields.push("Email Address");
+          if (!personnelData.personnel_type)
+            missingFields.push("Personnel Type");
 
           if (missingFields.length > 0) {
             toast({

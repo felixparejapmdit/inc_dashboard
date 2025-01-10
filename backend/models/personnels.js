@@ -120,7 +120,7 @@ const Personnel = sequelize.define(
     },
     personnel_type: {
       type: DataTypes.STRING(50),
-      allowNull: false,
+      allowNull: true,
     },
     assigned_number: {
       type: DataTypes.INTEGER,
