@@ -35,6 +35,7 @@ const Step7 = ({
   employmentTypeOptions,
   educationalLevelOptions,
   bloodtypes,
+  enrolleeGender,
 }) => {
   const [searchParams] = useSearchParams(); // Retrieve query parameters
   const personnelId = searchParams.get("personnel_id"); // Get personnel_id from URL
@@ -64,6 +65,7 @@ const Step7 = ({
             date_of_marriage: "",
             place_of_marriage: "",
             contact_number: "",
+            isEditing: true, // Ensure editing is enabled
           };
 
           if (Array.isArray(res.data) && res.data.length === 0) {
@@ -84,6 +86,7 @@ const Step7 = ({
               date_of_marriage: "",
               place_of_marriage: "",
               contact_number: "",
+              isEditing: true, // Ensure editing is enabled
             },
           ]);
           toast({
@@ -105,6 +108,7 @@ const Step7 = ({
           date_of_marriage: "",
           place_of_marriage: "",
           contact_number: "",
+          isEditing: true, // Ensure editing is enabled
         },
       ]);
       toast({
@@ -139,6 +143,7 @@ const Step7 = ({
       lastname: spouse.lastname,
       relationship_type: relationship_type,
       personnel_id: personnelId,
+      date_of_birth: spouse.date_of_birth || null, // Ensure empty date is set to null
     };
     console.log("Formatted Data:", formattedData);
     // Validate required fields
@@ -148,6 +153,7 @@ const Step7 = ({
       "gender",
       "givenname",
       "lastname",
+      "date_of_birth", // Add date_of_birth as required
     ];
     const missingField = requiredFields.find(
       (field) =>
@@ -251,13 +257,17 @@ const Step7 = ({
                     Gender:
                   </Text>
                   <Select
-                    placeholder="Select Gender"
                     value={spouse.gender}
                     onChange={(e) => onChange(index, "gender", e.target.value)}
                     isDisabled={!spouse.isEditing}
                   >
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
+                    {/* Dynamically display only the opposite gender */}
+                    {enrolleeGender === "Male" && (
+                      <option value="Female">Female</option>
+                    )}
+                    {enrolleeGender === "Female" && (
+                      <option value="Male">Male</option>
+                    )}
                   </Select>
                 </Td>
                 <Td>
@@ -334,7 +344,7 @@ const Step7 = ({
                     value={spouse.suffix || ""}
                     onChange={(e) => onChange(index, "suffix", e.target.value)}
                     width="100%"
-                    isDisabled={spouse.gender === "Female"}
+                    isDisabled={!spouse.isEditing || spouse.gender === "Female"} // Maintains both conditions
                   >
                     <option value="" disabled>
                       Select Suffix

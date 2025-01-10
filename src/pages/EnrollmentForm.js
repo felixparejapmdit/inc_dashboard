@@ -777,6 +777,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
           districts={districts}
           suffixOptions={suffixOptions}
           civilStatusOptions={civilStatusOptions}
+          bloodtypes={bloodtypes}
         />
       )}
 
@@ -878,6 +879,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
           employmentTypeOptions={employmentTypeOptions}
           educationalLevelOptions={educationalLevelOptions}
           bloodtypes={bloodtypes}
+          enrolleeGender={personnelData.gender} // Pass the gender from Step 1
         />
       )}
 

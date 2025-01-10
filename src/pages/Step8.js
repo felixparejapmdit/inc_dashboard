@@ -302,10 +302,10 @@ const Step8 = ({
                   </Text>
                   <Select
                     name="suffix"
-                    value={children[index]?.suffix || ""}
+                    value={child.suffix || ""}
                     onChange={(e) => onChange(index, "suffix", e.target.value)}
                     width="100%"
-                    isDisabled={children[index]?.gender === "Female"}
+                    isDisabled={!child.isEditing || child.gender === "Female"} // Maintains both conditions
                   >
                     <option value="" disabled>
                       Select Suffix

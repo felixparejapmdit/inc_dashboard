@@ -306,7 +306,9 @@ const Step6 = ({
                     value={sibling.suffix || ""}
                     onChange={(e) => onChange(index, "suffix", e.target.value)}
                     width="100%"
-                    isDisabled={!sibling.isEditing}
+                    isDisabled={
+                      !sibling.isEditing || sibling.gender === "Female"
+                    } // Maintains both conditions
                   >
                     <option value="" disabled>
                       Select Suffix

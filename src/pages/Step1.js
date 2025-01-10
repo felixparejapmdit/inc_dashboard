@@ -32,10 +32,10 @@ const Step1 = ({
   designations,
   districts,
   suffixOptions,
+  bloodtypes,
 }) => {
   const [step, setStep] = useState(1);
   const totalSteps = 10;
-  const bloodtypes = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
   const civilStatuses = ["Single", "Married"];
   // States for filtered sections and subsections
   const [filteredSections, setFilteredSections] = useState([]);
