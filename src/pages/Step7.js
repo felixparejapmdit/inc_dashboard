@@ -255,10 +255,7 @@ const Step7 = ({
                     Gender:
                   </Text>
                   <Select
-                    value={
-                      spouse.gender ||
-                      (enrolleeGender === "Male" ? "Female" : "Male")
-                    } // Dynamically set default based on enrolleeGender
+                    value={enrolleeGender === "Male" ? "Female" : "Male"}
                     onChange={(e) => onChange(index, "gender", e.target.value)}
                     isDisabled={!spouse.isEditing}
                   >
