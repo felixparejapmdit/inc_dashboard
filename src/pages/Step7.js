@@ -255,7 +255,9 @@ const Step7 = ({
                     Gender:
                   </Text>
                   <Select
-                    value={spouse.gender}
+                    value={
+                      spouse.relationship_type === "Father" ? "Male" : "Female"
+                    } // Automatically set based on tab
                     onChange={(e) => onChange(index, "gender", e.target.value)}
                     isDisabled={!spouse.isEditing}
                   >
