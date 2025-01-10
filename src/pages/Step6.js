@@ -107,6 +107,7 @@ const Step6 = ({
       lastname: sibling.lastname,
       relationship_type: relationship_type,
       personnel_id: personnelId,
+      date_of_birth: sibling.date_of_birth || null, // Ensure empty date is set to null
     };
     console.log("Formatted Data:", formattedData);
     // Validate required fields
@@ -116,6 +117,7 @@ const Step6 = ({
       "gender",
       "givenname",
       "lastname",
+      "date_of_birth", // Add date_of_birth as required
     ];
     const missingField = requiredFields.find(
       (field) =>
