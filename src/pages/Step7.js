@@ -138,6 +138,7 @@ const Step7 = ({
     // Prepare the data to send
     const formattedData = {
       ...spouseData,
+      gender: spouse.gender,
       givenname: spouse.givenname,
       lastname: spouse.lastname,
       relationship_type: relationship_type,
@@ -149,6 +150,7 @@ const Step7 = ({
     const requiredFields = [
       "personnel_id",
       "relationship_type",
+      "gender",
       "givenname",
       "lastname",
       "date_of_birth", // Add date_of_birth as required
