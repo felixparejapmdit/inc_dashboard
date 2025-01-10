@@ -358,14 +358,15 @@ const Step5 = ({
                           Gender:
                         </Text>
                         <Select
-                          value={parent.gender}
-                          onChange={(e) =>
-                            onChange(index, "gender", e.target.value)
-                          }
-                          isDisabled={!parent.isEditing}
+                          value={
+                            parent.relationship_type === "Father"
+                              ? "Male"
+                              : "Female"
+                          } // Automatically set based on tab
+                          isDisabled // Always disabled
                         >
-                          <option>Male</option>
-                          <option>Female</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
                         </Select>
                       </Td>
                       <Td>
