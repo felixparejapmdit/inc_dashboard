@@ -438,6 +438,7 @@ const Step5 = ({
                             onChange(index, "bloodtype", e.target.value)
                           }
                           width="100%"
+                          isDisabled={!parent.isEditing}
                         >
                           {bloodtypes.map((type) => (
                             <option key={type} value={type}>
@@ -531,6 +532,7 @@ const Step5 = ({
                             onChange(index, "citizenship", e.target.value)
                           }
                           width="100%"
+                          isDisabled={!parent.isEditing}
                         >
                           {citizenships.map((citizenship) => (
                             <option key={citizenship.id} value={citizenship.id}>
@@ -559,6 +561,7 @@ const Step5 = ({
                             onChange(index, "nationality", e.target.value)
                           }
                           width="100%"
+                          isDisabled={!parent.isEditing}
                         >
                           {nationalities.map((nationality) => (
                             <option key={nationality.id} value={nationality.id}>
@@ -604,6 +607,7 @@ const Step5 = ({
                             onChange(index, "district_id", e.target.value)
                           }
                           width="100%"
+                          isDisabled={!parent.isEditing}
                         >
                           {districts.map((district) => (
                             <option key={district.id} value={district.id}>

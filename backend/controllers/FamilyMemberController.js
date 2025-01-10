@@ -93,6 +93,23 @@ exports.createFamilyMember = async (req, res) => {
       }
     }
 
+    // Ensure empty string or undefined dates are converted to null
+    if (req.body.date_of_birth === "" || req.body.date_of_birth === undefined) {
+      req.body.date_of_birth = null;
+    }
+    if (
+      req.body.date_of_marriage === "" ||
+      req.body.date_of_marriage === undefined
+    ) {
+      req.body.date_of_marriage = null;
+    }
+    if (req.body.start_date === "" || req.body.start_date === undefined) {
+      req.body.start_date = null;
+    }
+    if (req.body.end_date === "" || req.body.end_date === undefined) {
+      req.body.end_date = null;
+    }
+
     const newMember = await FamilyMember.create(req.body);
     res.status(201).json(newMember);
   } catch (error) {
@@ -127,6 +144,20 @@ exports.updateFamilyMember = async (req, res) => {
           .status(400)
           .json({ message: `The field ${field} is required.` });
       }
+    }
+
+    // Ensure empty string or undefined dates are converted to null
+    if (req.body.date_of_birth === "") {
+      req.body.date_of_birth = null;
+    }
+    if (req.body.date_of_marriage === "") {
+      req.body.date_of_marriage = null;
+    }
+    if (req.body.start_date === "") {
+      req.body.start_date = null;
+    }
+    if (req.body.end_date === "") {
+      req.body.end_date = null;
     }
 
     await member.update(req.body);
