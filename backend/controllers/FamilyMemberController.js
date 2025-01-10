@@ -94,7 +94,7 @@ exports.createFamilyMember = async (req, res) => {
     }
 
     // Ensure empty string or undefined dates are converted to null
-    if (req.body.date_of_birth === "") {
+    if (req.body.date_of_birth === "" || req.body.date_of_birth === undefined) {
       req.body.date_of_birth = null;
     }
     if (
