@@ -1,6 +1,10 @@
 const Personnel = require("../models/personnels"); // Ensure the correct path
 const User = require("../models/User"); // Ensure this model is correctly defined
-const { Sequelize, Op } = require("sequelize"); // Import Sequelize and Op
+const { Sequelize, Op, fn, col } = require("sequelize"); // Import Sequelize and Op
+
+const sequelize = require("../config/database"); // Ensure Sequelize instance is imported
+
+const moment = require("moment");
 
 // Get all new personnels
 exports.getAllNewPersonnels = async (req, res) => {
@@ -114,21 +118,36 @@ exports.getReferenceNumber = async (req, res) => {
   }
 
   try {
-    // Find personnel by givenname and date_of_birth
-    const personnel = await Personnel.findOne({
-      where: {
-        givenname,
-        date_of_birth,
+    // Normalize the date to ensure consistency
+    const normalizedDate = new Date(date_of_birth).toISOString().split("T")[0];
+
+    console.log("Request received with:", { givenname, date_of_birth });
+    console.log("Normalized Date:", normalizedDate);
+
+    // Using Sequelize raw query for debugging purposes
+    const rawQuery = `
+      SELECT * 
+      FROM personnels 
+      WHERE givenname = :givenname 
+        AND date_of_birth = :date_of_birth 
+      LIMIT 1;
+    `;
+    const personnelRaw = await sequelize.query(rawQuery, {
+      replacements: {
+        givenname: givenname.trim(),
+        date_of_birth: normalizedDate,
       },
+      type: sequelize.QueryTypes.SELECT,
     });
 
-    if (!personnel) {
+    if (!personnelRaw || personnelRaw.length === 0) {
       return res.status(404).json({
         message: "No reference number found for the provided details.",
       });
     }
 
-    // Return the reference number and associated details
+    // Return the reference number and associated details from raw SQL query
+    const personnel = personnelRaw[0];
     res.status(200).json({
       reference_number: personnel.reference_number,
       personnel_id: personnel.personnel_id,

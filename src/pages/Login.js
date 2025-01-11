@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import crypto from "crypto-js";
+import bcrypt from "bcryptjs"; // Ensure bcrypt is installed
+import sha from "sha.js"; // For SHA encryption
 import {
   Box,
   Button,
@@ -49,7 +51,6 @@ const Login = () => {
 
   // Function to retrieve reference number by name and date of birth
   const handleRetrieveReference = async () => {
-    alert("ASD");
     if (!name.trim() || !dateOfBirth.trim()) {
       toast({
         title: "Error",
@@ -63,14 +64,12 @@ const Login = () => {
 
     setIsLoading(true);
     try {
-      alert(`${API_URL}/api/getretrievereference`);
       const response = await axios.get(`${API_URL}/api/getretrievereference`, {
         params: {
           givenname: name, // Match query parameters to backend
           date_of_birth: dateOfBirth,
         },
       });
-
       if (response.data?.reference_number) {
         setRetrievedReference(response.data.reference_number);
         toast({
@@ -107,10 +106,12 @@ const Login = () => {
 
   // Track Enrollment Progress
   const handleTrackProgress = async () => {
-    if (!referenceNumber) {
+    const trackingNumber = referenceNumber || retrievedReference; // Use referenceNumber if available, otherwise use retrievedReference
+
+    if (!trackingNumber) {
       toast({
         title: "Error",
-        description: "Please enter a valid Reference Number.",
+        description: "Please enter or retrieve a valid Reference Number.",
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -120,7 +121,7 @@ const Login = () => {
 
     try {
       const response = await axios.get(
-        `${API_URL}/api/getreference?reference_number=${referenceNumber}`
+        `${API_URL}/api/getreference?reference_number=${trackingNumber}`
       );
 
       if (response.data && response.data.personnel_id) {
@@ -169,6 +170,57 @@ const Login = () => {
     return `{MD5}` + crypto.enc.Base64.stringify(md5sum);
   };
 
+  const hashPassword = (password, encryptionType) => {
+    switch (encryptionType.toLowerCase()) {
+      case "bcrypt":
+        return bcrypt.hashSync(password, 10); // Bcrypt hashing
+      case "md5":
+        return `{MD5}` + crypto.enc.Base64.stringify(crypto.MD5(password));
+      case "sha":
+        return `{SHA}` + crypto.enc.Base64.stringify(crypto.SHA1(password));
+      case "sha256":
+        return (
+          `{SHA256}` + crypto.enc.Base64.stringify(crypto.SHA256(password))
+        );
+      case "sha512":
+        return (
+          `{SHA512}` + crypto.enc.Base64.stringify(crypto.SHA512(password))
+        );
+      case "ssha": {
+        const salt = crypto.lib.WordArray.random(8); // Generate a random 8-byte salt
+        const hash = crypto.SHA1(password + salt.toString(crypto.enc.Latin1)); // Hash password + salt
+        const combined = crypto.lib.WordArray.create(hash.words).concat(salt); // Concatenate hash and salt
+        return `{SSHA}` + crypto.enc.Base64.stringify(combined); // Base64-encode the hash + salt
+      }
+      case "clear":
+        return password; // Plain text
+      default:
+        throw new Error("Unsupported encryption type");
+    }
+  };
+
+  const validateSSHA = (password, storedHash) => {
+    // Remove "{SSHA}" prefix
+    const base64Hash = storedHash.replace("{SSHA}", "");
+
+    // Decode base64 to get the hash and salt
+    const decoded = crypto.enc.Base64.parse(base64Hash);
+    const decodedBytes = crypto.enc.Latin1.stringify(decoded);
+
+    // Extract hash and salt
+    const hashLength = 20; // SHA1 produces a 20-byte hash
+    const extractedHash = decodedBytes.slice(0, hashLength);
+    const extractedSalt = decodedBytes.slice(hashLength);
+
+    // Compute hash using provided password and extracted salt
+    const computedHash = crypto
+      .SHA1(password + extractedSalt)
+      .toString(crypto.enc.Latin1);
+
+    // Compare the recomputed hash with the extracted hash
+    return computedHash === extractedHash;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -189,7 +241,24 @@ const Login = () => {
       })
       .then(async (ldapResponse) => {
         const ldapUser = ldapResponse.data;
-        const hashedPassword = md5HashPassword(password);
+        //const hashedPassword = md5HashPassword(password);
+
+        const userPassword = ldapUser.userPassword;
+        const encryptionType = ldapUser.userPassword.match(/^\{(\w+)\}/)?.[1];
+        if (!encryptionType) {
+          setError("Unsupported or unknown encryption type.");
+          setIsLoading(false);
+          return;
+        }
+
+        const hashedPassword = hashPassword(password, encryptionType);
+
+        if (encryptionType === "ssha") {
+          // Validate SSHA
+          if (!validateSSHA(password, userPassword)) {
+            throw new Error("Invalid credentials");
+          }
+        }
 
         if (ldapUser && ldapUser.userPassword === hashedPassword) {
           // Fetch the user ID for the local login
