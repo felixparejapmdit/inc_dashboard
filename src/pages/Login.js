@@ -171,6 +171,7 @@ const Login = () => {
   };
 
   const hashPassword = (password, encryptionType) => {
+    alert(encryptionType);
     switch (encryptionType.toLowerCase()) {
       case "bcrypt":
         return bcrypt.hashSync(password, 10); // Bcrypt hashing
@@ -187,38 +188,31 @@ const Login = () => {
           `{SHA512}` + crypto.enc.Base64.stringify(crypto.SHA512(password))
         );
       case "ssha": {
-        const salt = crypto.lib.WordArray.random(8); // Generate a random 8-byte salt
-        const hash = crypto.SHA1(password + salt.toString(crypto.enc.Latin1)); // Hash password + salt
-        const combined = crypto.lib.WordArray.create(hash.words).concat(salt); // Concatenate hash and salt
-        return `{SSHA}` + crypto.enc.Base64.stringify(combined); // Base64-encode the hash + salt
+        // Generate an 8-byte random salt
+        const salt = new Uint8Array(8); // Create an 8-byte array
+        window.crypto.getRandomValues(salt); // Fill it with random values
+
+        // Create the hash
+        const shaObj = crypto.SHA1(
+          password +
+            Array.from(salt)
+              .map((byte) => String.fromCharCode(byte))
+              .join("")
+        );
+        const combined = crypto.enc.Latin1.parse(
+          shaObj.toString(crypto.enc.Latin1) +
+            Array.from(salt)
+              .map((byte) => String.fromCharCode(byte))
+              .join("")
+        );
+
+        return `{SSHA}` + crypto.enc.Base64.stringify(combined); // Combine hash + salt
       }
       case "clear":
         return password; // Plain text
       default:
         throw new Error("Unsupported encryption type");
     }
-  };
-
-  const validateSSHA = (password, storedHash) => {
-    // Remove "{SSHA}" prefix
-    const base64Hash = storedHash.replace("{SSHA}", "");
-
-    // Decode base64 to get the hash and salt
-    const decoded = crypto.enc.Base64.parse(base64Hash);
-    const decodedBytes = crypto.enc.Latin1.stringify(decoded);
-
-    // Extract hash and salt
-    const hashLength = 20; // SHA1 produces a 20-byte hash
-    const extractedHash = decodedBytes.slice(0, hashLength);
-    const extractedSalt = decodedBytes.slice(hashLength);
-
-    // Compute hash using provided password and extracted salt
-    const computedHash = crypto
-      .SHA1(password + extractedSalt)
-      .toString(crypto.enc.Latin1);
-
-    // Compare the recomputed hash with the extracted hash
-    return computedHash === extractedHash;
   };
 
   const handleSubmit = async (e) => {
@@ -243,22 +237,16 @@ const Login = () => {
         const ldapUser = ldapResponse.data;
         //const hashedPassword = md5HashPassword(password);
 
-        const userPassword = ldapUser.userPassword;
         const encryptionType = ldapUser.userPassword.match(/^\{(\w+)\}/)?.[1];
         if (!encryptionType) {
           setError("Unsupported or unknown encryption type.");
           setIsLoading(false);
           return;
         }
-
+        alert(encryptionType);
         const hashedPassword = hashPassword(password, encryptionType);
 
-        if (encryptionType === "ssha") {
-          // Validate SSHA
-          if (!validateSSHA(password, userPassword)) {
-            throw new Error("Invalid credentials");
-          }
-        }
+        console.log("Hashed Password:", hashedPassword);
 
         if (ldapUser && ldapUser.userPassword === hashedPassword) {
           // Fetch the user ID for the local login

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 10, 2025 at 07:56 AM
+-- Generation Time: Jan 11, 2025 at 12:16 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -1520,7 +1520,7 @@ CREATE TABLE `personnels` (
   `surname_husband` varchar(50) DEFAULT NULL,
   `suffix` text DEFAULT NULL,
   `nickname` varchar(50) DEFAULT NULL,
-  `date_of_birth` datetime DEFAULT NULL,
+  `date_of_birth` date DEFAULT NULL,
   `place_of_birth` varchar(50) DEFAULT NULL,
   `datejoined` datetime DEFAULT NULL,
   `language_id` varchar(50) DEFAULT NULL,
@@ -1548,16 +1548,17 @@ CREATE TABLE `personnels` (
 --
 
 INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progress`, `personnel_progress`, `gender`, `civil_status`, `wedding_anniversary`, `givenname`, `middlename`, `surname_maiden`, `surname_husband`, `suffix`, `nickname`, `date_of_birth`, `place_of_birth`, `datejoined`, `language_id`, `bloodtype`, `email_address`, `citizenship`, `nationality`, `department_id`, `section_id`, `subsection_id`, `designation_id`, `district_id`, `local_congregation`, `personnel_type`, `assigned_number`, `m_status`, `panunumpa_date`, `ordination_date`, `created_at`, `updated_at`) VALUES
-(10, 'ENR-2412-EP1-8972', '1', '1', 'Male', 'Single', NULL, 'Felix', 'Morales', '', 'Pareja', 'No Suffix', 'Chok', '1992-11-09 00:00:00', 'QC', '2024-12-09 00:00:00', '1', 'A+', 'felixpareja@yahoo.com', 138, 138, 1, 2, 1, 1, 45, 'Bonifacio Drive', 'Regular', 201497, 'May Destino', '2022-09-16 00:00:00', NULL, '2024-12-09 04:43:34', '2025-01-10 03:45:59'),
-(13, 'ENR-2412-EP1-6371', '1', '4', 'Male', 'Single', NULL, 'Aldrin', 'asd', '', 'Salvador', '', 'asd', '2000-12-20 00:00:00', 'asd', '2024-12-20 00:00:00', NULL, '', 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', 'Regular', 20148, 'May Destino', '2022-09-16 00:00:00', NULL, '2024-12-19 17:31:20', '2025-01-08 02:54:12'),
-(36, 'ENR-2501-EP1-5540', '1', 'Enrollment', 'Male', 'Single', NULL, 'Michael', NULL, NULL, 'Shohdy', NULL, NULL, '1992-01-08 00:00:00', NULL, '0000-00-00 00:00:00', NULL, NULL, 'abc@yahoo.com', NULL, NULL, NULL, 0, 0, 0, NULL, NULL, 'Regular', NULL, 'May Destino', '2025-01-08 00:00:00', NULL, '2025-01-08 04:34:30', '2025-01-08 05:11:00'),
-(37, 'ENR-2501-EP1-3640', '1', 'Enrollment', 'Male', 'Single', NULL, 'Roland Kim', 'Sato', NULL, 'Amaro', NULL, NULL, '2025-01-08 00:00:00', NULL, '0000-00-00 00:00:00', NULL, NULL, 'kim@yahoo.com', NULL, NULL, 1, 2, 1, 1, NULL, NULL, 'Regular', NULL, 'Fulltime', '2019-02-07 00:00:00', NULL, '2025-01-08 05:15:21', '2025-01-10 06:00:27'),
-(39, 'ENR-2501-EP1-6503', '1', '1', 'Male', 'Married', NULL, 'Kim', NULL, NULL, 'Ortodox', NULL, NULL, '1996-01-10 00:00:00', NULL, NULL, NULL, NULL, 'a@qqqq.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Ministerial Student', NULL, 'May Destino', NULL, NULL, '2025-01-10 00:26:14', '2025-01-10 00:26:14'),
-(41, 'ENR-2501-EP1-2540', '1', '1', 'Male', 'Single', NULL, 'test1', NULL, NULL, 'test1', NULL, NULL, '1990-01-10 00:00:00', NULL, NULL, NULL, NULL, 'abc@yahoo.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, '2025-01-10 01:47:36', '2025-01-10 01:47:36'),
-(42, 'ENR-2501-EP1-3613', '1', '1', 'Male', 'Single', NULL, 'test po', NULL, NULL, 'test po', NULL, NULL, '2025-01-10 00:00:00', NULL, NULL, NULL, NULL, 'abc@yahoo.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, '2025-01-10 03:48:38', '2025-01-10 03:48:38'),
-(43, 'ENR-2501-EP1-6673', '1', '1', 'Male', 'Single', NULL, 'test ulit', NULL, NULL, 'test ulit', NULL, NULL, '2025-01-10 00:00:00', NULL, NULL, NULL, NULL, 'abc@yahoo.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, '2025-01-10 03:51:57', '2025-01-10 03:51:57'),
-(44, 'ENR-2501-EP1-6516', '1', '1', 'Male', 'Single', NULL, 'asd', NULL, NULL, 'asd', NULL, NULL, '2025-01-10 00:00:00', NULL, NULL, NULL, NULL, 'abc@yahoo.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, '2025-01-10 04:29:53', '2025-01-10 04:29:53'),
-(45, 'ENR-2501-EP1-7669', '1', '1', 'Male', 'Single', NULL, 'Michael', NULL, NULL, 'Samir Shohdy', NULL, NULL, '1992-04-27 00:00:00', NULL, NULL, NULL, NULL, 'shaowdy@gmail.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', NULL, 'May Destino', '2024-09-13 00:00:00', NULL, '2025-01-10 05:50:48', '2025-01-10 05:50:48');
+(10, 'ENR-2412-EP1-8972', '1', '1', 'Male', 'Single', NULL, 'Felix', 'Morales', '', 'Pareja', 'No Suffix', 'Chok', '1992-11-09', 'QC', '2024-12-09 00:00:00', '1', 'A+', 'felixpareja@yahoo.com', 138, 138, 1, 2, 1, 1, 45, 'Bonifacio Drive', 'Regular', 201497, 'May Destino', '2022-09-16 00:00:00', NULL, '2024-12-09 04:43:34', '2025-01-10 03:45:59'),
+(13, 'ENR-2412-EP1-6371', '1', '4', 'Male', 'Single', NULL, 'Aldrin', 'asd', '', 'Salvador', '', 'asd', '2000-12-20', 'asd', '2024-12-20 00:00:00', NULL, '', 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', 'Regular', 20148, 'May Destino', '2022-09-16 00:00:00', NULL, '2024-12-19 17:31:20', '2025-01-08 02:54:12'),
+(36, 'ENR-2501-EP1-5540', '1', 'Enrollment', 'Male', 'Single', NULL, 'Michael', NULL, NULL, 'Shohdy', NULL, NULL, '1992-01-08', NULL, '0000-00-00 00:00:00', NULL, NULL, 'abc@yahoo.com', NULL, NULL, NULL, 0, 0, 0, NULL, NULL, 'Regular', NULL, 'May Destino', '2025-01-08 00:00:00', NULL, '2025-01-08 04:34:30', '2025-01-08 05:11:00'),
+(37, 'ENR-2501-EP1-3640', '1', 'Enrollment', 'Male', 'Single', NULL, 'Roland Kim', 'Sato', NULL, 'Amaro', NULL, NULL, '2025-01-08', NULL, '0000-00-00 00:00:00', NULL, NULL, 'kim@yahoo.com', NULL, NULL, 1, 2, 1, 1, NULL, NULL, 'Regular', NULL, 'Fulltime', '2019-02-07 00:00:00', NULL, '2025-01-08 05:15:21', '2025-01-10 06:00:27'),
+(39, 'ENR-2501-EP1-6503', '1', '1', 'Male', 'Married', NULL, 'Kim', NULL, NULL, 'Ortodox', NULL, NULL, '1996-01-10', NULL, NULL, NULL, NULL, 'a@qqqq.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Ministerial Student', NULL, 'May Destino', NULL, NULL, '2025-01-10 00:26:14', '2025-01-10 00:26:14'),
+(46, 'ENR-2501-EP1-5265', '1', '1', 'Male', 'Single', NULL, 'test1', NULL, NULL, 'test1', NULL, NULL, '2025-01-11', NULL, NULL, NULL, NULL, 'amarorolandkim@gmail.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, '2025-01-11 08:46:41', '2025-01-11 08:46:41'),
+(47, 'ENR-2501-EP1-3238', '1', '1', 'Male', 'Single', NULL, 'test1', NULL, NULL, 'test1', NULL, NULL, '2025-01-11', NULL, NULL, NULL, NULL, 'amarorolandkim@gmail.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, '2025-01-11 08:46:54', '2025-01-11 08:46:54'),
+(48, 'ENR-2501-EP1-3740', '1', '1', 'Male', 'Single', NULL, 'test1', NULL, NULL, 'test1', NULL, NULL, '2025-01-11', NULL, NULL, NULL, NULL, 'amarorolandkim@gmail.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, '2025-01-11 08:47:02', '2025-01-11 08:47:02'),
+(49, 'ENR-2501-EP1-4733', '1', '1', 'Male', 'Single', NULL, 'test1', NULL, NULL, 'test1', NULL, NULL, '2025-01-11', NULL, NULL, NULL, NULL, 'amarorolandkim@gmail.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, '2025-01-11 08:47:11', '2025-01-11 08:47:11'),
+(50, 'ENR-2501-EP1-9872', '1', '1', 'Male', 'Single', NULL, 'test1', NULL, NULL, 'test1', NULL, NULL, '2025-01-11', NULL, NULL, NULL, NULL, 'amarorolandkim@gmail.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, '2025-01-11 08:47:26', '2025-01-11 08:47:26'),
+(51, 'ENR-2501-EP1-2252', '1', '1', 'Male', 'Single', NULL, 'test1', NULL, NULL, 'test123', NULL, NULL, '2025-01-11', NULL, '0000-00-00 00:00:00', NULL, NULL, 'amarorolandkim@gmail.com', NULL, NULL, 1, 2, 1, 1, NULL, NULL, 'Lay Member', NULL, NULL, '0000-00-00 00:00:00', NULL, '2025-01-11 08:47:40', '2025-01-11 08:50:22');
 
 -- --------------------------------------------------------
 
@@ -1883,7 +1884,7 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (43, 'executive.news', NULL, NULL, 'executive.news', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (44, 'pmd.it', NULL, '', 'pmd.it', '{SSHA}LYVyCEUbqbnRdJMh/NGuR38z6zbsDKG+', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (45, 'r.deguzman', NULL, NULL, 'r.deguzman', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(46, 'felix.pareja', 10, '/uploads/avatar/1732846376187_image.jpg', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-28 13:25:36'),
+(46, 'felix.pareja', 10, '/uploads/avatar/1732846376187_image.jpg', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-28 13:25:36'),
 (48, NULL, NULL, '/uploads/avatar/1732867059276_icons8-fitbit-50.png', 'admin', '$2a$12$ZXhnczgjZG4QAa4oGMH5eOt0.a9urccMHJ0/FBYB5zCe2/zfh3dEO', 0, NULL, 'Local', NULL, NULL, NULL, NULL),
 (68, 'asalvador', 13, '', 'asalvador', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2025-01-08 03:16:34', '2025-01-08 03:16:34'),
 (50, 'dalferez', NULL, NULL, 'dalferez', '{MD5}/DfLoL+7ApalWUrlZU0Q0Q==', 0, NULL, 'LDAP', 0, NULL, '2025-01-02 08:54:55', '2025-01-02 08:54:55'),
@@ -2501,7 +2502,7 @@ ALTER TABLE `permission_groups`
 -- AUTO_INCREMENT for table `personnels`
 --
 ALTER TABLE `personnels`
-  MODIFY `personnel_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
+  MODIFY `personnel_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
 
 --
 -- AUTO_INCREMENT for table `personnel_address`
