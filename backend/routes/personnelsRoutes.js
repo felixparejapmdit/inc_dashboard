@@ -20,6 +20,9 @@ router.get("/api/personnels/:id", personnelsController.getPersonnelById);
 // Route to create a new personnel
 router.post("/api/personnels", personnelsController.createPersonnel);
 
+// Route to retrieve reference number based on name and date of birth
+router.get("api/getretrievereference", personnelsController.getReferenceNumber);
+
 // Route to get a personnel by reference number or all
 router.get(
   "/api/getreference",

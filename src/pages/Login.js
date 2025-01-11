@@ -33,6 +33,9 @@ const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [referenceNumber, setReferenceNumber] = useState("");
+  const [name, setName] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [retrievedReference, setRetrievedReference] = useState("");
   const [error, setError] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isLoading, setIsLoading] = useState(false);
@@ -43,6 +46,64 @@ const Login = () => {
   const { fetchPermissions } = usePermissionContext();
 
   const [isPlaying, setIsPlaying] = useState(false);
+
+  // Function to retrieve reference number by name and date of birth
+  const handleRetrieveReference = async () => {
+    alert("ASD");
+    if (!name.trim() || !dateOfBirth.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter both your name and date of birth.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      alert(`${API_URL}/api/getretrievereference`);
+      const response = await axios.get(`${API_URL}/api/getretrievereference`, {
+        params: {
+          givenname: name, // Match query parameters to backend
+          date_of_birth: dateOfBirth,
+        },
+      });
+
+      if (response.data?.reference_number) {
+        setRetrievedReference(response.data.reference_number);
+        toast({
+          title: "Success",
+          description: "Reference number retrieved successfully.",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        toast({
+          title: "Not Found",
+          description: "No reference number found for the provided details.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    } catch (error) {
+      console.error("Error retrieving reference number:", error);
+      toast({
+        title: "Error",
+        description:
+          error.response?.data?.message ||
+          "Failed to retrieve reference number. Please try again later.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Track Enrollment Progress
   const handleTrackProgress = async () => {
@@ -371,16 +432,47 @@ const Login = () => {
               <ModalHeader>Track Enrollment Progress</ModalHeader>
               <ModalCloseButton />
               <ModalBody>
-                <FormControl isRequired>
-                  <FormLabel>Reference No. / Tracking No.</FormLabel>
+                {/* Input Name */}
+                <FormControl mb={4}>
+                  <FormLabel>Name</FormLabel>
                   <Input
-                    placeholder="Enter Tracking No."
-                    value={referenceNumber}
+                    placeholder="Enter your full name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </FormControl>
+                {/* Input Date of Birth */}
+                <FormControl mb={4}>
+                  <FormLabel>Date of Birth</FormLabel>
+                  <Input
+                    type="date"
+                    value={dateOfBirth}
+                    onChange={(e) => setDateOfBirth(e.target.value)}
+                  />
+                </FormControl>
+                {/* Input or Retrieved Reference Number */}
+                <FormControl mb={4}>
+                  <FormLabel>Reference Number</FormLabel>
+                  <Input
+                    placeholder="Enter or Retrieve Reference Number"
+                    value={retrievedReference || referenceNumber}
                     onChange={(e) => setReferenceNumber(e.target.value)}
                   />
                 </FormControl>
               </ModalBody>
               <ModalFooter>
+                {/* Retrieve Reference Button */}
+                <Button
+                  colorScheme="blue"
+                  onClick={handleRetrieveReference}
+                  isLoading={isLoading}
+                  loadingText="Retrieving"
+                  mr={3}
+                >
+                  Retrieve Reference
+                </Button>
+
+                {/* Proceed Button */}
                 <Button
                   colorScheme="yellow"
                   onClick={handleTrackProgress}

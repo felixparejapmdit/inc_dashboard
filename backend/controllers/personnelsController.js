@@ -103,6 +103,45 @@ exports.getPersonnelById = async (req, res) => {
   }
 };
 
+exports.getReferenceNumber = async (req, res) => {
+  const { givenname, date_of_birth } = req.query;
+
+  // Validate required fields
+  if (!givenname || !date_of_birth) {
+    return res.status(400).json({
+      message: "Both givenname and date_of_birth are required.",
+    });
+  }
+
+  try {
+    // Find personnel by givenname and date_of_birth
+    const personnel = await Personnel.findOne({
+      where: {
+        givenname,
+        date_of_birth,
+      },
+    });
+
+    if (!personnel) {
+      return res.status(404).json({
+        message: "No reference number found for the provided details.",
+      });
+    }
+
+    // Return the reference number and associated details
+    res.status(200).json({
+      reference_number: personnel.reference_number,
+      personnel_id: personnel.personnel_id,
+      enrollment_progress: personnel.enrollment_progress,
+    });
+  } catch (error) {
+    console.error("Error retrieving reference number:", error);
+    res.status(500).json({
+      message: "An error occurred while retrieving the reference number.",
+    });
+  }
+};
+
 // Get a personnel record by reference_number
 exports.getPersonnelByReferenceNumber = async (req, res) => {
   try {
