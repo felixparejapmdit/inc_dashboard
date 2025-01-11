@@ -549,14 +549,33 @@ const EnrollmentForm = ({ referenceNumber }) => {
       const { personnel } = response.data;
       const { personnel_id, reference_number } = personnel;
 
-      // Display a success message with the reference number
-      toast({
-        title: "Enrollment Saved",
-        description: `Your reference number is ${reference_number}.`,
-        status: "success",
-        duration: 4000,
-        isClosable: true,
+         // Email Notification
+    if (email_address) {
+      await axios.post(`${API_URL}/api/send-email`, {
+        email: email_address,
+        subject: "Your Enrollment Reference Number",
+        body: `Thank you for enrolling. Your reference number is ${reference_number}. Please keep this number for future reference.`,
       });
+    }
+
+         // Create a downloadable file
+    const fileContent = `Reference Number: ${reference_number}\nDate: ${new Date().toLocaleString()}`;
+    const blob = new Blob([fileContent], { type: "text/plain" });
+    const link = document.createElement("a");
+    link.href = window.URL.createObjectURL(blob);
+    link.download = `Reference_Number_${reference_number}.txt`;
+    link.click();
+
+
+   // Display a success message with the reference number
+    toast({
+      title: "Enrollment Saved",
+      description: `Your reference number is ${reference_number}. Please keep this number for your records.",
+      status: "success",
+      duration: 4000,
+      isClosable: true,
+    });
+
 
       // Step 2: If `not_enrolled` exists, update the users table
       if (notEnrolledId) {
