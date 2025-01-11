@@ -14,13 +14,7 @@ const EducationalBackground = sequelize.define(
       allowNull: false,
     },
     level: {
-      type: DataTypes.ENUM(
-        "Elementary",
-        "Secondary",
-        "Senior High School",
-        "College Graduate",
-        "Undergrad"
-      ),
+      type: DataTypes.STRING(50),
       allowNull: false,
     },
     startfrom: {
@@ -50,6 +44,11 @@ const EducationalBackground = sequelize.define(
     professional_licensure_examination: {
       type: DataTypes.STRING(150),
       allowNull: true,
+    },   
+    certificate_files: {
+      type: DataTypes.JSON, // JSON to store multiple file paths
+      allowNull: true,
+      defaultValue: [], // Initialize as an empty array
     },
   },
   {

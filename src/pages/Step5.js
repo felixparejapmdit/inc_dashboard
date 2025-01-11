@@ -111,6 +111,7 @@ const Step5 = ({
             status: "error",
             duration: 3000,
             isClosable: true,
+            position: "bottom-left", // Position the toast on the bottom-left
           });
         });
     } else {
@@ -135,6 +136,7 @@ const Step5 = ({
         status: "error",
         duration: 3000,
         isClosable: true,
+        position: "bottom-left", // Position the toast on the bottom-left
       });
     }
   }, [personnelId]);
@@ -192,6 +194,7 @@ const Step5 = ({
         status: "error",
         duration: 3000,
         isClosable: true,
+        position: "bottom-left", // Position the toast on the bottom-left
       });
       setLoading(false); // Reset loading state
       return;
@@ -227,6 +230,7 @@ const Step5 = ({
         status: "success",
         duration: 3000,
         isClosable: true,
+        position: "bottom-left", // Position the toast on the bottom-left
       });
     } catch (error) {
       console.error(
@@ -243,6 +247,7 @@ const Step5 = ({
         status: "error",
         duration: 3000,
         isClosable: true,
+        position: "bottom-left", // Position the toast on the bottom-left
       });
     } finally {
       setLoading(false); // Reset loading state

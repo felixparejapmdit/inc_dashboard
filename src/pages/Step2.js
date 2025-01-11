@@ -89,6 +89,7 @@ const Step2 = ({ onSaveImage }) => {
         status: "error",
         duration: 3000,
         isClosable: true,
+        position: "bottom-left", // Position the toast on the bottom-left
       });
     }
   };
@@ -145,6 +146,7 @@ const Step2 = ({ onSaveImage }) => {
             status: "success",
             duration: 3000,
             isClosable: true,
+            position: "bottom-left", // Position the toast on the bottom-left
           });
           setImage(null); // Reset the image after saving
         } else {
@@ -158,6 +160,7 @@ const Step2 = ({ onSaveImage }) => {
           status: "error",
           duration: 3000,
           isClosable: true,
+          position: "bottom-left", // Position the toast on the bottom-left
         });
       }
     } else {
@@ -167,6 +170,7 @@ const Step2 = ({ onSaveImage }) => {
         status: "warning",
         duration: 3000,
         isClosable: true,
+        position: "bottom-left", // Position the toast on the bottom-left
       });
     }
   };

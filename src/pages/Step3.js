@@ -47,6 +47,7 @@ const Step3 = () => {
         status: "error",
         duration: 3000,
         isClosable: true,
+        position: "bottom-left", // Position the toast on the bottom-left
       });
       return;
     }
@@ -69,6 +70,7 @@ const Step3 = () => {
           status: "error",
           duration: 3000,
           isClosable: true,
+          position: "bottom-left", // Position the toast on the bottom-left
         });
       }
     };
@@ -163,6 +165,7 @@ const Step3 = () => {
           title: "Contact updated successfully.",
           status: "success",
           duration: 3000,
+          position: "bottom-left", // Position the toast on the bottom-left
         });
       } else {
         // Save new record
@@ -178,6 +181,7 @@ const Step3 = () => {
           title: "Contact saved successfully.",
           status: "success",
           duration: 3000,
+          position: "bottom-left", // Position the toast on the bottom-left
         });
       }
 
@@ -192,6 +196,7 @@ const Step3 = () => {
           error.response?.data?.error || "Failed to save or update contact.",
         status: "error",
         duration: 3000,
+        position: "bottom-left", // Position the toast on the bottom-left
       });
     }
   };
@@ -224,6 +229,7 @@ const Step3 = () => {
           title: "Contact deleted successfully.",
           status: "success",
           duration: 3000,
+          position: "bottom-left", // Position the toast on the bottom-left
         });
       } catch (error) {
         console.error("Error deleting contact:", error);
@@ -233,6 +239,7 @@ const Step3 = () => {
             error.response?.data?.error || "Failed to delete contact.",
           status: "error",
           duration: 3000,
+          position: "bottom-left", // Position the toast on the bottom-left
         });
       }
     }
@@ -266,6 +273,7 @@ const Step3 = () => {
           title: "Address updated successfully.",
           status: "success",
           duration: 3000,
+          position: "bottom-left", // Position the toast on the bottom-left
         });
       } else {
         // Save new record
@@ -282,6 +290,7 @@ const Step3 = () => {
           title: "Address saved successfully.",
           status: "success",
           duration: 3000,
+          position: "bottom-left", // Position the toast on the bottom-left
         });
       }
 
@@ -296,6 +305,7 @@ const Step3 = () => {
           error.response?.data?.error || "Failed to save or update address.",
         status: "error",
         duration: 3000,
+        position: "bottom-left", // Position the toast on the bottom-left
       });
     }
   };
@@ -327,6 +337,7 @@ const Step3 = () => {
               title: "Address deleted successfully.",
               status: "success",
               duration: 3000,
+              position: "bottom-left", // Position the toast on the bottom-left
             });
 
             // Remove from state
@@ -341,6 +352,7 @@ const Step3 = () => {
                 error.response?.data?.error || "Failed to delete address.",
               status: "error",
               duration: 3000,
+              position: "bottom-left", // Position the toast on the bottom-left
             });
           });
       }
@@ -373,6 +385,7 @@ const Step3 = () => {
           title: "Government ID updated successfully.",
           status: "success",
           duration: 3000,
+          position: "bottom-left", // Position the toast on the bottom-left
         });
       } else {
         // Save new record
@@ -388,6 +401,7 @@ const Step3 = () => {
           title: "Government ID saved successfully.",
           status: "success",
           duration: 3000,
+          position: "bottom-left", // Position the toast on the bottom-left
         });
       }
 
@@ -403,6 +417,7 @@ const Step3 = () => {
           "Failed to save or update government ID.",
         status: "error",
         duration: 3000,
+        position: "bottom-left", // Position the toast on the bottom-left
       });
     }
   };
@@ -462,6 +477,7 @@ const Step3 = () => {
         title: "Document uploaded successfully.",
         status: "success",
         duration: 3000,
+        position: "bottom-left", // Position the toast on the bottom-left
       });
 
       // Update the `govIDs` array to include the uploaded document info
@@ -477,6 +493,7 @@ const Step3 = () => {
         description: error.response?.data?.message || error.message,
         status: "error",
         duration: 3000,
+        position: "bottom-left", // Position the toast on the bottom-left
       });
     }
   };

@@ -115,6 +115,7 @@ const Login = () => {
         status: "error",
         duration: 3000,
         isClosable: true,
+        position: "bottom-left", // Position the toast on the bottom-left
       });
       return;
     }

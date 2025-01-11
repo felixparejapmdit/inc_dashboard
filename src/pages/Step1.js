@@ -36,7 +36,36 @@ const Step1 = ({
 }) => {
   const [step, setStep] = useState(1);
   const totalSteps = 10;
+
   const civilStatuses = ["Single", "Married"];
+  const totalPersonnelTypes = [
+    "Minister",
+    "Regular",
+    "Ministerial Student",
+    "Minister's Wife",
+    "Lay Member",
+  ];
+
+
+  const [filteredPersonnelTypes, setFilteredPersonnelTypes] = useState(totalPersonnelTypes);
+
+  // Filter Personnel Type based on Gender
+  useEffect(() => {
+    if (personnelData.gender === "Female") {
+      setFilteredPersonnelTypes(["Minister's Wife", "Lay Member"]);
+    } else {
+      setFilteredPersonnelTypes(totalPersonnelTypes);
+    }
+    // Reset personnel_type if it's invalid for the new gender
+    setPersonnelData((prevData) => ({
+      ...prevData,
+      personnel_type: totalPersonnelTypes.includes(prevData.personnel_type)
+        ? prevData.personnel_type
+        : "",
+    }));
+  }, [personnelData.gender, setPersonnelData]);
+
+
   // States for filtered sections and subsections
   const [filteredSections, setFilteredSections] = useState([]);
   const [filteredSubsections, setFilteredSubsections] = useState([]);
@@ -869,51 +898,35 @@ const Step1 = ({
           </Flex>
 
           <Flex direction="column" mb="4" width="100%">
-            <Text fontSize="md" fontWeight="bold" mb="1" color="#0a5856">
-              Personnel Type:
-            </Text>
-            <RadioGroup
-              name="personnel_type"
-              onChange={(value) => {
-                handleChange({ target: { name: "personnel_type", value } });
-              }}
-              value={personnelData.personnel_type}
+          <Text fontSize="md" fontWeight="bold" mb="1" color="#0a5856">
+            Personnel Type:
+          </Text>
+          <RadioGroup
+            name="personnel_type"
+            onChange={(value) => {
+              handleChange({ target: { name: "personnel_type", value } });
+            }}
+            value={personnelData.personnel_type}
+            width="100%"
+          >
+            <Stack
+              direction={{ base: "column", md: "row" }}
+              spacing={{ base: 2, md: 4 }}
+              wrap="wrap"
+              justify="space-between"
               width="100%"
             >
-              <Stack
-                direction={{ base: "column", md: "row" }}
-                spacing={{ base: 2, md: 4 }}
-                wrap="wrap"
-                justify="space-between"
-                width="100%"
-              >
-                <Radio value="Minister" width={{ base: "100%", md: "auto" }}>
-                  Minister
+              {filteredPersonnelTypes.map((type) => (
+                <Radio key={type} value={type} width={{ base: "100%", md: "auto" }}>
+                  {type}
                 </Radio>
-                <Radio value="Regular" width={{ base: "100%", md: "auto" }}>
-                  Regular
-                </Radio>
-                <Radio
-                  value="Ministerial Student"
-                  width={{ base: "100%", md: "auto" }}
-                >
-                  Ministerial Student
-                </Radio>
-                <Radio
-                  value="Minister's Wife"
-                  width={{ base: "100%", md: "auto" }}
-                >
-                  Minister's Wife
-                </Radio>
-                <Radio value="Lay Member" width={{ base: "100%", md: "auto" }}>
-                  Lay Member
-                </Radio>
-              </Stack>
-            </RadioGroup>
-          </Flex>
+              ))}
+            </Stack>
+          </RadioGroup>
+        </Flex>
 
           {/* Conditional Fields Based on Personnel Type */}
-          {["Minister", "Regular", "Ministerial Student"].includes(
+          {personnelData.gender === "Male" && ["Minister", "Regular", "Ministerial Student"].includes(
             personnelData.personnel_type
           ) && (
             <>
@@ -967,7 +980,7 @@ const Step1 = ({
           )}
 
           {/* Panunumpa Date */}
-          {["Minister", "Regular"].includes(personnelData.personnel_type) && (
+          {personnelData.gender === "Male" && ["Minister", "Regular"].includes(personnelData.personnel_type) && (
             <Flex align="center" mb="3" width="100%">
               <Text
                 fontSize="md"
@@ -994,7 +1007,8 @@ const Step1 = ({
           )}
 
           {/* Ordination Date */}
-          {personnelData.personnel_type === "Minister" && (
+          {personnelData.gender === "Male" &&
+          personnelData.personnel_type === "Minister" && (
             <Flex align="center" mb="3" width="100%">
               <Text
                 fontSize="md"

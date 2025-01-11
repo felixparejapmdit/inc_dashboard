@@ -164,6 +164,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
     "No Formal Education",
     "Primary Education",
     "Secondary Education",
+    "Senior High School", // Idagdag ang Senior High School dito
     "Vocational Training",
     "Associate Degree",
     "Bachelor's Degree",
@@ -320,13 +321,14 @@ const EnrollmentForm = ({ referenceNumber }) => {
       ...education,
       {
         level: "",
-        startFrom: "",
+        startfrom: "",
         completionYear: "",
         school: "",
         fieldOfStudy: "",
         degree: "",
         institution: "",
-        professionalLicensure: "",
+        professional_licensure_examination: "",
+        certificate_files: [], // Ensure this is initialized as an array
         isEditing: true,
       },
     ]);
@@ -374,6 +376,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
       status: "success",
       duration: 3000,
       isClosable: true,
+      position: "bottom-left", // Position the toast on the bottom-left
     });
 
     // Redirect to the login page after a short delay
@@ -448,6 +451,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
               status: "error",
               duration: 3000,
               isClosable: true,
+              position: "bottom-left", // Position the toast on the bottom-left
             });
             setIsLoading(false);
             return;
@@ -466,6 +470,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
               status: "error",
               duration: 3000,
               isClosable: true,
+              position: "bottom-left", // Position the toast on the bottom-left
             });
             setIsLoading(false);
             return;
@@ -482,6 +487,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
             status: "success",
             duration: 3000,
             isClosable: true,
+            position: "bottom-left", // Position the toast on the bottom-left
           });
         }
       }
@@ -496,6 +502,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
         status: "error",
         duration: 3000,
         isClosable: true,
+        position: "bottom-left", // Position the toast on the bottom-left
       });
     } finally {
       setIsLoading(false);
@@ -514,36 +521,72 @@ const EnrollmentForm = ({ referenceNumber }) => {
       const searchParams = new URLSearchParams(window.location.search);
       const notEnrolledId = searchParams.get("not_enrolled");
 
-      // Destructure necessary fields from personnelData
-      const {
-        gender,
-        civil_status,
-        givenname,
-        surname_husband,
-        date_of_birth,
-        email_address,
-        personnel_type,
-        panunumpa_date,
-        ordination_date,
-        m_status,
-      } = personnelData;
+// Destructure all necessary fields from personnelData
+const {
+  gender,
+  civil_status,
+  wedding_anniversary,
+  givenname,
+  middlename,
+  surname_maiden,
+  surname_husband,
+  suffix,
+  nickname,
+  date_of_birth,
+  place_of_birth,
+  datejoined,
+  language_id,
+  bloodtype,
+  email_address,
+  citizenship,
+  nationality,
+  department_id,
+  section_id,
+  subsection_id,
+  designation_id,
+  district_id,
+  local_congregation,
+  personnel_type,
+  assigned_number,
+  m_status,
+  panunumpa_date,
+  ordination_date,
+} = personnelData;
 
-      // Prepare the API payload dynamically
-      const response = await axios.post(`${API_URL}/api/personnels`, {
-        reference_number: null, // Can be generated later
-        enrollment_progress: "1", // Required value
-        personnel_progress: "1", // Required value
-        gender: gender || null, // Use null if empty
-        civil_status: civil_status || null, // Use null if empty
-        givenname: givenname || null, // Use null if empty
-        surname_husband: surname_husband || null, // Use null if empty
-        date_of_birth: date_of_birth || null, // Use null if empty
-        email_address: email_address || null, // Use null if empty
-        personnel_type: personnel_type || null, // Use null if empty
-        panunumpa_date: panunumpa_date || null, // Use null if empty
-        ordination_date: ordination_date || null, // Use null if empty
-        m_status: m_status || null, // Use null if empty
-      });
+// Prepare the API payload dynamically
+const response = await axios.post(`${API_URL}/api/personnels`, {
+  reference_number: null, // Can be generated later
+  enrollment_progress: "1", // Required value
+  personnel_progress: "1", // Required value
+  gender: gender || null,
+  civil_status: civil_status || null,
+  wedding_anniversary: wedding_anniversary || null,
+  givenname: givenname || null,
+  middlename: middlename || null,
+  surname_maiden: surname_maiden || null,
+  surname_husband: surname_husband || null,
+  suffix: suffix || null,
+  nickname: nickname || null,
+  date_of_birth: date_of_birth || null,
+  place_of_birth: place_of_birth || null,
+  datejoined: datejoined || null,
+  language_id: language_id || null,
+  bloodtype: bloodtype || null,
+  email_address: email_address || null,
+  citizenship: citizenship || null,
+  nationality: nationality || null,
+  department_id: department_id || null,
+  section_id: section_id || null,
+  subsection_id: subsection_id || null,
+  designation_id: designation_id || null,
+  district_id: district_id || null,
+  local_congregation: local_congregation || null,
+  personnel_type: personnel_type || null,
+  assigned_number: assigned_number || null,
+  m_status: m_status || null,
+  panunumpa_date: panunumpa_date || null,
+  ordination_date: ordination_date || null,
+});
 
       // Extract the personnel_id from the response
       const { personnel } = response.data;
@@ -564,6 +607,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
         status: "success",
         duration: 4000,
         isClosable: true,
+        position: "bottom-left", // Position the toast on the bottom-left
       });
 
       // Step 2: If `not_enrolled` exists, update the users table
@@ -598,6 +642,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
         status: "error",
         duration: 3000,
         isClosable: true,
+        position: "bottom-left", // Position the toast on the bottom-left
       });
     } finally {
       setIsLoading(false); // Stop loading indicator
@@ -645,6 +690,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
             status: "error",
             duration: 3000,
             isClosable: true,
+            position: "bottom-left", // Position the toast on the bottom-left
           });
           navigate("/"); // Redirect to home or login page
           return;
@@ -685,6 +731,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
           status: "error",
           duration: 3000,
           isClosable: true,
+          position: "bottom-left", // Position the toast on the bottom-left
         });
         navigate("/"); // Redirect to home or login page
       }
@@ -817,6 +864,8 @@ const EnrollmentForm = ({ referenceNumber }) => {
           handleAddWorkExperience={handleAddWorkExperience}
           setEducation={setEducation}
           setWorkExperience={setWorkExperience}
+          employmentTypeOptions={employmentTypeOptions}
+          educationalLevelOptions={educationalLevelOptions}
         />
       )}
 
