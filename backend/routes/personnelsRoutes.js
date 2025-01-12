@@ -32,6 +32,9 @@ router.get(
   personnelsController.getPersonnelByReferenceNumber
 );
 
+// Route to check if a personnel exists
+router.get("/api/personnels_check", personnelsController.checkPersonnelExistence);
+
 // Route to update a personnel by ID
 router.put("/api/personnels/:id", personnelsController.updatePersonnel);
 

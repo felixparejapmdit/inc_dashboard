@@ -62,17 +62,20 @@ const Step4 = ({employmentTypeOptions,educationalLevelOptions,}) => {
           }),
         ]);
 
-           // Parse `certificate_files` if necessary
-    const parsedEducation = educationRes.data.map((edu) => ({
-      ...edu,
-      certificate_files: edu.certificate_files
-        ? JSON.parse(edu.certificate_files) // Parse JSON string
-        : [], // Default to an empty array
-    }));
+             // Safely handle education data
+      const parsedEducation = educationRes?.data?.map((edu) => ({
+        ...edu,
+        certificate_files:
+          edu.certificate_files && typeof edu.certificate_files === "string"
+            ? JSON.parse(edu.certificate_files)
+            : [], // Default to empty array
+      })) || [];
 
+      // Safely handle work experience data
+      const workExperienceData = workExperienceRes?.data || [];
 
-    setEducation(parsedEducation || []);
-        setWorkExperience(workExperienceRes.data || []);
+      setEducation(parsedEducation);
+      setWorkExperience(workExperienceData);
       } catch (error) {
         console.error("Error fetching data:", error);
         toast({
@@ -276,9 +279,6 @@ const handleRemoveCertificate = async (eduIndex, certIndex) => {
   }
 };
 
-
-
-
   const isCertificateUploadAllowed = (level) => {
     const allowedLevels = [
       "Senior High School",
@@ -289,6 +289,7 @@ const handleRemoveCertificate = async (eduIndex, certIndex) => {
       "Doctorate Degree",
       "Post-Doctorate",
       "Certificate Programs",
+      "Professional Degree",
       "Continuing Education",
       "Alternative Learning System",
     ];
@@ -827,7 +828,10 @@ const handleRemoveCertificate = async (eduIndex, certIndex) => {
               <Input
                 placeholder="Company"
                 value={work.company}
-                isDisabled={!work.isEditing}
+                isDisabled={
+                  !work.isEditing || 
+                  ["Volunteer/Kawani"].includes(work.employment_type)
+                } // Disable if employment_type is Volunteer or Kawani
                 onChange={(e) =>
                   handleWorkExperienceChange(idx, "company", e.target.value)
                 }

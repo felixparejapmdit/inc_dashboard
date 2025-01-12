@@ -195,6 +195,42 @@ const Step6 = ({
     }
   };
 
+
+  // Function to remove an education entry
+  const handleRemoveSibling = async (index) => {
+    const sibling = data[index];
+
+    if (sibling.id) {
+      const confirmed = window.confirm("Are you sure you want to delete this sibling?");
+      if (!confirmed) return;
+
+      try {
+        await axios.delete(`${API_URL}/api/family-members/${sibling.id}`);
+        toast({
+          title: "Sibling Deleted",
+          description: "Sibling information has been successfully deleted.",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+          position: "bottom-left",
+        });
+      } catch (error) {
+        console.error("Error deleting sibling:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete sibling information.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+          position: "bottom-left",
+        });
+      }
+    }
+
+    const updatedData = data.filter((_, i) => i !== index);
+    setData(updatedData);
+  };
+  
   return (
     <Box width="100%" bg="white" boxShadow="sm" my={85} p={5}>
       <Heading as="h2" size="lg" textAlign="center" mb={6}>
@@ -669,7 +705,10 @@ const Step6 = ({
                     placeholder="Company"
                     value={sibling.company}
                     onChange={(e) => onChange(index, "company", e.target.value)}
-                    isDisabled={!sibling.isEditing}
+                    isDisabled={
+                      !sibling.isEditing || 
+                      ["Volunteer/Kawani"].includes(sibling.employment_type)
+                    } // Disable if employment_type is Volunteer or Kawani
                   />
                 </Td>
                 <Td>
@@ -849,103 +888,6 @@ const Step6 = ({
                     whiteSpace="nowrap"
                     color="#0a5856"
                   >
-                    School:
-                  </Text>
-                  <Input
-                    placeholder="School"
-                    value={sibling.school}
-                    onChange={(e) => onChange(index, "school", e.target.value)}
-                    isDisabled={!sibling.isEditing}
-                  />
-                </Td>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Field of Study:
-                  </Text>
-                  <Input
-                    placeholder="Field of Study"
-                    value={sibling.field_of_study}
-                    onChange={(e) =>
-                      onChange(index, "field_of_study", e.target.value)
-                    }
-                    isDisabled={!sibling.isEditing}
-                  />
-                </Td>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Degree:
-                  </Text>
-                  <Input
-                    placeholder="Degree"
-                    value={sibling.degree}
-                    onChange={(e) => onChange(index, "degree", e.target.value)}
-                    isDisabled={!sibling.isEditing}
-                  />
-                </Td>
-              </Tr>
-              <Tr>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Institution:
-                  </Text>
-                  <Input
-                    placeholder="Institution"
-                    value={sibling.institution}
-                    onChange={(e) =>
-                      onChange(index, "institution", e.target.value)
-                    }
-                    isDisabled={!sibling.isEditing}
-                  />
-                </Td>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Professional Licensure:
-                  </Text>
-                  <Input
-                    placeholder="Professional Licensure"
-                    value={sibling.professional_licensure_examination}
-                    onChange={(e) =>
-                      onChange(
-                        index,
-                        "professional_licensure_examination",
-                        e.target.value
-                      )
-                    }
-                    isDisabled={!sibling.isEditing}
-                  />
-                </Td>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
                     Start Year:
                   </Text>
                   <Input
@@ -978,6 +920,129 @@ const Step6 = ({
                     isDisabled={!sibling.isEditing}
                   />
                 </Td>
+                <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    School:
+                  </Text>
+                  <Input
+                    placeholder="School"
+                    value={sibling.school}
+                    onChange={(e) => onChange(index, "school", e.target.value)}
+                    isDisabled={!sibling.isEditing}
+                  />
+                </Td>
+               
+              </Tr>
+              <Tr>
+              <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Field of Study:
+                  </Text>
+                  <Input
+                    placeholder="Field of Study"
+                    value={sibling.field_of_study}
+                    onChange={(e) =>
+                      onChange(index, "field_of_study", e.target.value)
+                    }
+                    isDisabled={
+                      !sibling.isEditing ||
+                      sibling.education_level === "No Formal Education" ||
+                      sibling.education_level === "Primary Education" ||
+                      sibling.education_level === "Secondary Education" ||
+                      sibling.education_level === "Senior High School"
+                    }
+                  />
+                </Td>
+                <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Degree:
+                  </Text>
+                  <Input
+                    placeholder="Degree"
+                    value={sibling.degree}
+                    onChange={(e) => onChange(index, "degree", e.target.value)}
+                    isDisabled={
+                      !sibling.isEditing ||
+                      sibling.education_level === "No Formal Education" ||
+                      sibling.education_level === "Primary Education" ||
+                      sibling.education_level === "Secondary Education" ||
+                      sibling.education_level === "Senior High School"
+                    }
+                  />
+                </Td>
+                <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Institution:
+                  </Text>
+                  <Input
+                    placeholder="Institution"
+                    value={sibling.institution}
+                    onChange={(e) =>
+                      onChange(index, "institution", e.target.value)
+                    }
+                    isDisabled={
+                      !sibling.isEditing ||
+                      sibling.education_level === "No Formal Education" ||
+                      sibling.education_level === "Primary Education" ||
+                      sibling.education_level === "Secondary Education" ||
+                      sibling.education_level === "Senior High School"
+                    }
+                  />
+                </Td>
+                <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Professional Licensure:
+                  </Text>
+                  <Input
+                    placeholder="Professional Licensure"
+                    value={sibling.professional_licensure_examination}
+                    onChange={(e) =>
+                      onChange(
+                        index,
+                        "professional_licensure_examination",
+                        e.target.value
+                      )
+                    }
+                    isDisabled={
+                      !sibling.isEditing ||
+                      sibling.education_level === "No Formal Education" ||
+                      sibling.education_level === "Primary Education" ||
+                      sibling.education_level === "Secondary Education" ||
+                      sibling.education_level === "Senior High School"
+                    }
+                  />
+                </Td>
+                
               </Tr>
 
               {/* Save and Edit Button */}
@@ -992,6 +1057,12 @@ const Step6 = ({
                     }
                     colorScheme={sibling.isEditing ? "green" : "blue"}
                   />
+                  
+                              <IconButton
+                                icon={<DeleteIcon />}
+                                colorScheme="red"
+                                onClick={() => handleRemoveSibling(index)}
+                              />
                 </Td>
               </Tr>
             </Tbody>

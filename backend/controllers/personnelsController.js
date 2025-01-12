@@ -236,6 +236,20 @@ exports.createPersonnel = async (req, res) => {
       });
     }
 
+        // Check if a record with the same givenname and surname_husband already exists
+        const existingPersonnel = await Personnel.findOne({
+          where: {
+            givenname: personnelData.givenname,
+            surname_husband: personnelData.surname_husband,
+          },
+        });
+    
+        if (existingPersonnel) {
+          return res.status(400).json({
+            message: "A personnel record with the same given name and surname already exists.",
+          });
+        }
+
     // Create new personnel record in the database
     const newPersonnel = await Personnel.create({
       reference_number: personnelData.reference_number,
@@ -283,7 +297,6 @@ exports.createPersonnel = async (req, res) => {
     });
   }
 };
-
 
 // Update an existing personnel record by ID
 exports.updatePersonnel = async (req, res) => {
@@ -369,5 +382,31 @@ exports.deletePersonnel = async (req, res) => {
       message: "Error deleting personnel record",
       error: error.message,
     });
+  }
+};
+
+
+// Check if personnel exists
+exports.checkPersonnelExistence = async (req, res) => {
+  try {
+    const { givenname, surname_husband, } = req.query;
+
+    if (!givenname || !surname_husband) {
+      return res.status(400).json({ message: "Missing required query parameters: 'givenname' and 'surname_husband'." });
+    }
+
+    // Query the database for matching personnel
+    const exists = await Personnel.findOne({
+      where: {
+        givenname,
+        surname_husband,
+      },
+    });
+
+    // Respond with existence status
+    res.json({ exists: !!exists });
+  } catch (error) {
+    console.error("Error checking personnel existence:", error);
+    res.status(500).json({ message: 'An error occurred while checking personnel existence.' });
   }
 };

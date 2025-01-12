@@ -107,6 +107,7 @@ const Step8 = ({
       gender: child.gender,
       givenname: child.givenname,
       lastname: child.lastname,
+      date_of_birth: child.date_of_birth,
       relationship_type: relationship_type,
       personnel_id: personnelId,
     };
@@ -118,6 +119,7 @@ const Step8 = ({
       "gender",
       "givenname",
       "lastname",
+      "date_of_birth",
     ];
     const missingField = requiredFields.find(
       (field) =>
@@ -193,6 +195,43 @@ const Step8 = ({
     }
   };
 
+
+  
+  // Function to remove an education entry
+  const handleRemoveChild = async (index) => {
+    const child = data[index];
+
+    if (child.id) {
+      const confirmed = window.confirm("Are you sure you want to delete this child?");
+      if (!confirmed) return;
+
+      try {
+        await axios.delete(`${API_URL}/api/family-members/${child.id}`);
+        toast({
+          title: "Child Deleted",
+          description: "Child information has been successfully deleted.",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+          position: "bottom-left",
+        });
+      } catch (error) {
+        console.error("Error deleting child:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete child information.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+          position: "bottom-left",
+        });
+      }
+    }
+
+    const updatedData = data.filter((_, i) => i !== index);
+    setData(updatedData);
+  };
+  
   return (
     <Box width="100%" bg="white" boxShadow="sm" my={85} p={5}>
       <Heading as="h2" size="lg" textAlign="center" mb={6}>
@@ -668,7 +707,10 @@ const Step8 = ({
                     placeholder="Company"
                     value={child.company}
                     onChange={(e) => onChange(index, "company", e.target.value)}
-                    isDisabled={!child.isEditing}
+                    isDisabled={
+                      !child.isEditing || 
+                      ["Volunteer/Kawani"].includes(child.employment_type)
+                    } // Disable if employment_type is Volunteer or Kawani
                   />
                 </Td>
                 <Td>
@@ -848,103 +890,6 @@ const Step8 = ({
                     whiteSpace="nowrap"
                     color="#0a5856"
                   >
-                    School:
-                  </Text>
-                  <Input
-                    placeholder="School"
-                    value={child.school}
-                    onChange={(e) => onChange(index, "school", e.target.value)}
-                    isDisabled={!child.isEditing}
-                  />
-                </Td>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Field of Study:
-                  </Text>
-                  <Input
-                    placeholder="Field of Study"
-                    value={child.field_of_study}
-                    onChange={(e) =>
-                      onChange(index, "field_of_study", e.target.value)
-                    }
-                    isDisabled={!child.isEditing}
-                  />
-                </Td>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Degree:
-                  </Text>
-                  <Input
-                    placeholder="Degree"
-                    value={child.degree}
-                    onChange={(e) => onChange(index, "degree", e.target.value)}
-                    isDisabled={!child.isEditing}
-                  />
-                </Td>
-              </Tr>
-              <Tr>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Institution:
-                  </Text>
-                  <Input
-                    placeholder="Institution"
-                    value={child.institution}
-                    onChange={(e) =>
-                      onChange(index, "institution", e.target.value)
-                    }
-                    isDisabled={!child.isEditing}
-                  />
-                </Td>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Professional Licensure:
-                  </Text>
-                  <Input
-                    placeholder="Professional Licensure"
-                    value={child.professional_licensure_examination}
-                    onChange={(e) =>
-                      onChange(
-                        index,
-                        "professional_licensure_examination",
-                        e.target.value
-                      )
-                    }
-                    isDisabled={!child.isEditing}
-                  />
-                </Td>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
                     Start Year:
                   </Text>
                   <Input
@@ -977,6 +922,129 @@ const Step8 = ({
                     isDisabled={!child.isEditing}
                   />
                 </Td>
+                <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    School:
+                  </Text>
+                  <Input
+                    placeholder="School"
+                    value={child.school}
+                    onChange={(e) => onChange(index, "school", e.target.value)}
+                    isDisabled={!child.isEditing}
+                  />
+                </Td>
+               
+              </Tr>
+              <Tr>
+              <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Field of Study:
+                  </Text>
+                  <Input
+                    placeholder="Field of Study"
+                    value={child.field_of_study}
+                    onChange={(e) =>
+                      onChange(index, "field_of_study", e.target.value)
+                    }
+                    isDisabled={
+                      !child.isEditing ||
+                      child.education_level === "No Formal Education" ||
+                      child.education_level === "Primary Education" ||
+                      child.education_level === "Secondary Education" ||
+                      child.education_level === "Senior High School"
+                    }
+                  />
+                </Td>
+                <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Degree:
+                  </Text>
+                  <Input
+                    placeholder="Degree"
+                    value={child.degree}
+                    onChange={(e) => onChange(index, "degree", e.target.value)}
+                    isDisabled={
+                      !child.isEditing ||
+                      child.education_level === "No Formal Education" ||
+                      child.education_level === "Primary Education" ||
+                      child.education_level === "Secondary Education" ||
+                      child.education_level === "Senior High School"
+                    }
+                  />
+                </Td>
+                <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Institution:
+                  </Text>
+                  <Input
+                    placeholder="Institution"
+                    value={child.institution}
+                    onChange={(e) =>
+                      onChange(index, "institution", e.target.value)
+                    }
+                    isDisabled={
+                      !child.isEditing ||
+                      child.education_level === "No Formal Education" ||
+                      child.education_level === "Primary Education" ||
+                      child.education_level === "Secondary Education" ||
+                      child.education_level === "Senior High School"
+                    }
+                  />
+                </Td>
+                <Td>
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Professional Licensure:
+                  </Text>
+                  <Input
+                    placeholder="Professional Licensure"
+                    value={child.professional_licensure_examination}
+                    onChange={(e) =>
+                      onChange(
+                        index,
+                        "professional_licensure_examination",
+                        e.target.value
+                      )
+                    }
+                    isDisabled={
+                      !child.isEditing ||
+                      child.education_level === "No Formal Education" ||
+                      child.education_level === "Primary Education" ||
+                      child.education_level === "Secondary Education" ||
+                      child.education_level === "Senior High School"
+                    }
+                  />
+                </Td>
+               
               </Tr>
 
               {/* Save and Edit Button */}
@@ -991,6 +1059,11 @@ const Step8 = ({
                     }
                     colorScheme={child.isEditing ? "green" : "blue"}
                   />
+                           <IconButton
+                                                  icon={<DeleteIcon />}
+                                                  colorScheme="red"
+                                                  onClick={() => handleRemoveChild(index)}
+                                                />
                 </Td>
               </Tr>
             </Tbody>

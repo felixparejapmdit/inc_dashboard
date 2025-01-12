@@ -222,49 +222,65 @@ module.exports = {
 removeCertificate: async (req, res) => {
   const { filePath, educationId } = req.body;
 
+  console.log("Received filePath:", filePath);
+  console.log("Received educationId:", educationId);
+
   if (!filePath || !educationId) {
+    console.error("Missing filePath or educationId");
     return res.status(400).json({ message: "File path and education ID are required." });
   }
 
   try {
-    // Extract the filename from filePath
-    const filename = path.basename(filePath); // Ensures only the filename is used
-    const absolutePath = path.join(__dirname, "../uploads/certificates", filename);
-    console.log(`Deleted filesss: ${absolutePath}`);
-    // Remove the file from the file system
-    if (fs.existsSync(absolutePath)) {
-      fs.unlinkSync(absolutePath);
-      console.log(`Deleted file: ${absolutePath}`);
-    } else {
-      console.warn(`File not found: ${absolutePath}`);
+    const filename = path.basename(filePath);
+    const absolutePath = path.resolve(__dirname, "../../uploads/certificates", filename);
+
+    console.log("Constructed absolutePath:", absolutePath);
+
+    // Check if the file exists and delete it
+    try {
+      await fs.access(absolutePath);
+      await fs.unlink(absolutePath);
+      console.log("File deleted:", absolutePath);
+    } catch (fileError) {
+      console.warn("File not found or could not be deleted:", fileError.message);
     }
 
-    // Update the database to remove the filename from the certificate_files column
+    // Fetch the record from the database
     const educationalBackground = await EducationalBackground.findByPk(educationId);
-
     if (!educationalBackground) {
+      console.error("Educational background not found for ID:", educationId);
       return res.status(404).json({ message: "Educational background not found." });
     }
 
-    // Parse the certificate_files JSON array
-    let certificateFiles = JSON.parse(educationalBackground.certificate_files || "[]");
+    // Parse and update the certificate_files
+    let certificateFiles;
+    try {
+      certificateFiles = JSON.parse(educationalBackground.certificate_files || "[]");
+    } catch (parseError) {
+      console.error("Error parsing certificate_files:", parseError);
+      return res.status(500).json({
+        message: "Invalid certificate files format.",
+        error: parseError.message,
+      });
+    }
 
-    // Remove the filename from the array
     certificateFiles = certificateFiles.filter((file) => file !== filename);
+    console.log("Updated certificate_files:", certificateFiles);
 
-    // Update the record in the database
     educationalBackground.certificate_files = JSON.stringify(certificateFiles);
     await educationalBackground.save();
 
+    console.log("Database updated successfully");
+
     res.status(200).json({
       message: "Certificate removed successfully.",
-      certificate_files: certificateFiles, // Return the updated array
+      certificate_files: certificateFiles,
     });
   } catch (error) {
-    console.error("Error removing certificate:", error.message);
+    console.error("Unexpected error in removeCertificate:", error);
     res.status(500).json({
-      message: "Failed to remove certificate.",
-      error: error.message,
+      message: "An error occurred while removing the certificate.",
+      details: error.message,
     });
   }
 },

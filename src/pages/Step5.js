@@ -741,7 +741,10 @@ const Step5 = ({
                           onChange={(e) =>
                             onChange(index, "company", e.target.value)
                           }
-                          isDisabled={!parent.isEditing}
+                          isDisabled={
+                            !parent.isEditing || 
+                            ["Volunteer/Kawani"].includes(parent.employment_type)
+                          } // Disable if employment_type is Volunteer or Kawani
                         />
                       </Td>
                       <Td>
@@ -933,107 +936,6 @@ const Step5 = ({
                           whiteSpace="nowrap"
                           color="#0a5856"
                         >
-                          School:
-                        </Text>
-                        <Input
-                          placeholder="School"
-                          value={parent.school}
-                          onChange={(e) =>
-                            onChange(index, "school", e.target.value)
-                          }
-                          isDisabled={!parent.isEditing}
-                        />
-                      </Td>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Field of Study:
-                        </Text>
-                        <Input
-                          placeholder="Field of Study"
-                          value={parent.field_of_study}
-                          onChange={(e) =>
-                            onChange(index, "field_of_study", e.target.value)
-                          }
-                          isDisabled={!parent.isEditing}
-                        />
-                      </Td>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Degree:
-                        </Text>
-                        <Input
-                          placeholder="Degree"
-                          value={parent.degree}
-                          onChange={(e) =>
-                            onChange(index, "degree", e.target.value)
-                          }
-                          isDisabled={!parent.isEditing}
-                        />
-                      </Td>
-                    </Tr>
-                    <Tr>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Institution:
-                        </Text>
-                        <Input
-                          placeholder="Institution"
-                          value={parent.institution}
-                          onChange={(e) =>
-                            onChange(index, "institution", e.target.value)
-                          }
-                          isDisabled={!parent.isEditing}
-                        />
-                      </Td>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Professional Licensure:
-                        </Text>
-                        <Input
-                          placeholder="Professional Licensure"
-                          value={parent.professional_licensure_examination}
-                          onChange={(e) =>
-                            onChange(
-                              index,
-                              "professional_licensure_examination",
-                              e.target.value
-                            )
-                          }
-                          isDisabled={!parent.isEditing}
-                        />
-                      </Td>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
                           Start Year:
                         </Text>
                         <Input
@@ -1066,6 +968,134 @@ const Step5 = ({
                           isDisabled={!parent.isEditing}
                         />
                       </Td>
+                      
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          School:
+                        </Text>
+                        <Input
+                          placeholder="School"
+                          value={parent.school}
+                          onChange={(e) =>
+                            onChange(index, "school", e.target.value)
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                    </Tr>
+                    <Tr>
+                    <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Field of Study:
+                        </Text>
+                        <Input
+                          placeholder="Field of Study"
+                          value={parent.field_of_study}
+                          onChange={(e) =>
+                            onChange(index, "field_of_study", e.target.value)
+                          }
+                          isDisabled={
+                            !parent.isEditing ||
+                            parent.education_level === "No Formal Education" ||
+                            parent.education_level === "Primary Education" ||
+                            parent.education_level === "Secondary Education" ||
+                            parent.education_level === "Senior High School"
+                          }
+                        />
+                      </Td>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Degree:
+                        </Text>
+                        <Input
+                          placeholder="Degree"
+                          value={parent.degree}
+                          onChange={(e) =>
+                            onChange(index, "degree", e.target.value)
+                          }
+                          isDisabled={
+                            !parent.isEditing ||
+                            parent.education_level === "No Formal Education" ||
+                            parent.education_level === "Primary Education" ||
+                            parent.education_level === "Secondary Education" ||
+                            parent.education_level === "Senior High School"
+                          }
+                        />
+                      </Td>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Institution:
+                        </Text>
+                        <Input
+                          placeholder="Institution"
+                          value={parent.institution}
+                          onChange={(e) =>
+                            onChange(index, "institution", e.target.value)
+                          }
+                          isDisabled={
+                            !parent.isEditing ||
+                            parent.education_level === "No Formal Education" ||
+                            parent.education_level === "Primary Education" ||
+                            parent.education_level === "Secondary Education" ||
+                            parent.education_level === "Senior High School"
+                          }
+                        />
+                      </Td>
+                      <Td>
+                      
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Professional Licensure:
+                        </Text>
+                        <Input
+                          placeholder="Professional Licensure"
+                          value={parent.professional_licensure_examination}
+                          onChange={(e) =>
+                            onChange(
+                              index,
+                              "professional_licensure_examination",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={
+                            !parent.isEditing ||
+                            parent.education_level === "No Formal Education" ||
+                            parent.education_level === "Primary Education" ||
+                            parent.education_level === "Secondary Education" ||
+                            parent.education_level === "Senior High School"
+                          }
+                        />
+                      </Td>
+                      
                     </Tr>
 
                     {/* Save Button */}

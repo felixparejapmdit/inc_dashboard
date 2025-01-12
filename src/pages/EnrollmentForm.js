@@ -157,7 +157,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
     "Self-Employed",
     "Temporary",
     "Unemployed",
-    "Volunteer",
+    "Volunteer/Kawani",
   ];
 
   const educationalLevelOptions = [
@@ -476,6 +476,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
             return;
           }
 
+          
           await axios.put(`${API_URL}/api/personnels/${personnelId}`, {
             ...personnelData,
             enrollment_progress: "1", // Update enrollment_progress
@@ -552,6 +553,35 @@ const {
   panunumpa_date,
   ordination_date,
 } = personnelData;
+
+
+
+// Check for existing givenname and surname_husband combination
+const existingCheckResponse = await axios.get(
+  `${API_URL}/api/personnels_check`, // Adjust the API endpoint if needed
+  {
+    params: {
+      givenname,
+      surname_husband,
+    },
+  }
+);
+
+if (existingCheckResponse.data.exists) {
+  // Show error toast if the combination already exists
+  toast({
+    title: "Duplicate Entry",
+    description:
+      "A personnel record with the same given name and surname already exists.",
+    status: "error",
+    duration: 4000,
+    isClosable: true,
+    position: "bottom-left", // Position the toast on the bottom-left
+  });
+
+  setIsLoading(false); // Stop loading indicator
+  return; // Exit the function early
+}
 
 // Prepare the API payload dynamically
 const response = await axios.post(`${API_URL}/api/personnels`, {

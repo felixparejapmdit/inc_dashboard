@@ -38,11 +38,6 @@ router.put(
   controller.updateEducationalBackground
 );
 
-
-
-
-
-
 // Delete an educational background
 router.delete(
   "/api/educational-backgrounds/:id",

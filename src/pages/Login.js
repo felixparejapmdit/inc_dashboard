@@ -58,6 +58,7 @@ const Login = () => {
         status: "error",
         duration: 3000,
         isClosable: true,
+        position: "bottom-left", // Position the toast on the bottom-left
       });
       return;
     }
@@ -78,6 +79,7 @@ const Login = () => {
           status: "success",
           duration: 3000,
           isClosable: true,
+          position: "bottom-left", // Position the toast on the bottom-left
         });
       } else {
         toast({
@@ -86,6 +88,7 @@ const Login = () => {
           status: "error",
           duration: 3000,
           isClosable: true,
+          position: "bottom-left", // Position the toast on the bottom-left
         });
       }
     } catch (error) {
@@ -98,6 +101,7 @@ const Login = () => {
         status: "error",
         duration: 3000,
         isClosable: true,
+        position: "bottom-left", // Position the toast on the bottom-left
       });
     } finally {
       setIsLoading(false);
@@ -139,6 +143,7 @@ const Login = () => {
           status: "error",
           duration: 3000,
           isClosable: true,
+          position: "bottom-left", // Position the toast on the bottom-left
         });
       }
     } catch (error) {
@@ -150,6 +155,7 @@ const Login = () => {
         status: "error",
         duration: 3000,
         isClosable: true,
+        position: "bottom-left", // Position the toast on the bottom-left
       });
     }
   };
