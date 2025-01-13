@@ -1,5 +1,6 @@
 // src/pages/Step1.js
 import React, { useState, useEffect } from "react";
+import Select from "react-select";
 import {
   Box,
   Button,
@@ -7,7 +8,6 @@ import {
   VStack,
   Heading,
   Text,
-  Select,
   RadioGroup,
   Radio,
   Stack,
@@ -380,19 +380,29 @@ const Step1 = ({
               </Text>
               <Select
                 name="suffix"
-                value={personnelData.suffix}
-                onChange={handleChange}
+                value={suffixOptions.find(
+                  (type) => type.suffix === personnelData.suffix
+                )} // Match selected value by blood type
+                onChange={(selectedOption) =>
+                  handleChange({
+                    target: { name: "suffixOptions", value: selectedOption?.value || "" },
+                  })
+                }
                 width="100%"
                 isDisabled={personnelData.gender === "Female"}
+                options={suffixOptions.map((suffix) => ({
+                  value: suffix,
+                  label: suffix,
+                }))}
+                isClearable
+                styles={{
+                  container: (base) => ({
+                    ...base,
+                    width: "100%",
+                  }),
+                }}
               >
-                <option value="" disabled>
-                  Select Suffix
-                </option>
-                {suffixOptions.map((suffix) => (
-                  <option key={suffix} value={suffix}>
-                    {suffix}
-                  </option>
-                ))}
+
               </Select>
             </Box>
 
@@ -526,47 +536,63 @@ const Step1 = ({
               </Flex>
             </Box>
 
-            {/* Language Selector */}
-            <Box width={{ base: "100%", md: "30%" }}>
-              <Select
-                placeholder="Select Language"
-                name="languages"
-                value={personnelData.languages}
-                onChange={(e) =>
-                  handleChange({
-                    target: { name: "languages", value: e.target.value },
-                  })
-                }
-                width="100%"
-              >
-                {languages.map((language) => (
-                  <option key={language.id} value={language.language}>
-                    {language.country_name} - {language.language}
-                  </option>
-                ))}
-              </Select>
-            </Box>
+          
+{/* Language Selector */}
+<Box width={{ base: "100%", md: "30%" }}>
+  <Select
+    placeholder="Select Language"
+    name="language_id"
+    value={languages.find(
+      (language) => language.language_id === personnelData.language_id
+    )}
+    
+    onChange={(selectedOption) =>
+      handleChange({
+        target: { name: "language_id", value: selectedOption?.value || "" },
+      })
+    }
+    options={languages.map((language) => ({
+      value: language.id,
+      label: language.language,
+    }))}
+    
+    isClearable
+    styles={{
+      container: (base) => ({
+        ...base,
+        width: "100%",
+      }),
+    }}
+  />
+</Box>
 
-            {/* Blood Type Selector */}
-            <Box width={{ base: "100%", md: "30%" }}>
-              <Select
-                placeholder="Select Blood Type"
-                name="bloodtype"
-                value={personnelData.bloodtype}
-                onChange={(e) =>
-                  handleChange({
-                    target: { name: "bloodtype", value: e.target.value },
-                  })
-                }
-                width="100%"
-              >
-                {bloodtypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </Select>
-            </Box>
+
+{/* Blood Type Selector */}
+<Box width={{ base: "100%", md: "30%" }}>
+  <Select
+    placeholder="Select Blood Type"
+    name="bloodtype"
+    value={bloodtypes.find(
+      (type) => type.bloodtype === personnelData.bloodtype
+    )} // Match selected value by blood type
+    onChange={(selectedOption) =>
+      handleChange({
+        target: { name: "bloodtype", value: selectedOption?.value || "" },
+      })
+    }
+    options={bloodtypes.map((type) => ({
+      value: type,
+      label: type,
+    }))}
+    isClearable
+    styles={{
+      container: (base) => ({
+        ...base,
+        width: "100%",
+      }),
+    }}
+  />
+</Box>
           </Flex>
 
           <Flex
@@ -625,53 +651,68 @@ const Step1 = ({
               )}
             </Flex>
 
-            {/* Citizenship Selector */}
-            <Box
-              width={{ base: "100%", md: "30%" }}
-              mb={{ base: "3", md: "0" }}
-            >
-              <Select
-                placeholder="Select Citizenship"
-                name="citizenship"
-                value={personnelData.citizenship}
-                onChange={(e) =>
-                  handleChange({
-                    target: { name: "citizenship", value: e.target.value },
-                  })
-                }
-                width="100%"
-              >
-                {citizenships.map((citizenship) => (
-                  <option key={citizenship.id} value={citizenship.id}>
-                    {citizenship.citizenship}
-                  </option>
-                ))}
-              </Select>
-            </Box>
+      {/* Citizenship Selector */}
+<Box
+  width={{ base: "100%", md: "30%" }}
+  mb={{ base: "3", md: "0" }}
+>
+  <Select
+    placeholder="Select Citizenship"
+    name="citizenship"
+    value={citizenships.find(
+      (department) => department.citizenship === personnelData.citizenship
+    )}
+    onChange={(selectedOption) =>
+      handleChange({
+        target: { name: "citizenship", value: selectedOption?.value || "" },
+      })
+    }
+    options={citizenships.map((citizenship) => ({
+      value: citizenship.id,
+      label: citizenship.citizenship,
+    }))}
 
-            {/* Nationality Selector */}
-            <Box
-              width={{ base: "100%", md: "30%" }}
-              mb={{ base: "3", md: "0" }}
-            >
-              <Select
-                placeholder="Select Nationality"
-                name="nationality"
-                value={personnelData.nationality}
-                onChange={(e) =>
-                  handleChange({
-                    target: { name: "nationality", value: e.target.value },
-                  })
-                }
-                width="100%"
-              >
-                {nationalities.map((nationality) => (
-                  <option key={nationality.id} value={nationality.id}>
-                    {nationality.nationality}
-                  </option>
-                ))}
-              </Select>
-            </Box>
+    isClearable // Adds a clear button to reset selection
+    styles={{
+      container: (base) => ({
+        ...base,
+        width: "100%",
+      }),
+    }}
+  />
+</Box>
+
+      {/* Nationality Selector */}
+      <Box
+        width={{ base: "100%", md: "30%" }}
+        mb={{ base: "3", md: "0" }}
+      >
+        <Select
+          placeholder="Select Nationality"
+          name="nationality"
+          value={nationalities.find(
+            (department) => department.nationality === personnelData.nationality
+          )}
+          onChange={(selectedOption) =>
+            handleChange({
+              target: { name: "nationality", value: selectedOption?.value || "" },
+            })
+          }
+          options={nationalities.map((nationality) => ({
+            value: nationality.id,
+            label: nationality.nationality,
+          }))}
+
+          isClearable // Adds a clear button to reset selection
+          styles={{
+            container: (base) => ({
+              ...base,
+              width: "100%",
+            }),
+          }}
+        />
+      </Box>
+
           </Flex>
 
           <Flex
@@ -681,141 +722,228 @@ const Step1 = ({
             wrap="wrap"
             justify="space-between"
           >
-            {/* Department */}
-            <Box
-              width={{ base: "100%", md: "48%" }}
-              mb={{ base: "3", md: "3" }}
-            >
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                Department:
-              </Text>
-              <Select
-                placeholder="Select Department"
-                name="department_id"
-                value={personnelData.department_id}
-                onChange={(e) =>
-                  handleChange({
-                    target: { name: "department_id", value: e.target.value },
-                  })
-                }
-                width="100%"
-              >
-                {departments.map((department) => (
-                  <option key={department.id} value={department.id}>
-                    {department.name}
-                  </option>
-                ))}
-              </Select>
-            </Box>
+          {/* Department */}
+<Box width={{ base: "100%", md: "48%" }} mb={{ base: "3", md: "3" }}>
+  <Text
+    fontWeight="bold"
+    mb="2"
+    minWidth="120px"
+    whiteSpace="nowrap"
+    color="#0a5856"
+  >
+    Department:
+  </Text>
+  <Select
+    placeholder="Select Department"
+    name="department_id"
+    value={departments.find(
+      (department) => department.department_id === personnelData.department_id
+    )}
+    onChange={(selectedOption) =>
+      handleChange({
+        target: { name: "department_id", value: selectedOption?.value || "" },
+      })
+    }
+    options={departments.map((department) => ({
+      value: department.id,
+      label: department.name,
+    }))}
+    styles={{
+      container: (base) => ({
+        ...base,
+        width: "100%",
+      }),
+      control: (base) => ({
+        ...base,
+        borderColor: '#ccc', // Default border color
+        boxShadow: 'none', // No shadow
+        '&:hover': {
+          borderColor: '#aaa', // Slightly darker on hover
+        },
+      }),
+      option: (base, state) => ({
+        ...base,
+        backgroundColor: state.isSelected ? 'transparent' : state.isFocused ? '#f0f0f0' : 'transparent', // Clear background
+        color: state.isSelected ? '#0a5856' : base.color, // Change text color if selected
+        '&:hover': {
+          backgroundColor: '#f0f0f0', // Light gray on hover
+          color: '#0a5856', // Text color on hover
+        },
+      }),
+      singleValue: (base) => ({
+        ...base,
+        color: '#0a5856', // Text color for selected value
+      }),
+    }}
+  />
+</Box>
 
-            {/* Section */}
-            <Box
-              width={{ base: "100%", md: "48%" }}
-              mb={{ base: "3", md: "3" }}
-            >
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                Section:
-              </Text>
-              <Select
-                placeholder="Select Section"
-                name="section_id"
-                value={personnelData.section_id} // Bind current value
-                onChange={(e) =>
-                  handleChange({
-                    target: { name: "section_id", value: e.target.value },
-                  })
-                }
-                width="100%"
-                isDisabled={!personnelData.department_id} // Disable if no department is selected
-              >
-                {filteredSections.map((section) => (
-                  <option key={section.id} value={section.id}>
-                    {section.name}
-                  </option>
-                ))}
-              </Select>
-            </Box>
 
-            {/* Subsection */}
-            <Box
-              width={{ base: "100%", md: "48%" }}
-              mb={{ base: "3", md: "3" }}
-            >
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                Subsection/Team:
-              </Text>
-              <Select
-                placeholder="Select Subsection"
-                name="subsection_id"
-                value={personnelData.subsection_id}
-                onChange={(e) =>
-                  handleChange({
-                    target: { name: "subsection_id", value: e.target.value },
-                  })
-                }
-                width="100%"
-                isDisabled={!personnelData.section_id} // Disable if no section is selected
-              >
-                {filteredSubsections.map((subsection) => (
-                  <option key={subsection.id} value={subsection.id}>
-                    {subsection.name}
-                  </option>
-                ))}
-              </Select>
-            </Box>
+           {/* Section */}
+<Box width={{ base: "100%", md: "48%" }} mb={{ base: "3", md: "3" }}>
+  <Text
+    fontWeight="bold"
+    mb="2"
+    minWidth="120px"
+    whiteSpace="nowrap"
+    color="#0a5856"
+  >
+    Section:
+  </Text>
+  <Select
+    placeholder="Select Section"
+    name="section_id"
+    value={filteredSections.find(section => section.id === personnelData.section_id)} // Bind current value
+    onChange={(selectedOption) =>
+      handleChange({
+        target: { name: "section_id", value: selectedOption?.value || "" },
+      })
+    }
+    options={filteredSections.map((section) => ({
+      value: section.id,
+      label: section.name,
+    }))}
+    isDisabled={!personnelData.department_id} // Disable if no department is selected
+    styles={{
+      container: (base) => ({
+        ...base,
+        width: "100%",
+      }),
+      control: (base) => ({
+        ...base,
+        borderColor: '#ccc', // Default border color
+        boxShadow: 'none', // No shadow
+        '&:hover': {
+          borderColor: '#aaa', // Slightly darker on hover
+        },
+      }),
+      option: (base, state) => ({
+        ...base,
+        backgroundColor: state.isSelected ? 'transparent' : state.isFocused ? '#f0f0f0' : 'transparent', // Clear background
+        color: state.isSelected ? '#0a5856' : base.color, // Change text color if selected
+        '&:hover': {
+          backgroundColor: '#f0f0f0', // Light gray on hover
+          color: '#0a5856', // Text color on hover
+        },
+      }),
+      singleValue: (base) => ({
+        ...base,
+        color: '#0a5856', // Text color for selected value
+      }),
+    }}
+  />
+</Box>
 
-            {/* Designation */}
-            <Box
-              width={{ base: "100%", md: "48%" }}
-              mb={{ base: "3", md: "3" }}
-            >
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                Designation:
-              </Text>
-              <Select
-                placeholder="Select Designation"
-                name="designation_id"
-                value={personnelData.designation_id}
-                onChange={(e) =>
-                  handleChange({
-                    target: { name: "designation_id", value: e.target.value },
-                  })
-                }
-                width="100%"
-                isDisabled={!personnelData.section_id} // Disable if no section is selected
-              >
-                {filteredDesignations.map((designation) => (
-                  <option key={designation.id} value={designation.id}>
-                    {designation.name}
-                  </option>
-                ))}
-              </Select>
-            </Box>
-          </Flex>
+{/* Subsection */}
+<Box width={{ base: "100%", md: "48%" }} mb={{ base: "3", md: "3" }}>
+  <Text
+    fontWeight="bold"
+    mb="2"
+    minWidth="120px"
+    whiteSpace="nowrap"
+    color="#0a5856"
+  >
+    Subsection/Team:
+  </Text>
+  <Select
+    placeholder="Select Subsection"
+    name="subsection_id"
+    value={filteredSubsections.find(subsection => subsection.id === personnelData.subsection_id)} // Bind current value
+    onChange={(selectedOption) =>
+      handleChange({
+        target: { name: "subsection_id", value: selectedOption?.value || "" },
+      })
+    }
+    options={filteredSubsections.map((subsection) => ({
+      value: subsection.id,
+      label: subsection.name,
+    }))}
+    isDisabled={!personnelData.section_id} // Disable if no section is selected
+    styles={{
+      container: (base) => ({
+        ...base,
+        width: "100%",
+      }),
+      control: (base) => ({
+        ...base,
+        borderColor: '#ccc', // Default border color
+        boxShadow: 'none', // No shadow
+        '&:hover': {
+          borderColor: '#aaa', // Slightly darker on hover
+        },
+      }),
+      option: (base, state) => ({
+        ...base,
+        backgroundColor: state.isSelected ? 'transparent' : state.isFocused ? '#f0f0f0' : 'transparent', // Clear background
+        color: state.isSelected ? '#0a5856' : base.color, // Change text color if selected
+        '&:hover': {
+          backgroundColor: '#f0f0f0', // Light gray on hover
+          color: '#0a5856', // Text color on hover
+        },
+      }),
+      singleValue: (base) => ({
+        ...base,
+        color: '#0a5856', // Text color for selected value
+      }),
+    }}
+  />
+</Box>
+
+          {/* Designation */}
+<Box width={{ base: "100%", md: "48%" }} mb={{ base: "3", md: "3" }}>
+  <Text
+    fontWeight="bold"
+    mb="2"
+    minWidth="120px"
+    whiteSpace="nowrap"
+    color="#0a5856"
+  >
+    Designation:
+  </Text>
+  <Select
+    placeholder="Select Designation"
+    name="designation_id"
+    value={filteredDesignations.find(designation => designation.id === personnelData.designation_id)} // Bind current value
+    onChange={(selectedOption) =>
+      handleChange({
+        target: { name: "designation_id", value: selectedOption?.value || "" },
+      })
+    }
+    options={filteredDesignations.map((designation) => ({
+      value: designation.id,
+      label: designation.name,
+    }))}
+    isDisabled={!personnelData.section_id} // Disable if no section is selected
+    styles={{
+      container: (base) => ({
+        ...base,
+        width: "100%",
+      }),
+      control: (base) => ({
+        ...base,
+        borderColor: '#ccc', // Default border color
+        boxShadow: 'none', // No shadow
+        '&:hover': {
+          borderColor: '#aaa', // Slightly darker on hover
+        },
+      }),
+      option: (base, state) => ({
+        ...base,
+        backgroundColor: state.isSelected ? 'transparent' : state.isFocused ? '#f0f0f0' : 'transparent', // Clear background
+        color: state.isSelected ? '#0a5856' : base.color, // Change text color if selected
+        '&:hover': {
+          backgroundColor: '#f0f0f0', // Light gray on hover
+          color: '#0a5856', // Text color on hover
+        },
+      }),
+      singleValue: (base) => ({
+        ...base,
+        color: '#0a5856', // Text color for selected value
+      }),
+    }}
+  />
+</Box>
+</Flex>
 
           {/* INC Status Radio Group */}
           <Flex alignItems="center" mb="3" style={{ display: "none" }}>

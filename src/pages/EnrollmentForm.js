@@ -73,7 +73,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
     age: "",
     place_of_birth: "",
     datejoined: "",
-    languages: "",
+    language_id: "",
     bloodtype: "",
     citizenship: "",
     nationality: "",
