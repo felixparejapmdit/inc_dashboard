@@ -237,7 +237,7 @@
       "mail": "kyrt.jurada@pmdmc.net",
       "uidNumber": "2021",
       "gidNumber": "2001",
-      "userPassword": "{MD5}cQyCormYGW8ZV0eHcil/tw==",
+      "userPassword": "{SSHA}hs0OgE+G98B7KU4HrQLE1BzksGME1SKf",
       "groupName": "PMD-IT"
     },
     {
