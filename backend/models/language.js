@@ -13,7 +13,7 @@ const Language = sequelize.define(
       type: DataTypes.STRING(50),
       allowNull: false,
     },
-    language: {
+    name: {
       type: DataTypes.STRING(50),
       allowNull: false,
     },

@@ -539,6 +539,7 @@ const Step1 = ({
                 />
               </Flex>
             </Box>
+            
             {/* Language Selector */}
             <Box width={{ base: "100%", md: "30%" }}>
               <Select
@@ -548,9 +549,10 @@ const Step1 = ({
                   languages
                     .map((language) => ({
                       value: language.id, // Map to the id of the Language model
-                      label: language.language, // Display the language name
+                      label: language.name, // Display the language name
                     }))
-                    .find((option) => option.value === personnelData.language_id) || null
+                    .find((option) => option.value === personnelData.language_id)
+
                 }
                 onChange={(selectedOption) =>
                   handleChange({
@@ -559,7 +561,7 @@ const Step1 = ({
                 }
                 options={languages.map((language) => ({
                   value: language.id, // Use the id of the Language model
-                  label: language.language, // Use the language name for display
+                  label: language.name, // Use the language name for display
                 }))}
                 isClearable
                 styles={{

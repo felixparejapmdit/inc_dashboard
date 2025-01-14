@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 11, 2025 at 11:41 PM
+-- Generation Time: Jan 14, 2025 at 02:37 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -419,7 +419,8 @@ CREATE TABLE `designations` (
 
 INSERT INTO `designations` (`id`, `section_id`, `subsection_id`, `name`, `created_at`, `updated_at`) VALUES
 (1, 2, 1, 'Programmer - PMD IT', '2025-01-08 00:15:23', '2025-01-08 00:15:23'),
-(2, 7, 6, 'Graphics Designer', '2025-01-08 00:15:55', '2025-01-08 00:15:55');
+(2, 7, 6, 'Graphics Designer', '2025-01-08 00:15:55', '2025-01-08 00:15:55'),
+(3, 2, 1, 'Dev Ops - PMD IT', '2025-01-13 13:29:39', '2025-01-13 13:29:39');
 
 -- --------------------------------------------------------
 
@@ -559,7 +560,7 @@ INSERT INTO `educational_background` (`id`, `personnel_id`, `level`, `startfrom`
 (7, 45, 'College Graduate', 2010, 2016, 'Southern Connecticut State University', 'Computer Science', 'Bachelor\'s', '', '', '2025-01-10 05:52:19', '2025-01-10 05:52:19', NULL),
 (8, 45, 'Senior High School', 2006, 2010, 'Jonathan Law High School', '', '', '', '', '2025-01-10 05:52:38', '2025-01-10 05:52:38', NULL),
 (9, 45, 'Elementary', 2000, 2006, 'Garapan Elementary School', '', '', '', '', '2025-01-10 05:53:32', '2025-01-10 05:53:32', NULL),
-(16, 54, 'Associate Degree', 12, 12, 'asd', 'asd', 'asd', 'asd', 'asd', '2025-01-11 18:21:44', '2025-01-11 18:21:44', '\"[\\\"1736619699570-talaan ng mga naglilingkod.pdf\\\"]\"');
+(18, 54, 'Alternative Learning System', 6, 6, 'hg', 'k', 'k', 'k', 'k', '2025-01-12 08:53:47', '2025-01-12 08:53:47', '\"[\\\"1736672022475-20241207_085350.jpg\\\"]\"');
 
 -- --------------------------------------------------------
 
@@ -676,7 +677,8 @@ INSERT INTO `family_members` (`id`, `personnel_id`, `relationship_type`, `givenn
 (198, 44, 'Spouse', 'asd', 'asd', 'asd', NULL, NULL, NULL, NULL, NULL, '', NULL, NULL, '2025-01-10', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-10 04:35:45', '2025-01-10 04:35:45'),
 (199, 43, 'Spouse', 'asd', 'asd', 'asd', NULL, NULL, NULL, NULL, NULL, '', NULL, NULL, '2025-01-10', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-10 04:36:17', '2025-01-10 04:36:17'),
 (200, 43, 'Child', 'asd', 'asd', 'asd', '', 'Male', '', '', NULL, '', 0, 0, '2025-01-10', 0, '', '', 0, '', '', '', '', '', '', '', '', NULL, NULL, '', '', 0, 0, '', '', '', '', '', '2025-01-10 04:36:28', '2025-01-10 04:36:28'),
-(201, 37, 'Spouse', 'dffghghvhghfdfsa', 'waersdfhgcgvgs', 'ffghgfgdfsaffgfg', NULL, NULL, NULL, NULL, NULL, '', NULL, NULL, '2025-01-10', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-10 04:37:04', '2025-01-10 04:37:04');
+(201, 37, 'Spouse', 'dffghghvhghfdfsa', 'waersdfhgcgvgs', 'ffghgfgdfsaffgfg', NULL, NULL, NULL, NULL, NULL, '', NULL, NULL, '2025-01-10', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-10 04:37:04', '2025-01-10 04:37:04'),
+(206, 54, 'Sibling', 'asd', 'sad', 'asd', '', 'Male', '', '', NULL, '', 0, 0, '2025-01-12', 0, '', '', 0, '', '', '', '', '', '', '', '', NULL, NULL, '', '', 0, 0, '', '', '', '', '', '2025-01-12 14:32:47', '2025-01-12 14:32:47');
 
 -- --------------------------------------------------------
 
@@ -813,7 +815,7 @@ INSERT INTO `group_permission_mappings` (`group_id`, `permission_id`, `category_
 CREATE TABLE `languages` (
   `id` int(11) NOT NULL,
   `country_name` varchar(50) NOT NULL,
-  `language` varchar(50) NOT NULL,
+  `name` varchar(50) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -822,7 +824,7 @@ CREATE TABLE `languages` (
 -- Dumping data for table `languages`
 --
 
-INSERT INTO `languages` (`id`, `country_name`, `language`, `created_at`, `updated_at`) VALUES
+INSERT INTO `languages` (`id`, `country_name`, `name`, `created_at`, `updated_at`) VALUES
 (1, 'Philippines', 'Tagalog', '2024-11-12 07:33:32', '2024-11-12 07:33:32'),
 (2, 'USA', 'English', '2024-11-12 07:42:35', '2024-11-12 07:42:35'),
 (3, 'China', 'Chinese', '2024-11-13 01:06:18', '2024-11-13 01:06:18');
@@ -1525,7 +1527,7 @@ CREATE TABLE `personnels` (
   `date_of_birth` date DEFAULT NULL,
   `place_of_birth` varchar(50) DEFAULT NULL,
   `datejoined` datetime DEFAULT NULL,
-  `language_id` varchar(50) DEFAULT NULL,
+  `language_id` int(11) DEFAULT NULL,
   `bloodtype` varchar(10) DEFAULT NULL,
   `email_address` varchar(50) DEFAULT NULL,
   `citizenship` int(11) DEFAULT NULL,
@@ -1550,7 +1552,7 @@ CREATE TABLE `personnels` (
 --
 
 INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progress`, `personnel_progress`, `gender`, `civil_status`, `wedding_anniversary`, `givenname`, `middlename`, `surname_maiden`, `surname_husband`, `suffix`, `nickname`, `date_of_birth`, `place_of_birth`, `datejoined`, `language_id`, `bloodtype`, `email_address`, `citizenship`, `nationality`, `department_id`, `section_id`, `subsection_id`, `designation_id`, `district_id`, `local_congregation`, `personnel_type`, `assigned_number`, `m_status`, `panunumpa_date`, `ordination_date`, `created_at`, `updated_at`) VALUES
-(10, 'ENR-2412-EP1-8972', '1', '1', 'Male', 'Single', NULL, 'Felix', 'Morales', '', 'Pareja', 'No Suffix', 'Chok', '1992-11-09', 'QC', '2024-12-09 00:00:00', '1', 'A+', 'felixpareja@yahoo.com', 138, 138, 1, 2, 1, 1, 45, 'Bonifacio Drive', 'Regular', 201497, 'May Destino', '2022-09-16 00:00:00', NULL, '2024-12-09 04:43:34', '2025-01-10 03:45:59'),
+(10, 'ENR-2412-EP1-8972', '1', '1', 'Male', 'Single', NULL, 'Felix', 'Morales', '', 'Pareja', 'No Suffix', 'Chok', '1992-11-09', 'QC', '2024-12-09 00:00:00', 1, 'A+', 'felixpareja@yahoo.com', 138, 138, 1, 2, 1, 1, 45, 'Bonifacio Drive', 'Regular', 201497, 'May Destino', '2022-09-16 00:00:00', NULL, '2024-12-09 04:43:34', '2025-01-10 03:45:59'),
 (13, 'ENR-2412-EP1-6371', '1', '4', 'Male', 'Single', NULL, 'Aldrin', 'asd', '', 'Salvador', '', 'asd', '2000-12-20', 'asd', '2024-12-20 00:00:00', NULL, '', 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', 'Regular', 20148, 'May Destino', '2022-09-16 00:00:00', NULL, '2024-12-19 17:31:20', '2025-01-08 02:54:12'),
 (36, 'ENR-2501-EP1-5540', '1', 'Enrollment', 'Male', 'Single', NULL, 'Michael', NULL, NULL, 'Shohdy', NULL, NULL, '1992-01-08', NULL, '0000-00-00 00:00:00', NULL, NULL, 'abc@yahoo.com', NULL, NULL, NULL, 0, 0, 0, NULL, NULL, 'Regular', NULL, 'May Destino', '2025-01-08 00:00:00', NULL, '2025-01-08 04:34:30', '2025-01-08 05:11:00'),
 (37, 'ENR-2501-EP1-3640', '1', 'Enrollment', 'Male', 'Single', NULL, 'Roland Kim', 'Sato', NULL, 'Amaro', NULL, NULL, '2025-01-08', NULL, '0000-00-00 00:00:00', NULL, NULL, 'kim@yahoo.com', NULL, NULL, 1, 2, 1, 1, NULL, NULL, 'Regular', NULL, 'Fulltime', '2019-02-07 00:00:00', NULL, '2025-01-08 05:15:21', '2025-01-10 06:00:27'),
@@ -1561,7 +1563,8 @@ INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progre
 (49, 'ENR-2501-EP1-4733', '1', '1', 'Male', 'Single', NULL, 'test1', NULL, NULL, 'test1', NULL, NULL, '2025-01-11', NULL, NULL, NULL, NULL, 'amarorolandkim@gmail.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, '2025-01-11 08:47:11', '2025-01-11 08:47:11'),
 (50, 'ENR-2501-EP1-9872', '1', '1', 'Male', 'Single', NULL, 'test1', NULL, NULL, 'test1', NULL, NULL, '2025-01-11', NULL, NULL, NULL, NULL, 'amarorolandkim@gmail.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, '2025-01-11 08:47:26', '2025-01-11 08:47:26'),
 (51, 'ENR-2501-EP1-2252', '1', '1', 'Male', 'Single', NULL, 'test1', NULL, NULL, 'test123', NULL, NULL, '2025-01-11', NULL, '0000-00-00 00:00:00', NULL, NULL, 'amarorolandkim@gmail.com', NULL, NULL, 1, 2, 1, 1, NULL, NULL, 'Lay Member', NULL, NULL, '0000-00-00 00:00:00', NULL, '2025-01-11 08:47:40', '2025-01-11 08:50:22'),
-(54, 'ENR-2501-EP1-5675', '1', '1', 'Female', 'Married', '2025-01-11', 'test po', 'test po', 'test po', 'test po', NULL, 'test po', '2025-01-11', 'test po', '2025-01-11 00:00:00', NULL, 'A-', 'abc@yahoo.com', 14, 16, 1, 2, 1, 1, 16, 'test po', 'Minister\'s Wife', NULL, NULL, NULL, NULL, '2025-01-11 15:03:59', '2025-01-11 15:03:59');
+(54, 'ENR-2501-EP1-5675', '1', '1', 'Female', 'Married', '2025-01-11', 'test po', 'test po', 'test po', 'test po', NULL, 'test po', '2025-01-11', 'test po', '2025-01-11 00:00:00', NULL, 'A-', 'abc@yahoo.com', 14, 16, 1, 2, 1, 1, 16, 'test po', 'Minister\'s Wife', NULL, NULL, NULL, NULL, '2025-01-11 15:03:59', '2025-01-11 15:03:59'),
+(56, 'ENR-2501-EP1-2443', '1', '1', 'Male', 'Married', '2025-01-13', 'test lang', 'test lang', '', 'Pareja', 'Jr.', 'test lang', '1990-01-13', 'test lang', '2025-01-13 00:00:00', 1, 'B-', 'abc@yahoo.com', 6, 138, 1, 2, 1, 3, 45, 'Bonifacio Drive', 'Minister\'s Wife', NULL, NULL, '0000-00-00 00:00:00', NULL, '2025-01-13 06:42:48', '2025-01-14 01:36:10');
 
 -- --------------------------------------------------------
 
@@ -2409,7 +2412,7 @@ ALTER TABLE `departments`
 -- AUTO_INCREMENT for table `designations`
 --
 ALTER TABLE `designations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `districts`
@@ -2421,7 +2424,7 @@ ALTER TABLE `districts`
 -- AUTO_INCREMENT for table `educational_background`
 --
 ALTER TABLE `educational_background`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `events`
@@ -2433,7 +2436,7 @@ ALTER TABLE `events`
 -- AUTO_INCREMENT for table `family_members`
 --
 ALTER TABLE `family_members`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=202;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=208;
 
 --
 -- AUTO_INCREMENT for table `government_issued_id`
@@ -2505,7 +2508,7 @@ ALTER TABLE `permission_groups`
 -- AUTO_INCREMENT for table `personnels`
 --
 ALTER TABLE `personnels`
-  MODIFY `personnel_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
+  MODIFY `personnel_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
 
 --
 -- AUTO_INCREMENT for table `personnel_address`
