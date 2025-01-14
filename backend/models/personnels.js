@@ -57,6 +57,10 @@ const Personnel = sequelize.define(
       type: DataTypes.STRING(50),
       allowNull: true,
     },
+    registered_local_congregation: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
     date_of_birth: {
       type: DataTypes.DATE,
       allowNull: true,
@@ -119,6 +123,14 @@ const Personnel = sequelize.define(
       allowNull: true,
     },
     personnel_type: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    district_assignment_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    local_congregation_assignment: {
       type: DataTypes.STRING(50),
       allowNull: true,
     },

@@ -492,22 +492,89 @@ router.put("/api/users/update-login-status", (req, res) => {
 // Get all users with their available apps and LDAP attributes
 router.get("/api/users", async (req, res) => {
   const query = `
-    SELECT 
-      u.ID,
-      u.personnel_id, 
-      u.username, 
-      u.password,
-      MAX(ug.id) AS groupId,  
-      u.avatar, 
-      MAX(ug.name) as groupname, 
-      GROUP_CONCAT(a.name) AS availableApps 
-    FROM users u 
-    LEFT JOIN user_group_mappings ugm ON ugm.user_id = u.ID 
-    LEFT JOIN user_groups ug ON ug.id = ugm.group_id 
-    LEFT JOIN available_apps ua ON u.ID = ua.user_id 
-    LEFT JOIN apps a ON ua.app_id = a.id 
-    GROUP BY u.ID, u.username, u.password, u.avatar;
-  `;
+  SELECT 
+  u.ID,
+  u.personnel_id, 
+  u.username, 
+  u.password,
+  MAX(ug.id) AS groupId,  
+  u.avatar, 
+  MAX(ug.name) as groupname, 
+  GROUP_CONCAT(a.name) AS availableApps,
+  p.givenname AS personnel_givenname,
+  p.middlename AS personnel_middlename,
+  p.surname_husband AS personnel_surname_husband,
+  p.surname_maiden AS personnel_surname_maiden,
+  p.suffix AS personnel_suffix,
+  p.nickname AS personnel_nickname,
+  p.registered_local_congregation AS personnel_registered_local_congregation,
+  p.date_of_birth AS personnel_date_of_birth,
+  p.place_of_birth AS personnel_place_of_birth,
+  p.datejoined AS personnel_datejoined,
+  p.gender AS personnel_gender,
+  p.civil_status AS personnel_civil_status,
+  p.wedding_anniversary AS personnel_wedding_anniversary,
+  p.email_address AS personnel_email,
+  p.bloodtype AS personnel_bloodtype,
+  p.local_congregation AS personnel_local_congregation,
+  p.personnel_type AS personnel_type,
+  p.district_assignment_id AS personnel_district_assignment_id,
+  p.local_congregation_assignment AS personnel_local_congregation_assignment,
+  p.assigned_number AS personnel_assigned_number,
+  p.panunumpa_date AS personnel_panunumpa_date,
+  p.ordination_date AS personnel_ordination_date,
+  d.name AS personnel_department_name,
+  s.name AS personnel_section_name,
+  ss.name AS personnel_subsection_name,
+  dg.name AS personnel_designation_name,
+  dt.name AS personnel_district_name,
+  l.name AS personnel_language_name
+FROM users u 
+LEFT JOIN user_group_mappings ugm ON ugm.user_id = u.ID 
+LEFT JOIN user_groups ug ON ug.id = ugm.group_id 
+LEFT JOIN available_apps ua ON u.ID = ua.user_id 
+LEFT JOIN apps a ON ua.app_id = a.id 
+LEFT JOIN personnels p ON u.personnel_id = p.personnel_id
+LEFT JOIN departments d ON p.department_id = d.id
+LEFT JOIN sections s ON p.section_id = s.id
+LEFT JOIN subsections ss ON p.subsection_id = ss.id
+LEFT JOIN designations dg ON p.designation_id = dg.id
+LEFT JOIN districts dt ON p.district_id = dt.id
+LEFT JOIN languages l ON p.language_id = l.id
+GROUP BY 
+  u.ID, 
+  u.personnel_id, 
+  u.username, 
+  u.password, 
+  u.avatar, 
+  p.givenname, 
+  p.middlename, 
+  p.surname_husband, 
+  p.surname_maiden, 
+  p.suffix, 
+  p.nickname, 
+  p.registered_local_congregation,
+  p.date_of_birth, 
+  p.place_of_birth, 
+  p.datejoined, 
+  p.gender, 
+  p.civil_status, 
+  p.wedding_anniversary, 
+  p.email_address, 
+  p.bloodtype, 
+  p.local_congregation, 
+  p.personnel_type, 
+  p.local_congregation_assignment,
+  p.assigned_number, 
+  p.panunumpa_date, 
+  p.ordination_date, 
+  d.name, 
+  s.name, 
+  ss.name, 
+  dg.name, 
+  dt.name, 
+  l.name;
+`;
 
   // Function to fetch users from LDAP
   const fetchLdapUsers = () => {

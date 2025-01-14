@@ -178,7 +178,6 @@ const Login = () => {
   };
 
   const hashPassword = (password, encryptionType) => {
-    alert(encryptionType);
     switch (encryptionType.toLowerCase()) {
       case "bcrypt":
         return bcrypt.hashSync(password, 10); // Bcrypt hashing
@@ -250,7 +249,7 @@ const Login = () => {
           setIsLoading(false);
           return;
         }
-        alert(encryptionType);
+
         const hashedPassword = hashPassword(password, encryptionType);
 
         console.log("Hashed Password:", hashedPassword);

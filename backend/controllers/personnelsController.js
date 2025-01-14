@@ -213,7 +213,8 @@ exports.createPersonnel = async (req, res) => {
 
     // Generate reference number and set default values for progress fields
     personnelData.reference_number = generateReferenceNumber();
-    personnelData.enrollment_progress = personnelData.enrollment_progress || "1";
+    personnelData.enrollment_progress =
+      personnelData.enrollment_progress || "1";
     personnelData.personnel_progress =
       personnelData.personnel_progress || "District Office";
 
@@ -236,19 +237,20 @@ exports.createPersonnel = async (req, res) => {
       });
     }
 
-        // Check if a record with the same givenname and surname_husband already exists
-        const existingPersonnel = await Personnel.findOne({
-          where: {
-            givenname: personnelData.givenname,
-            surname_husband: personnelData.surname_husband,
-          },
-        });
-    
-        if (existingPersonnel) {
-          return res.status(400).json({
-            message: "A personnel record with the same given name and surname already exists.",
-          });
-        }
+    // Check if a record with the same givenname and surname_husband already exists
+    const existingPersonnel = await Personnel.findOne({
+      where: {
+        givenname: personnelData.givenname,
+        surname_husband: personnelData.surname_husband,
+      },
+    });
+
+    if (existingPersonnel) {
+      return res.status(400).json({
+        message:
+          "A personnel record with the same given name and surname already exists.",
+      });
+    }
 
     // Create new personnel record in the database
     const newPersonnel = await Personnel.create({
@@ -264,6 +266,8 @@ exports.createPersonnel = async (req, res) => {
       surname_husband: personnelData.surname_husband || null,
       suffix: personnelData.suffix || null,
       nickname: personnelData.nickname || null,
+      registered_local_congregation:
+        personnelData.registered_local_congregation || null,
       date_of_birth: personnelData.date_of_birth || null,
       place_of_birth: personnelData.place_of_birth || null,
       datejoined: personnelData.datejoined || null,
@@ -279,6 +283,9 @@ exports.createPersonnel = async (req, res) => {
       district_id: personnelData.district_id || null,
       local_congregation: personnelData.local_congregation || null,
       personnel_type: personnelData.personnel_type || null,
+      district_assignment_id: personnelData.district_assignment_id || null,
+      local_congregation_assignment:
+        personnelData.local_congregation_assignment || null,
       assigned_number: personnelData.assigned_number || null,
       m_status: personnelData.m_status || null,
       panunumpa_date: personnelData.panunumpa_date || null,
@@ -322,6 +329,7 @@ exports.updatePersonnel = async (req, res) => {
       "surname_husband",
       "suffix",
       "nickname",
+      "registered_local_congregation",
       "date_of_birth",
       "place_of_birth",
       "datejoined",
@@ -337,6 +345,8 @@ exports.updatePersonnel = async (req, res) => {
       "district_id",
       "local_congregation",
       "personnel_type",
+      "district_assignment_id",
+      "local_congregation_assignment",
       "assigned_number",
       "m_status",
       "panunumpa_date",
@@ -385,14 +395,16 @@ exports.deletePersonnel = async (req, res) => {
   }
 };
 
-
 // Check if personnel exists
 exports.checkPersonnelExistence = async (req, res) => {
   try {
-    const { givenname, surname_husband, } = req.query;
+    const { givenname, surname_husband } = req.query;
 
     if (!givenname || !surname_husband) {
-      return res.status(400).json({ message: "Missing required query parameters: 'givenname' and 'surname_husband'." });
+      return res.status(400).json({
+        message:
+          "Missing required query parameters: 'givenname' and 'surname_husband'.",
+      });
     }
 
     // Query the database for matching personnel
@@ -407,6 +419,8 @@ exports.checkPersonnelExistence = async (req, res) => {
     res.json({ exists: !!exists });
   } catch (error) {
     console.error("Error checking personnel existence:", error);
-    res.status(500).json({ message: 'An error occurred while checking personnel existence.' });
+    res.status(500).json({
+      message: "An error occurred while checking personnel existence.",
+    });
   }
 };

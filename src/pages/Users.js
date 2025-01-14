@@ -276,13 +276,39 @@ const Users = ({ personnelId }) => {
     setCurrentPage(1); // Reset to the first page whenever search term changes
   };
 
-  const filteredUsers = users.filter((user) =>
-    `${user.username} ${
-      user.fullname || `${user.givenName || ""} ${user.sn || ""}`
-    } ${user.email || ""}`
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = users.filter((user) => {
+    const personnelFields = [
+      user.personnel_givenname || "",
+      user.personnel_middlename || "",
+      user.personnel_surname_husband || "",
+      user.personnel_surname_maiden || "",
+      user.personnel_suffix || "",
+      user.personnel_nickname || "",
+      user.personnel_email || "",
+      user.personnel_gender || "",
+      user.personnel_civil_status || "",
+      user.personnel_local_congregation || "",
+      user.personnel_type || "",
+      user.personnel_assigned_number || "",
+      user.personnel_department_name || "", // Updated to use resolved department name
+      user.personnel_section_name || "", // Updated to use resolved section name
+      user.personnel_subsection_name || "", // Updated to use resolved subsection name
+      user.personnel_designation_name || "", // Updated to use resolved designation name
+      user.personnel_district_name || "", // Updated to use resolved district name
+      user.personnel_language_name || "", // Updated to use resolved language name
+    ];
+
+    const combinedFields = [
+      user.username || "",
+      user.fullname || `${user.givenName || ""} ${user.sn || ""}`,
+      user.email || "",
+      ...personnelFields,
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    return combinedFields.includes(searchTerm.toLowerCase());
+  });
 
   const handleAssignGroup = async (userId, groupId) => {
     try {
@@ -539,7 +565,8 @@ const Users = ({ personnelId }) => {
             <Tr>
               <Th>Avatar</Th>
               <Th>Full Name</Th>
-              <Th>Username</Th>
+              <Th>District</Th>
+              <Th>Local Congregation Assignment</Th>
               <Th>Email</Th>
               <Th>Group</Th>
               <Th>Actions</Th>
@@ -569,7 +596,8 @@ const Users = ({ personnelId }) => {
                       }`}</Text>
                     </HStack>
                   </Td>
-                  <Td>{item.username || "N/A"}</Td>
+                  <Td>{item.personnel_district_name || "N/A"}</Td>
+                  <Td>{item.personnel_local_congregation || "N/A"}</Td>
                   <Td>{item.mail || "N/A"}</Td>
                   <Td>{item.groupname || "N/A"}</Td>
                   <Td>

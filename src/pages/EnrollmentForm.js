@@ -69,6 +69,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
     surname_husband: "",
     suffix: "",
     nickname: "",
+    registered_local_congregation: "",
     date_of_birth: "",
     age: "",
     place_of_birth: "",
@@ -84,6 +85,8 @@ const EnrollmentForm = ({ referenceNumber }) => {
     district_id: "",
     local_congregation: "",
     personnel_type: "",
+    district_assignment_id: "",
+    local_congregation_assignment: "",
     assigned_number: "",
     m_type: "",
     panunumpa_date: "",
@@ -429,72 +432,90 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
   const handleNext = async () => {
     setIsLoading(true);
-
     try {
+      // Ensure step is derived from URL for accurate calculations
+      const currentStep = parseInt(searchParams.get("step"), 10) || 1;
+
       // Check if we are on the first step
-      if (step === 1) {
-        if (!personnelId) {
-          const missingFields = [];
-          if (!personnelData.givenname) missingFields.push("Given Name");
-          if (!personnelData.date_of_birth) missingFields.push("Date of Birth");
-          if (!personnelData.civil_status) missingFields.push("Civil Status");
-          if (!personnelData.email_address) missingFields.push("Email Address");
-          if (!personnelData.personnel_type)
-            missingFields.push("Personnel Type");
+      //if (step === 1) {
+      if (!personnelId) {
+        const missingFields = [];
+        if (!personnelData.givenname) missingFields.push("Given Name");
+        if (!personnelData.date_of_birth) missingFields.push("Date of Birth");
+        if (!personnelData.civil_status) missingFields.push("Civil Status");
+        if (!personnelData.email_address) missingFields.push("Email Address");
+        if (!personnelData.personnel_type) missingFields.push("Personnel Type");
 
-          if (missingFields.length > 0) {
-            toast({
-              title: "Validation Error",
-              description: `The following fields are required: ${missingFields.join(
-                ", "
-              )}.`,
-              status: "error",
-              duration: 3000,
-              isClosable: true,
-              position: "bottom-left", // Position the toast on the bottom-left
-            });
-            setIsLoading(false);
-            return;
-          }
-
-          // Show confirmation modal for new enrollment
-          setIsModalOpen(true);
-          setIsLoading(false);
-          return;
-        } else {
-          // If personnel_id exists, update the data directly
-          if (!personnelData.email_address) {
-            toast({
-              title: "Validation Error",
-              description: "Email Address is required for updating data.",
-              status: "error",
-              duration: 3000,
-              isClosable: true,
-              position: "bottom-left", // Position the toast on the bottom-left
-            });
-            setIsLoading(false);
-            return;
-          }
-
-          
-          await axios.put(`${API_URL}/api/personnels/${personnelId}`, {
-            ...personnelData,
-            enrollment_progress: "1", // Update enrollment_progress
-          });
-
+        if (missingFields.length > 0) {
           toast({
-            title: "Enrollment Updated",
-            description: "Your enrollment data has been updated successfully.",
-            status: "success",
+            title: "Validation Error",
+            description: `The following fields are required: ${missingFields.join(
+              ", "
+            )}.`,
+            status: "error",
             duration: 3000,
             isClosable: true,
             position: "bottom-left", // Position the toast on the bottom-left
           });
+          setIsLoading(false);
+          return;
+        }
+
+        // Show confirmation modal for new enrollment
+        setIsModalOpen(true);
+        setIsLoading(false);
+        return;
+      } else {
+        // If personnel_id exists, update the data directly
+        if (!personnelData.email_address) {
+          toast({
+            title: "Validation Error",
+            description: "Email Address is required for updating data.",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+            position: "bottom-left", // Position the toast on the bottom-left
+          });
+          setIsLoading(false);
+          return;
+        }
+
+        await axios.put(`${API_URL}/api/personnels/${personnelId}`, {
+          ...personnelData,
+          enrollment_progress: currentStep.toString(), // Update enrollment_progress
+        });
+
+        toast({
+          title: "Enrollment Updated",
+          description: "Your enrollment data has been updated successfully.",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+          position: "bottom-left", // Position the toast on the bottom-left
+        });
+        // Calculate the next step
+        const nextStep = currentStep + 1;
+
+        // If the next step is within the range, update the URL dynamically
+        if (nextStep <= totalSteps) {
+          const newUrl = `/enroll?personnel_id=${personnelId}&step=${nextStep}`;
+          alert(newUrl);
+          window.history.pushState(null, "", newUrl); // Update URL without page reload
+          setStep(nextStep); // Move to the next step
+        } else {
+          toast({
+            title: "Process Complete",
+            description: "You have completed the enrollment process.",
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
         }
       }
+      //}
 
       // Move to the next step
-      setStep((prevStep) => prevStep + 1);
+      //setStep((prevStep) => prevStep + 1);
     } catch (error) {
       console.error("Error handling next step:", error);
       toast({
@@ -522,101 +543,105 @@ const EnrollmentForm = ({ referenceNumber }) => {
       const searchParams = new URLSearchParams(window.location.search);
       const notEnrolledId = searchParams.get("not_enrolled");
 
-// Destructure all necessary fields from personnelData
-const {
-  gender,
-  civil_status,
-  wedding_anniversary,
-  givenname,
-  middlename,
-  surname_maiden,
-  surname_husband,
-  suffix,
-  nickname,
-  date_of_birth,
-  place_of_birth,
-  datejoined,
-  language_id,
-  bloodtype,
-  email_address,
-  citizenship,
-  nationality,
-  department_id,
-  section_id,
-  subsection_id,
-  designation_id,
-  district_id,
-  local_congregation,
-  personnel_type,
-  assigned_number,
-  m_status,
-  panunumpa_date,
-  ordination_date,
-} = personnelData;
+      // Destructure all necessary fields from personnelData
+      const {
+        gender,
+        civil_status,
+        wedding_anniversary,
+        givenname,
+        middlename,
+        surname_maiden,
+        surname_husband,
+        suffix,
+        nickname,
+        registered_local_congregation,
+        date_of_birth,
+        place_of_birth,
+        datejoined,
+        language_id,
+        bloodtype,
+        email_address,
+        citizenship,
+        nationality,
+        department_id,
+        section_id,
+        subsection_id,
+        designation_id,
+        district_id,
+        local_congregation,
+        personnel_type,
+        district_assignment_id,
+        local_congregation_assignment,
+        assigned_number,
+        m_status,
+        panunumpa_date,
+        ordination_date,
+      } = personnelData;
 
+      // Check for existing givenname and surname_husband combination
+      const existingCheckResponse = await axios.get(
+        `${API_URL}/api/personnels_check`, // Adjust the API endpoint if needed
+        {
+          params: {
+            givenname,
+            surname_husband,
+          },
+        }
+      );
 
+      if (existingCheckResponse.data.exists) {
+        // Show error toast if the combination already exists
+        toast({
+          title: "Duplicate Entry",
+          description:
+            "A personnel record with the same given name and surname already exists.",
+          status: "error",
+          duration: 4000,
+          isClosable: true,
+          position: "bottom-left", // Position the toast on the bottom-left
+        });
 
-// Check for existing givenname and surname_husband combination
-const existingCheckResponse = await axios.get(
-  `${API_URL}/api/personnels_check`, // Adjust the API endpoint if needed
-  {
-    params: {
-      givenname,
-      surname_husband,
-    },
-  }
-);
+        setIsLoading(false); // Stop loading indicator
+        return; // Exit the function early
+      }
 
-if (existingCheckResponse.data.exists) {
-  // Show error toast if the combination already exists
-  toast({
-    title: "Duplicate Entry",
-    description:
-      "A personnel record with the same given name and surname already exists.",
-    status: "error",
-    duration: 4000,
-    isClosable: true,
-    position: "bottom-left", // Position the toast on the bottom-left
-  });
-
-  setIsLoading(false); // Stop loading indicator
-  return; // Exit the function early
-}
-
-// Prepare the API payload dynamically
-const response = await axios.post(`${API_URL}/api/personnels`, {
-  reference_number: null, // Can be generated later
-  enrollment_progress: "1", // Required value
-  personnel_progress: "1", // Required value
-  gender: gender || null,
-  civil_status: civil_status || null,
-  wedding_anniversary: wedding_anniversary || null,
-  givenname: givenname || null,
-  middlename: middlename || null,
-  surname_maiden: surname_maiden || null,
-  surname_husband: surname_husband || null,
-  suffix: suffix || null,
-  nickname: nickname || null,
-  date_of_birth: date_of_birth || null,
-  place_of_birth: place_of_birth || null,
-  datejoined: datejoined || null,
-  language_id: language_id || null,
-  bloodtype: bloodtype || null,
-  email_address: email_address || null,
-  citizenship: citizenship || null,
-  nationality: nationality || null,
-  department_id: department_id || null,
-  section_id: section_id || null,
-  subsection_id: subsection_id || null,
-  designation_id: designation_id || null,
-  district_id: district_id || null,
-  local_congregation: local_congregation || null,
-  personnel_type: personnel_type || null,
-  assigned_number: assigned_number || null,
-  m_status: m_status || null,
-  panunumpa_date: panunumpa_date || null,
-  ordination_date: ordination_date || null,
-});
+      // Prepare the API payload dynamically
+      const response = await axios.post(`${API_URL}/api/personnels`, {
+        reference_number: null, // Can be generated later
+        enrollment_progress: "1", // Required value
+        personnel_progress: "1", // Required value
+        gender: gender || null,
+        civil_status: civil_status || null,
+        wedding_anniversary: wedding_anniversary || null,
+        givenname: givenname || null,
+        middlename: middlename || null,
+        surname_maiden: surname_maiden || null,
+        surname_husband: surname_husband || null,
+        suffix: suffix || null,
+        nickname: nickname || null,
+        registered_local_congregation: registered_local_congregation || null,
+        date_of_birth: date_of_birth || null,
+        place_of_birth: place_of_birth || null,
+        datejoined: datejoined || null,
+        language_id: language_id || null,
+        bloodtype: bloodtype || null,
+        email_address: email_address || null,
+        citizenship: citizenship || null,
+        nationality: nationality || null,
+        department_id: department_id || null,
+        section_id: section_id || null,
+        subsection_id: subsection_id || null,
+        designation_id: designation_id || null,
+        district_id: district_id || null,
+        local_congregation: local_congregation || null,
+        personnel_type: personnel_type || null,
+        district_assignment_id: district_assignment_id || null,
+        local_congregation_assignment: local_congregation_assignment || null,
+        assigned_number: assigned_number || null,
+        m_status: m_status || null,
+        panunumpa_date: panunumpa_date || null,
+        ordination_date: ordination_date || null,
+      });
 
       // Extract the personnel_id from the response
       const { personnel } = response.data;
