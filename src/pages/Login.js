@@ -252,6 +252,7 @@ const Login = () => {
 
         const hashedPassword = hashPassword(password, encryptionType);
 
+        alert(ldapUser.userPassword + "---" + hashedPassword);
         console.log("Hashed Password:", hashedPassword);
 
         if (ldapUser && ldapUser.userPassword === hashedPassword) {

@@ -1085,7 +1085,58 @@ const Step1 = ({
               personnelData.personnel_type
             ) && (
               <>
-                <Flex
+           
+                <Flex align="center" mb="3" width="100%">
+                  <Text
+                    fontWeight="bold"
+                    mr="4"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Assigned Number:
+                  </Text>
+                  <Input
+                    type="number"
+                    placeholder="Enter Assigned Number"
+                    name="assigned_number"
+                    value={personnelData.assigned_number}
+                    onChange={(e) =>
+                      handleChange({
+                        target: {
+                          name: "assigned_number",
+                          value: e.target.value,
+                        },
+                      })
+                    }
+                    width="calc(100% - 140px)" // Adjusted to fit next to label
+                    min="0"
+                  />
+                </Flex>
+
+                {/* Ministerial Status */}
+                <Flex direction="column" mb="3" width="100%">
+                  <Text fontSize="md" fontWeight="bold" mb="1" color="#0a5856">
+                    Ministerial Status:
+                  </Text>
+                  <RadioGroup
+                    name="m_status"
+                    onChange={(value) =>
+                      handleChange({ target: { name: "m_status", value } })
+                    }
+                    value={personnelData.m_status}
+                  >
+                    <Stack direction="row" spacing={4} wrap="wrap">
+                      <Radio value="May Destino">May Destino</Radio>
+                      <Radio value="Fulltime">Fulltime</Radio>
+                    </Stack>
+                  </RadioGroup>
+                </Flex>
+              </>
+            )}
+{/* Conditional Rendering for District and Local Assignments */}
+{personnelData.m_status === "May Destino" && (
+<Flex
                   align="center"
                   mb="3"
                   width="100%"
@@ -1161,55 +1212,7 @@ const Step1 = ({
                     />
                   </Box>
                 </Flex>
-
-                <Flex align="center" mb="3" width="100%">
-                  <Text
-                    fontWeight="bold"
-                    mr="4"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Assigned Number:
-                  </Text>
-                  <Input
-                    type="number"
-                    placeholder="Enter Assigned Number"
-                    name="assigned_number"
-                    value={personnelData.assigned_number}
-                    onChange={(e) =>
-                      handleChange({
-                        target: {
-                          name: "assigned_number",
-                          value: e.target.value,
-                        },
-                      })
-                    }
-                    width="calc(100% - 140px)" // Adjusted to fit next to label
-                    min="0"
-                  />
-                </Flex>
-
-                {/* Ministerial Status */}
-                <Flex direction="column" mb="3" width="100%">
-                  <Text fontSize="md" fontWeight="bold" mb="1" color="#0a5856">
-                    Ministerial Status:
-                  </Text>
-                  <RadioGroup
-                    name="m_status"
-                    onChange={(value) =>
-                      handleChange({ target: { name: "m_status", value } })
-                    }
-                    value={personnelData.m_status}
-                  >
-                    <Stack direction="row" spacing={4} wrap="wrap">
-                      <Radio value="May Destino">May Destino</Radio>
-                      <Radio value="Fulltime">Fulltime</Radio>
-                    </Stack>
-                  </RadioGroup>
-                </Flex>
-              </>
-            )}
+)}
 
           {/* Panunumpa Date */}
           {personnelData.gender === "Male" &&
