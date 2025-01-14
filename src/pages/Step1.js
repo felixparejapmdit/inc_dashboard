@@ -364,47 +364,51 @@ const Step1 = ({
             wrap="wrap"
             justify="space-between"
           >
-            {/* Suffix Selector */}
-            <Box
-              width={{ base: "100%", md: "48%" }}
-              mb={{ base: "3", md: "0" }}
-            >
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                Suffix:
-              </Text>
-              <Select
-                name="suffix"
-                value={suffixOptions.find(
-                  (type) => type.suffix === personnelData.suffix
-                )} // Match selected value by blood type
-                onChange={(selectedOption) =>
-                  handleChange({
-                    target: { name: "suffixOptions", value: selectedOption?.value || "" },
-                  })
-                }
-                width="100%"
-                isDisabled={personnelData.gender === "Female"}
-                options={suffixOptions.map((suffix) => ({
-                  value: suffix,
-                  label: suffix,
-                }))}
-                isClearable
-                styles={{
-                  container: (base) => ({
-                    ...base,
-                    width: "100%",
-                  }),
-                }}
-              >
+           {/* Suffix Selector */}
+<Box
+  width={{ base: "100%", md: "48%" }}
+  mb={{ base: "3", md: "0" }}
+>
+  <Text
+    fontWeight="bold"
+    mb="2"
+    minWidth="120px"
+    whiteSpace="nowrap"
+    color="#0a5856"
+  >
+    Suffix:
+  </Text>
+  <Select
+    name="suffix"
+    value={
+      suffixOptions
+        .map((suffix) => ({
+          value: suffix,
+          label: suffix,
+        }))
+        .find((option) => option.value === personnelData.suffix) || null // Match suffix from personnelData
+    }
+    onChange={(selectedOption) =>
+      handleChange({
+        target: { name: "suffix", value: selectedOption?.value || "" },
+      })
+    }
+    width="100%"
+    isDisabled={personnelData.gender === "Female"} // Disable for Female gender
+    options={suffixOptions.map((suffix) => ({
+      value: suffix,
+      label: suffix,
+    }))}
+    isClearable
+    styles={{
+      container: (base) => ({
+        ...base,
+        width: "100%",
+      }),
+    }}
+  />
+</Box>
 
-              </Select>
-            </Box>
 
             {/* Nickname Input */}
             <Box
@@ -535,46 +539,49 @@ const Step1 = ({
                 />
               </Flex>
             </Box>
-
-          
-{/* Language Selector */}
-<Box width={{ base: "100%", md: "30%" }}>
-  <Select
-    placeholder="Select Language"
-    name="language_id"
-    value={languages.find(
-      (language) => language.language_id === personnelData.language_id
-    )}
-    
-    onChange={(selectedOption) =>
-      handleChange({
-        target: { name: "language_id", value: selectedOption?.value || "" },
-      })
-    }
-    options={languages.map((language) => ({
-      value: language.id,
-      label: language.language,
-    }))}
-    
-    isClearable
-    styles={{
-      container: (base) => ({
-        ...base,
-        width: "100%",
-      }),
-    }}
-  />
-</Box>
-
+            {/* Language Selector */}
+            <Box width={{ base: "100%", md: "30%" }}>
+              <Select
+                placeholder="Select Language"
+                name="language_id"
+                value={
+                  languages
+                    .map((language) => ({
+                      value: language.id, // Map to the id of the Language model
+                      label: language.language, // Display the language name
+                    }))
+                    .find((option) => option.value === personnelData.language_id) || null
+                }
+                onChange={(selectedOption) =>
+                  handleChange({
+                    target: { name: "language_id", value: selectedOption?.value || "" },
+                  })
+                }
+                options={languages.map((language) => ({
+                  value: language.id, // Use the id of the Language model
+                  label: language.language, // Use the language name for display
+                }))}
+                isClearable
+                styles={{
+                  container: (base) => ({
+                    ...base,
+                    width: "100%",
+                  }),
+                }}
+              />
+            </Box>
 
 {/* Blood Type Selector */}
 <Box width={{ base: "100%", md: "30%" }}>
   <Select
     placeholder="Select Blood Type"
     name="bloodtype"
-    value={bloodtypes.find(
-      (type) => type.bloodtype === personnelData.bloodtype
-    )} // Match selected value by blood type
+    value={bloodtypes
+      .map((type) => ({
+        value: type, // Correctly map the bloodtype string
+        label: type,
+      }))
+      .find((option) => option.value === personnelData.bloodtype)} // Ensure the correct value is matched
     onChange={(selectedOption) =>
       handleChange({
         target: { name: "bloodtype", value: selectedOption?.value || "" },
@@ -659,9 +666,12 @@ const Step1 = ({
   <Select
     placeholder="Select Citizenship"
     name="citizenship"
-    value={citizenships.find(
-      (department) => department.citizenship === personnelData.citizenship
-    )}
+    value={citizenships
+      .map((citizenship) => ({
+        value: citizenship.id,
+        label: citizenship.citizenship,
+      }))
+      .find((option) => option.value === personnelData.citizenship)}
     onChange={(selectedOption) =>
       handleChange({
         target: { name: "citizenship", value: selectedOption?.value || "" },
@@ -690,9 +700,12 @@ const Step1 = ({
         <Select
           placeholder="Select Nationality"
           name="nationality"
-          value={nationalities.find(
-            (department) => department.nationality === personnelData.nationality
-          )}
+          value={nationalities
+            .map((nationality) => ({
+              value: nationality.id,
+              label: nationality.nationality,
+            }))
+            .find((option) => option.value === personnelData.nationality)}
           onChange={(selectedOption) =>
             handleChange({
               target: { name: "nationality", value: selectedOption?.value || "" },
@@ -722,8 +735,9 @@ const Step1 = ({
             wrap="wrap"
             justify="space-between"
           >
-          {/* Department */}
-<Box width={{ base: "100%", md: "48%" }} mb={{ base: "3", md: "3" }}>
+
+            {/* Department Selector */}
+         <Box width={{ base: "100%", md: "48%" }} mb={{ base: "3", md: "3" }}>
   <Text
     fontWeight="bold"
     mb="2"
@@ -736,9 +750,12 @@ const Step1 = ({
   <Select
     placeholder="Select Department"
     name="department_id"
-    value={departments.find(
-      (department) => department.department_id === personnelData.department_id
-    )}
+    value={departments
+      .map((department) => ({
+        value: department.id,
+        label: department.name,
+      }))
+      .find((option) => option.value === personnelData.department_id)}
     onChange={(selectedOption) =>
       handleChange({
         target: { name: "department_id", value: selectedOption?.value || "" },
@@ -748,31 +765,11 @@ const Step1 = ({
       value: department.id,
       label: department.name,
     }))}
+    isClearable
     styles={{
       container: (base) => ({
         ...base,
         width: "100%",
-      }),
-      control: (base) => ({
-        ...base,
-        borderColor: '#ccc', // Default border color
-        boxShadow: 'none', // No shadow
-        '&:hover': {
-          borderColor: '#aaa', // Slightly darker on hover
-        },
-      }),
-      option: (base, state) => ({
-        ...base,
-        backgroundColor: state.isSelected ? 'transparent' : state.isFocused ? '#f0f0f0' : 'transparent', // Clear background
-        color: state.isSelected ? '#0a5856' : base.color, // Change text color if selected
-        '&:hover': {
-          backgroundColor: '#f0f0f0', // Light gray on hover
-          color: '#0a5856', // Text color on hover
-        },
-      }),
-      singleValue: (base) => ({
-        ...base,
-        color: '#0a5856', // Text color for selected value
       }),
     }}
   />
@@ -793,7 +790,12 @@ const Step1 = ({
   <Select
     placeholder="Select Section"
     name="section_id"
-    value={filteredSections.find(section => section.id === personnelData.section_id)} // Bind current value
+    value={sections
+      .map((section) => ({
+        value: section.id,
+        label: section.name,
+      }))
+      .find((option) => option.value === personnelData.section_id)}
     onChange={(selectedOption) =>
       handleChange({
         target: { name: "section_id", value: selectedOption?.value || "" },
@@ -804,31 +806,11 @@ const Step1 = ({
       label: section.name,
     }))}
     isDisabled={!personnelData.department_id} // Disable if no department is selected
+    isClearable
     styles={{
       container: (base) => ({
         ...base,
         width: "100%",
-      }),
-      control: (base) => ({
-        ...base,
-        borderColor: '#ccc', // Default border color
-        boxShadow: 'none', // No shadow
-        '&:hover': {
-          borderColor: '#aaa', // Slightly darker on hover
-        },
-      }),
-      option: (base, state) => ({
-        ...base,
-        backgroundColor: state.isSelected ? 'transparent' : state.isFocused ? '#f0f0f0' : 'transparent', // Clear background
-        color: state.isSelected ? '#0a5856' : base.color, // Change text color if selected
-        '&:hover': {
-          backgroundColor: '#f0f0f0', // Light gray on hover
-          color: '#0a5856', // Text color on hover
-        },
-      }),
-      singleValue: (base) => ({
-        ...base,
-        color: '#0a5856', // Text color for selected value
       }),
     }}
   />
@@ -848,42 +830,28 @@ const Step1 = ({
   <Select
     placeholder="Select Subsection"
     name="subsection_id"
-    value={filteredSubsections.find(subsection => subsection.id === personnelData.subsection_id)} // Bind current value
+    value={subsections
+      .map((subsection) => ({
+        value: subsection.id,
+        label: subsection.name,
+      }))
+      .find((option) => option.value === personnelData.subsection_id)}
     onChange={(selectedOption) =>
       handleChange({
         target: { name: "subsection_id", value: selectedOption?.value || "" },
       })
     }
+
     options={filteredSubsections.map((subsection) => ({
       value: subsection.id,
       label: subsection.name,
     }))}
     isDisabled={!personnelData.section_id} // Disable if no section is selected
+    isClearable
     styles={{
       container: (base) => ({
         ...base,
         width: "100%",
-      }),
-      control: (base) => ({
-        ...base,
-        borderColor: '#ccc', // Default border color
-        boxShadow: 'none', // No shadow
-        '&:hover': {
-          borderColor: '#aaa', // Slightly darker on hover
-        },
-      }),
-      option: (base, state) => ({
-        ...base,
-        backgroundColor: state.isSelected ? 'transparent' : state.isFocused ? '#f0f0f0' : 'transparent', // Clear background
-        color: state.isSelected ? '#0a5856' : base.color, // Change text color if selected
-        '&:hover': {
-          backgroundColor: '#f0f0f0', // Light gray on hover
-          color: '#0a5856', // Text color on hover
-        },
-      }),
-      singleValue: (base) => ({
-        ...base,
-        color: '#0a5856', // Text color for selected value
       }),
     }}
   />
@@ -903,42 +871,28 @@ const Step1 = ({
   <Select
     placeholder="Select Designation"
     name="designation_id"
-    value={filteredDesignations.find(designation => designation.id === personnelData.designation_id)} // Bind current value
+    value={designations
+      .map((designation) => ({
+        value: designation.id,
+        label: designation.name,
+      }))
+      .find((option) => option.value === personnelData.designation_id)}
     onChange={(selectedOption) =>
       handleChange({
         target: { name: "designation_id", value: selectedOption?.value || "" },
       })
     }
+
     options={filteredDesignations.map((designation) => ({
       value: designation.id,
       label: designation.name,
     }))}
     isDisabled={!personnelData.section_id} // Disable if no section is selected
+    isClearable
     styles={{
       container: (base) => ({
         ...base,
         width: "100%",
-      }),
-      control: (base) => ({
-        ...base,
-        borderColor: '#ccc', // Default border color
-        boxShadow: 'none', // No shadow
-        '&:hover': {
-          borderColor: '#aaa', // Slightly darker on hover
-        },
-      }),
-      option: (base, state) => ({
-        ...base,
-        backgroundColor: state.isSelected ? 'transparent' : state.isFocused ? '#f0f0f0' : 'transparent', // Clear background
-        color: state.isSelected ? '#0a5856' : base.color, // Change text color if selected
-        '&:hover': {
-          backgroundColor: '#f0f0f0', // Light gray on hover
-          color: '#0a5856', // Text color on hover
-        },
-      }),
-      singleValue: (base) => ({
-        ...base,
-        color: '#0a5856', // Text color for selected value
       }),
     }}
   />
@@ -988,20 +942,30 @@ const Step1 = ({
               <Select
                 placeholder="Select District"
                 name="district_id"
-                value={personnelData.district_id}
-                onChange={(e) =>
+                value={districts
+                  .map((district) => ({
+                    value: district.id,
+                    label: district.name,
+                  }))
+                  .find((option) => option.value === personnelData.district_id)}
+                onChange={(selectedOption) =>
                   handleChange({
-                    target: { name: "district_id", value: e.target.value },
+                    target: { name: "district_id", value: selectedOption?.value || "" },
                   })
                 }
-                width="100%"
-              >
-                {districts.map((district) => (
-                  <option key={district.id} value={district.id}>
-                    {district.name}
-                  </option>
-                ))}
-              </Select>
+            
+                options={districts.map((district) => ({
+                  value: district.id,
+                  label: district.name,
+                }))}
+                isClearable
+                styles={{
+                  container: (base) => ({
+                    ...base,
+                    width: "100%",
+                  }),
+                }}
+              />
             </Box>
 
             {/* Local Congregation */}
