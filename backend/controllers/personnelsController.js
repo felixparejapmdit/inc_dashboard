@@ -108,12 +108,12 @@ exports.getPersonnelById = async (req, res) => {
 };
 
 exports.getReferenceNumber = async (req, res) => {
-  const { givenname, date_of_birth } = req.query;
+  const { givenname, date_of_birth, surname_husband } = req.query;
 
   // Validate required fields
-  if (!givenname || !date_of_birth) {
+  if (!givenname || !date_of_birth || !surname_husband) {
     return res.status(400).json({
-      message: "Both givenname and date_of_birth are required.",
+      message: "givenname, surname_husband, and date_of_birth are required.",
     });
   }
 
@@ -121,7 +121,11 @@ exports.getReferenceNumber = async (req, res) => {
     // Normalize the date to ensure consistency
     const normalizedDate = new Date(date_of_birth).toISOString().split("T")[0];
 
-    console.log("Request received with:", { givenname, date_of_birth });
+    console.log("Request received with:", {
+      givenname,
+      surname_husband,
+      date_of_birth,
+    });
     console.log("Normalized Date:", normalizedDate);
 
     // Using Sequelize raw query for debugging purposes
@@ -129,12 +133,14 @@ exports.getReferenceNumber = async (req, res) => {
       SELECT * 
       FROM personnels 
       WHERE givenname = :givenname 
+        AND surname_husband = :surname_husband
         AND date_of_birth = :date_of_birth 
       LIMIT 1;
     `;
     const personnelRaw = await sequelize.query(rawQuery, {
       replacements: {
         givenname: givenname.trim(),
+        surname_husband: surname_husband.trim(),
         date_of_birth: normalizedDate,
       },
       type: sequelize.QueryTypes.SELECT,

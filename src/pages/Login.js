@@ -64,12 +64,29 @@ const Login = () => {
       return;
     }
 
+    // Split the name into givenname and surname_husband
+    const [givenname, ...surnameParts] = name.split(" ");
+    const surname_husband = surnameParts.join(" ").trim();
+
+    if (!givenname || !surname_husband) {
+      toast({
+        title: "Error",
+        description: "Please provide both your first name and surname.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom-left",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const response = await axios.get(`${API_URL}/api/getretrievereference`, {
         params: {
-          givenname: name, // Match query parameters to backend
-          date_of_birth: dateOfBirth,
+          givenname: givenname.trim(),
+          surname_husband: surname_husband.trim(),
+          date_of_birth: dateOfBirth.trim(),
         },
       });
       if (response.data?.reference_number) {
@@ -572,7 +589,7 @@ const Login = () => {
               <ModalBody>
                 {/* Input Name */}
                 <FormControl mb={4}>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>Full Name</FormLabel>
                   <Input
                     placeholder="Enter your first name"
                     value={name}
