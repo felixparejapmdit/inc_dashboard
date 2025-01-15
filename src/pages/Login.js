@@ -574,7 +574,7 @@ const Login = () => {
                 <FormControl mb={4}>
                   <FormLabel>Name</FormLabel>
                   <Input
-                    placeholder="Enter your full name"
+                    placeholder="Enter your first name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                   />
