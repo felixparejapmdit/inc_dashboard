@@ -499,7 +499,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
         // If the next step is within the range, update the URL dynamically
         if (nextStep <= totalSteps) {
           const newUrl = `/enroll?personnel_id=${personnelId}&step=${nextStep}`;
-          alert(newUrl);
+
           window.history.pushState(null, "", newUrl); // Update URL without page reload
           setStep(nextStep); // Move to the next step
         } else {
