@@ -91,10 +91,10 @@
   },
   "scripts": {
     "start": "concurrently \"npm run react\" \"npm run backend\"",
-    "react": "node scripts/start.js",
+    "react": "react-app-rewired start",
     "backend": "nodemon backend/server.js",
-    "build": "node scripts/build.js",
-    "test": "node scripts/test.js"
+    "build": "react-app-rewired build",
+    "test": "react-app-rewired test"
   },
   "eslintConfig": {
     "extends": [
@@ -117,7 +117,8 @@
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "concurrently": "^9.1.0",
-    "nodemon": "^3.1.4"
+    "nodemon": "^3.1.4",
+    "react-app-rewired": "^2.2.1"
   },
   "jest": {
     "roots": [
