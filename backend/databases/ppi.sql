@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 14, 2025 at 02:37 AM
+-- Generation Time: Jan 15, 2025 at 04:03 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -554,13 +554,7 @@ CREATE TABLE `educational_background` (
 --
 
 INSERT INTO `educational_background` (`id`, `personnel_id`, `level`, `startfrom`, `completion_year`, `school`, `field_of_study`, `degree`, `institution`, `professional_licensure_examination`, `created_at`, `updated_at`, `certificate_files`) VALUES
-(1, 20, 'College Graduate', 2007, 2012, 'asd1122', 'ASD1', 'AS123000', 'ASD12334', 'as', '2024-11-20 08:53:50', '2024-12-20 08:10:11', NULL),
-(5, 10, 'Undergrad', 1, 1, 'asd', 'asd', '', '', NULL, '2024-12-20 06:27:55', '2024-12-20 07:46:30', NULL),
-(6, 43, 'Senior High School', 12, 12, 'asdsa', '', '', '', '', '2025-01-10 03:53:05', '2025-01-10 03:53:05', NULL),
-(7, 45, 'College Graduate', 2010, 2016, 'Southern Connecticut State University', 'Computer Science', 'Bachelor\'s', '', '', '2025-01-10 05:52:19', '2025-01-10 05:52:19', NULL),
-(8, 45, 'Senior High School', 2006, 2010, 'Jonathan Law High School', '', '', '', '', '2025-01-10 05:52:38', '2025-01-10 05:52:38', NULL),
-(9, 45, 'Elementary', 2000, 2006, 'Garapan Elementary School', '', '', '', '', '2025-01-10 05:53:32', '2025-01-10 05:53:32', NULL),
-(18, 54, 'Alternative Learning System', 6, 6, 'hg', 'k', 'k', 'k', 'k', '2025-01-12 08:53:47', '2025-01-12 08:53:47', '\"[\\\"1736672022475-20241207_085350.jpg\\\"]\"');
+(5, 10, 'Undergrad', 1, 1, 'asd', 'asd', '', '', NULL, '2024-12-20 06:27:55', '2024-12-20 07:46:30', NULL);
 
 -- --------------------------------------------------------
 
@@ -659,26 +653,13 @@ INSERT INTO `family_members` (`id`, `personnel_id`, `relationship_type`, `givenn
 (176, 10, 'Child', 'Child 2', '', 'asd', '', 'Male', '', '', '0000-00-00', '', 0, 0, '0000-00-00', 0, '', '', 0, '', '', '', '', '', '', '', '', '0000-00-00', '0000-00-00', '', '', 0, 0, '', '', '', '', '', '2024-12-18 18:11:33', '2024-12-19 15:55:57'),
 (177, 10, 'Mother', 'Alicia', 'Luha', 'Morales', 'No Suffix', 'Female', 'A-', '', '0000-00-00', '', 0, 0, '2024-12-20', 121, '', '', 0, '', '', '', '', '', '', '', '', '0000-00-00', '0000-00-00', '', '', 0, 0, '', '', '', '', '', '2024-12-19 16:10:01', '2024-12-19 17:06:50'),
 (179, 10, 'Sibling', 'Paul John', 'asd', 'Pareja', 'No Suffix', 'Male', 'A+', 'Single', '0000-00-00', '', 0, 0, '1991-10-19', 1212, '', '', 0, '', '', '', '', '', '', '', '', '0000-00-00', '0000-00-00', '', '', 0, 0, '', '', '', '', '', '2024-12-19 16:59:24', '2025-01-10 02:48:07'),
-(180, 13, 'Sibling', 'asd', 'asd', 'asd', 'No Suffix', 'Male', 'A+', 'Annulled', '2024-12-20', '', 0, 0, '2024-12-20', 12, '', '', 0, '', '', '', '', '', '', '', '', '0000-00-00', '0000-00-00', '', '', 0, 0, '', '', '', '', '', '2024-12-19 18:27:24', '2024-12-19 18:27:24'),
-(183, 41, 'Father', 'test1', 'test1', 'test1', NULL, 'Male', NULL, 'Married', NULL, NULL, NULL, NULL, '0000-00-00', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-10 02:09:25', '2025-01-10 02:11:42'),
-(184, 41, 'Mother', 'test1', 'test1', 'test1', NULL, 'Female', NULL, NULL, NULL, NULL, NULL, NULL, '0000-00-00', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-10 02:11:56', '2025-01-10 02:11:56'),
-(185, 41, 'Sibling', 'test1', 'test1', 'test1', '', 'Male', '', '', '0000-00-00', '', 0, 0, '0000-00-00', 0, '', '', 0, '', '', '', '', '', '', '', '', '0000-00-00', '0000-00-00', '', '', 0, 0, '', '', '', '', '', '2025-01-10 02:19:50', '2025-01-10 02:19:50'),
-(186, 41, 'Sibling', 'test2', 'test2', 'test2', '', 'Male', '', '', '0000-00-00', '', 0, 0, '0000-00-00', 0, '', '', 0, '', '', '', '', '', '', '', '', '0000-00-00', '0000-00-00', '', '', 0, 0, '', '', '', '', '', '2025-01-10 02:22:21', '2025-01-10 02:22:21'),
-(187, 41, 'Sibling', 'test3', 'test3', 'test3', '', 'Male', '', '', '0000-00-00', '', 0, 0, '0000-00-00', 0, '', '', 0, '', '', '', '', '', '', '', '', '0000-00-00', '0000-00-00', '', '', 0, 0, '', '', '', '', '', '2025-01-10 02:27:58', '2025-01-10 02:27:58'),
 (188, 10, 'Sibling', 'test1', 'test1', 'test1', '', 'Male', '', '', NULL, '', 0, 0, '2025-01-10', 0, '', '', 0, '', '', '', '', '', '', '', '', NULL, NULL, '', '', 0, 0, '', '', '', '', '', '2025-01-10 02:48:29', '2025-01-10 02:48:39'),
 (189, 10, 'Sibling', 'test2', 'test2', 'test2', '', 'Female', '', '', NULL, '', 0, 0, '0000-00-00', 0, '', '', 0, '', '', '', '', '', '', '', '', NULL, NULL, '', '', 0, 0, '', '', '', '', '', '2025-01-10 02:49:07', '2025-01-10 03:47:00'),
 (190, 10, 'Sibling', 'test3', 'test3', 'test3', '', 'Male', '', '', NULL, '', 0, 0, '2025-01-10', 0, '', '', 0, '', '', '', '', '', '', '', '', NULL, NULL, '', '', 0, 0, '', '', '', '', '', '2025-01-10 03:10:17', '2025-01-10 03:10:17'),
-(192, 41, 'Spouse', 'test1', 'test1', 'test1', NULL, 'Male', NULL, NULL, NULL, '', NULL, NULL, '2025-01-10', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-10 03:29:53', '2025-01-10 04:07:55'),
-(193, 43, 'Father', 'asd', 'asd', 'asd', NULL, 'Male', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-10', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-10 03:53:34', '2025-01-10 03:53:34'),
-(194, 43, 'Mother', 'asd', 'asd', 'asd', NULL, 'Female', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-10', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-10 03:53:45', '2025-01-10 03:53:45'),
 (195, 37, 'Father', 'qwewqewqeq', 'eeeeeeweqqwewqeqqeweqqe', 'wqwqeweqqqqqqqq', NULL, 'Male', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-10', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-10 03:57:07', '2025-01-10 03:57:07'),
 (196, 37, 'Mother', 'ewqqeeqeq', 'rqeqqeweqe', 'eqeqwqqqqqwewqe', NULL, 'Female', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-10', 1234456576, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-10 03:57:28', '2025-01-10 03:57:28'),
 (197, 37, 'Sibling', 'qwertyt', 'weqrtr', 'qwertyt', 'Jr.', 'Male', '', 'Annulled', NULL, '', 0, 1, '2025-01-10', 0, '', '', 0, '', '', '', '', '', '', '', '', NULL, NULL, '', 'Primary Education', 0, 0, '', '', '', '', '', '2025-01-10 03:58:13', '2025-01-10 03:58:13'),
-(198, 44, 'Spouse', 'asd', 'asd', 'asd', NULL, NULL, NULL, NULL, NULL, '', NULL, NULL, '2025-01-10', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-10 04:35:45', '2025-01-10 04:35:45'),
-(199, 43, 'Spouse', 'asd', 'asd', 'asd', NULL, NULL, NULL, NULL, NULL, '', NULL, NULL, '2025-01-10', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-10 04:36:17', '2025-01-10 04:36:17'),
-(200, 43, 'Child', 'asd', 'asd', 'asd', '', 'Male', '', '', NULL, '', 0, 0, '2025-01-10', 0, '', '', 0, '', '', '', '', '', '', '', '', NULL, NULL, '', '', 0, 0, '', '', '', '', '', '2025-01-10 04:36:28', '2025-01-10 04:36:28'),
-(201, 37, 'Spouse', 'dffghghvhghfdfsa', 'waersdfhgcgvgs', 'ffghgfgdfsaffgfg', NULL, NULL, NULL, NULL, NULL, '', NULL, NULL, '2025-01-10', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-10 04:37:04', '2025-01-10 04:37:04'),
-(206, 54, 'Sibling', 'asd', 'sad', 'asd', '', 'Male', '', '', NULL, '', 0, 0, '2025-01-12', 0, '', '', 0, '', '', '', '', '', '', '', '', NULL, NULL, '', '', 0, 0, '', '', '', '', '', '2025-01-12 14:32:47', '2025-01-12 14:32:47');
+(201, 37, 'Spouse', 'dffghghvhghfdfsa', 'waersdfhgcgvgs', 'ffghgfgdfsaffgfg', NULL, NULL, NULL, NULL, NULL, '', NULL, NULL, '2025-01-10', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-10 04:37:04', '2025-01-10 04:37:04');
 
 -- --------------------------------------------------------
 
@@ -1524,6 +1505,7 @@ CREATE TABLE `personnels` (
   `surname_husband` varchar(50) DEFAULT NULL,
   `suffix` text DEFAULT NULL,
   `nickname` varchar(50) DEFAULT NULL,
+  `registered_local_congregation` varchar(50) DEFAULT NULL,
   `date_of_birth` date DEFAULT NULL,
   `place_of_birth` varchar(50) DEFAULT NULL,
   `datejoined` datetime DEFAULT NULL,
@@ -1539,6 +1521,8 @@ CREATE TABLE `personnels` (
   `district_id` int(11) DEFAULT NULL,
   `local_congregation` varchar(50) DEFAULT NULL,
   `personnel_type` varchar(50) DEFAULT NULL,
+  `district_assignment_id` int(11) DEFAULT NULL,
+  `local_congregation_assignment` varchar(50) DEFAULT NULL,
   `assigned_number` int(11) DEFAULT NULL,
   `m_status` varchar(50) DEFAULT NULL,
   `panunumpa_date` datetime DEFAULT NULL,
@@ -1551,20 +1535,10 @@ CREATE TABLE `personnels` (
 -- Dumping data for table `personnels`
 --
 
-INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progress`, `personnel_progress`, `gender`, `civil_status`, `wedding_anniversary`, `givenname`, `middlename`, `surname_maiden`, `surname_husband`, `suffix`, `nickname`, `date_of_birth`, `place_of_birth`, `datejoined`, `language_id`, `bloodtype`, `email_address`, `citizenship`, `nationality`, `department_id`, `section_id`, `subsection_id`, `designation_id`, `district_id`, `local_congregation`, `personnel_type`, `assigned_number`, `m_status`, `panunumpa_date`, `ordination_date`, `created_at`, `updated_at`) VALUES
-(10, 'ENR-2412-EP1-8972', '1', '1', 'Male', 'Single', NULL, 'Felix', 'Morales', '', 'Pareja', 'No Suffix', 'Chok', '1992-11-09', 'QC', '2024-12-09 00:00:00', 1, 'A+', 'felixpareja@yahoo.com', 138, 138, 1, 2, 1, 1, 45, 'Bonifacio Drive', 'Regular', 201497, 'May Destino', '2022-09-16 00:00:00', NULL, '2024-12-09 04:43:34', '2025-01-10 03:45:59'),
-(13, 'ENR-2412-EP1-6371', '1', '4', 'Male', 'Single', NULL, 'Aldrin', 'asd', '', 'Salvador', '', 'asd', '2000-12-20', 'asd', '2024-12-20 00:00:00', NULL, '', 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, '', 'Regular', 20148, 'May Destino', '2022-09-16 00:00:00', NULL, '2024-12-19 17:31:20', '2025-01-08 02:54:12'),
-(36, 'ENR-2501-EP1-5540', '1', 'Enrollment', 'Male', 'Single', NULL, 'Michael', NULL, NULL, 'Shohdy', NULL, NULL, '1992-01-08', NULL, '0000-00-00 00:00:00', NULL, NULL, 'abc@yahoo.com', NULL, NULL, NULL, 0, 0, 0, NULL, NULL, 'Regular', NULL, 'May Destino', '2025-01-08 00:00:00', NULL, '2025-01-08 04:34:30', '2025-01-08 05:11:00'),
-(37, 'ENR-2501-EP1-3640', '1', 'Enrollment', 'Male', 'Single', NULL, 'Roland Kim', 'Sato', NULL, 'Amaro', NULL, NULL, '2025-01-08', NULL, '0000-00-00 00:00:00', NULL, NULL, 'kim@yahoo.com', NULL, NULL, 1, 2, 1, 1, NULL, NULL, 'Regular', NULL, 'Fulltime', '2019-02-07 00:00:00', NULL, '2025-01-08 05:15:21', '2025-01-10 06:00:27'),
-(39, 'ENR-2501-EP1-6503', '1', '1', 'Male', 'Married', NULL, 'Kim', NULL, NULL, 'Ortodox', NULL, NULL, '1996-01-10', NULL, NULL, NULL, NULL, 'a@qqqq.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Ministerial Student', NULL, 'May Destino', NULL, NULL, '2025-01-10 00:26:14', '2025-01-10 00:26:14'),
-(46, 'ENR-2501-EP1-5265', '1', '1', 'Male', 'Single', NULL, 'test1', NULL, NULL, 'test1', NULL, NULL, '2025-01-11', NULL, NULL, NULL, NULL, 'amarorolandkim@gmail.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, '2025-01-11 08:46:41', '2025-01-11 08:46:41'),
-(47, 'ENR-2501-EP1-3238', '1', '1', 'Male', 'Single', NULL, 'test1', NULL, NULL, 'test1', NULL, NULL, '2025-01-11', NULL, NULL, NULL, NULL, 'amarorolandkim@gmail.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, '2025-01-11 08:46:54', '2025-01-11 08:46:54'),
-(48, 'ENR-2501-EP1-3740', '1', '1', 'Male', 'Single', NULL, 'test1', NULL, NULL, 'test1', NULL, NULL, '2025-01-11', NULL, NULL, NULL, NULL, 'amarorolandkim@gmail.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, '2025-01-11 08:47:02', '2025-01-11 08:47:02'),
-(49, 'ENR-2501-EP1-4733', '1', '1', 'Male', 'Single', NULL, 'test1', NULL, NULL, 'test1', NULL, NULL, '2025-01-11', NULL, NULL, NULL, NULL, 'amarorolandkim@gmail.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, '2025-01-11 08:47:11', '2025-01-11 08:47:11'),
-(50, 'ENR-2501-EP1-9872', '1', '1', 'Male', 'Single', NULL, 'test1', NULL, NULL, 'test1', NULL, NULL, '2025-01-11', NULL, NULL, NULL, NULL, 'amarorolandkim@gmail.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, '2025-01-11 08:47:26', '2025-01-11 08:47:26'),
-(51, 'ENR-2501-EP1-2252', '1', '1', 'Male', 'Single', NULL, 'test1', NULL, NULL, 'test123', NULL, NULL, '2025-01-11', NULL, '0000-00-00 00:00:00', NULL, NULL, 'amarorolandkim@gmail.com', NULL, NULL, 1, 2, 1, 1, NULL, NULL, 'Lay Member', NULL, NULL, '0000-00-00 00:00:00', NULL, '2025-01-11 08:47:40', '2025-01-11 08:50:22'),
-(54, 'ENR-2501-EP1-5675', '1', '1', 'Female', 'Married', '2025-01-11', 'test po', 'test po', 'test po', 'test po', NULL, 'test po', '2025-01-11', 'test po', '2025-01-11 00:00:00', NULL, 'A-', 'abc@yahoo.com', 14, 16, 1, 2, 1, 1, 16, 'test po', 'Minister\'s Wife', NULL, NULL, NULL, NULL, '2025-01-11 15:03:59', '2025-01-11 15:03:59'),
-(56, 'ENR-2501-EP1-2443', '1', '1', 'Male', 'Married', '2025-01-13', 'test lang', 'test lang', '', 'Pareja', 'Jr.', 'test lang', '1990-01-13', 'test lang', '2025-01-13 00:00:00', 1, 'B-', 'abc@yahoo.com', 6, 138, 1, 2, 1, 3, 45, 'Bonifacio Drive', 'Minister\'s Wife', NULL, NULL, '0000-00-00 00:00:00', NULL, '2025-01-13 06:42:48', '2025-01-14 01:36:10');
+INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progress`, `personnel_progress`, `gender`, `civil_status`, `wedding_anniversary`, `givenname`, `middlename`, `surname_maiden`, `surname_husband`, `suffix`, `nickname`, `registered_local_congregation`, `date_of_birth`, `place_of_birth`, `datejoined`, `language_id`, `bloodtype`, `email_address`, `citizenship`, `nationality`, `department_id`, `section_id`, `subsection_id`, `designation_id`, `district_id`, `local_congregation`, `personnel_type`, `district_assignment_id`, `local_congregation_assignment`, `assigned_number`, `m_status`, `panunumpa_date`, `ordination_date`, `created_at`, `updated_at`) VALUES
+(10, 'ENR-2412-EP1-8972', '2', '1', 'Male', 'Single', NULL, 'Felix', 'Morales', '', 'Pareja', 'No Suffix', 'Chok', 'Bonifacio Drive', '1990-11-09', 'San Francisco Delmonte, Quezon City', '2022-08-22 00:00:00', 1, 'O+', 'felixpareja.pmdit07@gmail.com', 138, 138, 1, 2, 1, 1, 45, 'Tandang Sora', 'Regular', 35, 'Maligaya', 20149, 'May Destino', '2022-09-16 00:00:00', NULL, '2024-12-09 04:43:34', '2025-01-14 08:35:35'),
+(36, 'ENR-2501-EP1-5540', '1', 'Enrollment', 'Male', 'Single', NULL, 'Michael', NULL, NULL, 'Shohdy', NULL, NULL, NULL, '1992-01-08', NULL, '0000-00-00 00:00:00', NULL, NULL, 'abc@yahoo.com', NULL, NULL, NULL, 0, 0, 0, NULL, NULL, 'Regular', NULL, NULL, NULL, 'May Destino', '2025-01-08 00:00:00', NULL, '2025-01-08 04:34:30', '2025-01-08 05:11:00'),
+(37, 'ENR-2501-EP1-3640', '1', 'Enrollment', 'Male', 'Single', NULL, 'Roland Kim', 'Sato', NULL, 'Amaro', NULL, NULL, NULL, '2025-01-08', NULL, '0000-00-00 00:00:00', NULL, NULL, 'kim@yahoo.com', NULL, NULL, 1, 2, 1, 1, NULL, NULL, 'Regular', NULL, NULL, NULL, 'Fulltime', '2019-02-07 00:00:00', NULL, '2025-01-08 05:15:21', '2025-01-10 06:00:27');
 
 -- --------------------------------------------------------
 
@@ -1890,7 +1864,7 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (43, 'executive.news', NULL, NULL, 'executive.news', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (44, 'pmd.it', NULL, '', 'pmd.it', '{SSHA}LYVyCEUbqbnRdJMh/NGuR38z6zbsDKG+', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (45, 'r.deguzman', NULL, NULL, 'r.deguzman', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(46, 'felix.pareja', 10, '/uploads/avatar/1732846376187_image.jpg', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-28 13:25:36'),
+(46, 'felix.pareja', 10, '/uploads/avatar/1732846376187_image.jpg', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-28 13:25:36'),
 (48, NULL, NULL, '/uploads/avatar/1732867059276_icons8-fitbit-50.png', 'admin', '$2a$12$ZXhnczgjZG4QAa4oGMH5eOt0.a9urccMHJ0/FBYB5zCe2/zfh3dEO', 0, NULL, 'Local', NULL, NULL, NULL, NULL),
 (68, 'asalvador', 13, '', 'asalvador', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2025-01-08 03:16:34', '2025-01-08 03:16:34'),
 (50, 'dalferez', NULL, NULL, 'dalferez', '{MD5}/DfLoL+7ApalWUrlZU0Q0Q==', 0, NULL, 'LDAP', 0, NULL, '2025-01-02 08:54:55', '2025-01-02 08:54:55'),
@@ -1907,7 +1881,8 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (61, 'benjie.zamudio', NULL, NULL, 'benjie.zamudio', '{MD5}2KxpXP4eitbKyQ4qBHcYXg==', 0, NULL, 'LDAP', 0, NULL, '2025-01-02 08:54:55', '2025-01-02 08:54:55'),
 (62, 'jilmark.regencia', NULL, NULL, 'jilmark.regencia', '{MD5}xJ9BRRU8UiAVyi7KgJp1Pg==', 0, NULL, 'LDAP', 0, NULL, '2025-01-02 08:54:55', '2025-01-02 08:54:55'),
 (63, 'lumayam', NULL, '', 'lumayam', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2025-01-02 08:54:55', '2025-01-02 08:54:55'),
-(69, 'mshohdy', 36, '', 'mshohdy', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2025-01-08 05:07:55', '2025-01-08 05:07:55');
+(69, 'mshohdy', 36, '', 'mshohdy', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2025-01-08 05:07:55', '2025-01-08 05:07:55'),
+(70, 'nsanchez', NULL, NULL, 'nsanchez', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2025-01-14 07:18:06', '2025-01-14 07:18:06');
 
 -- --------------------------------------------------------
 
@@ -2119,14 +2094,10 @@ CREATE TABLE `work_experience` (
 
 INSERT INTO `work_experience` (`id`, `personnel_id`, `employment_type`, `company`, `address`, `position`, `department`, `section`, `start_date`, `end_date`, `reason_for_leaving`, `created_at`, `updated_at`) VALUES
 (1, 10, 'Private', 'SENCOR', 'asd', 'programmer', 'asd', 'asd', '2024-12-05', '2024-12-05', 'confi', '2024-12-05 08:16:49', '2024-12-20 08:14:12'),
-(2, 20, 'Self-employed', 'asd_1', 'asd_1', 'asd_1', 'asd_1', 'asd_1', '2024-12-20', '2024-12-24', 'asdsa', '2024-12-20 07:47:41', '2024-12-20 08:13:20'),
 (3, 10, 'Private', 'SENCOR', 'Ayala Avenue', 'Programmer', 'Admin', 'Programming', '2011-05-20', '2015-06-20', 'Career Growth', '2024-12-20 08:14:26', '2025-01-08 01:50:06'),
 (4, 10, 'Private', 'SBOBET', 'Buendia', 'Web Developer', 'Admin', 'IT', '2015-06-24', '2017-07-11', 'For career growth', '2025-01-08 01:48:20', '2025-01-08 01:48:20'),
 (5, 10, 'Private', 'Shang Software', 'Ayala Avenue', 'Software Engineer', 'Admin', 'IT', '2017-07-15', '2017-12-30', 'Confidential', '2025-01-08 01:49:57', '2025-01-08 01:49:57'),
-(6, 43, 'Government', 'as', 'asd', 'asd', 'asd', 'asd', '0000-00-00', '0000-00-00', '', '2025-01-10 03:53:17', '2025-01-10 03:53:17'),
-(7, 37, 'Self-employed', 'wegddd', 'asdafsafsa', 'dsaaafaa', 'dsafsa', 'asaaffsa', '2025-01-10', '2025-01-15', '', '2025-01-10 03:56:02', '2025-01-10 03:56:11'),
-(8, 45, 'Employed', 'Alden Image', '', 'Web Developer', '', '', '0000-00-00', '0000-00-00', 'Entered the Ministry po', '2025-01-10 05:54:05', '2025-01-10 05:54:16'),
-(9, 45, 'Employed', 'Bridgeport Mental Health Center', '', 'Dietary Aide', '', '', '0000-00-00', '0000-00-00', 'Graduated', '2025-01-10 05:54:48', '2025-01-10 05:54:48');
+(7, 37, 'Self-employed', 'wegddd', 'asdafsafsa', 'dsaaafaa', 'dsafsa', 'asaaffsa', '2025-01-10', '2025-01-15', '', '2025-01-10 03:56:02', '2025-01-10 03:56:11');
 
 --
 -- Indexes for dumped tables
@@ -2508,7 +2479,7 @@ ALTER TABLE `permission_groups`
 -- AUTO_INCREMENT for table `personnels`
 --
 ALTER TABLE `personnels`
-  MODIFY `personnel_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
+  MODIFY `personnel_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
 
 --
 -- AUTO_INCREMENT for table `personnel_address`
@@ -2568,7 +2539,7 @@ ALTER TABLE `suguan`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=71;
 
 --
 -- AUTO_INCREMENT for table `user_appslist`
