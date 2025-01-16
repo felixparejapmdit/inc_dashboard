@@ -50,7 +50,6 @@ const Login = () => {
 
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Function to retrieve reference number by name and date of birth
   const handleRetrieveReference = async () => {
     if (!name.trim() || !dateOfBirth.trim()) {
       toast({
@@ -64,14 +63,12 @@ const Login = () => {
       return;
     }
 
-    // Split the name into givenname and surname_husband
-    const [givenname, ...surnameParts] = name.split(" ");
-    const surname_husband = surnameParts.join(" ").trim();
-
-    if (!givenname || !surname_husband) {
+    // Attempt to split the name into first, middle, and surname
+    const nameParts = name.split(" ").filter(Boolean);
+    if (nameParts.length < 2) {
       toast({
         title: "Error",
-        description: "Please provide both your first name and surname.",
+        description: "Please provide at least a given name and surname.",
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -79,6 +76,13 @@ const Login = () => {
       });
       return;
     }
+
+    // Assume the first part is the given name and the last part is the surname
+    const givenname = nameParts[0]; // First name
+    const surname_husband = nameParts[nameParts.length - 1]; // Last name
+
+    console.log("Given Name:", givenname);
+    console.log("Surname:", surname_husband);
 
     setIsLoading(true);
     try {

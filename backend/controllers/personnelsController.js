@@ -130,22 +130,21 @@ exports.getReferenceNumber = async (req, res) => {
 
     // Using Sequelize raw query for debugging purposes
     const rawQuery = `
-      SELECT * 
-      FROM personnels 
-      WHERE givenname = :givenname 
-        AND surname_husband = :surname_husband
-        AND date_of_birth = :date_of_birth 
-      LIMIT 1;
-    `;
+  SELECT * 
+  FROM personnels 
+  WHERE givenname LIKE :givenname 
+    AND surname_husband = :surname_husband
+    AND date_of_birth = :date_of_birth 
+  LIMIT 1;
+`;
     const personnelRaw = await sequelize.query(rawQuery, {
       replacements: {
-        givenname: givenname.trim(),
+        givenname: `${givenname.trim()}%`, // Partial match for given names
         surname_husband: surname_husband.trim(),
         date_of_birth: normalizedDate,
       },
       type: sequelize.QueryTypes.SELECT,
     });
-
     if (!personnelRaw || personnelRaw.length === 0) {
       return res.status(404).json({
         message: "No reference number found for the provided details.",

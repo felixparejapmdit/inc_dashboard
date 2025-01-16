@@ -528,42 +528,54 @@ const Step1 = ({
           </Flex>
 
           <Flex
-            align="center"
-            mb="3"
+            alignItems="center"
+            mb="5"
             width="100%"
             wrap="wrap"
             justify="space-between"
-            gap="4"
           >
             {/* Date Joined */}
-            <Box width={{ base: "100%", md: "30%" }}>
-              <Box align="center" width="100%">
-                <Text
-                  fontSize="md"
-                  fontWeight="bold"
-                  mr="2"
-                  color="#0a5856"
-                  whiteSpace="nowrap"
-                >
-                  Date Started in the office:
-                </Text>
-                <Input
-                  placeholder="Date Joined"
-                  name="datejoined"
-                  type="date"
-                  value={personnelData.datejoined}
-                  onChange={(e) =>
-                    handleChange({
-                      target: { name: "datejoined", value: e.target.value },
-                    })
-                  }
-                  width="100%"
-                />
-              </Box>
+            <Box
+              width={{ base: "100%", sm: "48%", md: "24%" }}
+              mb={{ base: "3", md: "0" }}
+            >
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Date Started in the office:
+              </Text>
+              <Input
+                placeholder="Date Joined"
+                name="datejoined"
+                type="date"
+                value={personnelData.datejoined}
+                onChange={(e) =>
+                  handleChange({
+                    target: { name: "datejoined", value: e.target.value },
+                  })
+                }
+                width="100%"
+              />
             </Box>
 
             {/* Language Selector */}
-            <Box width={{ base: "100%", md: "30%" }}>
+            <Box
+              width={{ base: "100%", sm: "48%", md: "24%" }}
+              mb={{ base: "3", md: "0" }}
+            >
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Language:
+              </Text>
               <Select
                 placeholder="Select Language"
                 name="language_id"
@@ -596,9 +608,21 @@ const Step1 = ({
             </Box>
 
             {/* Blood Type Selector */}
-            <Box width={{ base: "100%", md: "30%" }}>
+            <Box
+              width={{ base: "100%", sm: "48%", md: "19%" }}
+              mb={{ base: "3", md: "0" }}
+            >
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Blood Type:
+              </Text>
               <Select
-                placeholder="Select Blood Type"
+                placeholder="Blood Type"
                 name="bloodtype"
                 value={bloodtypes
                   .map((type) => ({
@@ -627,27 +651,15 @@ const Step1 = ({
                 }}
               />
             </Box>
-          </Flex>
 
-          <Flex
-            wrap="nowrap"
-            justify="space-between"
-            align="center"
-            mb="3"
-            width="100%"
-            gap="4"
-            position="relative" // Added for tooltip positioning
-          >
             {/* Email Input Field */}
-            <Flex
-              align="center"
-              width={{ base: "100%", md: "35%" }}
+            <Box
+              width={{ base: "100%", sm: "48%", md: "30%" }}
               mb={{ base: "3", md: "0" }}
-              position="relative" // Added for tooltip positioning
             >
               <Text
                 fontWeight="bold"
-                mr="2"
+                mb="2"
                 minWidth="120px"
                 whiteSpace="nowrap"
                 color="#0a5856"
@@ -683,13 +695,30 @@ const Step1 = ({
                   {emailError}
                 </Box>
               )}
-            </Flex>
+            </Box>
+          </Flex>
 
-            {/* Citizenship Selector */}
+          <Flex
+            align="center"
+            mb="3"
+            width="100%"
+            wrap="wrap"
+            justify="space-between"
+          >
+            {/* Department Selector */}
             <Box
-              width={{ base: "100%", md: "30%" }}
-              mb={{ base: "3", md: "0" }}
+              width={{ base: "100%", md: "48%" }}
+              mb={{ base: "3", md: "3" }}
             >
+              <Text
+                fontWeight="bold"
+                mr="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Citizenship:
+              </Text>
               <Select
                 placeholder="Select Citizenship"
                 name="citizenship"
@@ -723,9 +752,18 @@ const Step1 = ({
 
             {/* Nationality Selector */}
             <Box
-              width={{ base: "100%", md: "30%" }}
-              mb={{ base: "3", md: "0" }}
+              width={{ base: "100%", md: "48%" }}
+              mb={{ base: "3", md: "3" }}
             >
+              <Text
+                fontWeight="bold"
+                mr="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Nationality:
+              </Text>
               <Select
                 placeholder="Select Nationality"
                 name="nationality"
