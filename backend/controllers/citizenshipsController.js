@@ -3,7 +3,9 @@ const Citizenship = require("../models/Citizenship");
 // Get all citizenships
 exports.getAllCitizenships = async (req, res) => {
   try {
-    const citizenships = await Citizenship.findAll();
+    const citizenships = await Citizenship.findAll({
+      order: [["citizenship", "ASC"]], // Order by 'citizenship' in ascending order
+    });
     res.status(200).json(citizenships);
   } catch (error) {
     res.status(500).json({ message: "Error retrieving citizenships", error });

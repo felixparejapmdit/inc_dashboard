@@ -4,7 +4,9 @@ module.exports = {
   // Get all government-issued IDs
   getAllGovernmentIssuedIDs: async (req, res) => {
     try {
-      const governmentIDs = await GovernmentIssuedID.findAll();
+      const governmentIDs = await GovernmentIssuedID.findAll({
+        order: [["name", "ASC"]], // Order by 'name' in ascending order
+      });
       res.status(200).json(governmentIDs);
     } catch (error) {
       console.error("Error fetching government-issued IDs:", error);

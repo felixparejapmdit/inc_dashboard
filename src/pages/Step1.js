@@ -545,7 +545,7 @@ const Step1 = ({
                   color="#0a5856"
                   whiteSpace="nowrap"
                 >
-                  Date Joined:
+                  Date Started in the office:
                 </Text>
                 <Input
                   placeholder="Date Joined"
@@ -1085,7 +1085,6 @@ const Step1 = ({
               personnelData.personnel_type
             ) && (
               <>
-           
                 <Flex align="center" mb="3" width="100%">
                   <Text
                     fontWeight="bold"
@@ -1134,85 +1133,84 @@ const Step1 = ({
                 </Flex>
               </>
             )}
-{/* Conditional Rendering for District and Local Assignments */}
-{personnelData.m_status === "May Destino" && (
-<Flex
-                  align="center"
-                  mb="3"
-                  width="100%"
-                  wrap="wrap"
-                  justify="space-between"
+          {/* Conditional Rendering for District and Local Assignments */}
+          {personnelData.m_status === "May Destino" && (
+            <Flex
+              align="center"
+              mb="3"
+              width="100%"
+              wrap="wrap"
+              justify="space-between"
+            >
+              {/* District Assignment*/}
+              <Box
+                width={{ base: "100%", md: "48%" }}
+                mb={{ base: "3", md: "0" }}
+              >
+                <Text
+                  fontWeight="bold"
+                  mb="2"
+                  minWidth="120px"
+                  whiteSpace="nowrap"
+                  color="#0a5856"
                 >
-                  {/* District Assignment*/}
-                  <Box
-                    width={{ base: "100%", md: "48%" }}
-                    mb={{ base: "3", md: "0" }}
-                  >
-                    <Text
-                      fontWeight="bold"
-                      mb="2"
-                      minWidth="120px"
-                      whiteSpace="nowrap"
-                      color="#0a5856"
-                    >
-                      District Assignment:
-                    </Text>
-                    <Select
-                      placeholder="Select District"
-                      name="district_assignment_id"
-                      value={districts
-                        .map((district) => ({
-                          value: district.id,
-                          label: district.name,
-                        }))
-                        .find(
-                          (option) =>
-                            option.value ===
-                            personnelData.district_assignment_id
-                        )}
-                      onChange={(selectedOption) =>
-                        handleChange({
-                          target: {
-                            name: "district_assignment_id",
-                            value: selectedOption?.value || "",
-                          },
-                        })
-                      }
-                      options={districts.map((district) => ({
-                        value: district.id,
-                        label: district.name,
-                      }))}
-                      isClearable
-                      styles={{
-                        container: (base) => ({
-                          ...base,
-                          width: "100%",
-                        }),
-                      }}
-                    />
-                  </Box>
+                  District Assignment:
+                </Text>
+                <Select
+                  placeholder="Select District"
+                  name="district_assignment_id"
+                  value={districts
+                    .map((district) => ({
+                      value: district.id,
+                      label: district.name,
+                    }))
+                    .find(
+                      (option) =>
+                        option.value === personnelData.district_assignment_id
+                    )}
+                  onChange={(selectedOption) =>
+                    handleChange({
+                      target: {
+                        name: "district_assignment_id",
+                        value: selectedOption?.value || "",
+                      },
+                    })
+                  }
+                  options={districts.map((district) => ({
+                    value: district.id,
+                    label: district.name,
+                  }))}
+                  isClearable
+                  styles={{
+                    container: (base) => ({
+                      ...base,
+                      width: "100%",
+                    }),
+                  }}
+                />
+              </Box>
 
-                  {/* Local Congregation Assignment*/}
-                  <Box width={{ base: "100%", md: "48%" }}>
-                    <Text
-                      fontWeight="bold"
-                      mb="2"
-                      minWidth="120px"
-                      whiteSpace="nowrap"
-                      color="#0a5856"
-                    >
-                      Local Congregation Assignment:
-                    </Text>
-                    <Input
-                      placeholder="Local Congregation"
-                      name="local_congregation_assignment"
-                      value={personnelData.local_congregation_assignment}
-                      onChange={handleChange}
-                      width="100%"
-                    />
-                  </Box>
-                </Flex>
-)}
+              {/* Local Congregation Assignment*/}
+              <Box width={{ base: "100%", md: "48%" }}>
+                <Text
+                  fontWeight="bold"
+                  mb="2"
+                  minWidth="120px"
+                  whiteSpace="nowrap"
+                  color="#0a5856"
+                >
+                  Local Congregation Assignment:
+                </Text>
+                <Input
+                  placeholder="Local Congregation"
+                  name="local_congregation_assignment"
+                  value={personnelData.local_congregation_assignment}
+                  onChange={handleChange}
+                  width="100%"
+                />
+              </Box>
+            </Flex>
+          )}
 
           {/* Panunumpa Date */}
           {personnelData.gender === "Male" &&

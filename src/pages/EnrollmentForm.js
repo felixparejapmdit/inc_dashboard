@@ -174,6 +174,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
     "Master's Degree",
     "Doctorate Degree",
     "Post-Doctorate",
+    "Post-Graduate",
     "Certificate Programs",
     "Professional Degree",
     "Continuing Education",
