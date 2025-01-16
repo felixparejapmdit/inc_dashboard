@@ -8,7 +8,7 @@ import {
   Text,
   Heading,
   Input,
-  Select,
+  //Select,
   Button,
   Table,
   Tbody,
@@ -19,6 +19,7 @@ import {
 } from "@chakra-ui/react";
 import { EditIcon, DeleteIcon, CheckIcon } from "@chakra-ui/icons";
 import axios from "axios";
+import Select from "react-select";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -195,14 +196,14 @@ const Step8 = ({
     }
   };
 
-
-  
   // Function to remove an education entry
   const handleRemoveChild = async (index) => {
     const child = data[index];
 
     if (child.id) {
-      const confirmed = window.confirm("Are you sure you want to delete this child?");
+      const confirmed = window.confirm(
+        "Are you sure you want to delete this child?"
+      );
       if (!confirmed) return;
 
       try {
@@ -231,7 +232,43 @@ const Step8 = ({
     const updatedData = data.filter((_, i) => i !== index);
     setData(updatedData);
   };
-  
+
+  const renderSelect = (placeholder, value, options, onChange, isDisabled) => (
+    <Select
+      placeholder={placeholder}
+      value={
+        value
+          ? options
+              .map((option) => ({
+                value: option.id || option.value,
+                label:
+                  option.name ||
+                  option.label ||
+                  option.suffix ||
+                  option.citizenship ||
+                  option.nationality,
+              }))
+              .find((option) => option.value === value)
+          : null
+      }
+      onChange={(selectedOption) => onChange(selectedOption?.value || "")}
+      options={options.map((option) => ({
+        value: option.id || option.value,
+        label:
+          option.name ||
+          option.label ||
+          option.suffix ||
+          option.citizenship ||
+          option.nationality,
+      }))}
+      isDisabled={isDisabled}
+      isClearable
+      styles={{
+        container: (base) => ({ ...base, width: "100%" }),
+      }}
+    />
+  );
+
   return (
     <Box width="100%" bg="white" boxShadow="sm" my={85} p={5}>
       <Heading as="h2" size="lg" textAlign="center" mb={6}>
@@ -256,24 +293,19 @@ const Step8 = ({
               </Tr>
               <Tr>
                 <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
+                  <Text fontWeight="bold" mb="2" color="#0a5856">
                     Gender:
                   </Text>
-                  <Select
-                    placeholder="Select Gender"
-                    value={child.gender}
-                    onChange={(e) => onChange(index, "gender", e.target.value)}
-                    isDisabled={!child.isEditing}
-                  >
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                  </Select>
+                  {renderSelect(
+                    "Select Gender",
+                    child.gender,
+                    [
+                      { value: "Male", label: "Male" },
+                      { value: "Female", label: "Female" },
+                    ],
+                    (value) => onChange(index, "gender", value),
+                    !child.isEditing
+                  )}
                 </Td>
                 <Td>
                   <Text
@@ -345,21 +377,29 @@ const Step8 = ({
                     Suffix:
                   </Text>
                   <Select
+                    placeholder="Select Suffix"
                     name="suffix"
-                    value={child.suffix || ""}
-                    onChange={(e) => onChange(index, "suffix", e.target.value)}
-                    width="100%"
-                    isDisabled={!child.isEditing || child.gender === "Female"} // Maintains both conditions
-                  >
-                    <option value="" disabled>
-                      Select Suffix
-                    </option>
-                    {suffixOptions.map((suffix) => (
-                      <option key={suffix} value={suffix}>
-                        {suffix}
-                      </option>
-                    ))}
-                  </Select>
+                    value={
+                      child.suffix
+                        ? { value: child.suffix, label: child.suffix }
+                        : null
+                    } // Ensures the selected value matches child.suffix
+                    onChange={(selectedOption) =>
+                      onChange(index, "suffix", selectedOption?.value || "")
+                    } // Updates the suffix field in state
+                    options={suffixOptions.map((suffix) => ({
+                      value: suffix,
+                      label: suffix,
+                    }))} // Maps suffix options to value-label pairs
+                    isDisabled={!child.isEditing || child.gender === "Female"} // Conditionally disable for editing or gender
+                    isClearable // Allow clearing the selection
+                    styles={{
+                      container: (base) => ({
+                        ...base,
+                        width: "100%", // Adjust width to fit the design
+                      }),
+                    }}
+                  />
                 </Td>
 
                 <Td>
@@ -402,58 +442,33 @@ const Step8 = ({
                   />
                 </Td>
                 <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
+                  <Text fontWeight="bold" mb="2" color="#0a5856">
                     Blood Type:
                   </Text>
-                  <Select
-                    placeholder="Select Blood Type"
-                    name="bloodtype"
-                    value={child.bloodtype}
-                    onChange={(e) =>
-                      onChange(index, "bloodtype", e.target.value)
-                    }
-                    isDisabled={!child.isEditing}
-                    width="100%"
-                  >
-                    {bloodtypes.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </Select>
+                  {renderSelect(
+                    "Select Blood Type",
+                    child.bloodtype,
+                    bloodtypes.map((type) => ({ value: type, label: type })),
+                    (value) => onChange(index, "bloodtype", value),
+                    !child.isEditing
+                  )}
                 </Td>
               </Tr>
               <Tr>
                 <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
+                  <Text fontWeight="bold" mb="2" color="#0a5856">
                     Civil Status:
                   </Text>
-                  <Select
-                    placeholder="Civil Status"
-                    value={child.civil_status}
-                    onChange={(e) =>
-                      onChange(index, "civil_status", e.target.value)
-                    }
-                    isDisabled={!child.isEditing}
-                  >
-                    {civilStatusOptions.map((status) => (
-                      <option key={status} value={status}>
-                        {status}
-                      </option>
-                    ))}
-                  </Select>
+                  {renderSelect(
+                    "Select Civil Status",
+                    child.civil_status,
+                    civilStatusOptions.map((status) => ({
+                      value: status,
+                      label: status,
+                    })),
+                    (value) => onChange(index, "civil_status", value),
+                    !child.isEditing
+                  )}
                 </Td>
 
                 <Td>
@@ -497,60 +512,30 @@ const Step8 = ({
                 </Td>
 
                 <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
+                  <Text fontWeight="bold" mb="2" color="#0a5856">
                     Citizenship:
                   </Text>
-                  <Select
-                    placeholder="Select Citizenship"
-                    name="citizenship"
-                    value={child.citizenship}
-                    onChange={(e) =>
-                      onChange(index, "citizenship", e.target.value)
-                    }
-                    isDisabled={!child.isEditing}
-                    width="100%"
-                  >
-                    {citizenships.map((citizenship) => (
-                      <option key={citizenship.id} value={citizenship.id}>
-                        {citizenship.citizenship}
-                      </option>
-                    ))}
-                  </Select>
+                  {renderSelect(
+                    "Select Citizenship",
+                    child.citizenship,
+                    citizenships,
+                    (value) => onChange(index, "citizenship", value),
+                    !child.isEditing
+                  )}
                 </Td>
               </Tr>
               <Tr>
                 <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
+                  <Text fontWeight="bold" mb="2" color="#0a5856">
                     Nationality:
                   </Text>
-                  <Select
-                    placeholder="Select Nationality"
-                    name="nationality"
-                    value={child.nationality}
-                    onChange={(e) =>
-                      onChange(index, "nationality", e.target.value)
-                    }
-                    isDisabled={!child.isEditing}
-                    width="100%"
-                  >
-                    {nationalities.map((nationality) => (
-                      <option key={nationality.id} value={nationality.id}>
-                        {nationality.nationality}
-                      </option>
-                    ))}
-                  </Select>
+                  {renderSelect(
+                    "Select Nationality",
+                    child.nationality,
+                    nationalities,
+                    (value) => onChange(index, "nationality", value),
+                    !child.isEditing
+                  )}
                 </Td>
                 <Td>
                   <Text
@@ -572,32 +557,16 @@ const Step8 = ({
                   />
                 </Td>
                 <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
+                  <Text fontWeight="bold" mb="2" color="#0a5856">
                     District:
                   </Text>
-                  <Select
-                    placeholder="Select District"
-                    name="district_id"
-                    value={child.district_id}
-                    onChange={(e) =>
-                      onChange(index, "district_id", e.target.value)
-                    }
-                    isD
-                    isDisabled={!child.isEditing}
-                    width="100%"
-                  >
-                    {districts.map((district) => (
-                      <option key={district.id} value={district.id}>
-                        {district.name}
-                      </option>
-                    ))}
-                  </Select>
+                  {renderSelect(
+                    "Select District",
+                    child.district_id,
+                    districts,
+                    (value) => onChange(index, "district_id", value),
+                    !child.isEditing
+                  )}
                 </Td>
                 <Td>
                   <Text
@@ -648,10 +617,10 @@ const Step8 = ({
                     whiteSpace="nowrap"
                     color="#0a5856"
                   >
-                    Minister Officiated:
+                    Evangelist:
                   </Text>
                   <Input
-                    placeholder="Minister Officiated"
+                    placeholder="Evangelist"
                     value={child.minister_officiated}
                     onChange={(e) =>
                       onChange(index, "minister_officiated", e.target.value)
@@ -669,29 +638,19 @@ const Step8 = ({
               </Tr>
               <Tr>
                 <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
+                  <Text fontWeight="bold" mb="2" color="#0a5856">
                     Employment Type:
                   </Text>
-                  <Select
-                    placeholder="Employment Type"
-                    value={child.employment_type}
-                    onChange={(e) =>
-                      onChange(index, "employment_type", e.target.value)
-                    }
-                    isDisabled={!child.isEditing}
-                  >
-                    {employmentTypeOptions.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </Select>
+                  {renderSelect(
+                    "Select Employment Type", // Placeholder
+                    child.employment_type, // Current selected value
+                    employmentTypeOptions.map((type) => ({
+                      value: type,
+                      label: type,
+                    })), // Transform `employmentTypeOptions` to value-label pairs
+                    (value) => onChange(index, "employment_type", value), // Handle change
+                    !child.isEditing // Disable when not in edit mode
+                  )}
                 </Td>
                 <Td>
                   <Text
@@ -708,7 +667,7 @@ const Step8 = ({
                     value={child.company}
                     onChange={(e) => onChange(index, "company", e.target.value)}
                     isDisabled={
-                      !child.isEditing || 
+                      !child.isEditing ||
                       ["Volunteer/Kawani"].includes(child.employment_type)
                     } // Disable if employment_type is Volunteer or Kawani
                   />
@@ -867,20 +826,16 @@ const Step8 = ({
                   >
                     Educational Level:
                   </Text>
-                  <Select
-                    placeholder="Education Level"
-                    value={child.education_level}
-                    onChange={(e) =>
-                      onChange(index, "education_level", e.target.value)
-                    }
-                    isDisabled={!child.isEditing}
-                  >
-                    {educationalLevelOptions.map((level) => (
-                      <option key={level} value={level}>
-                        {level}
-                      </option>
-                    ))}
-                  </Select>
+                  {renderSelect(
+                    "Select Educational Level", // Placeholder text
+                    child.education_level, // Selected value
+                    educationalLevelOptions.map((level) => ({
+                      value: level,
+                      label: level,
+                    })), // Options for the dropdown
+                    (value) => onChange(index, "education_level", value), // Change handler
+                    !child.isEditing // Disable editing when not allowed
+                  )}
                 </Td>
                 <Td>
                   <Text
@@ -939,10 +894,9 @@ const Step8 = ({
                     isDisabled={!child.isEditing}
                   />
                 </Td>
-               
               </Tr>
               <Tr>
-              <Td>
+                <Td>
                   <Text
                     fontWeight="bold"
                     mb="2"
@@ -1044,7 +998,6 @@ const Step8 = ({
                     }
                   />
                 </Td>
-               
               </Tr>
 
               {/* Save and Edit Button */}
@@ -1059,11 +1012,11 @@ const Step8 = ({
                     }
                     colorScheme={child.isEditing ? "green" : "blue"}
                   />
-                           <IconButton
-                                                  icon={<DeleteIcon />}
-                                                  colorScheme="red"
-                                                  onClick={() => handleRemoveChild(index)}
-                                                />
+                  <IconButton
+                    icon={<DeleteIcon />}
+                    colorScheme="red"
+                    onClick={() => handleRemoveChild(index)}
+                  />
                 </Td>
               </Tr>
             </Tbody>

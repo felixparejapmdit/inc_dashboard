@@ -537,7 +537,7 @@ const Step1 = ({
           >
             {/* Date Joined */}
             <Box width={{ base: "100%", md: "30%" }}>
-              <Flex align="center" width="100%">
+              <Box align="center" width="100%">
                 <Text
                   fontSize="md"
                   fontWeight="bold"
@@ -559,7 +559,7 @@ const Step1 = ({
                   }
                   width="100%"
                 />
-              </Flex>
+              </Box>
             </Box>
 
             {/* Language Selector */}

@@ -3,7 +3,9 @@ const Subsection = require("../models/Subsection");
 // Get all subsections
 exports.getAllSubsections = async (req, res) => {
   try {
-    const subsections = await Subsection.findAll();
+    const subsections = await Subsection.findAll({
+      order: [["name", "ASC"]], // Order by 'name' in ascending order
+    });
     res.status(200).json(subsections);
   } catch (error) {
     res.status(500).json({ message: "Error retrieving subsections", error });

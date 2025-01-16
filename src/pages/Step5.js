@@ -1,5 +1,6 @@
 // src/pages/Step5.js
 import React, { useState, useEffect } from "react";
+import Select from "react-select";
 import { useSearchParams } from "react-router-dom"; // Import useParams for retrieving URL parameters
 import {
   Box,
@@ -13,7 +14,7 @@ import {
   Text,
   Heading,
   Input,
-  Select,
+  //Select,
   Table,
   Tbody,
   Tr,
@@ -349,19 +350,33 @@ const Step5 = ({
                         <Select
                           placeholder="Select Suffix"
                           name="suffix"
-                          value={parent.suffix} // Default to "" on page load
-                          onChange={(e) => {
-                            onChange(index, "suffix", e.target.value); // Update the state
+                          value={
+                            parent.suffix
+                              ? { value: parent.suffix, label: parent.suffix }
+                              : null // Ensure no default value on load if none exists
+                          }
+                          onChange={(selectedOption) => {
+                            onChange(
+                              index,
+                              "suffix",
+                              selectedOption?.value || ""
+                            ); // Update the state
                           }}
-                          width="100%"
-                          isDisabled={parent.gender === "Female"} // Conditionally disable for Female
-                        >
-                          {suffixOptions.map((suffix) => (
-                            <option key={suffix} value={suffix}>
-                              {suffix}
-                            </option>
-                          ))}
-                        </Select>
+                          options={suffixOptions.map((suffix) => ({
+                            value: suffix,
+                            label: suffix,
+                          }))}
+                          isDisabled={
+                            !parent.isEditing || parent.gender === "Female"
+                          } // Conditionally disable for Female or when not editing
+                          isClearable // Adds a clear button to reset selection
+                          styles={{
+                            container: (base) => ({
+                              ...base,
+                              width: "100%",
+                            }),
+                          }}
+                        />
                       </Td>
                     </Tr>
                     <Tr>
@@ -376,17 +391,30 @@ const Step5 = ({
                           Gender:
                         </Text>
                         <Select
-                          value={
-                            parent.relationship_type === "Father"
-                              ? "Male"
-                              : "Female"
-                          } // Automatically set based on tab
+                          value={{
+                            value:
+                              parent.relationship_type === "Father"
+                                ? "Male"
+                                : "Female",
+                            label:
+                              parent.relationship_type === "Father"
+                                ? "Male"
+                                : "Female",
+                          }} // Automatically set based on relationship_type
+                          options={[
+                            { value: "Male", label: "Male" },
+                            { value: "Female", label: "Female" },
+                          ]} // Define the options for gender
                           isDisabled // Always disabled
-                        >
-                          <option value="Male">Male</option>
-                          <option value="Female">Female</option>
-                        </Select>
+                          styles={{
+                            container: (base) => ({
+                              ...base,
+                              width: "100%",
+                            }),
+                          }}
+                        />
                       </Td>
+
                       <Td>
                         <Text
                           fontWeight="bold"
@@ -440,19 +468,35 @@ const Step5 = ({
                         <Select
                           placeholder="Select Blood Type"
                           name="bloodtype"
-                          value={parent.bloodtype} // Default to empty value if not set
-                          onChange={(e) =>
-                            onChange(index, "bloodtype", e.target.value)
+                          value={bloodtypes
+                            .map((type) => ({
+                              value: type,
+                              label: type,
+                            }))
+                            .find(
+                              (option) => option.value === parent.bloodtype
+                            )} // Match selected value
+                          onChange={
+                            (selectedOption) =>
+                              onChange(
+                                index,
+                                "bloodtype",
+                                selectedOption?.value || ""
+                              ) // Update state on selection
                           }
-                          width="100%"
-                          isDisabled={!parent.isEditing}
-                        >
-                          {bloodtypes.map((type) => (
-                            <option key={type} value={type}>
-                              {type}
-                            </option>
-                          ))}
-                        </Select>
+                          options={bloodtypes.map((type) => ({
+                            value: type,
+                            label: type,
+                          }))}
+                          isClearable
+                          isDisabled={!parent.isEditing} // Conditionally disable dropdown
+                          styles={{
+                            container: (base) => ({
+                              ...base,
+                              width: "100%",
+                            }),
+                          }}
+                        />
                       </Td>
                     </Tr>
                     <Tr>
@@ -468,18 +512,36 @@ const Step5 = ({
                         </Text>
                         <Select
                           placeholder="Select Civil Status"
-                          value={parent.civil_status} // Default to empty value if not set
-                          onChange={(e) =>
-                            onChange(index, "civil_status", e.target.value)
+                          name="civil_status"
+                          value={civilStatusOptions
+                            .map((status) => ({
+                              value: status,
+                              label: status,
+                            }))
+                            .find(
+                              (option) => option.value === parent.civil_status
+                            )} // Match selected value
+                          onChange={
+                            (selectedOption) =>
+                              onChange(
+                                index,
+                                "civil_status",
+                                selectedOption?.value || ""
+                              ) // Update state on selection
                           }
+                          options={civilStatusOptions.map((status) => ({
+                            value: status,
+                            label: status,
+                          }))}
+                          isClearable
                           isDisabled={!parent.isEditing} // Conditionally disable dropdown
-                        >
-                          {civilStatusOptions.map((status) => (
-                            <option key={status} value={status}>
-                              {status}
-                            </option>
-                          ))}
-                        </Select>
+                          styles={{
+                            container: (base) => ({
+                              ...base,
+                              width: "100%",
+                            }),
+                          }}
+                        />
                       </Td>
 
                       <Td>
@@ -534,19 +596,35 @@ const Step5 = ({
                         <Select
                           placeholder="Select Citizenship"
                           name="citizenship"
-                          value={parent.citizenship} // Default to empty value if not set
-                          onChange={(e) =>
-                            onChange(index, "citizenship", e.target.value)
+                          value={citizenships
+                            .map((citizenship) => ({
+                              value: citizenship.id,
+                              label: citizenship.citizenship,
+                            }))
+                            .find(
+                              (option) => option.value === parent.citizenship
+                            )} // Map value for selected option
+                          onChange={
+                            (selectedOption) =>
+                              onChange(
+                                index,
+                                "citizenship",
+                                selectedOption?.value || ""
+                              ) // Update state on selection
                           }
-                          width="100%"
-                          isDisabled={!parent.isEditing}
-                        >
-                          {citizenships.map((citizenship) => (
-                            <option key={citizenship.id} value={citizenship.id}>
-                              {citizenship.citizenship}
-                            </option>
-                          ))}
-                        </Select>
+                          options={citizenships.map((citizenship) => ({
+                            value: citizenship.id,
+                            label: citizenship.citizenship,
+                          }))}
+                          isClearable
+                          isDisabled={!parent.isEditing} // Disable when editing is not enabled
+                          styles={{
+                            container: (base) => ({
+                              ...base,
+                              width: "100%",
+                            }),
+                          }}
+                        />
                       </Td>
                     </Tr>
                     <Tr>
@@ -563,20 +641,37 @@ const Step5 = ({
                         <Select
                           placeholder="Select Nationality"
                           name="nationality"
-                          value={parent.nationality} // Default to empty value if not set
-                          onChange={(e) =>
-                            onChange(index, "nationality", e.target.value)
+                          value={nationalities
+                            .map((nationality) => ({
+                              value: nationality.id,
+                              label: nationality.nationality,
+                            }))
+                            .find(
+                              (option) => option.value === parent.nationality
+                            )} // Map value for selected option
+                          onChange={
+                            (selectedOption) =>
+                              onChange(
+                                index,
+                                "nationality",
+                                selectedOption?.value || ""
+                              ) // Update state on selection
                           }
-                          width="100%"
-                          isDisabled={!parent.isEditing}
-                        >
-                          {nationalities.map((nationality) => (
-                            <option key={nationality.id} value={nationality.id}>
-                              {nationality.nationality}
-                            </option>
-                          ))}
-                        </Select>
+                          options={nationalities.map((nationality) => ({
+                            value: nationality.id,
+                            label: nationality.nationality,
+                          }))}
+                          isClearable
+                          isDisabled={!parent.isEditing} // Disable when editing is not enabled
+                          styles={{
+                            container: (base) => ({
+                              ...base,
+                              width: "100%",
+                            }),
+                          }}
+                        />
                       </Td>
+
                       <Td>
                         <Text
                           fontWeight="bold"
@@ -609,20 +704,37 @@ const Step5 = ({
                         <Select
                           placeholder="Select District"
                           name="district_id"
-                          value={parent.district_id} // Default to empty value if not set
-                          onChange={(e) =>
-                            onChange(index, "district_id", e.target.value)
+                          value={districts
+                            .map((district) => ({
+                              value: district.id,
+                              label: district.name,
+                            }))
+                            .find(
+                              (option) => option.value === parent.district_id
+                            )} // Map value for selected option
+                          onChange={
+                            (selectedOption) =>
+                              onChange(
+                                index,
+                                "district_id",
+                                selectedOption?.value || ""
+                              ) // Update state on selection
                           }
-                          width="100%"
-                          isDisabled={!parent.isEditing}
-                        >
-                          {districts.map((district) => (
-                            <option key={district.id} value={district.id}>
-                              {district.name}
-                            </option>
-                          ))}
-                        </Select>
+                          options={districts.map((district) => ({
+                            value: district.id,
+                            label: district.name,
+                          }))}
+                          isClearable
+                          isDisabled={!parent.isEditing} // Disable when editing is not enabled
+                          styles={{
+                            container: (base) => ({
+                              ...base,
+                              width: "100%",
+                            }),
+                          }}
+                        />
                       </Td>
+
                       <Td>
                         <Text
                           fontWeight="bold"
@@ -676,10 +788,10 @@ const Step5 = ({
                           whiteSpace="nowrap"
                           color="#0a5856"
                         >
-                          Minister Officiated:
+                          Evangelist:
                         </Text>
                         <Input
-                          placeholder="Minister Officiated"
+                          placeholder="Evangelist"
                           value={parent.minister_officiated}
                           onChange={(e) =>
                             onChange(
@@ -712,19 +824,39 @@ const Step5 = ({
                         </Text>
                         <Select
                           placeholder="Select Employment Type"
-                          value={parent.employment_type} // Default to empty value if not set
-                          onChange={(e) =>
-                            onChange(index, "employment_type", e.target.value)
+                          name="employment_type"
+                          value={employmentTypeOptions
+                            .map((type) => ({
+                              value: type,
+                              label: type,
+                            }))
+                            .find(
+                              (option) =>
+                                option.value === parent.employment_type
+                            )} // Map value for selected option
+                          onChange={
+                            (selectedOption) =>
+                              onChange(
+                                index,
+                                "employment_type",
+                                selectedOption?.value || ""
+                              ) // Update state on selection
                           }
-                          isDisabled={!parent.isEditing} // Conditionally disable dropdown
-                        >
-                          {employmentTypeOptions.map((type) => (
-                            <option key={type} value={type}>
-                              {type}
-                            </option>
-                          ))}
-                        </Select>
+                          options={employmentTypeOptions.map((type) => ({
+                            value: type,
+                            label: type,
+                          }))}
+                          isClearable
+                          isDisabled={!parent.isEditing} // Disable when editing is not enabled
+                          styles={{
+                            container: (base) => ({
+                              ...base,
+                              width: "100%",
+                            }),
+                          }}
+                        />
                       </Td>
+
                       <Td>
                         <Text
                           fontWeight="bold"
@@ -742,8 +874,10 @@ const Step5 = ({
                             onChange(index, "company", e.target.value)
                           }
                           isDisabled={
-                            !parent.isEditing || 
-                            ["Volunteer/Kawani"].includes(parent.employment_type)
+                            !parent.isEditing ||
+                            ["Volunteer/Kawani"].includes(
+                              parent.employment_type
+                            )
                           } // Disable if employment_type is Volunteer or Kawani
                         />
                       </Td>
@@ -914,20 +1048,40 @@ const Step5 = ({
                           Educational Level:
                         </Text>
                         <Select
-                          placeholder="Select Education Level"
-                          value={parent.education_level} // Default to empty value if not set
-                          onChange={(e) =>
-                            onChange(index, "education_level", e.target.value)
+                          placeholder="Select Educational Level"
+                          name="education_level"
+                          value={educationalLevelOptions
+                            .map((level) => ({
+                              value: level,
+                              label: level,
+                            }))
+                            .find(
+                              (option) =>
+                                option.value === parent.education_level
+                            )} // Map value for selected option
+                          onChange={
+                            (selectedOption) =>
+                              onChange(
+                                index,
+                                "education_level",
+                                selectedOption?.value || ""
+                              ) // Update state on selection
                           }
+                          options={educationalLevelOptions.map((level) => ({
+                            value: level,
+                            label: level,
+                          }))}
+                          isClearable
                           isDisabled={!parent.isEditing} // Conditionally disable dropdown
-                        >
-                          {educationalLevelOptions.map((level) => (
-                            <option key={level} value={level}>
-                              {level}
-                            </option>
-                          ))}
-                        </Select>
+                          styles={{
+                            container: (base) => ({
+                              ...base,
+                              width: "100%",
+                            }),
+                          }}
+                        />
                       </Td>
+
                       <Td>
                         <Text
                           fontWeight="bold"
@@ -968,7 +1122,7 @@ const Step5 = ({
                           isDisabled={!parent.isEditing}
                         />
                       </Td>
-                      
+
                       <Td>
                         <Text
                           fontWeight="bold"
@@ -990,7 +1144,7 @@ const Step5 = ({
                       </Td>
                     </Tr>
                     <Tr>
-                    <Td>
+                      <Td>
                         <Text
                           fontWeight="bold"
                           mb="2"
@@ -1066,7 +1220,6 @@ const Step5 = ({
                         />
                       </Td>
                       <Td>
-                      
                         <Text
                           fontWeight="bold"
                           mb="2"
@@ -1095,7 +1248,6 @@ const Step5 = ({
                           }
                         />
                       </Td>
-                      
                     </Tr>
 
                     {/* Save Button */}

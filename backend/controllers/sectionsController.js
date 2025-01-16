@@ -3,7 +3,9 @@ const Section = require("../models/Section");
 // Get all sections
 exports.getAllSections = async (req, res) => {
   try {
-    const sections = await Section.findAll();
+    const sections = await Section.findAll({
+      order: [["name", "ASC"]], // Order by 'name' in ascending order
+    });
     res.status(200).json(sections);
   } catch (error) {
     res.status(500).json({ message: "Error retrieving sections", error });

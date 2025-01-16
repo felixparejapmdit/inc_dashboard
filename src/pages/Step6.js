@@ -1,5 +1,6 @@
 // src/pages/Step6.js
 import React, { useState, useEffect } from "react";
+import Select from "react-select";
 import { useSearchParams } from "react-router-dom"; // Import useParams for retrieving URL parameters
 import {
   Box,
@@ -8,7 +9,7 @@ import {
   Text,
   Heading,
   Input,
-  Select,
+  //Select,
   Button,
   Table,
   Tbody,
@@ -195,13 +196,14 @@ const Step6 = ({
     }
   };
 
-
   // Function to remove an education entry
   const handleRemoveSibling = async (index) => {
     const sibling = data[index];
 
     if (sibling.id) {
-      const confirmed = window.confirm("Are you sure you want to delete this sibling?");
+      const confirmed = window.confirm(
+        "Are you sure you want to delete this sibling?"
+      );
       if (!confirmed) return;
 
       try {
@@ -230,7 +232,7 @@ const Step6 = ({
     const updatedData = data.filter((_, i) => i !== index);
     setData(updatedData);
   };
-  
+
   return (
     <Box width="100%" bg="white" boxShadow="sm" my={85} p={5}>
       <Heading as="h2" size="lg" textAlign="center" mb={6}>
@@ -263,14 +265,29 @@ const Step6 = ({
                   </Text>
                   <Select
                     placeholder="Select Gender"
-                    value={sibling.gender}
-                    onChange={(e) => onChange(index, "gender", e.target.value)}
-                    isDisabled={!sibling.isEditing}
-                  >
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                  </Select>
+                    value={
+                      sibling.gender
+                        ? { value: sibling.gender, label: sibling.gender }
+                        : null
+                    } // Ensures the value matches the current sibling.gender
+                    onChange={(selectedOption) =>
+                      onChange(index, "gender", selectedOption?.value || "")
+                    } // Updates state with the selected value
+                    options={[
+                      { value: "Male", label: "Male" },
+                      { value: "Female", label: "Female" },
+                    ]} // Options for gender
+                    isDisabled={!sibling.isEditing} // Disable if editing is not enabled
+                    isClearable // Allow clearing the selection
+                    styles={{
+                      container: (base) => ({
+                        ...base,
+                        width: "100%", // Adjust the container width
+                      }),
+                    }}
+                  />
                 </Td>
+
                 <Td>
                   <Text
                     fontWeight="bold"
@@ -343,23 +360,31 @@ const Step6 = ({
                     Suffix:
                   </Text>
                   <Select
+                    placeholder="Select Suffix"
                     name="suffix"
-                    value={sibling.suffix || ""}
-                    onChange={(e) => onChange(index, "suffix", e.target.value)}
-                    width="100%"
+                    value={
+                      sibling.suffix
+                        ? { value: sibling.suffix, label: sibling.suffix }
+                        : null
+                    } // Ensures the selected value matches sibling.suffix
+                    onChange={(selectedOption) =>
+                      onChange(index, "suffix", selectedOption?.value || "")
+                    } // Updates the suffix field in state
+                    options={suffixOptions.map((suffix) => ({
+                      value: suffix,
+                      label: suffix,
+                    }))} // Maps suffix options to value-label pairs
                     isDisabled={
                       !sibling.isEditing || sibling.gender === "Female"
-                    } // Maintains both conditions
-                  >
-                    <option value="" disabled>
-                      Select Suffix
-                    </option>
-                    {suffixOptions.map((suffix) => (
-                      <option key={suffix} value={suffix}>
-                        {suffix}
-                      </option>
-                    ))}
-                  </Select>
+                    } // Conditionally disable for editing or gender
+                    isClearable // Allow clearing the selection
+                    styles={{
+                      container: (base) => ({
+                        ...base,
+                        width: "100%", // Adjust width to fit the design
+                      }),
+                    }}
+                  />
                 </Td>
 
                 <Td>
@@ -414,19 +439,27 @@ const Step6 = ({
                   <Select
                     placeholder="Select Blood Type"
                     name="bloodtype"
-                    value={sibling.bloodtype || ""}
-                    onChange={
-                      (e) => onChange(index, "bloodtype", e.target.value) // Correct field name
-                    }
-                    isDisabled={!sibling.isEditing}
-                    width="100%"
-                  >
-                    {bloodtypes.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </Select>
+                    value={
+                      sibling.bloodtype
+                        ? { value: sibling.bloodtype, label: sibling.bloodtype }
+                        : null
+                    } // Ensures the selected value matches sibling.bloodtype
+                    onChange={(selectedOption) =>
+                      onChange(index, "bloodtype", selectedOption?.value || "")
+                    } // Updates the bloodtype field in state
+                    options={bloodtypes.map((type) => ({
+                      value: type,
+                      label: type,
+                    }))} // Maps bloodtypes to value-label pairs
+                    isDisabled={!sibling.isEditing} // Disables when editing is not allowed
+                    isClearable // Adds a clear option
+                    styles={{
+                      container: (base) => ({
+                        ...base,
+                        width: "100%", // Adjust width to match layout
+                      }),
+                    }}
+                  />
                 </Td>
               </Tr>
               <Tr>
@@ -441,19 +474,36 @@ const Step6 = ({
                     Civil Status:
                   </Text>
                   <Select
-                    placeholder="Civil Status"
-                    value={sibling.civil_status}
-                    onChange={(e) =>
-                      onChange(index, "civil_status", e.target.value)
-                    }
-                    isDisabled={!sibling.isEditing}
-                  >
-                    {civilStatusOptions.map((status) => (
-                      <option key={status} value={status}>
-                        {status}
-                      </option>
-                    ))}
-                  </Select>
+                    placeholder="Select Civil Status"
+                    name="civil_status"
+                    value={
+                      sibling.civil_status
+                        ? {
+                            value: sibling.civil_status,
+                            label: sibling.civil_status,
+                          }
+                        : null
+                    } // Ensures the selected value matches sibling.civil_status
+                    onChange={(selectedOption) =>
+                      onChange(
+                        index,
+                        "civil_status",
+                        selectedOption?.value || ""
+                      )
+                    } // Updates the civil_status field in state
+                    options={civilStatusOptions.map((status) => ({
+                      value: status,
+                      label: status,
+                    }))} // Maps civilStatusOptions to value-label pairs
+                    isDisabled={!sibling.isEditing} // Disables when editing is not allowed
+                    isClearable // Adds a clear option
+                    styles={{
+                      container: (base) => ({
+                        ...base,
+                        width: "100%", // Adjust width to match layout
+                      }),
+                    }}
+                  />
                 </Td>
 
                 <Td>
@@ -508,19 +558,38 @@ const Step6 = ({
                   <Select
                     placeholder="Select Citizenship"
                     name="citizenship"
-                    value={sibling.citizenship}
-                    onChange={(e) =>
-                      onChange(index, "citizenship", e.target.value)
-                    }
-                    isDisabled={!sibling.isEditing}
-                    width="100%"
-                  >
-                    {citizenships.map((citizenship) => (
-                      <option key={citizenship.id} value={citizenship.id}>
-                        {citizenship.citizenship}
-                      </option>
-                    ))}
-                  </Select>
+                    value={
+                      sibling.citizenship
+                        ? citizenships
+                            .map((citizenship) => ({
+                              value: citizenship.id,
+                              label: citizenship.citizenship,
+                            }))
+                            .find(
+                              (option) => option.value === sibling.citizenship
+                            )
+                        : null
+                    } // Ensures correct mapping of the selected option
+                    onChange={(selectedOption) =>
+                      onChange(
+                        index,
+                        "citizenship",
+                        selectedOption?.value || ""
+                      )
+                    } // Updates citizenship field in state
+                    options={citizenships.map((citizenship) => ({
+                      value: citizenship.id,
+                      label: citizenship.citizenship,
+                    }))} // Maps citizenships to value-label pairs
+                    isDisabled={!sibling.isEditing} // Disables dropdown when editing is not allowed
+                    isClearable // Adds a clear button for the dropdown
+                    styles={{
+                      container: (base) => ({
+                        ...base,
+                        width: "100%", // Adjust width to fit layout
+                      }),
+                    }}
+                  />
                 </Td>
               </Tr>
               <Tr>
@@ -537,20 +606,40 @@ const Step6 = ({
                   <Select
                     placeholder="Select Nationality"
                     name="nationality"
-                    value={sibling.nationality}
-                    onChange={(e) =>
-                      onChange(index, "nationality", e.target.value)
-                    }
-                    isDisabled={!sibling.isEditing}
-                    width="100%"
-                  >
-                    {nationalities.map((nationality) => (
-                      <option key={nationality.id} value={nationality.id}>
-                        {nationality.nationality}
-                      </option>
-                    ))}
-                  </Select>
+                    value={
+                      sibling.nationality
+                        ? nationalities
+                            .map((nationality) => ({
+                              value: nationality.id,
+                              label: nationality.nationality,
+                            }))
+                            .find(
+                              (option) => option.value === sibling.nationality
+                            )
+                        : null
+                    } // Ensures correct mapping of the selected option
+                    onChange={(selectedOption) =>
+                      onChange(
+                        index,
+                        "nationality",
+                        selectedOption?.value || ""
+                      )
+                    } // Updates nationality field in state
+                    options={nationalities.map((nationality) => ({
+                      value: nationality.id,
+                      label: nationality.nationality,
+                    }))} // Maps nationalities to value-label pairs
+                    isDisabled={!sibling.isEditing} // Disables dropdown when editing is not allowed
+                    isClearable // Adds a clear button for the dropdown
+                    styles={{
+                      container: (base) => ({
+                        ...base,
+                        width: "100%", // Adjust width to fit layout
+                      }),
+                    }}
+                  />
                 </Td>
+
                 <Td>
                   <Text
                     fontWeight="bold"
@@ -583,20 +672,40 @@ const Step6 = ({
                   <Select
                     placeholder="Select District"
                     name="district_id"
-                    value={sibling.district_id}
-                    onChange={(e) =>
-                      onChange(index, "district_id", e.target.value)
-                    }
-                    isDisabled={!sibling.isEditing}
-                    width="100%"
-                  >
-                    {districts.map((district) => (
-                      <option key={district.id} value={district.id}>
-                        {district.name}
-                      </option>
-                    ))}
-                  </Select>
+                    value={
+                      sibling.district_id
+                        ? districts
+                            .map((district) => ({
+                              value: district.id,
+                              label: district.name,
+                            }))
+                            .find(
+                              (option) => option.value === sibling.district_id
+                            )
+                        : null
+                    } // Maps the selected value to a valid option
+                    onChange={(selectedOption) =>
+                      onChange(
+                        index,
+                        "district_id",
+                        selectedOption?.value || ""
+                      )
+                    } // Updates the state with the selected district
+                    options={districts.map((district) => ({
+                      value: district.id,
+                      label: district.name,
+                    }))} // Creates dropdown options from the districts array
+                    isDisabled={!sibling.isEditing} // Disables the dropdown if editing is not allowed
+                    isClearable // Adds a clear button to reset the selection
+                    styles={{
+                      container: (base) => ({
+                        ...base,
+                        width: "100%", // Ensures the dropdown fits the layout
+                      }),
+                    }}
+                  />
                 </Td>
+
                 <Td>
                   <Text
                     fontWeight="bold"
@@ -646,10 +755,10 @@ const Step6 = ({
                     whiteSpace="nowrap"
                     color="#0a5856"
                   >
-                    Minister Officiated:
+                    Evangelist:
                   </Text>
                   <Input
-                    placeholder="Minister Officiated"
+                    placeholder="Evangelist"
                     value={sibling.minister_officiated}
                     onChange={(e) =>
                       onChange(index, "minister_officiated", e.target.value)
@@ -677,20 +786,42 @@ const Step6 = ({
                     Employment Type:
                   </Text>
                   <Select
-                    placeholder="Employment Type"
-                    value={sibling.employment_type}
-                    onChange={(e) =>
-                      onChange(index, "employment_type", e.target.value)
-                    }
-                    isDisabled={!sibling.isEditing}
-                  >
-                    {employmentTypeOptions.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </Select>
+                    placeholder="Select Employment Type"
+                    value={
+                      sibling.employment_type
+                        ? employmentTypeOptions
+                            .map((type) => ({
+                              value: type,
+                              label: type,
+                            }))
+                            .find(
+                              (option) =>
+                                option.value === sibling.employment_type
+                            )
+                        : null
+                    } // Maps the selected employment type to a valid option
+                    onChange={(selectedOption) =>
+                      onChange(
+                        index,
+                        "employment_type",
+                        selectedOption?.value || ""
+                      )
+                    } // Updates the state with the selected employment type
+                    options={employmentTypeOptions.map((type) => ({
+                      value: type,
+                      label: type,
+                    }))} // Creates dropdown options from the employmentTypeOptions array
+                    isDisabled={!sibling.isEditing} // Disables the dropdown if editing is not allowed
+                    isClearable // Adds a clear button to reset the selection
+                    styles={{
+                      container: (base) => ({
+                        ...base,
+                        width: "100%", // Ensures the dropdown fits the layout
+                      }),
+                    }}
+                  />
                 </Td>
+
                 <Td>
                   <Text
                     fontWeight="bold"
@@ -706,7 +837,7 @@ const Step6 = ({
                     value={sibling.company}
                     onChange={(e) => onChange(index, "company", e.target.value)}
                     isDisabled={
-                      !sibling.isEditing || 
+                      !sibling.isEditing ||
                       ["Volunteer/Kawani"].includes(sibling.employment_type)
                     } // Disable if employment_type is Volunteer or Kawani
                   />
@@ -866,20 +997,42 @@ const Step6 = ({
                     Educational Level:
                   </Text>
                   <Select
-                    placeholder="Education Level"
-                    value={sibling.education_level}
-                    onChange={(e) =>
-                      onChange(index, "education_level", e.target.value)
-                    }
-                    isDisabled={!sibling.isEditing}
-                  >
-                    {educationalLevelOptions.map((level) => (
-                      <option key={level} value={level}>
-                        {level}
-                      </option>
-                    ))}
-                  </Select>
+                    placeholder="Select Educational Level"
+                    value={
+                      sibling.education_level
+                        ? educationalLevelOptions
+                            .map((level) => ({
+                              value: level,
+                              label: level,
+                            }))
+                            .find(
+                              (option) =>
+                                option.value === sibling.education_level
+                            )
+                        : null
+                    } // Maps sibling.education_level to the corresponding dropdown option
+                    onChange={(selectedOption) =>
+                      onChange(
+                        index,
+                        "education_level",
+                        selectedOption?.value || ""
+                      )
+                    } // Updates the state when a new option is selected
+                    options={educationalLevelOptions.map((level) => ({
+                      value: level,
+                      label: level,
+                    }))} // Creates dropdown options from educationalLevelOptions array
+                    isDisabled={!sibling.isEditing} // Disables dropdown if editing is not allowed
+                    isClearable // Adds a clear button to reset the selection
+                    styles={{
+                      container: (base) => ({
+                        ...base,
+                        width: "100%", // Ensures the dropdown fits the layout
+                      }),
+                    }}
+                  />
                 </Td>
+
                 <Td>
                   <Text
                     fontWeight="bold"
@@ -937,10 +1090,9 @@ const Step6 = ({
                     isDisabled={!sibling.isEditing}
                   />
                 </Td>
-               
               </Tr>
               <Tr>
-              <Td>
+                <Td>
                   <Text
                     fontWeight="bold"
                     mb="2"
@@ -1042,7 +1194,6 @@ const Step6 = ({
                     }
                   />
                 </Td>
-                
               </Tr>
 
               {/* Save and Edit Button */}
@@ -1057,12 +1208,12 @@ const Step6 = ({
                     }
                     colorScheme={sibling.isEditing ? "green" : "blue"}
                   />
-                  
-                              <IconButton
-                                icon={<DeleteIcon />}
-                                colorScheme="red"
-                                onClick={() => handleRemoveSibling(index)}
-                              />
+
+                  <IconButton
+                    icon={<DeleteIcon />}
+                    colorScheme="red"
+                    onClick={() => handleRemoveSibling(index)}
+                  />
                 </Td>
               </Tr>
             </Tbody>

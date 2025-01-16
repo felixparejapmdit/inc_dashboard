@@ -7,7 +7,7 @@ import {
   Text,
   Heading,
   Input,
-  Select,
+  //Select,
   Button,
   Table,
   Tbody,
@@ -18,6 +18,7 @@ import {
 } from "@chakra-ui/react";
 import { EditIcon, DeleteIcon, CheckIcon } from "@chakra-ui/icons";
 import axios from "axios";
+import Select from "react-select";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -230,6 +231,41 @@ const Step7 = ({
     }
   };
 
+  const renderSelect = (placeholder, value, options, onChange, isDisabled) => (
+    <Select
+      placeholder={placeholder} // Placeholder text
+      value={
+        value
+          ? options
+              .map((option) => ({
+                value: option.id || option.value,
+                label:
+                  option.citizenship ||
+                  option.nationality ||
+                  option.label ||
+                  option.name,
+              }))
+              .find((option) => option.value === value)
+          : null
+      } // Find and display the correct selected option
+      onChange={(selectedOption) => onChange(selectedOption?.value || "")} // Update the selected value
+      options={options.map((option) => ({
+        value: option.id || option.value,
+        label:
+          option.citizenship ||
+          option.nationality ||
+          option.label ||
+          option.name,
+      }))} // Map options to value-label pairs
+      isDisabled={isDisabled} // Disable conditionally
+      isClearable // Allow clearing the selection
+      styles={{
+        container: (base) => ({ ...base, width: "100%" }),
+        placeholder: (base) => ({ ...base, color: "#a8a8a8" }),
+      }}
+    />
+  );
+
   return (
     <VStack width="100%" bg="white" boxShadow="sm" my={85} p={5}>
       <Heading as="h2" size="lg" textAlign="center" mb={6}>
@@ -260,22 +296,18 @@ const Step7 = ({
                   >
                     Gender:
                   </Text>
-                  <Select
-                    value={
-                      spouse.gender ||
-                      (enrolleeGender === "Male" ? "Female" : "Male")
-                    } // Dynamically set the value
-                    onChange={(e) => onChange(index, "gender", e.target.value)}
-                    isDisabled={!spouse.isEditing}
-                  >
-                    {/* Dynamically display only the opposite gender */}
-                    {enrolleeGender === "Male" && (
-                      <option value="Female">Female</option>
-                    )}
-                    {enrolleeGender === "Female" && (
-                      <option value="Male">Male</option>
-                    )}
-                  </Select>
+                  {renderSelect(
+                    "Select Gender",
+                    spouse.gender ||
+                      (enrolleeGender === "Male" ? "Female" : "Male"),
+                    [
+                      enrolleeGender === "Male"
+                        ? { value: "Female", label: "Female" }
+                        : { value: "Male", label: "Male" },
+                    ],
+                    (value) => onChange(index, "gender", value),
+                    !spouse.isEditing
+                  )}
                 </Td>
                 <Td>
                   <Text
@@ -347,21 +379,29 @@ const Step7 = ({
                     Suffix:
                   </Text>
                   <Select
+                    placeholder="Select Suffix"
                     name="suffix"
-                    value={spouse.suffix || ""}
-                    onChange={(e) => onChange(index, "suffix", e.target.value)}
-                    width="100%"
-                    isDisabled={!spouse.isEditing || spouse.gender === "Female"} // Maintains both conditions
-                  >
-                    <option value="" disabled>
-                      Select Suffix
-                    </option>
-                    {suffixOptions.map((suffix) => (
-                      <option key={suffix} value={suffix}>
-                        {suffix}
-                      </option>
-                    ))}
-                  </Select>
+                    value={
+                      spouse.suffix
+                        ? { value: spouse.suffix, label: spouse.suffix }
+                        : null
+                    } // Ensures the selected value matches spouse.suffix
+                    onChange={(selectedOption) =>
+                      onChange(index, "suffix", selectedOption?.value || "")
+                    } // Updates the suffix field in state
+                    options={suffixOptions.map((suffix) => ({
+                      value: suffix,
+                      label: suffix,
+                    }))} // Maps suffix options to value-label pairs
+                    isDisabled={!spouse.isEditing || spouse.gender === "Female"} // Conditionally disable for editing or gender
+                    isClearable // Allow clearing the selection
+                    styles={{
+                      container: (base) => ({
+                        ...base,
+                        width: "100%", // Adjust width to fit the design
+                      }),
+                    }}
+                  />
                 </Td>
 
                 <Td>
@@ -404,58 +444,33 @@ const Step7 = ({
                   />
                 </Td>
                 <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
+                  <Text fontWeight="bold" mb="2" color="#0a5856">
                     Blood Type:
                   </Text>
-                  <Select
-                    placeholder="Select Blood Type"
-                    name="bloodtype"
-                    value={spouse.bloodtype}
-                    onChange={(e) =>
-                      onChange(index, "bloodtype", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                    width="100%"
-                  >
-                    {bloodtypes.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </Select>
+                  {renderSelect(
+                    "Select Blood Type",
+                    spouse.bloodtype,
+                    bloodtypes.map((type) => ({ value: type, label: type })),
+                    (value) => onChange(index, "bloodtype", value),
+                    !spouse.isEditing
+                  )}
                 </Td>
               </Tr>
               <Tr>
                 <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
+                  <Text fontWeight="bold" mb="2" color="#0a5856">
                     Civil Status:
                   </Text>
-                  <Select
-                    placeholder="Civil Status"
-                    value={spouse.civil_status}
-                    onChange={(e) =>
-                      onChange(index, "civil_status", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                  >
-                    {civilStatusOptions.map((status) => (
-                      <option key={status} value={status}>
-                        {status}
-                      </option>
-                    ))}
-                  </Select>
+                  {renderSelect(
+                    "Select Civil Status",
+                    spouse.civil_status,
+                    civilStatusOptions.map((status) => ({
+                      value: status,
+                      label: status,
+                    })),
+                    (value) => onChange(index, "civil_status", value),
+                    !spouse.isEditing
+                  )}
                 </Td>
 
                 <Td>
@@ -499,60 +514,30 @@ const Step7 = ({
                 </Td>
 
                 <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
+                  <Text fontWeight="bold" mb="2" color="#0a5856">
                     Citizenship:
                   </Text>
-                  <Select
-                    placeholder="Select Citizenship"
-                    name="citizenship"
-                    value={spouse.citizenship}
-                    onChange={(e) =>
-                      onChange(index, "citizenship", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                    width="100%"
-                  >
-                    {citizenships.map((citizenship) => (
-                      <option key={citizenship.id} value={citizenship.id}>
-                        {citizenship.citizenship}
-                      </option>
-                    ))}
-                  </Select>
+                  {renderSelect(
+                    "Select Citizenship", // Placeholder
+                    spouse.citizenship, // Current selected value
+                    citizenships, // Array of options
+                    (value) => onChange(index, "citizenship", value), // Change handler
+                    !spouse.isEditing // Disable conditionally
+                  )}
                 </Td>
               </Tr>
               <Tr>
                 <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
+                  <Text fontWeight="bold" mb="2" color="#0a5856">
                     Nationality:
                   </Text>
-                  <Select
-                    placeholder="Select Nationality"
-                    name="nationality"
-                    value={spouse.nationality}
-                    onChange={(e) =>
-                      onChange(index, "nationality", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                    width="100%"
-                  >
-                    {nationalities.map((nationality) => (
-                      <option key={nationality.id} value={nationality.id}>
-                        {nationality.nationality}
-                      </option>
-                    ))}
-                  </Select>
+                  {renderSelect(
+                    "Select Nationality",
+                    spouse.nationality,
+                    nationalities,
+                    (value) => onChange(index, "nationality", value),
+                    !spouse.isEditing
+                  )}
                 </Td>
                 <Td>
                   <Text
@@ -574,31 +559,16 @@ const Step7 = ({
                   />
                 </Td>
                 <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
+                  <Text fontWeight="bold" mb="2" color="#0a5856">
                     District:
                   </Text>
-                  <Select
-                    placeholder="Select District"
-                    name="district_id"
-                    value={spouse.district_id}
-                    onChange={(e) =>
-                      onChange(index, "district_id", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                    width="100%"
-                  >
-                    {districts.map((district) => (
-                      <option key={district.id} value={district.id}>
-                        {district.name}
-                      </option>
-                    ))}
-                  </Select>
+                  {renderSelect(
+                    "Select District",
+                    spouse.district_id,
+                    districts,
+                    (value) => onChange(index, "district_id", value),
+                    !spouse.isEditing
+                  )}
                 </Td>
                 <Td>
                   <Text
@@ -649,10 +619,10 @@ const Step7 = ({
                     whiteSpace="nowrap"
                     color="#0a5856"
                   >
-                    Minister Officiated:
+                    Evangelist:
                   </Text>
                   <Input
-                    placeholder="Minister Officiated"
+                    placeholder="Evangelist"
                     value={spouse.minister_officiated}
                     onChange={(e) =>
                       onChange(index, "minister_officiated", e.target.value)
@@ -670,30 +640,21 @@ const Step7 = ({
               </Tr>
               <Tr>
                 <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
+                  <Text fontWeight="bold" mb="2" color="#0a5856">
                     Employment Type:
                   </Text>
-                  <Select
-                    placeholder="Employment Type"
-                    value={spouse.employment_type}
-                    onChange={(e) =>
-                      onChange(index, "employment_type", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                  >
-                    {employmentTypeOptions.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </Select>
+                  {renderSelect(
+                    "Select Employment Type", // Placeholder
+                    spouse.employment_type, // Current selected value
+                    employmentTypeOptions.map((type) => ({
+                      value: type,
+                      label: type,
+                    })), // Transform `employmentTypeOptions` to value-label pairs
+                    (value) => onChange(index, "employment_type", value), // Handle change
+                    !spouse.isEditing // Disable when not in edit mode
+                  )}
                 </Td>
+
                 <Td>
                   <Text
                     fontWeight="bold"
@@ -709,7 +670,7 @@ const Step7 = ({
                     value={spouse.company}
                     onChange={(e) => onChange(index, "company", e.target.value)}
                     isDisabled={
-                      !spouse.isEditing || 
+                      !spouse.isEditing ||
                       ["Volunteer/Kawani"].includes(spouse.employment_type)
                     } // Disable if employment_type is Volunteer or Kawani
                   />
@@ -868,21 +829,18 @@ const Step7 = ({
                   >
                     Educational Level:
                   </Text>
-                  <Select
-                    placeholder="Education Level"
-                    value={spouse.education_level}
-                    onChange={(e) =>
-                      onChange(index, "education_level", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                  >
-                    {educationalLevelOptions.map((level) => (
-                      <option key={level} value={level}>
-                        {level}
-                      </option>
-                    ))}
-                  </Select>
+                  {renderSelect(
+                    "Select Educational Level", // Placeholder text
+                    spouse.education_level, // Selected value
+                    educationalLevelOptions.map((level) => ({
+                      value: level,
+                      label: level,
+                    })), // Options for the dropdown
+                    (value) => onChange(index, "education_level", value), // Change handler
+                    !spouse.isEditing // Disable editing when not allowed
+                  )}
                 </Td>
+
                 <Td>
                   <Text
                     fontWeight="bold"
@@ -940,10 +898,9 @@ const Step7 = ({
                     isDisabled={!spouse.isEditing}
                   />
                 </Td>
-               
               </Tr>
               <Tr>
-              <Td>
+                <Td>
                   <Text
                     fontWeight="bold"
                     mb="2"
@@ -1045,7 +1002,6 @@ const Step7 = ({
                     }
                   />
                 </Td>
-                
               </Tr>
 
               {/* Save and Edit Button */}

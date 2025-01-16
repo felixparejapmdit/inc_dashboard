@@ -3,7 +3,9 @@ const Designation = require("../models/Designation");
 // Get all designations
 exports.getAllDesignations = async (req, res) => {
   try {
-    const designations = await Designation.findAll();
+    const designations = await Designation.findAll({
+      order: [["name", "ASC"]], // Order by 'name' in ascending order
+    });
     res.status(200).json(designations);
   } catch (error) {
     res.status(500).json({ message: "Error retrieving designations", error });

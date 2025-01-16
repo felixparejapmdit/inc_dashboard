@@ -362,7 +362,21 @@ exports.updatePersonnel = async (req, res) => {
     const updates = {};
     for (const key of validFields) {
       if (req.body[key] !== undefined) {
-        updates[key] = req.body[key];
+        // Check for date fields to set NULL if empty
+        if (
+          [
+            "datejoined",
+            "panunumpa_date",
+            "ordination_date",
+            "date_of_birth",
+            "wedding_anniversary",
+          ].includes(key)
+        ) {
+          updates[key] =
+            req.body[key] && req.body[key].trim() !== "" ? req.body[key] : null;
+        } else {
+          updates[key] = req.body[key];
+        }
       }
     }
 

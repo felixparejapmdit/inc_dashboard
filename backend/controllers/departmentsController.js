@@ -3,13 +3,14 @@ const Department = require("../models/Department");
 // Get all departments
 exports.getAllDepartments = async (req, res) => {
   try {
-    const departments = await Department.findAll();
+    const departments = await Department.findAll({
+      order: [["name", "ASC"]], // Order by 'name' in ascending order
+    });
     res.status(200).json(departments);
   } catch (error) {
     res.status(500).json({ message: "Error retrieving departments", error });
   }
 };
-
 // Get a single department by ID
 exports.getDepartmentById = async (req, res) => {
   try {
