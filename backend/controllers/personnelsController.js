@@ -1,7 +1,7 @@
 const Personnel = require("../models/personnels"); // Ensure the correct path
 const User = require("../models/User"); // Ensure this model is correctly defined
 const { Sequelize, Op, fn, col } = require("sequelize"); // Import Sequelize and Op
-
+const Section = require("../models/Section");
 const sequelize = require("../config/database"); // Ensure Sequelize instance is imported
 
 const moment = require("moment");
@@ -11,33 +11,45 @@ exports.getAllNewPersonnels = async (req, res) => {
   try {
     const newPersonnels = await Personnel.findAll({
       attributes: [
-        ["personnel_id", "personnel_id"], // Correct column name for personnel_id
-        "givenname", // Include givenname as a separate field
-        "surname_husband", // Include surname_husband as a separate field
-        [
-          Sequelize.literal(
-            "CONCAT(Personnel.givenname, ' ', Personnel.surname_husband)"
-          ),
-          "fullname", // Alias for the concatenated full name
-        ],
+        "personnel_id", // Include personnel_id
+        "givenname", // Include given name
+        "surname_husband", // Include surname husband
         "email_address", // Include email address
       ],
       include: [
         {
+          model: Section,
+          attributes: ["name"], // Only fetch the section name
+          as: "Section", // Ensure this matches the alias in the `Personnel` model
+        },
+        {
           model: User,
-          attributes: [], // Exclude user attributes
-          required: false, // LEFT JOIN logic
+          attributes: [], // Exclude user attributes from the response
+          as: "user", // Use the alias defined in the User model
+          required: false, // Include personnels even if they have no user
         },
       ],
       where: {
-        "$user.personnel_id$": null, // Filter to include personnels without associated users
+        "$user.id$": null, // Only include personnels without an associated user
       },
     });
 
-    res.status(200).json(newPersonnels); // Return the results
+    // Format the results
+    const formattedResults = newPersonnels.map((personnel) => ({
+      personnel_id: personnel.personnel_id, // Include personnel_id
+      givenname: personnel.givenname, // Include given name
+      surname_husband: personnel.surname_husband, // Include surname husband
+      email_address: personnel.email_address, // Include email address
+      section: personnel.Section ? personnel.Section.name : "No Section", // Show section name or "No Section"
+    }));
+
+    res.status(200).json(formattedResults);
   } catch (error) {
     console.error("Error retrieving new personnels:", error);
-    res.status(500).json({ message: "Error retrieving new personnels", error });
+    res.status(500).json({
+      message: "Error retrieving new personnels",
+      error: error.message,
+    });
   }
 };
 

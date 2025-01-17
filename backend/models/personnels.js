@@ -1,6 +1,8 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
+const Section = require("./Section");
+
 const Personnel = sequelize.define(
   "Personnel",
   {
@@ -166,5 +168,7 @@ const Personnel = sequelize.define(
     updatedAt: "updated_at",
   }
 );
+
+Personnel.belongsTo(Section, { foreignKey: "section_id", as: "Section" });
 
 module.exports = Personnel;

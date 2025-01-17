@@ -685,7 +685,8 @@ const Users = ({ personnelId }) => {
             <Thead>
               <Tr>
                 <Th>#</Th> {/* Row number column */}
-                <Th>Personnel ID</Th>
+                <Th>Personnel ID</Th> {/* Add Personnel ID column */}
+                <Th>Section</Th>
                 <Th>First Name</Th>
                 <Th>Last Name</Th>
                 <Th>Email</Th>
@@ -698,10 +699,15 @@ const Users = ({ personnelId }) => {
                 return (
                   <Tr key={personnel.personnel_id}>
                     <Td>{index + 1}</Td> {/* Display the row number */}
-                    <Td>{personnel.personnel_id}</Td>
-                    <Td>{personnel.givenname}</Td>
-                    <Td>{personnel.surname_husband}</Td>
-                    <Td>{personnel.email_address}</Td>
+                    <Td>{personnel.personnel_id}</Td>{" "}
+                    {/* Display Personnel ID */}
+                    <Td>{personnel.section || "No Section"}</Td>{" "}
+                    {/* Display the section name */}
+                    <Td>{personnel.givenname}</Td> {/* Display first name */}
+                    <Td>{personnel.surname_husband}</Td>{" "}
+                    {/* Display last name */}
+                    <Td>{personnel.email_address}</Td>{" "}
+                    {/* Display email address */}
                     {hasPermission("personnels.sync_to_users") && (
                       <Td>
                         <Button
