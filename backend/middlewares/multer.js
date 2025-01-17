@@ -2,22 +2,24 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-// Set the absolute path to the avatar folder
-const uploadPath = path.join(
-  "C:\\Users\\felix\\Documents\\GitHub\\inc_dashboard\\uploads\\avatar"
-);
+// Set the relative path for the avatar folder
+const uploadPath = path.join(__dirname, "../../uploads/avatar");
 
 // Create the upload folder if it doesn't exist
 if (!fs.existsSync(uploadPath)) {
   fs.mkdirSync(uploadPath, { recursive: true });
+  console.log(`Upload path created at: ${uploadPath}`);
 }
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, uploadPath); // Use the absolute path
+    cb(null, uploadPath); // Use the relative path
   },
   filename: (req, file, cb) => {
-    const uniqueName = `${Date.now()}_${file.originalname}`;
+    const uniqueName = `${Date.now()}_${file.originalname.replace(
+      /\s+/g,
+      "_"
+    )}`; // Replace spaces with underscores
     cb(null, uniqueName); // Generate unique filename
   },
 });

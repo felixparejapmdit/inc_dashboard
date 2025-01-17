@@ -47,7 +47,6 @@ exports.getImagesByPersonnelId = async (req, res) => {
   }
 };
 
-
 exports.deleteImage = async (req, res) => {
   const { id } = req.params;
 
@@ -82,6 +81,8 @@ exports.deleteImage = async (req, res) => {
     res.status(200).json({ message: "Image deleted successfully." });
   } catch (error) {
     console.error("Error deleting image:", error);
-    res.status(500).json({ message: "An error occurred while deleting the image." });
+    res
+      .status(500)
+      .json({ message: "An error occurred while deleting the image." });
   }
 };

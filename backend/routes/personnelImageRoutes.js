@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const upload = require("../middleware/multer"); // Import multer middleware
+const upload = require("../middlewares/multer"); // Import multer middleware
 const personnelImageController = require("../controllers/personnelImageController");
 
 // POST route for uploading personnel images
@@ -16,6 +16,9 @@ router.get(
   personnelImageController.getImagesByPersonnelId
 );
 
-router.delete("/api/personnel_images/:id", personnelImageController.deleteImage);
+router.delete(
+  "/api/personnel_images/:id",
+  personnelImageController.deleteImage
+);
 
 module.exports = router;
