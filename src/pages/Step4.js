@@ -20,10 +20,10 @@ import {
   useToast,
   Flex,
 } from "@chakra-ui/react";
-import { EditIcon, DeleteIcon, CheckIcon,ViewIcon } from "@chakra-ui/icons";
+import { EditIcon, DeleteIcon, CheckIcon, ViewIcon } from "@chakra-ui/icons";
 import axios from "axios";
 
-const Step4 = ({employmentTypeOptions,educationalLevelOptions,}) => {
+const Step4 = ({ employmentTypeOptions, educationalLevelOptions }) => {
   const [education, setEducation] = useState([]);
   const [certificateUploads, setCertificateUploads] = useState({});
   const [workExperience, setWorkExperience] = useState([]);
@@ -62,20 +62,21 @@ const Step4 = ({employmentTypeOptions,educationalLevelOptions,}) => {
           }),
         ]);
 
-             // Safely handle education data
-      const parsedEducation = educationRes?.data?.map((edu) => ({
-        ...edu,
-        certificate_files:
-          edu.certificate_files && typeof edu.certificate_files === "string"
-            ? JSON.parse(edu.certificate_files)
-            : [], // Default to empty array
-      })) || [];
+        // Safely handle education data
+        const parsedEducation =
+          educationRes?.data?.map((edu) => ({
+            ...edu,
+            certificate_files:
+              edu.certificate_files && typeof edu.certificate_files === "string"
+                ? JSON.parse(edu.certificate_files)
+                : [], // Default to empty array
+          })) || [];
 
-      // Safely handle work experience data
-      const workExperienceData = workExperienceRes?.data || [];
+        // Safely handle work experience data
+        const workExperienceData = workExperienceRes?.data || [];
 
-      setEducation(parsedEducation);
-      setWorkExperience(workExperienceData);
+        setEducation(parsedEducation);
+        setWorkExperience(workExperienceData);
       } catch (error) {
         console.error("Error fetching data:", error);
         toast({
@@ -111,173 +112,173 @@ const Step4 = ({employmentTypeOptions,educationalLevelOptions,}) => {
   };
 
   // Save or update educational background
-const handleSaveOrUpdateEducation = async (index) => {
-  const edu = education[index];
-  const payload = {
-    personnel_id: personnelId,
-    level: edu.level, // Ensure `level` is included in the payload
-    startfrom: edu.startfrom,
-    completion_year: edu.completion_year,
-    school: edu.school,
-    field_of_study: edu.field_of_study,
-    degree: edu.degree,
-    institution: edu.institution,
-    professional_licensure_examination:
-      edu.professional_licensure_examination,
-    certificate_files: edu.certificate_files || [], // Ensure this is an array of file paths
-  };
+  const handleSaveOrUpdateEducation = async (index) => {
+    const edu = education[index];
+    const payload = {
+      personnel_id: personnelId,
+      level: edu.level, // Ensure `level` is included in the payload
+      startfrom: edu.startfrom,
+      completion_year: edu.completion_year,
+      school: edu.school,
+      field_of_study: edu.field_of_study,
+      degree: edu.degree,
+      institution: edu.institution,
+      professional_licensure_examination:
+        edu.professional_licensure_examination,
+      certificate_files: edu.certificate_files || [], // Ensure this is an array of file paths
+    };
 
-  try {
-    if (edu.id) {
-      console.log("Updating education:", edu.id, payload);
-      const response = await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/educational-backgrounds/${edu.id}`,
-        payload
-      );
-      toast({
-        title: "Educational background updated successfully.",
-        status: "success",
-        duration: 3000,
-        position: "bottom-left", // Position the toast on the bottom-left
-      });
+    try {
+      if (edu.id) {
+        console.log("Updating education:", edu.id, payload);
+        const response = await axios.put(
+          `${process.env.REACT_APP_API_URL}/api/educational-backgrounds/${edu.id}`,
+          payload
+        );
+        toast({
+          title: "Educational background updated successfully.",
+          status: "success",
+          duration: 3000,
+          position: "bottom-left", // Position the toast on the bottom-left
+        });
 
-      // Update the local state to reflect the saved data
-      const updatedEducation = [...education];
-      updatedEducation[index] = { ...edu, ...response.data };
-      setEducation(updatedEducation);
-    } else {
-      console.log("Saving new education:", payload);
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/educational-backgrounds`,
-        payload
-      );
-      const newEducation = { ...edu, id: response.data.id };
-      const updatedEducation = [...education];
-      updatedEducation[index] = newEducation;
-      setEducation(updatedEducation);
+        // Update the local state to reflect the saved data
+        const updatedEducation = [...education];
+        updatedEducation[index] = { ...edu, ...response.data };
+        setEducation(updatedEducation);
+      } else {
+        console.log("Saving new education:", payload);
+        const response = await axios.post(
+          `${process.env.REACT_APP_API_URL}/api/educational-backgrounds`,
+          payload
+        );
+        const newEducation = { ...edu, id: response.data.id };
+        const updatedEducation = [...education];
+        updatedEducation[index] = newEducation;
+        setEducation(updatedEducation);
 
-      toast({
-        title: "Educational background saved successfully.",
-        status: "success",
-        duration: 3000,
-        position: "bottom-left", // Position the toast on the bottom-left
-      });
-    }
-
-    toggleEditEducation(index);
-  } catch (error) {
-    console.error("Error saving/updating education:", error);
-    toast({
-      title: "Error",
-      description:
-        error.response?.data?.message ||
-        "Failed to save or update education.",
-      status: "error",
-      duration: 3000,
-      position: "bottom-left", // Position the toast on the bottom-left
-    });
-  }
-};
-
-
-const handleCertificateUpload = async (index, files) => {
-  const formData = new FormData();
-  Array.from(files).forEach((file) => formData.append("certificates", file));
-
-  try {
-    const response = await axios.post(
-      `${process.env.REACT_APP_API_URL}/api/upload-certificates`,
-      formData,
-      {
-        headers: { "Content-Type": "multipart/form-data" },
+        toast({
+          title: "Educational background saved successfully.",
+          status: "success",
+          duration: 3000,
+          position: "bottom-left", // Position the toast on the bottom-left
+        });
       }
-    );
 
-    // Update the state with filenames instead of full paths
-    const updatedEducation = [...education];
-    const uploadedFilenames = response.data.filenames; // Array of filenames
-    updatedEducation[index].certificate_files = [
-      ...(updatedEducation[index].certificate_files || []),
-      ...uploadedFilenames,
-    ];
-    setEducation(updatedEducation);
-
-    toast({
-      title: "Certificates uploaded successfully.",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-      position: "bottom-left", // Position the toast on the bottom-left
-    });
-  } catch (error) {
-    console.error("Error uploading certificates:", error.message);
-    toast({
-      title: "Error uploading certificates.",
-      description: error.response?.data?.message || "Please try again.",
-      status: "error",
-      duration: 3000,
-      isClosable: true,
-      position: "bottom-left", // Position the toast on the bottom-left
-    });
-  }
-};
-
-
-  
-const handleRemoveCertificate = async (eduIndex, certIndex) => {
-  try {
-    const updatedEducation = [...education];
-    const edu = updatedEducation[eduIndex];
-
-    // Ensure certificate_files is initialized as an array
-    if (!Array.isArray(edu.certificate_files)) {
-      edu.certificate_files = [];
-    }
-
-    // Get the file to remove
-    const certToRemove = edu.certificate_files[certIndex];
-
-    if (!certToRemove) {
+      toggleEditEducation(index);
+    } catch (error) {
+      console.error("Error saving/updating education:", error);
       toast({
         title: "Error",
-        description: "File not found.",
+        description:
+          error.response?.data?.message ||
+          "Failed to save or update education.",
+        status: "error",
+        duration: 3000,
+        position: "bottom-left", // Position the toast on the bottom-left
+      });
+    }
+  };
+
+  const handleCertificateUpload = async (index, files) => {
+    const formData = new FormData();
+    Array.from(files).forEach((file) => formData.append("certificates", file));
+
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/upload-certificates`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+
+      // Update the state with filenames instead of full paths
+      const updatedEducation = [...education];
+      const uploadedFilenames = response.data.filenames; // Array of filenames
+      updatedEducation[index].certificate_files = [
+        ...(updatedEducation[index].certificate_files || []),
+        ...uploadedFilenames,
+      ];
+      setEducation(updatedEducation);
+
+      toast({
+        title: "Certificates uploaded successfully.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom-left", // Position the toast on the bottom-left
+      });
+    } catch (error) {
+      console.error("Error uploading certificates:", error.message);
+      toast({
+        title: "Error uploading certificates.",
+        description: error.response?.data?.message || "Please try again.",
         status: "error",
         duration: 3000,
         isClosable: true,
         position: "bottom-left", // Position the toast on the bottom-left
       });
-      return;
     }
+  };
 
-    // Make a PUT request to the backend to remove the file from the server and database
-    const response = await axios.put(`${process.env.REACT_APP_API_URL}/api/remove-certificate`, {
-      filePath: certToRemove, // Send only the filename
-      educationId: edu.id, // Include the education ID
-    });
+  const handleRemoveCertificate = async (eduIndex, certIndex) => {
+    try {
+      const updatedEducation = [...education];
+      const edu = updatedEducation[eduIndex];
 
-    // Update the local state with the updated certificate files from the backend
-    edu.certificate_files = response.data.certificate_files; // Use the updated array from the backend
-    setEducation(updatedEducation);
+      // Ensure certificate_files is initialized as an array
+      if (!Array.isArray(edu.certificate_files)) {
+        edu.certificate_files = [];
+      }
 
-    toast({
-      title: "Certificate removed successfully.",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-      position: "bottom-left", // Position the toast on the bottom-left
-    });
-  } catch (error) {
-    console.error("Error removing certificate:", error.message);
-    toast({
-      title: "Error removing certificate.",
-      description: error.response?.data?.message || "Please try again.",
-      status: "error",
-      duration: 3000,
-      isClosable: true,
-      position: "bottom-left", // Position the toast on the bottom-left
-    });
-  }
-};
+      // Get the file to remove
+      const certToRemove = edu.certificate_files[certIndex];
+
+      if (!certToRemove) {
+        toast({
+          title: "Error",
+          description: "File not found.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+          position: "bottom-left", // Position the toast on the bottom-left
+        });
+        return;
+      }
+
+      // Make a PUT request to the backend to remove the file from the server and database
+      const response = await axios.put(
+        `${process.env.REACT_APP_API_URL}/api/remove-certificate`,
+        {
+          filePath: certToRemove, // Send only the filename
+          educationId: edu.id, // Include the education ID
+        }
+      );
+
+      // Update the local state with the updated certificate files from the backend
+      edu.certificate_files = response.data.certificate_files; // Use the updated array from the backend
+      setEducation(updatedEducation);
+
+      toast({
+        title: "Certificate removed successfully.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom-left", // Position the toast on the bottom-left
+      });
+    } catch (error) {
+      console.error("Error removing certificate:", error.message);
+      toast({
+        title: "Error removing certificate.",
+        description: error.response?.data?.message || "Please try again.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom-left", // Position the toast on the bottom-left
+      });
+    }
+  };
 
   const isCertificateUploadAllowed = (level) => {
     const allowedLevels = [
@@ -295,7 +296,6 @@ const handleRemoveCertificate = async (eduIndex, certIndex) => {
     ];
     return allowedLevels.includes(level);
   };
-
 
   // Save or update work experience
   const handleSaveOrUpdateWorkExperience = async (index) => {
@@ -516,7 +516,7 @@ const handleRemoveCertificate = async (eduIndex, certIndex) => {
                 whiteSpace="nowrap"
                 color="#0a5856"
               >
-               Educational Level:
+                Educational Level:
               </Text>
               <Select
                 placeholder="Level"
@@ -526,13 +526,11 @@ const handleRemoveCertificate = async (eduIndex, certIndex) => {
                   handleEducationChange(idx, "level", e.target.value)
                 }
               >
-
                 {educationalLevelOptions.map((level) => (
-                            <option key={level} value={level}>
-                              {level}
-                            </option>
-                          ))}
-
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
               </Select>
             </GridItem>
             <GridItem>
@@ -698,56 +696,60 @@ const handleRemoveCertificate = async (eduIndex, certIndex) => {
                 }
               />
             </GridItem>
-{/* Certificate Upload Section */}
-{isCertificateUploadAllowed(edu.level) && (
-  <GridItem colSpan={4}>
-    <Text fontWeight="bold" mb="2">
-      Upload Certificates:
-    </Text>
-    <Input
-      type="file"
-      accept=".pdf,.jpg,.png"
-      multiple
-      isDisabled={!edu.isEditing}
-      onChange={(e) => handleCertificateUpload(idx, e.target.files)}
-    />
-    <Box mt={4}>
-      {/* Ensure certificate_files is an array before mapping */}
-      {Array.isArray(edu.certificate_files) &&
-  edu.certificate_files.map((file, fileIdx) => (
-    <Flex
-      key={fileIdx}
-      alignItems="center"
-      justifyContent="space-between"
-      mb={2}
-    >
-      <Text>{file}</Text>
-      <Flex>
-        {/* View Icon */}
-        <IconButton
-          icon={<ViewIcon />}
-          colorScheme="blue"
-          size="sm"
-          mr={2}
-          onClick={() =>
-            window.open(`/uploads/certificates/${file}`, "_blank") // Construct the full path
-          }
-        />
-        {/* Delete Icon */}
-        <IconButton
-          icon={<DeleteIcon />}
-          colorScheme="red"
-          size="sm"
-          onClick={() => handleRemoveCertificate(idx, fileIdx)}
-        />
-      </Flex>
-    </Flex>
-  ))}
-
-    </Box>
-  </GridItem>
-)}
-
+            {/* Certificate Upload Section */}
+            {isCertificateUploadAllowed(edu.level) && (
+              <GridItem colSpan={4}>
+                <Text fontWeight="bold" mb="2">
+                  Upload Certificates:
+                </Text>
+                <Input
+                  type="file"
+                  accept=".pdf,.jpg,.png"
+                  multiple
+                  isDisabled={!edu.isEditing}
+                  onChange={(e) => handleCertificateUpload(idx, e.target.files)}
+                />
+                <Box mt={4}>
+                  {/* Ensure certificate_files is an array before mapping */}
+                  {Array.isArray(edu.certificate_files) &&
+                    edu.certificate_files.map((file, fileIdx) => (
+                      <Flex
+                        key={fileIdx}
+                        alignItems="center"
+                        justifyContent="space-between"
+                        mb={2}
+                      >
+                        <Text>{file}</Text>
+                        <Flex>
+                          {/* View Icon */}
+                          <IconButton
+                            icon={<ViewIcon />}
+                            colorScheme="blue"
+                            size="sm"
+                            mr={2}
+                            onClick={
+                              () =>
+                                window.open(
+                                  `/uploads/certificates/${file}`,
+                                  "_blank"
+                                ) // Construct the full path
+                            }
+                          />
+                          {/* Delete Icon */}
+                          <IconButton
+                            icon={<DeleteIcon />}
+                            colorScheme="red"
+                            size="sm"
+                            onClick={() =>
+                              handleRemoveCertificate(idx, fileIdx)
+                            }
+                          />
+                        </Flex>
+                      </Flex>
+                    ))}
+                </Box>
+              </GridItem>
+            )}
           </Grid>
           <Flex justifyContent="flex-end" mt={4}>
             <IconButton
@@ -809,10 +811,10 @@ const handleRemoveCertificate = async (eduIndex, certIndex) => {
                 }
               >
                 {employmentTypeOptions.map((type) => (
-                            <option key={type} value={type}>
-                              {type}
-                            </option>
-                          ))}
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
               </Select>
             </GridItem>
             <GridItem>
@@ -829,7 +831,7 @@ const handleRemoveCertificate = async (eduIndex, certIndex) => {
                 placeholder="Company"
                 value={work.company}
                 isDisabled={
-                  !work.isEditing || 
+                  !work.isEditing ||
                   ["Volunteer/Kawani"].includes(work.employment_type)
                 } // Disable if employment_type is Volunteer or Kawani
                 onChange={(e) =>

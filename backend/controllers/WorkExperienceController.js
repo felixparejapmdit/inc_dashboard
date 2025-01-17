@@ -19,28 +19,8 @@ module.exports = {
   },
 
   addWorkExperience: async (req, res) => {
-    const {
-      personnel_id,
-      employment_type,
-      company,
-      address,
-      position,
-      department,
-      section,
-      start_date,
-      end_date,
-      reason_for_leaving,
-    } = req.body;
-
-    if (!personnel_id || !employment_type || !company) {
-      return res.status(400).json({
-        message:
-          "Personnel ID, employment type, and company are required fields.",
-      });
-    }
-
     try {
-      const newRecord = await WorkExperience.create({
+      const {
         personnel_id,
         employment_type,
         company,
@@ -51,15 +31,57 @@ module.exports = {
         start_date,
         end_date,
         reason_for_leaving,
+      } = req.body;
+
+      // Validation: Ensure required fields are present
+      const requiredFields = ["personnel_id", "employment_type", "company"];
+      const missingFields = requiredFields.filter((field) => !req.body[field]);
+
+      if (missingFields.length > 0) {
+        return res.status(400).json({
+          message: `Missing required fields: ${missingFields.join(", ")}`,
+        });
+      }
+
+      // Check if a record with the same personnel_id and company already exists
+      const existingWorkExperience = await WorkExperience.findOne({
+        where: {
+          personnel_id,
+          company,
+        },
+      });
+
+      if (existingWorkExperience) {
+        return res.status(400).json({
+          message:
+            "A work experience record for this personnel and company already exists.",
+        });
+      }
+
+      // Create new work experience record in the database
+      const newWorkExperience = await WorkExperience.create({
+        personnel_id,
+        employment_type,
+        company,
+        address: address || null,
+        position: position || null,
+        department: department || null,
+        section: section || null,
+        start_date: start_date || null,
+        end_date: end_date || null,
+        reason_for_leaving: reason_for_leaving || null,
         created_at: new Date(),
         updated_at: new Date(),
       });
 
-      res.status(201).json(newRecord);
+      res.status(201).json({
+        message: "Work experience added successfully",
+        workExperience: newWorkExperience,
+      });
     } catch (error) {
       console.error("Error adding work experience:", error.message);
       res.status(500).json({
-        message: "Error adding work experience.",
+        message: "Error adding work experience",
         error: error.message,
       });
     }
