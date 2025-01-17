@@ -130,37 +130,67 @@ exports.updateFamilyMember = async (req, res) => {
       return res.status(404).json({ message: "Family member not found" });
     }
 
-    // Validate required fields only when they're being updated
-    const requiredFields = ["lastname", "gender"];
-    for (const field of requiredFields) {
-      if (
-        req.body[field] !== undefined && // Only validate if the field is being updated
-        (req.body[field] === null || // Check if null
-          (typeof req.body[field] === "string" &&
-            req.body[field].trim() === "")) // Check if empty
-      ) {
-        return res
-          .status(400)
-          .json({ message: `The field ${field} is required.` });
+    // List of valid fields for the FamilyMember model
+    const validFields = [
+      "lastname",
+      "givenname",
+      "middlename",
+      "suffix",
+      "nickname",
+      "gender",
+      "civil_status",
+      "relationship_type",
+      "date_of_birth",
+      "date_of_marriage",
+      "start_date",
+      "end_date",
+      "church_duties",
+      "education_level",
+      "employment_type",
+    ];
+
+    const updates = {};
+
+    // Validate and update
+    for (const key of validFields) {
+      if (req.body[key] !== undefined) {
+        const value = req.body[key];
+        const trimmedValue = typeof value === "string" ? value.trim() : value;
+
+        // Required fields validation
+        if (["lastname", "gender"].includes(key)) {
+          if (trimmedValue === null || trimmedValue === "") {
+            return res.status(400).json({
+              message: `The field ${key} is required.`,
+            });
+          }
+        }
+
+        // Handle date fields (convert empty string to null)
+        if (
+          [
+            "date_of_birth",
+            "date_of_marriage",
+            "start_date",
+            "end_date",
+          ].includes(key)
+        ) {
+          updates[key] = trimmedValue !== "" ? trimmedValue : null;
+        }
+        // Handle other fields
+        else {
+          updates[key] = trimmedValue;
+        }
       }
     }
 
-    // Ensure empty string or undefined dates are converted to null
-    if (req.body.date_of_birth === "") {
-      req.body.date_of_birth = null;
-    }
-    if (req.body.date_of_marriage === "") {
-      req.body.date_of_marriage = null;
-    }
-    if (req.body.start_date === "") {
-      req.body.start_date = null;
-    }
-    if (req.body.end_date === "") {
-      req.body.end_date = null;
-    }
+    console.log("Updates to Apply:", updates);
 
-    await member.update(req.body);
-    res.status(200).json(member);
+    await member.update(updates);
+    res.status(200).json({
+      message: "Family member updated successfully",
+      family_member: member,
+    });
   } catch (error) {
     console.error(
       "Error updating family member:",
