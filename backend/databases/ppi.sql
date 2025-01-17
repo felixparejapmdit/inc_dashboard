@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 16, 2025 at 08:29 PM
+-- Generation Time: Jan 17, 2025 at 09:33 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -67,7 +67,7 @@ CREATE TABLE `available_apps` (
   `id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `app_id` int(11) NOT NULL,
-  `ldap_group_cn` varchar(50) NOT NULL
+  `ldap_group_cn` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -121,7 +121,8 @@ INSERT INTO `available_apps` (`id`, `user_id`, `app_id`, `ldap_group_cn`) VALUES
 (3933, 63, 1, ''),
 (3934, 64, 1, ''),
 (3935, 68, 1, ''),
-(3936, 69, 1, '');
+(3936, 69, 1, ''),
+(3937, 71, 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -1551,19 +1552,19 @@ CREATE TABLE `personnels` (
 --
 
 INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progress`, `personnel_progress`, `gender`, `civil_status`, `wedding_anniversary`, `givenname`, `middlename`, `surname_maiden`, `surname_husband`, `suffix`, `nickname`, `registered_local_congregation`, `date_of_birth`, `place_of_birth`, `datejoined`, `language_id`, `bloodtype`, `email_address`, `citizenship`, `nationality`, `department_id`, `section_id`, `subsection_id`, `designation_id`, `district_id`, `local_congregation`, `personnel_type`, `district_assignment_id`, `local_congregation_assignment`, `assigned_number`, `m_status`, `panunumpa_date`, `ordination_date`, `created_at`, `updated_at`) VALUES
-(10, 'ENR-2412-EP1-8972', '2', 'Enrollment', 'Male', 'Single', NULL, 'Felix', 'Morales', '', 'Pareja', 'No Suffix', 'Chok', 'Bonifacio Drive', '1990-11-09', 'San Francisco Delmonte, Quezon City', '2022-08-22', 1, 'O+', 'felixpareja.pmdit07@gmail.com', 138, 138, 1, 2, 1, 1, 45, 'Tandang Sora', 'Regular', 35, 'Maligaya', 20149, 'May Destino', '2022-09-16', NULL, '2024-12-09 04:43:34', '2025-01-16 12:05:06'),
+(10, 'ENR-2412-EP1-8972', '4', 'Enrollment', 'Male', 'Single', NULL, 'Felix', 'Morales', '', 'Pareja', 'No Suffix', 'Chok', 'Bonifacio Drive', '1990-11-09', 'San Francisco Delmonte, Quezon City', '2022-08-22', 1, 'O+', 'felixpareja.pmdit07@gmail.com', 138, 138, 1, 2, 1, 1, 45, 'Tandang Sora', 'Regular', 35, 'Maligaya', 20149, 'May Destino', '2022-09-16', NULL, '2024-12-09 04:43:34', '2025-01-17 03:03:39'),
 (36, 'ENR-2501-EP1-5540', '1', 'Enrollment', 'Male', 'Single', NULL, 'Michael', NULL, NULL, 'Shohdy', NULL, NULL, NULL, '1992-01-08', NULL, NULL, NULL, NULL, 'abc@yahoo.com', NULL, NULL, NULL, 0, 0, 0, NULL, NULL, 'Regular', NULL, NULL, NULL, 'May Destino', '2025-01-08', NULL, '2025-01-08 04:34:30', '2025-01-16 12:05:08'),
 (37, 'ENR-2501-EP1-3640', '1', 'Enrollment', 'Male', 'Single', NULL, 'Roland Kim', 'Sato', NULL, 'Amaro', NULL, NULL, NULL, '2025-01-08', NULL, NULL, NULL, NULL, 'kim@yahoo.com', NULL, NULL, 1, 2, 1, 1, NULL, NULL, 'Regular', NULL, NULL, NULL, 'Fulltime', '2019-02-07', NULL, '2025-01-08 05:15:21', '2025-01-16 12:05:11'),
 (59, 'ENR-2501-EP1-9274', '1', 'Enrollment', 'Male', 'Single', NULL, 'Policarpio', NULL, NULL, 'Sumbilong', NULL, NULL, NULL, '1996-01-09', NULL, NULL, 1, NULL, 'poli@pmdmc.net', 138, 138, 1, 2, 1, 1, 17, 'Templo Central', 'Regular', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:52:47', '2025-01-16 12:05:13'),
 (60, 'ENR-2501-EP1-9003', '1', 'Enrollment', 'Female', 'Married', NULL, 'Poncia', NULL, NULL, 'Plato', NULL, NULL, NULL, '1996-01-11', NULL, NULL, 1, NULL, 'poli@pmdmc.net', 138, 138, NULL, 0, 0, 0, NULL, NULL, 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:56:16', '2025-01-16 12:05:15'),
 (61, 'ENR-2501-EP1-9018', '1', 'Enrollment', 'Female', 'Married', NULL, 'Laarni', NULL, NULL, 'Eustaquio', NULL, '', NULL, '1996-01-11', NULL, NULL, 1, NULL, 'laitors19@gmail.com', 138, 138, NULL, 0, 0, 0, NULL, NULL, 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:57:52', '2025-01-16 12:05:17'),
-(62, 'ENR-2501-EP1-1659', '1', 'Enrollment', 'Female', 'Married', '2003-01-07', 'Joan', 'Villanueva', 'Endique', 'Solitario', NULL, NULL, 'Templo Central', '1978-03-01', 'Legazpi City, Albay, Philippines', '2013-05-01', 2, 'B+', 'joan.solitario@gmail.com', 185, 138, 1, 9, 0, 0, 45, 'Templo Central', 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:59:58', '2025-01-16 12:05:19'),
-(63, 'ENR-2501-EP1-8509', '1', 'Enrollment', 'Male', 'Single', NULL, 'Harvey Guy', NULL, NULL, 'Mackay', NULL, NULL, NULL, '1984-07-08', NULL, NULL, 1, '', 'harveyguy.mackay@gmail.com', NULL, NULL, NULL, 0, 0, 0, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 04:00:40', '2025-01-16 12:05:21'),
+(62, 'ENR-2501-EP1-1659', '1', 'Enrollment', 'Female', 'Married', '2003-01-07', 'Joan', 'Villanueva', 'Endique', 'Solitario', NULL, NULL, 'Templo Central', '1978-03-01', 'Legazpi City, Albay, Philippines', '2013-05-01', 2, 'B+', 'joan.solitario@gmail.com', 185, 138, 1, 9, 0, 0, 45, 'Templo Central', 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:59:58', '2025-01-17 01:52:24'),
+(63, 'ENR-2501-EP1-8509', '1', 'Enrollment', 'Male', 'Single', NULL, 'Harvey Guy', NULL, NULL, 'Mackay', NULL, NULL, NULL, '1984-07-08', NULL, NULL, 1, '', 'harveyguy.mackay@gmail.com', NULL, NULL, 1, 2, 1, 3, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 04:00:40', '2025-01-17 03:21:00'),
 (64, 'ENR-2501-EP1-7003', '1', 'Enrollment', 'Male', 'Married', NULL, 'Ryan', NULL, NULL, 'Malabanan', NULL, NULL, NULL, '1987-11-19', NULL, NULL, NULL, NULL, 'ryan.malabanan@iglesianicristo.org', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, NULL, 'Fulltime', NULL, NULL, '2025-01-15 04:01:30', '2025-01-16 12:05:22'),
 (65, 'ENR-2501-EP1-7309', '1', 'Enrollment', 'Male', 'Single', NULL, 'Chun-Wei', NULL, NULL, 'Kao', NULL, NULL, 'Luzon1', '2000-05-25', NULL, NULL, NULL, NULL, 'a5514585@icloud.com', NULL, NULL, NULL, 0, 0, 0, NULL, NULL, 'Regular', 45, 'Luzon', NULL, 'May Destino', NULL, NULL, '2025-01-15 04:02:55', '2025-01-16 11:36:53'),
 (67, 'ENR-2501-EP1-1914', '2', 'Enrollment', 'Female', 'Married', NULL, 'Alexandra Nicole', NULL, 'Bernal', 'Dimatulac', NULL, 'Nicki', 'Templo, Central', '1991-12-31', 'Oslo, Norway', '2024-11-15', 2, NULL, 'anicolebdimatulac@gmail.com', 129, 129, 1, 9, NULL, NULL, 45, 'Templo', 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-16 08:10:27', '2025-01-16 12:11:24'),
 (68, 'ENR-2501-EP1-9034', '2', 'Enrollment', 'Female', 'Married', '2015-11-16', 'Frances Nicole', 'Silva', 'Manzanero', 'Sanchez', NULL, 'Nicole', 'Templo Central', '1992-10-05', 'San Pablo City Laguna', '2015-06-19', 2, 'O+', 'nicolemsanchez05@gmail.com', 138, 138, 1, 9, NULL, NULL, 61, 'San Pablo City', 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-16 09:52:24', '2025-01-16 12:11:22'),
-(70, 'ENR-2501-EP1-4904', '2', 'Enrollment', 'Male', 'Married', NULL, 'test po', 'test po', NULL, 'test po', NULL, NULL, NULL, '2025-01-16', NULL, NULL, NULL, NULL, 'abc@yahoo.com', NULL, NULL, NULL, 0, 0, 0, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-16 12:06:00', '2025-01-16 12:07:07');
+(70, 'ENR-2501-EP1-4904', '2', 'Enrollment', 'Male', 'Married', NULL, 'test po1', 'test po', NULL, 'test po', NULL, NULL, NULL, '2025-01-16', NULL, NULL, NULL, NULL, 'abc@yahoo.com', NULL, NULL, 1, 2, 1, 3, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-16 12:06:00', '2025-01-17 03:19:46');
 
 -- --------------------------------------------------------
 
@@ -1625,7 +1626,8 @@ INSERT INTO `personnel_contacts` (`id`, `personnel_id`, `contactype_id`, `contac
 (9, 43, 1, '12321', '2025-01-10 03:52:37', '2025-01-10 03:52:37'),
 (10, 45, 1, '091674741149', '2025-01-10 05:51:35', '2025-01-10 05:51:35'),
 (11, 67, 1, '+639524875466', '2025-01-16 08:11:17', '2025-01-16 08:11:17'),
-(12, 68, 1, '09913497670', '2025-01-16 09:56:49', '2025-01-16 09:56:49');
+(12, 68, 1, '09913497670', '2025-01-16 09:56:49', '2025-01-16 09:56:49'),
+(13, 62, 1, '123', '2025-01-17 01:52:54', '2025-01-17 01:52:54');
 
 -- --------------------------------------------------------
 
@@ -1698,7 +1700,8 @@ CREATE TABLE `personnel_images` (
 
 INSERT INTO `personnel_images` (`id`, `personnel_id`, `type`, `image_url`, `created_at`, `updated_at`) VALUES
 (1, 10, '2x2 Picture', '/uploads/avatar/1732846376187_image.jpg', '2025-01-16 18:29:43', '2025-01-16 18:32:06'),
-(11, 10, 'Whole Body Picture', '/uploads/avatar/1737055353231_1737055353145.png', '2025-01-16 19:22:33', '2025-01-16 19:22:33');
+(11, 10, 'Whole Body Picture', '/uploads/avatar/1737055353231_1737055353145.png', '2025-01-16 19:22:33', '2025-01-16 19:22:33'),
+(17, 70, '2x2 Picture', '/uploads/avatar/1737077992273_1737077992263.png', '2025-01-17 01:39:52', '2025-01-17 01:39:52');
 
 -- --------------------------------------------------------
 
@@ -1761,7 +1764,7 @@ INSERT INTO `sections` (`id`, `department_id`, `name`, `image_url`, `created_at`
 (16, 1, 'Archiving', NULL, '2025-01-16 12:34:26', '2025-01-16 12:34:26'),
 (17, 1, 'Pasugo-GM Editorial', NULL, '2025-01-16 12:34:32', '2025-01-16 12:34:32'),
 (18, 1, 'Building Admin. Office', NULL, '2025-01-16 12:34:37', '2025-01-16 12:34:37'),
-(19, 12, 'INC Original Music', NULL, '2025-01-16 12:42:46', '2025-01-16 12:42:46'),
+(19, 12, 'INC Original Music Production', NULL, '2025-01-17 05:30:47', '2025-01-17 05:30:47'),
 (20, 1, 'Equipment Inventory System', NULL, '2025-01-16 12:35:12', '2025-01-16 12:35:12'),
 (21, 12, 'INC Organ Office', NULL, '2025-01-16 12:42:42', '2025-01-16 12:42:42'),
 (22, 12, 'Church Hymns', NULL, '2025-01-16 12:42:22', '2025-01-16 12:42:22'),
@@ -1840,7 +1843,153 @@ INSERT INTO `sections` (`id`, `department_id`, `name`, `image_url`, `created_at`
 (97, 10, 'EDPS', NULL, '2025-01-16 13:00:13', '2025-01-16 13:00:13'),
 (98, 10, 'Field Auditing I Canteen', NULL, '2025-01-16 13:00:21', '2025-01-16 13:00:21'),
 (99, 10, 'Forms', NULL, '2025-01-16 13:00:26', '2025-01-16 13:00:26'),
-(100, 10, 'Housing', NULL, '2025-01-16 13:00:31', '2025-01-16 13:00:31');
+(100, 10, 'Housing', NULL, '2025-01-16 13:00:31', '2025-01-16 13:00:31'),
+(101, 10, 'Internal Auditing', NULL, '2025-01-17 05:26:57', '2025-01-17 05:26:57'),
+(102, 10, 'Internal Auditing-Disbursement', NULL, '2025-01-17 05:27:03', '2025-01-17 05:27:03'),
+(103, 10, 'Mehoras', NULL, '2025-01-17 05:27:09', '2025-01-17 05:27:09'),
+(104, 10, 'Correspondence-Legal  I', NULL, '2025-01-17 05:27:16', '2025-01-17 05:27:16'),
+(105, 10, 'Correspondence I Foreign  I Lingap', NULL, '2025-01-17 05:27:21', '2025-01-17 05:27:21'),
+(106, 10, 'P-1', NULL, '2025-01-17 05:27:27', '2025-01-17 05:27:27'),
+(107, 10, 'P-10', NULL, '2025-01-17 05:27:33', '2025-01-17 05:27:33'),
+(108, 10, 'P-13 I P-11-1', NULL, '2025-01-17 05:27:39', '2025-01-17 05:27:39'),
+(109, 10, 'P-7', NULL, '2025-01-17 05:27:44', '2025-01-17 05:27:44'),
+(110, 10, 'P-9', NULL, '2025-01-17 05:27:50', '2025-01-17 05:27:50'),
+(111, 10, 'Purchasing Office', NULL, '2025-01-17 05:27:57', '2025-01-17 05:27:57'),
+(112, 10, 'Receiving I Stockroom', NULL, '2025-01-17 05:28:03', '2025-01-17 05:28:03'),
+(113, 10, 'Sundry', NULL, '2025-01-17 05:28:10', '2025-01-17 05:28:10'),
+(114, 10, 'Treasury', NULL, '2025-01-17 05:28:16', '2025-01-17 05:28:16'),
+(115, 10, 'INC Museum', NULL, '2025-01-17 05:28:21', '2025-01-17 05:28:21'),
+(116, 10, 'NELD 1', NULL, '2025-01-17 05:28:27', '2025-01-17 05:28:27'),
+(117, 10, 'NEMD1', NULL, '2025-01-17 05:28:33', '2025-01-17 05:28:33'),
+(118, 10, 'NEMD10', NULL, '2025-01-17 05:28:40', '2025-01-17 05:28:40'),
+(119, 10, 'NEMD12', NULL, '2025-01-17 05:28:48', '2025-01-17 05:28:48'),
+(120, 10, 'NEMD11 & 13', NULL, '2025-01-17 05:28:53', '2025-01-17 05:28:53'),
+(121, 10, 'NEMD2', NULL, '2025-01-17 05:29:01', '2025-01-17 05:29:01'),
+(122, 10, 'NEMD4', NULL, '2025-01-17 05:29:07', '2025-01-17 05:29:07'),
+(123, 10, 'NEMD6', NULL, '2025-01-17 05:29:14', '2025-01-17 05:29:14'),
+(124, 10, 'NEMD7', NULL, '2025-01-17 05:29:19', '2025-01-17 05:29:19'),
+(125, 10, 'NEMD8 &9', NULL, '2025-01-17 05:29:24', '2025-01-17 05:29:24'),
+(126, 10, 'PROPAGATION', NULL, '2025-01-17 05:29:30', '2025-01-17 05:29:30'),
+(127, 16, 'Horticulture & Landscaping', NULL, '2025-01-17 05:29:35', '2025-01-17 05:29:35'),
+(128, 12, 'DEPARTMNENT HEAD OFFICE', NULL, '2025-01-17 05:30:14', '2025-01-17 05:30:14'),
+(129, 17, 'DEPARTMENT HEAD OFFICE', NULL, '2025-01-17 05:31:01', '2025-01-17 05:31:01'),
+(130, 17, 'ENGINEERING', NULL, '2025-01-17 05:31:09', '2025-01-17 05:31:09'),
+(131, 17, 'HUMAN RESOURCE', NULL, '2025-01-17 05:31:15', '2025-01-17 05:31:15'),
+(132, 17, 'PHYSICAL SETUP AND MAINTENANCE', NULL, '2025-01-17 05:31:20', '2025-01-17 05:31:20'),
+(133, 17, 'POST PRODUCTION', NULL, '2025-01-17 05:31:26', '2025-01-17 05:31:26'),
+(134, 17, 'PRODUCTION', NULL, '2025-01-17 05:31:31', '2025-01-17 05:31:31'),
+(135, 18, 'District & Locale Records', NULL, '2025-01-17 05:31:49', '2025-01-17 05:31:49'),
+(136, 18, 'Edification', NULL, '2025-01-17 05:31:55', '2025-01-17 05:31:55'),
+(137, 18, 'Membership', NULL, '2025-01-17 05:32:02', '2025-01-17 05:32:02'),
+(138, 18, 'Ministerial Concern & Call-up Monitoring', NULL, '2025-01-17 05:32:08', '2025-01-17 05:32:08'),
+(139, 18, 'Office Of The General Secretary', NULL, '2025-01-17 05:32:17', '2025-01-17 05:32:17'),
+(140, 17, 'Overseas Mission Office', NULL, '2025-01-17 05:32:51', '2025-01-17 05:32:51'),
+(141, 18, 'R2-10', NULL, '2025-01-17 05:32:58', '2025-01-17 05:32:58'),
+(142, 18, 'RAE Office', NULL, '2025-01-17 05:33:03', '2025-01-17 05:33:03'),
+(143, 18, 'Receiving and Mailing', NULL, '2025-01-17 05:33:10', '2025-01-17 05:33:10'),
+(144, 18, 'Records', NULL, '2025-01-17 05:33:15', '2025-01-17 05:33:15'),
+(145, 18, 'Registry', NULL, '2025-01-17 05:33:24', '2025-01-17 05:33:24'),
+(146, 18, 'Worship Service and Locale Officer', NULL, '2025-01-17 05:33:28', '2025-01-17 05:33:28'),
+(147, 9, 'ACQUISITION', NULL, '2025-01-17 05:33:49', '2025-01-17 05:33:49'),
+(148, 9, 'ADMINISTRATIVE', NULL, '2025-01-17 05:35:02', '2025-01-17 05:35:02'),
+(149, 9, 'ARBITRATION', NULL, '2025-01-17 05:35:14', '2025-01-17 05:35:14'),
+(150, 9, 'ARCHIVES', NULL, '2025-01-17 05:35:20', '2025-01-17 05:35:20'),
+(151, 9, 'CONTRACTS', NULL, '2025-01-17 05:35:26', '2025-01-17 05:35:26'),
+(152, 9, 'CORPORATE REGISTRATION', NULL, '2025-01-17 05:35:37', '2025-01-17 05:35:37'),
+(153, 9, 'CYBER & TECH LAW', NULL, '2025-01-17 05:35:43', '2025-01-17 05:35:43'),
+(154, 9, 'DOCKET & RECORDS', NULL, '2025-01-17 05:35:49', '2025-01-17 05:35:49'),
+(155, 9, 'DONATION', NULL, '2025-01-17 05:35:54', '2025-01-17 05:35:54'),
+(156, 9, 'HGM BUILDING', NULL, '2025-01-17 05:35:59', '2025-01-17 05:35:59'),
+(157, 9, 'ADMINISTRATOR', NULL, '2025-01-17 05:36:05', '2025-01-17 05:36:05'),
+(158, 9, 'IMMIGRATION', NULL, '2025-01-17 05:36:11', '2025-01-17 05:36:11'),
+(159, 9, 'INTELLECTUAL PROPERTY', NULL, '2025-01-17 05:36:17', '2025-01-17 05:36:17'),
+(160, 9, 'INVESTIGATION', NULL, '2025-01-17 05:36:23', '2025-01-17 05:36:23'),
+(161, 9, 'LAND REGISTRATION', NULL, '2025-01-17 05:36:28', '2025-01-17 05:36:28'),
+(162, 9, 'LAND SOLUTIONS', NULL, '2025-01-17 05:36:34', '2025-01-17 05:36:34'),
+(163, 9, 'LIBRARIAN', NULL, '2025-01-17 05:36:41', '2025-01-17 05:36:41'),
+(164, 9, 'LITIGATION', NULL, '2025-01-17 05:36:46', '2025-01-17 05:36:46'),
+(165, 9, 'NOTARIAL', NULL, '2025-01-17 05:36:52', '2025-01-17 05:36:52'),
+(166, 9, 'SURVEYORS', NULL, '2025-01-17 05:36:58', '2025-01-17 05:36:58'),
+(167, 20, 'ADMIN MAINTENANCE OFFICE', NULL, '2025-01-17 05:37:09', '2025-01-17 05:37:09'),
+(168, 20, 'ADMIN-MAINTENANCE-GS1', NULL, '2025-01-17 05:37:16', '2025-01-17 05:37:16'),
+(169, 20, 'ADMIN-MAINTENANCE-GS2', NULL, '2025-01-17 05:37:21', '2025-01-17 05:37:21'),
+(170, 20, 'ADMIN-MAINTENANCE-GS3', NULL, '2025-01-17 05:37:27', '2025-01-17 05:37:27'),
+(171, 20, 'ADMIN-MAINTENANCE-GS4', NULL, '2025-01-17 05:37:32', '2025-01-17 05:37:32'),
+(172, 20, 'ANNEX BUILDING MAINTENANCE', NULL, '2025-01-17 05:37:38', '2025-01-17 05:37:38'),
+(173, 20, 'HGM - MAINTENANCE', NULL, '2025-01-17 05:37:43', '2025-01-17 05:37:43'),
+(174, 20, 'INC MUSEUM MAINTENANCE', NULL, '2025-01-17 05:37:53', '2025-01-17 05:37:53'),
+(175, 20, 'MAIN BUILDING MAINTENANCE', NULL, '2025-01-17 05:37:59', '2025-01-17 05:37:59'),
+(176, 20, 'MINISTER\'S APARTELLE', NULL, '2025-01-17 05:38:05', '2025-01-17 05:38:05'),
+(177, 20, 'OLD CEM MAINTENANCE', NULL, '2025-01-17 05:38:12', '2025-01-17 05:38:12'),
+(178, 20, 'PMD - MAINTENANCE', NULL, '2025-01-17 05:38:20', '2025-01-17 05:38:20'),
+(179, 20, 'SFM BUILDING MAINTENANCE', NULL, '2025-01-17 05:38:26', '2025-01-17 05:38:26'),
+(180, 20, 'TEMPLE MAINTENANCE', NULL, '2025-01-17 05:38:33', '2025-01-17 05:38:33'),
+(181, 20, 'WATER SYSTEM', NULL, '2025-01-17 05:38:38', '2025-01-17 05:38:38'),
+(182, 21, 'OSSA', NULL, '2025-01-17 05:38:49', '2025-01-17 05:38:49'),
+(183, 21, 'CSF /HQ- ADMIN', NULL, '2025-01-17 05:38:54', '2025-01-17 05:38:54'),
+(184, 21, 'CSF/ MUSEUM', NULL, '2025-01-17 05:39:00', '2025-01-17 05:39:00'),
+(185, 21, 'CAHSU', NULL, '2025-01-17 05:39:05', '2025-01-17 05:39:05'),
+(186, 21, 'CLSU', NULL, '2025-01-17 05:39:11', '2025-01-17 05:39:11'),
+(187, 21, 'CSU', NULL, '2025-01-17 05:39:17', '2025-01-17 05:39:17'),
+(188, 21, 'CTSU', NULL, '2025-01-17 05:39:23', '2025-01-17 05:39:23'),
+(189, 21, 'DSD', NULL, '2025-01-17 05:39:29', '2025-01-17 05:39:29'),
+(190, 21, 'EBCBSU', NULL, '2025-01-17 05:39:34', '2025-01-17 05:39:34'),
+(191, 21, 'INCSD K9 UNIT', NULL, '2025-01-17 05:39:40', '2025-01-17 05:39:40'),
+(192, 21, 'FYMSD', NULL, '2025-01-17 05:39:46', '2025-01-17 05:39:46'),
+(193, 21, 'RMS', NULL, '2025-01-17 05:39:52', '2025-01-17 05:39:52'),
+(194, 21, 'INCSFMSU', NULL, '2025-01-17 05:39:58', '2025-01-17 05:39:58'),
+(195, 21, 'MFSD', NULL, '2025-01-17 05:40:05', '2025-01-17 05:40:05'),
+(196, 21, 'NEFFU', NULL, '2025-01-17 05:40:11', '2025-01-17 05:40:11'),
+(197, 21, 'NEGHSU', NULL, '2025-01-17 05:40:17', '2025-01-17 05:40:17'),
+(198, 21, 'NEHSU', NULL, '2025-01-17 05:40:24', '2025-01-17 05:40:24'),
+(199, 21, 'NEQSU', NULL, '2025-01-17 05:40:29', '2025-01-17 05:40:29'),
+(200, 21, 'NEUSU', NULL, '2025-01-17 05:40:35', '2025-01-17 05:40:35'),
+(201, 21, 'PSBSU', NULL, '2025-01-17 05:40:40', '2025-01-17 05:40:40'),
+(202, 21, 'RSG', NULL, '2025-01-17 05:40:48', '2025-01-17 05:40:48'),
+(203, 21, 'SMU', NULL, '2025-01-17 05:40:54', '2025-01-17 05:40:54'),
+(204, 21, 'ESD', NULL, '2025-01-17 05:41:20', '2025-01-17 05:41:20'),
+(205, 21, 'TSHSU', NULL, '2025-01-17 05:42:10', '2025-01-17 05:42:10'),
+(206, 21, 'TSFFU', NULL, '2025-01-17 05:42:17', '2025-01-17 05:42:17'),
+(207, 21, 'VCSU', NULL, '2025-01-17 05:42:24', '2025-01-17 05:42:24'),
+(208, 22, 'ADMIN  UTILITY', NULL, '2025-01-17 05:42:33', '2025-01-17 05:42:33'),
+(209, 22, 'CENTRAL ANNEX UTILITY', NULL, '2025-01-17 05:42:42', '2025-01-17 05:42:42'),
+(210, 22, 'CONDOMINIUM', NULL, '2025-01-17 05:42:49', '2025-01-17 05:42:49'),
+(211, 22, 'DEPARTMENT  HEAD OFFICE', NULL, '2025-01-17 05:42:55', '2025-01-17 05:42:55'),
+(212, 22, 'FYM CONFIDENTIAL', NULL, '2025-01-17 05:43:00', '2025-01-17 05:43:00'),
+(213, 22, 'HGM', NULL, '2025-01-17 05:43:07', '2025-01-17 05:43:07'),
+(214, 22, 'MAIN BUILDING', NULL, '2025-01-17 05:43:13', '2025-01-17 05:43:13'),
+(215, 22, 'MINISTER\'S APARTELLE', NULL, '2025-01-17 05:43:18', '2025-01-17 05:43:18'),
+(216, 22, 'OLD CEM UTILITY', NULL, '2025-01-17 05:43:26', '2025-01-17 05:43:26'),
+(217, 22, 'PMD', NULL, '2025-01-17 05:43:33', '2025-01-17 05:43:33'),
+(218, 22, 'SGM', NULL, '2025-01-17 05:43:39', '2025-01-17 05:43:39'),
+(219, 22, 'TEMPLE UTILITY', NULL, '2025-01-17 05:43:45', '2025-01-17 05:43:45'),
+(220, 22, 'UTILITY CLEANING TEAM', NULL, '2025-01-17 05:43:51', '2025-01-17 05:43:51'),
+(221, 22, 'UTILITY SUPPORT SERVICE TEAM', NULL, '2025-01-17 05:43:57', '2025-01-17 05:43:57'),
+(222, 23, 'ADMISSIONS', NULL, '2025-01-17 05:44:12', '2025-01-17 05:44:12'),
+(223, 23, 'BUILDING ADMINISTRATOR', NULL, '2025-01-17 05:44:19', '2025-01-17 05:44:19'),
+(224, 23, 'CENTER FOR LANGUAGE STUDIES', NULL, '2025-01-17 05:44:31', '2025-01-17 05:44:31'),
+(225, 23, 'CLINIC', NULL, '2025-01-17 05:45:06', '2025-01-17 05:45:06'),
+(226, 23, 'COMMITTEE ON DISCIPLINE', NULL, '2025-01-17 05:45:14', '2025-01-17 05:45:14'),
+(227, 23, 'DOKTRINA', NULL, '2025-01-17 05:45:20', '2025-01-17 05:45:20'),
+(228, 23, 'OFFICE OF THE DIRECTOR', NULL, '2025-01-17 05:45:29', '2025-01-17 05:45:29'),
+(229, 23, 'FINANCE', NULL, '2025-01-17 05:45:36', '2025-01-17 05:45:36'),
+(230, 23, 'GYMNASIUM', NULL, '2025-01-17 05:45:43', '2025-01-17 05:45:43'),
+(231, 23, 'HIGH SCHOOL', NULL, '2025-01-17 05:45:50', '2025-01-17 05:45:50'),
+(232, 23, 'INFORMATION TECHNOLOGY', NULL, '2025-01-17 05:45:55', '2025-01-17 05:45:55'),
+(233, 23, 'LIBRARY', NULL, '2025-01-17 05:46:08', '2025-01-17 05:46:08'),
+(234, 23, 'MINISTERIAL', NULL, '2025-01-17 05:46:14', '2025-01-17 05:46:14'),
+(235, 23, 'MINISTERIAL EXTENSION', NULL, '2025-01-17 05:46:21', '2025-01-17 05:46:21'),
+(236, 23, 'OFFICE', NULL, '2025-01-17 05:46:27', '2025-01-17 05:46:27'),
+(237, 23, 'OFFICE OF THE ASSISTANT DEAN', NULL, '2025-01-17 05:46:32', '2025-01-17 05:46:32'),
+(238, 23, 'OFFICE OF THE DEAN', NULL, '2025-01-17 05:46:38', '2025-01-17 05:46:38'),
+(239, 23, 'OFFICE OF THE PRESIDENT', NULL, '2025-01-17 05:46:44', '2025-01-17 05:46:44'),
+(240, 23, 'PERSONNEL', NULL, '2025-01-17 05:46:50', '2025-01-17 05:46:50'),
+(241, 23, 'PREACHING', NULL, '2025-01-17 05:46:56', '2025-01-17 05:46:56'),
+(242, 23, 'REGISTRAR', NULL, '2025-01-17 05:47:02', '2025-01-17 05:47:02'),
+(243, 23, 'SCIENCE AND MATHEMATICS', NULL, '2025-01-17 05:47:08', '2025-01-17 05:47:08'),
+(244, 23, 'SFM COUNSELING OFFICE', NULL, '2025-01-17 05:47:17', '2025-01-17 05:47:17'),
+(245, 23, 'SOCIAL SCIENCES', NULL, '2025-01-17 05:47:24', '2025-01-17 05:47:24'),
+(246, 23, 'STUDENTS AFFAIRS OFFICE', NULL, '2025-01-17 05:47:56', '2025-01-17 05:47:56');
 
 -- --------------------------------------------------------
 
@@ -1975,7 +2124,7 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (43, 'executive.news', NULL, NULL, 'executive.news', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (44, 'pmd.it', NULL, '', 'pmd.it', '{SSHA}LYVyCEUbqbnRdJMh/NGuR38z6zbsDKG+', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (45, 'r.deguzman', NULL, NULL, 'r.deguzman', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(46, 'felix.pareja', 10, '/uploads/avatar/1732846376187_image.jpg', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-28 13:25:36'),
+(46, 'felix.pareja', 10, '/uploads/avatar/1732846376187_image.jpg', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-28 13:25:36'),
 (48, NULL, NULL, '/uploads/avatar/1732867059276_icons8-fitbit-50.png', 'admin', '$2a$12$ZXhnczgjZG4QAa4oGMH5eOt0.a9urccMHJ0/FBYB5zCe2/zfh3dEO', 0, NULL, 'Local', NULL, NULL, NULL, NULL),
 (68, 'asalvador', 13, '', 'asalvador', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2025-01-08 03:16:34', '2025-01-08 03:16:34'),
 (50, 'dalferez', NULL, NULL, 'dalferez', '{MD5}/DfLoL+7ApalWUrlZU0Q0Q==', 0, NULL, 'LDAP', 0, NULL, '2025-01-02 08:54:55', '2025-01-02 08:54:55'),
@@ -1993,7 +2142,8 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (62, 'jilmark.regencia', NULL, NULL, 'jilmark.regencia', '{MD5}xJ9BRRU8UiAVyi7KgJp1Pg==', 0, NULL, 'LDAP', 0, NULL, '2025-01-02 08:54:55', '2025-01-02 08:54:55'),
 (63, 'lumayam', NULL, '', 'lumayam', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2025-01-02 08:54:55', '2025-01-02 08:54:55'),
 (69, 'mshohdy', 36, '', 'mshohdy', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2025-01-08 05:07:55', '2025-01-08 05:07:55'),
-(70, 'nsanchez', NULL, NULL, 'nsanchez', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2025-01-14 07:18:06', '2025-01-14 07:18:06');
+(70, 'nsanchez', NULL, NULL, 'nsanchez', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2025-01-14 07:18:06', '2025-01-14 07:18:06'),
+(71, 'nicole.dimatulac', 67, '', 'nicole.dimatulac', '{MD5}jShANJIIW3KewfMYeLD0NQ==', 0, NULL, 'LDAP', 0, NULL, '2025-01-17 03:47:09', '2025-01-17 03:47:09');
 
 -- --------------------------------------------------------
 
@@ -2126,7 +2276,8 @@ INSERT INTO `user_group_mappings` (`user_id`, `group_id`) VALUES
 (49, 3),
 (63, 3),
 (68, 3),
-(69, 3);
+(69, 3),
+(71, 3);
 
 -- --------------------------------------------------------
 
@@ -2464,7 +2615,7 @@ ALTER TABLE `apps`
 -- AUTO_INCREMENT for table `available_apps`
 --
 ALTER TABLE `available_apps`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3937;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3938;
 
 --
 -- AUTO_INCREMENT for table `children`
@@ -2602,7 +2753,7 @@ ALTER TABLE `personnel_address`
 -- AUTO_INCREMENT for table `personnel_contacts`
 --
 ALTER TABLE `personnel_contacts`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `personnel_documents`
@@ -2620,7 +2771,7 @@ ALTER TABLE `personnel_gov_id`
 -- AUTO_INCREMENT for table `personnel_images`
 --
 ALTER TABLE `personnel_images`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `reminders`
@@ -2632,7 +2783,7 @@ ALTER TABLE `reminders`
 -- AUTO_INCREMENT for table `sections`
 --
 ALTER TABLE `sections`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=101;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=247;
 
 --
 -- AUTO_INCREMENT for table `subsections`
@@ -2650,7 +2801,7 @@ ALTER TABLE `suguan`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=71;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=72;
 
 --
 -- AUTO_INCREMENT for table `user_appslist`
