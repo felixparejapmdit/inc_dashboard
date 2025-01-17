@@ -361,6 +361,10 @@ exports.updatePersonnel = async (req, res) => {
     const updates = {};
     for (const key of validFields) {
       if (req.body[key] !== undefined) {
+        // Ensure the value is a string for trimming
+        const value = req.body[key];
+        const trimmedValue = typeof value === "string" ? value.trim() : value;
+
         // Check for date fields to set NULL if empty
         if (
           [
@@ -371,8 +375,7 @@ exports.updatePersonnel = async (req, res) => {
             "wedding_anniversary",
           ].includes(key)
         ) {
-          updates[key] =
-            req.body[key] && req.body[key].trim() !== "" ? req.body[key] : null;
+          updates[key] = trimmedValue !== "" ? trimmedValue : null;
         }
         // Check for specified columns to set 0 if empty
         else if (
@@ -388,12 +391,11 @@ exports.updatePersonnel = async (req, res) => {
             "district_assignment_id",
           ].includes(key)
         ) {
-          updates[key] =
-            req.body[key] && req.body[key].trim() !== "" ? req.body[key] : 0;
+          updates[key] = trimmedValue !== "" ? trimmedValue : 0;
         }
         // For all other fields, assign the provided value
         else {
-          updates[key] = req.body[key];
+          updates[key] = trimmedValue;
         }
       }
     }
