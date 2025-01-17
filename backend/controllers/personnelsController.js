@@ -276,16 +276,16 @@ exports.createPersonnel = async (req, res) => {
       date_of_birth: personnelData.date_of_birth || null,
       place_of_birth: personnelData.place_of_birth || null,
       datejoined: personnelData.datejoined || null,
-      language_id: personnelData.language_id || null,
+      language_id: personnelData.language_id || 0,
       bloodtype: personnelData.bloodtype || null,
       email_address: personnelData.email_address || null,
-      citizenship: personnelData.citizenship || null,
-      nationality: personnelData.nationality || null,
-      department_id: personnelData.department_id || null,
-      section_id: personnelData.section_id || null,
-      subsection_id: personnelData.subsection_id || null,
-      designation_id: personnelData.designation_id || null,
-      district_id: personnelData.district_id || null,
+      citizenship: personnelData.citizenship || 0,
+      nationality: personnelData.nationality || 0,
+      department_id: personnelData.department_id || 0,
+      section_id: personnelData.section_id || 0,
+      subsection_id: personnelData.subsection_id || 0,
+      designation_id: personnelData.designation_id || 0,
+      district_id: personnelData.district_id || 0,
       local_congregation: personnelData.local_congregation || null,
       personnel_type: personnelData.personnel_type || null,
       district_assignment_id: personnelData.district_assignment_id || null,
@@ -373,7 +373,26 @@ exports.updatePersonnel = async (req, res) => {
         ) {
           updates[key] =
             req.body[key] && req.body[key].trim() !== "" ? req.body[key] : null;
-        } else {
+        }
+        // Check for specified columns to set 0 if empty
+        else if (
+          [
+            "language_id",
+            "citizenship",
+            "nationality",
+            "department_id",
+            "section_id",
+            "subsection_id",
+            "designation_id",
+            "district_id",
+            "district_assignment_id",
+          ].includes(key)
+        ) {
+          updates[key] =
+            req.body[key] && req.body[key].trim() !== "" ? req.body[key] : 0;
+        }
+        // For all other fields, assign the provided value
+        else {
           updates[key] = req.body[key];
         }
       }
