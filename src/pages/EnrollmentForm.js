@@ -397,12 +397,55 @@ const EnrollmentForm = ({ referenceNumber }) => {
     const { name, value } = e.target;
 
     setPersonnelData((prevData) => {
-      const updatedData = { ...prevData, [name]: value };
+      let updatedData = { ...prevData, [name]: value };
 
-      // Conditional logic for email validation
-      if (name === "email_address") {
-        validateEmail(value);
-      }
+
+// Reset dependent dropdowns based on the changed field
+if (name === "department_id") {
+  // When department changes, reset section, subsection, and designation
+  updatedData = {
+    ...updatedData,
+    section_id: "",
+    subsection_id: "",
+    designation_id: "",
+  };
+} else if (name === "section_id") {
+  // When section changes, reset subsection and designation
+  updatedData = {
+    ...updatedData,
+    subsection_id: "",
+    designation_id: "",
+  };
+} else if (name === "subsection_id") {
+  // When subsection changes, reset designation
+  updatedData = {
+    ...updatedData,
+    designation_id: "",
+  };
+}
+
+
+     // Email validation while typing
+if (name === "email_address") {
+  const emailPattern =
+    /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/; // Improved email regex pattern
+
+  const invalidDomainPattern = /(\.\.)|(\.\d)|(\.$)/; // Checks for invalid multiple dots, trailing dots, or dots followed by numbers
+
+  if (!value.trim()) {
+    setEmailError("Email address cannot be empty!");
+  } else if (!emailPattern.test(value)) {
+    setEmailError("Please enter a valid email address!");
+  } else if (invalidDomainPattern.test(value)) {
+    setEmailError("Email address contains invalid domain formatting!");
+  } else if (value.length > 254) {
+    setEmailError("Email address is too long!");
+  } else {
+    setEmailError(""); // Clear the error if email is valid
+  }
+}
+
+
 
       // Conditional logic for civil_status
       if (name === "civil_status") {
@@ -424,16 +467,39 @@ const EnrollmentForm = ({ referenceNumber }) => {
     });
   };
 
-  const validateEmail = (email) => {
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    setEmailError(
-      !emailPattern.test(email) ? "Please enter a valid email address." : ""
-    );
-  };
-
   const handleNext = async () => {
     setIsLoading(true);
     try {
+
+      // Email validation before proceeding
+    if (!personnelData.email_address) {
+      toast({
+        title: "Validation Error",
+        description: "Email Address is required.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom-left",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(personnelData.email_address)) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter a valid email address.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom-left",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+
       // Ensure step is derived from URL for accurate calculations
       const currentStep = parseInt(searchParams.get("step"), 10) || 1;
 
@@ -1041,9 +1107,15 @@ const EnrollmentForm = ({ referenceNumber }) => {
           </Button>
         )}
         {step < 8 ? (
-          <Button onClick={handleNext} colorScheme="teal" isLoading={isLoading}>
-            Next
-          </Button>
+          <Button
+          colorScheme="teal"
+          onClick={handleNext}
+          isLoading={isLoading}
+          disabled={!!emailError || !personnelData.email_address} // Disable if invalid
+        >
+          Next
+        </Button>
+        
         ) : (
           <Button onClick={openFinishModal} colorScheme="teal">
             Finish

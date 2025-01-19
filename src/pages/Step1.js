@@ -82,12 +82,14 @@ const Step1 = ({
       setFilteredSections([]);
     }
 
-    // Pre-fill section if already set
-    setPersonnelData((prevData) => ({
-      ...prevData,
-      section_id: prevData.section_id || "",
-    }));
-  }, [personnelData.department_id, sections, setPersonnelData]);
+  // Reset dependent dropdowns
+  setPersonnelData((prevData) => ({
+    ...prevData,
+    section_id: "", // Clear section value
+    subsection_id: "", // Clear subsection value
+    designation_id: "", // Clear designation value
+  }));
+  }, [personnelData.department_id, sections]);
 
   // Filter subsections based on section
   useEffect(() => {
@@ -101,12 +103,14 @@ const Step1 = ({
       setFilteredSubsections([]);
     }
 
-    // Pre-fill subsection if already set
-    setPersonnelData((prevData) => ({
-      ...prevData,
-      subsection_id: prevData.subsection_id || "",
-    }));
-  }, [personnelData.section_id, subsections, setPersonnelData]);
+    
+  // Reset dependent dropdowns
+  setPersonnelData((prevData) => ({
+    ...prevData,
+    subsection_id: "", // Clear subsection value
+    designation_id: "", // Clear designation value
+  }));
+  }, [personnelData.section_id, subsections]);
 
   // Filter designations based on section and subsection
   useEffect(() => {
@@ -122,17 +126,38 @@ const Step1 = ({
       setFilteredDesignations([]);
     }
 
-    // Pre-fill designation if already set
-    setPersonnelData((prevData) => ({
-      ...prevData,
-      designation_id: prevData.designation_id || "",
-    }));
-  }, [
-    personnelData.section_id,
-    personnelData.subsection_id,
-    designations,
-    setPersonnelData,
-  ]);
+  // Reset dependent dropdown
+  setPersonnelData((prevData) => ({
+    ...prevData,
+    designation_id: "", // Clear designation value
+  }));
+  }, [personnelData.section_id, personnelData.subsection_id, designations]);
+
+
+  // Validation Functions
+const validateEmail = (email) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); // Basic email regex
+
+const isRequiredFieldMissing = (field) =>
+  field === undefined || field === null || field.trim() === "";
+
+// Function to validate the entire form
+const validateForm = (data, requiredFields) => {
+  const errors = {};
+
+  requiredFields.forEach((field) => {
+    if (isRequiredFieldMissing(data[field])) {
+      errors[field] = "This field is required.";
+    }
+  });
+
+  if (data.email_address && !validateEmail(data.email_address)) {
+    errors.email_address = "Invalid email format.";
+  }
+
+  return errors;
+};
+
 
   return (
     <Box width="100%" bg="white" boxShadow="sm" my={85}>
@@ -444,7 +469,7 @@ const Step1 = ({
                 whiteSpace="nowrap"
                 color="#0a5856"
               >
-                Local Congregation:
+                Current Local Congregation:
               </Text>
               <Input
                 placeholder="Local Congregation"
@@ -465,8 +490,10 @@ const Step1 = ({
             gap="4"
           >
             {/* Date of Birth Input with Age Calculation */}
-            <Box width={{ base: "100%", md: "30%" }}>
-              <Flex align="center" width="100%">
+            <Box
+              width={{ base: "100%", sm: "48%", md: "30%" }}
+              mb={{ base: "3", md: "0" }}
+            >
                 <Text
                   fontWeight="bold"
                   mr="2"
@@ -487,12 +514,13 @@ const Step1 = ({
                   }
                   width="100%"
                 />
-              </Flex>
             </Box>
 
             {/* Age Display */}
-            <Box width={{ base: "100%", md: "15%" }}>
-              <Flex align="center" width="100%">
+            <Box
+              width={{ base: "100%", sm: "48%", md: "15%" }}
+              mb={{ base: "3", md: "0" }}
+            >
                 <Text
                   fontWeight="bold"
                   mr="2"
@@ -508,11 +536,21 @@ const Step1 = ({
                   readOnly
                   width="100%"
                 />
-              </Flex>
             </Box>
 
             {/* Place of Birth */}
-            <Box width={{ base: "100%", md: "50%" }}>
+            <Box
+              width={{ base: "100%", sm: "48%", md: "50%" }}
+              mb={{ base: "3", md: "0" }}
+            >
+              <Text
+                  fontWeight="bold"
+                  mr="2"
+                  whiteSpace="nowrap"
+                  color="#0a5856"
+                >
+                  Place of Birth:
+                </Text>
               <Input
                 placeholder="Place of Birth"
                 name="place_of_birth"
@@ -609,7 +647,7 @@ const Step1 = ({
 
             {/* Blood Type Selector */}
             <Box
-              width={{ base: "100%", sm: "48%", md: "19%" }}
+              width={{ base: "100%", sm: "48%", md: "24%" }}
               mb={{ base: "3", md: "0" }}
             >
               <Text
@@ -652,50 +690,52 @@ const Step1 = ({
               />
             </Box>
 
-            {/* Email Input Field */}
-            <Box
-              width={{ base: "100%", sm: "48%", md: "30%" }}
-              mb={{ base: "3", md: "0" }}
-            >
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                Email Address:
-              </Text>
-              <Input
-                placeholder="Enter Email Address"
-                name="email_address"
-                value={personnelData.email_address}
-                onChange={(e) =>
-                  handleChange({
-                    target: { name: "email_address", value: e.target.value },
-                  })
-                }
-                width="100%"
-                isInvalid={!!emailError}
-                errorBorderColor="red.300"
-              />
-              {emailError && (
-                <Box
-                  position="absolute"
-                  bottom="-20px" // Positioned below the input
-                  left="0"
-                  color="red.500"
-                  fontSize="sm"
-                  bg="white"
-                  p="1"
-                  borderRadius="md"
-                  boxShadow="md"
-                  zIndex="10" // Ensure tooltip is above other elements
-                >
-                  {emailError}
-                </Box>
-              )}
-            </Box>
+     {/* Email Input Field */}
+<Box
+  width={{ base: "100%", sm: "48%", md: "24%" }}
+  mb={{ base: "3", md: "0" }}
+  position="relative" // Ensure the error message is relative to this box
+>
+  <Text
+    fontWeight="bold"
+    mb="2"
+    minWidth="120px"
+    whiteSpace="nowrap"
+    color="#0a5856"
+  >
+    Email Address:
+  </Text>
+  <Input
+    placeholder="Enter Email Address"
+    name="email_address"
+    value={personnelData.email_address}
+    onChange={handleChange}
+    isInvalid={!!emailError} // Highlight input if there's an error
+    errorBorderColor="red.300"
+    borderColor={emailError ? "red.500" : "gray.300"}
+    focusBorderColor={emailError ? "red.500" : "teal.400"} // Add focus styling
+  />
+  {emailError && (
+    <Box
+      position="absolute"
+      top="100%" // Position the error box directly below the input
+      left="0"
+      color="red.500"
+      fontSize="sm"
+      bg="red.50" // Light red background for better readability
+      p="2"
+      mt="1" // Small margin above the error message
+      borderRadius="md" // Rounded corners
+      boxShadow="sm" // Subtle shadow effect
+      border="1px solid"
+      borderColor="red.200" // Match border color with the design
+      zIndex="10"
+    >
+      {emailError}
+    </Box>
+  )}
+</Box>
+
           </Flex>
 
           <Flex
@@ -796,202 +836,175 @@ const Step1 = ({
             </Box>
           </Flex>
 
-          <Flex
-            align="center"
-            mb="3"
-            width="100%"
-            wrap="wrap"
-            justify="space-between"
-          >
-            {/* Department Selector */}
-            <Box
-              width={{ base: "100%", md: "48%" }}
-              mb={{ base: "3", md: "3" }}
-            >
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                Department:
-              </Text>
-              <Select
-                placeholder="Select Department"
-                name="department_id"
-                value={departments
-                  .map((department) => ({
-                    value: department.id,
-                    label: department.name,
-                  }))
-                  .find(
-                    (option) => option.value === personnelData.department_id
-                  )}
-                onChange={(selectedOption) =>
-                  handleChange({
-                    target: {
-                      name: "department_id",
-                      value: selectedOption?.value || "",
-                    },
-                  })
-                }
-                options={departments.map((department) => ({
-                  value: department.id,
-                  label: department.name,
-                }))}
-                isClearable
-                styles={{
-                  container: (base) => ({
-                    ...base,
-                    width: "100%",
-                  }),
-                }}
-              />
-            </Box>
+    <Flex align="center" mb="3" width="100%" wrap="wrap" justify="space-between">
+  {/* Department Selector */}
+  <Box width={{ base: "100%", md: "48%" }} mb={{ base: "3", md: "3" }}>
+    <Text fontWeight="bold" mb="2" minWidth="120px" whiteSpace="nowrap" color="#0a5856">
+      Department:
+    </Text>
+    <Select
+      placeholder="Select Department"
+      name="department_id"
+      value={departments
+        .map((department) => ({
+          value: department.id,
+          label: department.name,
+        }))
+        .find((option) => option.value === personnelData.department_id)}
+      onChange={(selectedOption) => {
+        handleChange({
+          target: {
+            name: "department_id",
+            value: selectedOption?.value || "",
+          },
+        });
 
-            {/* Section */}
-            <Box
-              width={{ base: "100%", md: "48%" }}
-              mb={{ base: "3", md: "3" }}
-            >
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                Section:
-              </Text>
-              <Select
-                placeholder="Select Section"
-                name="section_id"
-                value={sections
-                  .map((section) => ({
-                    value: section.id,
-                    label: section.name,
-                  }))
-                  .find((option) => option.value === personnelData.section_id)}
-                onChange={(selectedOption) =>
-                  handleChange({
-                    target: {
-                      name: "section_id",
-                      value: selectedOption?.value || "",
-                    },
-                  })
-                }
-                options={filteredSections.map((section) => ({
-                  value: section.id,
-                  label: section.name,
-                }))}
-                isDisabled={!personnelData.department_id} // Disable if no department is selected
-                isClearable
-                styles={{
-                  container: (base) => ({
-                    ...base,
-                    width: "100%",
-                  }),
-                }}
-              />
-            </Box>
+        // Reset Section, Subsection, and Designation on Department change
+        setPersonnelData((prevData) => ({
+          ...prevData,
+          section_id: "",
+          subsection_id: "",
+          designation_id: "",
+        }));
+      }}
+      options={departments.map((department) => ({
+        value: department.id,
+        label: department.name,
+      }))}
+      isClearable
+      styles={{
+        container: (base) => ({
+          ...base,
+          width: "100%",
+        }),
+      }}
+    />
+  </Box>
 
-            {/* Subsection */}
-            <Box
-              width={{ base: "100%", md: "48%" }}
-              mb={{ base: "3", md: "3" }}
-            >
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                Subsection/Team:
-              </Text>
-              <Select
-                placeholder="Select Subsection"
-                name="subsection_id"
-                value={subsections
-                  .map((subsection) => ({
-                    value: subsection.id,
-                    label: subsection.name,
-                  }))
-                  .find(
-                    (option) => option.value === personnelData.subsection_id
-                  )}
-                onChange={(selectedOption) =>
-                  handleChange({
-                    target: {
-                      name: "subsection_id",
-                      value: selectedOption?.value || "",
-                    },
-                  })
-                }
-                options={filteredSubsections.map((subsection) => ({
-                  value: subsection.id,
-                  label: subsection.name,
-                }))}
-                isDisabled={!personnelData.section_id} // Disable if no section is selected
-                isClearable
-                styles={{
-                  container: (base) => ({
-                    ...base,
-                    width: "100%",
-                  }),
-                }}
-              />
-            </Box>
+  {/* Section */}
+  <Box width={{ base: "100%", md: "48%" }} mb={{ base: "3", md: "3" }}>
+    <Text fontWeight="bold" mb="2" minWidth="120px" whiteSpace="nowrap" color="#0a5856">
+      Section:
+    </Text>
+    <Select
+      placeholder="Select Section"
+      name="section_id"
+      value={sections
+        .map((section) => ({
+          value: section.id,
+          label: section.name,
+        }))
+        .find((option) => option.value === personnelData.section_id)}
+      onChange={(selectedOption) => {
+        handleChange({
+          target: {
+            name: "section_id",
+            value: selectedOption?.value || "",
+          },
+        });
 
-            {/* Designation */}
-            <Box
-              width={{ base: "100%", md: "48%" }}
-              mb={{ base: "3", md: "3" }}
-            >
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                Designation:
-              </Text>
-              <Select
-                placeholder="Select Designation"
-                name="designation_id"
-                value={designations
-                  .map((designation) => ({
-                    value: designation.id,
-                    label: designation.name,
-                  }))
-                  .find(
-                    (option) => option.value === personnelData.designation_id
-                  )}
-                onChange={(selectedOption) =>
-                  handleChange({
-                    target: {
-                      name: "designation_id",
-                      value: selectedOption?.value || "",
-                    },
-                  })
-                }
-                options={filteredDesignations.map((designation) => ({
-                  value: designation.id,
-                  label: designation.name,
-                }))}
-                isDisabled={!personnelData.section_id} // Disable if no section is selected
-                isClearable
-                styles={{
-                  container: (base) => ({
-                    ...base,
-                    width: "100%",
-                  }),
-                }}
-              />
-            </Box>
-          </Flex>
+        // Reset Subsection and Designation on Section change
+        setPersonnelData((prevData) => ({
+          ...prevData,
+          subsection_id: "",
+          designation_id: "",
+        }));
+      }}
+      options={filteredSections.map((section) => ({
+        value: section.id,
+        label: section.name,
+      }))}
+      isDisabled={!personnelData.department_id} // Disable if no department is selected
+      isClearable
+      styles={{
+        container: (base) => ({
+          ...base,
+          width: "100%",
+        }),
+      }}
+    />
+  </Box>
+
+  {/* Subsection */}
+  <Box width={{ base: "100%", md: "48%" }} mb={{ base: "3", md: "3" }}>
+    <Text fontWeight="bold" mb="2" minWidth="120px" whiteSpace="nowrap" color="#0a5856">
+      Subsection/Team:
+    </Text>
+    <Select
+      placeholder="Select Subsection"
+      name="subsection_id"
+      value={subsections
+        .map((subsection) => ({
+          value: subsection.id,
+          label: subsection.name,
+        }))
+        .find((option) => option.value === personnelData.subsection_id)}
+      onChange={(selectedOption) => {
+        handleChange({
+          target: {
+            name: "subsection_id",
+            value: selectedOption?.value || "",
+          },
+        });
+
+        // Reset Designation on Subsection change
+        setPersonnelData((prevData) => ({
+          ...prevData,
+          designation_id: "",
+        }));
+      }}
+      options={filteredSubsections.map((subsection) => ({
+        value: subsection.id,
+        label: subsection.name,
+      }))}
+      isDisabled={!personnelData.section_id} // Disable if no section is selected
+      isClearable
+      styles={{
+        container: (base) => ({
+          ...base,
+          width: "100%",
+        }),
+      }}
+    />
+  </Box>
+
+  {/* Designation */}
+  <Box width={{ base: "100%", md: "48%" }} mb={{ base: "3", md: "3" }}>
+    <Text fontWeight="bold" mb="2" minWidth="120px" whiteSpace="nowrap" color="#0a5856">
+      Designation:
+    </Text>
+    <Select
+      placeholder="Select Designation"
+      name="designation_id"
+      value={designations
+        .map((designation) => ({
+          value: designation.id,
+          label: designation.name,
+        }))
+        .find((option) => option.value === personnelData.designation_id)}
+      onChange={(selectedOption) =>
+        handleChange({
+          target: {
+            name: "designation_id",
+            value: selectedOption?.value || "",
+          },
+        })
+      }
+      options={filteredDesignations.map((designation) => ({
+        value: designation.id,
+        label: designation.name,
+      }))}
+      isDisabled={!personnelData.subsection_id} // Disable if no subsection is selected
+      isClearable
+      styles={{
+        container: (base) => ({
+          ...base,
+          width: "100%",
+        }),
+      }}
+    />
+  </Box>
+</Flex>
 
           {/* INC Status Radio Group */}
           <Flex alignItems="center" mb="3" style={{ display: "none" }}>
