@@ -539,7 +539,7 @@ LEFT JOIN departments d ON p.department_id = d.id
 LEFT JOIN sections s ON p.section_id = s.id
 LEFT JOIN subsections ss ON p.subsection_id = ss.id
 LEFT JOIN designations dg ON p.designation_id = dg.id
-LEFT JOIN districts dt ON p.district_id = dt.id
+LEFT JOIN districts dt ON p.district_assignment_id = dt.id
 LEFT JOIN languages l ON p.language_id = l.id
 GROUP BY 
   u.ID, 

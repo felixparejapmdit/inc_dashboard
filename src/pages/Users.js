@@ -597,7 +597,9 @@ const Users = ({ personnelId }) => {
                     </HStack>
                   </Td>
                   <Td>{item.personnel_district_name || "N/A"}</Td>
-                  <Td>{item.personnel_local_congregation || "N/A"}</Td>
+                  <Td>
+                    {item.personnel_local_congregation_assignment || "N/A"}
+                  </Td>
                   <Td>{item.mail || "N/A"}</Td>
                   <Td>{item.groupname || "N/A"}</Td>
                   <Td>
