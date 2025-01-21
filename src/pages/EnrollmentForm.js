@@ -573,8 +573,16 @@ const EnrollmentForm = ({ referenceNumber }) => {
       }
 
       // Ensure step is derived from URL for accurate calculations
-      const currentStep = parseInt(searchParams.get("step"), 10) || 1;
+      //const currentStep = parseInt(searchParams.get("step"), 10) || 1;
 
+      // Ensure step is derived from URL
+      const currentStep = parseInt(searchParams.get("step"), 10) || step;
+      let nextStep = currentStep + 1;
+
+      // Skip Step 7 if civil_status is Single
+      if (personnelData.civil_status === "Single" && nextStep === 7) {
+        nextStep = 8;
+      }
       // Check if we are on the first step
       //if (step === 1) {
       if (!personnelId) {
@@ -644,16 +652,14 @@ const EnrollmentForm = ({ referenceNumber }) => {
           position: "bottom-left", // Position the toast on the bottom-left
         });
         // Calculate the next step
-        const nextStep = currentStep + 1;
+        //const nextStep = currentStep + 1;
 
         // If the next step is within the range, update the URL dynamically
+        // Navigate to the next step
+
         if (nextStep <= totalSteps) {
-          // const newUrl = `/enroll?personnel_id=${personnelId}&step=${nextStep}`;
-
-          // window.history.pushState(null, "", newUrl); // Update URL without page reload
-
           navigate(`/enroll?personnel_id=${personnelId}&step=${nextStep}`);
-          setStep(nextStep); // Move to the next step
+          setStep(nextStep);
         } else {
           toast({
             title: "Process Complete",
@@ -684,7 +690,15 @@ const EnrollmentForm = ({ referenceNumber }) => {
   };
 
   const handlePrevious = () => {
-    setStep(step - 1);
+    let previousStep = step - 1;
+
+    // Skip Step 7 if civil_status is Single and moving from Step 8
+    if (personnelData.civil_status === "Single" && previousStep === 7) {
+      previousStep = 6;
+    }
+
+    setStep(previousStep);
+    navigate(`/enroll?personnel_id=${personnelId}&step=${previousStep}`);
   };
 
   // Confirm Early Completion and Save Step 1 Data
