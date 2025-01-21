@@ -996,6 +996,8 @@ const EnrollmentForm = ({ referenceNumber }) => {
               key={index}
               as="button"
               onClick={() => {
+                const selectedStep = index + 1;
+
                 if (index + 1 > 1 && !personnelId) {
                   alert(
                     "Please complete the primary information before proceeding to the next step."
@@ -1003,16 +1005,13 @@ const EnrollmentForm = ({ referenceNumber }) => {
                   return;
                 }
 
-                // Ensure step is derived from URL for accurate calculations
-                const currentStep = parseInt(searchParams.get("step"), 10) || 1;
-
-                // Navigate to the next step dynamically
-                const nextStep = currentStep + 1;
+                // Update the URL with the selected step
                 navigate(
-                  `/enroll?personnel_id=${personnelId}&step=${nextStep}`
+                  `/enroll?personnel_id=${personnelId}&step=${selectedStep}`
                 );
 
-                setStep(index + 1);
+                // Set the step state to match the selected progress indicator
+                setStep(selectedStep);
               }}
               display="flex"
               alignItems="center"
