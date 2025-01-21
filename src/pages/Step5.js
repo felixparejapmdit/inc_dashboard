@@ -49,6 +49,35 @@ const Step5 = ({
   const toast = useToast();
 
   useEffect(() => {
+    const initializeDefaultParents = () => [
+      {
+        relationship_type: "Father",
+        givenname: "",
+        lastname: "",
+        middlename: "",
+        suffix: "",
+        gender: "Male",
+        date_of_birth: "",
+        contact_number: "",
+        civil_status: "",
+        bloodtype: "",
+        isEditing: true, // Ensure editing is enabled by default
+      },
+      {
+        relationship_type: "Mother",
+        givenname: "",
+        lastname: "",
+        middlename: "",
+        suffix: "",
+        gender: "Female",
+        date_of_birth: "",
+        contact_number: "",
+        civil_status: "",
+        bloodtype: "",
+        isEditing: true, // Ensure editing is enabled by default
+      },
+    ];
+
     if (personnelId) {
       // Fetch parents (Father and Mother) related to the personnelId
       axios
