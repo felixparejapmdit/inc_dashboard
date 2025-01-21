@@ -1002,6 +1002,16 @@ const EnrollmentForm = ({ referenceNumber }) => {
                   );
                   return;
                 }
+
+                // Ensure step is derived from URL for accurate calculations
+                const currentStep = parseInt(searchParams.get("step"), 10) || 1;
+
+                // Navigate to the next step dynamically
+                const nextStep = currentStep + 1;
+                navigate(
+                  `/enroll?personnel_id=${personnelId}&step=${nextStep}`
+                );
+
                 setStep(index + 1);
               }}
               display="flex"
