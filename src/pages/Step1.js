@@ -81,14 +81,6 @@ const Step1 = ({
     } else {
       setFilteredSections([]);
     }
-
-    // Reset dependent dropdowns
-    setPersonnelData((prevData) => ({
-      ...prevData,
-      section_id: "", // Clear section value
-      subsection_id: "", // Clear subsection value
-      designation_id: "", // Clear designation value
-    }));
   }, [personnelData.department_id, sections]);
 
   // Filter subsections based on section
@@ -102,13 +94,6 @@ const Step1 = ({
     } else {
       setFilteredSubsections([]);
     }
-
-    // Reset dependent dropdowns
-    setPersonnelData((prevData) => ({
-      ...prevData,
-      subsection_id: "", // Clear subsection value
-      designation_id: "", // Clear designation value
-    }));
   }, [personnelData.section_id, subsections]);
 
   // Filter designations based on section and subsection
@@ -124,12 +109,6 @@ const Step1 = ({
     } else {
       setFilteredDesignations([]);
     }
-
-    // Reset dependent dropdown
-    setPersonnelData((prevData) => ({
-      ...prevData,
-      designation_id: "", // Clear designation value
-    }));
   }, [personnelData.section_id, personnelData.subsection_id, designations]);
 
   // Validation Functions
@@ -871,14 +850,6 @@ const Step1 = ({
                       value: selectedOption?.value || "",
                     },
                   });
-
-                  // Reset Section, Subsection, and Designation on Department change
-                  setPersonnelData((prevData) => ({
-                    ...prevData,
-                    section_id: "",
-                    subsection_id: "",
-                    designation_id: "",
-                  }));
                 }}
                 options={departments.map((department) => ({
                   value: department.id,
@@ -924,13 +895,6 @@ const Step1 = ({
                       value: selectedOption?.value || "",
                     },
                   });
-
-                  // Reset Subsection and Designation on Section change
-                  setPersonnelData((prevData) => ({
-                    ...prevData,
-                    subsection_id: "",
-                    designation_id: "",
-                  }));
                 }}
                 options={filteredSections.map((section) => ({
                   value: section.id,
@@ -979,12 +943,6 @@ const Step1 = ({
                       value: selectedOption?.value || "",
                     },
                   });
-
-                  // Reset Designation on Subsection change
-                  setPersonnelData((prevData) => ({
-                    ...prevData,
-                    designation_id: "",
-                  }));
                 }}
                 options={filteredSubsections.map((subsection) => ({
                   value: subsection.id,

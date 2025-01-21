@@ -155,6 +155,12 @@ const Users = ({ personnelId }) => {
           body: JSON.stringify(newUser),
         });
 
+        // Update selectedApps state with the saved apps
+        setSelectedApps(newUser.availableApps || []);
+
+        // Refresh users and clear local state
+        await fetchUsers();
+
         // Call handleAssignGroup to update the group
         await handleAssignGroup(editingUser.ID, selectedGroup);
 
@@ -187,6 +193,12 @@ const Users = ({ personnelId }) => {
 
         // Assign group to the new user
         await handleAssignGroup(data.id, selectedGroup);
+
+        // Update selectedApps state with the saved apps
+        setSelectedApps(newUser.availableApps || []);
+
+        // Refresh users and clear local state
+        await fetchUsers(); // <-- Add this to refetch the updated users list
 
         // Add the new user to the local state
         setUsers((prevUsers) => [
