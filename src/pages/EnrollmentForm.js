@@ -991,44 +991,63 @@ const EnrollmentForm = ({ referenceNumber }) => {
         </Flex>
         {/* Progress Indicator */}
         <Flex justify="center" align="center" my={6} px={4} bg="#FEF3C7" py={2}>
-          {Array.from({ length: totalSteps }, (_, index) => (
-            <Box
-              key={index}
-              as="button"
-              onClick={() => {
-                const selectedStep = index + 1;
+          {Array.from({ length: totalSteps }, (_, index) => {
+            const isDisabled =
+              personnelData.civil_status === "Single" && index + 1 === 7;
 
-                if (index + 1 > 1 && !personnelId) {
-                  alert(
-                    "Please complete the primary information before proceeding to the next step."
+            return (
+              <Box
+                key={index}
+                as="button"
+                onClick={() => {
+                  if (isDisabled) {
+                    // Optional alert for user feedback
+                    alert("This step is disabled for single civil status.");
+                    return;
+                  }
+
+                  const selectedStep = index + 1;
+
+                  if (selectedStep > 1 && !personnelId) {
+                    alert(
+                      "Please complete the primary information before proceeding to the next step."
+                    );
+                    return;
+                  }
+
+                  // Update the URL with the selected step
+                  navigate(
+                    `/enroll?personnel_id=${personnelId}&step=${selectedStep}`
                   );
-                  return;
+
+                  // Set the step state to match the selected progress indicator
+                  setStep(selectedStep);
+                }}
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                borderRadius="full"
+                width="40px"
+                height="40px"
+                mx={2}
+                fontWeight="bold"
+                color="white"
+                bg={
+                  isDisabled
+                    ? "gray.400"
+                    : step > index
+                    ? "green.400"
+                    : "gray.200"
                 }
-
-                // Update the URL with the selected step
-                navigate(
-                  `/enroll?personnel_id=${personnelId}&step=${selectedStep}`
-                );
-
-                // Set the step state to match the selected progress indicator
-                setStep(selectedStep);
-              }}
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              borderRadius="full"
-              width="40px"
-              height="40px"
-              mx={2}
-              fontWeight="bold"
-              color="white"
-              bg={step > index ? "green.400" : "gray.200"}
-              border={step === index + 1 ? "2px solid #2D3748" : "none"}
-              transition="background 0.3s, border 0.3s"
-            >
-              {step > index ? <CheckIcon /> : index + 1}
-            </Box>
-          ))}
+                border={step === index + 1 ? "2px solid #2D3748" : "none"}
+                transition="background 0.3s, border 0.3s"
+                cursor={isDisabled ? "not-allowed" : "pointer"}
+                opacity={isDisabled ? 0.5 : 1} // Visual indicator for disabled steps
+              >
+                {step > index ? <CheckIcon /> : index + 1}
+              </Box>
+            );
+          })}
         </Flex>
       </Box>
 
