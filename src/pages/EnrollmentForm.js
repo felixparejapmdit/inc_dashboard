@@ -1001,11 +1001,17 @@ const EnrollmentForm = ({ referenceNumber }) => {
                 as="button"
                 onClick={() => {
                   if (isDisabled) {
-                    // Optional alert for user feedback
-                    alert("This step is disabled for single civil status.");
+                    toast({
+                      title: "Step Disabled",
+                      description:
+                        "This step is not applicable for single civil status.",
+                      status: "info",
+                      duration: 3000,
+                      isClosable: true,
+                      position: "bottom-right",
+                    });
                     return;
                   }
-
                   const selectedStep = index + 1;
 
                   if (selectedStep > 1 && !personnelId) {
