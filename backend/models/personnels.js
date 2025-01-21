@@ -87,6 +87,11 @@ const Personnel = sequelize.define(
       type: DataTypes.STRING(10),
       allowNull: true,
     },
+    work_email_address: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+      unique: true,
+    },
     email_address: {
       type: DataTypes.STRING(50),
       allowNull: false,

@@ -506,16 +506,15 @@ const Step1 = ({
           </Flex>
 
           <Flex
-            align="center"
-            mb="3"
+            alignItems="center"
+            mb="5"
             width="100%"
             wrap="wrap"
             justify="space-between"
-            gap="4"
           >
             {/* Date of Birth Input with Age Calculation */}
             <Box
-              width={{ base: "100%", sm: "48%", md: "30%" }}
+              width={{ base: "100%", sm: "48%", md: "24%" }}
               mb={{ base: "3", md: "0" }}
             >
               <Text
@@ -542,7 +541,7 @@ const Step1 = ({
 
             {/* Age Display */}
             <Box
-              width={{ base: "100%", sm: "48%", md: "15%" }}
+              width={{ base: "100%", sm: "48%", md: "24%" }}
               mb={{ base: "3", md: "0" }}
             >
               <Text
@@ -564,7 +563,7 @@ const Step1 = ({
 
             {/* Place of Birth */}
             <Box
-              width={{ base: "100%", sm: "48%", md: "50%" }}
+              width={{ base: "100%", sm: "48%", md: "24%" }}
               mb={{ base: "3", md: "0" }}
             >
               <Text
@@ -587,15 +586,7 @@ const Step1 = ({
                 width="100%"
               />
             </Box>
-          </Flex>
 
-          <Flex
-            alignItems="center"
-            mb="5"
-            width="100%"
-            wrap="wrap"
-            justify="space-between"
-          >
             {/* Date Joined */}
             <Box
               width={{ base: "100%", sm: "48%", md: "24%" }}
@@ -623,7 +614,15 @@ const Step1 = ({
                 width="100%"
               />
             </Box>
+          </Flex>
 
+          <Flex
+            alignItems="center"
+            mb="5"
+            width="100%"
+            wrap="wrap"
+            justify="space-between"
+          >
             {/* Language Selector */}
             <Box
               width={{ base: "100%", sm: "48%", md: "24%" }}
@@ -714,7 +713,7 @@ const Step1 = ({
               />
             </Box>
 
-            {/* Email Input Field */}
+            {/* Work Email Input Field */}
             <Box
               width={{ base: "100%", sm: "48%", md: "24%" }}
               mb={{ base: "3", md: "0" }}
@@ -727,7 +726,53 @@ const Step1 = ({
                 whiteSpace="nowrap"
                 color="#0a5856"
               >
-                Email Address:
+                Work Email Address:
+              </Text>
+              <Input
+                placeholder="Enter Work Email Address"
+                name="work_email_address"
+                value={personnelData.work_email_address}
+                onChange={handleChange}
+                isInvalid={!!emailError} // Highlight input if there's an error
+                errorBorderColor="red.300"
+                borderColor={emailError ? "red.500" : "gray.300"}
+                focusBorderColor={emailError ? "red.500" : "teal.400"} // Add focus styling
+              />
+              {emailError && (
+                <Box
+                  position="absolute"
+                  top="100%" // Position the error box directly below the input
+                  left="0"
+                  color="red.500"
+                  fontSize="sm"
+                  bg="red.50" // Light red background for better readability
+                  p="2"
+                  mt="1" // Small margin above the error message
+                  borderRadius="md" // Rounded corners
+                  boxShadow="sm" // Subtle shadow effect
+                  border="1px solid"
+                  borderColor="red.200" // Match border color with the design
+                  zIndex="10"
+                >
+                  {emailError}
+                </Box>
+              )}
+            </Box>
+
+            {/* Personal Email Input Field */}
+            <Box
+              width={{ base: "100%", sm: "48%", md: "24%" }}
+              mb={{ base: "3", md: "0" }}
+              position="relative" // Ensure the error message is relative to this box
+            >
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Personal Email Address:
               </Text>
               <Input
                 placeholder="Enter Email Address"
