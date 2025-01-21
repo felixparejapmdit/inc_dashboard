@@ -283,6 +283,7 @@ exports.createPersonnel = async (req, res) => {
       surname_husband: personnelData.surname_husband || null,
       suffix: personnelData.suffix || null,
       nickname: personnelData.nickname || null,
+      registered_district_id: personnelData.registered_district_id || 0,
       registered_local_congregation:
         personnelData.registered_local_congregation || null,
       date_of_birth: personnelData.date_of_birth || null,
@@ -346,6 +347,7 @@ exports.updatePersonnel = async (req, res) => {
       "surname_husband",
       "suffix",
       "nickname",
+      "registered_district_id",
       "registered_local_congregation",
       "date_of_birth",
       "place_of_birth",

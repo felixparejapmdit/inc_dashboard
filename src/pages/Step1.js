@@ -366,7 +366,7 @@ const Step1 = ({
           >
             {/* Suffix Selector */}
             <Box
-              width={{ base: "100%", md: "30%" }}
+              width={{ base: "100%", md: "24%" }}
               mb={{ base: "3", md: "0" }}
             >
               <Text
@@ -415,7 +415,7 @@ const Step1 = ({
 
             {/* Nickname Input */}
             <Box
-              width={{ base: "100%", md: "30%" }}
+              width={{ base: "100%", md: "24%" }}
               mb={{ base: "3", md: "0" }}
             >
               <Text
@@ -436,8 +436,56 @@ const Step1 = ({
               />
             </Box>
 
+            {/* Registered District */}
+            <Box
+              width={{ base: "100%", md: "24%" }}
+              mb={{ base: "3", md: "0" }}
+            >
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                District:
+              </Text>
+              <Select
+                placeholder="Select District"
+                name="registered_district_id"
+                value={districts
+                  .map((district) => ({
+                    value: district.id,
+                    label: district.name,
+                  }))
+                  .find(
+                    (option) =>
+                      option.value === personnelData.registered_district_id
+                  )}
+                onChange={(selectedOption) =>
+                  handleChange({
+                    target: {
+                      name: "registered_district_id",
+                      value: selectedOption?.value || "",
+                    },
+                  })
+                }
+                options={districts.map((district) => ({
+                  value: district.id,
+                  label: district.name,
+                }))}
+                isClearable
+                styles={{
+                  container: (base) => ({
+                    ...base,
+                    width: "100%",
+                  }),
+                }}
+              />
+            </Box>
+
             {/* Local Congregation */}
-            <Box width={{ base: "100%", md: "30%" }}>
+            <Box width={{ base: "100%", md: "24%" }}>
               <Text
                 fontWeight="bold"
                 mb="2"

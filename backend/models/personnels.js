@@ -59,6 +59,10 @@ const Personnel = sequelize.define(
       type: DataTypes.STRING(50),
       allowNull: true,
     },
+    registered_district_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     registered_local_congregation: {
       type: DataTypes.STRING(50),
       allowNull: true,
