@@ -541,6 +541,25 @@ const Step4 = ({ employmentTypeOptions, educationalLevelOptions }) => {
                 whiteSpace="nowrap"
                 color="#0a5856"
               >
+                School:
+              </Text>
+              <Input
+                placeholder="School"
+                value={edu.school}
+                isDisabled={!edu.isEditing}
+                onChange={(e) =>
+                  handleEducationChange(idx, "school", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
                 Start Year:
               </Text>
               <Input
@@ -570,25 +589,6 @@ const Step4 = ({ employmentTypeOptions, educationalLevelOptions }) => {
                 isDisabled={!edu.isEditing}
                 onChange={(e) =>
                   handleEducationChange(idx, "completion_year", e.target.value)
-                }
-              />
-            </GridItem>
-            <GridItem>
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                School:
-              </Text>
-              <Input
-                placeholder="School"
-                value={edu.school}
-                isDisabled={!edu.isEditing}
-                onChange={(e) =>
-                  handleEducationChange(idx, "school", e.target.value)
                 }
               />
             </GridItem>

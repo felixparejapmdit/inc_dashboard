@@ -488,7 +488,9 @@ const Step8 = ({
                     onChange={(e) =>
                       onChange(index, "date_of_marriage", e.target.value)
                     }
-                    isDisabled={!child.isEditing}
+                    isDisabled={
+                      !child.isEditing || child.civil_status === "Single"
+                    } // Disable if civil_status is "Single"
                   />
                 </Td>
                 <Td>
@@ -507,7 +509,9 @@ const Step8 = ({
                     onChange={(e) =>
                       onChange(index, "place_of_marriage", e.target.value)
                     }
-                    isDisabled={!child.isEditing}
+                    isDisabled={
+                      !child.isEditing || child.civil_status === "Single"
+                    } // Disable if civil_status is "Single"
                   />
                 </Td>
 
