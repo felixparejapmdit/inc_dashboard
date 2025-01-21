@@ -56,6 +56,11 @@ const EnrollmentForm = ({ referenceNumber }) => {
       setPersonnelId(personnelIdFromUrl);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0); // Scroll to the top of the page
+  }, [step]); // Trigger on step change
+
   // Step 1 values
   const [personnelData, setPersonnelData] = useState({
     gender: "",
@@ -643,9 +648,11 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
         // If the next step is within the range, update the URL dynamically
         if (nextStep <= totalSteps) {
-          const newUrl = `/enroll?personnel_id=${personnelId}&step=${nextStep}`;
+          // const newUrl = `/enroll?personnel_id=${personnelId}&step=${nextStep}`;
 
-          window.history.pushState(null, "", newUrl); // Update URL without page reload
+          // window.history.pushState(null, "", newUrl); // Update URL without page reload
+
+          navigate(`/enroll?personnel_id=${personnelId}&step=${nextStep}`);
           setStep(nextStep); // Move to the next step
         } else {
           toast({
