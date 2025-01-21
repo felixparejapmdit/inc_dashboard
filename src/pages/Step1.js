@@ -201,14 +201,14 @@ const Step1 = ({
                 </Text>
                 <RadioGroup
                   name="civil_status"
-                  onChange={(value) => {
-                    setPersonnelData((prevData) => ({
-                      ...prevData,
-                      civil_status: value,
-                      wedding_anniversary:
-                        value === "Married" ? prevData.wedding_anniversary : "", // Clear if not Married
-                    }));
-                  }}
+                  onChange={(value) =>
+                    handleChange({
+                      target: {
+                        name: "civil_status",
+                        value: value,
+                      },
+                    })
+                  }
                   value={personnelData.civil_status}
                 >
                   <Stack direction="row" spacing={2}>
@@ -321,15 +321,17 @@ const Step1 = ({
                 whiteSpace="nowrap"
                 color="#0a5856"
               >
-                Surname Name(Maiden):
+                {personnelData.surname_maiden_label || "Surname (Maiden)"}
               </Text>
               <Input
-                placeholder="Surname (Maiden)"
+                placeholder={
+                  personnelData.surname_maiden_placeholder || "Surname (Maiden)"
+                }
                 name="surname_maiden"
                 value={personnelData.surname_maiden}
                 onChange={handleChange}
                 width="100%"
-                isDisabled={personnelData.gender === "Male"}
+                isDisabled={personnelData.surname_maiden_disabled}
               />
             </Box>
 
@@ -345,10 +347,13 @@ const Step1 = ({
                 whiteSpace="nowrap"
                 color="#0a5856"
               >
-                Surname Name(Husband):
+                {personnelData.surname_husband_label || "Surname (Husband)"}:
               </Text>
               <Input
-                placeholder="Surname (Husband)"
+                placeholder={
+                  personnelData.surname_husband_placeholder ||
+                  "Surname (Husband)"
+                }
                 name="surname_husband"
                 value={personnelData.surname_husband}
                 onChange={handleChange}

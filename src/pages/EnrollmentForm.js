@@ -395,6 +395,50 @@ const EnrollmentForm = ({ referenceNumber }) => {
     setIsFinishModalOpen(true);
   };
 
+  useEffect(() => {
+    const updateLabelsAndPlaceholders = () => {
+      if (
+        personnelData.gender === "Female" &&
+        personnelData.civil_status === "Married"
+      ) {
+        // Female and Married
+        setPersonnelData((prevData) => ({
+          ...prevData,
+          surname_maiden_label: "Surname (Maiden)",
+          surname_maiden_placeholder: "Surname (Maiden)",
+          surname_husband_label: "Surname (Husband)",
+          surname_husband_placeholder: "Surname (Husband)",
+          surname_maiden_disabled: false,
+        }));
+      } else if (
+        personnelData.gender === "Male" ||
+        personnelData.civil_status === "Single"
+      ) {
+        // Male or Single
+        setPersonnelData((prevData) => ({
+          ...prevData,
+          surname_maiden_label: "",
+          surname_maiden_placeholder: "",
+          surname_husband_label: "Surname",
+          surname_husband_placeholder: "Surname",
+          surname_maiden_disabled: true,
+        }));
+      } else {
+        // Default fallback for other combinations
+        setPersonnelData((prevData) => ({
+          ...prevData,
+          surname_maiden_label: "",
+          surname_maiden_placeholder: "",
+          surname_husband_label: "",
+          surname_husband_placeholder: "",
+          surname_maiden_disabled: true,
+        }));
+      }
+    };
+
+    updateLabelsAndPlaceholders();
+  }, [personnelData.gender, personnelData.civil_status]); // React to changes in gender or civil_status
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -450,13 +494,41 @@ const EnrollmentForm = ({ referenceNumber }) => {
           value === "Married" ? prevData.wedding_anniversary : ""; // Reset wedding_anniversary if not married
       }
 
-      // Conditional logic for gender
-      if (name === "gender") {
-        updatedData.surname_maiden_disabled = value === "Male";
-        updatedData.surname_husband_disabled = value === "Male";
-        if (value === "Male") {
-          updatedData.surname_maiden = ""; // Clear surname_maiden if gender is Male
-          updatedData.surname_husband = ""; // Clear surname_husband if gender is Male
+      // Update fields based on civil_status and gender
+      if (name === "civil_status" || name === "gender") {
+        if (
+          updatedData.gender === "Female" &&
+          updatedData.civil_status === "Married"
+        ) {
+          updatedData = {
+            ...updatedData,
+            surname_maiden_label: "Surname (Maiden)",
+            surname_maiden_placeholder: "Surname (Maiden)",
+            surname_husband_label: "Surname (Husband)",
+            surname_husband_placeholder: "Surname (Husband)",
+            surname_maiden_disabled: false,
+          };
+        } else if (updatedData.gender === "Male") {
+          updatedData = {
+            ...updatedData,
+            surname_maiden_label: "",
+            surname_maiden_placeholder: "",
+            surname_husband_label: "Surname",
+            surname_husband_placeholder: "Surname",
+            surname_maiden_disabled: true,
+          };
+        } else if (
+          updatedData.gender === "Female" &&
+          updatedData.civil_status === "Single"
+        ) {
+          updatedData = {
+            ...updatedData,
+            surname_maiden_label: "",
+            surname_maiden_placeholder: "",
+            surname_husband_label: "Surname",
+            surname_husband_placeholder: "Surname",
+            surname_maiden_disabled: true,
+          };
         }
       }
 
