@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import CryptoJS from "crypto-js"; // For crypto-js (used for MD5)
-//import crypto from "crypto"; // For Node.js crypto (used for SSHA)
+import crypto from "crypto-js";
+//import crypto from "crypto";
 import bcrypt from "bcryptjs"; // Ensure bcrypt is installed
 import sha from "sha.js"; // For SHA encryption
-import { Buffer } from "buffer";
-
 import {
   Box,
   Button,
@@ -202,125 +200,123 @@ const Login = () => {
   };
 
   //const crypto = require("crypto");
-  const crypto = require("crypto");
+  //const crypto = require("crypto");
 
-  const hashPassword = (password, encryptionType, existingHash = null) => {
-    switch (encryptionType.toLowerCase()) {
-      case "bcrypt": {
-        // Validate bcrypt
-        if (existingHash) {
-          return bcrypt.compareSync(password, existingHash); // Compare password with hash
-        } else {
-          const saltRounds = 10;
-          const hashedPassword = bcrypt.hashSync(password, saltRounds);
-          console.log("Generated bcrypt hash:", hashedPassword);
-          return hashedPassword; // Return hash if generating
-        }
-      }
-      case "md5": {
-        if (existingHash) {
-          const md5sum = CryptoJS.MD5(password);
-          const computedHash = `{MD5}` + CryptoJS.enc.Base64.stringify(md5sum);
-          return computedHash === existingHash; // Compare generated hash with existing hash
-        } else {
-          const md5sum = CryptoJS.MD5(password);
-          return `{MD5}` + CryptoJS.enc.Base64.stringify(md5sum); // Return generated hash
-        }
-      }
-      case "sha": {
-        if (existingHash) {
-          const sha1sum = CryptoJS.SHA1(password);
-          const computedHash = `{SHA}` + CryptoJS.enc.Base64.stringify(sha1sum);
-          return computedHash === existingHash; // Compare hashes
-        } else {
-          const sha1sum = CryptoJS.SHA1(password);
-          return `{SHA}` + CryptoJS.enc.Base64.stringify(sha1sum); // Return generated hash
-        }
-      }
-      case "sha256": {
-        if (existingHash) {
-          const sha256sum = CryptoJS.SHA256(password);
-          const computedHash =
-            `{SHA256}` + CryptoJS.enc.Base64.stringify(sha256sum);
-          return computedHash === existingHash; // Compare hashes
-        } else {
-          const sha256sum = CryptoJS.SHA256(password);
-          return `{SHA256}` + CryptoJS.enc.Base64.stringify(sha256sum); // Return generated hash
-        }
-      }
-      case "sha512": {
-        if (existingHash) {
-          const sha512sum = CryptoJS.SHA512(password);
-          const computedHash =
-            `{SHA512}` + CryptoJS.enc.Base64.stringify(sha512sum);
-          return computedHash === existingHash; // Compare hashes
-        } else {
-          const sha512sum = CryptoJS.SHA512(password);
-          return `{SHA512}` + CryptoJS.enc.Base64.stringify(sha512sum); // Return generated hash
-        }
-      }
-      case "ssha": {
-        if (existingHash) {
-          return validateSSHA(password, existingHash); // Use validateSSHA for validation
-        } else {
-          // Generate SSHA
-          const salt = crypto.randomBytes(8); // Generate 8-byte random salt
-          const sha1sum = crypto
-            .createHash("sha1")
-            .update(password)
-            .update(salt)
-            .digest();
+  /**
+   * Verifies if a password matches an SSHA hash.
+   * @param {string} password - The plaintext password to verify.
+   * @param {string} ldapsshaHash - The SSHA hash to verify against.
+   * @returns {boolean} True if the password matches the hash; false otherwise.
+   */
+  // Function to create an SSHA hash
+  function createSSHAHash(password) {
+    // Generate a random salt (16 bytes)
+    const salt = crypto.lib.WordArray.random(16);
 
-          const combined = Buffer.concat([sha1sum, salt]).toString("base64");
-          return `{SSHA}` + combined; // Return generated hash
-        }
-      }
-      case "clear": {
-        return password === existingHash; // Compare plain-text password
-      }
-      default: {
-        throw new Error(`Unsupported encryption type: ${encryptionType}`);
-      }
-    }
-  };
+    // Hash the password with the salt
+    const hash = crypto.SHA1(password + salt.toString(crypto.enc.Hex));
 
-  const validateSSHA = (password, sshaHash) => {
-    // Ensure the SSHA hash starts with the correct prefix
-    if (!sshaHash.startsWith("{SSHA}")) {
-      console.error("Invalid SSHA format: Missing '{SSHA}' prefix.");
-      return false;
-    }
+    // Combine the hash and salt
+    const combined = hash.concat(salt);
 
-    // Remove the "{SSHA}" prefix
-    const base64Hash = sshaHash.slice(6); // Remove "{SSHA}"
+    // Encode the combined result in Base64
+    const base64Hash = crypto.enc.Base64.stringify(combined);
 
+    // Return the SSHA formatted string
+    return `{SSHA}${base64Hash}`;
+  }
+
+  function validateSSHA(password, ldapsshaHash) {
     try {
+      // Ensure the SSHA hash starts with the correct prefix
+      if (!ldapsshaHash.startsWith("{SSHA}")) {
+        throw new Error("Invalid SSHA hash format: Missing '{SSHA}' prefix.");
+      }
+
+      // Remove the "{SSHA}" prefix
+      const hash = ldapsshaHash.slice(6);
+
       // Decode the Base64-encoded hash
-      const decoded = Buffer.from(base64Hash, "base64");
+      const buffer = Buffer.from(hash, "base64");
 
-      // The first 20 bytes are the SHA-1 hash, the rest is the salt
-      const sha1Hash = decoded.slice(0, 20); // First 20 bytes
-      const salt = decoded.slice(20); // Remaining bytes are the salt
+      // Validate buffer length (minimum 20 bytes for SHA1 hash + salt)
+      if (buffer.length < 20) {
+        throw new Error("Invalid SSHA hash: Length is too short.");
+      }
 
-      console.log("Decoded Hash (Hex):", sha1Hash.toString("hex"));
+      // Extract the SHA1 hash (first 20 bytes) and the salt (remaining bytes)
+      const sha1Hash = buffer.slice(0, 20); // First 20 bytes are the SHA1 hash
+      const salt = buffer.slice(20); // Remaining bytes are the salt
+
+      // Debug logs
+      console.log("Password:", password);
+      console.log("LDAP SSHA Hash:", ldapsshaHash);
+      console.log("SHA1 Hash (Hex):", sha1Hash.toString("hex"));
       console.log("Salt (Hex):", salt.toString("hex"));
 
-      // Recompute the SHA-1 hash using the password and the extracted salt
-      const recomputedHash = crypto
+      // Recompute the hash using the password and extracted salt
+      const hashBuffer = crypto
         .createHash("sha1")
-        .update(password) // Add the password
-        .update(salt) // Add the salt
+        .update(password)
+        .update(salt)
         .digest();
 
-      console.log("Recomputed Hash (Hex):", recomputedHash.toString("hex"));
+      // Debug log for recomputed hash
+      console.log("Recomputed Hash (Hex):", hashBuffer.toString("hex"));
 
       // Compare the recomputed hash with the original hash
-      return Buffer.compare(sha1Hash, recomputedHash) === 0;
+      return Buffer.compare(hashBuffer, sha1Hash) === 0;
     } catch (error) {
-      console.error("Error decoding Base64 string:", error.message);
+      console.error("Error verifying SSHA hash:", error.message);
       return false;
     }
+  }
+
+  const hashPassword = (password, encryptionType) => {
+    switch (encryptionType.toLowerCase()) {
+      case "bcrypt": {
+        const saltRounds = 10; // Define salt rounds for Bcrypt
+        return bcrypt.hashSync(password, saltRounds);
+      }
+      case "md5": {
+        const md5sum = crypto.MD5(password);
+        return `{MD5}` + crypto.enc.Base64.stringify(md5sum);
+      }
+      case "sha": {
+        const sha1sum = crypto.SHA1(password);
+        return `{SHA}` + crypto.enc.Base64.stringify(sha1sum);
+      }
+      case "sha256": {
+        const sha256sum = crypto.SHA256(password);
+        return `{SHA256}` + crypto.enc.Base64.stringify(sha256sum);
+      }
+      case "sha512": {
+        const sha512sum = crypto.SHA512(password);
+        return `{SHA512}` + crypto.enc.Base64.stringify(sha512sum);
+      }
+      case "ssha": {
+        // Generate a random 8-byte salt
+        const salt = crypto.randomBytes(8); // Binary salt
+
+        // Create SHA1 hash and append the salt
+        const sha1sum = crypto
+          .createHash("sha1")
+          .update(password)
+          .update(salt)
+          .digest();
+
+        // Combine SHA1 hash and salt, then encode in Base64
+        const combined = Buffer.concat([sha1sum, salt]).toString("base64");
+
+        return `{SSHA}` + combined;
+      }
+      case "clear":
+        return password; // Return the plain text password
+      default:
+        throw new Error(`Unsupported encryption type: ${encryptionType}`);
+    }
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -352,19 +348,9 @@ const Login = () => {
 
         const hashedPassword = hashPassword(password, encryptionType);
 
-        const isPasswordValid = hashPassword(
-          password,
-          encryptionType,
-          ldapUser.userPassword
-        );
+        console.log("Hashed Password:", hashedPassword);
 
-        // alert(isPasswordValid);
-        // if (
-        //   isPasswordValid ||
-        //   (ldapUser && ldapUser.userPassword === hashedPassword)
-        // ) {
-        if (isPasswordValid) {
-          // Proceed with login
+        if (ldapUser && ldapUser.userPassword === hashedPassword) {
           // Fetch the user ID for the local login
           const userResponse = await axios.get(
             `${process.env.REACT_APP_API_URL}/api/users_access/${username}`
