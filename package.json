@@ -114,6 +114,12 @@
       "last 1 safari version"
     ]
   },
+  "browser": {
+    "process": "process/browser.js",
+    "crypto": "crypto-browserify",
+    "stream": "stream-browserify",
+    "buffer": "buffer"
+  },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "concurrently": "^9.1.0",
