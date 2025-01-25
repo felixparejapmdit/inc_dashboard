@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+
 import { useSearchParams } from "react-router-dom";
 import {
   Box,
@@ -9,6 +10,8 @@ import {
   Tr,
   Th,
   Td,
+  Grid,
+  GridItem,
   Select,
   Input,
   IconButton,
@@ -17,20 +20,13 @@ import {
   useToast,
   Flex,
 } from "@chakra-ui/react";
-import {
-  EditIcon,
-  DeleteIcon,
-  CheckIcon,
-  AttachmentIcon,
-} from "@chakra-ui/icons";
+import { EditIcon, DeleteIcon, CheckIcon, ViewIcon } from "@chakra-ui/icons";
 import axios from "axios";
-const Step3 = () => {
-  const [contacts, setContacts] = useState([]);
-  const [addresses, setAddresses] = useState([]);
-  const [govIDs, setGovIDs] = useState([]);
 
-  const [contactTypes, setContactTypes] = useState([]);
-  const [governmentIDs, setGovernmentIDs] = useState([]);
+const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
+  const [education, setEducation] = useState([]);
+  const [certificateUploads, setCertificateUploads] = useState({});
+  const [workExperience, setWorkExperience] = useState([]);
   const toast = useToast();
 
   const [searchParams] = useSearchParams(); // Retrieve query parameters
@@ -38,7 +34,7 @@ const Step3 = () => {
 
   const [loading, setLoading] = useState(true);
 
-  // Fetch dropdown data and main table data
+  // Fetch educational and work experience data
   useEffect(() => {
     if (!personnelId) {
       toast({
@@ -52,148 +48,131 @@ const Step3 = () => {
       return;
     }
 
-    const fetchDropdownData = async () => {
+    const fetchData = async () => {
       try {
-        const [contactTypeRes, governmentIDRes] = await Promise.all([
-          axios.get(`${process.env.REACT_APP_API_URL}/api/contact-type-info`),
+        const [educationRes, workExperienceRes] = await Promise.all([
           axios.get(
-            `${process.env.REACT_APP_API_URL}/api/government-issued-ids`
+            `${process.env.REACT_APP_API_URL}/api/educational-backgrounds`,
+            {
+              params: { personnel_id: personnelId },
+            }
           ),
+          axios.get(`${process.env.REACT_APP_API_URL}/api/work-experiences`, {
+            params: { personnel_id: personnelId },
+          }),
         ]);
-        setContactTypes(contactTypeRes.data || []);
-        setGovernmentIDs(governmentIDRes.data || []);
+
+        // Safely handle education data
+        const parsedEducation =
+          educationRes?.data?.map((edu) => ({
+            ...edu,
+            certificate_files:
+              edu.certificate_files && typeof edu.certificate_files === "string"
+                ? JSON.parse(edu.certificate_files)
+                : [], // Default to empty array
+          })) || [];
+
+        // Safely handle work experience data
+        const workExperienceData = workExperienceRes?.data || [];
+
+        setEducation(parsedEducation);
+        setWorkExperience(workExperienceData);
       } catch (error) {
-        console.error("Error fetching dropdown data:", error);
+        console.error("Error fetching data:", error);
         toast({
-          title: "Error loading dropdown data",
-          description: "Failed to fetch dropdown options.",
+          title: "Error loading data",
+          description:
+            "Failed to fetch educational background or work experience.",
           status: "error",
           duration: 3000,
           isClosable: true,
           position: "bottom-left", // Position the toast on the bottom-left
         });
-      }
-    };
-
-    const fetchTableData = async () => {
-      try {
-        const [contactsRes, addressesRes, govIDsRes] = await Promise.all([
-          axios.get(
-            `${process.env.REACT_APP_API_URL}/api/get-personnel-contacts`,
-            {
-              params: { personnel_id: personnelId },
-            }
-          ),
-          axios.get(
-            `${process.env.REACT_APP_API_URL}/api/personnel-addresses`,
-            {
-              params: { personnel_id: personnelId },
-            }
-          ),
-          axios.get(`${process.env.REACT_APP_API_URL}/api/personnel-gov-ids`, {
-            params: { personnel_id: personnelId },
-          }),
-        ]);
-
-        // Update state based on fetched data or set empty if no data
-        setContacts(Array.isArray(contactsRes.data) ? contactsRes.data : []);
-        setAddresses(Array.isArray(addressesRes.data) ? addressesRes.data : []);
-        setGovIDs(Array.isArray(govIDsRes.data) ? govIDsRes.data : []);
-      } catch (error) {
-        // Log error to the console but do not show toast
-        console.error("Error fetching table data:", error);
-
-        // Clear fields in case of error
-        setContacts([]);
-        setAddresses([]);
-        setGovIDs([]);
       } finally {
-        setLoading(false); // Ensure loading state is reset
+        setLoading(false);
       }
     };
 
     setLoading(true);
-    fetchDropdownData();
-    fetchTableData();
+    fetchData();
   }, [personnelId, toast]);
 
-  const handleAddGovID = () => {
-    setGovIDs([
-      ...govIDs,
-      { gov_id: "", gov_issued_id: "", isEditing: true }, // New row is editable by default
-    ]);
+  // Handle changes for educational background fields
+  const handleEducationChange = (index, field, value) => {
+    const updatedEducation = [...education];
+    updatedEducation[index][field] = value;
+    setEducation(updatedEducation);
   };
 
-  const handleContactChange = (idx, field, value) => {
-    const updatedContacts = contacts.map((contact, i) =>
-      i === idx ? { ...contact, [field]: value } : contact
-    );
-    setContacts(updatedContacts);
+  // Handle changes for work experience fields
+  const handleWorkExperienceChange = (index, field, value) => {
+    const updatedWorkExperience = [...workExperience];
+    updatedWorkExperience[index][field] = value;
+    setWorkExperience(updatedWorkExperience);
   };
 
-  const handleAddressChange = (idx, field, value) => {
-    const updatedAddresses = addresses.map((address, i) =>
-      i === idx ? { ...address, [field]: value } : address
-    );
-    setAddresses(updatedAddresses);
-  };
-
-  const handleSaveOrUpdateContact = async (idx) => {
-    const contact = contacts[idx];
+  // Save or update educational background
+  const handleSaveOrUpdateEducation = async (index) => {
+    const edu = education[index];
     const payload = {
       personnel_id: personnelId,
-      contactype_id: contact.contactype_id,
-      contact_info: contact.contact_info,
+      level: edu.level, // Ensure `level` is included in the payload
+      startfrom: edu.startfrom,
+      completion_year: edu.completion_year,
+      school: edu.school,
+      field_of_study: edu.field_of_study,
+      degree: edu.degree,
+      institution: edu.institution,
+      professional_licensure_examination:
+        edu.professional_licensure_examination,
+      certificate_files: edu.certificate_files || [], // Ensure this is an array of file paths
     };
 
     try {
-      if (contact.id) {
-        // **Force update even if the data is unchanged**
-        console.log(
-          "Updating contact with ID:",
-          contact.id,
-          "Payload:",
+      if (edu.id) {
+        console.log("Updating education:", edu.id, payload);
+        const response = await axios.put(
+          `${process.env.REACT_APP_API_URL}/api/educational-backgrounds/${edu.id}`,
           payload
         );
-        alert("UPDATE: " + contact.id);
-        await axios.put(
-          `${process.env.REACT_APP_API_URL}/api/personnel-contacts/${contact.id}`,
-          payload
-        );
-
         toast({
-          title: "Contact updated successfully.",
+          title: "Educational background updated successfully.",
           status: "success",
           duration: 3000,
           position: "bottom-left", // Position the toast on the bottom-left
         });
+
+        // Update the local state to reflect the saved data
+        const updatedEducation = [...education];
+        updatedEducation[index] = { ...edu, ...response.data };
+        setEducation(updatedEducation);
       } else {
-        // Save new record
-        console.log("Saving new contact with payload:", payload);
+        console.log("Saving new education:", payload);
         const response = await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/personnel-contacts`,
+          `${process.env.REACT_APP_API_URL}/api/educational-backgrounds`,
           payload
         );
-        // Assign the new ID to the record
-        contact.id = response.data.id;
+        const newEducation = { ...edu, id: response.data.id };
+        const updatedEducation = [...education];
+        updatedEducation[index] = newEducation;
+        setEducation(updatedEducation);
 
         toast({
-          title: "Contact saved successfully.",
+          title: "Educational background saved successfully.",
           status: "success",
           duration: 3000,
           position: "bottom-left", // Position the toast on the bottom-left
         });
       }
 
-      // Disable editing after save
-      toggleEditContact(idx);
+      toggleEditEducation(index);
     } catch (error) {
-      console.error("Error saving/updating contact:", error);
-
+      console.error("Error saving/updating education:", error);
       toast({
-        title: "Error saving/updating contact.",
+        title: "Error",
         description:
-          error.response?.data?.error || "Failed to save or update contact.",
+          error.response?.data?.message ||
+          "Failed to save or update education.",
         status: "error",
         duration: 3000,
         position: "bottom-left", // Position the toast on the bottom-left
@@ -201,296 +180,174 @@ const Step3 = () => {
     }
   };
 
-  const handleAddContact = () =>
-    setContacts([
-      ...contacts,
-      { contactype_id: "", contact_info: "", isEditing: true },
-    ]);
-
-  const toggleEditContact = (idx) => {
-    const updatedContacts = [...contacts];
-    updatedContacts[idx].isEditing = !updatedContacts[idx].isEditing;
-    setContacts(updatedContacts);
-  };
-
-  const handleRemoveContact = async (idx) => {
-    const contact = contacts[idx];
-    if (contact.id) {
-      const confirmed = window.confirm(
-        "Are you sure you want to delete this contact?"
-      );
-      if (!confirmed) return;
-
-      try {
-        await axios.delete(
-          `${process.env.REACT_APP_API_URL}/api/personnel-contacts/${contact.id}`
-        );
-        toast({
-          title: "Contact deleted successfully.",
-          status: "success",
-          duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
-        });
-      } catch (error) {
-        console.error("Error deleting contact:", error);
-        toast({
-          title: "Error deleting contact.",
-          description:
-            error.response?.data?.error || "Failed to delete contact.",
-          status: "error",
-          duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
-        });
-      }
-    }
-    // Remove contact from the state
-    setContacts(contacts.filter((_, i) => i !== idx));
-  };
-
-  const handleSaveOrUpdateAddress = async (idx) => {
-    const address = addresses[idx];
-    const payload = {
-      personnel_id: personnelId,
-      address_type: address.address_type,
-      name: address.name,
-    };
+  const handleCertificateUpload = async (index, files) => {
+    const formData = new FormData();
+    Array.from(files).forEach((file) => formData.append("certificates", file));
 
     try {
-      if (address.id) {
-        // Update existing record
-        console.log(
-          "Updating record with ID:",
-          address.id,
-          "Payload:",
-          payload
-        );
-        await axios.put(
-          `${process.env.REACT_APP_API_URL}/api/personnel-addresses/${address.id}`,
-          payload
-        );
-
-        toast({
-          title: "Address updated successfully.",
-          status: "success",
-          duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
-        });
-      } else {
-        // Save new record
-        console.log("Saving new record with payload:", payload);
-        const response = await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/personnel-addresses`,
-          payload
-        );
-
-        // Assign the new ID to the record
-        address.id = response.data.id;
-
-        toast({
-          title: "Address saved successfully.",
-          status: "success",
-          duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
-        });
-      }
-
-      // Disable editing after save
-      toggleEditAddress(idx);
-    } catch (error) {
-      console.error("Error saving/updating address:", error);
-
-      toast({
-        title: "Error saving/updating address.",
-        description:
-          error.response?.data?.error || "Failed to save or update address.",
-        status: "error",
-        duration: 3000,
-        position: "bottom-left", // Position the toast on the bottom-left
-      });
-    }
-  };
-
-  const handleAddAddress = () => {
-    setAddresses([
-      ...addresses,
-      { address_type: "", name: "", isEditing: true }, // New row starts in editing mode
-    ]);
-  };
-
-  const toggleEditAddress = (idx) => {
-    const updatedAddresses = [...addresses];
-    updatedAddresses[idx].isEditing = !updatedAddresses[idx].isEditing;
-    setAddresses(updatedAddresses);
-  };
-
-  const handleRemoveAddress = (idx) => {
-    const address = addresses[idx];
-    if (address.id) {
-      // Confirm before deleting existing record
-      if (window.confirm("Are you sure you want to delete this address?")) {
-        axios
-          .delete(
-            `${process.env.REACT_APP_API_URL}/api/personnel-addresses/${address.id}`
-          )
-          .then(() => {
-            toast({
-              title: "Address deleted successfully.",
-              status: "success",
-              duration: 3000,
-              position: "bottom-left", // Position the toast on the bottom-left
-            });
-
-            // Remove from state
-            const updatedAddresses = addresses.filter((_, i) => i !== idx);
-            setAddresses(updatedAddresses);
-          })
-          .catch((error) => {
-            console.error("Error deleting address:", error);
-            toast({
-              title: "Error deleting address.",
-              description:
-                error.response?.data?.error || "Failed to delete address.",
-              status: "error",
-              duration: 3000,
-              position: "bottom-left", // Position the toast on the bottom-left
-            });
-          });
-      }
-    } else {
-      // Remove unsaved row
-      const updatedAddresses = addresses.filter((_, i) => i !== idx);
-      setAddresses(updatedAddresses);
-    }
-  };
-
-  const handleSaveOrUpdateGovID = async (idx) => {
-    const govID = govIDs[idx];
-    const payload = {
-      personnel_id: personnelId,
-      gov_id: govID.gov_id,
-      gov_issued_id: govID.gov_issued_id,
-    };
-
-    try {
-      if (govID.id) {
-        // **Force update even if the data is unchanged**
-        console.log("Updating record with ID:", govID.id, "Payload:", payload);
-        alert("UPDATE: " + govID.id);
-        await axios.put(
-          `${process.env.REACT_APP_API_URL}/api/personnel-gov-ids/${govID.id}`,
-          payload
-        );
-
-        toast({
-          title: "Government ID updated successfully.",
-          status: "success",
-          duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
-        });
-      } else {
-        // Save new record
-        console.log("Saving new record with payload:", payload);
-        const response = await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/personnel-gov-ids`,
-          payload
-        );
-        // Assign the new ID to the record
-        govID.id = response.data.id;
-
-        toast({
-          title: "Government ID saved successfully.",
-          status: "success",
-          duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
-        });
-      }
-
-      // Disable editing after save
-      toggleEditGovID(idx);
-    } catch (error) {
-      console.error("Error saving/updating government ID:", error);
-
-      toast({
-        title: "Error saving/updating government ID...",
-        description:
-          error.response?.data?.error ||
-          "Failed to save or update government ID.",
-        status: "error",
-        duration: 3000,
-        position: "bottom-left", // Position the toast on the bottom-left
-      });
-    }
-  };
-
-  const confirmDeleteGovID = (idx) => {
-    if (window.confirm("Are you sure you want to delete this government ID?")) {
-      handleRemoveGovID(idx);
-    }
-  };
-
-  const toggleEditGovID = (idx) => {
-    const updatedGovIDs = [...govIDs];
-    updatedGovIDs[idx].isEditing = !updatedGovIDs[idx].isEditing;
-
-    // Reset fields to reflect saved data if disabling edit mode
-    if (!updatedGovIDs[idx].isEditing) {
-      updatedGovIDs[idx].disabled = true; // Lock the row
-    }
-
-    setGovIDs(updatedGovIDs);
-  };
-
-  const handleGovIDChange = (idx, field, value) => {
-    const updatedGovIDs = [...govIDs];
-    updatedGovIDs[idx][field] = value;
-    setGovIDs(updatedGovIDs);
-  };
-
-  const handleDocumentUpload = async (idx, file) => {
-    try {
-      if (!file) {
-        throw new Error("No file selected for upload.");
-      }
-
-      // Create FormData to include the file and other required fields
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("document_id", govIDs[idx]?.govIDType || ""); // Ensure govIDType exists
-      formData.append("personnel_id", "2"); // Replace with actual logic to fetch personnel ID
-      formData.append("description", "Uploaded document");
-      formData.append("status", "active");
-
-      // API request to upload the file
       const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/personnel-documents/upload`,
+        `${process.env.REACT_APP_API_URL}/api/upload-certificates`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
         }
       );
 
-      // Log response for debugging
-      console.log("Document uploaded successfully:", response.data);
+      // Update the state with filenames instead of full paths
+      const updatedEducation = [...education];
+      const uploadedFilenames = response.data.filenames; // Array of filenames
+      updatedEducation[index].certificate_files = [
+        ...(updatedEducation[index].certificate_files || []),
+        ...uploadedFilenames,
+      ];
+      setEducation(updatedEducation);
 
-      // Display success toast
       toast({
-        title: "Document uploaded successfully.",
+        title: "Certificates uploaded successfully.",
         status: "success",
         duration: 3000,
+        isClosable: true,
         position: "bottom-left", // Position the toast on the bottom-left
       });
-
-      // Update the `govIDs` array to include the uploaded document info
-      const updatedGovIDs = govIDs.map((id, i) =>
-        i === idx ? { ...id, document: response.data.document } : id
-      );
-      setGovIDs(updatedGovIDs);
     } catch (error) {
-      // Log and display error message
-      console.error("Error uploading document:", error.message);
+      console.error("Error uploading certificates:", error.message);
       toast({
-        title: "Error uploading document.",
-        description: error.response?.data?.message || error.message,
+        title: "Error uploading certificates.",
+        description: error.response?.data?.message || "Please try again.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom-left", // Position the toast on the bottom-left
+      });
+    }
+  };
+
+  const handleRemoveCertificate = async (eduIndex, certIndex) => {
+    try {
+      const updatedEducation = [...education];
+      const edu = updatedEducation[eduIndex];
+
+      // Ensure certificate_files is initialized as an array
+      if (!Array.isArray(edu.certificate_files)) {
+        edu.certificate_files = [];
+      }
+
+      // Get the file to remove
+      const certToRemove = edu.certificate_files[certIndex];
+
+      if (!certToRemove) {
+        toast({
+          title: "Error",
+          description: "File not found.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+          position: "bottom-left", // Position the toast on the bottom-left
+        });
+        return;
+      }
+
+      // Make a PUT request to the backend to remove the file from the server and database
+      const response = await axios.put(
+        `${process.env.REACT_APP_API_URL}/api/remove-certificate`,
+        {
+          filePath: certToRemove, // Send only the filename
+          educationId: edu.id, // Include the education ID
+        }
+      );
+
+      // Update the local state with the updated certificate files from the backend
+      edu.certificate_files = response.data.certificate_files; // Use the updated array from the backend
+      setEducation(updatedEducation);
+
+      toast({
+        title: "Certificate removed successfully.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom-left", // Position the toast on the bottom-left
+      });
+    } catch (error) {
+      console.error("Error removing certificate:", error.message);
+      toast({
+        title: "Error removing certificate.",
+        description: error.response?.data?.message || "Please try again.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom-left", // Position the toast on the bottom-left
+      });
+    }
+  };
+
+  const isCertificateUploadAllowed = (level) => {
+    const allowedLevels = [
+      "Senior High School",
+      "Vocational Training",
+      "Associate Degree",
+      "Bachelor's Degree",
+      "Master's Degree",
+      "Doctorate Degree",
+      "Post-Doctorate",
+      "Certificate Programs",
+      "Professional Degree",
+      "Continuing Education",
+      "Alternative Learning System",
+    ];
+    return allowedLevels.includes(level);
+  };
+
+  // Save or update work experience
+  const handleSaveOrUpdateWorkExperience = async (index) => {
+    const work = workExperience[index];
+    const payload = {
+      personnel_id: personnelId,
+      employment_type: work.employment_type,
+      company: work.company,
+      address: work.address,
+      position: work.position,
+      department: work.department,
+      section: work.section,
+      start_date: work.start_date,
+      end_date: work.end_date,
+      reason_for_leaving: work.reason_for_leaving,
+    };
+
+    try {
+      if (work.id) {
+        console.log("Updating work experience:", work.id, payload);
+        await axios.put(
+          `${process.env.REACT_APP_API_URL}/api/work-experiences/${work.id}`,
+          payload
+        );
+        toast({
+          title: "Work experience updated successfully.",
+          status: "success",
+          duration: 3000,
+          position: "bottom-left", // Position the toast on the bottom-left
+        });
+      } else {
+        console.log("Saving new work experience:", payload);
+        const response = await axios.post(
+          `${process.env.REACT_APP_API_URL}/api/work-experiences`,
+          payload
+        );
+        work.id = response.data.id; // Assign new ID to the record
+        toast({
+          title: "Work experience saved successfully.",
+          status: "success",
+          duration: 3000,
+          position: "bottom-left", // Position the toast on the bottom-left
+        });
+      }
+      toggleEditWorkExperience(index);
+    } catch (error) {
+      console.error("Error saving/updating work experience:", error);
+      toast({
+        title: "Error",
+        description:
+          error.response?.data?.message ||
+          "Failed to save or update work experience.",
         status: "error",
         duration: 3000,
         position: "bottom-left", // Position the toast on the bottom-left
@@ -498,308 +355,650 @@ const Step3 = () => {
     }
   };
 
-  const handleRemoveGovID = (index) => {
-    setGovIDs(govIDs.filter((_, idx) => idx !== index));
+  // Add new educational background
+  const handleAddEducation = () => {
+    setEducation([
+      ...education,
+      {
+        level: "",
+        startfrom: "",
+        completion_year: "",
+        school: "",
+        field_of_study: "",
+        degree: "",
+        institution: "",
+        professional_licensure_examination: "",
+        certificate_files: [], // Ensure this is initialized as an array
+        isEditing: true,
+      },
+    ]);
+  };
+
+  // Add new work experience
+  const handleAddWorkExperience = () => {
+    setWorkExperience([
+      ...workExperience,
+      {
+        employment_type: "",
+        company: "",
+        address: "",
+        position: "",
+        department: "",
+        section: "",
+        start_date: "",
+        end_date: "",
+        reason_for_leaving: "",
+        isEditing: true,
+      },
+    ]);
+  };
+
+  // Toggle editing for educational background
+  const toggleEditEducation = (index) => {
+    const updatedEducation = [...education];
+    updatedEducation[index].isEditing = !updatedEducation[index].isEditing;
+    setEducation(updatedEducation);
+  };
+
+  // Toggle editing for work experience
+  const toggleEditWorkExperience = (index) => {
+    const updatedWorkExperience = [...workExperience];
+    updatedWorkExperience[index].isEditing =
+      !updatedWorkExperience[index].isEditing;
+    setWorkExperience(updatedWorkExperience);
+  };
+
+  // Function to remove an education entry
+  const handleRemoveEducation = async (idx) => {
+    const educationEntry = education[idx];
+
+    if (educationEntry.id) {
+      const confirmed = window.confirm(
+        "Are you sure you want to delete this educational background?"
+      );
+      if (!confirmed) return;
+
+      try {
+        // Delete the record from the database
+        await axios.delete(
+          `${process.env.REACT_APP_API_URL}/api/educational-backgrounds/${educationEntry.id}`
+        );
+
+        toast({
+          title: "Educational background deleted successfully.",
+          status: "success",
+          duration: 3000,
+          position: "bottom-left", // Position the toast on the bottom-left
+        });
+      } catch (error) {
+        console.error("Error deleting educational background:", error);
+        toast({
+          title: "Error deleting educational background.",
+          description:
+            error.response?.data?.error ||
+            "Failed to delete the educational background.",
+          status: "error",
+          duration: 3000,
+          position: "bottom-left", // Position the toast on the bottom-left
+        });
+      }
+    }
+
+    // Remove the entry from the state
+    setEducation(education.filter((_, i) => i !== idx));
+  };
+
+  // Function to remove a work experience entry
+  const handleRemoveWorkExperience = async (idx) => {
+    const workEntry = workExperience[idx];
+
+    if (workEntry.id) {
+      const confirmed = window.confirm(
+        "Are you sure you want to delete this work experience?"
+      );
+      if (!confirmed) return;
+
+      try {
+        // Delete the record from the database
+        await axios.delete(
+          `${process.env.REACT_APP_API_URL}/api/work-experiences/${workEntry.id}`
+        );
+
+        toast({
+          title: "Work experience deleted successfully.",
+          status: "success",
+          duration: 3000,
+          position: "bottom-left", // Position the toast on the bottom-left
+        });
+      } catch (error) {
+        console.error("Error deleting work experience:", error);
+        toast({
+          title: "Error deleting work experience.",
+          description:
+            error.response?.data?.error ||
+            "Failed to delete the work experience.",
+          status: "error",
+          duration: 3000,
+          position: "bottom-left", // Position the toast on the bottom-left
+        });
+      }
+    }
+
+    // Remove the entry from the state
+    setWorkExperience(workExperience.filter((_, i) => i !== idx));
   };
 
   return (
-    <Box
-      width="100%"
-      bg="white"
-      boxShadow="lg"
-      p={8}
-      rounded="md"
-      mt={6}
-      my={85}
-    >
-      {loading ? (
-        <Text>Loading...</Text>
-      ) : (
-        <Box>
-          <Heading as="h2" size="lg" textAlign="center" mb={6}>
-            Step 3: Contact Information
-          </Heading>
+    <Box width="100%" bg="white" boxShadow="sm" p={5} mt={20}>
+      <Heading as="h2" size="lg" textAlign="center" mb={6}>
+        Step 3: Educational Background & Work Experience
+      </Heading>
 
-          {/* Contacts Section */}
-          <Text fontWeight="bold" fontSize="lg" mt={6} mb={2}>
-            Contacts
-          </Text>
-          <Table variant="striped" colorScheme="teal">
-            <Thead>
-              <Tr>
-                <Th>Type</Th>
-                <Th>Contact Info</Th>
-                <Th>Actions</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {contacts.length > 0 ? (
-                contacts.map((contact, idx) => (
-                  <Tr key={idx}>
-                    <Td>
-                      <Select
-                        placeholder="Select Type"
-                        value={contact.contactype_id}
-                        isDisabled={!contact.isEditing} // Disable if not editing
-                        onChange={(e) =>
-                          handleContactChange(
-                            idx,
-                            "contactype_id",
-                            e.target.value
-                          )
-                        }
+      {/* Educational Background Section */}
+      <Text fontWeight="bold" fontSize="lg" mt={6} mb={2}>
+        Educational Background
+      </Text>
+      {education.map((edu, idx) => (
+        <Box
+          key={idx}
+          p={4}
+          bg="cyan.50"
+          borderRadius="md"
+          mb={4}
+          boxShadow="md"
+        >
+          <Grid templateColumns="repeat(4, 1fr)" gap={4}>
+            <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Educational Level:
+              </Text>
+              <Select
+                placeholder="Level"
+                value={edu.level}
+                isDisabled={!edu.isEditing}
+                onChange={(e) =>
+                  handleEducationChange(idx, "level", e.target.value)
+                }
+              >
+                {educationalLevelOptions.map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
+              </Select>
+            </GridItem>
+            <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                School:
+              </Text>
+              <Input
+                placeholder="School"
+                value={edu.school}
+                isDisabled={!edu.isEditing}
+                onChange={(e) =>
+                  handleEducationChange(idx, "school", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Start Year:
+              </Text>
+              <Input
+                placeholder="Start Year"
+                type="number"
+                value={edu.startfrom}
+                isDisabled={!edu.isEditing}
+                onChange={(e) =>
+                  handleEducationChange(idx, "startfrom", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Completion Year:
+              </Text>
+              <Input
+                placeholder="Completion Year"
+                type="number"
+                value={edu.completion_year}
+                isDisabled={!edu.isEditing}
+                onChange={(e) =>
+                  handleEducationChange(idx, "completion_year", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Field Of Study:
+              </Text>
+              <Input
+                placeholder="Field of Study"
+                value={edu.field_of_study}
+                isDisabled={
+                  !edu.isEditing ||
+                  edu.level === "No Formal Education" ||
+                  edu.level === "Primary Education" ||
+                  edu.level === "Secondary Education" ||
+                  edu.level === "Senior High School"
+                }
+                onChange={(e) =>
+                  handleEducationChange(idx, "field_of_study", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Degree:
+              </Text>
+              <Input
+                placeholder="Degree"
+                value={edu.degree}
+                isDisabled={
+                  !edu.isEditing ||
+                  edu.level === "No Formal Education" ||
+                  edu.level === "Primary Education" ||
+                  edu.level === "Secondary Education" ||
+                  edu.level === "Senior High School"
+                }
+                onChange={(e) =>
+                  handleEducationChange(idx, "degree", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Institution:
+              </Text>
+              <Input
+                placeholder="Institution"
+                value={edu.institution}
+                isDisabled={
+                  !edu.isEditing ||
+                  edu.level === "No Formal Education" ||
+                  edu.level === "Primary Education" ||
+                  edu.level === "Secondary Education" ||
+                  edu.level === "Senior High School"
+                }
+                onChange={(e) =>
+                  handleEducationChange(idx, "institution", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Professional Licensure:
+              </Text>
+              <Input
+                placeholder="Professional Licensure"
+                value={edu.professional_licensure_examination}
+                isDisabled={
+                  !edu.isEditing ||
+                  edu.level === "No Formal Education" ||
+                  edu.level === "Primary Education" ||
+                  edu.level === "Secondary Education" ||
+                  edu.level === "Senior High School"
+                }
+                onChange={(e) =>
+                  handleEducationChange(
+                    idx,
+                    "professional_licensure_examination",
+                    e.target.value
+                  )
+                }
+              />
+            </GridItem>
+            {/* Certificate Upload Section */}
+            {isCertificateUploadAllowed(edu.level) && (
+              <GridItem colSpan={4}>
+                <Text fontWeight="bold" mb="2">
+                  Upload Certificates:
+                </Text>
+                <Input
+                  type="file"
+                  accept=".pdf,.jpg,.png"
+                  multiple
+                  isDisabled={!edu.isEditing}
+                  onChange={(e) => handleCertificateUpload(idx, e.target.files)}
+                />
+                <Box mt={4}>
+                  {/* Ensure certificate_files is an array before mapping */}
+                  {Array.isArray(edu.certificate_files) &&
+                    edu.certificate_files.map((file, fileIdx) => (
+                      <Flex
+                        key={fileIdx}
+                        alignItems="center"
+                        justifyContent="space-between"
+                        mb={2}
                       >
-                        {contactTypes.map((type) => (
-                          <option key={type.id} value={type.id}>
-                            {type.name}
-                          </option>
-                        ))}
-                      </Select>
-                    </Td>
-                    <Td>
-                      <Input
-                        placeholder="Contact Info"
-                        value={contact.contact_info}
-                        isDisabled={!contact.isEditing} // Disable if not editing
-                        onChange={(e) =>
-                          handleContactChange(
-                            idx,
-                            "contact_info",
-                            e.target.value
-                          )
-                        }
-                      />
-                    </Td>
-                    <Td>
-                      <Flex>
-                        {/* Save/Edit Button */}
-                        <IconButton
-                          icon={
-                            contact.isEditing ? <CheckIcon /> : <EditIcon />
-                          }
-                          size="sm"
-                          colorScheme={contact.isEditing ? "green" : "blue"}
-                          mr={2}
-                          onClick={() =>
-                            contact.isEditing
-                              ? handleSaveOrUpdateContact(idx)
-                              : toggleEditContact(idx)
-                          }
-                        />
-                        <IconButton
-                          icon={<DeleteIcon />}
-                          size="sm"
-                          colorScheme="red"
-                          onClick={() => handleRemoveContact(idx)}
-                        />
+                        <Text>{file}</Text>
+                        <Flex>
+                          {/* View Icon */}
+                          <IconButton
+                            icon={<ViewIcon />}
+                            colorScheme="blue"
+                            size="sm"
+                            mr={2}
+                            onClick={
+                              () =>
+                                window.open(
+                                  `/uploads/certificates/${file}`,
+                                  "_blank"
+                                ) // Construct the full path
+                            }
+                          />
+                          {/* Delete Icon */}
+                          <IconButton
+                            icon={<DeleteIcon />}
+                            colorScheme="red"
+                            size="sm"
+                            onClick={() =>
+                              handleRemoveCertificate(idx, fileIdx)
+                            }
+                          />
+                        </Flex>
                       </Flex>
-                    </Td>
-                  </Tr>
-                ))
-              ) : (
-                <Tr>
-                  <Td colSpan="3" textAlign="center">
-                    No contacts available. Click "Add Contact" to create one.
-                  </Td>
-                </Tr>
-              )}
-            </Tbody>
-          </Table>
-          <Button onClick={handleAddContact} colorScheme="teal" mt={4}>
-            Add Contact
-          </Button>
-
-          {/* Addresses Section */}
-          <Text fontWeight="bold" fontSize="lg" mt={6} mb={2}>
-            Addresses
-          </Text>
-          <Table variant="striped" colorScheme="teal">
-            <Thead>
-              <Tr>
-                <Th>Address Type</Th>
-                <Th>Address</Th>
-                <Th>Actions</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {addresses.length > 0 ? (
-                addresses.map((address, idx) => (
-                  <Tr key={idx}>
-                    <Td>
-                      <Select
-                        placeholder="Address Type"
-                        value={address.address_type}
-                        isDisabled={!address.isEditing} // Disable unless editing
-                        onChange={(e) =>
-                          handleAddressChange(
-                            idx,
-                            "address_type",
-                            e.target.value
-                          )
-                        }
-                      >
-                        <option>Home Address</option>
-                        <option>Provincial Address</option>
-                        <option>Work Address</option>
-                      </Select>
-                    </Td>
-                    <Td>
-                      <Input
-                        placeholder="Address"
-                        value={address.name}
-                        isDisabled={!address.isEditing} // Disable unless editing
-                        onChange={(e) =>
-                          handleAddressChange(idx, "name", e.target.value)
-                        }
-                      />
-                    </Td>
-                    <Td>
-                      <Flex>
-                        {/* Save/Edit Button */}
-                        <IconButton
-                          icon={
-                            address.isEditing ? <CheckIcon /> : <EditIcon />
-                          }
-                          size="sm"
-                          colorScheme={address.isEditing ? "green" : "blue"}
-                          onClick={() =>
-                            address.isEditing
-                              ? handleSaveOrUpdateAddress(idx)
-                              : toggleEditAddress(idx)
-                          }
-                        />
-                        <IconButton
-                          icon={<DeleteIcon />}
-                          size="sm"
-                          colorScheme="red"
-                          onClick={() => handleRemoveAddress(idx)}
-                        />
-                      </Flex>
-                    </Td>
-                  </Tr>
-                ))
-              ) : (
-                <Tr>
-                  <Td colSpan="3" textAlign="center">
-                    No addresses available. Click "Add Address" to create one.
-                  </Td>
-                </Tr>
-              )}
-            </Tbody>
-          </Table>
-          <Button onClick={handleAddAddress} colorScheme="teal" mt={4}>
-            Add Address
-          </Button>
-
-          {/* Government Issued IDs Section */}
-          <Text fontWeight="bold" fontSize="lg" mt={6} mb={2}>
-            Government Issued IDs
-          </Text>
-          <Table variant="striped" colorScheme="teal">
-            <Thead>
-              <Tr>
-                <Th>ID Type</Th>
-                <Th>ID Number</Th>
-                <Th>Document</Th>
-                <Th>Actions</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {govIDs.length > 0 ? (
-                govIDs.map((id, idx) => (
-                  <Tr key={idx}>
-                    <Td>
-                      <Select
-                        placeholder="Select ID Type"
-                        value={id.gov_id}
-                        isDisabled={!id.isEditing} // Disable if not in editing mode
-                        onChange={(e) =>
-                          handleGovIDChange(idx, "gov_id", e.target.value)
-                        }
-                      >
-                        {governmentIDs.map((govID) => (
-                          <option key={govID.id} value={govID.id}>
-                            {govID.name}
-                          </option>
-                        ))}
-                      </Select>
-                    </Td>
-                    <Td>
-                      <Input
-                        placeholder="ID Number"
-                        value={id.gov_issued_id}
-                        isDisabled={!id.isEditing} // Disable if not in editing mode
-                        onChange={(e) =>
-                          handleGovIDChange(
-                            idx,
-                            "gov_issued_id",
-                            e.target.value
-                          )
-                        }
-                      />
-                    </Td>
-                    <Td>
-                      <Button
-                        rightIcon={<AttachmentIcon />}
-                        size="sm"
-                        colorScheme="teal"
-                        isDisabled={!id.isEditing} // Disable if not in editing mode
-                        onClick={() =>
-                          document.getElementById(`file-upload-${idx}`).click()
-                        }
-                      >
-                        Upload
-                      </Button>
-                      <input
-                        type="file"
-                        id={`file-upload-${idx}`}
-                        style={{ display: "none" }}
-                        onChange={(e) => {
-                          const file = e.target.files[0];
-                          if (file) {
-                            handleDocumentUpload(idx, file);
-                          }
-                        }}
-                      />
-                    </Td>
-                    <Td>
-                      <Flex>
-                        {/* Save and Edit Button */}
-                        <IconButton
-                          icon={id.isEditing ? <CheckIcon /> : <EditIcon />}
-                          size="sm"
-                          colorScheme={id.isEditing ? "green" : "blue"}
-                          onClick={() =>
-                            id.isEditing
-                              ? handleSaveOrUpdateGovID(idx)
-                              : toggleEditGovID(idx)
-                          }
-                        />
-                        <IconButton
-                          icon={<DeleteIcon />}
-                          size="sm"
-                          colorScheme="red"
-                          onClick={() => confirmDeleteGovID(idx)}
-                        />
-                      </Flex>
-                    </Td>
-                  </Tr>
-                ))
-              ) : (
-                <Tr>
-                  <Td colSpan="4" textAlign="center">
-                    No government-issued IDs available. Click "Add Government
-                    ID" to create one.
-                  </Td>
-                </Tr>
-              )}
-            </Tbody>
-          </Table>
-          <Button onClick={handleAddGovID} colorScheme="teal" mt={4}>
-            Add Government ID
-          </Button>
+                    ))}
+                </Box>
+              </GridItem>
+            )}
+          </Grid>
+          <Flex justifyContent="flex-end" mt={4}>
+            <IconButton
+              icon={edu.isEditing ? <CheckIcon /> : <EditIcon />}
+              colorScheme={edu.isEditing ? "green" : "blue"}
+              onClick={() =>
+                edu.isEditing
+                  ? handleSaveOrUpdateEducation(idx)
+                  : toggleEditEducation(idx)
+              }
+              mr={2}
+            />
+            <IconButton
+              icon={<DeleteIcon />}
+              colorScheme="red"
+              onClick={() => handleRemoveEducation(idx)}
+            />
+          </Flex>
         </Box>
-      )}
+      ))}
+      <Button onClick={handleAddEducation} colorScheme="teal" mt={4}>
+        Add Educational Background
+      </Button>
+
+      {/* Work Experience Section */}
+      <Text fontWeight="bold" fontSize="lg" mt={6} mb={2}>
+        Work Experience
+      </Text>
+      {workExperience.map((work, idx) => (
+        <Box
+          key={idx}
+          p={4}
+          bg="cyan.50"
+          borderRadius="md"
+          mb={4}
+          boxShadow="md"
+        >
+          <Grid templateColumns="repeat(4, 1fr)" gap={4}>
+            <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Employment Type:
+              </Text>
+              <Select
+                placeholder="Employment Type"
+                value={work.employment_type}
+                isDisabled={!work.isEditing}
+                onChange={(e) =>
+                  handleWorkExperienceChange(
+                    idx,
+                    "employment_type",
+                    e.target.value
+                  )
+                }
+              >
+                {employmentTypeOptions.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </Select>
+            </GridItem>
+            <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Company:
+              </Text>
+              <Input
+                placeholder="Company"
+                value={work.company}
+                isDisabled={
+                  !work.isEditing ||
+                  ["Volunteer/Kawani"].includes(work.employment_type)
+                } // Disable if employment_type is Volunteer or Kawani
+                onChange={(e) =>
+                  handleWorkExperienceChange(idx, "company", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Address:
+              </Text>
+              <Input
+                placeholder="Address"
+                value={work.address}
+                isDisabled={!work.isEditing}
+                onChange={(e) =>
+                  handleWorkExperienceChange(idx, "address", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Position:
+              </Text>
+              <Input
+                placeholder="Position"
+                value={work.position}
+                isDisabled={!work.isEditing}
+                onChange={(e) =>
+                  handleWorkExperienceChange(idx, "position", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Department:
+              </Text>
+              <Input
+                placeholder="Department"
+                value={work.department}
+                isDisabled={!work.isEditing}
+                onChange={(e) =>
+                  handleWorkExperienceChange(idx, "department", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Section:
+              </Text>
+              <Input
+                placeholder="Section"
+                value={work.section}
+                isDisabled={!work.isEditing}
+                onChange={(e) =>
+                  handleWorkExperienceChange(idx, "section", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Start Date:
+              </Text>
+              <Input
+                type="date"
+                value={work.start_date}
+                isDisabled={!work.isEditing}
+                onChange={(e) =>
+                  handleWorkExperienceChange(idx, "start_date", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                End Date:
+              </Text>
+              <Input
+                type="date"
+                value={work.end_date}
+                isDisabled={!work.isEditing}
+                onChange={(e) =>
+                  handleWorkExperienceChange(idx, "end_date", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Reason for Leaving:
+              </Text>
+              <Input
+                placeholder="Reason for Leaving"
+                value={work.reason_for_leaving}
+                isDisabled={!work.isEditing}
+                onChange={(e) =>
+                  handleWorkExperienceChange(
+                    idx,
+                    "reason_for_leaving",
+                    e.target.value
+                  )
+                }
+              />
+            </GridItem>
+          </Grid>
+          <Flex justifyContent="flex-end" mt={4}>
+            <IconButton
+              icon={work.isEditing ? <CheckIcon /> : <EditIcon />}
+              colorScheme={work.isEditing ? "green" : "blue"}
+              onClick={() =>
+                work.isEditing
+                  ? handleSaveOrUpdateWorkExperience(idx)
+                  : toggleEditWorkExperience(idx)
+              }
+              mr={2}
+            />
+            <IconButton
+              icon={<DeleteIcon />}
+              colorScheme="red"
+              onClick={() => handleRemoveWorkExperience(idx)}
+            />
+          </Flex>
+        </Box>
+      ))}
+      <Button onClick={handleAddWorkExperience} colorScheme="teal" mt={4}>
+        Add Work Experience
+      </Button>
     </Box>
   );
 };

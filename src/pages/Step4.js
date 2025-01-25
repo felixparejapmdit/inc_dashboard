@@ -1,1004 +1,1311 @@
+// src/pages/Step4.js
 import React, { useState, useEffect } from "react";
-
-import { useSearchParams } from "react-router-dom";
+import Select from "react-select";
+import { useSearchParams } from "react-router-dom"; // Import useParams for retrieving URL parameters
 import {
   Box,
+  Tabs,
+  TabList,
+  TabPanels,
+  Tab,
+  TabPanel,
+  VStack,
+  HStack,
+  Text,
   Heading,
+  Input,
+  //Select,
   Table,
-  Thead,
   Tbody,
   Tr,
-  Th,
   Td,
-  Grid,
-  GridItem,
-  Select,
-  Input,
   IconButton,
-  Button,
-  Text,
   useToast,
-  Flex,
 } from "@chakra-ui/react";
-import { EditIcon, DeleteIcon, CheckIcon, ViewIcon } from "@chakra-ui/icons";
+import { CheckIcon, EditIcon } from "@chakra-ui/icons";
 import axios from "axios";
 
-const Step4 = ({ employmentTypeOptions, educationalLevelOptions }) => {
-  const [education, setEducation] = useState([]);
-  const [certificateUploads, setCertificateUploads] = useState({});
-  const [workExperience, setWorkExperience] = useState([]);
-  const toast = useToast();
-
+const API_URL = process.env.REACT_APP_API_URL;
+const Step4 = ({
+  data = [], // Ensure data defaults to an empty array
+  setData, // Added setData as a prop
+  onAdd,
+  onChange,
+  onToggleEdit,
+  citizenships,
+  nationalities,
+  suffixOptions,
+  districts,
+  civilStatusOptions,
+  employmentTypeOptions,
+  educationalLevelOptions,
+  bloodtypes,
+}) => {
   const [searchParams] = useSearchParams(); // Retrieve query parameters
   const personnelId = searchParams.get("personnel_id"); // Get personnel_id from URL
 
-  const [loading, setLoading] = useState(true);
+  const [parents, setParents] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const toast = useToast();
 
-  // Fetch educational and work experience data
   useEffect(() => {
-    if (!personnelId) {
+    const initializeDefaultParents = () => [
+      {
+        relationship_type: "Father",
+        givenname: "",
+        lastname: "",
+        middlename: "",
+        suffix: "",
+        gender: "Male",
+        date_of_birth: "",
+        contact_number: "",
+        civil_status: "",
+        bloodtype: "",
+        isEditing: true, // Ensure editing is enabled by default
+      },
+      {
+        relationship_type: "Mother",
+        givenname: "",
+        lastname: "",
+        middlename: "",
+        suffix: "",
+        gender: "Female",
+        date_of_birth: "",
+        contact_number: "",
+        civil_status: "",
+        bloodtype: "",
+        isEditing: true, // Ensure editing is enabled by default
+      },
+    ];
+
+    if (personnelId) {
+      // Fetch parents (Father and Mother) related to the personnelId
+      axios
+        .get(`${API_URL}/api/get-family-members`, {
+          params: {
+            personnel_id: personnelId,
+            relationship_type: ["Father", "Mother"], // Specify relationship types for parents
+          },
+        })
+        .then((res) => {
+          // Check if data exists and ensure "Father" and "Mother" rows are always present
+          const parents = [
+            {
+              relationship_type: "Father",
+              givenname: "",
+              lastname: "",
+              isEditing: true, // Ensure editing is enabled
+            },
+            {
+              relationship_type: "Mother",
+              givenname: "",
+              lastname: "",
+              isEditing: true, // Ensure editing is enabled
+            },
+          ];
+
+          if (Array.isArray(res.data) && res.data.length === 0) {
+            setData(parents); // Default empty fields for Father and Mother
+          } else {
+            // Merge returned data with defaults to ensure Father and Mother rows
+            const mergedParents = parents.map(
+              (defaultParent) =>
+                res.data.find(
+                  (item) =>
+                    item.relationship_type === defaultParent.relationship_type
+                ) || { ...defaultParent, isEditing: true } // Ensure isEditing is true
+            );
+            setData(mergedParents);
+          }
+        })
+        .catch((err) => {
+          console.error("Error fetching parents:", err);
+          // Default empty fields for Father and Mother in case of an error
+          setData([
+            {
+              relationship_type: "Father",
+              givenname: "",
+              lastname: "",
+              isEditing: true, // Ensure editing is enabled
+            },
+            {
+              relationship_type: "Mother",
+              givenname: "",
+              lastname: "",
+              isEditing: true, // Ensure editing is enabled
+            },
+          ]);
+          toast({
+            title: "Error",
+            description: "Failed to fetch parent data.",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+            position: "bottom-left", // Position the toast on the bottom-left
+          });
+        });
+    } else {
+      // Default empty fields for Father and Mother if no personnelId
+      setData([
+        {
+          relationship_type: "Father",
+          givenname: "",
+          lastname: "",
+          isEditing: true, // Ensure editing is enabled
+        },
+        {
+          relationship_type: "Mother",
+          givenname: "",
+          lastname: "",
+          isEditing: true, // Ensure editing is enabled
+        },
+      ]);
       toast({
         title: "Missing Personnel ID",
-        description: "Personnel ID is required to fetch data.",
+        description: "Personnel ID is required to proceed.",
         status: "error",
         duration: 3000,
         isClosable: true,
         position: "bottom-left", // Position the toast on the bottom-left
       });
+    }
+  }, [personnelId]);
+
+  const handleSaveOrUpdate = async (index) => {
+    setLoading(true);
+    const parent = data[index];
+
+    const {
+      id,
+      isEditing,
+      relationship_type = parent.relationship_type, // Fallback to the existing key if relationship_type is undefined,
+      givenName,
+      lastName,
+      gender,
+      ...parentData
+    } = parent;
+
+    // Prepare the data to send
+    const formattedData = {
+      ...parentData,
+      givenname: parent.givenname,
+      lastname: parent.lastname,
+      gender:
+        relationship_type === "Father"
+          ? "Male"
+          : relationship_type === "Mother"
+          ? "Female"
+          : parent.gender, // Automatically set gender for Father and Mother
+      relationship_type: relationship_type,
+      personnel_id: personnelId,
+      date_of_birth: parent.date_of_birth || null, // Ensure empty date is set to null
+    };
+    console.log("Formatted Data:", formattedData);
+    // Validate required fields
+    const requiredFields = [
+      "personnel_id",
+      "relationship_type",
+      "givenname",
+      "lastname",
+      "gender",
+      "date_of_birth", // Add date_of_birth as required
+    ];
+    const missingField = requiredFields.find(
+      (field) =>
+        !formattedData[field] ||
+        (typeof formattedData[field] === "string" &&
+          formattedData[field].trim() === "")
+    );
+
+    if (missingField) {
+      toast({
+        title: "Validation Error",
+        description: `The field "${missingField}" is required for ${relationship_type}.`,
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom-left", // Position the toast on the bottom-left
+      });
+      setLoading(false); // Reset loading state
       return;
     }
 
-    const fetchData = async () => {
-      try {
-        const [educationRes, workExperienceRes] = await Promise.all([
-          axios.get(
-            `${process.env.REACT_APP_API_URL}/api/educational-backgrounds`,
-            {
-              params: { personnel_id: personnelId },
-            }
-          ),
-          axios.get(`${process.env.REACT_APP_API_URL}/api/work-experiences`, {
-            params: { personnel_id: personnelId },
-          }),
-        ]);
-
-        // Safely handle education data
-        const parsedEducation =
-          educationRes?.data?.map((edu) => ({
-            ...edu,
-            certificate_files:
-              edu.certificate_files && typeof edu.certificate_files === "string"
-                ? JSON.parse(edu.certificate_files)
-                : [], // Default to empty array
-          })) || [];
-
-        // Safely handle work experience data
-        const workExperienceData = workExperienceRes?.data || [];
-
-        setEducation(parsedEducation);
-        setWorkExperience(workExperienceData);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        toast({
-          title: "Error loading data",
-          description:
-            "Failed to fetch educational background or work experience.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-          position: "bottom-left", // Position the toast on the bottom-left
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    setLoading(true);
-    fetchData();
-  }, [personnelId, toast]);
-
-  // Handle changes for educational background fields
-  const handleEducationChange = (index, field, value) => {
-    const updatedEducation = [...education];
-    updatedEducation[index][field] = value;
-    setEducation(updatedEducation);
-  };
-
-  // Handle changes for work experience fields
-  const handleWorkExperienceChange = (index, field, value) => {
-    const updatedWorkExperience = [...workExperience];
-    updatedWorkExperience[index][field] = value;
-    setWorkExperience(updatedWorkExperience);
-  };
-
-  // Save or update educational background
-  const handleSaveOrUpdateEducation = async (index) => {
-    const edu = education[index];
-    const payload = {
-      personnel_id: personnelId,
-      level: edu.level, // Ensure `level` is included in the payload
-      startfrom: edu.startfrom,
-      completion_year: edu.completion_year,
-      school: edu.school,
-      field_of_study: edu.field_of_study,
-      degree: edu.degree,
-      institution: edu.institution,
-      professional_licensure_examination:
-        edu.professional_licensure_examination,
-      certificate_files: edu.certificate_files || [], // Ensure this is an array of file paths
-    };
-
     try {
-      if (edu.id) {
-        console.log("Updating education:", edu.id, payload);
+      let updatedParent;
+      if (id) {
+        // Update existing parent record
         const response = await axios.put(
-          `${process.env.REACT_APP_API_URL}/api/educational-backgrounds/${edu.id}`,
-          payload
+          `${API_URL}/api/family-members/${id}`,
+          formattedData
         );
-        toast({
-          title: "Educational background updated successfully.",
-          status: "success",
-          duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
-        });
-
-        // Update the local state to reflect the saved data
-        const updatedEducation = [...education];
-        updatedEducation[index] = { ...edu, ...response.data };
-        setEducation(updatedEducation);
+        updatedParent = response.data;
       } else {
-        console.log("Saving new education:", payload);
+        // Save new parent record
         const response = await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/educational-backgrounds`,
-          payload
+          `${API_URL}/api/family-members`,
+          formattedData
         );
-        const newEducation = { ...edu, id: response.data.id };
-        const updatedEducation = [...education];
-        updatedEducation[index] = newEducation;
-        setEducation(updatedEducation);
-
-        toast({
-          title: "Educational background saved successfully.",
-          status: "success",
-          duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
-        });
+        updatedParent = response.data;
       }
 
-      toggleEditEducation(index);
-    } catch (error) {
-      console.error("Error saving/updating education:", error);
-      toast({
-        title: "Error",
-        description:
-          error.response?.data?.message ||
-          "Failed to save or update education.",
-        status: "error",
-        duration: 3000,
-        position: "bottom-left", // Position the toast on the bottom-left
-      });
-    }
-  };
-
-  const handleCertificateUpload = async (index, files) => {
-    const formData = new FormData();
-    Array.from(files).forEach((file) => formData.append("certificates", file));
-
-    try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/upload-certificates`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
-
-      // Update the state with filenames instead of full paths
-      const updatedEducation = [...education];
-      const uploadedFilenames = response.data.filenames; // Array of filenames
-      updatedEducation[index].certificate_files = [
-        ...(updatedEducation[index].certificate_files || []),
-        ...uploadedFilenames,
-      ];
-      setEducation(updatedEducation);
+      // Update parent in state
+      onToggleEdit(index); // Disable editing mode for the updated parent
+      onChange(index, "id", updatedParent.id); // Update the `id` field if it was a new record
 
       toast({
-        title: "Certificates uploaded successfully.",
+        title: id ? "Parent Updated" : "Parent Added",
+        description: `${relationship_type} information has been ${
+          id ? "updated" : "added"
+        } successfully.`,
         status: "success",
         duration: 3000,
         isClosable: true,
         position: "bottom-left", // Position the toast on the bottom-left
       });
     } catch (error) {
-      console.error("Error uploading certificates:", error.message);
-      toast({
-        title: "Error uploading certificates.",
-        description: error.response?.data?.message || "Please try again.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-        position: "bottom-left", // Position the toast on the bottom-left
-      });
-    }
-  };
-
-  const handleRemoveCertificate = async (eduIndex, certIndex) => {
-    try {
-      const updatedEducation = [...education];
-      const edu = updatedEducation[eduIndex];
-
-      // Ensure certificate_files is initialized as an array
-      if (!Array.isArray(edu.certificate_files)) {
-        edu.certificate_files = [];
-      }
-
-      // Get the file to remove
-      const certToRemove = edu.certificate_files[certIndex];
-
-      if (!certToRemove) {
-        toast({
-          title: "Error",
-          description: "File not found.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-          position: "bottom-left", // Position the toast on the bottom-left
-        });
-        return;
-      }
-
-      // Make a PUT request to the backend to remove the file from the server and database
-      const response = await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/remove-certificate`,
-        {
-          filePath: certToRemove, // Send only the filename
-          educationId: edu.id, // Include the education ID
-        }
+      console.error(
+        "Error saving/updating parent information:",
+        error.response
       );
-
-      // Update the local state with the updated certificate files from the backend
-      edu.certificate_files = response.data.certificate_files; // Use the updated array from the backend
-      setEducation(updatedEducation);
-
-      toast({
-        title: "Certificate removed successfully.",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-        position: "bottom-left", // Position the toast on the bottom-left
-      });
-    } catch (error) {
-      console.error("Error removing certificate:", error.message);
-      toast({
-        title: "Error removing certificate.",
-        description: error.response?.data?.message || "Please try again.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-        position: "bottom-left", // Position the toast on the bottom-left
-      });
-    }
-  };
-
-  const isCertificateUploadAllowed = (level) => {
-    const allowedLevels = [
-      "Senior High School",
-      "Vocational Training",
-      "Associate Degree",
-      "Bachelor's Degree",
-      "Master's Degree",
-      "Doctorate Degree",
-      "Post-Doctorate",
-      "Certificate Programs",
-      "Professional Degree",
-      "Continuing Education",
-      "Alternative Learning System",
-    ];
-    return allowedLevels.includes(level);
-  };
-
-  // Save or update work experience
-  const handleSaveOrUpdateWorkExperience = async (index) => {
-    const work = workExperience[index];
-    const payload = {
-      personnel_id: personnelId,
-      employment_type: work.employment_type,
-      company: work.company,
-      address: work.address,
-      position: work.position,
-      department: work.department,
-      section: work.section,
-      start_date: work.start_date,
-      end_date: work.end_date,
-      reason_for_leaving: work.reason_for_leaving,
-    };
-
-    try {
-      if (work.id) {
-        console.log("Updating work experience:", work.id, payload);
-        await axios.put(
-          `${process.env.REACT_APP_API_URL}/api/work-experiences/${work.id}`,
-          payload
-        );
-        toast({
-          title: "Work experience updated successfully.",
-          status: "success",
-          duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
-        });
-      } else {
-        console.log("Saving new work experience:", payload);
-        const response = await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/work-experiences`,
-          payload
-        );
-        work.id = response.data.id; // Assign new ID to the record
-        toast({
-          title: "Work experience saved successfully.",
-          status: "success",
-          duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
-        });
-      }
-      toggleEditWorkExperience(index);
-    } catch (error) {
-      console.error("Error saving/updating work experience:", error);
       toast({
         title: "Error",
-        description:
-          error.response?.data?.message ||
-          "Failed to save or update work experience.",
+        description: `Failed to ${
+          id ? "update" : "add"
+        } ${relationship_type} information. ${
+          error.response?.data?.message || "Please try again later."
+        }`,
         status: "error",
         duration: 3000,
+        isClosable: true,
         position: "bottom-left", // Position the toast on the bottom-left
       });
+    } finally {
+      setLoading(false); // Reset loading state
     }
-  };
-
-  // Add new educational background
-  const handleAddEducation = () => {
-    setEducation([
-      ...education,
-      {
-        level: "",
-        startfrom: "",
-        completion_year: "",
-        school: "",
-        field_of_study: "",
-        degree: "",
-        institution: "",
-        professional_licensure_examination: "",
-        certificate_files: [], // Ensure this is initialized as an array
-        isEditing: true,
-      },
-    ]);
-  };
-
-  // Add new work experience
-  const handleAddWorkExperience = () => {
-    setWorkExperience([
-      ...workExperience,
-      {
-        employment_type: "",
-        company: "",
-        address: "",
-        position: "",
-        department: "",
-        section: "",
-        start_date: "",
-        end_date: "",
-        reason_for_leaving: "",
-        isEditing: true,
-      },
-    ]);
-  };
-
-  // Toggle editing for educational background
-  const toggleEditEducation = (index) => {
-    const updatedEducation = [...education];
-    updatedEducation[index].isEditing = !updatedEducation[index].isEditing;
-    setEducation(updatedEducation);
-  };
-
-  // Toggle editing for work experience
-  const toggleEditWorkExperience = (index) => {
-    const updatedWorkExperience = [...workExperience];
-    updatedWorkExperience[index].isEditing =
-      !updatedWorkExperience[index].isEditing;
-    setWorkExperience(updatedWorkExperience);
-  };
-
-  // Function to remove an education entry
-  const handleRemoveEducation = async (idx) => {
-    const educationEntry = education[idx];
-
-    if (educationEntry.id) {
-      const confirmed = window.confirm(
-        "Are you sure you want to delete this educational background?"
-      );
-      if (!confirmed) return;
-
-      try {
-        // Delete the record from the database
-        await axios.delete(
-          `${process.env.REACT_APP_API_URL}/api/educational-backgrounds/${educationEntry.id}`
-        );
-
-        toast({
-          title: "Educational background deleted successfully.",
-          status: "success",
-          duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
-        });
-      } catch (error) {
-        console.error("Error deleting educational background:", error);
-        toast({
-          title: "Error deleting educational background.",
-          description:
-            error.response?.data?.error ||
-            "Failed to delete the educational background.",
-          status: "error",
-          duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
-        });
-      }
-    }
-
-    // Remove the entry from the state
-    setEducation(education.filter((_, i) => i !== idx));
-  };
-
-  // Function to remove a work experience entry
-  const handleRemoveWorkExperience = async (idx) => {
-    const workEntry = workExperience[idx];
-
-    if (workEntry.id) {
-      const confirmed = window.confirm(
-        "Are you sure you want to delete this work experience?"
-      );
-      if (!confirmed) return;
-
-      try {
-        // Delete the record from the database
-        await axios.delete(
-          `${process.env.REACT_APP_API_URL}/api/work-experiences/${workEntry.id}`
-        );
-
-        toast({
-          title: "Work experience deleted successfully.",
-          status: "success",
-          duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
-        });
-      } catch (error) {
-        console.error("Error deleting work experience:", error);
-        toast({
-          title: "Error deleting work experience.",
-          description:
-            error.response?.data?.error ||
-            "Failed to delete the work experience.",
-          status: "error",
-          duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
-        });
-      }
-    }
-
-    // Remove the entry from the state
-    setWorkExperience(workExperience.filter((_, i) => i !== idx));
   };
 
   return (
-    <Box width="100%" bg="white" boxShadow="sm" p={5} mt={20}>
+    <Box width="100%" bg="white" boxShadow="sm" my={85} p={5}>
       <Heading as="h2" size="lg" textAlign="center" mb={6}>
-        Step 4: Educational Background & Work Experience
+        Step 4: Parents Information
       </Heading>
+      <VStack align="start" spacing={4} mb={8} w="100%">
+        <Tabs variant="enclosed" colorScheme="blue">
+          <TabList>
+            {data.map((parent, index) => (
+              <Tab key={index}>{parent.relationship_type}</Tab>
+            ))}
+          </TabList>
 
-      {/* Educational Background Section */}
-      <Text fontWeight="bold" fontSize="lg" mt={6} mb={2}>
-        Educational Background
-      </Text>
-      {education.map((edu, idx) => (
-        <Box
-          key={idx}
-          p={4}
-          bg="cyan.50"
-          borderRadius="md"
-          mb={4}
-          boxShadow="md"
-        >
-          <Grid templateColumns="repeat(4, 1fr)" gap={4}>
-            <GridItem>
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                Educational Level:
-              </Text>
-              <Select
-                placeholder="Level"
-                value={edu.level}
-                isDisabled={!edu.isEditing}
-                onChange={(e) =>
-                  handleEducationChange(idx, "level", e.target.value)
-                }
-              >
-                {educationalLevelOptions.map((level) => (
-                  <option key={level} value={level}>
-                    {level}
-                  </option>
-                ))}
-              </Select>
-            </GridItem>
-            <GridItem>
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                School:
-              </Text>
-              <Input
-                placeholder="School"
-                value={edu.school}
-                isDisabled={!edu.isEditing}
-                onChange={(e) =>
-                  handleEducationChange(idx, "school", e.target.value)
-                }
-              />
-            </GridItem>
-            <GridItem>
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                Start Year:
-              </Text>
-              <Input
-                placeholder="Start Year"
-                type="number"
-                value={edu.startfrom}
-                isDisabled={!edu.isEditing}
-                onChange={(e) =>
-                  handleEducationChange(idx, "startfrom", e.target.value)
-                }
-              />
-            </GridItem>
-            <GridItem>
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                Completion Year:
-              </Text>
-              <Input
-                placeholder="Completion Year"
-                type="number"
-                value={edu.completion_year}
-                isDisabled={!edu.isEditing}
-                onChange={(e) =>
-                  handleEducationChange(idx, "completion_year", e.target.value)
-                }
-              />
-            </GridItem>
-            <GridItem>
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                Field Of Study:
-              </Text>
-              <Input
-                placeholder="Field of Study"
-                value={edu.field_of_study}
-                isDisabled={
-                  !edu.isEditing ||
-                  edu.level === "No Formal Education" ||
-                  edu.level === "Primary Education" ||
-                  edu.level === "Secondary Education" ||
-                  edu.level === "Senior High School"
-                }
-                onChange={(e) =>
-                  handleEducationChange(idx, "field_of_study", e.target.value)
-                }
-              />
-            </GridItem>
-            <GridItem>
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                Degree:
-              </Text>
-              <Input
-                placeholder="Degree"
-                value={edu.degree}
-                isDisabled={
-                  !edu.isEditing ||
-                  edu.level === "No Formal Education" ||
-                  edu.level === "Primary Education" ||
-                  edu.level === "Secondary Education" ||
-                  edu.level === "Senior High School"
-                }
-                onChange={(e) =>
-                  handleEducationChange(idx, "degree", e.target.value)
-                }
-              />
-            </GridItem>
-            <GridItem>
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                Institution:
-              </Text>
-              <Input
-                placeholder="Institution"
-                value={edu.institution}
-                isDisabled={
-                  !edu.isEditing ||
-                  edu.level === "No Formal Education" ||
-                  edu.level === "Primary Education" ||
-                  edu.level === "Secondary Education" ||
-                  edu.level === "Senior High School"
-                }
-                onChange={(e) =>
-                  handleEducationChange(idx, "institution", e.target.value)
-                }
-              />
-            </GridItem>
-            <GridItem>
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                Professional Licensure:
-              </Text>
-              <Input
-                placeholder="Professional Licensure"
-                value={edu.professional_licensure_examination}
-                isDisabled={
-                  !edu.isEditing ||
-                  edu.level === "No Formal Education" ||
-                  edu.level === "Primary Education" ||
-                  edu.level === "Secondary Education" ||
-                  edu.level === "Senior High School"
-                }
-                onChange={(e) =>
-                  handleEducationChange(
-                    idx,
-                    "professional_licensure_examination",
-                    e.target.value
-                  )
-                }
-              />
-            </GridItem>
-            {/* Certificate Upload Section */}
-            {isCertificateUploadAllowed(edu.level) && (
-              <GridItem colSpan={4}>
-                <Text fontWeight="bold" mb="2">
-                  Upload Certificates:
-                </Text>
-                <Input
-                  type="file"
-                  accept=".pdf,.jpg,.png"
-                  multiple
-                  isDisabled={!edu.isEditing}
-                  onChange={(e) => handleCertificateUpload(idx, e.target.files)}
-                />
-                <Box mt={4}>
-                  {/* Ensure certificate_files is an array before mapping */}
-                  {Array.isArray(edu.certificate_files) &&
-                    edu.certificate_files.map((file, fileIdx) => (
-                      <Flex
-                        key={fileIdx}
-                        alignItems="center"
-                        justifyContent="space-between"
-                        mb={2}
-                      >
-                        <Text>{file}</Text>
-                        <Flex>
-                          {/* View Icon */}
-                          <IconButton
-                            icon={<ViewIcon />}
-                            colorScheme="blue"
-                            size="sm"
-                            mr={2}
-                            onClick={
-                              () =>
-                                window.open(
-                                  `/uploads/certificates/${file}`,
-                                  "_blank"
-                                ) // Construct the full path
-                            }
-                          />
-                          {/* Delete Icon */}
-                          <IconButton
-                            icon={<DeleteIcon />}
-                            colorScheme="red"
-                            size="sm"
-                            onClick={() =>
-                              handleRemoveCertificate(idx, fileIdx)
-                            }
-                          />
-                        </Flex>
-                      </Flex>
-                    ))}
-                </Box>
-              </GridItem>
-            )}
-          </Grid>
-          <Flex justifyContent="flex-end" mt={4}>
-            <IconButton
-              icon={edu.isEditing ? <CheckIcon /> : <EditIcon />}
-              colorScheme={edu.isEditing ? "green" : "blue"}
-              onClick={() =>
-                edu.isEditing
-                  ? handleSaveOrUpdateEducation(idx)
-                  : toggleEditEducation(idx)
-              }
-              mr={2}
-            />
-            <IconButton
-              icon={<DeleteIcon />}
-              colorScheme="red"
-              onClick={() => handleRemoveEducation(idx)}
-            />
-          </Flex>
-        </Box>
-      ))}
-      <Button onClick={handleAddEducation} colorScheme="teal" mt={4}>
-        Add Educational Background
-      </Button>
+          <TabPanels>
+            {data.map((parent, index) => (
+              <TabPanel key={index}>
+                <Table size="md" variant="simple">
+                  <Tbody>
+                    {/* Personal Information */}
+                    <Tr bg="gray.50">
+                      <Td colSpan={4}>
+                        <Text fontWeight="bold">Personal Information</Text>
+                      </Td>
+                    </Tr>
+                    <Tr>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Given Name:
+                        </Text>
+                        <Input
+                          placeholder="Given Name"
+                          value={parent.givenname}
+                          onChange={(e) =>
+                            onChange(index, "givenname", e.target.value)
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Middle Name:
+                        </Text>
+                        <Input
+                          placeholder="Middle Name"
+                          value={parent.middlename}
+                          onChange={(e) =>
+                            onChange(index, "middlename", e.target.value)
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Last Name:
+                        </Text>
+                        <Input
+                          placeholder="Last Name"
+                          value={parent.lastname}
+                          onChange={(e) =>
+                            onChange(index, "lastname", e.target.value)
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Suffix:
+                        </Text>
+                        <Select
+                          placeholder="Select Suffix"
+                          name="suffix"
+                          value={
+                            parent.suffix
+                              ? { value: parent.suffix, label: parent.suffix }
+                              : null // Ensure no default value on load if none exists
+                          }
+                          onChange={(selectedOption) => {
+                            onChange(
+                              index,
+                              "suffix",
+                              selectedOption?.value || ""
+                            ); // Update the state
+                          }}
+                          options={suffixOptions.map((suffix) => ({
+                            value: suffix,
+                            label: suffix,
+                          }))}
+                          isDisabled={
+                            !parent.isEditing || parent.gender === "Female"
+                          } // Conditionally disable for Female or when not editing
+                          isClearable // Adds a clear button to reset selection
+                          styles={{
+                            container: (base) => ({
+                              ...base,
+                              width: "100%",
+                            }),
+                          }}
+                        />
+                      </Td>
+                    </Tr>
+                    <Tr>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Gender:
+                        </Text>
+                        <Select
+                          value={{
+                            value:
+                              parent.relationship_type === "Father"
+                                ? "Male"
+                                : "Female",
+                            label:
+                              parent.relationship_type === "Father"
+                                ? "Male"
+                                : "Female",
+                          }} // Automatically set based on relationship_type
+                          options={[
+                            { value: "Male", label: "Male" },
+                            { value: "Female", label: "Female" },
+                          ]} // Define the options for gender
+                          isDisabled // Always disabled
+                          styles={{
+                            container: (base) => ({
+                              ...base,
+                              width: "100%",
+                            }),
+                          }}
+                        />
+                      </Td>
 
-      {/* Work Experience Section */}
-      <Text fontWeight="bold" fontSize="lg" mt={6} mb={2}>
-        Work Experience
-      </Text>
-      {workExperience.map((work, idx) => (
-        <Box
-          key={idx}
-          p={4}
-          bg="cyan.50"
-          borderRadius="md"
-          mb={4}
-          boxShadow="md"
-        >
-          <Grid templateColumns="repeat(4, 1fr)" gap={4}>
-            <GridItem>
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                Employment Type:
-              </Text>
-              <Select
-                placeholder="Employment Type"
-                value={work.employment_type}
-                isDisabled={!work.isEditing}
-                onChange={(e) =>
-                  handleWorkExperienceChange(
-                    idx,
-                    "employment_type",
-                    e.target.value
-                  )
-                }
-              >
-                {employmentTypeOptions.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </Select>
-            </GridItem>
-            <GridItem>
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                Company:
-              </Text>
-              <Input
-                placeholder="Company"
-                value={work.company}
-                isDisabled={
-                  !work.isEditing ||
-                  ["Volunteer/Kawani"].includes(work.employment_type)
-                } // Disable if employment_type is Volunteer or Kawani
-                onChange={(e) =>
-                  handleWorkExperienceChange(idx, "company", e.target.value)
-                }
-              />
-            </GridItem>
-            <GridItem>
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                Address:
-              </Text>
-              <Input
-                placeholder="Address"
-                value={work.address}
-                isDisabled={!work.isEditing}
-                onChange={(e) =>
-                  handleWorkExperienceChange(idx, "address", e.target.value)
-                }
-              />
-            </GridItem>
-            <GridItem>
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                Position:
-              </Text>
-              <Input
-                placeholder="Position"
-                value={work.position}
-                isDisabled={!work.isEditing}
-                onChange={(e) =>
-                  handleWorkExperienceChange(idx, "position", e.target.value)
-                }
-              />
-            </GridItem>
-            <GridItem>
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                Department:
-              </Text>
-              <Input
-                placeholder="Department"
-                value={work.department}
-                isDisabled={!work.isEditing}
-                onChange={(e) =>
-                  handleWorkExperienceChange(idx, "department", e.target.value)
-                }
-              />
-            </GridItem>
-            <GridItem>
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                Section:
-              </Text>
-              <Input
-                placeholder="Section"
-                value={work.section}
-                isDisabled={!work.isEditing}
-                onChange={(e) =>
-                  handleWorkExperienceChange(idx, "section", e.target.value)
-                }
-              />
-            </GridItem>
-            <GridItem>
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                Start Date:
-              </Text>
-              <Input
-                type="date"
-                value={work.start_date}
-                isDisabled={!work.isEditing}
-                onChange={(e) =>
-                  handleWorkExperienceChange(idx, "start_date", e.target.value)
-                }
-              />
-            </GridItem>
-            <GridItem>
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                End Date:
-              </Text>
-              <Input
-                type="date"
-                value={work.end_date}
-                isDisabled={!work.isEditing}
-                onChange={(e) =>
-                  handleWorkExperienceChange(idx, "end_date", e.target.value)
-                }
-              />
-            </GridItem>
-            <GridItem>
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                Reason for Leaving:
-              </Text>
-              <Input
-                placeholder="Reason for Leaving"
-                value={work.reason_for_leaving}
-                isDisabled={!work.isEditing}
-                onChange={(e) =>
-                  handleWorkExperienceChange(
-                    idx,
-                    "reason_for_leaving",
-                    e.target.value
-                  )
-                }
-              />
-            </GridItem>
-          </Grid>
-          <Flex justifyContent="flex-end" mt={4}>
-            <IconButton
-              icon={work.isEditing ? <CheckIcon /> : <EditIcon />}
-              colorScheme={work.isEditing ? "green" : "blue"}
-              onClick={() =>
-                work.isEditing
-                  ? handleSaveOrUpdateWorkExperience(idx)
-                  : toggleEditWorkExperience(idx)
-              }
-              mr={2}
-            />
-            <IconButton
-              icon={<DeleteIcon />}
-              colorScheme="red"
-              onClick={() => handleRemoveWorkExperience(idx)}
-            />
-          </Flex>
-        </Box>
-      ))}
-      <Button onClick={handleAddWorkExperience} colorScheme="teal" mt={4}>
-        Add Work Experience
-      </Button>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Date Of Birth:
+                        </Text>
+                        <Input
+                          placeholder="Date of Birth"
+                          type="date"
+                          value={parent.date_of_birth}
+                          onChange={(e) =>
+                            onChange(index, "date_of_birth", e.target.value)
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Contact Number:
+                        </Text>
+                        <Input
+                          placeholder="Contact Number"
+                          value={parent.contact_number}
+                          type="number"
+                          onChange={(e) =>
+                            onChange(index, "contact_number", e.target.value)
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Blood Type:
+                        </Text>
+                        <Select
+                          placeholder="Select Blood Type"
+                          name="bloodtype"
+                          value={bloodtypes
+                            .map((type) => ({
+                              value: type,
+                              label: type,
+                            }))
+                            .find(
+                              (option) => option.value === parent.bloodtype
+                            )} // Match selected value
+                          onChange={
+                            (selectedOption) =>
+                              onChange(
+                                index,
+                                "bloodtype",
+                                selectedOption?.value || ""
+                              ) // Update state on selection
+                          }
+                          options={bloodtypes.map((type) => ({
+                            value: type,
+                            label: type,
+                          }))}
+                          isClearable
+                          isDisabled={!parent.isEditing} // Conditionally disable dropdown
+                          styles={{
+                            container: (base) => ({
+                              ...base,
+                              width: "100%",
+                            }),
+                          }}
+                        />
+                      </Td>
+                    </Tr>
+                    <Tr>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Civil Status:
+                        </Text>
+                        <Select
+                          placeholder="Select Civil Status"
+                          name="civil_status"
+                          value={civilStatusOptions
+                            .map((status) => ({
+                              value: status,
+                              label: status,
+                            }))
+                            .find(
+                              (option) => option.value === parent.civil_status
+                            )} // Match selected value
+                          onChange={
+                            (selectedOption) =>
+                              onChange(
+                                index,
+                                "civil_status",
+                                selectedOption?.value || ""
+                              ) // Update state on selection
+                          }
+                          options={civilStatusOptions.map((status) => ({
+                            value: status,
+                            label: status,
+                          }))}
+                          isClearable
+                          isDisabled={!parent.isEditing} // Conditionally disable dropdown
+                          styles={{
+                            container: (base) => ({
+                              ...base,
+                              width: "100%",
+                            }),
+                          }}
+                        />
+                      </Td>
+
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Date of Marriage:
+                        </Text>
+                        <Input
+                          placeholder="Date of Marriage"
+                          type="date"
+                          value={parent.date_of_marriage}
+                          onChange={(e) =>
+                            onChange(index, "date_of_marriage", e.target.value)
+                          }
+                          isDisabled={
+                            !parent.isEditing ||
+                            parent.civil_status === "Single"
+                          } // Disable if civil_status is "Single"
+                        />
+                      </Td>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Place of Marriage:
+                        </Text>
+                        <Input
+                          placeholder="Place of Marriage"
+                          value={parent.place_of_marriage}
+                          onChange={(e) =>
+                            onChange(index, "place_of_marriage", e.target.value)
+                          }
+                          isDisabled={
+                            !parent.isEditing ||
+                            parent.civil_status === "Single"
+                          } // Disable if civil_status is "Single"
+                        />
+                      </Td>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Citizenship:
+                        </Text>
+                        <Select
+                          placeholder="Select Citizenship"
+                          name="citizenship"
+                          value={citizenships
+                            .map((citizenship) => ({
+                              value: citizenship.id,
+                              label: citizenship.citizenship,
+                            }))
+                            .find(
+                              (option) => option.value === parent.citizenship
+                            )} // Map value for selected option
+                          onChange={
+                            (selectedOption) =>
+                              onChange(
+                                index,
+                                "citizenship",
+                                selectedOption?.value || ""
+                              ) // Update state on selection
+                          }
+                          options={citizenships.map((citizenship) => ({
+                            value: citizenship.id,
+                            label: citizenship.citizenship,
+                          }))}
+                          isClearable
+                          isDisabled={!parent.isEditing} // Disable when editing is not enabled
+                          styles={{
+                            container: (base) => ({
+                              ...base,
+                              width: "100%",
+                            }),
+                          }}
+                        />
+                      </Td>
+                    </Tr>
+                    <Tr>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Nationality:
+                        </Text>
+                        <Select
+                          placeholder="Select Nationality"
+                          name="nationality"
+                          value={nationalities
+                            .map((nationality) => ({
+                              value: nationality.id,
+                              label: nationality.nationality,
+                            }))
+                            .find(
+                              (option) => option.value === parent.nationality
+                            )} // Map value for selected option
+                          onChange={
+                            (selectedOption) =>
+                              onChange(
+                                index,
+                                "nationality",
+                                selectedOption?.value || ""
+                              ) // Update state on selection
+                          }
+                          options={nationalities.map((nationality) => ({
+                            value: nationality.id,
+                            label: nationality.nationality,
+                          }))}
+                          isClearable
+                          isDisabled={!parent.isEditing} // Disable when editing is not enabled
+                          styles={{
+                            container: (base) => ({
+                              ...base,
+                              width: "100%",
+                            }),
+                          }}
+                        />
+                      </Td>
+
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Livelihood:
+                        </Text>
+                        <Input
+                          placeholder="Livelihood"
+                          value={parent.livelihood}
+                          onChange={(e) =>
+                            onChange(index, "livelihood", e.target.value)
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          District:
+                        </Text>
+                        <Select
+                          placeholder="Select District"
+                          name="district_id"
+                          value={districts
+                            .map((district) => ({
+                              value: district.id,
+                              label: district.name,
+                            }))
+                            .find(
+                              (option) => option.value === parent.district_id
+                            )} // Map value for selected option
+                          onChange={
+                            (selectedOption) =>
+                              onChange(
+                                index,
+                                "district_id",
+                                selectedOption?.value || ""
+                              ) // Update state on selection
+                          }
+                          options={districts.map((district) => ({
+                            value: district.id,
+                            label: district.name,
+                          }))}
+                          isClearable
+                          isDisabled={!parent.isEditing} // Disable when editing is not enabled
+                          styles={{
+                            container: (base) => ({
+                              ...base,
+                              width: "100%",
+                            }),
+                          }}
+                        />
+                      </Td>
+
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Local Congregation:
+                        </Text>
+                        <Input
+                          placeholder="Local Congregation"
+                          value={parent.local_congregation}
+                          onChange={(e) =>
+                            onChange(
+                              index,
+                              "local_congregation",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                    </Tr>
+
+                    <Tr>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Church Duties:
+                        </Text>
+                        <Input
+                          placeholder="Church Duties"
+                          value={parent.church_duties}
+                          onChange={(e) =>
+                            onChange(index, "church_duties", e.target.value)
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Evangelist:
+                        </Text>
+                        <Input
+                          placeholder="Evangelist"
+                          value={parent.minister_officiated}
+                          onChange={(e) =>
+                            onChange(
+                              index,
+                              "minister_officiated",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                    </Tr>
+
+                    {/* Work Information Section */}
+                    <Tr bg="gray.50">
+                      <Td colSpan={4}>
+                        <Text fontWeight="bold">Work Information</Text>
+                      </Td>
+                    </Tr>
+                    <Tr>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Employment Type:
+                        </Text>
+                        <Select
+                          placeholder="Select Employment Type"
+                          name="employment_type"
+                          value={employmentTypeOptions
+                            .map((type) => ({
+                              value: type,
+                              label: type,
+                            }))
+                            .find(
+                              (option) =>
+                                option.value === parent.employment_type
+                            )} // Map value for selected option
+                          onChange={
+                            (selectedOption) =>
+                              onChange(
+                                index,
+                                "employment_type",
+                                selectedOption?.value || ""
+                              ) // Update state on selection
+                          }
+                          options={employmentTypeOptions.map((type) => ({
+                            value: type,
+                            label: type,
+                          }))}
+                          isClearable
+                          isDisabled={!parent.isEditing} // Disable when editing is not enabled
+                          styles={{
+                            container: (base) => ({
+                              ...base,
+                              width: "100%",
+                            }),
+                          }}
+                        />
+                      </Td>
+
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Company:
+                        </Text>
+                        <Input
+                          placeholder="Company"
+                          value={parent.company}
+                          onChange={(e) =>
+                            onChange(index, "company", e.target.value)
+                          }
+                          isDisabled={
+                            !parent.isEditing ||
+                            ["Volunteer/Kawani"].includes(
+                              parent.employment_type
+                            )
+                          } // Disable if employment_type is Volunteer or Kawani
+                        />
+                      </Td>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Position:
+                        </Text>
+                        <Input
+                          placeholder="Position"
+                          value={parent.position}
+                          onChange={(e) =>
+                            onChange(index, "position", e.target.value)
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Address:
+                        </Text>
+                        <Input
+                          placeholder="Address"
+                          value={parent.address}
+                          onChange={(e) =>
+                            onChange(index, "address", e.target.value)
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                    </Tr>
+                    <Tr>
+                      {/* Department Field */}
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Department:
+                        </Text>
+                        <Input
+                          placeholder="Department"
+                          value={parent.department} // Ensure binding to state
+                          onChange={
+                            (e) => onChange(index, "department", e.target.value) // Pass index, field, and value
+                          }
+                          isDisabled={!parent.isEditing} // Enable/disable based on editing state
+                        />
+                      </Td>
+
+                      {/* Section Field */}
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Section:
+                        </Text>
+                        <Input
+                          placeholder="Section"
+                          value={parent.section} // Ensure binding to state
+                          onChange={
+                            (e) => onChange(index, "section", e.target.value) // Pass index, field, and value
+                          }
+                          isDisabled={!parent.isEditing} // Enable/disable based on editing state
+                        />
+                      </Td>
+
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Start Date:
+                        </Text>
+                        <Input
+                          placeholder="Start Date"
+                          type="date"
+                          value={parent.start_date}
+                          onChange={(e) =>
+                            onChange(index, "start_date", e.target.value)
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          End Date:
+                        </Text>
+                        <Input
+                          placeholder="End Date"
+                          type="date"
+                          value={parent.end_date}
+                          onChange={(e) =>
+                            onChange(index, "end_date", e.target.value)
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                    </Tr>
+                    <Tr>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Reason for Leaving:
+                        </Text>
+                        <Input
+                          placeholder="Reason for Leaving"
+                          value={parent.reason_for_leaving}
+                          onChange={(e) =>
+                            onChange(
+                              index,
+                              "reason_for_leaving",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                    </Tr>
+
+                    {/* Educational Information Section */}
+                    <Tr bg="gray.50">
+                      <Td colSpan={4}>
+                        <Text fontWeight="bold">Educational Information</Text>
+                      </Td>
+                    </Tr>
+                    <Tr>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Educational Level:
+                        </Text>
+                        <Select
+                          placeholder="Select Educational Level"
+                          name="education_level"
+                          value={educationalLevelOptions
+                            .map((level) => ({
+                              value: level,
+                              label: level,
+                            }))
+                            .find(
+                              (option) =>
+                                option.value === parent.education_level
+                            )} // Map value for selected option
+                          onChange={
+                            (selectedOption) =>
+                              onChange(
+                                index,
+                                "education_level",
+                                selectedOption?.value || ""
+                              ) // Update state on selection
+                          }
+                          options={educationalLevelOptions.map((level) => ({
+                            value: level,
+                            label: level,
+                          }))}
+                          isClearable
+                          isDisabled={!parent.isEditing} // Conditionally disable dropdown
+                          styles={{
+                            container: (base) => ({
+                              ...base,
+                              width: "100%",
+                            }),
+                          }}
+                        />
+                      </Td>
+
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Start Year:
+                        </Text>
+                        <Input
+                          placeholder="Start Year"
+                          type="number"
+                          value={parent.start_year}
+                          onChange={(e) =>
+                            onChange(index, "start_year", e.target.value)
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Completion Year:
+                        </Text>
+                        <Input
+                          placeholder="Completion Year"
+                          type="number"
+                          value={parent.completion_year}
+                          onChange={(e) =>
+                            onChange(index, "completion_year", e.target.value)
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          School:
+                        </Text>
+                        <Input
+                          placeholder="School"
+                          value={parent.school}
+                          onChange={(e) =>
+                            onChange(index, "school", e.target.value)
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
+                    </Tr>
+                    <Tr>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Field of Study:
+                        </Text>
+                        <Input
+                          placeholder="Field of Study"
+                          value={parent.field_of_study}
+                          onChange={(e) =>
+                            onChange(index, "field_of_study", e.target.value)
+                          }
+                          isDisabled={
+                            !parent.isEditing ||
+                            parent.education_level === "No Formal Education" ||
+                            parent.education_level === "Primary Education" ||
+                            parent.education_level === "Secondary Education" ||
+                            parent.education_level === "Senior High School"
+                          }
+                        />
+                      </Td>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Degree:
+                        </Text>
+                        <Input
+                          placeholder="Degree"
+                          value={parent.degree}
+                          onChange={(e) =>
+                            onChange(index, "degree", e.target.value)
+                          }
+                          isDisabled={
+                            !parent.isEditing ||
+                            parent.education_level === "No Formal Education" ||
+                            parent.education_level === "Primary Education" ||
+                            parent.education_level === "Secondary Education" ||
+                            parent.education_level === "Senior High School"
+                          }
+                        />
+                      </Td>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Institution:
+                        </Text>
+                        <Input
+                          placeholder="Institution"
+                          value={parent.institution}
+                          onChange={(e) =>
+                            onChange(index, "institution", e.target.value)
+                          }
+                          isDisabled={
+                            !parent.isEditing ||
+                            parent.education_level === "No Formal Education" ||
+                            parent.education_level === "Primary Education" ||
+                            parent.education_level === "Secondary Education" ||
+                            parent.education_level === "Senior High School"
+                          }
+                        />
+                      </Td>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="120px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Professional Licensure:
+                        </Text>
+                        <Input
+                          placeholder="Professional Licensure"
+                          value={parent.professional_licensure_examination}
+                          onChange={(e) =>
+                            onChange(
+                              index,
+                              "professional_licensure_examination",
+                              e.target.value
+                            )
+                          }
+                          isDisabled={
+                            !parent.isEditing ||
+                            parent.education_level === "No Formal Education" ||
+                            parent.education_level === "Primary Education" ||
+                            parent.education_level === "Secondary Education" ||
+                            parent.education_level === "Senior High School"
+                          }
+                        />
+                      </Td>
+                    </Tr>
+
+                    {/* Save Button */}
+                    <Tr>
+                      <Td colSpan={4} textAlign="center">
+                        <IconButton
+                          icon={parent.isEditing ? <CheckIcon /> : <EditIcon />}
+                          onClick={() =>
+                            parent.isEditing
+                              ? handleSaveOrUpdate(index)
+                              : onChange(index, "isEditing", true)
+                          }
+                          colorScheme={parent.isEditing ? "green" : "blue"}
+                        />
+                      </Td>
+                    </Tr>
+                  </Tbody>
+                </Table>
+              </TabPanel>
+            ))}
+          </TabPanels>
+        </Tabs>
+      </VStack>
     </Box>
   );
 };

@@ -20,19 +20,18 @@ import axios from "axios";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { CheckIcon } from "@chakra-ui/icons";
 import Step1 from "./Step1";
-import Step2 from "./Step2"; // Update the path if needed
+import Step2 from "./Step2";
 import Step3 from "./Step3";
-import Step4 from "./Step4";
-import Step5 from "./Step5"; // Import Step4 component
-import Step6 from "./Step6"; // Import Step5 component for siblings
-import Step7 from "./Step7"; // Import Step6 component for spouse
-import Step8 from "./Step8";
+import Step4 from "./Step4"; // Import Step4 component
+import Step5 from "./Step5"; // Import Step5 component for siblings
+import Step6 from "./Step6"; // Import Step6 component for spouse
+import Step7 from "./Step7";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
 const EnrollmentForm = ({ referenceNumber }) => {
   const [step, setStep] = useState(1);
-  const totalSteps = 8;
+  const totalSteps = 7;
   const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
   const [isFinishModalOpen, setIsFinishModalOpen] = useState(false); // Modal state
@@ -579,9 +578,9 @@ const EnrollmentForm = ({ referenceNumber }) => {
       const currentStep = parseInt(searchParams.get("step"), 10) || step;
       let nextStep = currentStep + 1;
 
-      // Skip Step 7 if civil_status is Single
-      if (personnelData.civil_status === "Single" && nextStep === 7) {
-        nextStep = 8;
+      // Skip Step 6 if civil_status is Single
+      if (personnelData.civil_status === "Single" && nextStep === 6) {
+        nextStep = 7;
       }
       // Check if we are on the first step
       //if (step === 1) {
@@ -619,9 +618,9 @@ const EnrollmentForm = ({ referenceNumber }) => {
           return;
         }
 
-        // Show confirmation modal for new enrollment
-        setIsModalOpen(true);
-        setIsLoading(false);
+
+        
+        
         return;
       } else {
         // If personnel_id exists, update the data directly
@@ -692,9 +691,9 @@ const EnrollmentForm = ({ referenceNumber }) => {
   const handlePrevious = () => {
     let previousStep = step - 1;
 
-    // Skip Step 7 if civil_status is Single and moving from Step 8
-    if (personnelData.civil_status === "Single" && previousStep === 7) {
-      previousStep = 6;
+    // Skip Step 6 if civil_status is Single and moving from Step 7
+    if (personnelData.civil_status === "Single" && previousStep === 6) {
+      previousStep = 5;
     }
 
     setStep(previousStep);
@@ -1007,7 +1006,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
         <Flex justify="center" align="center" my={6} px={4} bg="#FEF3C7" py={2}>
           {Array.from({ length: totalSteps }, (_, index) => {
             const isDisabled =
-              personnelData.civil_status === "Single" && index + 1 === 7;
+              personnelData.civil_status === "Single" && index + 1 === 6;
 
             return (
               <Box
@@ -1093,12 +1092,10 @@ const EnrollmentForm = ({ referenceNumber }) => {
         />
       )}
 
-      {step === 2 && (
-        <Step2 personnelId={personnelId} onSaveImage={handleSaveImage} />
-      )}
+ 
 
-      {step === 3 && (
-        <Step3
+      {step === 2 && (
+        <Step2
           contacts={contacts}
           addresses={addresses}
           govIDs={govIDs}
@@ -1111,8 +1108,8 @@ const EnrollmentForm = ({ referenceNumber }) => {
         />
       )}
 
-      {step === 4 && (
-        <Step4
+      {step === 3 && (
+        <Step3
           education={education}
           workExperience={workExperience}
           handleAddEducation={handleAddEducation}
@@ -1124,8 +1121,8 @@ const EnrollmentForm = ({ referenceNumber }) => {
         />
       )}
 
-      {step === 5 && (
-        <Step5
+      {step === 4 && (
+        <Step4
           data={family.parents}
           setData={(updatedParents) =>
             setFamily((prevFamily) => ({
@@ -1147,8 +1144,8 @@ const EnrollmentForm = ({ referenceNumber }) => {
           bloodtypes={bloodtypes}
         />
       )}
-      {step === 6 && (
-        <Step6
+      {step === 5 && (
+        <Step5
           data={family.siblings}
           setData={(updatedSiblings) =>
             setFamily((prevFamily) => ({
@@ -1171,8 +1168,8 @@ const EnrollmentForm = ({ referenceNumber }) => {
           bloodtypes={bloodtypes}
         />
       )}
-      {step === 7 && (
-        <Step7
+      {step === 6 && (
+        <Step6
           data={family.spouses}
           setData={(updatedSpouses) =>
             setFamily((prevFamily) => ({
@@ -1197,8 +1194,8 @@ const EnrollmentForm = ({ referenceNumber }) => {
         />
       )}
 
-      {step === 8 && (
-        <Step8
+      {step === 7 && (
+        <Step7
           data={family.children}
           setData={(updatedChildren) =>
             setFamily((prevFamily) => ({
@@ -1239,7 +1236,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
             Previous
           </Button>
         )}
-        {step < 8 ? (
+        {step < 7 ? (
           <Button
             colorScheme="teal"
             onClick={handleNext}

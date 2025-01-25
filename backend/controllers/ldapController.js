@@ -263,6 +263,7 @@ exports.getUserByUsername = async (req, res) => {
       });
     });
 
+    //Search the ldap users from the login credentials
   const searchLDAP = () =>
     new Promise((resolve, reject) => {
       const searchOptions = {
@@ -323,7 +324,7 @@ exports.getUserByUsername = async (req, res) => {
     const user = await searchLDAP();
     res.json(user);
   } catch (err) {
-    console.error("LDAP error:", err);
+    console.error("LDAP error: Cannot find the user", err);
     res.status(500).json({ error: err.message });
   }
 };

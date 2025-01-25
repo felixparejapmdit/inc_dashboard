@@ -401,7 +401,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
         {hasPermission("*management.view") && (
           <SidebarItem
             icon={FiTool} // Change icon to FiBriefcase or any other appropriate icon
-            label="Managements"
+            label="Management"
             isExpanded={isExpanded}
             onClick={handleManagementsToggle}
             rightIcon={isManagementsExpanded ? FiArrowUp : FiArrowDown}

@@ -631,8 +631,10 @@ GROUP BY
       return [];
     }
   };
+
+  
+  // Fetch users from database
   try {
-    // Fetch users from database
     const dbUsers = await new Promise((resolve, reject) => {
       db.query(query, (err, results) => {
         if (err) {

@@ -1,516 +1,806 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
-  VStack,
   Box,
-  Image,
-  Text,
-  Input,
-  //Select,
-  Button,
-  Icon,
-  useToast,
-  IconButton,
-  HStack,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
   Heading,
-  Grid,
-  GridItem,
-  Tooltip,
-  Spinner,
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogOverlay,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Select,
+  Input,
+  IconButton,
+  Button,
+  Text,
+  useToast,
+  Flex,
 } from "@chakra-ui/react";
-import { BsUpload } from "react-icons/bs";
-import { MdPhotoCamera,MdDelete  } from "react-icons/md";
-import Select from "react-select";
-const Step2 = ({ onSaveImage }) => {
-  const [image, setImage] = useState(null);
-  const [isCameraOpen, setIsCameraOpen] = useState(false);
-  const [imageSize, setImageSize] = useState("2x2"); // Default to 2x2
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
-  const toast = useToast();
-  const [imageList, setImageList] = useState([]);
+import {
+  EditIcon,
+  DeleteIcon,
+  CheckIcon,
+  AttachmentIcon,
+} from "@chakra-ui/icons";
+import axios from "axios";
+const Step2 = () => {
+  const [contacts, setContacts] = useState([]);
+  const [addresses, setAddresses] = useState([]);
+  const [govIDs, setGovIDs] = useState([]);
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [contactTypes, setContactTypes] = useState([]);
+  const [governmentIDs, setGovernmentIDs] = useState([]);
+  const toast = useToast();
+
   const [searchParams] = useSearchParams(); // Retrieve query parameters
   const personnelId = searchParams.get("personnel_id"); // Get personnel_id from URL
 
-  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
-const [imageToDelete, setImageToDelete] = useState(null);
-const cancelRef = useRef();
+  const [loading, setLoading] = useState(true);
 
+  // Fetch dropdown data and main table data
   useEffect(() => {
-    fetch(
-      `${process.env.REACT_APP_API_URL}/api/personnel_images/${personnelId}`
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          setImageList(data.data); // Maintain a list of uploaded images
-        }
-      })
-      .catch((err) => console.error("Error fetching images:", err));
-  }, [personnelId]);
-
-  const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: "File too large",
-          description: "Image size should be less than 5MB.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-        return;
-      }
-      if (file.type === "image/jpeg" || file.type === "image/png") {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          setImage(e.target.result);
-        };
-        reader.readAsDataURL(file);
-      } else {
-        toast({
-          title: "Invalid file type",
-          description: "Only JPEG and PNG formats are supported.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      }
-    }
-  };
-
-  const openDeleteAlert = (id) => {
-    setImageToDelete(id);
-    setIsDeleteAlertOpen(true);
-  };
-  
-  const closeDeleteAlert = () => {
-    setImageToDelete(null);
-    setIsDeleteAlertOpen(false);
-  };
-  
-  const confirmDeleteImage = async () => {
-    if (!imageToDelete) return;
-  
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/personnel_images/${imageToDelete}`,
-        {
-          method: "DELETE",
-        }
-      );
-  
-      if (response.ok) {
-        setImageList(imageList.filter((img) => img.id !== imageToDelete));
-        toast({
-          title: "Image deleted successfully",
-          status: "info",
-          duration: 3000,
-          isClosable: true,
-        });
-      } else {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to delete the image.");
-      }
-    } catch (error) {
-      console.error("Error deleting image:", error);
+    if (!personnelId) {
       toast({
-        title: "Error",
-        description: error.message || "Something went wrong. Please try again.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
-      closeDeleteAlert();
-    }
-  };
-  
-  // Button to trigger the delete alert
-  const handleDeleteImage = (id) => {
-    openDeleteAlert(id);
-  };
-  
-
-  const openCamera = async () => {
-    try {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error("Camera not supported on this browser.");
-      }
-      setIsCameraOpen(true);
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-      });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-    } catch (error) {
-      toast({
-        title: "Camera Error",
-        description: error.message || "Unable to access the camera.",
+        title: "Missing Personnel ID",
+        description: "Personnel ID is required to fetch data.",
         status: "error",
         duration: 3000,
         isClosable: true,
         position: "bottom-left", // Position the toast on the bottom-left
       });
+      return;
     }
-  };
 
-  const closeCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject;
-      const tracks = stream.getTracks();
-      tracks.forEach((track) => track.stop());
-      videoRef.current.srcObject = null;
-    }
-    setIsCameraOpen(false);
-  };
-
-  const captureImage = () => {
-    const canvas = canvasRef.current;
-    const video = videoRef.current;
-    if (canvas && video) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const context = canvas.getContext("2d");
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL("image/png");
-      setImage(dataUrl);
-      closeCamera();
-    }
-  };
-
-  const handleSaveImage = async () => {
-    if (image) {
-      const formData = new FormData();
-      formData.append("personnel_id", personnelId);
-      formData.append("type", `${imageSize} Picture`);
-      formData.append("image", dataURLtoFile(image, `${Date.now()}.png`));
-  
+    const fetchDropdownData = async () => {
       try {
-        const response = await fetch(
-          `${process.env.REACT_APP_API_URL}/api/personnel_images`,
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
-  
-        if (response.ok) {
-          toast({
-            title: "Image saved successfully",
-            status: "success",
-            duration: 3000,
-            isClosable: true,
-            position: "bottom-left",
-          });
-          setImage(null); // Reset the image after saving
-
-             // Fetch the updated list of images
-        const updatedImagesResponse = await fetch(
-          `${process.env.REACT_APP_API_URL}/api/personnel_images/${personnelId}`
-        );
-        const updatedImagesData = await updatedImagesResponse.json();
-
-        if (updatedImagesData.success) {
-          setImageList(updatedImagesData.data); // Update the grid with the new images
-        } else {
-          toast({
-            title: "Error fetching updated images",
-            description: "Could not update the image grid. Please refresh manually.",
-            status: "error",
-            duration: 3000,
-            isClosable: true,
-          });
-        }
-
-        } else {
-          const error = await response.json();
-          throw new Error(error.message || "Failed to save the image.");
-        }
-      } catch (err) {
+        const [contactTypeRes, governmentIDRes] = await Promise.all([
+          axios.get(`${process.env.REACT_APP_API_URL}/api/contact-type-info`),
+          axios.get(
+            `${process.env.REACT_APP_API_URL}/api/government-issued-ids`
+          ),
+        ]);
+        setContactTypes(contactTypeRes.data || []);
+        setGovernmentIDs(governmentIDRes.data || []);
+      } catch (error) {
+        console.error("Error fetching dropdown data:", error);
         toast({
-          title: "Error saving image",
-          description: err.message || "Something went wrong. Please try again.",
+          title: "Error loading dropdown data",
+          description: "Failed to fetch dropdown options.",
           status: "error",
           duration: 3000,
           isClosable: true,
-          position: "bottom-left",
+          position: "bottom-left", // Position the toast on the bottom-left
         });
       }
-    } else {
+    };
+
+    const fetchTableData = async () => {
+      try {
+        const [contactsRes, addressesRes, govIDsRes] = await Promise.all([
+          axios.get(
+            `${process.env.REACT_APP_API_URL}/api/get-personnel-contacts`,
+            {
+              params: { personnel_id: personnelId },
+            }
+          ),
+          axios.get(
+            `${process.env.REACT_APP_API_URL}/api/personnel-addresses`,
+            {
+              params: { personnel_id: personnelId },
+            }
+          ),
+          axios.get(`${process.env.REACT_APP_API_URL}/api/personnel-gov-ids`, {
+            params: { personnel_id: personnelId },
+          }),
+        ]);
+
+        // Update state based on fetched data or set empty if no data
+        setContacts(Array.isArray(contactsRes.data) ? contactsRes.data : []);
+        setAddresses(Array.isArray(addressesRes.data) ? addressesRes.data : []);
+        setGovIDs(Array.isArray(govIDsRes.data) ? govIDsRes.data : []);
+      } catch (error) {
+        // Log error to the console but do not show toast
+        console.error("Error fetching table data:", error);
+
+        // Clear fields in case of error
+        setContacts([]);
+        setAddresses([]);
+        setGovIDs([]);
+      } finally {
+        setLoading(false); // Ensure loading state is reset
+      }
+    };
+
+    setLoading(true);
+    fetchDropdownData();
+    fetchTableData();
+  }, [personnelId, toast]);
+
+  const handleAddGovID = () => {
+    setGovIDs([
+      ...govIDs,
+      { gov_id: "", gov_issued_id: "", isEditing: true }, // New row is editable by default
+    ]);
+  };
+
+  const handleContactChange = (idx, field, value) => {
+    const updatedContacts = contacts.map((contact, i) =>
+      i === idx ? { ...contact, [field]: value } : contact
+    );
+    setContacts(updatedContacts);
+  };
+
+  const handleAddressChange = (idx, field, value) => {
+    const updatedAddresses = addresses.map((address, i) =>
+      i === idx ? { ...address, [field]: value } : address
+    );
+    setAddresses(updatedAddresses);
+  };
+
+  const handleSaveOrUpdateContact = async (idx) => {
+    const contact = contacts[idx];
+    const payload = {
+      personnel_id: personnelId,
+      contactype_id: contact.contactype_id,
+      contact_info: contact.contact_info,
+    };
+
+    try {
+      if (contact.id) {
+        // **Force update even if the data is unchanged**
+        console.log(
+          "Updating contact with ID:",
+          contact.id,
+          "Payload:",
+          payload
+        );
+       
+        await axios.put(
+          `${process.env.REACT_APP_API_URL}/api/personnel-contacts/${contact.id}`,
+          payload
+        );
+
+        toast({
+          title: "Contact updated successfully.",
+          status: "success",
+          duration: 3000,
+          position: "bottom-left", // Position the toast on the bottom-left
+        });
+      } else {
+        // Save new record
+        console.log("Saving new contact with payload:", payload);
+        const response = await axios.post(
+          `${process.env.REACT_APP_API_URL}/api/personnel-contacts`,
+          payload
+        );
+        // Assign the new ID to the record
+        contact.id = response.data.id;
+
+        toast({
+          title: "Contact saved successfully.",
+          status: "success",
+          duration: 3000,
+          position: "bottom-left", // Position the toast on the bottom-left
+        });
+      }
+
+      // Disable editing after save
+      toggleEditContact(idx);
+    } catch (error) {
+      console.error("Error saving/updating contact:", error);
+
       toast({
-        title: "No image to save",
-        description: "Please upload or capture an image before saving.",
-        status: "warning",
+        title: "Error saving/updating contact.",
+        description:
+          error.response?.data?.error || "Failed to save or update contact.",
+        status: "error",
         duration: 3000,
-        isClosable: true,
-        position: "bottom-left",
+        position: "bottom-left", // Position the toast on the bottom-left
       });
     }
   };
-  
-  // Helper function to convert base64 to File object
-  const dataURLtoFile = (dataUrl, filename) => {
-    const arr = dataUrl.split(",");
-    const mime = arr[0].match(/:(.*?);/)[1];
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
+
+  const handleAddContact = () =>
+    setContacts([
+      ...contacts,
+      { contactype_id: "", contact_info: "", isEditing: true },
+    ]);
+
+  const toggleEditContact = (idx) => {
+    const updatedContacts = [...contacts];
+    updatedContacts[idx].isEditing = !updatedContacts[idx].isEditing;
+    setContacts(updatedContacts);
+  };
+
+  const handleRemoveContact = async (idx) => {
+    const contact = contacts[idx];
+    if (contact.id) {
+      const confirmed = window.confirm(
+        "Are you sure you want to delete this contact?"
+      );
+      if (!confirmed) return;
+
+      try {
+        await axios.delete(
+          `${process.env.REACT_APP_API_URL}/api/personnel-contacts/${contact.id}`
+        );
+        toast({
+          title: "Contact deleted successfully.",
+          status: "success",
+          duration: 3000,
+          position: "bottom-left", // Position the toast on the bottom-left
+        });
+      } catch (error) {
+        console.error("Error deleting contact:", error);
+        toast({
+          title: "Error deleting contact.",
+          description:
+            error.response?.data?.error || "Failed to delete contact.",
+          status: "error",
+          duration: 3000,
+          position: "bottom-left", // Position the toast on the bottom-left
+        });
+      }
     }
-    return new File([u8arr], filename, { type: mime });
+    // Remove contact from the state
+    setContacts(contacts.filter((_, i) => i !== idx));
   };
-  
-  
 
+  const handleSaveOrUpdateAddress = async (idx) => {
+    const address = addresses[idx];
+    const payload = {
+      personnel_id: personnelId,
+      address_type: address.address_type,
+      name: address.name,
+    };
 
-  const getBoxSize = () => {
-    switch (imageSize) {
-      case "wholebody":
-        return { width: "300px", height: "400px" };
-      case "halfbody":
-        return { width: "300px", height: "250px" };
-      default:
-        return { width: "150px", height: "150px" };
+    try {
+      if (address.id) {
+        // Update existing record
+        console.log(
+          "Updating record with ID:",
+          address.id,
+          "Payload:",
+          payload
+        );
+        await axios.put(
+          `${process.env.REACT_APP_API_URL}/api/personnel-addresses/${address.id}`,
+          payload
+        );
+
+        toast({
+          title: "Address updated successfully.",
+          status: "success",
+          duration: 3000,
+          position: "bottom-left", // Position the toast on the bottom-left
+        });
+      } else {
+        // Save new record
+        console.log("Saving new record with payload:", payload);
+        const response = await axios.post(
+          `${process.env.REACT_APP_API_URL}/api/personnel-addresses`,
+          payload
+        );
+
+        // Assign the new ID to the record
+        address.id = response.data.id;
+
+        toast({
+          title: "Address saved successfully.",
+          status: "success",
+          duration: 3000,
+          position: "bottom-left", // Position the toast on the bottom-left
+        });
+      }
+
+      // Disable editing after save
+      toggleEditAddress(idx);
+    } catch (error) {
+      console.error("Error saving/updating address:", error);
+
+      toast({
+        title: "Error saving/updating address.",
+        description:
+          error.response?.data?.error || "Failed to save or update address.",
+        status: "error",
+        duration: 3000,
+        position: "bottom-left", // Position the toast on the bottom-left
+      });
     }
   };
 
-
-  const imageSizeOptions = [
-    { value: "2x2", label: "2x2 Picture" },
-    { value: "Whole Body", label: "Whole Body Picture" },
-    { value: "Half Body", label: "Half Body Picture" },
-  ];
-  
-  const handleImageSizeChange = (selectedOption) => {
-    setImageSize(selectedOption.value);
-  };
-  
-  const isOptionDisabled = (option) => {
-    return imageList.some((img) => img.type === option.label);
+  const handleAddAddress = () => {
+    setAddresses([
+      ...addresses,
+      { address_type: "", name: "", isEditing: true }, // New row starts in editing mode
+    ]);
   };
 
+  const toggleEditAddress = (idx) => {
+    const updatedAddresses = [...addresses];
+    updatedAddresses[idx].isEditing = !updatedAddresses[idx].isEditing;
+    setAddresses(updatedAddresses);
+  };
+
+  const handleRemoveAddress = (idx) => {
+    const address = addresses[idx];
+    if (address.id) {
+      // Confirm before deleting existing record
+      if (window.confirm("Are you sure you want to delete this address?")) {
+        axios
+          .delete(
+            `${process.env.REACT_APP_API_URL}/api/personnel-addresses/${address.id}`
+          )
+          .then(() => {
+            toast({
+              title: "Address deleted successfully.",
+              status: "success",
+              duration: 3000,
+              position: "bottom-left", // Position the toast on the bottom-left
+            });
+
+            // Remove from state
+            const updatedAddresses = addresses.filter((_, i) => i !== idx);
+            setAddresses(updatedAddresses);
+          })
+          .catch((error) => {
+            console.error("Error deleting address:", error);
+            toast({
+              title: "Error deleting address.",
+              description:
+                error.response?.data?.error || "Failed to delete address.",
+              status: "error",
+              duration: 3000,
+              position: "bottom-left", // Position the toast on the bottom-left
+            });
+          });
+      }
+    } else {
+      // Remove unsaved row
+      const updatedAddresses = addresses.filter((_, i) => i !== idx);
+      setAddresses(updatedAddresses);
+    }
+  };
+
+  const handleSaveOrUpdateGovID = async (idx) => {
+    const govID = govIDs[idx];
+    const payload = {
+      personnel_id: personnelId,
+      gov_id: govID.gov_id,
+      gov_issued_id: govID.gov_issued_id,
+    };
+
+    try {
+      if (govID.id) {
+        // **Force update even if the data is unchanged**
+        console.log("Updating record with ID:", govID.id, "Payload:", payload);
+        
+        await axios.put(
+          `${process.env.REACT_APP_API_URL}/api/personnel-gov-ids/${govID.id}`,
+          payload
+        );
+
+        toast({
+          title: "Government ID updated successfully.",
+          status: "success",
+          duration: 3000,
+          position: "bottom-left", // Position the toast on the bottom-left
+        });
+      } else {
+        // Save new record
+        console.log("Saving new record with payload:", payload);
+        const response = await axios.post(
+          `${process.env.REACT_APP_API_URL}/api/personnel-gov-ids`,
+          payload
+        );
+        // Assign the new ID to the record
+        govID.id = response.data.id;
+
+        toast({
+          title: "Government ID saved successfully.",
+          status: "success",
+          duration: 3000,
+          position: "bottom-left", // Position the toast on the bottom-left
+        });
+      }
+
+      // Disable editing after save
+      toggleEditGovID(idx);
+    } catch (error) {
+      console.error("Error saving/updating government ID:", error);
+
+      toast({
+        title: "Error saving/updating government ID...",
+        description:
+          error.response?.data?.error ||
+          "Failed to save or update government ID.",
+        status: "error",
+        duration: 3000,
+        position: "bottom-left", // Position the toast on the bottom-left
+      });
+    }
+  };
+
+  const confirmDeleteGovID = (idx) => {
+    if (window.confirm("Are you sure you want to delete this government ID?")) {
+      handleRemoveGovID(idx);
+    }
+  };
+
+  const toggleEditGovID = (idx) => {
+    const updatedGovIDs = [...govIDs];
+    updatedGovIDs[idx].isEditing = !updatedGovIDs[idx].isEditing;
+
+    // Reset fields to reflect saved data if disabling edit mode
+    if (!updatedGovIDs[idx].isEditing) {
+      updatedGovIDs[idx].disabled = true; // Lock the row
+    }
+
+    setGovIDs(updatedGovIDs);
+  };
+
+  const handleGovIDChange = (idx, field, value) => {
+    const updatedGovIDs = [...govIDs];
+    updatedGovIDs[idx][field] = value;
+    setGovIDs(updatedGovIDs);
+  };
+
+  const handleDocumentUpload = async (idx, file) => {
+    try {
+      if (!file) {
+        throw new Error("No file selected for upload.");
+      }
+
+      // Create FormData to include the file and other required fields
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("document_id", govIDs[idx]?.govIDType || ""); // Ensure govIDType exists
+      formData.append("personnel_id", "2"); // Replace with actual logic to fetch personnel ID
+      formData.append("description", "Uploaded document");
+      formData.append("status", "active");
+
+      // API request to upload the file
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/personnel-documents/upload`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+
+      // Log response for debugging
+      console.log("Document uploaded successfully:", response.data);
+
+      // Display success toast
+      toast({
+        title: "Document uploaded successfully.",
+        status: "success",
+        duration: 3000,
+        position: "bottom-left", // Position the toast on the bottom-left
+      });
+
+      // Update the `govIDs` array to include the uploaded document info
+      const updatedGovIDs = govIDs.map((id, i) =>
+        i === idx ? { ...id, document: response.data.document } : id
+      );
+      setGovIDs(updatedGovIDs);
+    } catch (error) {
+      // Log and display error message
+      console.error("Error uploading document:", error.message);
+      toast({
+        title: "Error uploading document.",
+        description: error.response?.data?.message || error.message,
+        status: "error",
+        duration: 3000,
+        position: "bottom-left", // Position the toast on the bottom-left
+      });
+    }
+  };
+
+  const handleRemoveGovID = (index) => {
+    setGovIDs(govIDs.filter((_, idx) => idx !== index));
+  };
 
   return (
-    <VStack spacing={6} align="center" my={115}>
-      <Heading as="h2" size="lg" textAlign="center" mb={6}>
-        Step 2: Upload Image(s)
-      </Heading>
-
-      <Select
-  options={imageSizeOptions}
-  value={imageSizeOptions.find((option) => option.value === imageSize)}
-  onChange={handleImageSizeChange}
-  isOptionDisabled={isOptionDisabled} // Disable options already uploaded
-  placeholder="Select Image Size" // Add placeholder
-  styles={{
-    container: (base) => ({ ...base, width: 200, marginBottom: 16 }),
-    control: (base) => ({
-      ...base,
-      borderColor: "gray.300",
-      boxShadow: "none",
-      "&:hover": { borderColor: "gray.400" },
-    }),
-    placeholder: (base) => ({ ...base, color: "gray.600" }),
-    menu: (base) => ({ ...base, zIndex: 9999 }),
-  }}
-/>
-
-
-
-
-      <Box
-        p={5}
-        border="2px dashed"
-        borderColor="gray.400"
-        borderRadius="md"
-        w={getBoxSize().width}
-        h={getBoxSize().height}
-        position="relative"
-        bg="yellow.100"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-        cursor="pointer"
-        _hover={{ bg: "yellow.200" }}
-      >
-        {image ? (
-          <Image
-            src={image}
-            alt="Uploaded Picture"
-            boxSize="100%"
-            borderRadius="md"
-            objectFit="cover"
-          />
-        ) : (
-          <VStack>
-            <Icon as={BsUpload} w={12} h={12} color="gray.500" />
-            <Text fontSize="lg" fontWeight="bold">
-              Drop your {imageSize} here or browse
-            </Text>
-            <Text fontSize="sm" color="gray.600">
-              Supports PNG and JPEG
-            </Text>
-          </VStack>
-        )}
-        <Input
-          type="file"
-          accept="image/png, image/jpeg"
-          position="absolute"
-          top={0}
-          left={0}
-          w="100%"
-          h="100%"
-          opacity={0}
-          cursor="pointer"
-          onChange={handleImageUpload}
-        />
-      </Box>
-
-      <HStack spacing={4}>
-        <IconButton
-          icon={<MdPhotoCamera />}
-          colorScheme="teal"
-          onClick={openCamera}
-          aria-label="Capture Image"
-        />
-        <Button
-          onClick={handleSaveImage}
-          colorScheme="yellow"
-          fontWeight="bold"
-          
-  isDisabled={!image || isLoading}
-  isLoading={isLoading}
-        >
-           {isLoading ? <Spinner size="sm" /> : "Submit Now"}
-        </Button>
-      </HStack>
-
-      <Box
-  display="flex"
-  flexWrap="wrap"
-  justifyContent="flex-start"
-  gap={4}
-  width="100%"
->
-  {imageList.map((img) => (
     <Box
-      key={img.id}
-      borderRadius="lg"
-      overflow="hidden"
-      border="1px solid"
-      borderColor="gray.300"
-      p={4}
-      shadow="lg"
-      transition="transform 0.2s"
-      _hover={{ transform: "scale(1.05)" }}
+      width="100%"
       bg="white"
-      textAlign="center"
-      width="250px"
+      boxShadow="lg"
+      p={8}
+      rounded="md"
+      mt={6}
+      my={85}
     >
-      {/* Image Size Display */}
-      <Text fontSize="lg" fontWeight="bold" color="teal.700" mb={2}>
-        {img.type}
-      </Text>
+      {loading ? (
+        <Text>Loading...</Text>
+      ) : (
+        <Box>
+          <Heading as="h2" size="lg" textAlign="center" mb={6}>
+            Step 2: Contact Information
+          </Heading>
 
-      {/* Image Display */}
-      <Image
-        src={`${process.env.REACT_APP_API_URL}${img.image_url}`}
-        width="200px"
-        height="200px"
-        objectFit="cover"
-        alt={img.type}
-        borderRadius="md"
-        mb={4}
-      />
+          {/* Contacts Section */}
+          <Text fontWeight="bold" fontSize="lg" mt={6} mb={2}>
+            Contacts
+          </Text>
+          <Table variant="striped" colorScheme="teal">
+            <Thead>
+              <Tr>
+                <Th>Type</Th>
+                <Th>Contact Info</Th>
+                <Th>Actions</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {contacts.length > 0 ? (
+                contacts.map((contact, idx) => (
+                  <Tr key={idx}>
+                    <Td>
+                      <Select
+                        placeholder="Select Type"
+                        value={contact.contactype_id}
+                        isDisabled={!contact.isEditing} // Disable if not editing
+                        onChange={(e) =>
+                          handleContactChange(
+                            idx,
+                            "contactype_id",
+                            e.target.value
+                          )
+                        }
+                      >
+                        {contactTypes.map((type) => (
+                          <option key={type.id} value={type.id}>
+                            {type.name}
+                          </option>
+                        ))}
+                      </Select>
+                    </Td>
+                    <Td>
+                      <Input
+                        placeholder="Contact Info"
+                        value={contact.contact_info}
+                        isDisabled={!contact.isEditing} // Disable if not editing
+                        onChange={(e) =>
+                          handleContactChange(
+                            idx,
+                            "contact_info",
+                            e.target.value
+                          )
+                        }
+                      />
+                    </Td>
+                    <Td>
+                      <Flex>
+                        {/* Save/Edit Button */}
+                        <IconButton
+                          icon={
+                            contact.isEditing ? <CheckIcon /> : <EditIcon />
+                          }
+                          size="sm"
+                          colorScheme={contact.isEditing ? "green" : "blue"}
+                          mr={2}
+                          onClick={() =>
+                            contact.isEditing
+                              ? handleSaveOrUpdateContact(idx)
+                              : toggleEditContact(idx)
+                          }
+                        />
+                        <IconButton
+                          icon={<DeleteIcon />}
+                          size="sm"
+                          colorScheme="red"
+                          onClick={() => handleRemoveContact(idx)}
+                        />
+                      </Flex>
+                    </Td>
+                  </Tr>
+                ))
+              ) : (
+                <Tr>
+                  <Td colSpan="3" textAlign="center">
+                    No contacts available. Click "Add Contact" to create one.
+                  </Td>
+                </Tr>
+              )}
+            </Tbody>
+          </Table>
+          <Button onClick={handleAddContact} colorScheme="teal" mt={4}>
+            Add Contact
+          </Button>
 
-      {/* Delete Button */}
-      <Button
-        size="md"
-        colorScheme="red"
-        onClick={() => handleDeleteImage(img.id)}
-        leftIcon={<MdDelete />}
-      >
-        Delete
-      </Button>
+          {/* Addresses Section */}
+          <Text fontWeight="bold" fontSize="lg" mt={6} mb={2}>
+            Addresses
+          </Text>
+          <Table variant="striped" colorScheme="teal">
+            <Thead>
+              <Tr>
+                <Th>Address Type</Th>
+                <Th>Address</Th>
+                <Th>Actions</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {addresses.length > 0 ? (
+                addresses.map((address, idx) => (
+                  <Tr key={idx}>
+                    <Td>
+                      <Select
+                        placeholder="Address Type"
+                        value={address.address_type}
+                        isDisabled={!address.isEditing} // Disable unless editing
+                        onChange={(e) =>
+                          handleAddressChange(
+                            idx,
+                            "address_type",
+                            e.target.value
+                          )
+                        }
+                      >
+                        <option>Home Address</option>
+                        <option>Provincial Address</option>
+                        <option>Work Address</option>
+                      </Select>
+                    </Td>
+                    <Td>
+                      <Input
+                        placeholder="Address"
+                        value={address.name}
+                        isDisabled={!address.isEditing} // Disable unless editing
+                        onChange={(e) =>
+                          handleAddressChange(idx, "name", e.target.value)
+                        }
+                      />
+                    </Td>
+                    <Td>
+                      <Flex>
+                        {/* Save/Edit Button */}
+                        <IconButton
+                          icon={
+                            address.isEditing ? <CheckIcon /> : <EditIcon />
+                          }
+                          size="sm"
+                          colorScheme={address.isEditing ? "green" : "blue"}
+                          onClick={() =>
+                            address.isEditing
+                              ? handleSaveOrUpdateAddress(idx)
+                              : toggleEditAddress(idx)
+                          }
+                        />
+                        <IconButton
+                          icon={<DeleteIcon />}
+                          size="sm"
+                          colorScheme="red"
+                          onClick={() => handleRemoveAddress(idx)}
+                        />
+                      </Flex>
+                    </Td>
+                  </Tr>
+                ))
+              ) : (
+                <Tr>
+                  <Td colSpan="3" textAlign="center">
+                    No addresses available. Click "Add Address" to create one.
+                  </Td>
+                </Tr>
+              )}
+            </Tbody>
+          </Table>
+          <Button onClick={handleAddAddress} colorScheme="teal" mt={4}>
+            Add Address
+          </Button>
+
+          {/* Government Issued IDs Section */}
+          <Text fontWeight="bold" fontSize="lg" mt={6} mb={2}>
+            Government Issued IDs
+          </Text>
+          <Table variant="striped" colorScheme="teal">
+            <Thead>
+              <Tr>
+                <Th>ID Type</Th>
+                <Th>ID Number</Th>
+                <Th>Document</Th>
+                <Th>Actions</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {govIDs.length > 0 ? (
+                govIDs.map((id, idx) => (
+                  <Tr key={idx}>
+                    <Td>
+                      <Select
+                        placeholder="Select ID Type"
+                        value={id.gov_id}
+                        isDisabled={!id.isEditing} // Disable if not in editing mode
+                        onChange={(e) =>
+                          handleGovIDChange(idx, "gov_id", e.target.value)
+                        }
+                      >
+                        {governmentIDs.map((govID) => (
+                          <option key={govID.id} value={govID.id}>
+                            {govID.name}
+                          </option>
+                        ))}
+                      </Select>
+                    </Td>
+                    <Td>
+                      <Input
+                        placeholder="ID Number"
+                        value={id.gov_issued_id}
+                        isDisabled={!id.isEditing} // Disable if not in editing mode
+                        onChange={(e) =>
+                          handleGovIDChange(
+                            idx,
+                            "gov_issued_id",
+                            e.target.value
+                          )
+                        }
+                      />
+                    </Td>
+                    <Td>
+                      <Button
+                        rightIcon={<AttachmentIcon />}
+                        size="sm"
+                        colorScheme="teal"
+                        isDisabled={!id.isEditing} // Disable if not in editing mode
+                        onClick={() =>
+                          document.getElementById(`file-upload-${idx}`).click()
+                        }
+                      >
+                        Upload
+                      </Button>
+                      <input
+                        type="file"
+                        id={`file-upload-${idx}`}
+                        style={{ display: "none" }}
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            handleDocumentUpload(idx, file);
+                          }
+                        }}
+                      />
+                    </Td>
+                    <Td>
+                      <Flex>
+                        {/* Save and Edit Button */}
+                        <IconButton
+                          icon={id.isEditing ? <CheckIcon /> : <EditIcon />}
+                          size="sm"
+                          colorScheme={id.isEditing ? "green" : "blue"}
+                          onClick={() =>
+                            id.isEditing
+                              ? handleSaveOrUpdateGovID(idx)
+                              : toggleEditGovID(idx)
+                          }
+                        />
+                        <IconButton
+                          icon={<DeleteIcon />}
+                          size="sm"
+                          colorScheme="red"
+                          onClick={() => confirmDeleteGovID(idx)}
+                        />
+                      </Flex>
+                    </Td>
+                  </Tr>
+                ))
+              ) : (
+                <Tr>
+                  <Td colSpan="4" textAlign="center">
+                    No government-issued IDs available. Click "Add Government
+                    ID" to create one.
+                  </Td>
+                </Tr>
+              )}
+            </Tbody>
+          </Table>
+          <Button onClick={handleAddGovID} colorScheme="teal" mt={4}>
+            Add Government ID
+          </Button>
+        </Box>
+      )}
     </Box>
-  ))}
-</Box>
-
-
-
-
-
-<AlertDialog
-  isOpen={isDeleteAlertOpen}
-  leastDestructiveRef={cancelRef}
-  onClose={closeDeleteAlert}
->
-  <AlertDialogOverlay>
-    <AlertDialogContent>
-      <AlertDialogHeader fontSize="lg" fontWeight="bold">
-        Delete Image
-      </AlertDialogHeader>
-
-      <AlertDialogBody>
-        Are you sure you want to delete this image? This action cannot be undone.
-      </AlertDialogBody>
-
-      <AlertDialogFooter>
-        <Button ref={cancelRef} onClick={closeDeleteAlert}>
-          Cancel
-        </Button>
-        <Button
-          colorScheme="red"
-          onClick={confirmDeleteImage}
-          ml={3}
-        >
-          Delete
-        </Button>
-      </AlertDialogFooter>
-    </AlertDialogContent>
-  </AlertDialogOverlay>
-</AlertDialog>
-
-
-<Modal isOpen={isCameraOpen} onClose={closeCamera}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Capture Image</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <video ref={videoRef} autoPlay style={{ width: "100%" }} />
-            <canvas ref={canvasRef} style={{ display: "none" }} />
-          </ModalBody>
-          <ModalFooter>
-            <Button onClick={captureImage} colorScheme="teal">
-              Capture
-            </Button>
-            <Button variant="ghost" onClick={closeCamera}>
-              Close
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-    </VStack>
   );
 };
 
