@@ -586,7 +586,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
       //if (step === 1) {
       alert(personnelId);
 
-      if (!personnelId || personnelId !== null) {
+      if (!personnelId) {
         alert("HEY");
         const missingFields = [];
         if (!personnelData.givenname) missingFields.push("Given Name");
