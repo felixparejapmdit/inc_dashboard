@@ -582,9 +582,12 @@ const EnrollmentForm = ({ referenceNumber }) => {
       if (personnelData.civil_status === "Single" && nextStep === 6) {
         nextStep = 7;
       }
-      // Check if we are on the first step
+      // Check if we are on the first step for new personnel
       //if (step === 1) {
-      if (!personnelId) {
+      alert(personnelId);
+
+      if (!personnelId || personnelId !== null) {
+        alert("HEY");
         const missingFields = [];
         if (!personnelData.givenname) missingFields.push("Given Name");
         if (!personnelData.date_of_birth) missingFields.push("Date of Birth");
@@ -618,11 +621,9 @@ const EnrollmentForm = ({ referenceNumber }) => {
           return;
         }
 
-
-        
-        
         return;
       } else {
+        alert("HEY2");
         // If personnel_id exists, update the data directly
         if (!personnelData.email_address) {
           toast({
@@ -1091,8 +1092,6 @@ const EnrollmentForm = ({ referenceNumber }) => {
           bloodtypes={bloodtypes}
         />
       )}
-
- 
 
       {step === 2 && (
         <Step2

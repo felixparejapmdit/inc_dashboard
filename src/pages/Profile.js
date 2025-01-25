@@ -328,7 +328,7 @@ const Profile = () => {
                 onClick={() => {
                   const personnelId = user.personnel_id; // Adjust based on how personnel ID is stored in your `user` object
                   if (personnelId) {
-                    window.location.href = `/enroll?personnel_id=${personnelId}`;
+                    window.location.href = `/enroll?personnel_id=${personnelId}&step=${user.enrollment_progress}`;
                   } else {
                     window.location.href = `/enroll?not_enrolled=${user.username}`;
                   }

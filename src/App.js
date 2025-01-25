@@ -32,7 +32,6 @@ import Reminders from "./pages/Reminders"; // Import ldap-users Page
 import Mastodon from "./pages/Mastodon"; // Import Mastodon Page
 import customTheme from "./theme"; // Optional if you're using a custom theme
 import LdapUser from "./pages/LdapUser"; // Import LdapUser page
-import Enrollment from "./pages/EnrollmentForm"; // Import LdapUser page
 import DepartmentManagement from "./pages/managements/DepartmentManagement.js"; // Import the new DepartmentManagement page
 import SectionManagement from "./pages/managements/SectionManagement.js";
 import SubsectionManagement from "./pages/managements/SubsectionManagement.js";
@@ -45,13 +44,14 @@ import ContactTypeInfoManagement from "./pages/managements/ContactTypeInfoManage
 import GovernmentIssuedIDManagement from "./pages/managements/GovernmentIssuedIDManagement.js";
 import LocationManagement from "./pages/managements/LocationManagement.js";
 
-import Step1 from "./pages/Step1";
-import Step2 from "./pages/Step2";
-import Step3 from "./pages/Step3";
-import Step4 from "./pages/Step4";
-import Step5 from "./pages/Step5";
-import Step6 from "./pages/Step6";
-import Step7 from "./pages/Step7";
+import Enrollment from "./pages/Enrollment/EnrollmentForm.js"; // Import LdapUser page
+import Step1 from "./pages/Enrollment/Step1.js";
+import Step2 from "./pages/Enrollment/Step2.js";
+import Step3 from "./pages/Enrollment/Step3.js";
+import Step4 from "./pages/Enrollment/Step4.js";
+import Step5 from "./pages/Enrollment/Step5.js";
+import Step6 from "./pages/Enrollment/Step6.js";
+import Step7 from "./pages/Enrollment/Step7.js";
 
 import GroupManagement from "./pages/managements/GroupManagement.js";
 import PermissionManagement from "./pages/managements/PermissionManagement.js";
@@ -73,7 +73,6 @@ function App() {
             <Route path="/step5" element={<Step5 />} />
             <Route path="/step6" element={<Step6 />} />
             <Route path="/step7" element={<Step7 />} />
-
 
             {/* Redirect the root URL to /login */}
             <Route path="/" element={<Navigate to="/login" />} />

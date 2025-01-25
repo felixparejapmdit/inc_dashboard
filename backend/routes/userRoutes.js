@@ -370,9 +370,10 @@ router.get("/api/users/logged-in", async (req, res) => {
     return res.status(400).json({ message: "Username is required" });
   }
   const query = `
-  SELECT u.ID, u.username, u.avatar, u.auth_type, personnel_id, GROUP_CONCAT(a.name) AS availableApps
+  SELECT u.ID, u.username, u.avatar, u.auth_type, u.personnel_id, GROUP_CONCAT(a.name) AS availableApps, p.enrollment_progress
   FROM users u
   LEFT JOIN available_apps ua ON u.ID = ua.user_id
+  LEFT JOIN personnels p ON p.personnel_id = u.personnel_id
   LEFT JOIN apps a ON ua.app_id = a.id
   WHERE u.username = '${username}'
     GROUP BY u.ID`;
@@ -632,7 +633,6 @@ GROUP BY
     }
   };
 
-  
   // Fetch users from database
   try {
     const dbUsers = await new Promise((resolve, reject) => {

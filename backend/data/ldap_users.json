@@ -147,7 +147,7 @@
       "mail": "karl.dematera@pmdmc.net",
       "uidNumber": "2017",
       "gidNumber": "2000",
-      "userPassword": "{SSHA}+728w4RErOoPkuPO2W5zP1n6+cAkj1Ru",
+      "userPassword": "{SSHA}FoWrkSMf7vy0b8Ch4/L+JSe+PnQTUjEU",
       "groupName": "Team Leaders"
     },
     {
@@ -181,16 +181,6 @@
       "groupName": "VIP"
     },
     {
-      "givenName": "N/A",
-      "sn": "pmdit",
-      "uid": "pmdit",
-      "mail": "N/A",
-      "uidNumber": "N/A",
-      "gidNumber": "N/A",
-      "userPassword": "{SSHA}1c2pNTw54K4Avjn7GQ90PMyXBD714zOt",
-      "groupName": "Unknown"
-    },
-    {
       "givenName": "ATG Office",
       "sn": "Staff",
       "uid": "atgstaff",
@@ -221,23 +211,13 @@
       "groupName": "PMD-IT"
     },
     {
-      "givenName": "N/A",
-      "sn": "test",
-      "uid": "test",
-      "mail": "N/A",
-      "uidNumber": "N/A",
-      "gidNumber": "N/A",
-      "userPassword": "{SSHA}fwON2kpe0RkoPqda45A4uC7TfiXvd+Yh",
-      "groupName": "Unknown"
-    },
-    {
       "givenName": "Kyrt",
       "sn": "Jurada",
       "uid": "kyrt.jurada",
       "mail": "kyrt.jurada@pmdmc.net",
       "uidNumber": "2021",
       "gidNumber": "2001",
-      "userPassword": "{SSHA}hs0OgE+G98B7KU4HrQLE1BzksGME1SKf",
+      "userPassword": "{SSHA}C/LTHxMPvL6TwukVo/u+m8AN/PsomdQB",
       "groupName": "PMD-IT"
     },
     {
@@ -437,7 +417,7 @@
       "mail": "pmd.it@pmdmc.net",
       "uidNumber": "2030",
       "gidNumber": "2004",
-      "userPassword": "{SSHA}LYVyCEUbqbnRdJMh/NGuR38z6zbsDKG+",
+      "userPassword": "{SSHA}6OgRXnOTTBgN9XjKm3scDnE3OKlGRouX",
       "groupName": "Office Chroniclers"
     },
     {
@@ -467,7 +447,177 @@
       "mail": "nsanchez@pmdmc.net",
       "uidNumber": "2044",
       "gidNumber": "2003",
-      "userPassword": "{MD5}4vh3FhfOq3i3zcUJki6UBg==",
+      "userPassword": "{MD5}cQyCormYGW8ZV0eHcil/tw==",
+      "groupName": "ATG Office"
+    },
+    {
+      "givenName": "Dennis",
+      "sn": "Alferez",
+      "uid": "dalferez",
+      "mail": "dalferez@pmdmc.net",
+      "uidNumber": "2045",
+      "gidNumber": "2000",
+      "userPassword": "{MD5}/DfLoL+7ApalWUrlZU0Q0Q==",
+      "groupName": "Team Leaders"
+    },
+    {
+      "givenName": "Joel",
+      "sn": "Cabacungan",
+      "uid": "joel.cabacungan",
+      "mail": "joel.cabacungan@pmdmc.net",
+      "uidNumber": "2046",
+      "gidNumber": "2005",
+      "userPassword": "{MD5}ZJ9NyhABEfZ4A2gX1oCndQ==",
+      "groupName": "Special Project"
+    },
+    {
+      "givenName": "Mark",
+      "sn": "Cresino",
+      "uid": "mark.cresino",
+      "mail": "mark.cresino@pmdmc.net",
+      "uidNumber": "2047",
+      "gidNumber": "2005",
+      "userPassword": "{MD5}U2OXW6l/7U1fjK+d+7MZGA==",
+      "groupName": "Special Project"
+    },
+    {
+      "givenName": "Richard",
+      "sn": "De Asis",
+      "uid": "richard.deasis",
+      "mail": "richard.deasis@pmdmc.net",
+      "uidNumber": "2048",
+      "gidNumber": "2005",
+      "userPassword": "{MD5}iTsLdNECNA7KZ9F3bD0Qmw==",
+      "groupName": "Special Project"
+    },
+    {
+      "givenName": "Kelset",
+      "sn": "Inouye",
+      "uid": "kelset.inouye",
+      "mail": "kelset.inouye@pmdmc.net",
+      "uidNumber": "2049",
+      "gidNumber": "2005",
+      "userPassword": "{MD5}tvPOmo49Fm4O5vUg9jsPFw==",
+      "groupName": "Special Project"
+    },
+    {
+      "givenName": "Remuel",
+      "sn": "Marbebe",
+      "uid": "remuel.marbebe",
+      "mail": "remuel.marbebe@pmdmc.net",
+      "uidNumber": "2050",
+      "gidNumber": "2005",
+      "userPassword": "{MD5}OgsmDbTiMGKj6bMKjSNgiw==",
+      "groupName": "Special Project"
+    },
+    {
+      "givenName": "Kevin",
+      "sn": "Marcelo",
+      "uid": "kevin.marcelo",
+      "mail": "kevin.marcelo@pmdmc.net",
+      "uidNumber": "2051",
+      "gidNumber": "2005",
+      "userPassword": "{MD5}ypdxKul6bIRrqFeZGeC/AQ==",
+      "groupName": "Special Project"
+    },
+    {
+      "givenName": "Isaias",
+      "sn": "San Diego",
+      "uid": "isaias.sandiego",
+      "mail": "isaias.sandiego@pmdmc.net",
+      "uidNumber": "2053",
+      "gidNumber": "2005",
+      "userPassword": "{MD5}2Ek5m4R8jLZGghsjS6O57g==",
+      "groupName": "Special Project"
+    },
+    {
+      "givenName": "Willie",
+      "sn": "Suratos",
+      "uid": "willie.suratos",
+      "mail": "willie.suratos@pmdmc.net",
+      "uidNumber": "2054",
+      "gidNumber": "2005",
+      "userPassword": "{MD5}8I5GFmCqqLzyJj/4udlXiw==",
+      "groupName": "Special Project"
+    },
+    {
+      "givenName": "Niño",
+      "sn": "Talag",
+      "uid": "ntalag",
+      "mail": "ntalag@pmdmc.net",
+      "uidNumber": "2055",
+      "gidNumber": "2005",
+      "userPassword": "{MD5}zvhKhdMy/IVfKTZxsn0ocQ==",
+      "groupName": "Special Project"
+    },
+    {
+      "givenName": "Ruben",
+      "sn": "Tamayo",
+      "uid": "ruben.tamayo",
+      "mail": "ruben.tamayo@pmdmc.net",
+      "uidNumber": "2056",
+      "gidNumber": "2005",
+      "userPassword": "{MD5}Sk35KMSFOzWQxwAjh+nAIg==",
+      "groupName": "Special Project"
+    },
+    {
+      "givenName": "Benjie",
+      "sn": "Zamudio",
+      "uid": "benjie.zamudio",
+      "mail": "benjie.zamudio@pmdmc.net",
+      "uidNumber": "2057",
+      "gidNumber": "2005",
+      "userPassword": "{MD5}2KxpXP4eitbKyQ4qBHcYXg==",
+      "groupName": "Special Project"
+    },
+    {
+      "givenName": "Jilmark",
+      "sn": "Regencia",
+      "uid": "jilmark.regencia",
+      "mail": "jilmark.regencia@pmdmc.net",
+      "uidNumber": "2052",
+      "gidNumber": "2005",
+      "userPassword": "{MD5}xJ9BRRU8UiAVyi7KgJp1Pg==",
+      "groupName": "Special Project"
+    },
+    {
+      "givenName": "Aldrin James",
+      "sn": "Salvador",
+      "uid": "asalvador",
+      "mail": "asalvador@pmdmc.net",
+      "uidNumber": "2058",
+      "gidNumber": "2003",
+      "userPassword": "{MD5}H8Dfcqyro7T6AsH3QLsNHA==",
+      "groupName": "ATG Office"
+    },
+    {
+      "givenName": "Lee Jordan",
+      "sn": "Umayam",
+      "uid": "lumayam",
+      "mail": "lumayam@pmdmc.net",
+      "uidNumber": "2059",
+      "gidNumber": "2003",
+      "userPassword": "{MD5}cQyCormYGW8ZV0eHcil/tw==",
+      "groupName": "ATG Office"
+    },
+    {
+      "givenName": "Michael",
+      "sn": "Shohdy",
+      "uid": "mshohdy",
+      "mail": "mshohdy@pmdmc.net",
+      "uidNumber": "2060",
+      "gidNumber": "2001",
+      "userPassword": "{MD5}pvZOmxsq9w0fUVofaSKD4g==",
+      "groupName": "PMD-IT"
+    },
+    {
+      "givenName": "Alexandra Nicole",
+      "sn": "Dimatulac",
+      "uid": "nicole.dimatulac",
+      "mail": "nicole.dimatulac@pmdmc.net",
+      "uidNumber": "2061",
+      "gidNumber": "2003",
+      "userPassword": "{MD5}jShANJIIW3KewfMYeLD0NQ==",
       "groupName": "ATG Office"
     }
   ]
