@@ -35,6 +35,8 @@ const EnrollmentForm = ({ referenceNumber }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
   const [isFinishModalOpen, setIsFinishModalOpen] = useState(false); // Modal state
+  const [isCongratulatoryModalOpen, setIsCongratulatoryModalOpen] =
+    useState(false);
   const [searchParams] = useSearchParams();
   const personnelId = searchParams.get("personnel_id");
   const stepParam = searchParams.get("step");
@@ -587,7 +589,6 @@ const EnrollmentForm = ({ referenceNumber }) => {
       alert(personnelId);
 
       if (!personnelId) {
-        alert("HEY");
         const missingFields = [];
         if (!personnelData.givenname) missingFields.push("Given Name");
         if (!personnelData.date_of_birth) missingFields.push("Date of Birth");
@@ -621,9 +622,12 @@ const EnrollmentForm = ({ referenceNumber }) => {
           return;
         }
 
+        // Show confirmation modal for new enrollment
+        setIsModalOpen(true);
+        setIsLoading(false);
+
         return;
       } else {
-        alert("HEY2");
         // If personnel_id exists, update the data directly
         if (!personnelData.email_address) {
           toast({
@@ -1251,8 +1255,160 @@ const EnrollmentForm = ({ referenceNumber }) => {
         )}
       </Box>
 
-      {/* Confirmation Modal */}
+      {/* Finish Confirmation Modal */}
       <Modal
+        isOpen={isFinishModalOpen}
+        onClose={() => setIsFinishModalOpen(false)}
+        isCentered
+      >
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Confirmation</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Text>
+              Are you sure you want to finish? Any incomplete updates may not be
+              saved.
+            </Text>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              colorScheme="blue"
+              mr={3}
+              onClick={() => {
+                setIsFinishModalOpen(false);
+                setIsCongratulatoryModalOpen(true); // Open the congratulatory modal
+              }}
+            >
+              Yes, Finish
+            </Button>
+            <Button variant="ghost" onClick={() => setIsFinishModalOpen(false)}>
+              Cancel
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Congratulatory Modal */}
+      <Modal
+        isOpen={isCongratulatoryModalOpen}
+        onClose={() => setIsCongratulatoryModalOpen(false)}
+        isCentered
+        size="xl" // Increase modal size
+      >
+        <ModalOverlay />
+        <ModalContent maxWidth="900px">
+          {" "}
+          {/* Set maximum width */}
+          <ModalHeader bg="yellow.400" color="black" textAlign="center">
+            Congratulations! You are now enrolled!
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Text textAlign="center" fontSize="lg" fontWeight="semibold" mb={4}>
+              Before you leave this window, kindly get your reference number
+              from the download folder for future tracking of your application.
+            </Text>
+            <Box
+              bg="yellow.100"
+              borderRadius="lg"
+              p={5}
+              boxShadow="lg"
+              textAlign="center"
+            >
+              <Text fontSize="md" fontWeight="bold" mb={4}>
+                Below is the progress guide to help you complete your
+                enrollment:
+              </Text>
+              <Flex
+                justifyContent="space-between"
+                alignItems="center"
+                position="relative"
+                mt={4}
+                px={6} // Add padding to center the steps
+              >
+                {/* Connecting Line */}
+                <Box
+                  position="absolute"
+                  top="50%"
+                  left="0"
+                  right="0"
+                  height="4px"
+                  bg="green.500"
+                  zIndex={0}
+                />
+                {[
+                  "District Office",
+                  "Section Chief",
+                  "Enrollment",
+                  "Security Section",
+                  "PMD-IT",
+                  "ATG Office",
+                  "Personnel Office",
+                ].map((step, index) => (
+                  <Flex
+                    direction="column"
+                    alignItems="center"
+                    key={index}
+                    zIndex={1}
+                  >
+                    <Box
+                      bg="green.500"
+                      borderRadius="full"
+                      w="40px"
+                      h="40px"
+                      display="flex"
+                      justifyContent="center"
+                      alignItems="center"
+                      mb={2}
+                    >
+                      <Text color="white" fontSize="xl" fontWeight="bold">
+                        ✔
+                      </Text>
+                    </Box>
+                    <Text
+                      fontSize="sm"
+                      fontWeight="medium"
+                      textAlign="center"
+                      maxWidth="80px"
+                    >
+                      {step}
+                    </Text>
+                  </Flex>
+                ))}
+              </Flex>
+            </Box>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              colorScheme="blue"
+              width="full"
+              onClick={() => {
+                // Success toast message
+                toast({
+                  title: "Enrollment Process Completed",
+                  description:
+                    "Redirecting you to the login page. Make sure to keep your reference number safe.",
+                  status: "success",
+                  duration: 3000,
+                  isClosable: true,
+                  position: "bottom-left",
+                });
+
+                // Redirect to login
+                setTimeout(() => {
+                  navigate("/login");
+                }, 1000);
+              }}
+            >
+              Okay
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Finish Confirmation Modal */}
+      {/* <Modal
         isOpen={isFinishModalOpen}
         onClose={() => setIsFinishModalOpen(false)}
         isCentered
@@ -1276,7 +1432,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
             </Button>
           </ModalFooter>
         </ModalContent>
-      </Modal>
+      </Modal> */}
 
       {/* Confirmation Modal */}
       <Modal
