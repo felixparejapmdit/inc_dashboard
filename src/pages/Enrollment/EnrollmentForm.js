@@ -1341,6 +1341,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
                   "District Office",
                   "Section Chief",
                   "Enrollment",
+                  "Building Admin",
                   "Security Section",
                   "PMD-IT",
                   "ATG Office",
