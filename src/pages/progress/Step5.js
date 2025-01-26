@@ -1,3 +1,4 @@
+// src/pages/progress/Step5.js
 import React, { useState, useEffect } from "react";
 import {
   Box,
@@ -19,8 +20,17 @@ import {
   Td,
   Divider,
   Flex,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
 } from "@chakra-ui/react";
 import axios from "axios";
+
+import Photoshoot from "./Photoshoot"; // Import Photoshoot component
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -37,6 +47,8 @@ const Step5 = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [search, setSearch] = useState("");
   const [personnelInfo, setPersonnelInfo] = useState(null);
+  const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false); // Manage Photoshoot modal
+
   const toast = useToast();
 
   // Fetch new personnel list
@@ -204,7 +216,6 @@ const Step5 = () => {
               <Tr>
                 <Th>#</Th>
                 <Th>Full Name</Th>
-                <Th>Username</Th>
                 <Th>Email</Th>
                 <Th>Action</Th>
               </Tr>
@@ -214,13 +225,15 @@ const Step5 = () => {
                 <Tr key={personnel.id}>
                   <Td>{index + 1}</Td>
                   <Td>{personnel.fullname || "N/A"}</Td>
-                  <Td>{personnel.username || "N/A"}</Td>
-                  <Td>{personnel.email || "N/A"}</Td>
+                  <Td>{personnel.email_address || "N/A"}</Td>
                   <Td>
                     <Button
                       colorScheme="blue"
                       size="sm"
-                      onClick={() => handleUserSelect(personnel)}
+                      onClick={() => {
+                        setSelectedUser(personnel);
+                        setIsPhotoModalOpen(true); // Open Photoshoot modal
+                      }}
                     >
                       Select
                     </Button>
@@ -260,54 +273,60 @@ const Step5 = () => {
               >
                 <Text>
                   <b>Reference Number:</b>{" "}
-                  {personnelInfo.reference_number || "N/A"}
+                  {personnelInfo?.reference_number || "N/A"}
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
                   <b>Name:</b>{" "}
-                  {`${personnelInfo.givenname} ${
-                    personnelInfo.middlename || ""
-                  } ${personnelInfo.surname_husband}`}
+                  {personnelInfo
+                    ? `${personnelInfo.givenname || ""} ${
+                        personnelInfo.middlename || ""
+                      } ${personnelInfo.surname_husband || ""}`
+                    : "N/A"}
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
-                  <b>Gender:</b> {personnelInfo.gender}
+                  <b>Gender:</b> {personnelInfo?.gender || "N/A"}
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
                   <b>Date of Birth:</b>{" "}
-                  {new Date(personnelInfo.date_of_birth).toLocaleDateString()}
+                  {personnelInfo?.date_of_birth
+                    ? new Date(personnelInfo.date_of_birth).toLocaleDateString()
+                    : "N/A"}
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
-                  <b>Email Address:</b> {personnelInfo.email_address}
+                  <b>Email Address:</b> {personnelInfo?.email_address || "N/A"}
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
-                  <b>Civil Status:</b> {personnelInfo.civil_status}
+                  <b>Civil Status:</b> {personnelInfo?.civil_status || "N/A"}
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
-                  <b>Department:</b> {personnelInfo.department_id || "N/A"}
+                  <b>Department:</b> {personnelInfo?.department_id || "N/A"}
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
-                  <b>Designation:</b> {personnelInfo.designation_id || "N/A"}
+                  <b>Designation:</b> {personnelInfo?.designation_id || "N/A"}
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
-                  <b>District:</b> {personnelInfo.district_id || "N/A"}
+                  <b>District:</b> {personnelInfo?.district_id || "N/A"}
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
                   <b>Local Congregation:</b>{" "}
-                  {personnelInfo.local_congregation || "N/A"}
+                  {personnelInfo?.local_congregation || "N/A"}
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
-                  <b>Personnel Type:</b> {personnelInfo.personnel_type}
+                  <b>Personnel Type:</b>{" "}
+                  {personnelInfo?.personnel_type || "N/A"}
                 </Text>
               </Box>
+
               <Flex
                 direction="column"
                 align="center"
@@ -364,6 +383,32 @@ const Step5 = () => {
           )}
         </>
       )}
+
+      {/* Photoshoot Modal */}
+      <Modal
+        isOpen={isPhotoModalOpen}
+        onClose={() => setIsPhotoModalOpen(false)}
+        size="xl"
+        isCentered
+      >
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Photoshoot and Upload</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Photoshoot personnel={selectedUser} />
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              colorScheme="blue"
+              mr={3}
+              onClick={() => setIsPhotoModalOpen(false)}
+            >
+              Close
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 };

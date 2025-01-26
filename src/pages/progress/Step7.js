@@ -183,7 +183,6 @@ const Step7 = () => {
               <Tr>
                 <Th>#</Th>
                 <Th>Full Name</Th>
-                <Th>Username</Th>
                 <Th>Email</Th>
                 <Th>Action</Th>
               </Tr>
@@ -193,8 +192,7 @@ const Step7 = () => {
                 <Tr key={personnel.id}>
                   <Td>{index + 1}</Td>
                   <Td>{personnel.fullname || "N/A"}</Td>
-                  <Td>{personnel.username || "N/A"}</Td>
-                  <Td>{personnel.email || "N/A"}</Td>
+                  <Td>{personnel.email_address || "N/A"}</Td>
                   <Td>
                     <Button
                       colorScheme="blue"

@@ -321,7 +321,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
         {hasPermission("*progress.view") && (
           <SidebarItem
             icon={FiLayers} // Choose an appropriate icon
-            label="Progress Steps"
+            label="Enrollment Progress"
             isExpanded={isExpanded}
             onClick={handleProgressToggle} // Toggle settings menu
             rightIcon={isProgressStepsExpanded ? FiArrowUp : FiArrowDown}

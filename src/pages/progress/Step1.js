@@ -175,7 +175,6 @@ const Step1 = () => {
                 <Tr>
                   <Th>#</Th>
                   <Th>Full Name</Th>
-                  <Th>Username</Th>
                   <Th>Email</Th>
                   <Th>Action</Th>
                 </Tr>
@@ -185,8 +184,7 @@ const Step1 = () => {
                   <Tr key={user.id}>
                     <Td>{index + 1}</Td>
                     <Td>{user.fullname || "N/A"}</Td>
-                    <Td>{user.username || "N/A"}</Td>
-                    <Td>{user.email || "N/A"}</Td>
+                    <Td>{user.email_address || "N/A"}</Td>
                     <Td>
                       <Button
                         leftIcon={<Search2Icon />}

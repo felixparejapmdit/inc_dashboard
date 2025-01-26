@@ -48,8 +48,17 @@ const ProgressTracking = () => {
     const fetchUsers = async () => {
       try {
         const response = await axios.get(`${API_URL}/api/personnels/new`);
-        setUsers(response.data);
-        setFilteredUsers(response.data); // Initialize filtered users
+
+        // Combine givenname and surname_husband into fullname
+        const formattedUsers = response.data.map((user) => ({
+          ...user,
+          fullname: `${user.givenname || ""} ${
+            user.surname_husband || ""
+          }`.trim(),
+        }));
+
+        setUsers(formattedUsers);
+        setFilteredUsers(formattedUsers); // Initialize filtered users
       } catch (error) {
         console.error("Error fetching users:", error);
         toast({
@@ -216,7 +225,6 @@ const ProgressTracking = () => {
             <Tr>
               <Th>#</Th>
               <Th>Full Name</Th>
-              <Th>Username</Th>
               <Th>Email</Th>
               <Th>Action</Th>
             </Tr>
@@ -226,8 +234,7 @@ const ProgressTracking = () => {
               <Tr key={user.id}>
                 <Td>{index + 1}</Td>
                 <Td>{user.fullname || "N/A"}</Td>
-                <Td>{user.username || "N/A"}</Td>
-                <Td>{user.email || "N/A"}</Td>
+                <Td>{user.email_address || "No Email"}</Td>
                 <Td>
                   <Button
                     leftIcon={<Search2Icon />}

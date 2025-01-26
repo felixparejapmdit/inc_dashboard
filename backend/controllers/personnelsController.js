@@ -24,7 +24,7 @@ exports.getAllNewPersonnels = async (req, res) => {
         },
         {
           model: User,
-          attributes: [], // Exclude user attributes from the response
+          attributes: ["username"], // Fetch the username from User model
           as: "user", // Use the alias defined in the User model
           required: false, // Include personnels even if they have no user
         },
@@ -40,6 +40,7 @@ exports.getAllNewPersonnels = async (req, res) => {
       givenname: personnel.givenname, // Include given name
       surname_husband: personnel.surname_husband, // Include surname husband
       email_address: personnel.email_address, // Include email address
+      username: personnel.user ? personnel.user.username : "No Username",
       section: personnel.Section ? personnel.Section.name : "No Section", // Show section name or "No Section"
     }));
 
