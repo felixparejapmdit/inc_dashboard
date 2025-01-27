@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 21, 2025 at 09:30 AM
+-- Generation Time: Jan 27, 2025 at 09:31 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -1555,20 +1555,20 @@ CREATE TABLE `personnels` (
 --
 
 INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progress`, `personnel_progress`, `gender`, `civil_status`, `wedding_anniversary`, `givenname`, `middlename`, `surname_maiden`, `surname_husband`, `suffix`, `nickname`, `registered_district_id`, `registered_local_congregation`, `date_of_birth`, `place_of_birth`, `datejoined`, `language_id`, `bloodtype`, `work_email_address`, `email_address`, `citizenship`, `nationality`, `department_id`, `section_id`, `subsection_id`, `designation_id`, `district_id`, `local_congregation`, `personnel_type`, `district_assignment_id`, `local_congregation_assignment`, `assigned_number`, `m_status`, `panunumpa_date`, `ordination_date`, `created_at`, `updated_at`) VALUES
-(10, 'ENR-2412-EP1-8972', '6', 'Enrollment', 'Male', 'Single', NULL, 'Felix', 'Morales', '', 'Pareja', 'No Suffix', 'Chok', 45, 'Bonifacio Drive', '1990-11-09', 'San Francisco Delmonte, Quezon City', '2022-08-22', 1, 'O+', 'felixpareja07@gmail.com', 'felixpareja.pmdit07@gmail.com', 138, 138, 1, 2, 1, 3, 45, 'Tandang Sora', 'Regular', 45, 'Bonifacio Drive', 20149, 'May Destino', '2022-09-16', NULL, '2024-12-09 04:43:34', '2025-01-21 07:04:10'),
-(36, 'ENR-2501-EP1-5540', '1', 'Enrollment', 'Male', 'Single', NULL, 'Michael', NULL, NULL, 'Shohdy', NULL, NULL, NULL, NULL, '1992-01-08', NULL, NULL, NULL, NULL, NULL, 'abc@yahoo.com', NULL, NULL, NULL, 0, 0, 0, NULL, NULL, 'Regular', NULL, NULL, NULL, 'May Destino', '2025-01-08', NULL, '2025-01-08 04:34:30', '2025-01-16 12:05:08'),
-(37, 'ENR-2501-EP1-3640', '1', 'Enrollment', 'Male', 'Single', NULL, 'Roland Kim', 'Sato', NULL, 'Amaro', NULL, NULL, NULL, NULL, '2025-01-08', NULL, NULL, NULL, NULL, NULL, 'kim@yahoo.com', NULL, NULL, 1, 2, 1, 1, NULL, NULL, 'Regular', NULL, NULL, NULL, 'Fulltime', '2019-02-07', NULL, '2025-01-08 05:15:21', '2025-01-16 12:05:11'),
-(59, 'ENR-2501-EP1-9274', '1', 'Enrollment', 'Male', 'Single', NULL, 'Policarpio', NULL, NULL, 'Sumbilong', NULL, NULL, NULL, NULL, '1996-01-09', NULL, NULL, 1, NULL, NULL, 'poli@pmdmc.net', 138, 138, 1, 2, 1, 1, 17, 'Templo Central', 'Regular', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:52:47', '2025-01-16 12:05:13'),
-(60, 'ENR-2501-EP1-9003', '1', 'Enrollment', 'Female', 'Married', NULL, 'Poncia', NULL, NULL, 'Plato', NULL, NULL, NULL, NULL, '1996-01-11', NULL, NULL, 1, NULL, NULL, 'poli@pmdmc.net', 138, 138, NULL, 0, 0, 0, NULL, NULL, 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:56:16', '2025-01-16 12:05:15'),
-(61, 'ENR-2501-EP1-9018', '1', 'Enrollment', 'Female', 'Married', NULL, 'Laarni', NULL, NULL, 'Eustaquio', NULL, '', NULL, NULL, '1996-01-11', NULL, NULL, 1, NULL, NULL, 'laitors19@gmail.com', 138, 138, NULL, 0, 0, 0, NULL, NULL, 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:57:52', '2025-01-16 12:05:17'),
-(62, 'ENR-2501-EP1-1659', '1', 'Enrollment', 'Female', 'Married', '2003-01-07', 'Joan', 'Villanueva', 'Endique', 'Solitario', NULL, NULL, NULL, 'Templo Central', '1978-03-01', 'Legazpi City, Albay, Philippines', '2013-05-01', 2, 'B+', NULL, 'joan.solitario@gmail.com', 185, 138, 1, 9, 0, 0, 45, 'Templo Central', 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:59:58', '2025-01-17 01:52:24'),
-(63, 'ENR-2501-EP1-8509', '1', 'Enrollment', 'Male', 'Single', NULL, 'Harvey Guy', NULL, NULL, 'Mackay', NULL, NULL, NULL, NULL, '1984-07-08', NULL, NULL, 1, '', NULL, 'harveyguy.mackay@gmail.com', NULL, NULL, 1, 2, 1, 3, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 04:00:40', '2025-01-17 03:21:00'),
-(64, 'ENR-2501-EP1-7003', '1', 'Enrollment', 'Male', 'Married', NULL, 'Ryan', NULL, NULL, 'Malabanan', NULL, NULL, NULL, NULL, '1987-11-19', NULL, NULL, NULL, NULL, NULL, 'ryan.malabanan@iglesianicristo.org', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, NULL, 'Fulltime', NULL, NULL, '2025-01-15 04:01:30', '2025-01-16 12:05:22'),
-(65, 'ENR-2501-EP1-7309', '1', 'Enrollment', 'Male', 'Single', NULL, 'Chun-Wei', NULL, NULL, 'Kao', NULL, NULL, NULL, 'Luzon1', '2000-05-25', NULL, NULL, NULL, NULL, NULL, 'a5514585@icloud.com', NULL, NULL, NULL, 0, 0, 0, NULL, NULL, 'Regular', 45, 'Luzon', NULL, 'May Destino', NULL, NULL, '2025-01-15 04:02:55', '2025-01-16 11:36:53'),
-(67, 'ENR-2501-EP1-1914', '2', 'Enrollment', 'Female', 'Married', NULL, 'Alexandra Nicole', NULL, 'Bernal', 'Dimatulac', NULL, 'Nicki', NULL, 'Templo, Central', '1991-12-31', 'Oslo, Norway', '2024-11-15', 2, NULL, NULL, 'anicolebdimatulac@gmail.com', 129, 129, 1, 9, NULL, NULL, 45, 'Templo', 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-16 08:10:27', '2025-01-16 12:11:24'),
-(68, 'ENR-2501-EP1-9034', '2', 'Enrollment', 'Female', 'Married', '2015-11-16', 'Frances Nicole', 'Silva', 'Manzanero', 'Sanchez', NULL, 'Nicole', NULL, 'Templo Central', '1992-10-05', 'San Pablo City Laguna', '2015-06-19', 2, 'O+', NULL, 'nicolemsanchez05@gmail.com', 138, 138, 1, 9, NULL, NULL, 61, 'San Pablo City', 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-16 09:52:24', '2025-01-16 12:11:22'),
-(70, 'ENR-2501-EP1-4904', '2', 'Enrollment', 'Male', 'Married', NULL, 'test po1', 'test po', NULL, 'test po', NULL, NULL, NULL, NULL, '2025-01-16', NULL, NULL, NULL, NULL, NULL, 'abc@yahoo.com', NULL, NULL, 1, 2, 1, 3, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-16 12:06:00', '2025-01-17 03:19:46'),
-(71, 'ENR-2501-EP1-3109', '5', 'Enrollment', 'Male', 'Single', NULL, 'test', NULL, NULL, 'test', NULL, NULL, 0, 'test', '2025-01-21', NULL, NULL, 0, NULL, NULL, 'felixpareja.pmdit07@gmail.com', 1, 3, 1, 2, 1, 3, 1, 'Tandang Sora', 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-21 03:21:37', '2025-01-21 04:56:02');
+(10, 'ENR-2412-EP1-8972', '1', '3', 'Male', 'Single', NULL, 'Felix', 'Morales', '', 'Pareja', 'No Suffix', 'Chok', 45, 'Bonifacio Drive', '1990-11-09', 'San Francisco Delmonte, Quezon City', '2022-08-22', 1, 'O+', 'felixpareja07@gmail.com', 'felixpareja.pmdit07@gmail.com', 138, 138, 1, 2, 1, 3, 45, 'Tandang Sora', 'Regular', 45, 'Bonifacio Drive', 20149, 'May Destino', '2022-09-16', NULL, '2024-12-09 04:43:34', '2025-01-27 01:23:41'),
+(36, 'ENR-2501-EP1-5540', '1', '0', 'Male', 'Single', NULL, 'Michael', NULL, NULL, 'Shohdy', NULL, NULL, NULL, NULL, '1992-01-08', NULL, NULL, NULL, NULL, NULL, 'abc@yahoo.com', NULL, NULL, NULL, 0, 0, 0, NULL, NULL, 'Regular', NULL, NULL, NULL, 'May Destino', '2025-01-08', NULL, '2025-01-08 04:34:30', '2025-01-26 08:27:20'),
+(37, 'ENR-2501-EP1-3640', '1', '0', 'Male', 'Single', NULL, 'Roland Kim', 'Sato', NULL, 'Amaro', NULL, NULL, NULL, NULL, '2025-01-08', NULL, NULL, NULL, NULL, NULL, 'kim@yahoo.com', NULL, NULL, 1, 2, 1, 1, NULL, NULL, 'Regular', NULL, NULL, NULL, 'Fulltime', '2019-02-07', NULL, '2025-01-08 05:15:21', '2025-01-26 08:27:20'),
+(59, 'ENR-2501-EP1-9274', '1', '1', 'Male', 'Single', NULL, 'Policarpio', NULL, NULL, 'Sumbilong', NULL, NULL, NULL, NULL, '1996-01-09', NULL, NULL, 1, NULL, NULL, 'poli@pmdmc.net', 138, 138, 1, 2, 1, 1, 17, 'Templo Central', 'Regular', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:52:47', '2025-01-26 09:18:16'),
+(60, 'ENR-2501-EP1-9003', '1', '1', 'Female', 'Married', NULL, 'Poncia', NULL, NULL, 'Plato', NULL, NULL, NULL, NULL, '1996-01-11', NULL, NULL, 1, NULL, NULL, 'poli@pmdmc.net', 138, 138, NULL, 0, 0, 0, NULL, NULL, 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:56:16', '2025-01-27 08:28:09'),
+(61, 'ENR-2501-EP1-9018', '1', '0', 'Female', 'Married', NULL, 'Laarni', NULL, NULL, 'Eustaquio', NULL, '', NULL, NULL, '1996-01-11', NULL, NULL, 1, NULL, NULL, 'laitors19@gmail.com', 138, 138, NULL, 0, 0, 0, NULL, NULL, 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:57:52', '2025-01-26 08:27:20'),
+(62, 'ENR-2501-EP1-1659', '1', '0', 'Female', 'Married', '2003-01-07', 'Joan', 'Villanueva', 'Endique', 'Solitario', NULL, NULL, NULL, 'Templo Central', '1978-03-01', 'Legazpi City, Albay, Philippines', '2013-05-01', 2, 'B+', NULL, 'joan.solitario@gmail.com', 185, 138, 1, 9, 0, 0, 45, 'Templo Central', 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:59:58', '2025-01-26 08:27:20'),
+(63, 'ENR-2501-EP1-8509', '1', '7', 'Male', 'Single', NULL, 'Harvey Guy', NULL, NULL, 'Mackay', NULL, NULL, NULL, NULL, '1984-07-08', NULL, NULL, 1, '', NULL, 'harveyguy.mackay@gmail.com', NULL, NULL, 1, 2, 1, 3, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 04:00:40', '2025-01-26 09:40:38'),
+(64, 'ENR-2501-EP1-7003', '1', '4', 'Male', 'Married', NULL, 'Ryan', NULL, NULL, 'Malabanan', NULL, NULL, NULL, NULL, '1987-11-19', NULL, NULL, NULL, NULL, NULL, 'ryan.malabanan@iglesianicristo.org', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, NULL, 'Fulltime', NULL, NULL, '2025-01-15 04:01:30', '2025-01-26 09:29:13'),
+(65, 'ENR-2501-EP1-7309', '1', '0', 'Male', 'Single', NULL, 'Chun-Wei', NULL, NULL, 'Kao', NULL, NULL, NULL, 'Luzon1', '2000-05-25', NULL, NULL, NULL, NULL, NULL, 'a5514585@icloud.com', NULL, NULL, NULL, 0, 0, 0, NULL, NULL, 'Regular', 45, 'Luzon', NULL, 'May Destino', NULL, NULL, '2025-01-15 04:02:55', '2025-01-26 08:27:20'),
+(67, 'ENR-2501-EP1-1914', '2', '0', 'Female', 'Married', NULL, 'Alexandra Nicole', NULL, 'Bernal', 'Dimatulac', NULL, 'Nicki', NULL, 'Templo, Central', '1991-12-31', 'Oslo, Norway', '2024-11-15', 2, NULL, NULL, 'anicolebdimatulac@gmail.com', 129, 129, 1, 9, NULL, NULL, 45, 'Templo', 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-16 08:10:27', '2025-01-26 08:27:20'),
+(68, 'ENR-2501-EP1-9034', '2', '0', 'Female', 'Married', '2015-11-16', 'Frances Nicole', 'Silva', 'Manzanero', 'Sanchez', NULL, 'Nicole', NULL, 'Templo Central', '1992-10-05', 'San Pablo City Laguna', '2015-06-19', 2, 'O+', NULL, 'nicolemsanchez05@gmail.com', 138, 138, 1, 9, NULL, NULL, 61, 'San Pablo City', 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-16 09:52:24', '2025-01-26 08:27:20'),
+(70, 'ENR-2501-EP1-4904', '2', '0', 'Male', 'Married', NULL, 'test po1', 'test po', NULL, 'test po', NULL, NULL, NULL, NULL, '2025-01-16', NULL, NULL, NULL, NULL, NULL, 'abc@yahoo.com', NULL, NULL, 1, 2, 1, 3, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-16 12:06:00', '2025-01-26 08:27:20'),
+(71, 'ENR-2501-EP1-3109', '5', '0', 'Male', 'Single', NULL, 'test', NULL, NULL, 'test', NULL, NULL, 0, 'test', '2025-01-21', NULL, NULL, 0, NULL, NULL, 'felixpareja.pmdit07@gmail.com', 1, 3, 1, 2, 1, 3, 1, 'Tandang Sora', 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-21 03:21:37', '2025-01-26 08:27:20');
 
 -- --------------------------------------------------------
 
@@ -1705,7 +1705,8 @@ CREATE TABLE `personnel_images` (
 INSERT INTO `personnel_images` (`id`, `personnel_id`, `type`, `image_url`, `created_at`, `updated_at`) VALUES
 (1, 10, '2x2 Picture', '/uploads/avatar/1732846376187_image.jpg', '2025-01-16 18:29:43', '2025-01-16 18:32:06'),
 (11, 10, 'Whole Body Picture', '/uploads/avatar/1737055353231_1737055353145.png', '2025-01-16 19:22:33', '2025-01-16 19:22:33'),
-(17, 70, '2x2 Picture', '/uploads/avatar/1737077992273_1737077992263.png', '2025-01-17 01:39:52', '2025-01-17 01:39:52');
+(17, 70, '2x2 Picture', '/uploads/avatar/1737077992273_1737077992263.png', '2025-01-17 01:39:52', '2025-01-17 01:39:52'),
+(18, 0, '2x2 Picture', '/uploads/avatar/1737882708443_1737882708405.png', '2025-01-26 09:11:48', '2025-01-26 09:11:48');
 
 -- --------------------------------------------------------
 
@@ -2128,7 +2129,7 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (43, 'executive.news', NULL, NULL, 'executive.news', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (44, 'pmd.it', NULL, '', 'pmd.it', '{SSHA}LYVyCEUbqbnRdJMh/NGuR38z6zbsDKG+', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (45, 'r.deguzman', NULL, NULL, 'r.deguzman', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(46, 'felix.pareja', 10, '/uploads/avatar/1732846376187_image.jpg', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-28 13:25:36'),
+(46, 'felix.pareja', 10, '/uploads/avatar/1732846376187_image.jpg', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-28 13:25:36'),
 (48, NULL, NULL, '/uploads/avatar/1732867059276_icons8-fitbit-50.png', 'admin', '$2a$12$ZXhnczgjZG4QAa4oGMH5eOt0.a9urccMHJ0/FBYB5zCe2/zfh3dEO', 0, NULL, 'Local', NULL, NULL, NULL, NULL),
 (68, 'asalvador', 13, '', 'asalvador', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2025-01-08 03:16:34', '2025-01-08 03:16:34'),
 (50, 'dalferez', NULL, NULL, 'dalferez', '{MD5}/DfLoL+7ApalWUrlZU0Q0Q==', 0, NULL, 'LDAP', 0, NULL, '2025-01-02 08:54:55', '2025-01-02 08:54:55'),
@@ -2775,7 +2776,7 @@ ALTER TABLE `personnel_gov_id`
 -- AUTO_INCREMENT for table `personnel_images`
 --
 ALTER TABLE `personnel_images`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `reminders`
