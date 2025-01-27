@@ -40,8 +40,22 @@ const EnrollmentForm = ({ referenceNumber }) => {
   const [searchParams] = useSearchParams();
   const personnelId = searchParams.get("personnel_id");
   const stepParam = searchParams.get("step");
+  const [progress, setProgress] = useState(0); // Update this based on API response
 
   const [id, setPersonnelId] = useState(null);
+
+  const steps = [
+    { label: "District Office", progressValue: 0 },
+    { label: "Section Chief", progressValue: 0 },
+    { label: "Enrollment", progressValue: 0 },
+    { label: "Building Admin", progressValue: 1 },
+    { label: "Security Section", progressValue: 2 },
+    { label: "PMD-IT", progressValue: 3 },
+    { label: "ATG Office", progressValue: [4, 5] }, // Combine 4 and 5 under "ATG Office"
+    { label: "ATG Office Approval", progressValue: 6 },
+    { label: "Personnel Office", progressValue: 7 },
+  ];
+
   useEffect(() => {
     // Get step and personnel_id from URL parameters
     const stepFromUrl = searchParams.get("step");
@@ -61,6 +75,31 @@ const EnrollmentForm = ({ referenceNumber }) => {
   useEffect(() => {
     window.scrollTo(0, 0); // Scroll to the top of the page
   }, [step]); // Trigger on step change
+
+  useEffect(() => {
+    const fetchPersonnelDetails = async () => {
+      try {
+        const response = await axios.get(
+          `${API_URL}/api/personnels/${personnelId}`
+        );
+        const personnel = response.data;
+
+        //setSelectedUser(personnel); // Set the personnel data
+        setProgress(personnel.personnel_progress || 0); // Set the progress
+      } catch (error) {
+        console.error("Error fetching personnel details:", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch personnel details.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    };
+
+    fetchPersonnelDetails();
+  }, []);
 
   // Step 1 values
   const [personnelData, setPersonnelData] = useState({
@@ -1294,20 +1333,18 @@ const EnrollmentForm = ({ referenceNumber }) => {
         isOpen={isCongratulatoryModalOpen}
         onClose={() => setIsCongratulatoryModalOpen(false)}
         isCentered
-        size="xl" // Increase modal size
+        size="xl"
       >
         <ModalOverlay />
         <ModalContent maxWidth="900px">
-          {" "}
-          {/* Set maximum width */}
           <ModalHeader bg="yellow.400" color="black" textAlign="center">
-            Congratulations! You are now enrolled!
+            🎉 Congratulations! You are now enrolled! 🎉
           </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <Text textAlign="center" fontSize="lg" fontWeight="semibold" mb={4}>
-              Before you leave this window, kindly get your reference number
-              from the download folder for future tracking of your application.
+              Please download and keep your reference number from the folder for
+              future tracking of your application.
             </Text>
             <Box
               bg="yellow.100"
@@ -1317,66 +1354,63 @@ const EnrollmentForm = ({ referenceNumber }) => {
               textAlign="center"
             >
               <Text fontSize="md" fontWeight="bold" mb={4}>
-                Below is the progress guide to help you complete your
-                enrollment:
+                Progress Guide:
               </Text>
-              <Flex
-                justifyContent="space-between"
-                alignItems="center"
-                position="relative"
-                mt={4}
-                px={6} // Add padding to center the steps
-              >
-                {/* Connecting Line */}
-                <Box
-                  position="absolute"
-                  top="50%"
-                  left="0"
-                  right="0"
-                  height="4px"
-                  bg="green.500"
-                  zIndex={0}
-                />
-                {[
-                  "District Office",
-                  "Section Chief",
-                  "Enrollment",
-                  "Building Admin",
-                  "Security Section",
-                  "PMD-IT",
-                  "ATG Office",
-                  "Personnel Office",
-                ].map((step, index) => (
-                  <Flex
-                    direction="column"
-                    alignItems="center"
-                    key={index}
-                    zIndex={1}
-                  >
-                    <Box
-                      bg="green.500"
-                      borderRadius="full"
-                      w="40px"
-                      h="40px"
-                      display="flex"
-                      justifyContent="center"
+              {/* Progress Bar */}
+              <Flex justifyContent="space-between" alignItems="center" mt={6}>
+                {/* Render Steps */}
+                {steps.map((step, index) => {
+                  const isCompleted = Array.isArray(step.progressValue)
+                    ? step.progressValue.includes(progress)
+                    : progress >= step.progressValue;
+
+                  return (
+                    <Flex
+                      key={index}
+                      direction="column"
                       alignItems="center"
-                      mb={2}
+                      flex="1"
+                      position="relative"
                     >
-                      <Text color="white" fontSize="xl" fontWeight="bold">
-                        ✔
+                      {index !== steps.length - 1 && (
+                        <Box
+                          position="absolute"
+                          top="50%"
+                          left="50%"
+                          width="100%"
+                          height="4px"
+                          bg={isCompleted ? "blue.500" : "gray.300"}
+                          zIndex={0}
+                          transform="translateX(-50%)"
+                        />
+                      )}
+                      <Box
+                        bg={isCompleted ? "blue.500" : "gray.300"}
+                        borderRadius="full"
+                        w="40px"
+                        h="40px"
+                        display="flex"
+                        justifyContent="center"
+                        alignItems="center"
+                        mb={2}
+                        zIndex={1}
+                      >
+                        <Text color="white" fontSize="xl" fontWeight="bold">
+                          {isCompleted ? "✔" : ""}
+                        </Text>
+                      </Box>
+                      <Text
+                        fontSize="sm"
+                        fontWeight="medium"
+                        textAlign="center"
+                        maxWidth="80px"
+                        color={isCompleted ? "black" : "gray.500"}
+                      >
+                        {step.label}
                       </Text>
-                    </Box>
-                    <Text
-                      fontSize="sm"
-                      fontWeight="medium"
-                      textAlign="center"
-                      maxWidth="80px"
-                    >
-                      {step}
-                    </Text>
-                  </Flex>
-                ))}
+                    </Flex>
+                  );
+                })}
               </Flex>
             </Box>
           </ModalBody>
