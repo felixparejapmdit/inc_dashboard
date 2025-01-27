@@ -1358,7 +1358,6 @@ const EnrollmentForm = ({ referenceNumber }) => {
               </Text>
               {/* Progress Bar */}
               <Flex justifyContent="space-between" alignItems="center" mt={6}>
-                {/* Render Steps */}
                 {steps.map((step, index) => {
                   const isCompleted = Array.isArray(step.progressValue)
                     ? step.progressValue.includes(progress)

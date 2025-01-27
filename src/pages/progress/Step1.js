@@ -11,6 +11,7 @@ import {
   Flex,
   Alert,
   AlertIcon,
+  IconButton,
   useToast,
   Spinner,
   Divider,
@@ -22,9 +23,9 @@ import {
   Th,
   Td,
 } from "@chakra-ui/react";
-import { Search2Icon } from "@chakra-ui/icons";
+import { Search2Icon, SearchIcon, CheckIcon } from "@chakra-ui/icons";
 import axios from "axios";
-
+import { Navigate } from "react-router-dom";
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Step1 = () => {
@@ -107,6 +108,8 @@ const Step1 = () => {
   const handleUserSelect = (user) => {
     setSelectedUser(user);
     fetchPersonnelDetails(user.personnel_id);
+    const url = `/enroll?personnel_id=${user.personnel_id}&step=1&type=evaluation`;
+    window.open(url, "_blank"); // "_blank" opens the URL in a new tab
   };
 
   const handleVerify = async () => {
@@ -186,14 +189,25 @@ const Step1 = () => {
                     <Td>{user.fullname || "N/A"}</Td>
                     <Td>{user.email_address || "N/A"}</Td>
                     <Td>
-                      <Button
-                        leftIcon={<Search2Icon />}
+                      <IconButton
+                        aria-label="Evaluate"
+                        icon={<SearchIcon />} // Use an icon that represents evaluation
                         colorScheme="blue"
                         size="sm"
                         onClick={() => handleUserSelect(user)}
-                      >
-                        Evaluate
-                      </Button>
+                        mr={2} // Add margin for spacing
+                      />
+                      <IconButton
+                        aria-label="Verify and Proceed"
+                        icon={<CheckIcon />} // Use an icon that represents verification
+                        colorScheme="teal"
+                        size="sm"
+                        isDisabled={parseInt(user.personnel_progress, 10) === 0} // Disable if personnel_progress is 0
+                        onClick={() => {
+                          setSelectedUser(user);
+                          handleVerify();
+                        }}
+                      />
                     </Td>
                   </Tr>
                 ))}

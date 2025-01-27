@@ -70,6 +70,7 @@ exports.getPersonnelsByProgress = async (req, res) => {
           "fullname",
         ],
         "email_address",
+        "personnel_progress", // Include personnel_progress in the response
       ],
       include: [
         {

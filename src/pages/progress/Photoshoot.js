@@ -1,3 +1,4 @@
+// src/pages/progress/Photoshoot.js
 import React, { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
