@@ -78,6 +78,8 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
   useEffect(() => {
     const fetchPersonnelDetails = async () => {
+      if (!personnelId) return; // Prevent API call if personnelId is null or undefined
+
       try {
         const response = await axios.get(
           `${API_URL}/api/personnels/${personnelId}`
