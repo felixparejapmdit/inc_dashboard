@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 27, 2025 at 09:31 AM
+-- Generation Time: Jan 29, 2025 at 12:24 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -675,7 +675,8 @@ INSERT INTO `family_members` (`id`, `personnel_id`, `relationship_type`, `givenn
 (201, 37, 'Spouse', 'dffghghvhghfdfsa', 'waersdfhgcgvgs', 'ffghgfgdfsaffgfg', NULL, NULL, NULL, NULL, NULL, '', NULL, NULL, '2025-01-10', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-10 04:37:04', '2025-01-10 04:37:04'),
 (208, 68, 'Sibling', 'Janina Anne', 'Silva', 'Manzanero', '', 'Female', '', 'Single', NULL, '', 138, 138, '1991-10-23', 0, '', '', 0, '', '', 'Contract', 'The Duncombe and Arms', 'Ashbourne, United Kingdom', 'Pastry Chef', '', '', NULL, NULL, '', '', 0, 0, '', '', '', '', '', '2025-01-16 10:03:23', '2025-01-16 10:03:23'),
 (209, 68, 'Sibling', 'Miguel', 'Silva', 'Manzanero', '', 'Male', '', 'Single', NULL, '', 138, 138, '1995-04-03', 0, '', '', 0, '', '', 'Contract', 'Riva', 'Salmiya, Kuwait', 'Stylist', '', '', NULL, NULL, '', '', 0, 0, '', '', '', '', '', '2025-01-16 10:05:00', '2025-01-16 10:05:00'),
-(210, 68, 'Spouse', 'Michael', 'Avellano', 'Sanchez', NULL, NULL, NULL, 'Married', '2015-11-16', 'Quezon City', 138, 138, '1991-06-24', 2147483647, 'Minister', NULL, 64, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-16 10:06:37', '2025-01-16 10:06:37');
+(210, 68, 'Spouse', 'Michael', 'Avellano', 'Sanchez', NULL, NULL, NULL, 'Married', '2015-11-16', 'Quezon City', 138, 138, '1991-06-24', 2147483647, 'Minister', NULL, 64, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-16 10:06:37', '2025-01-16 10:06:37'),
+(211, 59, 'Sibling', 'test', '', 'test', '', 'Male', NULL, '', NULL, NULL, NULL, NULL, '2025-01-29', NULL, '', NULL, NULL, NULL, NULL, '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-29 01:53:36', '2025-01-29 01:53:36');
 
 -- --------------------------------------------------------
 
@@ -1558,7 +1559,7 @@ INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progre
 (10, 'ENR-2412-EP1-8972', '1', '3', 'Male', 'Single', NULL, 'Felix', 'Morales', '', 'Pareja', 'No Suffix', 'Chok', 45, 'Bonifacio Drive', '1990-11-09', 'San Francisco Delmonte, Quezon City', '2022-08-22', 1, 'O+', 'felixpareja07@gmail.com', 'felixpareja.pmdit07@gmail.com', 138, 138, 1, 2, 1, 3, 45, 'Tandang Sora', 'Regular', 45, 'Bonifacio Drive', 20149, 'May Destino', '2022-09-16', NULL, '2024-12-09 04:43:34', '2025-01-27 01:23:41'),
 (36, 'ENR-2501-EP1-5540', '1', '0', 'Male', 'Single', NULL, 'Michael', NULL, NULL, 'Shohdy', NULL, NULL, NULL, NULL, '1992-01-08', NULL, NULL, NULL, NULL, NULL, 'abc@yahoo.com', NULL, NULL, NULL, 0, 0, 0, NULL, NULL, 'Regular', NULL, NULL, NULL, 'May Destino', '2025-01-08', NULL, '2025-01-08 04:34:30', '2025-01-26 08:27:20'),
 (37, 'ENR-2501-EP1-3640', '1', '0', 'Male', 'Single', NULL, 'Roland Kim', 'Sato', NULL, 'Amaro', NULL, NULL, NULL, NULL, '2025-01-08', NULL, NULL, NULL, NULL, NULL, 'kim@yahoo.com', NULL, NULL, 1, 2, 1, 1, NULL, NULL, 'Regular', NULL, NULL, NULL, 'Fulltime', '2019-02-07', NULL, '2025-01-08 05:15:21', '2025-01-26 08:27:20'),
-(59, 'ENR-2501-EP1-9274', '1', '1', 'Male', 'Single', NULL, 'Policarpio', NULL, NULL, 'Sumbilong', NULL, NULL, NULL, NULL, '1996-01-09', NULL, NULL, 1, NULL, NULL, 'poli@pmdmc.net', 138, 138, 1, 2, 1, 1, 17, 'Templo Central', 'Regular', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:52:47', '2025-01-26 09:18:16'),
+(59, 'ENR-2501-EP1-9274', '1', 'verified', 'Male', 'Single', NULL, 'Policarpio', NULL, NULL, 'Sumbilong', NULL, NULL, NULL, NULL, '1996-01-09', NULL, NULL, 1, NULL, NULL, 'poli@pmdmc.net', 138, 138, 1, 2, 1, 1, 17, 'Templo Central', 'Regular', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:52:47', '2025-01-29 06:15:54'),
 (60, 'ENR-2501-EP1-9003', '1', '1', 'Female', 'Married', NULL, 'Poncia', NULL, NULL, 'Plato', NULL, NULL, NULL, NULL, '1996-01-11', NULL, NULL, 1, NULL, NULL, 'poli@pmdmc.net', 138, 138, NULL, 0, 0, 0, NULL, NULL, 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:56:16', '2025-01-27 08:28:09'),
 (61, 'ENR-2501-EP1-9018', '1', '0', 'Female', 'Married', NULL, 'Laarni', NULL, NULL, 'Eustaquio', NULL, '', NULL, NULL, '1996-01-11', NULL, NULL, 1, NULL, NULL, 'laitors19@gmail.com', 138, 138, NULL, 0, 0, 0, NULL, NULL, 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:57:52', '2025-01-26 08:27:20'),
 (62, 'ENR-2501-EP1-1659', '1', '0', 'Female', 'Married', '2003-01-07', 'Joan', 'Villanueva', 'Endique', 'Solitario', NULL, NULL, NULL, 'Templo Central', '1978-03-01', 'Legazpi City, Albay, Philippines', '2013-05-01', 2, 'B+', NULL, 'joan.solitario@gmail.com', 185, 138, 1, 9, 0, 0, 45, 'Templo Central', 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:59:58', '2025-01-26 08:27:20'),
@@ -1567,8 +1568,8 @@ INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progre
 (65, 'ENR-2501-EP1-7309', '1', '0', 'Male', 'Single', NULL, 'Chun-Wei', NULL, NULL, 'Kao', NULL, NULL, NULL, 'Luzon1', '2000-05-25', NULL, NULL, NULL, NULL, NULL, 'a5514585@icloud.com', NULL, NULL, NULL, 0, 0, 0, NULL, NULL, 'Regular', 45, 'Luzon', NULL, 'May Destino', NULL, NULL, '2025-01-15 04:02:55', '2025-01-26 08:27:20'),
 (67, 'ENR-2501-EP1-1914', '2', '0', 'Female', 'Married', NULL, 'Alexandra Nicole', NULL, 'Bernal', 'Dimatulac', NULL, 'Nicki', NULL, 'Templo, Central', '1991-12-31', 'Oslo, Norway', '2024-11-15', 2, NULL, NULL, 'anicolebdimatulac@gmail.com', 129, 129, 1, 9, NULL, NULL, 45, 'Templo', 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-16 08:10:27', '2025-01-26 08:27:20'),
 (68, 'ENR-2501-EP1-9034', '2', '0', 'Female', 'Married', '2015-11-16', 'Frances Nicole', 'Silva', 'Manzanero', 'Sanchez', NULL, 'Nicole', NULL, 'Templo Central', '1992-10-05', 'San Pablo City Laguna', '2015-06-19', 2, 'O+', NULL, 'nicolemsanchez05@gmail.com', 138, 138, 1, 9, NULL, NULL, 61, 'San Pablo City', 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-16 09:52:24', '2025-01-26 08:27:20'),
-(70, 'ENR-2501-EP1-4904', '2', '0', 'Male', 'Married', NULL, 'test po1', 'test po', NULL, 'test po', NULL, NULL, NULL, NULL, '2025-01-16', NULL, NULL, NULL, NULL, NULL, 'abc@yahoo.com', NULL, NULL, 1, 2, 1, 3, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-16 12:06:00', '2025-01-26 08:27:20'),
-(71, 'ENR-2501-EP1-3109', '5', '0', 'Male', 'Single', NULL, 'test', NULL, NULL, 'test', NULL, NULL, 0, 'test', '2025-01-21', NULL, NULL, 0, NULL, NULL, 'felixpareja.pmdit07@gmail.com', 1, 3, 1, 2, 1, 3, 1, 'Tandang Sora', 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-21 03:21:37', '2025-01-26 08:27:20');
+(75, 'ENR-2501-EP1-9589', '1', '4', 'Male', 'Single', NULL, 'test1', 'test1', NULL, 'test1', NULL, NULL, 0, NULL, '2025-01-29', NULL, NULL, 0, NULL, NULL, 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-29 06:30:22', '2025-01-29 07:23:19'),
+(76, 'ENR-2501-EP1-5119', '1', '0', 'Male', 'Single', NULL, 'test2', 'test2', NULL, 'test2', NULL, NULL, 0, NULL, '2025-01-29', NULL, NULL, 0, NULL, NULL, 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-29 06:38:48', '2025-01-29 06:43:05');
 
 -- --------------------------------------------------------
 
@@ -1705,8 +1706,8 @@ CREATE TABLE `personnel_images` (
 INSERT INTO `personnel_images` (`id`, `personnel_id`, `type`, `image_url`, `created_at`, `updated_at`) VALUES
 (1, 10, '2x2 Picture', '/uploads/avatar/1732846376187_image.jpg', '2025-01-16 18:29:43', '2025-01-16 18:32:06'),
 (11, 10, 'Whole Body Picture', '/uploads/avatar/1737055353231_1737055353145.png', '2025-01-16 19:22:33', '2025-01-16 19:22:33'),
-(17, 70, '2x2 Picture', '/uploads/avatar/1737077992273_1737077992263.png', '2025-01-17 01:39:52', '2025-01-17 01:39:52'),
-(18, 0, '2x2 Picture', '/uploads/avatar/1737882708443_1737882708405.png', '2025-01-26 09:11:48', '2025-01-26 09:11:48');
+(72, 64, '2x2 Picture', '/uploads/avatar/1738146818628_1738146818620.png', '2025-01-29 10:33:38', '2025-01-29 10:33:38'),
+(77, 64, '2x2 Picture', '/uploads/avatar/1738149127201_1738149127193.png', '2025-01-29 11:12:07', '2025-01-29 11:12:07');
 
 -- --------------------------------------------------------
 
@@ -2674,7 +2675,7 @@ ALTER TABLE `events`
 -- AUTO_INCREMENT for table `family_members`
 --
 ALTER TABLE `family_members`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=211;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=212;
 
 --
 -- AUTO_INCREMENT for table `government_issued_id`
@@ -2746,7 +2747,7 @@ ALTER TABLE `permission_groups`
 -- AUTO_INCREMENT for table `personnels`
 --
 ALTER TABLE `personnels`
-  MODIFY `personnel_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=72;
+  MODIFY `personnel_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=77;
 
 --
 -- AUTO_INCREMENT for table `personnel_address`
@@ -2776,7 +2777,7 @@ ALTER TABLE `personnel_gov_id`
 -- AUTO_INCREMENT for table `personnel_images`
 --
 ALTER TABLE `personnel_images`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=78;
 
 --
 -- AUTO_INCREMENT for table `reminders`
