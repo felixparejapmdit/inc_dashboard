@@ -40,6 +40,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
   const [searchParams] = useSearchParams();
   const personnelId = searchParams.get("personnel_id");
   const stepParam = searchParams.get("step");
+  const typeParam = searchParams.get("type");
   const [progress, setProgress] = useState(0); // Update this based on API response
 
   const [id, setPersonnelId] = useState(null);
@@ -627,7 +628,6 @@ const EnrollmentForm = ({ referenceNumber }) => {
       }
       // Check if we are on the first step for new personnel
       //if (step === 1) {
-      alert(personnelId);
 
       if (!personnelId) {
         const missingFields = [];
@@ -1080,10 +1080,13 @@ const EnrollmentForm = ({ referenceNumber }) => {
                     return;
                   }
 
-                  // Update the URL with the selected step
-                  navigate(
-                    `/enroll?personnel_id=${personnelId}&step=${selectedStep}`
-                  );
+                  // Construct the new URL based on typeParam
+                  const newUrl = `/enroll?personnel_id=${personnelId}&step=${selectedStep}${
+                    typeParam === "evaluation" ? "&type=evaluation" : ""
+                  }`;
+
+                  // Navigate to the updated URL
+                  navigate(newUrl);
 
                   // Set the step state to match the selected progress indicator
                   setStep(selectedStep);
@@ -1430,6 +1433,21 @@ const EnrollmentForm = ({ referenceNumber }) => {
                   isClosable: true,
                   position: "bottom-left",
                 });
+
+                // Determine the correct progress update
+                const personnelProgress =
+                  typeParam === "evaluation" ? "verified" : "0";
+
+                axios.put(
+                  `${API_URL}/api/users/update-progress`,
+                  {
+                    personnel_id: personnelId,
+                    personnel_progress: personnelProgress,
+                  },
+                  {
+                    headers: { "Content-Type": "application/json" },
+                  }
+                );
 
                 // Redirect to login
                 setTimeout(() => {

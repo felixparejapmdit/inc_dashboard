@@ -17,11 +17,11 @@ const Personnel = sequelize.define(
     },
     enrollment_progress: {
       type: DataTypes.STRING(255),
-      allowNull: false,
+      allowNull: true,
     },
     personnel_progress: {
       type: DataTypes.STRING(255),
-      allowNull: false,
+      allowNull: true,
     },
     gender: {
       type: DataTypes.STRING(50),

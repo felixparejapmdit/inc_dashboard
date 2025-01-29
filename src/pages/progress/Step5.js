@@ -231,8 +231,8 @@ const Step5 = () => {
                       colorScheme="blue"
                       size="sm"
                       onClick={() => {
-                        setSelectedUser(personnel);
-                        setIsPhotoModalOpen(true); // Open Photoshoot modal
+                        setSelectedUser(personnel); // Set the selected personnel
+                        setIsPhotoModalOpen(true); // Open the modal
                       }}
                     >
                       Select
@@ -242,145 +242,6 @@ const Step5 = () => {
               ))}
             </Tbody>
           </Table>
-          {/* Checklist */}
-          {selectedUser && (
-            <VStack
-              align="start"
-              spacing={6}
-              w="100%"
-              maxWidth="600px"
-              mx="auto"
-            >
-              {/* Display Selected Personnel Info */}
-
-              <Text
-                fontSize="xl"
-                fontWeight="bold"
-                color="teal.500"
-                textAlign="center"
-                w="100%"
-              >
-                Personnel Information
-              </Text>
-              <Box
-                p={6}
-                bg="white"
-                borderRadius="lg"
-                boxShadow="lg"
-                border="1px solid"
-                borderColor="gray.200"
-                w="100%"
-              >
-                <Text>
-                  <b>Reference Number:</b>{" "}
-                  {personnelInfo?.reference_number || "N/A"}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Name:</b>{" "}
-                  {personnelInfo
-                    ? `${personnelInfo.givenname || ""} ${
-                        personnelInfo.middlename || ""
-                      } ${personnelInfo.surname_husband || ""}`
-                    : "N/A"}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Gender:</b> {personnelInfo?.gender || "N/A"}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Date of Birth:</b>{" "}
-                  {personnelInfo?.date_of_birth
-                    ? new Date(personnelInfo.date_of_birth).toLocaleDateString()
-                    : "N/A"}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Email Address:</b> {personnelInfo?.email_address || "N/A"}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Civil Status:</b> {personnelInfo?.civil_status || "N/A"}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Department:</b> {personnelInfo?.department_id || "N/A"}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Designation:</b> {personnelInfo?.designation_id || "N/A"}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>District:</b> {personnelInfo?.district_id || "N/A"}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Local Congregation:</b>{" "}
-                  {personnelInfo?.local_congregation || "N/A"}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Personnel Type:</b>{" "}
-                  {personnelInfo?.personnel_type || "N/A"}
-                </Text>
-              </Box>
-
-              <Flex
-                direction="column"
-                align="center"
-                justify="center"
-                w="100%"
-                bg="white"
-                p={6}
-                borderRadius="lg"
-                boxShadow="md"
-                maxWidth="500px"
-                mx="auto"
-              >
-                <Text fontSize="xl" fontWeight="bold" mb={4}>
-                  Photo Checklist
-                </Text>
-                <VStack align="start" spacing={3} w="100%">
-                  <Checkbox
-                    isChecked={photos.twoByTwo}
-                    onChange={() => handlePhotoChange("twoByTwo")}
-                    colorScheme="teal"
-                    size="lg"
-                  >
-                    2x2 Photo
-                  </Checkbox>
-                  <Checkbox
-                    isChecked={photos.halfBody}
-                    onChange={() => handlePhotoChange("halfBody")}
-                    colorScheme="teal"
-                    size="lg"
-                  >
-                    Half Body Photo
-                  </Checkbox>
-                  <Checkbox
-                    isChecked={photos.fullBody}
-                    onChange={() => handlePhotoChange("fullBody")}
-                    colorScheme="teal"
-                    size="lg"
-                  >
-                    Full Body Photo
-                  </Checkbox>
-                </VStack>
-                <Button
-                  colorScheme="teal"
-                  mt={6}
-                  size="lg"
-                  w="100%"
-                  onClick={handleVerify}
-                  isDisabled={!Object.values(photos).every((photo) => photo)}
-                >
-                  Verify and Proceed
-                </Button>
-              </Flex>
-            </VStack>
-          )}
         </>
       )}
 
@@ -396,7 +257,7 @@ const Step5 = () => {
           <ModalHeader>Photoshoot and Upload</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Photoshoot personnel={selectedUser} />
+            {selectedUser && <Photoshoot personnel={selectedUser} />}
           </ModalBody>
           <ModalFooter>
             <Button

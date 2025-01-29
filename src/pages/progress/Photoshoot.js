@@ -35,35 +35,79 @@ import {
 import { BsUpload } from "react-icons/bs";
 import { MdPhotoCamera, MdDelete } from "react-icons/md";
 import Select from "react-select";
-const Photoshoot = ({ onSaveImage }) => {
+const Photoshoot = ({ personnel, onSaveImage }) => {
   const [image, setImage] = useState(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [imageSize, setImageSize] = useState("2x2"); // Default to 2x2
+  const [images, setImages] = useState({
+    twoByTwo: null,
+    halfBody: null,
+    fullBody: null,
+  });
+
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const toast = useToast();
   const [imageList, setImageList] = useState([]);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [searchParams] = useSearchParams(); // Retrieve query parameters
-  const personnelId = searchParams.get("personnel_id"); // Get personnel_id from URL
+
+  const personnelId = personnel?.personnel_id; // Get ID from props
 
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [imageToDelete, setImageToDelete] = useState(null);
   const cancelRef = useRef();
 
+  const [step, setStep] = useState(0); // Track the current step
+
+  // Function to get step label
+  const getStepLabel = (step) =>
+    ["2x2 Picture", "Half Body Picture", "Full Body Picture"][step];
+
+  // Move to next step only if image is uploaded
+  const nextStep = () => {
+    if (step < 2 && images[getStepLabel(step).toLowerCase().replace(/\s/g, "")])
+      setStep(step + 1);
+  };
+
+  // Move to previous step
+  const prevStep = () => {
+    if (step > 0) setStep(step - 1);
+  };
+
   useEffect(() => {
-    fetch(
-      `${process.env.REACT_APP_API_URL}/api/personnel_images/${personnelId}`
-    )
-      .then((res) => res.json())
-      .then((data) => {
+    if (!personnelId) return; // Prevent fetching if no personnelId
+
+    const fetchImages = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.REACT_APP_API_URL}/api/personnel_images/${personnelId}`
+        );
+        const data = await response.json();
+
         if (data.success) {
-          setImageList(data.data); // Maintain a list of uploaded images
+          console.log("Fetched Images:", data.data); // Debugging: Check fetched images
+
+          // Ensure images are stored in correct keys
+          setImages({
+            twoByTwo:
+              data.data.find((img) => img.type === "2x2 Picture")?.image_url ||
+              null,
+            halfBody:
+              data.data.find((img) => img.type === "Half Body Picture")
+                ?.image_url || null,
+            fullBody:
+              data.data.find((img) => img.type === "Full Body Picture")
+                ?.image_url || null,
+          });
         }
-      })
-      .catch((err) => console.error("Error fetching images:", err));
-  }, [personnelId]);
+      } catch (error) {
+        console.error("Error fetching images:", error);
+      }
+    };
+
+    fetchImages();
+  }, [personnelId]); // Ensure this runs when personnelId changes
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
@@ -197,71 +241,56 @@ const Photoshoot = ({ onSaveImage }) => {
   };
 
   const handleSaveImage = async () => {
-    if (image) {
-      const formData = new FormData();
-      formData.append("personnel_id", personnelId);
-      formData.append("type", `${imageSize} Picture`);
-      formData.append("image", dataURLtoFile(image, `${Date.now()}.png`));
-
-      try {
-        const response = await fetch(
-          `${process.env.REACT_APP_API_URL}/api/personnel_images`,
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
-
-        if (response.ok) {
-          toast({
-            title: "Image saved successfully",
-            status: "success",
-            duration: 3000,
-            isClosable: true,
-            position: "bottom-left",
-          });
-          setImage(null); // Reset the image after saving
-
-          // Fetch the updated list of images
-          const updatedImagesResponse = await fetch(
-            `${process.env.REACT_APP_API_URL}/api/personnel_images/${personnelId}`
-          );
-          const updatedImagesData = await updatedImagesResponse.json();
-
-          if (updatedImagesData.success) {
-            setImageList(updatedImagesData.data); // Update the grid with the new images
-          } else {
-            toast({
-              title: "Error fetching updated images",
-              description:
-                "Could not update the image grid. Please refresh manually.",
-              status: "error",
-              duration: 3000,
-              isClosable: true,
-            });
-          }
-        } else {
-          const error = await response.json();
-          throw new Error(error.message || "Failed to save the image.");
-        }
-      } catch (err) {
-        toast({
-          title: "Error saving image",
-          description: err.message || "Something went wrong. Please try again.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-          position: "bottom-left",
-        });
-      }
-    } else {
+    if (!image) {
       toast({
         title: "No image to save",
         description: "Please upload or capture an image before saving.",
         status: "warning",
         duration: 3000,
         isClosable: true,
-        position: "bottom-left",
+      });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("personnel_id", personnelId);
+    formData.append("type", getStepLabel(step));
+    formData.append("image", dataURLtoFile(image, `${Date.now()}.png`));
+
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/personnel_images`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (response.ok) {
+        toast({
+          title: "Image saved successfully",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+
+        // Update the stored images and move to next step
+        setImages((prev) => ({
+          ...prev,
+          [getStepLabel(step).toLowerCase().replace(/\s/g, "")]: image,
+        }));
+        setImage(null);
+        if (step < 2) nextStep();
+      } else {
+        throw new Error("Failed to save the image.");
+      }
+    } catch (err) {
+      toast({
+        title: "Error saving image",
+        description: "Something went wrong. Please try again.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
       });
     }
   };
@@ -305,175 +334,130 @@ const Photoshoot = ({ onSaveImage }) => {
   };
 
   return (
-    <VStack spacing={6} align="center" my={115}>
-      <Heading as="h2" size="lg" textAlign="center" mb={6}>
-        Step 2: Upload Image(s)
+    <VStack spacing={6} align="center" my={8}>
+      <Heading size="md">
+        Step {step + 1}: {getStepLabel(step)}
       </Heading>
 
-      <Select
-        options={imageSizeOptions}
-        value={imageSizeOptions.find((option) => option.value === imageSize)}
-        onChange={handleImageSizeChange}
-        isOptionDisabled={isOptionDisabled} // Disable options already uploaded
-        placeholder="Select Image Size" // Add placeholder
-        styles={{
-          container: (base) => ({ ...base, width: 200, marginBottom: 16 }),
-          control: (base) => ({
-            ...base,
-            borderColor: "gray.300",
-            boxShadow: "none",
-            "&:hover": { borderColor: "gray.400" },
-          }),
-          placeholder: (base) => ({ ...base, color: "gray.600" }),
-          menu: (base) => ({ ...base, zIndex: 9999 }),
-        }}
-      />
-
+      {/* Capture or Upload Image */}
       <Box
         p={5}
-        border="2px dashed"
-        borderColor="gray.400"
+        border="2px dashed gray"
         borderRadius="md"
-        w={getBoxSize().width}
-        h={getBoxSize().height}
-        position="relative"
-        bg="yellow.100"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-        cursor="pointer"
-        _hover={{ bg: "yellow.200" }}
+        width="250px"
+        height="250px"
       >
         {image ? (
           <Image
             src={image}
-            alt="Uploaded Picture"
-            boxSize="100%"
-            borderRadius="md"
+            alt="Captured"
+            width="100%"
+            height="100%"
+            objectFit="cover"
+          />
+        ) : images[getStepLabel(step).toLowerCase().replace(/\s/g, "")] ? (
+          <Image
+            src={`${process.env.REACT_APP_API_URL}${
+              images[getStepLabel(step).toLowerCase().replace(/\s/g, "")]
+            }`}
+            alt="Uploaded"
+            width="100%"
+            height="100%"
             objectFit="cover"
           />
         ) : (
-          <VStack>
-            <Icon as={BsUpload} w={12} h={12} color="gray.500" />
-            <Text fontSize="lg" fontWeight="bold">
-              Drop your {imageSize} here or browse
-            </Text>
-            <Text fontSize="sm" color="gray.600">
-              Supports PNG and JPEG
-            </Text>
-          </VStack>
+          <Text textAlign="center">Capture or Upload {getStepLabel(step)}</Text>
         )}
-        <Input
-          type="file"
-          accept="image/png, image/jpeg"
-          position="absolute"
-          top={0}
-          left={0}
-          w="100%"
-          h="100%"
-          opacity={0}
-          cursor="pointer"
-          onChange={handleImageUpload}
-        />
       </Box>
 
-      <HStack spacing={4}>
+      {/* Camera & Upload Buttons */}
+      <HStack>
         <IconButton
           icon={<MdPhotoCamera />}
-          colorScheme="teal"
+          colorScheme="blue"
           onClick={openCamera}
-          aria-label="Capture Image"
         />
+        <IconButton
+          icon={<BsUpload />}
+          colorScheme="green"
+          as="label"
+          htmlFor="file-upload" // This links the button to the input
+        />
+        <input
+          id="file-upload" // Match this ID with the htmlFor above
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={(e) => {
+            if (e.target.files.length > 0) {
+              setImage(URL.createObjectURL(e.target.files[0]));
+            }
+          }}
+        />
+
+        {image && (
+          <Button colorScheme="teal" onClick={handleSaveImage}>
+            Save & Next
+          </Button>
+        )}
+      </HStack>
+
+      {/* Navigation Buttons */}
+      <HStack spacing={4} mt={4}>
+        <Button onClick={prevStep} isDisabled={step === 0}>
+          Previous
+        </Button>
         <Button
-          onClick={handleSaveImage}
-          colorScheme="yellow"
-          fontWeight="bold"
-          isDisabled={!image || isLoading}
-          isLoading={isLoading}
+          onClick={nextStep}
+          isDisabled={
+            step === 2 ||
+            !images[getStepLabel(step).toLowerCase().replace(/\s/g, "")]
+          }
         >
-          {isLoading ? <Spinner size="sm" /> : "Submit Now"}
+          Next
         </Button>
       </HStack>
 
-      <Box
-        display="flex"
-        flexWrap="wrap"
-        justifyContent="flex-start"
-        gap={4}
-        width="100%"
-      >
-        {imageList.map((img) => (
+      {/* Image Preview (Only the selected step) */}
+      <Box display="flex" flexWrap="wrap" justifyContent="center" gap={4}>
+        {images[getStepLabel(step).toLowerCase().replace(/\s/g, "")] && (
           <Box
-            key={img.id}
-            borderRadius="lg"
-            overflow="hidden"
             border="1px solid"
             borderColor="gray.300"
             p={4}
-            shadow="lg"
-            transition="transform 0.2s"
-            _hover={{ transform: "scale(1.05)" }}
-            bg="white"
             textAlign="center"
-            width="250px"
           >
-            {/* Image Size Display */}
-            <Text fontSize="lg" fontWeight="bold" color="teal.700" mb={2}>
-              {img.type}
-            </Text>
-
-            {/* Image Display */}
+            <Text fontWeight="bold">{getStepLabel(step)}</Text>
             <Image
-              src={`${process.env.REACT_APP_API_URL}${img.image_url}`}
-              width="200px"
-              height="200px"
+              src={
+                new URL(
+                  images[
+                    getStepLabel(step).toLowerCase().replace(/\s/g, "")
+                  ]?.replace(/^\/+/, ""),
+                  process.env.REACT_APP_API_URL
+                ).href
+              }
+              width="150px"
+              height="150px"
               objectFit="cover"
-              alt={img.type}
-              borderRadius="md"
-              mb={4}
+              onError={(e) => (e.target.src = "/fallback-image.png")} // Use fallback if image is broken
             />
 
-            {/* Delete Button */}
-            <Button
-              size="md"
+            <IconButton
+              icon={<MdDelete />}
               colorScheme="red"
-              onClick={() => handleDeleteImage(img.id)}
-              leftIcon={<MdDelete />}
-            >
-              Delete
-            </Button>
+              mt={2}
+              onClick={() =>
+                handleDeleteImage(
+                  images[getStepLabel(step).toLowerCase().replace(/\s/g, "")]
+                )
+              }
+            />
           </Box>
-        ))}
+        )}
       </Box>
 
-      <AlertDialog
-        isOpen={isDeleteAlertOpen}
-        leastDestructiveRef={cancelRef}
-        onClose={closeDeleteAlert}
-      >
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Delete Image
-            </AlertDialogHeader>
-
-            <AlertDialogBody>
-              Are you sure you want to delete this image? This action cannot be
-              undone.
-            </AlertDialogBody>
-
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={closeDeleteAlert}>
-                Cancel
-              </Button>
-              <Button colorScheme="red" onClick={confirmDeleteImage} ml={3}>
-                Delete
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
-
+      {/* Camera Modal */}
       <Modal isOpen={isCameraOpen} onClose={closeCamera}>
         <ModalOverlay />
         <ModalContent>

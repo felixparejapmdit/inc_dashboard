@@ -45,34 +45,33 @@ const Step4 = () => {
   const [personnelInfo, setPersonnelInfo] = useState(null);
   const toast = useToast();
 
-  // Fetch new personnel list
+  const fetchPersonnel = async () => {
+    setLoading(true);
+    try {
+      //const response = await axios.get(`${API_URL}/api/personnels/new`);
+
+      const response = await axios.get(`${API_URL}/api/personnels/progress/3`);
+
+      setPersonnelList(response.data);
+      setFilteredPersonnel(response.data);
+    } catch (error) {
+      console.error("Error fetching personnel list:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch personnel list.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Call fetchUsers() inside useEffect()
   useEffect(() => {
-    const fetchPersonnel = async () => {
-      setLoading(true);
-      try {
-        //const response = await axios.get(`${API_URL}/api/personnels/new`);
-
-        const response = await axios.get(
-          `${API_URL}/api/personnels/progress/3`
-        );
-
-        setPersonnelList(response.data);
-        setFilteredPersonnel(response.data);
-      } catch (error) {
-        console.error("Error fetching personnel list:", error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch personnel list.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchPersonnel();
-  }, [toast]);
+  }, []);
 
   const handleSearch = (e) => {
     const query = e.target.value.toLowerCase();
@@ -128,6 +127,13 @@ const Step4 = () => {
         duration: 3000,
         isClosable: true,
       });
+
+      // ✅ Hide Personnel Info and Checklist After Verification
+      setSelectedUser(null);
+      setPersonnelInfo(null);
+
+      // ✅ Refresh the personnel table
+      fetchPersonnel();
     } catch (error) {
       console.error("Error during verification:", error);
       toast({
@@ -333,9 +339,32 @@ const Step4 = () => {
                 maxWidth="500px"
                 mx="auto"
               >
+                {/* Checklist Title */}
                 <Text fontSize="xl" fontWeight="bold" mb={4}>
                   Checklist
                 </Text>
+
+                {/* Select All Checkbox */}
+                <Checkbox
+                  isChecked={Object.values(checklist).every((item) => item)}
+                  onChange={(e) => {
+                    const isChecked = e.target.checked;
+                    const updatedChecklist = {};
+                    Object.keys(checklist).forEach((key) => {
+                      updatedChecklist[key] = isChecked;
+                    });
+                    setChecklist(updatedChecklist);
+                  }}
+                  colorScheme="teal"
+                  size="lg"
+                  w="100%"
+                  fontWeight="bold"
+                  mb={2}
+                >
+                  Select All
+                </Checkbox>
+
+                {/* Individual Checkboxes */}
                 <VStack align="start" spacing={3} w="100%">
                   {Object.keys(checklist).map((key) => (
                     <Checkbox
@@ -352,6 +381,8 @@ const Step4 = () => {
                     </Checkbox>
                   ))}
                 </VStack>
+
+                {/* Verify and Proceed Button */}
                 <Button
                   colorScheme="teal"
                   mt={6}

@@ -56,8 +56,23 @@ exports.getAllNewPersonnels = async (req, res) => {
 
 // Get personnels by progress
 exports.getPersonnelsByProgress = async (req, res) => {
-  const { step } = req.params; // Step represents personnel_progress (1-8)
+  const { step } = req.params; // Step represents personnel_progress (0-7 or "verified")
+
   try {
+    let whereCondition = {
+      "$user.personnel_id$": null,
+    };
+
+    // If step is "0", only fetch personnel_progress "0" or "verified"
+    if (step === "0") {
+      whereCondition.personnel_progress = {
+        [Sequelize.Op.or]: [0, "verified"],
+      };
+    } else {
+      // If step is 1-7, fetch the exact step
+      whereCondition.personnel_progress = step;
+    }
+
     const personnels = await Personnel.findAll({
       attributes: [
         ["personnel_id", "personnel_id"],
@@ -79,10 +94,7 @@ exports.getPersonnelsByProgress = async (req, res) => {
           required: false,
         },
       ],
-      where: {
-        "$user.personnel_id$": null,
-        personnel_progress: step, // Filter by progress step
-      },
+      where: whereCondition,
     });
 
     res.status(200).json(personnels);

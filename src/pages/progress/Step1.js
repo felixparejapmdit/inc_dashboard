@@ -39,29 +39,27 @@ const Step1 = () => {
   const toast = useToast();
 
   // Fetch all users
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        //const response = await axios.get(`${API_URL}/api/personnels/new`);
-        const response = await axios.get(
-          `${API_URL}/api/personnels/progress/0`
-        );
-        setUsers(response.data);
-        setFilteredUsers(response.data);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch users.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      }
-    };
+  const fetchUsers = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/personnels/progress/0`);
+      setUsers(response.data);
+      setFilteredUsers(response.data);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch users.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
 
+  // Call fetchUsers() inside useEffect()
+  useEffect(() => {
     fetchUsers();
-  }, [toast]);
+  }, []);
 
   // Fetch personnel details
   const fetchPersonnelDetails = async (personnelId) => {
@@ -112,8 +110,8 @@ const Step1 = () => {
     window.open(url, "_blank"); // "_blank" opens the URL in a new tab
   };
 
-  const handleVerify = async () => {
-    if (!selectedUser?.personnel_id) {
+  const handleVerify = async (user) => {
+    if (!user.personnel_id) {
       toast({
         title: "Verification Failed",
         description: "No personnel selected for verification.",
@@ -124,11 +122,13 @@ const Step1 = () => {
       return;
     }
 
+    setSelectedUser(user); // Ensure selectedUser is set before verifying
     setLoading(true);
+
     try {
       // Update progress using your provided endpoint
       await axios.put(`${API_URL}/api/users/update-progress`, {
-        personnel_id: selectedUser.personnel_id,
+        personnel_id: user.personnel_id,
         personnel_progress: 1, // Update to the next stage or as required
       });
 
@@ -140,6 +140,9 @@ const Step1 = () => {
         duration: 3000,
         isClosable: true,
       });
+
+      // ✅ Call fetchUsers() to refresh the table after verification
+      fetchUsers();
     } catch (error) {
       console.error("Error during verification:", error);
       toast({
@@ -203,10 +206,7 @@ const Step1 = () => {
                         colorScheme="teal"
                         size="sm"
                         isDisabled={parseInt(user.personnel_progress, 10) === 0} // Disable if personnel_progress is 0
-                        onClick={() => {
-                          setSelectedUser(user);
-                          handleVerify();
-                        }}
+                        onClick={() => handleVerify(user)}
                       />
                     </Td>
                   </Tr>

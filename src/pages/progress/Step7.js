@@ -19,9 +19,12 @@ import {
   Th,
   Td,
   Divider,
+  IconButton,
   Flex,
 } from "@chakra-ui/react";
 import axios from "axios";
+
+import { Search2Icon, SearchIcon, CheckIcon } from "@chakra-ui/icons";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -74,7 +77,7 @@ const Step7 = () => {
     setFilteredPersonnel(filtered);
   };
 
-  const handleVerify = async () => {
+  const handleVerify = async (selectedUser) => {
     if (!selectedUser?.personnel_id) {
       toast({
         title: "Verification Failed",
@@ -194,13 +197,16 @@ const Step7 = () => {
                   <Td>{personnel.fullname || "N/A"}</Td>
                   <Td>{personnel.email_address || "N/A"}</Td>
                   <Td>
-                    <Button
-                      colorScheme="blue"
+                    <IconButton
+                      aria-label="Verify and Proceed"
+                      icon={<CheckIcon />} // Use an icon that represents verification
+                      colorScheme="teal"
                       size="sm"
-                      onClick={() => handleUserSelect(personnel)}
-                    >
-                      Select
-                    </Button>
+                      isDisabled={
+                        parseInt(personnel.personnel_progress, 10) === 0
+                      } // Disable if personnel_progress is 0
+                      onClick={() => handleVerify(personnel)}
+                    />
                   </Td>
                 </Tr>
               ))}
