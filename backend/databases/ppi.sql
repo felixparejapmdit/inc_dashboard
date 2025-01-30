@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 29, 2025 at 12:24 PM
+-- Generation Time: Jan 30, 2025 at 09:30 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -658,7 +658,7 @@ CREATE TABLE `family_members` (
 --
 
 INSERT INTO `family_members` (`id`, `personnel_id`, `relationship_type`, `givenname`, `middlename`, `lastname`, `suffix`, `gender`, `bloodtype`, `civil_status`, `date_of_marriage`, `place_of_marriage`, `citizenship`, `nationality`, `date_of_birth`, `contact_number`, `church_duties`, `livelihood`, `district_id`, `local_congregation`, `minister_officiated`, `employment_type`, `company`, `address`, `position`, `department`, `section`, `start_date`, `end_date`, `reason_for_leaving`, `education_level`, `start_year`, `completion_year`, `school`, `field_of_study`, `degree`, `institution`, `professional_licensure_examination`, `created_at`, `updated_at`) VALUES
-(75, 10, 'Father', 'Nepthalie', 'Verano', 'Pareja', 'Sr.', 'Male', 'A+', 'Married', '2024-12-18', 'asd', 138, 138, '2024-12-18', 232, 'n/a', 'n/a', 62, '', '', 'Unemployed', '', '', '', '', '', NULL, NULL, '', 'Primary Education', 1980, 1986, 'Frisco', '', '', '', '', '2024-12-18 05:44:03', '2025-01-16 07:37:40'),
+(75, 10, 'Father', 'Nepthalie12', 'Verano', 'Pareja', 'Sr.', 'Male', 'A+', 'Married', '2024-12-18', 'asd', 138, 138, '2024-12-18', 232, 'n/a', 'n/a', 62, '', '', 'Unemployed', '', '', '', '', '', NULL, NULL, '', 'Primary Education', 1980, 1986, 'Frisco', '', '', '', '', '2024-12-18 05:44:03', '2025-01-30 08:25:17'),
 (172, 10, 'Sibling', 'Christopher', 'Morales', 'Pareja', 'Jr.', 'Male', 'B-', 'Annulled', '2024-12-04', 'frisco', 14, 17, '2024-12-18', 121, 'asd', 'asd', 45, 'test123', 'asd', '', 'asd', 'asd', 'asd', 'asd', 'asd', '2024-12-18', '2024-12-18', 'asd', '', 1, 2, 'asd', 'asd', 'asd', 'asd', 'asd', '2024-12-18 15:53:08', '2024-12-19 15:50:04'),
 (173, 10, 'Sibling', 'Lizbeth', 'asd', 'asd', 'Jr.', 'Female', 'A+', '', '0000-00-00', '', 0, 0, '0000-00-00', 123, '', '', 0, '', '', '', '', '', '', '', '', '0000-00-00', '0000-00-00', '', '', 0, 0, '', '', '', '', '', '2024-12-18 16:42:23', '2025-01-10 03:46:38'),
 (174, 10, 'Spouse', 'JAI', 'M', 'RAMOS', 'No Suffix', 'Female', 'A+', 'Married', '2024-12-19', 'asd', 15, 0, '2024-12-19', 1212, '', '', 0, '', '', 'Casual', 'aas', 'dsa', 'asd', 'asd', 'dsa', '2024-12-19', '2024-12-24', '', 'Professional Degree', 2011, 2019, 'asd', 'asd', 'asd', 'asd', 'asdadsa', '2024-12-18 17:43:21', '2025-01-08 02:13:11'),
@@ -1569,7 +1569,8 @@ INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progre
 (67, 'ENR-2501-EP1-1914', '2', '0', 'Female', 'Married', NULL, 'Alexandra Nicole', NULL, 'Bernal', 'Dimatulac', NULL, 'Nicki', NULL, 'Templo, Central', '1991-12-31', 'Oslo, Norway', '2024-11-15', 2, NULL, NULL, 'anicolebdimatulac@gmail.com', 129, 129, 1, 9, NULL, NULL, 45, 'Templo', 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-16 08:10:27', '2025-01-26 08:27:20'),
 (68, 'ENR-2501-EP1-9034', '2', '0', 'Female', 'Married', '2015-11-16', 'Frances Nicole', 'Silva', 'Manzanero', 'Sanchez', NULL, 'Nicole', NULL, 'Templo Central', '1992-10-05', 'San Pablo City Laguna', '2015-06-19', 2, 'O+', NULL, 'nicolemsanchez05@gmail.com', 138, 138, 1, 9, NULL, NULL, 61, 'San Pablo City', 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-16 09:52:24', '2025-01-26 08:27:20'),
 (75, 'ENR-2501-EP1-9589', '1', '4', 'Male', 'Single', NULL, 'test1', 'test1', NULL, 'test1', NULL, NULL, 0, NULL, '2025-01-29', NULL, NULL, 0, NULL, NULL, 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-29 06:30:22', '2025-01-29 07:23:19'),
-(76, 'ENR-2501-EP1-5119', '1', '0', 'Male', 'Single', NULL, 'test2', 'test2', NULL, 'test2', NULL, NULL, 0, NULL, '2025-01-29', NULL, NULL, 0, NULL, NULL, 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-29 06:38:48', '2025-01-29 06:43:05');
+(76, 'ENR-2501-EP1-5119', '1', '0', 'Male', 'Single', NULL, 'test2', 'test2', NULL, 'test2', NULL, NULL, 0, NULL, '2025-01-29', NULL, NULL, 0, NULL, NULL, 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-29 06:38:48', '2025-01-29 06:43:05'),
+(77, 'ENR-2501-EP1-3056', '1', '0', 'Male', 'Married', '2025-01-30', 'test', 'test', NULL, 'test', NULL, 'test po', 0, NULL, '2025-01-30', NULL, NULL, 0, NULL, NULL, 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-30 05:32:27', '2025-01-30 05:34:07');
 
 -- --------------------------------------------------------
 
@@ -1706,8 +1707,7 @@ CREATE TABLE `personnel_images` (
 INSERT INTO `personnel_images` (`id`, `personnel_id`, `type`, `image_url`, `created_at`, `updated_at`) VALUES
 (1, 10, '2x2 Picture', '/uploads/avatar/1732846376187_image.jpg', '2025-01-16 18:29:43', '2025-01-16 18:32:06'),
 (11, 10, 'Whole Body Picture', '/uploads/avatar/1737055353231_1737055353145.png', '2025-01-16 19:22:33', '2025-01-16 19:22:33'),
-(72, 64, '2x2 Picture', '/uploads/avatar/1738146818628_1738146818620.png', '2025-01-29 10:33:38', '2025-01-29 10:33:38'),
-(77, 64, '2x2 Picture', '/uploads/avatar/1738149127201_1738149127193.png', '2025-01-29 11:12:07', '2025-01-29 11:12:07');
+(95, 64, '2x2 Picture', '/uploads/avatar/1738212841584_1738212841580.png', '2025-01-30 04:54:01', '2025-01-30 04:54:01');
 
 -- --------------------------------------------------------
 
@@ -2747,7 +2747,7 @@ ALTER TABLE `permission_groups`
 -- AUTO_INCREMENT for table `personnels`
 --
 ALTER TABLE `personnels`
-  MODIFY `personnel_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=77;
+  MODIFY `personnel_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=78;
 
 --
 -- AUTO_INCREMENT for table `personnel_address`
@@ -2777,7 +2777,7 @@ ALTER TABLE `personnel_gov_id`
 -- AUTO_INCREMENT for table `personnel_images`
 --
 ALTER TABLE `personnel_images`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=78;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=96;
 
 --
 -- AUTO_INCREMENT for table `reminders`
