@@ -1170,7 +1170,14 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
       {step === 4 && (
         <Step4
-          data={family.parents}
+          data={
+            family.parents.length > 0
+              ? family.parents
+              : [
+                  { relationship_type: "Father", givenname: "", lastname: "" },
+                  { relationship_type: "Mother", givenname: "", lastname: "" },
+                ]
+          }
           setData={(updatedParents) =>
             setFamily((prevFamily) => ({
               ...prevFamily,

@@ -49,6 +49,10 @@ const Step4 = ({
   const toast = useToast();
 
   useEffect(() => {
+    console.log("Step 4 - Parents Data:", data);
+  }, [data]);
+
+  useEffect(() => {
     const initializeDefaultParents = () => [
       {
         relationship_type: "Father",
@@ -292,9 +296,13 @@ const Step4 = ({
       <VStack align="start" spacing={4} mb={8} w="100%">
         <Tabs variant="enclosed" colorScheme="blue">
           <TabList>
-            {data.map((parent, index) => (
-              <Tab key={index}>{parent.relationship_type}</Tab>
-            ))}
+            {data.length > 0 ? (
+              data.map((parent, index) => (
+                <Tab key={index}>{parent.relationship_type}</Tab>
+              ))
+            ) : (
+              <Tab>Parents</Tab> // Default tab label in case of empty data
+            )}
           </TabList>
 
           <TabPanels>

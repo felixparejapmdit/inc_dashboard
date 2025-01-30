@@ -45,6 +45,7 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
     fullBody: null,
   });
 
+  const fileInputRef = useRef(null);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const toast = useToast();
@@ -150,8 +151,9 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
     setIsDeleteAlertOpen(false);
   };
 
-  const confirmDeleteImage = async () => {
-    if (!imageToDelete) return;
+  // Button to trigger the delete alert
+  const handleDeleteImage = async (id) => {
+    if (!id) return;
 
     try {
       const response = await fetch(
@@ -185,11 +187,6 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
     } finally {
       closeDeleteAlert();
     }
-  };
-
-  // Button to trigger the delete alert
-  const handleDeleteImage = (id) => {
-    openDeleteAlert(id);
   };
 
   const openCamera = async () => {
@@ -255,7 +252,19 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
     const formData = new FormData();
     formData.append("personnel_id", personnelId);
     formData.append("type", getStepLabel(step));
-    formData.append("image", dataURLtoFile(image, `${Date.now()}.png`));
+    const fileData = dataURLtoFile(image, `${Date.now()}.png`);
+    if (!fileData) {
+      toast({
+        title: "Image conversion failed",
+        description: "Please try again.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    formData.append("image", fileData);
 
     try {
       const response = await fetch(
@@ -297,15 +306,37 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
 
   // Helper function to convert base64 to File object
   const dataURLtoFile = (dataUrl, filename) => {
-    const arr = dataUrl.split(",");
-    const mime = arr[0].match(/:(.*?);/)[1];
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
+    try {
+      if (!dataUrl || typeof dataUrl !== "string" || !dataUrl.includes(",")) {
+        console.error("Invalid data URL:", dataUrl);
+        return null;
+      }
+
+      const arr = dataUrl.split(",");
+      if (arr.length < 2) {
+        console.error("Malformed data URL:", dataUrl);
+        return null;
+      }
+
+      const mimeMatch = arr[0].match(/:(.*?);/);
+      if (!mimeMatch) {
+        console.error("Invalid MIME type in data URL:", dataUrl);
+        return null;
+      }
+
+      const mime = mimeMatch[1];
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+
+      return new File([u8arr], filename, { type: mime });
+    } catch (error) {
+      console.error("Error in dataURLtoFile:", error);
+      return null;
     }
-    return new File([u8arr], filename, { type: mime });
   };
 
   const getBoxSize = () => {
@@ -333,12 +364,36 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
     return imageList.some((img) => img.type === option.label);
   };
 
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const file = e.dataTransfer.files[0];
+
+    if (file) {
+      readFileAsBase64(file);
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      readFileAsBase64(file);
+    }
+  };
+
+  const readFileAsBase64 = (file) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setImage(event.target.result); // Store base64 image
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <VStack spacing={6} align="center" my={8}>
       <Heading size="md">
         Step {step + 1}: {getStepLabel(step)}
       </Heading>
-
       {/* Capture or Upload Image */}
       <Box
         p={5}
@@ -346,27 +401,33 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
         borderRadius="md"
         width="250px"
         height="250px"
+        textAlign="center"
+        onClick={() => fileInputRef.current.click()} // Click event to open file picker
+        onDragOver={(e) => e.preventDefault()}
+        onDragLeave={(e) => e.preventDefault()}
+        onDrop={handleDrop} // Drag & Drop event
+        cursor="pointer"
       >
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={handleFileSelect} // Handle file selection
+        />
+
         {image ? (
           <Image
             src={image}
-            alt="Captured"
-            width="100%"
-            height="100%"
-            objectFit="cover"
-          />
-        ) : images[getStepLabel(step).toLowerCase().replace(/\s/g, "")] ? (
-          <Image
-            src={`${process.env.REACT_APP_API_URL}${
-              images[getStepLabel(step).toLowerCase().replace(/\s/g, "")]
-            }`}
-            alt="Uploaded"
+            alt="Uploaded or Captured"
             width="100%"
             height="100%"
             objectFit="cover"
           />
         ) : (
-          <Text textAlign="center">Capture or Upload {getStepLabel(step)}</Text>
+          <Text textAlign="center" fontSize="sm" color="gray.500">
+            Drag & Drop an image here <br /> or <strong>click to upload</strong>
+          </Text>
         )}
       </Box>
 
@@ -384,14 +445,32 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
           htmlFor="file-upload" // This links the button to the input
         />
         <input
-          id="file-upload" // Match this ID with the htmlFor above
+          id="file-upload"
           type="file"
           accept="image/*"
           hidden
           onChange={(e) => {
-            if (e.target.files.length > 0) {
-              setImage(URL.createObjectURL(e.target.files[0]));
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Validate file type
+            if (!file.type.startsWith("image/")) {
+              toast({
+                title: "Invalid file type",
+                description: "Only image files are allowed.",
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+              });
+              return;
             }
+
+            // Convert file to base64
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              setImage(event.target.result); // Store base64 image
+            };
+            reader.readAsDataURL(file);
           }}
         />
 
@@ -401,7 +480,6 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
           </Button>
         )}
       </HStack>
-
       {/* Navigation Buttons */}
       <HStack spacing={4} mt={4}>
         <Button onClick={prevStep} isDisabled={step === 0}>
@@ -417,7 +495,6 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
           Next
         </Button>
       </HStack>
-
       {/* Image Preview (Only the selected step) */}
       <Box display="flex" flexWrap="wrap" justifyContent="center" gap={4}>
         {images[getStepLabel(step).toLowerCase().replace(/\s/g, "")] && (
@@ -447,16 +524,11 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
               icon={<MdDelete />}
               colorScheme="red"
               mt={2}
-              onClick={() =>
-                handleDeleteImage(
-                  images[getStepLabel(step).toLowerCase().replace(/\s/g, "")]
-                )
-              }
+              onClick={() => handleDeleteImage(imageToDelete)}
             />
           </Box>
         )}
       </Box>
-
       {/* Camera Modal */}
       <Modal isOpen={isCameraOpen} onClose={closeCamera}>
         <ModalOverlay />
