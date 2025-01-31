@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 30, 2025 at 09:30 AM
+-- Generation Time: Jan 31, 2025 at 09:48 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -536,7 +536,8 @@ INSERT INTO `districts` (`id`, `name`, `code`, `region`, `created_at`, `updated_
 (82, 'South Cotabato', 'sco', 'Mindanao', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
 (83, 'Tarlac', 'trl', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
 (84, 'Zamboanga City', 'zam', 'Mindanao', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
-(85, 'Laoag City', NULL, NULL, '2025-01-21 04:59:51', '2025-01-21 04:59:51');
+(85, 'Laoag City', NULL, NULL, '2025-01-21 04:59:51', '2025-01-21 04:59:51'),
+(86, 'Camanava', NULL, NULL, '2025-01-31 02:34:12', '2025-01-31 02:34:12');
 
 -- --------------------------------------------------------
 
@@ -567,7 +568,8 @@ CREATE TABLE `educational_background` (
 INSERT INTO `educational_background` (`id`, `personnel_id`, `level`, `startfrom`, `completion_year`, `school`, `field_of_study`, `degree`, `institution`, `professional_licensure_examination`, `created_at`, `updated_at`, `certificate_files`) VALUES
 (5, 10, 'Doctorate Degree', 1, 1, 'asd', '', '', '', NULL, '2024-12-20 06:27:55', '2025-01-21 05:47:58', '\"[\\\"1737438477518-ATTENDANCE TEMPLATE - Purok2.pdf\\\"]\"'),
 (19, 68, 'Bachelor\'s Degree', 2010, 2014, 'Philippine Women\'s University', 'Painting', 'Fine Arts', '', '', '2025-01-16 09:58:22', '2025-01-16 09:58:22', '\"[]\"'),
-(20, 71, 'No Formal Education', 1, 2, 'asd', '', '', '', '', '2025-01-21 03:26:32', '2025-01-21 03:26:32', '\"[]\"');
+(20, 71, 'No Formal Education', 1, 2, 'asd', '', '', '', '', '2025-01-21 03:26:32', '2025-01-21 03:26:32', '\"[]\"'),
+(21, 77, 'No Formal Education', 0, 0, 'asd', '', '', '', '', '2025-01-31 03:59:51', '2025-01-31 03:59:51', '\"[]\"');
 
 -- --------------------------------------------------------
 
@@ -661,7 +663,7 @@ INSERT INTO `family_members` (`id`, `personnel_id`, `relationship_type`, `givenn
 (75, 10, 'Father', 'Nepthalie12', 'Verano', 'Pareja', 'Sr.', 'Male', 'A+', 'Married', '2024-12-18', 'asd', 138, 138, '2024-12-18', 232, 'n/a', 'n/a', 62, '', '', 'Unemployed', '', '', '', '', '', NULL, NULL, '', 'Primary Education', 1980, 1986, 'Frisco', '', '', '', '', '2024-12-18 05:44:03', '2025-01-30 08:25:17'),
 (172, 10, 'Sibling', 'Christopher', 'Morales', 'Pareja', 'Jr.', 'Male', 'B-', 'Annulled', '2024-12-04', 'frisco', 14, 17, '2024-12-18', 121, 'asd', 'asd', 45, 'test123', 'asd', '', 'asd', 'asd', 'asd', 'asd', 'asd', '2024-12-18', '2024-12-18', 'asd', '', 1, 2, 'asd', 'asd', 'asd', 'asd', 'asd', '2024-12-18 15:53:08', '2024-12-19 15:50:04'),
 (173, 10, 'Sibling', 'Lizbeth', 'asd', 'asd', 'Jr.', 'Female', 'A+', '', '0000-00-00', '', 0, 0, '0000-00-00', 123, '', '', 0, '', '', '', '', '', '', '', '', '0000-00-00', '0000-00-00', '', '', 0, 0, '', '', '', '', '', '2024-12-18 16:42:23', '2025-01-10 03:46:38'),
-(174, 10, 'Spouse', 'JAI', 'M', 'RAMOS', 'No Suffix', 'Female', 'A+', 'Married', '2024-12-19', 'asd', 15, 0, '2024-12-19', 1212, '', '', 0, '', '', 'Casual', 'aas', 'dsa', 'asd', 'asd', 'dsa', '2024-12-19', '2024-12-24', '', 'Professional Degree', 2011, 2019, 'asd', 'asd', 'asd', 'asd', 'asdadsa', '2024-12-18 17:43:21', '2025-01-08 02:13:11'),
+(174, 10, 'Spouse', 'JAIi', 'M', 'RAMOS', 'No Suffix', 'Female', 'A+', 'Married', '2024-12-19', 'asd', 15, 0, '2024-12-19', 1212, '', '', 0, '', '', 'Casual', 'aas', 'dsa', 'asd', 'asd', 'dsa', '2024-12-19', '2024-12-24', '', 'Professional Degree', 2011, 2019, 'asd', 'asd', 'asd', 'asd', 'asdadsa', '2024-12-18 17:43:21', '2025-01-31 04:18:15'),
 (175, 10, 'Child', 'Child 11', 'ads', 'asd', 'No Suffix', 'Female', 'A+', 'Cohabitati', '2024-12-19', 'asd', 15, 14, '2024-12-19', 123, 'asd', 'asd', 20, 'asd', 'asd', 'Contract', 'asd', 'asd', 'asd', 'asd', 'asd', '2024-12-05', '2024-12-03', '', 'Primary Education', 1, 12, 'asd', 'asd', 'asd', 'asd', '1asdas', '2024-12-18 18:04:44', '2024-12-19 16:46:50'),
 (176, 10, 'Child', 'Child 2', '', 'asd', '', 'Male', '', '', '0000-00-00', '', 0, 0, '0000-00-00', 0, '', '', 0, '', '', '', '', '', '', '', '', '0000-00-00', '0000-00-00', '', '', 0, 0, '', '', '', '', '', '2024-12-18 18:11:33', '2024-12-19 15:55:57'),
 (177, 10, 'Mother', 'Alicia', 'Luha', 'Morales', 'No Suffix', 'Female', 'A-', '', '0000-00-00', '', 0, 0, '2024-12-20', 121, '', '', 0, '', '', '', '', '', '', '', '', '0000-00-00', '0000-00-00', '', '', 0, 0, '', '', '', '', '', '2024-12-19 16:10:01', '2024-12-19 17:06:50'),
@@ -701,7 +703,7 @@ INSERT INTO `government_issued_id` (`id`, `name`) VALUES
 (5, 'National ID (Philippine Identification System or PhilSys)'),
 (6, 'OFW ID (Overseas Filipino Worker ID)'),
 (7, 'Philippine Health Insurance Corporation (PhilHealth) ID'),
-(8, 'Philippine Passport'),
+(8, 'Passport'),
 (9, 'Philippine Statistics Authority (PSA) Birth Certificate'),
 (10, 'Postal ID'),
 (11, 'PWD ID (Persons with Disabilities)'),
@@ -848,6 +850,26 @@ CREATE TABLE `ldap_users` (
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `local_congregation`
+--
+
+CREATE TABLE `local_congregation` (
+  `id` int(11) NOT NULL,
+  `district_id` int(11) NOT NULL,
+  `local_congregation` varchar(150) NOT NULL,
+  `created_at` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `local_congregation`
+--
+
+INSERT INTO `local_congregation` (`id`, `district_id`, `local_congregation`, `created_at`) VALUES
+(1, 1, 'Abas Ext', 0);
 
 -- --------------------------------------------------------
 
@@ -1073,200 +1095,159 @@ CREATE TABLE `nationalities` (
 --
 
 INSERT INTO `nationalities` (`id`, `country_name`, `nationality`, `created_at`, `updated_at`) VALUES
-(1, 'Afghanistan', 'Afghan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(2, 'Albania', 'Albanian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(3, 'Algeria', 'Algerian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(4, 'Andorra', 'Andorran', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(5, 'Angola', 'Angolan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(6, 'Antigua and Barbuda', 'Antiguan or Barbudan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(7, 'Argentina', 'Argentine', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(8, 'Armenia', 'Armenian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(9, 'Australia', 'Australian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(10, 'Austria', 'Austrian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(11, 'Azerbaijan', 'Azerbaijani', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(12, 'Bahamas', 'Bahamian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(13, 'Bahrain', 'Bahraini', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(14, 'Bangladesh', 'Bangladeshi', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(15, 'Barbados', 'Barbadian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(16, 'Belarus', 'Belarusian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(17, 'Belgium', 'Belgian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(18, 'Belize', 'Belizean', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(19, 'Benin', 'Beninese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(20, 'Bhutan', 'Bhutanese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(21, 'Bolivia', 'Bolivian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(22, 'Bosnia and Herzegovina', 'Bosnian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(23, 'Botswana', 'Botswana', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(24, 'Brazil', 'Brazilian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(25, 'Brunei', 'Bruneian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(26, 'Bulgaria', 'Bulgarian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(27, 'Burkina Faso', 'Burkinabe', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(28, 'Burundi', 'Burundian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(29, 'Cabo Verde', 'Cape Verdean', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(30, 'Cambodia', 'Cambodian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(31, 'Cameroon', 'Cameroonian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(32, 'Canada', 'Canadian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(33, 'Central African Republic', 'Central African', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(34, 'Chad', 'Chadian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(35, 'Chile', 'Chilean', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(36, 'China', 'Chinese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(37, 'Colombia', 'Colombian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(38, 'Comoros', 'Comoran', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(39, 'Congo, Democratic Republic of the', 'Congolese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(40, 'Congo, Republic of the', 'Congolese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(41, 'Costa Rica', 'Costa Rican', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(42, 'Croatia', 'Croatian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(43, 'Cuba', 'Cuban', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(44, 'Cyprus', 'Cypriot', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(45, 'Czech Republic', 'Czech', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(46, 'Denmark', 'Danish', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(47, 'Djibouti', 'Djiboutian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(48, 'Dominica', 'Dominican', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(49, 'Dominican Republic', 'Dominican', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(50, 'Ecuador', 'Ecuadorian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(51, 'Egypt', 'Egyptian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(52, 'El Salvador', 'Salvadoran', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(53, 'Equatorial Guinea', 'Equatoguinean', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(54, 'Eritrea', 'Eritrean', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(55, 'Estonia', 'Estonian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(56, 'Eswatini', 'Swazi', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(57, 'Ethiopia', 'Ethiopian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(58, 'Fiji', 'Fijian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(59, 'Finland', 'Finnish', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(60, 'France', 'French', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(61, 'Gabon', 'Gabonese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(62, 'Gambia', 'Gambian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(63, 'Georgia', 'Georgian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(64, 'Germany', 'German', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(65, 'Ghana', 'Ghanaian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(66, 'Greece', 'Greek', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(67, 'Grenada', 'Grenadian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(68, 'Guatemala', 'Guatemalan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(69, 'Guinea', 'Guinean', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(70, 'Guinea-Bissau', 'Guinea-Bissauan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(71, 'Guyana', 'Guyanese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(72, 'Haiti', 'Haitian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(73, 'Honduras', 'Honduran', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(74, 'Hungary', 'Hungarian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(75, 'Iceland', 'Icelander', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(76, 'India', 'Indian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(77, 'Indonesia', 'Indonesian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(78, 'Iran', 'Iranian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(79, 'Iraq', 'Iraqi', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(80, 'Ireland', 'Irish', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(81, 'Israel', 'Israeli', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(82, 'Italy', 'Italian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(83, 'Jamaica', 'Jamaican', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(84, 'Japan', 'Japanese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(85, 'Jordan', 'Jordanian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(86, 'Kazakhstan', 'Kazakhstani', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(87, 'Kenya', 'Kenyan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(88, 'Kiribati', 'I-Kiribati', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(89, 'Korea, North', 'North Korean', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(90, 'Korea, South', 'South Korean', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(91, 'Kuwait', 'Kuwaiti', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(92, 'Kyrgyzstan', 'Kyrgyzstani', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(93, 'Laos', 'Laotian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(94, 'Latvia', 'Latvian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(95, 'Lebanon', 'Lebanese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(96, 'Lesotho', 'Mosotho', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(97, 'Liberia', 'Liberian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(98, 'Libya', 'Libyan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(99, 'Liechtenstein', 'Liechtensteiner', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(100, 'Lithuania', 'Lithuanian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(101, 'Luxembourg', 'Luxembourger', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(102, 'Madagascar', 'Malagasy', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(103, 'Malawi', 'Malawian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(104, 'Malaysia', 'Malaysian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(105, 'Maldives', 'Maldivian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(106, 'Mali', 'Malian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(107, 'Malta', 'Maltese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(108, 'Marshall Islands', 'Marshallese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(109, 'Mauritania', 'Mauritanian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(110, 'Mauritius', 'Mauritian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(111, 'Mexico', 'Mexican', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(112, 'Micronesia', 'Micronesian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(113, 'Moldova', 'Moldovan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(114, 'Monaco', 'Monacan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(115, 'Mongolia', 'Mongolian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(116, 'Montenegro', 'Montenegrin', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(117, 'Morocco', 'Moroccan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(118, 'Mozambique', 'Mozambican', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(119, 'Myanmar', 'Burmese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(120, 'Namibia', 'Namibian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(121, 'Nauru', 'Nauruan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(122, 'Nepal', 'Nepalese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(123, 'Netherlands', 'Dutch', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(124, 'New Zealand', 'New Zealander', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(125, 'Nicaragua', 'Nicaraguan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(126, 'Niger', 'Nigerien', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(127, 'Nigeria', 'Nigerian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(128, 'North Macedonia', 'Macedonian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(129, 'Norway', 'Norwegian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(130, 'Oman', 'Omani', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(131, 'Pakistan', 'Pakistani', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(132, 'Palau', 'Palauan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(133, 'Palestine', 'Palestinian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(134, 'Panama', 'Panamanian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(135, 'Papua New Guinea', 'Papua New Guinean', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(136, 'Paraguay', 'Paraguayan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(137, 'Peru', 'Peruvian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(138, 'Philippines', 'Filipino', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(139, 'Poland', 'Polish', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(140, 'Portugal', 'Portuguese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(141, 'Qatar', 'Qatari', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(142, 'Romania', 'Romanian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(143, 'Russia', 'Russian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(144, 'Rwanda', 'Rwandan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(145, 'Saint Kitts and Nevis', 'Kittitian or Nevisian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(146, 'Saint Lucia', 'Saint Lucian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(147, 'Saint Vincent and the Grenadines', 'Saint Vincentian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(148, 'Samoa', 'Samoan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(149, 'San Marino', 'Sammarinese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(150, 'Sao Tome and Principe', 'Sao Tomean', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(151, 'Saudi Arabia', 'Saudi', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(152, 'Senegal', 'Senegalese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(153, 'Serbia', 'Serbian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(154, 'Seychelles', 'Seychellois', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(155, 'Sierra Leone', 'Sierra Leonean', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(156, 'Singapore', 'Singaporean', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(157, 'Slovakia', 'Slovak', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(158, 'Slovenia', 'Slovenian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(159, 'Solomon Islands', 'Solomon Islander', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(160, 'Somalia', 'Somali', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(161, 'South Africa', 'South African', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(162, 'South Sudan', 'South Sudanese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(163, 'Spain', 'Spanish', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(164, 'Sri Lanka', 'Sri Lankan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(165, 'Sudan', 'Sudanese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(166, 'Suriname', 'Surinamese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(167, 'Sweden', 'Swedish', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(168, 'Switzerland', 'Swiss', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(169, 'Syria', 'Syrian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(170, 'Taiwan', 'Taiwanese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(171, 'Tajikistan', 'Tajik', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(172, 'Tanzania', 'Tanzanian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(173, 'Thailand', 'Thai', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(174, 'Togo', 'Togolese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(175, 'Tonga', 'Tongan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(176, 'Trinidad and Tobago', 'Trinidadian or Tobagonian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(177, 'Tunisia', 'Tunisian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(178, 'Turkey', 'Turkish', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(179, 'Turkmenistan', 'Turkmen', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(180, 'Tuvalu', 'Tuvaluan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(181, 'Uganda', 'Ugandan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(182, 'Ukraine', 'Ukrainian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(183, 'United Arab Emirates', 'Emirati', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(184, 'United Kingdom', 'British', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(185, 'United States', 'American', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(186, 'Uruguay', 'Uruguayan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(187, 'Uzbekistan', 'Uzbek', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(188, 'Vanuatu', 'Ni-Vanuatu', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(189, 'Vatican City', 'Vatican', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(190, 'Venezuela', 'Venezuelan', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(191, 'Vietnam', 'Vietnamese', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(192, 'Yemen', 'Yemeni', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(193, 'Zambia', 'Zambian', '2024-11-11 08:30:57', '2024-11-11 08:30:57'),
-(194, 'Zimbabwe', 'Zimbabwean', '2024-11-11 08:30:57', '2024-11-11 08:30:57');
+(1, 'China', 'Han Chinese', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(2, 'China', 'Tibetan', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(3, 'China', 'Mongol', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(4, 'China', 'Uyghur', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(5, 'China', 'Hui', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(6, 'China', 'Manchu', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(7, 'Japan', 'Japanese', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(8, 'Japan', 'Ainu', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(9, 'Japan', 'Ryukyuan', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(10, 'Korea', 'Korean', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(11, 'India', 'Hindi', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(12, 'India', 'Bengali', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(13, 'India', 'Punjabi', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(14, 'India', 'Gujarati', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(15, 'India', 'Tamil', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(16, 'India', 'Telugu', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(17, 'India', 'Kannada', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(18, 'India', 'Malayalam', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(19, 'India', 'Marathi', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(20, 'India', 'Kashmiri', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(21, 'Pakistan', 'Pashtun', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(22, 'Pakistan', 'Sindhi', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(23, 'Pakistan', 'Baloch', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(24, 'Bangladesh', 'Bengali', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(25, 'Bangladesh', 'Chakma', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(26, 'Sri Lanka', 'Sinhalese', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(27, 'Sri Lanka', 'Tamil', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(28, 'Nepal', 'Gurung', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(29, 'Nepal', 'Newar', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(30, 'Bhutan', 'Bhutia', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(31, 'Bhutan', 'Lhotshampa', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(32, 'Maldives', 'Maldivian', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(33, 'Philippines', 'Tagalog', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(34, 'Philippines', 'Ilocano', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(35, 'Philippines', 'Bisaya', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(36, 'Philippines', 'Igorot', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(37, 'Philippines', 'Moro', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(38, 'Vietnam', 'Kinh', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(39, 'Vietnam', 'Hmong', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(40, 'Thailand', 'Thai', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(41, 'Thailand', 'Karen', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(42, 'Cambodia', 'Khmer', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(43, 'Cambodia', 'Cham', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(44, 'Laos', 'Lao', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(45, 'Myanmar', 'Burmese', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(46, 'Myanmar', 'Karen', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(47, 'Indonesia', 'Javanese', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(48, 'Indonesia', 'Sundanese', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(49, 'Indonesia', 'Balinese', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(50, 'Indonesia', 'Batak', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(51, 'Malaysia', 'Malay', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(52, 'Malaysia', 'Iban', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(53, 'Brunei', 'Bruneian Malay', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(54, 'Kazakhstan', 'Kazakh', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(55, 'Uzbekistan', 'Uzbek', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(56, 'Turkmenistan', 'Turkmen', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(57, 'Kyrgyzstan', 'Kyrgyz', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(58, 'Tajikistan', 'Tajik', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(59, 'Afghanistan', 'Pashtun', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(60, 'Afghanistan', 'Tajik', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(61, 'Iran', 'Persian', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(62, 'Iran', 'Kurd', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(63, 'Iraq', 'Arab', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(64, 'Iraq', 'Assyrian', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(65, 'Iraq', 'Kurd', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(66, 'Turkey', 'Turkish', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(67, 'Turkey', 'Kurd', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(68, 'Armenia', 'Armenian', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(69, 'Azerbaijan', 'Azeri', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(70, 'Egypt', 'Arab', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(71, 'Egypt', 'Berber', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(72, 'Egypt', 'Coptic', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(73, 'Ethiopia', 'Amhara', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(74, 'Ethiopia', 'Oromo', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(75, 'Ethiopia', 'Tigrayan', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(76, 'Nigeria', 'Yoruba', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(77, 'Nigeria', 'Igbo', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(78, 'Nigeria', 'Hausa-Fulani', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(79, 'Nigeria', 'Kanuri', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(80, 'Kenya', 'Maasai', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(81, 'Kenya', 'Kikuyu', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(82, 'Somalia', 'Somali', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(83, 'South Africa', 'Zulu', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(84, 'South Africa', 'Xhosa', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(85, 'South Africa', 'Afrikaner', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(86, 'Algeria', 'Berber', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(87, 'Morocco', 'Berber', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(88, 'Ghana', 'Akan', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(89, 'Sudan', 'Nubian', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(90, 'Democratic Republic of the Congo', 'Lingala', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(91, 'Democratic Republic of the Congo', 'Pygmy', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(92, 'Madagascar', 'Malagasy', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(93, 'Germany', 'German', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(94, 'France', 'French', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(95, 'France', 'Basque', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(96, 'Italy', 'Italian', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(97, 'Spain', 'Spanish', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(98, 'Spain', 'Catalan', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(99, 'Portugal', 'Portuguese', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(100, 'United Kingdom', 'English', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(101, 'United Kingdom', 'Scottish', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(102, 'United Kingdom', 'Welsh', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(103, 'Ireland', 'Irish', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(104, 'Russia', 'Russian', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(105, 'Russia', 'Tatar', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(106, 'Russia', 'Chechen', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(107, 'Poland', 'Polish', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(108, 'Ukraine', 'Ukrainian', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(109, 'Hungary', 'Hungarian', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(110, 'Finland', 'Finnish', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(111, 'Norway', 'Norwegian', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(112, 'Sweden', 'Swedish', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(113, 'Denmark', 'Danish', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(114, 'Greece', 'Greek', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(115, 'Albania', 'Albanian', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(116, 'Serbia', 'Serb', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(117, 'Croatia', 'Croat', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(118, 'Romania', 'Romanian', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(119, 'Romania', 'Roma', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(120, 'Bulgaria', 'Bulgarian', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(121, 'United States', 'Anglo-American', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(122, 'United States', 'African American', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(123, 'United States', 'Hispanic', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(124, 'United States', 'Cherokee', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(125, 'United States', 'Navajo', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(126, 'United States', 'Sioux', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(127, 'Canada', 'French Canadian', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(128, 'Canada', 'Métis', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(129, 'Canada', 'Inuit', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(130, 'Mexico', 'Mestizo', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(131, 'Mexico', 'Maya', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(132, 'Mexico', 'Nahua', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(133, 'Brazil', 'Portuguese-Brazilian', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(134, 'Brazil', 'Afro-Brazilian', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(135, 'Argentina', 'Italian-Argentinian', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(136, 'Peru', 'Quechua', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(137, 'Peru', 'Aymara', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(138, 'Chile', 'Mapuche', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(139, 'Cuba', 'Afro-Cuban', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(140, 'Haiti', 'Haitian Creole', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(141, 'Dominican Republic', 'Afro-Dominican', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(142, 'Colombia', 'Mestizo', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(143, 'Australia', 'Aboriginal Australian', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(144, 'Australia', 'Torres Strait Islander', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(145, 'New Zealand', 'Maori', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(146, 'New Zealand', 'Pakeha', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(147, 'Hawaii (USA)', 'Hawaiian', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(148, 'Fiji', 'Fijian', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(149, 'Papua New Guinea', 'Papuan', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(150, 'Solomon Islands', 'Solomon Islander', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(151, 'Samoa', 'Samoan', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(152, 'Tonga', 'Tongan', '2025-01-31 06:04:22', '2025-01-31 06:04:22'),
+(153, 'Tahiti (French Polynesia)', 'Tahitian', '2025-01-31 06:04:22', '2025-01-31 06:04:22');
 
 -- --------------------------------------------------------
 
@@ -1528,11 +1509,11 @@ CREATE TABLE `personnels` (
   `date_of_birth` date DEFAULT NULL,
   `place_of_birth` varchar(50) DEFAULT NULL,
   `datejoined` date DEFAULT NULL,
-  `language_id` int(11) DEFAULT NULL,
+  `language_id` varchar(255) DEFAULT NULL,
   `bloodtype` varchar(10) DEFAULT NULL,
   `work_email_address` varchar(50) DEFAULT NULL,
   `email_address` varchar(50) DEFAULT NULL,
-  `citizenship` int(11) DEFAULT NULL,
+  `citizenship` varchar(250) DEFAULT NULL,
   `nationality` int(11) DEFAULT NULL,
   `department_id` int(11) DEFAULT NULL,
   `section_id` int(11) DEFAULT NULL,
@@ -1556,21 +1537,21 @@ CREATE TABLE `personnels` (
 --
 
 INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progress`, `personnel_progress`, `gender`, `civil_status`, `wedding_anniversary`, `givenname`, `middlename`, `surname_maiden`, `surname_husband`, `suffix`, `nickname`, `registered_district_id`, `registered_local_congregation`, `date_of_birth`, `place_of_birth`, `datejoined`, `language_id`, `bloodtype`, `work_email_address`, `email_address`, `citizenship`, `nationality`, `department_id`, `section_id`, `subsection_id`, `designation_id`, `district_id`, `local_congregation`, `personnel_type`, `district_assignment_id`, `local_congregation_assignment`, `assigned_number`, `m_status`, `panunumpa_date`, `ordination_date`, `created_at`, `updated_at`) VALUES
-(10, 'ENR-2412-EP1-8972', '1', '3', 'Male', 'Single', NULL, 'Felix', 'Morales', '', 'Pareja', 'No Suffix', 'Chok', 45, 'Bonifacio Drive', '1990-11-09', 'San Francisco Delmonte, Quezon City', '2022-08-22', 1, 'O+', 'felixpareja07@gmail.com', 'felixpareja.pmdit07@gmail.com', 138, 138, 1, 2, 1, 3, 45, 'Tandang Sora', 'Regular', 45, 'Bonifacio Drive', 20149, 'May Destino', '2022-09-16', NULL, '2024-12-09 04:43:34', '2025-01-27 01:23:41'),
+(10, 'ENR-2412-EP1-8972', '1', '3', 'Male', 'Single', NULL, 'Felix', 'Morales', '', 'Pareja', 'No Suffix', 'Chok', 45, 'Bonifacio Drive', '1990-11-09', 'San Francisco Delmonte, Quezon City', '2022-08-22', '1,2', 'O+', 'felixpareja07@gmail.com', 'felixpareja.pmdit07@gmail.com', '138', 138, 1, 2, 1, 3, 45, 'Tandang Sora', 'Regular', 45, 'Bonifacio Drive', 20149, 'May Destino', '2022-09-16', NULL, '2024-12-09 04:43:34', '2025-01-31 03:53:11'),
 (36, 'ENR-2501-EP1-5540', '1', '0', 'Male', 'Single', NULL, 'Michael', NULL, NULL, 'Shohdy', NULL, NULL, NULL, NULL, '1992-01-08', NULL, NULL, NULL, NULL, NULL, 'abc@yahoo.com', NULL, NULL, NULL, 0, 0, 0, NULL, NULL, 'Regular', NULL, NULL, NULL, 'May Destino', '2025-01-08', NULL, '2025-01-08 04:34:30', '2025-01-26 08:27:20'),
 (37, 'ENR-2501-EP1-3640', '1', '0', 'Male', 'Single', NULL, 'Roland Kim', 'Sato', NULL, 'Amaro', NULL, NULL, NULL, NULL, '2025-01-08', NULL, NULL, NULL, NULL, NULL, 'kim@yahoo.com', NULL, NULL, 1, 2, 1, 1, NULL, NULL, 'Regular', NULL, NULL, NULL, 'Fulltime', '2019-02-07', NULL, '2025-01-08 05:15:21', '2025-01-26 08:27:20'),
-(59, 'ENR-2501-EP1-9274', '1', 'verified', 'Male', 'Single', NULL, 'Policarpio', NULL, NULL, 'Sumbilong', NULL, NULL, NULL, NULL, '1996-01-09', NULL, NULL, 1, NULL, NULL, 'poli@pmdmc.net', 138, 138, 1, 2, 1, 1, 17, 'Templo Central', 'Regular', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:52:47', '2025-01-29 06:15:54'),
-(60, 'ENR-2501-EP1-9003', '1', '1', 'Female', 'Married', NULL, 'Poncia', NULL, NULL, 'Plato', NULL, NULL, NULL, NULL, '1996-01-11', NULL, NULL, 1, NULL, NULL, 'poli@pmdmc.net', 138, 138, NULL, 0, 0, 0, NULL, NULL, 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:56:16', '2025-01-27 08:28:09'),
-(61, 'ENR-2501-EP1-9018', '1', '0', 'Female', 'Married', NULL, 'Laarni', NULL, NULL, 'Eustaquio', NULL, '', NULL, NULL, '1996-01-11', NULL, NULL, 1, NULL, NULL, 'laitors19@gmail.com', 138, 138, NULL, 0, 0, 0, NULL, NULL, 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:57:52', '2025-01-26 08:27:20'),
-(62, 'ENR-2501-EP1-1659', '1', '0', 'Female', 'Married', '2003-01-07', 'Joan', 'Villanueva', 'Endique', 'Solitario', NULL, NULL, NULL, 'Templo Central', '1978-03-01', 'Legazpi City, Albay, Philippines', '2013-05-01', 2, 'B+', NULL, 'joan.solitario@gmail.com', 185, 138, 1, 9, 0, 0, 45, 'Templo Central', 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:59:58', '2025-01-26 08:27:20'),
-(63, 'ENR-2501-EP1-8509', '1', '7', 'Male', 'Single', NULL, 'Harvey Guy', NULL, NULL, 'Mackay', NULL, NULL, NULL, NULL, '1984-07-08', NULL, NULL, 1, '', NULL, 'harveyguy.mackay@gmail.com', NULL, NULL, 1, 2, 1, 3, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 04:00:40', '2025-01-26 09:40:38'),
+(59, 'ENR-2501-EP1-9274', '1', 'verified', 'Male', 'Single', NULL, 'Policarpio', NULL, NULL, 'Sumbilong', NULL, NULL, NULL, NULL, '1996-01-09', NULL, NULL, '1', NULL, NULL, 'poli@pmdmc.net', '138', 138, 1, 2, 1, 1, 17, 'Templo Central', 'Regular', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:52:47', '2025-01-29 06:15:54'),
+(60, 'ENR-2501-EP1-9003', '1', '1', 'Female', 'Married', NULL, 'Poncia', NULL, NULL, 'Plato', NULL, NULL, NULL, NULL, '1996-01-11', NULL, NULL, '1', NULL, NULL, 'poli@pmdmc.net', '138', 138, NULL, 0, 0, 0, NULL, NULL, 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:56:16', '2025-01-27 08:28:09'),
+(61, 'ENR-2501-EP1-9018', '1', '0', 'Female', 'Married', NULL, 'Laarni', NULL, NULL, 'Eustaquio', NULL, '', NULL, NULL, '1996-01-11', NULL, NULL, '1', NULL, NULL, 'laitors19@gmail.com', '138', 138, NULL, 0, 0, 0, NULL, NULL, 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:57:52', '2025-01-26 08:27:20'),
+(62, 'ENR-2501-EP1-1659', '1', '0', 'Female', 'Married', '2003-01-07', 'Joan', 'Villanueva', 'Endique', 'Solitario', NULL, NULL, NULL, 'Templo Central', '1978-03-01', 'Legazpi City, Albay, Philippines', '2013-05-01', '2', 'B+', NULL, 'joan.solitario@gmail.com', '185', 138, 1, 9, 0, 0, 45, 'Templo Central', 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:59:58', '2025-01-26 08:27:20'),
+(63, 'ENR-2501-EP1-8509', '1', '7', 'Male', 'Single', NULL, 'Harvey Guy', NULL, NULL, 'Mackay', NULL, NULL, NULL, NULL, '1984-07-08', NULL, NULL, '1', '', NULL, 'harveyguy.mackay@gmail.com', NULL, NULL, 1, 2, 1, 3, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 04:00:40', '2025-01-26 09:40:38'),
 (64, 'ENR-2501-EP1-7003', '1', '4', 'Male', 'Married', NULL, 'Ryan', NULL, NULL, 'Malabanan', NULL, NULL, NULL, NULL, '1987-11-19', NULL, NULL, NULL, NULL, NULL, 'ryan.malabanan@iglesianicristo.org', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, NULL, 'Fulltime', NULL, NULL, '2025-01-15 04:01:30', '2025-01-26 09:29:13'),
 (65, 'ENR-2501-EP1-7309', '1', '0', 'Male', 'Single', NULL, 'Chun-Wei', NULL, NULL, 'Kao', NULL, NULL, NULL, 'Luzon1', '2000-05-25', NULL, NULL, NULL, NULL, NULL, 'a5514585@icloud.com', NULL, NULL, NULL, 0, 0, 0, NULL, NULL, 'Regular', 45, 'Luzon', NULL, 'May Destino', NULL, NULL, '2025-01-15 04:02:55', '2025-01-26 08:27:20'),
-(67, 'ENR-2501-EP1-1914', '2', '0', 'Female', 'Married', NULL, 'Alexandra Nicole', NULL, 'Bernal', 'Dimatulac', NULL, 'Nicki', NULL, 'Templo, Central', '1991-12-31', 'Oslo, Norway', '2024-11-15', 2, NULL, NULL, 'anicolebdimatulac@gmail.com', 129, 129, 1, 9, NULL, NULL, 45, 'Templo', 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-16 08:10:27', '2025-01-26 08:27:20'),
-(68, 'ENR-2501-EP1-9034', '2', '0', 'Female', 'Married', '2015-11-16', 'Frances Nicole', 'Silva', 'Manzanero', 'Sanchez', NULL, 'Nicole', NULL, 'Templo Central', '1992-10-05', 'San Pablo City Laguna', '2015-06-19', 2, 'O+', NULL, 'nicolemsanchez05@gmail.com', 138, 138, 1, 9, NULL, NULL, 61, 'San Pablo City', 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-16 09:52:24', '2025-01-26 08:27:20'),
-(75, 'ENR-2501-EP1-9589', '1', '4', 'Male', 'Single', NULL, 'test1', 'test1', NULL, 'test1', NULL, NULL, 0, NULL, '2025-01-29', NULL, NULL, 0, NULL, NULL, 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-29 06:30:22', '2025-01-29 07:23:19'),
-(76, 'ENR-2501-EP1-5119', '1', '0', 'Male', 'Single', NULL, 'test2', 'test2', NULL, 'test2', NULL, NULL, 0, NULL, '2025-01-29', NULL, NULL, 0, NULL, NULL, 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-29 06:38:48', '2025-01-29 06:43:05'),
-(77, 'ENR-2501-EP1-3056', '1', '0', 'Male', 'Married', '2025-01-30', 'test', 'test', NULL, 'test', NULL, 'test po', 0, NULL, '2025-01-30', NULL, NULL, 0, NULL, NULL, 'abc@yahoo.com', 0, 0, 0, 0, 0, 0, 0, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-30 05:32:27', '2025-01-30 05:34:07');
+(67, 'ENR-2501-EP1-1914', '2', '0', 'Female', 'Married', NULL, 'Alexandra Nicole', NULL, 'Bernal', 'Dimatulac', NULL, 'Nicki', NULL, 'Templo, Central', '1991-12-31', 'Oslo, Norway', '2024-11-15', '2', NULL, NULL, 'anicolebdimatulac@gmail.com', '129', 129, 1, 9, NULL, NULL, 45, 'Templo', 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-16 08:10:27', '2025-01-26 08:27:20'),
+(68, 'ENR-2501-EP1-9034', '2', '0', 'Female', 'Married', '2015-11-16', 'Frances Nicole', 'Silva', 'Manzanero', 'Sanchez', NULL, 'Nicole', NULL, 'Templo Central', '1992-10-05', 'San Pablo City Laguna', '2015-06-19', '2', 'O+', NULL, 'nicolemsanchez05@gmail.com', '138', 138, 1, 9, NULL, NULL, 61, 'San Pablo City', 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-16 09:52:24', '2025-01-26 08:27:20'),
+(75, 'ENR-2501-EP1-9589', '1', '4', 'Male', 'Single', NULL, 'test1', 'test1', NULL, 'test1', NULL, NULL, 0, NULL, '2025-01-29', NULL, NULL, '0', NULL, NULL, 'abc@yahoo.com', '0', 0, 0, 0, 0, 0, 0, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-29 06:30:22', '2025-01-29 07:23:19'),
+(76, 'ENR-2501-EP1-5119', '1', '0', 'Male', 'Single', NULL, 'test2', 'test2', NULL, 'test2', NULL, NULL, 0, NULL, '2025-01-29', NULL, NULL, '0', NULL, NULL, 'abc@yahoo.com', '0', 0, 0, 0, 0, 0, 0, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-29 06:38:48', '2025-01-29 06:43:05'),
+(77, 'ENR-2501-EP1-3056', '1', '0', 'Male', 'Married', '2025-01-30', 'test', 'test', NULL, 'test', NULL, 'test po', 0, NULL, '2025-01-30', NULL, NULL, '1,3', NULL, NULL, 'abc@yahoo.com', '1,185,138', 33, 0, 0, 0, 0, 0, NULL, 'Minister', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-30 05:32:27', '2025-01-31 06:46:23');
 
 -- --------------------------------------------------------
 
@@ -2343,10 +2324,10 @@ INSERT INTO `user_navlist` (`groupid`, `NavID`) VALUES
 CREATE TABLE `work_experience` (
   `id` bigint(20) NOT NULL,
   `personnel_id` int(11) NOT NULL,
-  `employment_type` enum('Self-employed','Employed','Government','Private') NOT NULL,
+  `employment_type` varchar(150) DEFAULT NULL,
   `company` varchar(50) DEFAULT NULL,
   `address` varchar(150) DEFAULT NULL,
-  `position` varchar(50) DEFAULT NULL,
+  `position` varchar(250) DEFAULT NULL,
   `department` varchar(50) DEFAULT NULL,
   `section` varchar(50) DEFAULT NULL,
   `start_date` date DEFAULT NULL,
@@ -2365,7 +2346,11 @@ INSERT INTO `work_experience` (`id`, `personnel_id`, `employment_type`, `company
 (3, 10, 'Private', 'SENCOR', 'Ayala Avenue', 'Programmer', 'Admin', 'Programming', '2011-05-20', '2015-06-20', 'Career Growth', '2024-12-20 08:14:26', '2025-01-08 01:50:06'),
 (4, 10, 'Private', 'SBOBET', 'Buendia', 'Web Developer', 'Admin', 'IT', '2015-06-24', '2017-07-11', 'For career growth', '2025-01-08 01:48:20', '2025-01-08 01:48:20'),
 (5, 10, 'Private', 'Shang Software', 'Ayala Avenue', 'Software Engineer', 'Admin', 'IT', '2017-07-15', '2017-12-30', 'Confidential', '2025-01-08 01:49:57', '2025-01-08 01:49:57'),
-(7, 37, 'Self-employed', 'wegddd', 'asdafsafsa', 'dsaaafaa', 'dsafsa', 'asaaffsa', '2025-01-10', '2025-01-15', '', '2025-01-10 03:56:02', '2025-01-10 03:56:11');
+(7, 37, 'Self-employed', 'wegddd', 'asdafsafsa', 'dsaaafaa', 'dsafsa', 'asaaffsa', '2025-01-10', '2025-01-15', '', '2025-01-10 03:56:02', '2025-01-10 03:56:11'),
+(10, 77, '', 'asd', NULL, 'test', NULL, NULL, '2025-01-31', '2025-01-31', NULL, '2025-01-31 04:51:57', '2025-01-31 05:02:29'),
+(11, 77, NULL, 'test', NULL, 'test 2', NULL, NULL, '2025-01-31', '2025-01-31', NULL, '2025-01-31 04:55:35', '2025-01-31 05:02:39'),
+(12, 77, NULL, 'test1', NULL, 'test3atest3atest3atest3atest3atest3atest3atest3ate', NULL, NULL, NULL, NULL, NULL, '2025-01-31 04:55:50', '2025-01-31 05:02:55'),
+(13, 77, NULL, 'SENCOR', 'asd', 'asdsadsa', NULL, NULL, NULL, NULL, NULL, '2025-01-31 05:03:52', '2025-01-31 05:03:52');
 
 --
 -- Indexes for dumped tables
@@ -2466,6 +2451,12 @@ ALTER TABLE `languages`
 ALTER TABLE `ldap_users`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uid` (`uid`);
+
+--
+-- Indexes for table `local_congregation`
+--
+ALTER TABLE `local_congregation`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `locations`
@@ -2657,13 +2648,13 @@ ALTER TABLE `designations`
 -- AUTO_INCREMENT for table `districts`
 --
 ALTER TABLE `districts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=86;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=87;
 
 --
 -- AUTO_INCREMENT for table `educational_background`
 --
 ALTER TABLE `educational_background`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `events`
@@ -2696,6 +2687,12 @@ ALTER TABLE `ldap_users`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `local_congregation`
+--
+ALTER TABLE `local_congregation`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT for table `locations`
 --
 ALTER TABLE `locations`
@@ -2711,7 +2708,7 @@ ALTER TABLE `login_attempts`
 -- AUTO_INCREMENT for table `nationalities`
 --
 ALTER TABLE `nationalities`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=195;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=154;
 
 --
 -- AUTO_INCREMENT for table `navigationlist`
@@ -2825,7 +2822,7 @@ ALTER TABLE `user_groups`
 -- AUTO_INCREMENT for table `work_experience`
 --
 ALTER TABLE `work_experience`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- Constraints for dumped tables
