@@ -123,7 +123,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
     age: "",
     place_of_birth: "",
     datejoined: "",
-    language_id: "",
+    language_id: [],
     bloodtype: "",
     work_email_address: "",
     citizenship: "",
@@ -492,6 +492,17 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
     setPersonnelData((prevData) => {
       let updatedData = { ...prevData, [name]: value };
+
+      // Handle multi-selection for languages
+      if (name === "language_id") {
+        updatedData[name] = Array.isArray(value) ? value : [];
+      } else {
+        updatedData[name] = value;
+      }
+
+      if (name === "citizenship") {
+        updatedData.citizenship = Array.isArray(value) ? value : [];
+      }
 
       // Reset dependent dropdowns based on the changed field
       if (name === "department_id") {
@@ -1224,7 +1235,17 @@ const EnrollmentForm = ({ referenceNumber }) => {
       )}
       {step === 6 && (
         <Step6
-          data={family.spouses}
+          data={
+            family.spouses?.length > 0
+              ? family.spouses
+              : [
+                  {
+                    relationship_type: "Spouse",
+                    givenname: "",
+                    lastname: "",
+                  },
+                ]
+          }
           setData={(updatedSpouses) =>
             setFamily((prevFamily) => ({
               ...prevFamily,

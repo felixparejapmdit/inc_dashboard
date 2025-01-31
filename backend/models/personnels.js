@@ -80,9 +80,20 @@ const Personnel = sequelize.define(
       allowNull: true,
     },
     language_id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING, // Store as a comma-separated string
       allowNull: true,
+      get() {
+        const value = this.getDataValue("language_id");
+        return value ? value.split(",").map(Number) : [];
+      },
+      set(value) {
+        this.setDataValue(
+          "language_id",
+          Array.isArray(value) ? value.join(",") : ""
+        );
+      },
     },
+
     bloodtype: {
       type: DataTypes.STRING(10),
       allowNull: true,
@@ -98,8 +109,18 @@ const Personnel = sequelize.define(
       unique: true,
     },
     citizenship: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING, // Store as a comma-separated string
       allowNull: true,
+      get() {
+        const value = this.getDataValue("citizenship");
+        return value ? value.split(",").map(Number) : [];
+      },
+      set(value) {
+        this.setDataValue(
+          "citizenship",
+          Array.isArray(value) ? value.join(",") : ""
+        );
+      },
     },
     nationality: {
       type: DataTypes.INTEGER,

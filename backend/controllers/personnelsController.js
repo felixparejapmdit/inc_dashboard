@@ -283,6 +283,11 @@ exports.createPersonnel = async (req, res) => {
       });
     }
 
+    // Ensure language_id is stored as an array (converted to JSON)
+    const formattedLanguages = Array.isArray(personnelData.language_id)
+      ? JSON.stringify(personnelData.language_id)
+      : JSON.stringify([]);
+
     // Create new personnel record in the database
     const newPersonnel = await Personnel.create({
       reference_number: personnelData.reference_number,
@@ -303,11 +308,15 @@ exports.createPersonnel = async (req, res) => {
       date_of_birth: personnelData.date_of_birth || null,
       place_of_birth: personnelData.place_of_birth || null,
       datejoined: personnelData.datejoined || null,
-      language_id: personnelData.language_id || 0,
+      language_id: Array.isArray(personnelData.language_id)
+        ? personnelData.language_id.join(",")
+        : "",
       bloodtype: personnelData.bloodtype || null,
       work_email_address: personnelData.work_email_address || null,
       email_address: personnelData.email_address || null,
-      citizenship: personnelData.citizenship || 0,
+      citizenship: Array.isArray(personnelData.citizenship)
+        ? personnelData.citizenship.join(",")
+        : "",
       nationality: personnelData.nationality || 0,
       department_id: personnelData.department_id || 0,
       section_id: personnelData.section_id || 0,
@@ -423,13 +432,24 @@ exports.updatePersonnel = async (req, res) => {
         ) {
           updates[key] = trimmedValue !== "" ? trimmedValue : 0;
         }
+        // ✅ Handle language_id as an array (store as comma-separated string)
+        else if (key === "language_id") {
+          updates[key] = Array.isArray(trimmedValue)
+            ? trimmedValue.join(",") // Store as "1,2,3"
+            : "";
+        }
+        // ✅ Handle `citizenship` as an **array**
+        else if (key === "citizenship") {
+          updates[key] = Array.isArray(trimmedValue)
+            ? JSON.stringify(trimmedValue) // Save as JSON in DB
+            : JSON.stringify([]); // Default empty array
+        }
         // For all other fields, assign the provided value
         else {
           updates[key] = trimmedValue;
         }
       }
     }
-
     console.log("Updates to Apply:", updates);
 
     await personnel.update(updates);

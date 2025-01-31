@@ -14,13 +14,8 @@ const WorkExperience = sequelize.define(
       allowNull: false,
     },
     employment_type: {
-      type: DataTypes.ENUM(
-        "Self-employed",
-        "Employed",
-        "Government",
-        "Private"
-      ),
-      allowNull: false,
+      type: DataTypes.STRING(150),
+      allowNull: true,
     },
     company: {
       type: DataTypes.STRING(50),

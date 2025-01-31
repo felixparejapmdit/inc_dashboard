@@ -34,7 +34,7 @@ module.exports = {
       } = req.body;
 
       // Validation: Ensure required fields are present
-      const requiredFields = ["personnel_id", "employment_type", "company"];
+      const requiredFields = ["personnel_id", "company"];
       const missingFields = requiredFields.filter((field) => !req.body[field]);
 
       if (missingFields.length > 0) {
@@ -61,7 +61,7 @@ module.exports = {
       // Create new work experience record in the database
       const newWorkExperience = await WorkExperience.create({
         personnel_id,
-        employment_type,
+        employment_type: employment_type || null,
         company,
         address: address || null,
         position: position || null,

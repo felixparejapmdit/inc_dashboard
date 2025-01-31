@@ -17,6 +17,7 @@ import {
   IconButton,
   Button,
   Text,
+  Textarea,
   useToast,
   Flex,
 } from "@chakra-ui/react";
@@ -642,7 +643,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
                 }
               />
             </GridItem>
-            <GridItem>
+            <GridItem display="none">
               <Text
                 fontWeight="bold"
                 mb="2"
@@ -858,7 +859,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
                 }
               />
             </GridItem>
-            <GridItem>
+            <GridItem display="none">
               <Text
                 fontWeight="bold"
                 mb="2"
@@ -877,7 +878,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
                 }
               />
             </GridItem>
-            <GridItem>
+            <GridItem display="none">
               <Text
                 fontWeight="bold"
                 mb="2"
@@ -896,7 +897,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
                 }
               />
             </GridItem>
-            <GridItem>
+            <GridItem display="none">
               <Text
                 fontWeight="bold"
                 mb="2"
@@ -912,6 +913,25 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
                 isDisabled={!work.isEditing}
                 onChange={(e) =>
                   handleWorkExperienceChange(idx, "section", e.target.value)
+                }
+              />
+            </GridItem>
+            <GridItem>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Brief Description of Responsibilities:
+              </Text>
+              <Textarea
+                placeholder="Enter description..."
+                value={work.position}
+                isDisabled={!work.isEditing}
+                onChange={(e) =>
+                  handleWorkExperienceChange(idx, "position", e.target.value)
                 }
               />
             </GridItem>

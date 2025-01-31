@@ -823,7 +823,7 @@ const Step4 = ({
                           isDisabled={!parent.isEditing}
                         />
                       </Td>
-                      <Td>
+                      <Td display="none">
                         <Text
                           fontWeight="bold"
                           mb="2"
@@ -1237,7 +1237,7 @@ const Step4 = ({
                           }
                         />
                       </Td>
-                      <Td>
+                      <Td display="none">
                         <Text
                           fontWeight="bold"
                           mb="2"

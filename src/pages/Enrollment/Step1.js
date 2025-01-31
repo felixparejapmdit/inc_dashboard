@@ -453,7 +453,7 @@ const Step1 = ({
                 whiteSpace="nowrap"
                 color="#0a5856"
               >
-                District:
+                Current District:
               </Text>
               <Select
                 placeholder="Select District"
@@ -629,8 +629,9 @@ const Step1 = ({
             justify="space-between"
           >
             {/* Language Selector */}
+            {/* Language Selector */}
             <Box
-              width={{ base: "100%", sm: "48%", md: "24%" }}
+              width={{ base: "100%", sm: "48%", md: "33%" }}
               mb={{ base: "3", md: "0" }}
             >
               <Text
@@ -640,28 +641,32 @@ const Step1 = ({
                 whiteSpace="nowrap"
                 color="#0a5856"
               >
-                Language:
+                Languages:
               </Text>
               <Select
-                placeholder="Select Language"
+                isMulti
+                placeholder="Select Languages"
                 name="language_id"
-                value={languages
-                  .map((language) => ({
-                    value: language.id, // Map to the id of the Language model
-                    label: language.name, // Display the language name
-                  }))
-                  .find((option) => option.value === personnelData.language_id)}
-                onChange={(selectedOption) =>
+                value={
+                  Array.isArray(personnelData.language_id)
+                    ? languages
+                        .filter((lang) =>
+                          personnelData.language_id.includes(lang.id)
+                        )
+                        .map((lang) => ({ value: lang.id, label: lang.name }))
+                    : []
+                }
+                onChange={(selectedOptions) =>
                   handleChange({
                     target: {
                       name: "language_id",
-                      value: selectedOption?.value || "",
+                      value: selectedOptions.map((option) => option.value),
                     },
                   })
                 }
                 options={languages.map((language) => ({
-                  value: language.id, // Use the id of the Language model
-                  label: language.name, // Use the language name for display
+                  value: language.id,
+                  label: language.name,
                 }))}
                 isClearable
                 styles={{
@@ -675,7 +680,7 @@ const Step1 = ({
 
             {/* Blood Type Selector */}
             <Box
-              width={{ base: "100%", sm: "48%", md: "24%" }}
+              width={{ base: "100%", sm: "48%", md: "33%" }}
               mb={{ base: "3", md: "0" }}
             >
               <Text
@@ -720,9 +725,10 @@ const Step1 = ({
 
             {/* Work Email Input Field */}
             <Box
-              width={{ base: "100%", sm: "48%", md: "24%" }}
+              width={{ base: "100%", sm: "48%", md: "33%" }}
               mb={{ base: "3", md: "0" }}
               position="relative" // Ensure the error message is relative to this box
+              display="none"
             >
               <Text
                 fontWeight="bold"
@@ -766,7 +772,7 @@ const Step1 = ({
 
             {/* Personal Email Input Field */}
             <Box
-              width={{ base: "100%", sm: "48%", md: "24%" }}
+              width={{ base: "100%", sm: "48%", md: "30%" }}
               mb={{ base: "3", md: "0" }}
               position="relative" // Ensure the error message is relative to this box
             >
@@ -818,7 +824,7 @@ const Step1 = ({
             wrap="wrap"
             justify="space-between"
           >
-            {/* Department Selector */}
+            {/* Citizenship Selector */}
             <Box
               width={{ base: "100%", md: "48%" }}
               mb={{ base: "3", md: "3" }}
@@ -833,19 +839,24 @@ const Step1 = ({
                 Citizenship:
               </Text>
               <Select
+                isMulti // Enable multiple selection
                 placeholder="Select Citizenship"
                 name="citizenship"
                 value={citizenships
+                  .filter((citizenship) =>
+                    personnelData.citizenship?.includes(citizenship.id)
+                  )
                   .map((citizenship) => ({
                     value: citizenship.id,
                     label: citizenship.citizenship,
-                  }))
-                  .find((option) => option.value === personnelData.citizenship)}
-                onChange={(selectedOption) =>
+                  }))}
+                onChange={(selectedOptions) =>
                   handleChange({
                     target: {
                       name: "citizenship",
-                      value: selectedOption?.value || "",
+                      value: selectedOptions
+                        ? selectedOptions.map((option) => option.value)
+                        : [],
                     },
                   })
                 }
@@ -853,7 +864,7 @@ const Step1 = ({
                   value: citizenship.id,
                   label: citizenship.citizenship,
                 }))}
-                isClearable // Adds a clear button to reset selection
+                isClearable
                 styles={{
                   container: (base) => ({
                     ...base,
@@ -875,10 +886,10 @@ const Step1 = ({
                 whiteSpace="nowrap"
                 color="#0a5856"
               >
-                Nationality:
+                Ethnicity:
               </Text>
               <Select
-                placeholder="Select Nationality"
+                placeholder="Select Ethnicity"
                 name="nationality"
                 value={nationalities
                   .map((nationality) => ({
@@ -1013,6 +1024,7 @@ const Step1 = ({
             <Box
               width={{ base: "100%", md: "48%" }}
               mb={{ base: "3", md: "3" }}
+              display="none"
             >
               <Text
                 fontWeight="bold"
@@ -1061,6 +1073,7 @@ const Step1 = ({
             <Box
               width={{ base: "100%", md: "48%" }}
               mb={{ base: "3", md: "3" }}
+              display="none"
             >
               <Text
                 fontWeight="bold"
@@ -1267,7 +1280,7 @@ const Step1 = ({
                 {/* Ministerial Status */}
                 <Flex direction="column" mb="3" width="100%">
                   <Text fontSize="md" fontWeight="bold" mb="1" color="#0a5856">
-                    Ministerial Status:
+                    Classification in Central Office:
                   </Text>
                   <RadioGroup
                     name="m_status"
@@ -1371,10 +1384,10 @@ const Step1 = ({
                   fontSize="md"
                   fontWeight="bold"
                   mr="4"
-                  width="150px"
+                  width="250px"
                   color="#0a5856"
                 >
-                  Panunumpa Date:
+                  Date of Oath-taking as Worker:
                 </Text>
                 <Input
                   placeholder="Panunumpa Date"
@@ -1386,7 +1399,7 @@ const Step1 = ({
                       target: { name: "panunumpa_date", value: e.target.value },
                     })
                   }
-                  width="calc(100% - 150px)" // Matches remaining width
+                  width="calc(100% - 250px)" // Matches remaining width
                 />
               </Flex>
             )}
@@ -1399,10 +1412,10 @@ const Step1 = ({
                   fontSize="md"
                   fontWeight="bold"
                   mr="4"
-                  width="150px"
+                  width="250px"
                   color="#0a5856"
                 >
-                  Ordination Date:
+                  Date of Ordination:
                 </Text>
                 <Input
                   placeholder="Ordination Date"
@@ -1417,7 +1430,7 @@ const Step1 = ({
                       },
                     })
                   }
-                  width="calc(100% - 150px)" // Matches remaining width
+                  width="calc(100% - 250px)" // Matches remaining width
                 />
               </Flex>
             )}

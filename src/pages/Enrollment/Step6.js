@@ -615,7 +615,7 @@ const Step6 = ({
                     isDisabled={!spouse.isEditing}
                   />
                 </Td>
-                <Td>
+                <Td display="none">
                   <Text
                     fontWeight="bold"
                     mb="2"
@@ -952,7 +952,7 @@ const Step6 = ({
                     }
                   />
                 </Td>
-                <Td>
+                <Td display="none">
                   <Text
                     fontWeight="bold"
                     mb="2"
