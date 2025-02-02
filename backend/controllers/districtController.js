@@ -1,6 +1,6 @@
 const District = require("../models/District");
 
-// Import districts
+// Import districts in bulk
 exports.importDistricts = async (req, res) => {
   try {
     const { districts } = req.body;

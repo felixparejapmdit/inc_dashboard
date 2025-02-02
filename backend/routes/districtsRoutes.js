@@ -1,6 +1,10 @@
 const express = require("express");
 const router = express.Router();
+
 const districtsController = require("../controllers/districtController");
+
+// Import Districts
+router.post("/api/import-districts", districtsController.importDistricts);
 
 // Get all districts
 router.get("/api/districts/", districtsController.getAllDistricts);

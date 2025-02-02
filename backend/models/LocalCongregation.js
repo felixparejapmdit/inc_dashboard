@@ -16,18 +16,17 @@ const LocalCongregation = sequelize.define(
         model: "districts",
         key: "id",
       },
-      onDelete: "CASCADE",
     },
     name: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.STRING(100),
       allowNull: false,
     },
   },
   {
     tableName: "local_congregation",
     timestamps: true,
-    createdAt: "created_at",
-    updatedAt: "updated_at",
+    createdAt: "created_at", // Map to 'created_at' column
+    updatedAt: "updated_at", // Map to 'updated_at' column
   }
 );
 

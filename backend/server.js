@@ -11,6 +11,10 @@ const bodyParser = require("body-parser");
 
 const importRoutes = require("./routes/importRoutes");
 
+const districtsRoutes = require("./routes/districtsRoutes");
+const localCongregationRoutes = require("./routes/localCongregationRoutes");
+
+
 const IP_Address = process.env.REACT_IP_ADDRESS || "0.0.0.0"; // Default to listening on all interfaces
 
 const app = express();
@@ -56,7 +60,6 @@ const departmentRoutes = require("./routes/departmentRoutes");
 const sectionsRoutes = require("./routes/sectionsRoutes");
 const subsectionsRoutes = require("./routes/subsectionsRoutes");
 const designationsRoutes = require("./routes/designationsRoutes");
-const districtsRoutes = require("./routes/districtsRoutes");
 
 const citizenshipsRoutes = require("./routes/citizenshipsRoutes");
 const nationalitiesRoutes = require("./routes/nationalitiesRoutes");
@@ -99,7 +102,6 @@ app.use(departmentRoutes);
 app.use(sectionsRoutes);
 app.use(subsectionsRoutes);
 app.use(designationsRoutes);
-app.use(districtsRoutes);
 app.use(citizenshipsRoutes);
 app.use(nationalitiesRoutes);
 app.use(languagesRoutes);
@@ -125,6 +127,9 @@ app.use("/api/user-groups", userGroupsRoutes);
 app.use("/uploads", express.static("uploads"));
 
 app.use("/api", importRoutes);
+
+app.use(districtsRoutes);
+app.use(localCongregationRoutes);
 
 // --- Start server ---
 app.listen(PORT, "0.0.0.0", () => {
