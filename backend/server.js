@@ -8,6 +8,9 @@ const db = require("./db");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 
+
+const importRoutes = require("./routes/importRoutes");
+
 const IP_Address = process.env.REACT_IP_ADDRESS || "0.0.0.0"; // Default to listening on all interfaces
 
 const app = express();
@@ -68,8 +71,8 @@ const workExperienceRoutes = require("./routes/workExperienceRoutes");
 app.use(express.json()); // Middleware to parse JSON request bodies
 
 app.use(cors({ origin: "*" }));
-app.use(bodyParser.json({ limit: "50mb" })); // Increased limit to handle Base64 images
-app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
+app.use(bodyParser.json({ limit: "100mb" })); // Increased limit to handle Base64 images
+app.use(bodyParser.urlencoded({ limit: "100mb", extended: true }));
 
 app.use(userRoutes);
 app.use(express.urlencoded({ extended: true }));
@@ -120,6 +123,8 @@ app.use("/api/groups", groupPermissionsRoutes);
 app.use("/api/user-groups", userGroupsRoutes);
 
 app.use("/uploads", express.static("uploads"));
+
+app.use("/api", importRoutes);
 
 // --- Start server ---
 app.listen(PORT, "0.0.0.0", () => {

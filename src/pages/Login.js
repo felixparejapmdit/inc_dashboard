@@ -8,6 +8,7 @@ import bcrypt from "bcryptjs"; // Ensure bcrypt is installed
 import sha from "sha.js"; // For SHA encryption
 import { Buffer } from "buffer";
 
+import * as XLSX from "xlsx";
 import {
   Box,
   Button,
@@ -52,6 +53,107 @@ const Login = () => {
   const { fetchPermissions } = usePermissionContext();
 
   const [isPlaying, setIsPlaying] = useState(false);
+
+  const [file, setFile] = useState(null);
+
+  const handleFileUpload = (event) => {
+    setFile(event.target.files[0]);
+  };
+
+  const handleImport = async () => {
+    if (!file) {
+      toast({
+        title: "Error",
+        description: "Please select an XLSX file to import.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.readAsBinaryString(file);
+    reader.onload = async (e) => {
+      const data = e.target.result;
+      const workbook = XLSX.read(data, { type: "binary" });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+      if (!jsonData.length) {
+        toast({
+          title: "Error",
+          description: "No data found in the file.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
+
+      try {
+        const response = await axios.post(`${API_URL}/api/import-districts`, {
+          districts: jsonData,
+        });
+
+        if (response.data.success) {
+          toast({
+            title: "Success",
+            description: "Districts imported successfully!",
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
+        } else {
+          throw new Error("Import failed.");
+        }
+      } catch (error) {
+        console.error("Import error:", error);
+        toast({
+          title: "Error",
+          description: "Failed to import districts.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    };
+  };
+  
+  const handleImportLocal = async () => {
+    if (!file) {
+      alert("Please select a file first.");
+      return;
+    }
+
+    setIsLoading(true);
+    
+    const reader = new FileReader();
+    reader.readAsBinaryString(file);
+    reader.onload = async (e) => {
+      const data = e.target.result;
+      const workbook = XLSX.read(data, { type: "binary" });
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+      // Split into smaller chunks before sending
+      const batchSize = 1000; // Adjust as needed
+      for (let i = 0; i < jsonData.length; i += batchSize) {
+        const batch = jsonData.slice(i, i + batchSize);
+        try {
+          await axios.post(`${process.env.REACT_APP_API_URL}/api/import/local-congregation`, { data: batch });
+          console.log(`Imported ${i + batchSize} rows`);
+        } catch (error) {
+          console.error("Error importing batch:", error);
+        }
+      }
+
+      alert("Local Congregation data imported successfully!");
+      setIsLoading(false);
+    };
+  };
 
   const handleRetrieveReference = async () => {
     if (!name.trim() || !dateOfBirth.trim()) {
@@ -597,6 +699,13 @@ const Login = () => {
             >
               Track your enrollment progress
             </Text>
+
+            <VStack spacing={3} mt={4}>
+      <Input type="file" accept=".xlsx" onChange={handleFileUpload} />
+      <Button colorScheme="blue" onClick={handleImportLocal}>
+        Import Districts
+      </Button>
+    </VStack>
           </Flex>
           {/* Modal for Reference Number */}
           <Modal isOpen={isOpen} onClose={onClose}>

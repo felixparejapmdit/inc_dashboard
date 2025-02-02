@@ -1,5 +1,20 @@
 const District = require("../models/District");
 
+// Import districts
+exports.importDistricts = async (req, res) => {
+  try {
+    const { districts } = req.body;
+    if (!districts || districts.length === 0) {
+      return res.status(400).json({ message: "No data received." });
+    }
+    await District.bulkCreate(districts);
+    res.status(201).json({ message: "Districts imported successfully!" });
+  } catch (error) {
+    console.error("Error importing districts:", error);
+    res.status(500).json({ message: "Server error while importing districts." });
+  }
+};
+
 // Get all districts ordered by name (ascending)
 exports.getAllDistricts = async (req, res) => {
   try {
