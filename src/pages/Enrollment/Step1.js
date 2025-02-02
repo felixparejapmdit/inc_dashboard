@@ -31,6 +31,7 @@ const Step1 = ({
   subsections,
   designations,
   districts,
+  localCongregations,
   suffixOptions,
   bloodtypes,
 }) => {
@@ -69,6 +70,11 @@ const Step1 = ({
   const [filteredSections, setFilteredSections] = useState([]);
   const [filteredSubsections, setFilteredSubsections] = useState([]);
   const [filteredDesignations, setFilteredDesignations] = useState([]);
+
+  const [filteredLocalCongregations, setFilteredLocalCongregations] = useState([]);
+  const [filteredLocalCongregationsOrigin, setFilteredLocalCongregationsOrigin] = useState([]);
+  const [filteredLocalCongregationsAssignment, setFilteredLocalCongregationsAssignment] = useState([]);
+
 
   // Filter sections based on department
   useEffect(() => {
@@ -110,6 +116,44 @@ const Step1 = ({
       setFilteredDesignations([]);
     }
   }, [personnelData.section_id, personnelData.subsection_id, designations]);
+
+
+  useEffect(() => {
+    if (personnelData.registered_district_id) {
+      const filtered = localCongregations.filter(
+        (congregation) =>
+          congregation.district_id === parseInt(personnelData.registered_district_id)
+      );
+      setFilteredLocalCongregations(filtered);
+    } else {
+      setFilteredLocalCongregations([]);
+    }
+  }, [personnelData.registered_district_id, localCongregations]);
+
+  useEffect(() => {
+    if (personnelData.district_id) {
+      const filtered = localCongregations.filter(
+        (congregation) =>
+          congregation.district_id === parseInt(personnelData.district_id)
+      );
+      setFilteredLocalCongregationsOrigin(filtered);
+    } else {
+      setFilteredLocalCongregationsOrigin([]);
+    }
+  }, [personnelData.district_id, localCongregations]);
+
+  useEffect(() => {
+    if (personnelData.district_assignment_id) {
+      const filtered = localCongregations.filter(
+        (congregation) =>
+          congregation.district_id === parseInt(personnelData.district_assignment_id)
+      );
+      setFilteredLocalCongregationsAssignment(filtered);
+    } else {
+      setFilteredLocalCongregationsAssignment([]);
+    }
+  }, [personnelData.district_assignment_id, localCongregations]);
+  
 
   // Validation Functions
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); // Basic email regex
@@ -489,25 +533,51 @@ const Step1 = ({
               />
             </Box>
 
-            {/* Local Congregation */}
-            <Box width={{ base: "100%", md: "24%" }}>
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                Current Local Congregation:
-              </Text>
-              <Input
-                placeholder="Local Congregation"
-                name="registered_local_congregation"
-                value={personnelData.registered_local_congregation}
-                onChange={handleChange}
-                width="100%"
-              />
-            </Box>
+        {/* Local Congregation Dropdown */}
+<Box width={{ base: "100%", md: "24%" }}>
+  <Text
+    fontWeight="bold"
+    mb="2"
+    minWidth="120px"
+    whiteSpace="nowrap"
+    color="#0a5856"
+  >
+    Current Local Congregation:
+  </Text>
+  <Select
+    placeholder="Select Local Congregation"
+    name="registered_local_congregation"
+    value={filteredLocalCongregations
+      .map((congregation) => ({
+        value: congregation.id,
+        label: congregation.name,
+      }))
+      .find(
+        (option) => option.value === personnelData.registered_local_congregation
+      )}
+    onChange={(selectedOption) =>
+      handleChange({
+        target: {
+          name: "registered_local_congregation",
+          value: selectedOption?.value || "",
+        },
+      })
+    }
+    options={filteredLocalCongregations.map((congregation) => ({
+      value: congregation.id,
+      label: congregation.name,
+    }))}
+    isDisabled={!personnelData.registered_district_id} // Disable if no district is selected
+    isClearable
+    styles={{
+      container: (base) => ({
+        ...base,
+        width: "100%",
+      }),
+    }}
+  />
+</Box>
+
           </Flex>
 
           <Flex
@@ -1145,7 +1215,7 @@ const Step1 = ({
             wrap="wrap"
             justify="space-between"
           >
-            {/* District */}
+            {/* District Origin */}
             <Box
               width={{ base: "100%", md: "48%" }}
               mb={{ base: "3", md: "0" }}
@@ -1190,25 +1260,51 @@ const Step1 = ({
               />
             </Box>
 
-            {/* Local Congregation */}
-            <Box width={{ base: "100%", md: "48%" }}>
-              <Text
-                fontWeight="bold"
-                mb="2"
-                minWidth="120px"
-                whiteSpace="nowrap"
-                color="#0a5856"
-              >
-                Local Congregation Origin:
-              </Text>
-              <Input
-                placeholder="Local Congregation"
-                name="local_congregation"
-                value={personnelData.local_congregation}
-                onChange={handleChange}
-                width="100%"
-              />
-            </Box>
+            {/* Local Congregation Origin Dropdown */}
+<Box width={{ base: "100%", md: "48%" }}>
+  <Text
+    fontWeight="bold"
+    mb="2"
+    minWidth="120px"
+    whiteSpace="nowrap"
+    color="#0a5856"
+  >
+    Local Congregation Origin:
+  </Text>
+  <Select
+    placeholder="Select Local Congregation"
+    name="local_congregation"
+    value={filteredLocalCongregationsOrigin
+      .map((congregation) => ({
+        value: congregation.id,
+        label: congregation.name,
+      }))
+      .find(
+        (option) => option.value === personnelData.local_congregation
+      )}
+    onChange={(selectedOption) =>
+      handleChange({
+        target: {
+          name: "local_congregation",
+          value: selectedOption?.value || "",
+        },
+      })
+    }
+    options={filteredLocalCongregationsOrigin.map((congregation) => ({
+      value: congregation.id,
+      label: congregation.name,
+    }))}
+    isDisabled={!personnelData.district_id} // Disable if no district is selected
+    isClearable
+    styles={{
+      container: (base) => ({
+        ...base,
+        width: "100%",
+      }),
+    }}
+  />
+</Box>
+
           </Flex>
 
           <Flex direction="column" mb="4" width="100%">
@@ -1354,25 +1450,51 @@ const Step1 = ({
                 />
               </Box>
 
-              {/* Local Congregation Assignment*/}
-              <Box width={{ base: "100%", md: "48%" }}>
-                <Text
-                  fontWeight="bold"
-                  mb="2"
-                  minWidth="120px"
-                  whiteSpace="nowrap"
-                  color="#0a5856"
-                >
-                  Local Congregation Assignment:
-                </Text>
-                <Input
-                  placeholder="Local Congregation"
-                  name="local_congregation_assignment"
-                  value={personnelData.local_congregation_assignment}
-                  onChange={handleChange}
-                  width="100%"
-                />
-              </Box>
+             {/* Local Congregation Assignment Dropdown */}
+<Box width={{ base: "100%", md: "48%" }}>
+  <Text
+    fontWeight="bold"
+    mb="2"
+    minWidth="120px"
+    whiteSpace="nowrap"
+    color="#0a5856"
+  >
+    Local Congregation Assignment:
+  </Text>
+  <Select
+    placeholder="Select Local Congregation"
+    name="local_congregation_assignment"
+    value={filteredLocalCongregationsAssignment
+      .map((congregation) => ({
+        value: congregation.id,
+        label: congregation.name,
+      }))
+      .find(
+        (option) => option.value === personnelData.local_congregation_assignment
+      )}
+    onChange={(selectedOption) =>
+      handleChange({
+        target: {
+          name: "local_congregation_assignment",
+          value: selectedOption?.value || "",
+        },
+      })
+    }
+    options={filteredLocalCongregationsAssignment.map((congregation) => ({
+      value: congregation.id,
+      label: congregation.name,
+    }))}
+    isDisabled={!personnelData.district_assignment_id} // Disable if no district is selected
+    isClearable
+    styles={{
+      container: (base) => ({
+        ...base,
+        width: "100%",
+      }),
+    }}
+  />
+</Box>
+
             </Flex>
           )}
 

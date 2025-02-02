@@ -176,6 +176,8 @@ const EnrollmentForm = ({ referenceNumber }) => {
   const [designations, setDesignations] = useState([]);
   const [districts, setDistricts] = useState([]);
 
+  const [localCongregations, setLocalCongregations] = useState([]);
+
   const suffixOptions = [
     "No Suffix",
     "Jr.",
@@ -253,6 +255,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
     fetchData("subsections", setSubsections);
     fetchData("designations", setDesignations);
     fetchData("districts", setDistricts);
+  fetchData("local-congregations", setLocalCongregations);
   }, []);
 
   const [contacts, setContacts] = useState([]);
@@ -1146,6 +1149,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
           subsections={subsections}
           designations={designations}
           districts={districts}
+          localCongregations={localCongregations} // Add Local Congregations here
           suffixOptions={suffixOptions}
           civilStatusOptions={civilStatusOptions}
           bloodtypes={bloodtypes}

@@ -82,9 +82,8 @@ const Login = () => {
       const jsonData = XLSX.utils.sheet_to_json(worksheet);
   
       try {
-        const response = await axios.post(`${API_URL}/import-districts`, {
-          districts: jsonData,
-        });
+        const response = await axios.post(`${API_URL}/api/import-districts`, { districts: jsonData });
+
         toast({
           title: "Success",
           description: response.data.message,

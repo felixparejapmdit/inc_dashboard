@@ -1,19 +1,31 @@
 const District = require("../models/District");
 
-// Import districts in bulk
-exports.importDistricts = async (req, res) => {
+// Import districts in bulk using Sequelize
+exports.importDistricts = async (req, res) => 
+{
   try {
     const { districts } = req.body;
-    if (!districts || districts.length === 0) {
+
+    if (!districts || !Array.isArray(districts) || districts.length === 0) {
       return res.status(400).json({ message: "No data received." });
     }
-    await District.bulkCreate(districts);
+
+    // Ensure all objects match Sequelize model structure
+    const formattedDistricts = districts.map(({ id, name, code, region }) => ({
+      name,
+      code,
+      region,
+    }));
+
+    await District.bulkCreate(formattedDistricts, { ignoreDuplicates: true });
+
     res.status(201).json({ message: "Districts imported successfully!" });
   } catch (error) {
     console.error("Error importing districts:", error);
     res.status(500).json({ message: "Server error while importing districts." });
   }
 };
+
 
 // Get all districts ordered by name (ascending)
 exports.getAllDistricts = async (req, res) => {
