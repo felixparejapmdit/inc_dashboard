@@ -4,16 +4,13 @@ const express = require("express");
 
 const path = require("path");
 
-const db = require("./db");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-
 
 const importRoutes = require("./routes/importRoutes");
 
 const districtsRoutes = require("./routes/districtsRoutes");
 const localCongregationRoutes = require("./routes/localCongregationRoutes");
-
 
 const IP_Address = process.env.REACT_IP_ADDRESS || "0.0.0.0"; // Default to listening on all interfaces
 
