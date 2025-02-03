@@ -71,7 +71,7 @@ const Login = () => {
       });
       return;
     }
-  
+
     const reader = new FileReader();
     reader.readAsBinaryString(file);
     reader.onload = async (e) => {
@@ -80,9 +80,11 @@ const Login = () => {
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
       const jsonData = XLSX.utils.sheet_to_json(worksheet);
-  
+
       try {
-        const response = await axios.post(`${API_URL}/api/import-districts`, { districts: jsonData });
+        const response = await axios.post(`${API_URL}/api/import-districts`, {
+          districts: jsonData,
+        });
 
         toast({
           title: "Success",
@@ -103,7 +105,7 @@ const Login = () => {
       }
     };
   };
-  
+
   const handleImportLocal = async () => {
     if (!file) {
       toast({
@@ -115,7 +117,7 @@ const Login = () => {
       });
       return;
     }
-  
+
     const reader = new FileReader();
     reader.readAsBinaryString(file);
     reader.onload = async (e) => {
@@ -124,7 +126,7 @@ const Login = () => {
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
       const jsonData = XLSX.utils.sheet_to_json(worksheet);
-  
+
       if (!jsonData.length) {
         toast({
           title: "Error",
@@ -135,18 +137,22 @@ const Login = () => {
         });
         return;
       }
-  
+
       const batchSize = 1000; // Send in batches of 1000 records
       for (let i = 0; i < jsonData.length; i += batchSize) {
         const batch = jsonData.slice(i, i + batchSize);
         try {
-          await axios.post(`${process.env.REACT_APP_API_URL}/api/import-local-congregations`, { data: batch });
+          await axios.post(
+            `${process.env.REACT_APP_API_URL}/api/import-local-congregations`,
+            { data: batch }
+          );
           console.log(`Imported ${i + batchSize} rows`);
         } catch (error) {
           console.error("Error importing batch:", error);
           toast({
             title: "Error",
-            description: "Failed to import some data. Check console for errors.",
+            description:
+              "Failed to import some data. Check console for errors.",
             status: "error",
             duration: 3000,
             isClosable: true,
@@ -154,7 +160,7 @@ const Login = () => {
           return;
         }
       }
-  
+
       toast({
         title: "Success",
         description: "Local Congregations imported successfully!",
@@ -164,8 +170,7 @@ const Login = () => {
       });
     };
   };
-  
-  
+
   const handleRetrieveReference = async () => {
     if (!name.trim() || !dateOfBirth.trim()) {
       toast({
@@ -710,16 +715,15 @@ const Login = () => {
             >
               Track your enrollment progress
             </Text>
-            <VStack spacing={3} mt={4}>
-  <Input type="file" accept=".xlsx" onChange={handleFileUpload} />
-  <Button colorScheme="blue" onClick={handleImportDistricts}>
-    Import Districts
-  </Button>
-  <Button colorScheme="green" onClick={handleImportLocal}>
-    Import Local Congregations
-  </Button>
-</VStack>
-
+            <VStack spacing={3} mt={4} display="none">
+              <Input type="file" accept=".xlsx" onChange={handleFileUpload} />
+              <Button colorScheme="blue" onClick={handleImportDistricts}>
+                Import Districts
+              </Button>
+              <Button colorScheme="green" onClick={handleImportLocal}>
+                Import Local Congregations
+              </Button>
+            </VStack>
           </Flex>
           {/* Modal for Reference Number */}
           <Modal isOpen={isOpen} onClose={onClose}>
