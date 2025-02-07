@@ -82,7 +82,7 @@ const FamilyMember = db.define(
       allowNull: true,
     },
     local_congregation: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
     minister_officiated: {

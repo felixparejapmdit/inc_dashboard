@@ -184,6 +184,8 @@ exports.updateFamilyMember = async (req, res) => {
       "church_duties",
       "education_level",
       "employment_type",
+      "district_id",
+      "local_congregation",
     ];
 
     const updates = {};

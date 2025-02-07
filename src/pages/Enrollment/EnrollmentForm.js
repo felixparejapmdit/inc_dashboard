@@ -28,8 +28,8 @@ import Step6 from "./Step6"; // Import Step6 component for spouse
 import Step7 from "./Step7";
 
 const API_URL = process.env.REACT_APP_API_URL;
-const DISTRICT_API_URL = `${API_URL}/api/districts`;
-const LOCAL_CONGREGATION_API_URL = `${API_URL}/api/all-congregations`;
+const DISTRICT_API_URL = `http://172.18.121.72:5000/api/districts`;
+const LOCAL_CONGREGATION_API_URL = `http://172.18.121.72:5000/api/all-congregations`;
 const EnrollmentForm = ({ referenceNumber }) => {
   const [step, setStep] = useState(1);
   const totalSteps = 7;
@@ -1234,6 +1234,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
           nationalities={nationalities}
           suffixOptions={suffixOptions}
           districts={districts}
+          localCongregations={localCongregations} // Add Local Congregations here
           civilStatusOptions={civilStatusOptions}
           employmentTypeOptions={employmentTypeOptions}
           educationalLevelOptions={educationalLevelOptions}
@@ -1258,6 +1259,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
           nationalities={nationalities}
           suffixOptions={suffixOptions}
           districts={districts}
+          localCongregations={localCongregations} // Add Local Congregations here
           civilStatusOptions={civilStatusOptions}
           employmentTypeOptions={employmentTypeOptions}
           educationalLevelOptions={educationalLevelOptions}
@@ -1292,6 +1294,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
           nationalities={nationalities}
           suffixOptions={suffixOptions}
           districts={districts}
+          localCongregations={localCongregations} // Add Local Congregations here
           civilStatusOptions={civilStatusOptions}
           employmentTypeOptions={employmentTypeOptions}
           educationalLevelOptions={educationalLevelOptions}
@@ -1318,6 +1321,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
           nationalities={nationalities}
           suffixOptions={suffixOptions}
           districts={districts}
+          localCongregations={localCongregations} // Add Local Congregations here
           civilStatusOptions={civilStatusOptions}
           employmentTypeOptions={employmentTypeOptions}
           educationalLevelOptions={educationalLevelOptions}
