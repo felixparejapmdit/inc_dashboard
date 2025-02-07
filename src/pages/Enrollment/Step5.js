@@ -33,6 +33,7 @@ const Step5 = ({
   nationalities,
   suffixOptions,
   districts,
+  localCongregations,
   civilStatusOptions,
   employmentTypeOptions,
   educationalLevelOptions,
@@ -40,6 +41,27 @@ const Step5 = ({
 }) => {
   const [searchParams] = useSearchParams(); // Retrieve query parameters
   const personnelId = searchParams.get("personnel_id"); // Get personnel_id from URL
+
+  // Local state for filtered congregations per parent
+  const [filteredCongregations, setFilteredCongregations] = useState({});
+
+  // ✅ Update local congregations dynamically when a district is selected
+  useEffect(() => {
+    if (data.length > 0) {
+      const newFilteredCongregations = {};
+
+      data.forEach((parent) => {
+        if (parent.district_id) {
+          newFilteredCongregations[parent.district_id] =
+            localCongregations.filter(
+              (congregation) => congregation.district_id === parent.district_id
+            );
+        }
+      });
+
+      setFilteredCongregations(newFilteredCongregations);
+    }
+  }, [data, localCongregations]);
 
   const [siblings, setSiblings] = useState([]);
   const getRowBgColor = (index) => (index % 2 === 0 ? "gray.50" : "green.50"); // Alternate colors
@@ -677,39 +699,39 @@ const Step5 = ({
                     placeholder="Select District"
                     name="district_id"
                     value={
-                      sibling.district_id
-                        ? districts
-                            .map((district) => ({
-                              value: district.id,
-                              label: district.name,
-                            }))
-                            .find(
-                              (option) => option.value === sibling.district_id
-                            )
-                        : null
-                    } // Maps the selected value to a valid option
-                    onChange={(selectedOption) =>
+                      districts
+                        .map((district) => ({
+                          value: district.id,
+                          label: district.name,
+                        }))
+                        .find(
+                          (option) => option.value === sibling.district_id
+                        ) || null
+                    } // Ensure the correct selected district
+                    onChange={(selectedOption) => {
                       onChange(
                         index,
                         "district_id",
                         selectedOption?.value || ""
-                      )
-                    } // Updates the state with the selected district
+                      );
+                      onChange(index, "local_congregation", ""); // Reset local congregation when district changes
+                    }}
                     options={districts.map((district) => ({
                       value: district.id,
                       label: district.name,
-                    }))} // Creates dropdown options from the districts array
-                    isDisabled={!sibling.isEditing} // Disables the dropdown if editing is not allowed
-                    isClearable // Adds a clear button to reset the selection
+                    }))}
+                    isClearable
+                    isDisabled={!sibling.isEditing} // Disable when editing is not enabled
                     styles={{
                       container: (base) => ({
                         ...base,
-                        width: "100%", // Ensures the dropdown fits the layout
+                        width: "100%",
                       }),
                     }}
                   />
                 </Td>
 
+                {/* ✅ Local Congregation Select Dropdown */}
                 <Td>
                   <Text
                     fontWeight="bold"
@@ -720,13 +742,41 @@ const Step5 = ({
                   >
                     Local Congregation:
                   </Text>
-                  <Input
-                    placeholder="Local Congregation"
-                    value={sibling.local_congregation}
-                    onChange={(e) =>
-                      onChange(index, "local_congregation", e.target.value)
+                  <Select
+                    placeholder="Select Local Congregation"
+                    name="local_congregation"
+                    value={
+                      (filteredCongregations[sibling.district_id] || [])
+                        .map((congregation) => ({
+                          value: congregation.id,
+                          label: congregation.name,
+                        }))
+                        .find(
+                          (option) =>
+                            option.value === sibling.local_congregation
+                        ) || null
+                    } // Ensure the correct selected local congregation
+                    onChange={(selectedOption) =>
+                      onChange(
+                        index,
+                        "local_congregation",
+                        selectedOption?.value || ""
+                      )
                     }
-                    isDisabled={!sibling.isEditing}
+                    options={(
+                      filteredCongregations[sibling.district_id] || []
+                    ).map((congregation) => ({
+                      value: congregation.id,
+                      label: congregation.name,
+                    }))}
+                    isClearable
+                    isDisabled={!sibling.isEditing || !sibling.district_id} // Disable if no district is selected
+                    styles={{
+                      container: (base) => ({
+                        ...base,
+                        width: "100%",
+                      }),
+                    }}
                   />
                 </Td>
               </Tr>
