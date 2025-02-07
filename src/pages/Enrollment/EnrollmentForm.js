@@ -30,6 +30,7 @@ import Step7 from "./Step7";
 const API_URL = process.env.REACT_APP_API_URL;
 const DISTRICT_API_URL = `http://172.18.121.72:5000/api/districts`;
 const LOCAL_CONGREGATION_API_URL = `http://172.18.121.72:5000/api/all-congregations`;
+
 const EnrollmentForm = ({ referenceNumber }) => {
   const [step, setStep] = useState(1);
   const totalSteps = 7;
