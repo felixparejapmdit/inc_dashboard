@@ -17,6 +17,10 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { CheckIcon } from "@chakra-ui/icons";
 
+const DISTRICT_API_URL = "http://172.18.121.72:5000/api/districts";
+const LOCAL_CONGREGATION_API_URL =
+  "http://172.18.121.72:5000/api/local-congregations";
+
 const Step1 = ({
   personnelData,
   setPersonnelData,

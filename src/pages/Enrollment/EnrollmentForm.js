@@ -28,7 +28,8 @@ import Step6 from "./Step6"; // Import Step6 component for spouse
 import Step7 from "./Step7";
 
 const API_URL = process.env.REACT_APP_API_URL;
-
+const DISTRICT_API_URL = `${API_URL}/api/districts`;
+const LOCAL_CONGREGATION_API_URL = `${API_URL}/api/all-congregations`;
 const EnrollmentForm = ({ referenceNumber }) => {
   const [step, setStep] = useState(1);
   const totalSteps = 7;
@@ -178,6 +179,32 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
   const [localCongregations, setLocalCongregations] = useState([]);
 
+  // ✅ Fetch districts on component mount
+  useEffect(() => {
+    const fetchDistricts = async () => {
+      try {
+        const response = await axios.get(DISTRICT_API_URL);
+        setDistricts(response.data);
+      } catch (error) {
+        console.error("Error fetching districts:", error);
+      }
+    };
+    fetchDistricts();
+  }, []);
+
+  // ✅ Fetch all local congregations (no filtering here)
+  useEffect(() => {
+    const fetchLocalCongregations = async () => {
+      try {
+        const response = await axios.get(LOCAL_CONGREGATION_API_URL);
+        setLocalCongregations(response.data); // ✅ Store the full list of local congregations
+      } catch (error) {
+        console.error("Error fetching local congregations:", error);
+      }
+    };
+    fetchLocalCongregations();
+  }, []);
+
   const suffixOptions = [
     "No Suffix",
     "Jr.",
@@ -255,7 +282,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
     fetchData("subsections", setSubsections);
     fetchData("designations", setDesignations);
     fetchData("districts", setDistricts);
-  fetchData("local-congregations", setLocalCongregations);
+    fetchData("local-congregations", setLocalCongregations);
   }, []);
 
   const [contacts, setContacts] = useState([]);
