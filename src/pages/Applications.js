@@ -39,6 +39,8 @@ const ITEMS_PER_PAGE = 10;
 
 const Applications = () => {
   const [apps, setApps] = useState([]);
+  const [filteredApps, setFilteredApps] = useState([]); // Search-filtered applications
+  const [searchQuery, setSearchQuery] = useState(""); // Search input value
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [description, setDescription] = useState("");
@@ -59,9 +61,21 @@ const Applications = () => {
   useEffect(() => {
     fetch(`${API_URL}/api/apps`)
       .then((res) => res.json())
-      .then((data) => setApps(data))
+      .then((data) => {
+        setApps(data);
+        setFilteredApps(data);
+      })
       .catch((err) => console.error(err));
   }, []);
+
+  // Search filter logic (filter first, then paginate)
+  useEffect(() => {
+    const filtered = apps.filter((app) =>
+      app.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredApps(filtered);
+    setCurrentPage(1); // Reset to first page when searching
+  }, [searchQuery, apps]);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -155,8 +169,8 @@ const Applications = () => {
     onClose();
   };
 
-  const totalPages = Math.ceil(apps.length / ITEMS_PER_PAGE);
-  const currentItems = apps.slice(
+  const totalPages = Math.ceil(filteredApps.length / ITEMS_PER_PAGE);
+  const currentItems = filteredApps.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
@@ -173,18 +187,28 @@ const Applications = () => {
     <Box p={6}>
       <Heading mb={6}>Manage Applications</Heading>
 
-      <Button
-        leftIcon={<AddIcon />}
-        onClick={() => {
-          resetForm();
-          onOpen();
-        }}
-        colorScheme="teal"
-        mb={4}
-      >
-        App
-      </Button>
-      {apps.length > ITEMS_PER_PAGE && (
+      <Flex justify="space-between" mb={4}>
+        <Button
+          leftIcon={<AddIcon />}
+          onClick={() => {
+            resetForm();
+            onOpen();
+          }}
+          colorScheme="teal"
+        >
+          Add App
+        </Button>
+
+        {/* 🔍 Search Bar */}
+        <Input
+          placeholder="Search Applications..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          width="250px"
+        />
+      </Flex>
+
+      {totalPages > 1 && (
         <Flex justify="space-between" align="center" mt={4}>
           <Button
             onClick={() => handlePageChange("previous")}
@@ -248,8 +272,7 @@ const Applications = () => {
           ))}
         </Tbody>
       </Table>
-
-      {apps.length > ITEMS_PER_PAGE && (
+      {totalPages > 1 && (
         <Flex justify="space-between" align="center" mt={4}>
           <Button
             onClick={() => handlePageChange("previous")}
