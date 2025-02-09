@@ -28,6 +28,8 @@ import axios from "axios";
 
 const SectionManagement = () => {
   const [sections, setSections] = useState([]);
+  const [filteredSections, setFilteredSections] = useState([]); // Filtered list
+  const [searchQuery, setSearchQuery] = useState(""); // Search state
   const [departments, setDepartments] = useState([]);
   const [newSection, setNewSection] = useState({ name: "", department_id: "" });
   const [isAdding, setIsAdding] = useState(false);
@@ -47,6 +49,7 @@ const SectionManagement = () => {
         `${process.env.REACT_APP_API_URL}/api/sections`
       );
       setSections(response.data);
+      setFilteredSections(response.data); // Initialize filtered list
     } catch (error) {
       toast({
         title: "Error loading sections",
@@ -72,6 +75,14 @@ const SectionManagement = () => {
       });
     }
   };
+
+  // 🔍 Search Filter Logic
+  useEffect(() => {
+    const filtered = sections.filter((section) =>
+      section.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredSections(filtered);
+  }, [searchQuery, sections]);
 
   const handleAddSection = async () => {
     if (!newSection.name || !newSection.department_id) {
@@ -156,10 +167,19 @@ const SectionManagement = () => {
   return (
     <Box p={5}>
       <Stack spacing={4}>
-        <Text fontSize="28px" fontWeight="bold">
-          Section List
-        </Text>
+        <Flex justify="space-between" align="center">
+          <Text fontSize="28px" fontWeight="bold">
+            Section List
+          </Text>
 
+          {/* 🔍 Search Bar */}
+          <Input
+            placeholder="Search Sections..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            width="250px"
+          />
+        </Flex>
         <Table variant="striped">
           <Thead>
             <Tr>
@@ -232,7 +252,7 @@ const SectionManagement = () => {
                 </Td>
               </Tr>
             )}
-            {sections.map((section) => (
+            {filteredSections.map((section) => (
               <Tr key={section.id}>
                 <Td>
                   <Flex align="center">

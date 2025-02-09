@@ -27,10 +27,12 @@ import axios from "axios";
 
 const DepartmentManagement = () => {
   const [departments, setDepartments] = useState([]);
+  const [filteredDepartments, setFilteredDepartments] = useState([]); // Filtered list
+  const [searchQuery, setSearchQuery] = useState(""); // Search state
   const [newDepartment, setNewDepartment] = useState({ name: "" });
   const [isAdding, setIsAdding] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState(null);
-  const [deletingDepartment, setDeletingDepartment] = useState(null); // State for department to delete
+  const [deletingDepartment, setDeletingDepartment] = useState(null);
   const toast = useToast();
   const cancelRef = useRef();
 
@@ -44,6 +46,7 @@ const DepartmentManagement = () => {
         `${process.env.REACT_APP_API_URL}/api/departments`
       );
       setDepartments(response.data);
+      setFilteredDepartments(response.data); // Initialize filtered list
     } catch (error) {
       toast({
         title: "Error loading departments",
@@ -53,6 +56,14 @@ const DepartmentManagement = () => {
       });
     }
   };
+
+  // 🔍 Search Filter Logic
+  useEffect(() => {
+    const filtered = departments.filter((department) =>
+      department.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredDepartments(filtered);
+  }, [searchQuery, departments]);
 
   const handleAddDepartment = async () => {
     try {
@@ -77,7 +88,6 @@ const DepartmentManagement = () => {
         duration: 3000,
       });
     } catch (error) {
-      console.error("Error adding department:", error);
       toast({
         title: "Error adding department",
         description: error.response?.data?.message || error.message,
@@ -130,16 +140,26 @@ const DepartmentManagement = () => {
         duration: 3000,
       });
     } finally {
-      setDeletingDepartment(null); // Close alert after delete
+      setDeletingDepartment(null);
     }
   };
 
   return (
     <Box p={5}>
       <Stack spacing={4}>
-        <Text fontSize="28px" fontWeight="bold">
-          Department List
-        </Text>
+        <Flex justify="space-between" align="center">
+          <Text fontSize="28px" fontWeight="bold">
+            Department List
+          </Text>
+
+          {/* 🔍 Search Bar */}
+          <Input
+            placeholder="Search Departments..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            width="250px"
+          />
+        </Flex>
 
         <Table variant="striped">
           <Thead>
@@ -193,7 +213,7 @@ const DepartmentManagement = () => {
                 </Td>
               </Tr>
             )}
-            {departments.map((department) => (
+            {filteredDepartments.map((department) => (
               <Tr key={department.id}>
                 <Td>
                   <Flex align="center">
