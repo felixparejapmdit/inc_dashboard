@@ -701,10 +701,10 @@ const Step4 = ({
                           whiteSpace="nowrap"
                           color="#0a5856"
                         >
-                          Nationality:
+                          Ethnicity:
                         </Text>
                         <Select
-                          placeholder="Select Nationality"
+                          placeholder="Select Ethnicity"
                           name="nationality"
                           value={nationalities
                             .map((nationality) => ({
@@ -981,25 +981,6 @@ const Step4 = ({
                           whiteSpace="nowrap"
                           color="#0a5856"
                         >
-                          Position:
-                        </Text>
-                        <Input
-                          placeholder="Position"
-                          value={parent.position}
-                          onChange={(e) =>
-                            onChange(index, "position", e.target.value)
-                          }
-                          isDisabled={!parent.isEditing}
-                        />
-                      </Td>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
                           Address:
                         </Text>
                         <Input
@@ -1011,10 +992,29 @@ const Step4 = ({
                           isDisabled={!parent.isEditing}
                         />
                       </Td>
+                      <Td>
+                        <Text
+                          fontWeight="bold"
+                          mb="2"
+                          minWidth="100px"
+                          whiteSpace="nowrap"
+                          color="#0a5856"
+                        >
+                          Brief Description <br></br> of Responsibilities:
+                        </Text>
+                        <Input
+                          placeholder="Brief Description of Responsibilities"
+                          value={parent.position}
+                          onChange={(e) =>
+                            onChange(index, "position", e.target.value)
+                          }
+                          isDisabled={!parent.isEditing}
+                        />
+                      </Td>
                     </Tr>
                     <Tr>
                       {/* Department Field */}
-                      <Td>
+                      <Td display="none">
                         <Text
                           fontWeight="bold"
                           mb="2"
@@ -1035,7 +1035,7 @@ const Step4 = ({
                       </Td>
 
                       {/* Section Field */}
-                      <Td>
+                      <Td display="none">
                         <Text
                           fontWeight="bold"
                           mb="2"
@@ -1095,8 +1095,6 @@ const Step4 = ({
                           isDisabled={!parent.isEditing}
                         />
                       </Td>
-                    </Tr>
-                    <Tr>
                       <Td>
                         <Text
                           fontWeight="bold"

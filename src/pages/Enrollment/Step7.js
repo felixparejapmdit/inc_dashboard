@@ -553,10 +553,10 @@ const Step7 = ({
               <Tr>
                 <Td>
                   <Text fontWeight="bold" mb="2" color="#0a5856">
-                    Nationality:
+                    Ethnicity:
                   </Text>
                   {renderSelect(
-                    "Select Nationality",
+                    "Select Ethnicity",
                     child.nationality,
                     nationalities,
                     (value) => onChange(index, "nationality", value),
@@ -767,25 +767,6 @@ const Step7 = ({
                     whiteSpace="nowrap"
                     color="#0a5856"
                   >
-                    Position:
-                  </Text>
-                  <Input
-                    placeholder="Position"
-                    value={child.position}
-                    onChange={(e) =>
-                      onChange(index, "position", e.target.value)
-                    }
-                    isDisabled={!child.isEditing}
-                  />
-                </Td>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
                     Address:
                   </Text>
                   <Input
@@ -795,8 +776,6 @@ const Step7 = ({
                     isDisabled={!child.isEditing}
                   />
                 </Td>
-              </Tr>
-              <Tr>
                 <Td>
                   <Text
                     fontWeight="bold"
@@ -805,7 +784,28 @@ const Step7 = ({
                     whiteSpace="nowrap"
                     color="#0a5856"
                   >
-                    Address:
+                    Brief Description <br></br> of Responsibilities:
+                  </Text>
+                  <Input
+                    placeholder="Brief Description of Responsibilities:"
+                    value={child.position}
+                    onChange={(e) =>
+                      onChange(index, "position", e.target.value)
+                    }
+                    isDisabled={!child.isEditing}
+                  />
+                </Td>
+              </Tr>
+              <Tr>
+                <Td display="none">
+                  <Text
+                    fontWeight="bold"
+                    mb="2"
+                    minWidth="120px"
+                    whiteSpace="nowrap"
+                    color="#0a5856"
+                  >
+                    Department:
                   </Text>
                   <Input
                     placeholder="Department"
@@ -816,7 +816,7 @@ const Step7 = ({
                     isDisabled={!child.isEditing}
                   />
                 </Td>
-                <Td>
+                <Td display="none">
                   <Text
                     fontWeight="bold"
                     mb="2"
@@ -873,8 +873,6 @@ const Step7 = ({
                     isDisabled={!child.isEditing}
                   />
                 </Td>
-              </Tr>
-              <Tr>
                 <Td>
                   <Text
                     fontWeight="bold"
@@ -895,7 +893,6 @@ const Step7 = ({
                   />
                 </Td>
               </Tr>
-
               {/* Educational Information Section */}
               <Tr bg={getRowBgColor(index)}>
                 <Td colSpan={4}>

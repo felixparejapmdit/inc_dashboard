@@ -555,10 +555,10 @@ const Step6 = ({
               <Tr>
                 <Td>
                   <Text fontWeight="bold" mb="2" color="#0a5856">
-                    Nationality:
+                    Ethnicity:
                   </Text>
                   {renderSelect(
-                    "Select Nationality",
+                    "Select Ethnicity",
                     spouse.nationality,
                     nationalities,
                     (value) => onChange(index, "nationality", value),
@@ -771,14 +771,12 @@ const Step6 = ({
                     whiteSpace="nowrap"
                     color="#0a5856"
                   >
-                    Position:
+                    Address:
                   </Text>
                   <Input
-                    placeholder="Position"
-                    value={spouse.position}
-                    onChange={(e) =>
-                      onChange(index, "position", e.target.value)
-                    }
+                    placeholder="Address"
+                    value={spouse.address}
+                    onChange={(e) => onChange(index, "address", e.target.value)}
                     isDisabled={!spouse.isEditing}
                   />
                 </Td>
@@ -790,18 +788,20 @@ const Step6 = ({
                     whiteSpace="nowrap"
                     color="#0a5856"
                   >
-                    Address:
+                    Brief Description <br></br> of Responsibilities:
                   </Text>
                   <Input
-                    placeholder="Address"
-                    value={spouse.address}
-                    onChange={(e) => onChange(index, "address", e.target.value)}
+                    placeholder="Brief Description of Responsibilities:"
+                    value={spouse.position}
+                    onChange={(e) =>
+                      onChange(index, "position", e.target.value)
+                    }
                     isDisabled={!spouse.isEditing}
                   />
                 </Td>
               </Tr>
               <Tr>
-                <Td>
+                <Td display="none">
                   <Text
                     fontWeight="bold"
                     mb="2"
@@ -820,7 +820,7 @@ const Step6 = ({
                     isDisabled={!spouse.isEditing}
                   />
                 </Td>
-                <Td>
+                <Td display="none">
                   <Text
                     fontWeight="bold"
                     mb="2"
@@ -877,8 +877,6 @@ const Step6 = ({
                     isDisabled={!spouse.isEditing}
                   />
                 </Td>
-              </Tr>
-              <Tr>
                 <Td>
                   <Text
                     fontWeight="bold"

@@ -50,21 +50,34 @@ exports.addApp = async (req, res) => {
   const { name, url, description, icon } = req.body;
 
   if (!name || !url || !description) {
-    return res
-      .status(400)
-      .json({ message: "All fields (name, url, description) are required." });
+    return res.status(400).json({
+      message: "All fields (name, url, description) are required.",
+    });
   }
 
-  // Updated URL validation regex pattern to allow localhost and ports
+  // ✅ URL validation regex pattern allowing full URLs with paths, file extensions, and query params
   const urlPattern =
-    /^(https?:\/\/)(localhost|[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+)(:\d+)?(\/[\w-]*)*\/?$/;
+    /^(https?:\/\/)(localhost|[a-zA-Z0-9.-]+)(:\d+)?(\/[\w-./?%&=]*)?$/;
+
   if (!urlPattern.test(url)) {
-    return res
-      .status(400)
-      .json({ message: "Invalid URL format. Must start with http or https." });
+    return res.status(400).json({
+      message: "Invalid URL format. Must be a valid http or https link.",
+    });
   }
 
   try {
+    // ✅ Check for existing app with the same name or URL
+    const existingApp = await App.findOne({
+      where: { [Op.or]: [{ name }, { url }] },
+    });
+
+    if (existingApp) {
+      return res.status(400).json({
+        message: "An app with the same name or URL already exists.",
+      });
+    }
+
+    // ✅ Create new app if no duplicates found
     const newApp = await App.create({ name, url, description, icon });
     res.status(201).json({ message: "App added successfully.", app: newApp });
   } catch (error) {
@@ -79,12 +92,36 @@ exports.updateApp = async (req, res) => {
   const { name, url, description, icon } = req.body;
 
   if (!name || !url) {
-    return res
-      .status(400)
-      .json({ message: "Name and URL fields are required." });
+    return res.status(400).json({
+      message: "Name and URL fields are required.",
+    });
+  }
+
+  // ✅ URL validation regex (same as `addApp`)
+  const urlPattern =
+    /^(https?:\/\/)(localhost|[a-zA-Z0-9.-]+)(:\d+)?(\/[\w-./?%&=]*)?$/;
+
+  if (!urlPattern.test(url)) {
+    return res.status(400).json({
+      message: "Invalid URL format. Must be a valid http or https link.",
+    });
   }
 
   try {
+    // ✅ Check if another app (excluding the current one) has the same name or URL
+    const existingApp = await App.findOne({
+      where: {
+        [Op.or]: [{ name }, { url }],
+        id: { [Op.ne]: appId }, // Ensure it's not the same app being updated
+      },
+    });
+
+    if (existingApp) {
+      return res.status(400).json({
+        message: "Another app with the same name or URL already exists.",
+      });
+    }
+
     const [updated] = await App.update(
       { name, url, description, icon },
       { where: { id: appId } }

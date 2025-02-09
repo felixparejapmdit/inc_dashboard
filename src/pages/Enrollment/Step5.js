@@ -627,10 +627,10 @@ const Step5 = ({
                     whiteSpace="nowrap"
                     color="#0a5856"
                   >
-                    Nationality:
+                    Ethnicity:
                   </Text>
                   <Select
-                    placeholder="Select Nationality"
+                    placeholder="Select Ethnicity"
                     name="nationality"
                     value={
                       sibling.nationality
@@ -904,14 +904,12 @@ const Step5 = ({
                     whiteSpace="nowrap"
                     color="#0a5856"
                   >
-                    Position:
+                    Address:
                   </Text>
                   <Input
-                    placeholder="Position"
-                    value={sibling.position}
-                    onChange={(e) =>
-                      onChange(index, "position", e.target.value)
-                    }
+                    placeholder="Address"
+                    value={sibling.address}
+                    onChange={(e) => onChange(index, "address", e.target.value)}
                     isDisabled={!sibling.isEditing}
                   />
                 </Td>
@@ -923,18 +921,20 @@ const Step5 = ({
                     whiteSpace="nowrap"
                     color="#0a5856"
                   >
-                    Address:
+                    Brief Description <br></br> of Responsibilities:
                   </Text>
                   <Input
-                    placeholder="Address"
-                    value={sibling.address}
-                    onChange={(e) => onChange(index, "address", e.target.value)}
+                    placeholder="Brief Description of Responsibilities:"
+                    value={sibling.position}
+                    onChange={(e) =>
+                      onChange(index, "position", e.target.value)
+                    }
                     isDisabled={!sibling.isEditing}
                   />
                 </Td>
               </Tr>
               <Tr>
-                <Td>
+                <Td display="none">
                   <Text
                     fontWeight="bold"
                     mb="2"
@@ -953,7 +953,7 @@ const Step5 = ({
                     isDisabled={!sibling.isEditing}
                   />
                 </Td>
-                <Td>
+                <Td display="none">
                   <Text
                     fontWeight="bold"
                     mb="2"
@@ -1010,8 +1010,6 @@ const Step5 = ({
                     isDisabled={!sibling.isEditing}
                   />
                 </Td>
-              </Tr>
-              <Tr>
                 <Td>
                   <Text
                     fontWeight="bold"

@@ -63,6 +63,8 @@ const Users = ({ personnelId }) => {
   const [apps, setApps] = useState([]);
   const [username, setUsername] = useState("");
   const [fullname, setFullname] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [selectedApps, setSelectedApps] = useState([]);
@@ -238,7 +240,20 @@ const Users = ({ personnelId }) => {
   const handleEditUser = (item) => {
     setEditingUser(item);
     setUsername(item.username);
-    setFullname(`${item.givenName || ""} ${item.sn || ""}`);
+
+    // alert(`LDAP Last Name (sn): ${item.sn}`); // Debugging info
+
+    // Extract first name and last name correctly
+    const givenNameParts = item.givenName.split(" "); // Split given name to handle middle initials
+    const firstName = givenNameParts[0]; // First word is the first name
+    const lastName = item.sn; // Last name (from LDAP)
+
+    setFirstName(firstName);
+    setLastName(lastName);
+
+    // Use setFullname if needed for display purposes
+    setFullname(`${firstName} ${lastName}`);
+
     setEmail(item.mail || "");
     setAvatarUrl(item.avatar || "");
     setSelectedApps(item.availableApps || []);
@@ -788,30 +803,30 @@ const Users = ({ personnelId }) => {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Enter Username"
+                  isDisabled={!!editingUser} // Disable input when editing
                 />
               </FormControl>
+
               <FormControl isRequired>
                 <FormLabel>First Name</FormLabel>
                 <Input
-                  value={fullname.split(" ")[0]}
-                  onChange={(e) => {
-                    const lastName = fullname.split(" ")[1] || "";
-                    setFullname(`${e.target.value} ${lastName}`);
-                  }}
+                  value={firstName} // Use setFirstName for accuracy
+                  onChange={(e) => setFirstName(e.target.value)}
                   placeholder="Enter First Name"
+                  isDisabled={!!editingUser} // Disable input when editing
                 />
               </FormControl>
+
               <FormControl isRequired>
                 <FormLabel>Last Name</FormLabel>
                 <Input
-                  value={fullname.split(" ")[1] || ""}
-                  onChange={(e) => {
-                    const firstName = fullname.split(" ")[0] || "";
-                    setFullname(`${firstName} ${e.target.value}`);
-                  }}
+                  value={lastName} // Use setLastName for accuracy
+                  onChange={(e) => setLastName(e.target.value)}
                   placeholder="Enter Last Name"
+                  isDisabled={!!editingUser} // Disable input when editing
                 />
               </FormControl>
+
               <FormControl isRequired>
                 <FormLabel>Email</FormLabel>
                 <Input
@@ -819,8 +834,10 @@ const Users = ({ personnelId }) => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter Email"
+                  isDisabled={!!editingUser} // Disable input when editing
                 />
               </FormControl>
+
               <FormControl isRequired>
                 <FormLabel>Group Name</FormLabel>
                 <Select
