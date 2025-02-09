@@ -21,6 +21,7 @@ import {
   Image,
   HStack,
   Tooltip,
+  useBreakpointValue,
   IconButton,
   Popover,
   PopoverTrigger,
@@ -279,6 +280,9 @@ export default function Dashboard() {
     return `Good evening, ${userFullName}!`;
   };
 
+  // 🟢 Dynamic column count for responsiveness
+  const columns = useBreakpointValue({ base: 1, sm: 1, md: 3, lg: 3, xl: 5 });
+
   return (
     <Box bg={useColorModeValue("gray.50", "gray.900")} minH="100vh" p={6}>
       <HStack justify="space-between" mb={0}>
@@ -438,48 +442,50 @@ export default function Dashboard() {
         Your Apps
       </Heading>
 
-      <Box display="flex" justifyContent="center" alignItems="center" width="100%">
-  <SimpleGrid columns={3} spacing={6} width="80%">
-    {filteredApps.length > 0 ? (
-      filteredApps.map((app) => (
-        <AppCard
-          key={app.id} // Use app.id as the unique key
-          app={app}
-          colors={colors}
-          onSettingsClick={handleSettingsClick}
-          handleNextcloudLogin={handleNextcloudLogin}
-        />
-      ))
-    ) : (
       <Box
         display="flex"
-        flexDirection="column"
         justifyContent="center"
         alignItems="center"
-        textAlign="center"
-        height="100%"
-        py={10}
-        px={6}
+        width="100%"
       >
-        <Image
-          src="placeholder-image-url.webp"
-          alt="No apps available"
-          boxSize="150px"
-          mb={4}
-        />
-        <Text fontSize="lg" fontWeight="bold" mb={2}>
-          You currently have no assigned apps.
-        </Text>
-        <Text color="gray.500">
-          Please contact the admin for access or add a new app.
-        </Text>
+        <SimpleGrid columns={columns} spacing={6} width="80%">
+          {filteredApps.length > 0 ? (
+            filteredApps.map((app) => (
+              <AppCard
+                key={app.id} // Use app.id as the unique key
+                app={app}
+                colors={colors}
+                onSettingsClick={handleSettingsClick}
+                handleNextcloudLogin={handleNextcloudLogin}
+              />
+            ))
+          ) : (
+            <Box
+              display="flex"
+              flexDirection="column"
+              justifyContent="center"
+              alignItems="center"
+              textAlign="center"
+              height="100%"
+              py={10}
+              px={6}
+            >
+              <Image
+                src="placeholder-image-url.webp"
+                alt="No apps available"
+                boxSize="150px"
+                mb={4}
+              />
+              <Text fontSize="lg" fontWeight="bold" mb={2}>
+                You currently have no assigned apps.
+              </Text>
+              <Text color="gray.500">
+                Please contact the admin for access or add a new app.
+              </Text>
+            </Box>
+          )}
+        </SimpleGrid>
       </Box>
-    )}
-  </SimpleGrid>
-</Box>
-
-
-
 
       {/* Modal for App Info */}
       {selectedApp && (
@@ -562,25 +568,18 @@ const AppCard = ({ app, colors, onSettingsClick, handleNextcloudLogin }) => (
   <VStack
     as="a"
     href={app.url}
-    target={app.url.includes("suguan") ? "_self" : "_blank"}
-    rel={app.url.includes("suguan") ? "" : "noopener noreferrer"}
+    target="_blank"
+    rel="noopener noreferrer"
     bg={colors.appBg}
-    borderRadius="xl" // Slightly rounded corners
+    borderRadius="xl"
     border={`2px solid ${colors.cardBorder}`}
-    p={8} // Increased padding for better spacing
+    p={6}
     spacing={4}
     boxShadow="md"
-    _hover={{
-      boxShadow: "xl",
-      transform: "scale(1.01)",
-      transition: "all 0.3s ease-in-out",
-      bgGradient: "linear(to-r, white, gray.50)",
-    }}
-    transition="all 0.3s ease-in-out"
-    align="center" // Center align content
-    textAlign="center" // Align text in the center
+    _hover={{ transform: "scale(1.03)", transition: "all 0.2s ease-in-out" }}
+    align="center"
+    textAlign="center"
     width="100%"
-    position="relative" // For absolute positioning of the icon
   >
     {/* Settings Icon */}
     <Box position="absolute" display="none" top={4} right={4}>

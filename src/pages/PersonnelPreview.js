@@ -214,7 +214,7 @@ const PersonnelPreview = () => {
             </GridItem>
             <GridItem>
               <Text>
-                <b>Nationality:</b>{" "}
+                <b>Ethnicity:</b>{" "}
                 {getNameById(
                   personnel.nationality,
                   nationalities,
