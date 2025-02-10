@@ -13,55 +13,81 @@ import {
   Button,
   Icon,
   Flex,
+  Spinner, // ✅ Added Chakra UI Spinner
+  Center,
 } from "@chakra-ui/react";
 import { EmailIcon, PhoneIcon } from "@chakra-ui/icons";
 import axios from "axios";
 
 import { FaPrint } from "react-icons/fa"; // Import the desired print icon
 const API_URL = process.env.REACT_APP_API_URL;
+const DISTRICT_API_URL = `http://172.18.121.72:5000/api/districts`;
+const LOCAL_CONGREGATION_API_URL = `http://172.18.121.72:5000/api/all-congregations`;
+
+const FAMILY_MEMBERS_API_URL = `${API_URL}/api/get-family-members`;
 
 const PersonnelPreview = () => {
   const { personnelId } = useParams();
   const [personnel, setPersonnel] = useState(null);
 
-  const [languages, setLanguages] = useState([]);
-  const [citizenships, setCitizenships] = useState([]);
-  const [nationalities, setNationalities] = useState([]);
-  const [departments, setDepartments] = useState([]);
-  const [sections, setSections] = useState([]);
-  const [subsections, setSubsections] = useState([]);
-  const [designations, setDesignations] = useState([]);
-  const [districts, setDistricts] = useState([]);
+  const [familyMembers, setFamilyMembers] = useState([]); // ✅ Store all family members
+  const [loading, setLoading] = useState(true);
 
-  // Fetch data on component load
+  // Store lookup data
+  const [lookupData, setLookupData] = useState({
+    languages: [],
+    citizenships: [],
+    nationalities: [],
+    departments: [],
+    sections: [],
+    subsections: [],
+    designations: [],
+    districts: [],
+    localCongregations: [],
+  });
+
   useEffect(() => {
-    // Helper function to fetch and set data
-    const fetchData = async (endpoint, setter) => {
+    const fetchAllData = async () => {
       try {
-        const response = await axios.get(`${API_URL}/api/${endpoint}`);
-        setter(response.data);
+        // Fetch all lookup data in parallel
+        const endpoints = [
+          "languages",
+          "citizenships",
+          "nationalities",
+          "departments",
+          "sections",
+          "subsections",
+          "designations",
+        ];
+
+        // Fetch general data
+        const generalResponses = await Promise.all(
+          endpoints.map((endpoint) => axios.get(`${API_URL}/api/${endpoint}`))
+        );
+
+        // Fetch districts separately from its dedicated API
+        const districtResponse = await axios.get(DISTRICT_API_URL);
+
+        // Fetch local congregations separately from its API
+        const localCongregationResponse = await axios.get(
+          LOCAL_CONGREGATION_API_URL
+        );
+
+        // Map fetched data to corresponding keys
+        const lookupResults = {};
+        endpoints.forEach((endpoint, index) => {
+          lookupResults[endpoint] = generalResponses[index].data;
+        });
+
+        lookupResults["districts"] = districtResponse.data;
+        lookupResults["localCongregations"] = localCongregationResponse.data;
+
+        setLookupData(lookupResults);
       } catch (error) {
-        console.error(`Error fetching ${endpoint}:`, error);
+        console.error("Error fetching lookup data:", error);
       }
     };
 
-    fetchData("languages", setLanguages); // Add this line for languages
-    fetchData("citizenships", setCitizenships);
-    fetchData("nationalities", setNationalities);
-    fetchData("departments", setDepartments);
-    fetchData("sections", setSections);
-    fetchData("subsections", setSubsections);
-    fetchData("designations", setDesignations);
-    fetchData("districts", setDistricts);
-  }, []);
-
-  // Helper function to get the name from the array based on the ID and a custom name field
-  const getNameById = (id, array, nameField = "name") => {
-    const item = array.find((entry) => entry.id === id);
-    return item ? item[nameField] : "N/A"; // Return the name or "N/A" if not found
-  };
-
-  useEffect(() => {
     const fetchPersonnel = async () => {
       try {
         const response = await axios.get(
@@ -70,14 +96,44 @@ const PersonnelPreview = () => {
         setPersonnel(response.data);
       } catch (error) {
         console.error("Error fetching personnel:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchPersonnel();
+    const fetchFamilyMembers = async () => {
+      try {
+        const response = await axios.get(
+          `${FAMILY_MEMBERS_API_URL}?personnel_id=${personnelId}`
+        );
+        setFamilyMembers(response.data);
+      } catch (error) {
+        console.error("Error fetching family members:", error);
+      }
+    };
+
+    Promise.all([fetchAllData(), fetchPersonnel(), fetchFamilyMembers()]).then(
+      () => setLoading(false)
+    );
   }, [personnelId]);
 
+  // Helper function to get the name from the array based on the ID and a custom name field
+  const getNameById = (id, array, nameField = "name") => {
+    const item = array.find((entry) => entry.id === id);
+    return item ? item[nameField] : "N/A"; // Return the name or "N/A" if not found
+  };
+
+  // ✅ **Show a Spinner while loading**
+  if (loading) {
+    return (
+      <Center height="100vh">
+        <Spinner size="xl" color="teal.500" thickness="4px" speed="0.65s" />
+      </Center>
+    );
+  }
+
   if (!personnel) {
-    return <Text>Loading...</Text>;
+    return <Text>No data available</Text>;
   }
 
   // Format full name
@@ -89,6 +145,19 @@ const PersonnelPreview = () => {
   ]
     .filter(Boolean) // Exclude empty values
     .join(" ");
+
+  // ✅ Filter family members by relationship type
+  const parents = familyMembers.filter(
+    (fm) =>
+      fm.relationship_type === "Father" || fm.relationship_type === "Mother"
+  );
+  const siblings = familyMembers.filter(
+    (fm) => fm.relationship_type === "Sibling"
+  );
+  const spouse = familyMembers.find((fm) => fm.relationship_type === "Spouse");
+  const children = familyMembers.filter(
+    (fm) => fm.relationship_type === "Child"
+  );
 
   return (
     <Box
@@ -128,10 +197,10 @@ const PersonnelPreview = () => {
 
         <Divider />
 
-        {/* Personal Information */}
+        {/* Primary Information */}
         <Box>
           <Heading size="md" mb={4}>
-            Personal Information
+            Primary Information
           </Heading>
           <Grid templateColumns="repeat(2, 1fr)" gap={6}>
             <GridItem>
@@ -144,7 +213,7 @@ const PersonnelPreview = () => {
                 <b>Civil Status:</b> {personnel.civil_status}
               </Text>
             </GridItem>
-            {personnel.wedding_anniversary && (
+            {personnel.civil_status === "Married" && (
               <GridItem>
                 <Text>
                   <b>Wedding Anniversary:</b>{" "}
@@ -199,7 +268,8 @@ const PersonnelPreview = () => {
             )}
             <GridItem>
               <Text>
-                <b>Language:</b> {getNameById(personnel.language_id, languages)}
+                <b>Language:</b>{" "}
+                {getNameById(personnel.language_id, lookupData.languages)}
               </Text>
             </GridItem>
             <GridItem>
@@ -207,7 +277,7 @@ const PersonnelPreview = () => {
                 <b>Citizenship:</b>{" "}
                 {getNameById(
                   personnel.citizenship,
-                  citizenships,
+                  lookupData.citizenships,
                   "citizenship"
                 )}
               </Text>
@@ -217,7 +287,7 @@ const PersonnelPreview = () => {
                 <b>Ethnicity:</b>{" "}
                 {getNameById(
                   personnel.nationality,
-                  nationalities,
+                  lookupData.nationalities,
                   "nationality"
                 )}
               </Text>
@@ -225,35 +295,40 @@ const PersonnelPreview = () => {
             <GridItem>
               <Text>
                 <b>Department:</b>{" "}
-                {getNameById(personnel.department_id, departments)}
+                {getNameById(personnel.department_id, lookupData.departments)}
               </Text>
             </GridItem>
             <GridItem>
               <Text>
-                <b>Section:</b> {getNameById(personnel.section_id, sections)}
+                <b>Section:</b>{" "}
+                {getNameById(personnel.section_id, lookupData.sections)}
               </Text>
             </GridItem>
             <GridItem>
               <Text>
-                <b>Team:</b> {getNameById(personnel.subsection_id, subsections)}
+                <b>Team:</b>{" "}
+                {getNameById(personnel.subsection_id, lookupData.subsections)}
               </Text>
             </GridItem>
             <GridItem>
               <Text>
                 <b>Designation:</b>{" "}
-                {getNameById(personnel.designation_id, designations)}
+                {getNameById(personnel.designation_id, lookupData.designations)}
               </Text>
             </GridItem>
             <GridItem>
               <Text>
-                <b>District:</b> {getNameById(personnel.district_id, districts)}
+                <b>District:</b>{" "}
+                {getNameById(personnel.district_id, lookupData.districts)}
               </Text>
             </GridItem>
-
             <GridItem>
               <Text>
                 <b>Local Congregation:</b>{" "}
-                {personnel.local_congregation || "N/A"}
+                {getNameById(
+                  personnel.local_congregation,
+                  lookupData.localCongregations
+                )}
               </Text>
             </GridItem>
           </Grid>
@@ -331,46 +406,170 @@ const PersonnelPreview = () => {
             </Box>
           )}
 
-        {personnel.civil_status === "Married" && (
-          <Box>
-            <Heading size="md" mb={4}>
-              Minister's Wife Information
-            </Heading>
-            <Grid templateColumns="repeat(2, 1fr)" gap={6}>
-              {personnel.wedding_anniversary && (
+        {/* ✅ Family Information Section with Proper Spacing */}
+        <Box>
+          <Heading size="md" mb={4}>
+            Family Information
+          </Heading>
+
+          {/* Parents Section */}
+          {parents.length > 0 && (
+            <>
+              <Heading size="sm" mt={4} mb={2}>
+                Parents
+              </Heading>
+              <Grid templateColumns="repeat(2, 1fr)" gap={6}>
+                {parents.map((parent) => (
+                  <GridItem key={parent.id}>
+                    <Text>
+                      <b>Name:</b>{" "}
+                      {`${parent.givenname} ${parent.middlename || ""} ${
+                        parent.lastname
+                      }`}
+                    </Text>
+                    <Text>
+                      <b>Gender:</b> {parent.gender || "N/A"}
+                    </Text>
+                    <Text>
+                      <b>Civil Status:</b> {parent.civil_status || "N/A"}
+                    </Text>
+                    <Text>
+                      <b>Date of Birth:</b>{" "}
+                      {parent.date_of_birth
+                        ? new Date(parent.date_of_birth).toLocaleDateString()
+                        : "N/A"}
+                    </Text>
+                    <Text>
+                      <b>Nationality:</b> {parent.nationality || "N/A"}
+                    </Text>
+                    <Text>
+                      <b>Employment:</b> {parent.employment_type || "N/A"}
+                    </Text>
+                  </GridItem>
+                ))}
+              </Grid>
+            </>
+          )}
+
+          {/* Siblings Section */}
+          {siblings.length > 0 && (
+            <>
+              <Heading size="sm" mt={4} mb={2}>
+                Siblings
+              </Heading>
+              <Grid templateColumns="repeat(2, 1fr)" gap={6}>
+                {siblings.map((sibling) => (
+                  <GridItem key={sibling.id}>
+                    <Text>
+                      <b>Name:</b>{" "}
+                      {`${sibling.givenname} ${sibling.middlename || ""} ${
+                        sibling.lastname
+                      }`}
+                    </Text>
+                    <Text>
+                      <b>Gender:</b> {sibling.gender || "N/A"}
+                    </Text>
+                    <Text>
+                      <b>Civil Status:</b> {sibling.civil_status || "N/A"}
+                    </Text>
+                    <Text>
+                      <b>Date of Birth:</b>{" "}
+                      {sibling.date_of_birth
+                        ? new Date(sibling.date_of_birth).toLocaleDateString()
+                        : "N/A"}
+                    </Text>
+                    <Text>
+                      <b>Employment:</b> {sibling.employment_type || "N/A"}
+                    </Text>
+                  </GridItem>
+                ))}
+              </Grid>
+            </>
+          )}
+
+          {/* Spouse Section (If Married) */}
+          {personnel.civil_status === "Married" && spouse && (
+            <>
+              <Heading size="sm" mt={4} mb={2}>
+                Spouse
+              </Heading>
+              <Grid templateColumns="repeat(2, 1fr)" gap={6}>
                 <GridItem>
                   <Text>
-                    <b>Wedding Anniversary:</b>{" "}
-                    {new Date(
-                      personnel.wedding_anniversary
-                    ).toLocaleDateString()}
+                    <b>Name:</b>{" "}
+                    {`${spouse.givenname} ${spouse.middlename || ""} ${
+                      spouse.lastname
+                    }`}
+                  </Text>
+                  <Text>
+                    <b>Gender:</b> {spouse.gender || "N/A"}
+                  </Text>
+                  <Text>
+                    <b>Date of Birth:</b>{" "}
+                    {spouse.date_of_birth
+                      ? new Date(spouse.date_of_birth).toLocaleDateString()
+                      : "N/A"}
+                  </Text>
+                  <Text>
+                    <b>Employment Type:</b> {spouse.employment_type || "N/A"}
+                  </Text>
+                  <Text>
+                    <b>Company:</b> {spouse.company || "N/A"}
+                  </Text>
+                  <Text>
+                    <b>Position:</b> {spouse.position || "N/A"}
                   </Text>
                 </GridItem>
-              )}
-            </Grid>
-          </Box>
-        )}
+              </Grid>
+            </>
+          )}
+
+          {/* Children Section */}
+          {children.length > 0 && (
+            <>
+              <Heading size="sm" mt={4} mb={2}>
+                Children
+              </Heading>
+              <Grid templateColumns="repeat(2, 1fr)" gap={6}>
+                {children.map((child) => (
+                  <GridItem key={child.id}>
+                    <Text>
+                      <b>Name:</b>{" "}
+                      {`${child.givenname} ${child.middlename || ""} ${
+                        child.lastname
+                      }`}
+                    </Text>
+                    <Text>
+                      <b>Gender:</b> {child.gender || "N/A"}
+                    </Text>
+                    <Text>
+                      <b>Date of Birth:</b>{" "}
+                      {child.date_of_birth
+                        ? new Date(child.date_of_birth).toLocaleDateString()
+                        : "N/A"}
+                    </Text>
+                    <Text>
+                      <b>Education Level:</b> {child.education_level || "N/A"}
+                    </Text>
+                  </GridItem>
+                ))}
+              </Grid>
+            </>
+          )}
+        </Box>
 
         <Divider />
 
         {/* Divider Above the Print Button */}
-        <Box
-          borderTop="1px solid"
-          borderColor="gray.200"
-          mt={8} // Add some margin to separate it from the content above
-          pt={4} // Add padding above the button for better spacing
-        >
-          {/* Print Button */}
+        {/* Print Button */}
+        <Box textAlign="center" pt={4}>
           <Button
             colorScheme="teal"
             onClick={() => window.print()}
-            width="full"
             size="lg"
-            leftIcon={<Icon as={FaPrint} />} // Add the icon here
-            _hover={{
-              bg: "teal.600",
-            }}
-            borderRadius="md" // Rounded edges for consistency
+            leftIcon={<Icon as={FaPrint} />}
+            _hover={{ bg: "teal.600" }}
+            borderRadius="md"
           >
             Print
           </Button>

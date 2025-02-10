@@ -652,7 +652,7 @@ const Login = () => {
         width={["90%", "400px"]}
       >
         <Flex justifyContent="center" mb={4}>
-          <Image src="/apps_logo.png" alt="Logo" boxSize="80px" />
+          <Image src="/apps_logo.png" alt="Logo" boxSize="100px" />
         </Flex>
         <Heading as="h2" size="lg" textAlign="center" color="gray.850" mb={6}>
           PMD Portal

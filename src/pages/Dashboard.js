@@ -275,9 +275,9 @@ export default function Dashboard() {
   const getTimeBasedGreeting = () => {
     const userFullName = localStorage.getItem("userFullName") || "User"; // Retrieve full name from localStorage or use "User" as fallback
     const hour = new Date().getHours();
-    if (hour < 12) return `Good morning, ${userFullName}!`;
-    if (hour < 18) return `Good afternoon, ${userFullName}!`;
-    return `Good evening, ${userFullName}!`;
+    if (hour < 12) return `Good morning, ${userFullName}`;
+    if (hour < 18) return `Good afternoon, ${userFullName}`;
+    return `Good evening, ${userFullName}`;
   };
 
   // 🟢 Dynamic column count for responsiveness
