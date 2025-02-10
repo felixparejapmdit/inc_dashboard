@@ -26,6 +26,7 @@ import {
   Popover,
   PopoverTrigger,
   PopoverContent,
+  Avatar,
   PopoverArrow,
   PopoverCloseButton,
   PopoverBody,
@@ -35,9 +36,11 @@ import {
   FiFile,
   FiBell,
   FiSearch,
+  FiGrid,
   FiSun,
   FiMoon, // For sun and moon icons (theme toggle)
 } from "react-icons/fi";
+
 import { useDisclosure } from "@chakra-ui/react";
 import { PopoverHeader, List } from "@chakra-ui/react";
 
@@ -58,6 +61,7 @@ export default function Dashboard() {
     localStorage.getItem("userFullName") || ""
   );
 
+  const [currentDate, setCurrentDateTime] = useState(new Date());
   const [error, setError] = useState("");
   const [updatedApp, setUpdatedApp] = useState({
     name: "",
@@ -77,7 +81,7 @@ export default function Dashboard() {
   const colors = {
     reminderBg: useColorModeValue("orange.100", "orange.700"),
     eventBg: useColorModeValue("teal.100", "teal.700"),
-    appBg: useColorModeValue("gray.100", "gray.800"),
+    appBg: useColorModeValue("gray.90", "gray.800"),
     cardText: useColorModeValue("gray.700", "white"),
     cardHeader: useColorModeValue("gray.600", "gray.300"),
     cardBorder: useColorModeValue("gray.300", "gray.700"),
@@ -101,6 +105,13 @@ export default function Dashboard() {
         console.error("Error logging in to Nextcloud:", error);
       });
   };
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer); // Cleanup the interval on unmount
+  }, []);
 
   useEffect(() => {
     const username = localStorage.getItem("username"); // Retrieve username
@@ -284,27 +295,54 @@ export default function Dashboard() {
   const columns = useBreakpointValue({ base: 1, sm: 1, md: 3, lg: 3, xl: 5 });
 
   return (
-    <Box bg={useColorModeValue("gray.50", "gray.900")} minH="100vh" p={6}>
+    <Box bg={useColorModeValue("gray.50", "gray.500")} minH="100vh" p={6}>
       <HStack justify="space-between" mb={0}>
-        <Heading as="h1" size="xl">
-          {getTimeBasedGreeting()}
-        </Heading>
-        <Box w="300px">
+        {/* Search Input Section */}
+        <VStack spacing={4} align="start" width="100%">
           <Input
             placeholder="Search Apps"
             size="md"
-            leftIcon={<FiSearch />}
             borderRadius="full"
+            bg="white"
+            maxW="300px"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)} // Search input handler
+            onChange={(e) => setSearchQuery(e.target.value)}
+            boxShadow="md"
           />
-        </Box>
 
+          {/* Greeting Section */}
+          <Box
+            bgGradient="linear(to-r, orange.400, yellow.300)"
+            borderRadius="xl"
+            p={10}
+            textAlign="left"
+            boxShadow="xl"
+            width="100%"
+          >
+            <Text fontSize="sm" color="whiteAlpha.900">
+              {currentDate.toLocaleDateString("en-US", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </Text>
+
+            <Heading as="h1" size="lg" color="white">
+              {getTimeBasedGreeting()}
+            </Heading>
+
+            <Text fontSize="md" color="whiteAlpha.800">
+              Have a nice day.
+            </Text>
+          </Box>
+        </VStack>
         {/* Color mode toggle button */}
         <IconButton
           icon={colorMode === "light" ? <FiMoon /> : <FiSun />}
           onClick={toggleColorMode}
           isRound
+          display="none"
           size="lg"
           aria-label="Toggle color mode"
           mr={0} // Remove margin between icons
@@ -340,106 +378,19 @@ export default function Dashboard() {
           </PopoverContent>
         </Popover>
       </HStack>
-      <SimpleGrid
-        columns={2}
-        spacing={6}
-        mb={0}
-        maxW="100%" // Allow the grid to use the full available width
-        w="90%" // Increase the width to 90% of the available space
-        justifyContent="center"
-        alignItems="center"
-        minH="10vh"
-      >
-        <Box
-          display="none"
-          bg="green.500"
-          p={6}
-          borderRadius="lg"
-          color="white"
-        >
-          <Heading size="lg">{availableApps.length}</Heading>
-          <Text>Available Apps</Text>
-        </Box>
 
-        <Tooltip
-          label={
-            hoveredEvent ? (
-              <VStack align="start" spacing={2}>
-                {events.map((event) => (
-                  <Box key={event.id}>
-                    <Text fontWeight="bold">{event.eventName}</Text>
-                    <Text>
-                      {event.date} at {event.time}, {event.location}
-                    </Text>
-                  </Box>
-                ))}
-              </VStack>
-            ) : (
-              "Hover to see event details"
-            )
-          }
-          placement="top"
-          hasArrow
-          isOpen={!!hoveredEvent}
-        >
-          <Box
-            bg="blue.500"
-            p={6}
-            borderRadius="lg"
-            color="white"
-            onMouseEnter={() => setHoveredEvent(true)}
-            onMouseLeave={() => setHoveredEvent(false)}
-            onClick={() => navigate("/add-events")} // Redirect to add-events page
-            transition="all 0.3s ease"
-            _hover={{ transform: "scale(1.05)", cursor: "pointer" }}
-            boxShadow="lg"
-            display="none"
-          >
-            <Heading size="lg">{events.length}</Heading>
-            <Text>Upcoming Events</Text>
-          </Box>
-        </Tooltip>
-
-        {false && ( // Set this to a variable or condition
-          <Tooltip
-            label={
-              hoveredReminder ? (
-                <VStack align="start" spacing={2}>
-                  {reminders.map((reminder) => (
-                    <Box key={reminder.id}>
-                      <Text fontWeight="bold">{reminder.title}</Text>
-                      <Text>{reminder.date}</Text>
-                    </Box>
-                  ))}
-                </VStack>
-              ) : (
-                "Hover to see reminder details"
-              )
-            }
-            placement="top"
-            hasArrow
-            isOpen={!!hoveredReminder}
-          >
-            <Box
-              bg="green.500"
-              p={6}
-              borderRadius="lg"
-              color="white"
-              onMouseEnter={() => setHoveredReminder(true)}
-              onMouseLeave={() => setHoveredReminder(false)}
-              transition="all 0.3s ease"
-              _hover={{ transform: "scale(1.05)", cursor: "pointer" }}
-              boxShadow="lg"
-            >
-              <Heading size="lg">{reminders.length}</Heading>
-              <Text>Pending Reminders</Text>
-            </Box>
-          </Tooltip>
-        )}
-      </SimpleGrid>
       {/* Apps Section */}
-      <Heading as="h2" size="lg" mb={6}>
-        Your Apps
+      <Heading
+        as="h2"
+        size="lg"
+        mt={6}
+        mb={6}
+        display="flex"
+        alignItems="center"
+        color="gray.800" // Change the heading color if needed
+      >
+        <FiGrid style={{ marginRight: "8px", color: "#F3C847" }} /> My
+        Applications
       </Heading>
 
       <Box
@@ -572,7 +523,7 @@ const AppCard = ({ app, colors, onSettingsClick, handleNextcloudLogin }) => (
     rel="noopener noreferrer"
     bg={colors.appBg}
     borderRadius="xl"
-    border={`2px solid ${colors.cardBorder}`}
+    border={`3px solid ${colors.cardBorder}`}
     p={6}
     spacing={4}
     boxShadow="md"

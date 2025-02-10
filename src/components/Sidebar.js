@@ -163,7 +163,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
   return (
     <Flex
       direction="column"
-      bgGradient={bgGradient}
+      bg="#FFD559" // Updated background color here
       h="100vh"
       width={isExpanded ? "250px" : "70px"}
       transition="width 0.3s ease"
@@ -176,18 +176,18 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
       overflowY="auto"
       css={{
         "::-webkit-scrollbar": {
-          width: "4px", // Narrower scrollbar for Webkit browsers
+          width: "4px",
         },
         "::-webkit-scrollbar-thumb": {
-          backgroundColor: "rgba(0, 0, 0, 0.1)", // Light gray thumb with reduced visibility
-          borderRadius: "10px", // Rounded corners for the thumb
+          backgroundColor: "rgba(0, 0, 0, 0.1)",
+          borderRadius: "10px",
         },
         "::-webkit-scrollbar-track": {
-          backgroundColor: "transparent", // Transparent track for minimal visual distraction
+          backgroundColor: "transparent",
         },
-        "-ms-overflow-style": "auto", // Default scrollbar style for IE
-        "scrollbar-width": "thin", // Thinner scrollbar for Firefox
-        "scrollbar-color": "rgba(0, 0, 0, 0.1) transparent", // Thumb color and track color for Firefox
+        "-ms-overflow-style": "auto",
+        "scrollbar-width": "thin",
+        "scrollbar-color": "rgba(0, 0, 0, 0.1) transparent",
       }}
     >
       {/* Header */}
@@ -498,9 +498,9 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
         direction="column"
         align="center"
         mt="auto"
+        bg="#FFD559" // Updated background color here
         py={4}
         px={isExpanded ? 4 : 2}
-        bg={useColorModeValue("gray.100", "gray.800")}
         borderRadius="md"
         boxShadow="sm"
       >
@@ -596,7 +596,7 @@ const SidebarItem = ({
       justifyContent="flex-start" // Left-align the content
       w="100%"
       bg="transparent"
-      _hover={{ bg: menuHoverBg }}
+      _hover={{ bg: "#FFFFB2" }}
       pl={isExpanded ? 4 : 0} // Add padding to the left
       leftIcon={
         isExpanded &&
