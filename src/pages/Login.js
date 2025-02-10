@@ -30,9 +30,12 @@ import {
   ModalFooter,
   useDisclosure,
   useToast,
+  InputGroup,
+  InputLeftElement,
 } from "@chakra-ui/react";
 import "./Login.css"; // Custom CSS for animated input effect
 
+import { FiUser, FiLock } from "react-icons/fi"; // Import icons
 import { usePermissionContext } from "../contexts/PermissionContext";
 
 const API_URL = process.env.REACT_APP_API_URL;
@@ -605,7 +608,7 @@ const Login = () => {
       alignItems="center"
       justifyContent="center"
       className="login-page" // Added a className for scoping styles
-      bg="#fcdc7c"
+      bgGradient="linear(to-r, #FFD559, #F3C847)" // Gradient background
       p={4}
     >
       {/* Add Background Music */}
@@ -657,50 +660,58 @@ const Login = () => {
         <Heading as="h2" size="lg" textAlign="center" color="gray.850" mb={6}>
           PMD Portal
         </Heading>
-        <VStack as="form" onSubmit={handleSubmit} spacing={5}>
-          <FormControl id="username" className="floating-label" isRequired>
-            <Input
-              type="text"
-              placeholder=" "
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              bg="gray.50"
-              color="black"
-              focusBorderColor="blue.400"
-              borderRadius="md"
-              className="animated-input"
-            />
-            <FormLabel>Username</FormLabel>
+        {/* Form */}
+        <VStack as="form" onSubmit={handleSubmit} spacing={4}>
+          {/* Username Input */}
+          <FormControl isRequired>
+            <InputGroup>
+              <InputLeftElement pointerEvents="none">
+                <FiUser color="gray.500" />
+              </InputLeftElement>
+              <Input
+                type="text"
+                placeholder="Enter username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                bg="gray.50"
+                borderRadius="full"
+              />
+            </InputGroup>
           </FormControl>
 
-          <FormControl id="password" className="floating-label" isRequired>
-            <Input
-              type="password"
-              placeholder=" "
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              bg="gray.50"
-              color="black"
-              focusBorderColor="blue.400"
-              borderRadius="md"
-              className="animated-input"
-            />
-            <FormLabel>Password</FormLabel>
+          {/* Password Input */}
+          <FormControl isRequired>
+            <InputGroup>
+              <InputLeftElement pointerEvents="none">
+                <FiLock color="gray.500" />
+              </InputLeftElement>
+              <Input
+                type="password"
+                placeholder="Enter password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                bg="gray.50"
+                borderRadius="full"
+              />
+            </InputGroup>
           </FormControl>
 
           {error && <Text color="red.500">{error}</Text>}
 
+          {/* Login Button */}
           <Button
             type="submit"
             width="100%"
-            bgGradient="linear(to-r, #FFD559, #F3C847)"
+            bgGradient="linear(to-r, #FFB700, #FF8500)"
             color="white"
-            _hover={{ bgGradient: "linear(to-r, #F3C847, #FFD559)" }}
-            isLoading={isLoading}
-            spinner={<Spinner />}
+            _hover={{ bgGradient: "linear(to-r, #FF8500, #FFB700)" }}
+            borderRadius="full"
+            boxShadow="md"
+            transition="all 0.3s ease-in-out"
           >
             Log In
           </Button>
+
           <Flex direction="column" width="100%" alignItems="center">
             <Button variant="link" colorScheme="orange" onClick={handleEnroll}>
               Enroll
