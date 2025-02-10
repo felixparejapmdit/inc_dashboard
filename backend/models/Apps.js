@@ -26,6 +26,10 @@ const App = sequelize.define(
       type: DataTypes.TEXT, // Assuming the icon is stored as base64 or URL
       allowNull: true,
     },
+    app_type: {
+      type: DataTypes.INTEGER, // 1 = PMD Applications, 2 = Others
+      allowNull: false,
+    },
   },
   {
     tableName: "apps",

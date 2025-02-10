@@ -14,7 +14,7 @@ exports.getAllApps = async (req, res) => {
   }
 };
 
-// Get available apps for the logged-in user
+// Get available apps for the logged-in user and categorize them
 exports.getAvailableApps = async (req, res) => {
   const userId = req.headers["x-user-id"]; // Retrieve user ID from custom header
   if (!userId) {
@@ -24,10 +24,10 @@ exports.getAvailableApps = async (req, res) => {
   }
 
   try {
-    // Fetch available apps for the logged-in user using a JOIN on available_apps table
+    // Fetch available apps for the logged-in user
     const availableApps = await sequelize.query(
       `
-      SELECT apps.* 
+         SELECT apps.* 
       FROM apps 
       INNER JOIN available_apps ON apps.id = available_apps.app_id 
       WHERE available_apps.user_id = :userId
@@ -37,6 +37,9 @@ exports.getAvailableApps = async (req, res) => {
         type: sequelize.QueryTypes.SELECT,
       }
     );
+
+    // Debugging log
+    console.log("Fetched Available Apps:", availableApps);
 
     res.json(availableApps);
   } catch (error) {
