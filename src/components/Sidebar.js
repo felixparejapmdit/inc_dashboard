@@ -193,11 +193,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
       {/* Header */}
       <Box mb={8} display="flex" justifyContent="center">
         {isExpanded ? (
-          <Image
-            src="/apps_logo - Copy.png"
-            alt="INC Dashboard"
-            boxSize="60px"
-          />
+          <Image src="/apps_logo.png" alt="INC Dashboard" boxSize="60px" />
         ) : (
           <Icon as={FiMenu} boxSize={8} color={iconColor} />
         )}
