@@ -15,7 +15,10 @@ const ApplicationType = sequelize.define(
       unique: true,
     },
   },
-  { timestamps: true } // Enables created_at & updated_at
+  {
+    tableName: "applicationtypes",
+    timestamps: false,
+  }
 );
 
 module.exports = ApplicationType;
