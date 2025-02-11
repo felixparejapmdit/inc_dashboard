@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 10, 2025 at 09:38 AM
+-- Generation Time: Feb 11, 2025 at 07:59 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -20,6 +20,28 @@ SET time_zone = "+00:00";
 --
 -- Database: `ppi`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `applicationtypes`
+--
+
+CREATE TABLE `applicationtypes` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `createdAt` datetime NOT NULL,
+  `updatedAt` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `applicationtypes`
+--
+
+INSERT INTO `applicationtypes` (`id`, `name`, `createdAt`, `updatedAt`) VALUES
+(1, 'PMD Applications', '2025-02-11 03:22:47', '2025-02-11 03:26:56'),
+(2, 'Others', '2025-02-11 03:29:46', '2025-02-11 03:29:46'),
+(4, 'Test', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -823,6 +845,7 @@ INSERT INTO `group_permission_mappings` (`group_id`, `permission_id`, `category_
 (1, 43, 4, 1),
 (1, 44, 4, 1),
 (1, 45, 4, 1),
+(1, 46, 5, 1),
 (2, 1, 4, 1),
 (2, 14, 4, 1),
 (2, 15, 4, 1),
@@ -1433,7 +1456,8 @@ INSERT INTO `permission_category_mappings` (`id`, `permission_id`, `category_id`
 (42, 42, 4, '2025-01-08 04:55:56', '2025-01-08 04:55:56'),
 (43, 43, 4, '2025-01-08 04:56:33', '2025-01-08 04:56:33'),
 (44, 44, 4, '2025-01-08 04:57:14', '2025-01-08 04:57:14'),
-(45, 45, 4, '2025-01-08 05:02:11', '2025-01-08 05:02:11');
+(45, 45, 4, '2025-01-08 05:02:11', '2025-01-08 05:02:11'),
+(46, 46, 5, '2025-02-11 03:20:10', '2025-02-11 03:20:10');
 
 -- --------------------------------------------------------
 
@@ -1498,7 +1522,8 @@ INSERT INTO `permission_definitions` (`id`, `name`, `description`, `created_at`,
 (42, 'personnels.info', 'View Personnel Info', '2025-01-08 04:55:56', '2025-01-08 04:55:56'),
 (43, 'personnels.sync_to_users', 'Sync Personnel to Users list', '2025-01-08 04:56:33', '2025-01-08 04:56:33'),
 (44, 'personnels.newly_enrolled_personnel', 'View Newly Enrolled Personnel', '2025-01-08 04:57:14', '2025-01-08 04:57:14'),
-(45, 'personnels.delete', 'Delete Personnel', '2025-01-08 05:02:11', '2025-01-08 05:02:11');
+(45, 'personnels.delete', 'Delete Personnel', '2025-01-08 05:02:11', '2025-01-08 05:02:11'),
+(46, 'applicationtype.view', 'View Application Type', '2025-02-11 03:20:10', '2025-02-11 03:20:10');
 
 -- --------------------------------------------------------
 
@@ -2416,6 +2441,13 @@ INSERT INTO `work_experience` (`id`, `personnel_id`, `employment_type`, `company
 --
 
 --
+-- Indexes for table `applicationtypes`
+--
+ALTER TABLE `applicationtypes`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `name` (`name`);
+
+--
 -- Indexes for table `apps`
 --
 ALTER TABLE `apps`
@@ -2663,6 +2695,12 @@ ALTER TABLE `work_experience`
 --
 
 --
+-- AUTO_INCREMENT for table `applicationtypes`
+--
+ALTER TABLE `applicationtypes`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
 -- AUTO_INCREMENT for table `apps`
 --
 ALTER TABLE `apps`
@@ -2786,13 +2824,13 @@ ALTER TABLE `permission_categories`
 -- AUTO_INCREMENT for table `permission_category_mappings`
 --
 ALTER TABLE `permission_category_mappings`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
 
 --
 -- AUTO_INCREMENT for table `permission_definitions`
 --
 ALTER TABLE `permission_definitions`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
 
 --
 -- AUTO_INCREMENT for table `permission_groups`
