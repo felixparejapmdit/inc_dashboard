@@ -24,6 +24,12 @@ exports.getAvailableApps = async (req, res) => {
   }
 
   try {
+    // Fetch all app types dynamically
+    const appTypes = await sequelize.query(
+      `SELECT id, name FROM applicationtypes ORDER BY id ASC`,
+      { type: sequelize.QueryTypes.SELECT }
+    );
+
     // Fetch available apps for the logged-in user
     const availableApps = await sequelize.query(
       `
@@ -38,11 +44,13 @@ exports.getAvailableApps = async (req, res) => {
       }
     );
 
-    // Categorize apps based on app_type
-    const categorizedApps = {
-      pmdApplications: availableApps.filter((app) => app.app_type === 1),
-      otherApplications: availableApps.filter((app) => app.app_type === 2),
-    };
+    // Categorize apps dynamically based on `app_type`
+    let categorizedApps = {};
+    appTypes.forEach((type) => {
+      categorizedApps[type.name] = availableApps.filter(
+        (app) => app.app_type === type.id
+      );
+    });
 
     console.log("Fetched Categorized Apps:", categorizedApps);
     res.json(categorizedApps);
@@ -51,14 +59,13 @@ exports.getAvailableApps = async (req, res) => {
     res.status(500).json({ message: "Database error" });
   }
 };
-
 // Add a new app
 exports.addApp = async (req, res) => {
-  const { name, url, description, icon } = req.body;
+  const { name, url, description, icon, app_type } = req.body;
 
-  if (!name || !url || !description) {
+  if (!name || !url || !description || !app_type) {
     return res.status(400).json({
-      message: "All fields (name, url, description) are required.",
+      message: "All fields (name, url, description, app_type) are required.",
     });
   }
 
@@ -85,7 +92,7 @@ exports.addApp = async (req, res) => {
     }
 
     // ✅ Create new app if no duplicates found
-    const newApp = await App.create({ name, url, description, icon });
+    const newApp = await App.create({ name, url, description, icon, app_type });
     res.status(201).json({ message: "App added successfully.", app: newApp });
   } catch (error) {
     console.error("Error adding app:", error);
@@ -96,11 +103,11 @@ exports.addApp = async (req, res) => {
 // Update an existing app
 exports.updateApp = async (req, res) => {
   const appId = req.params.id;
-  const { name, url, description, icon } = req.body;
+  const { name, url, description, icon, app_type } = req.body;
 
-  if (!name || !url) {
+  if (!name || !url || !app_type) {
     return res.status(400).json({
-      message: "Name and URL fields are required.",
+      message: "Name, URL, and App Type fields are required.",
     });
   }
 
@@ -130,7 +137,7 @@ exports.updateApp = async (req, res) => {
     }
 
     const [updated] = await App.update(
-      { name, url, description, icon },
+      { name, url, description, icon, app_type },
       { where: { id: appId } }
     );
 

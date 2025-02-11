@@ -1,9 +1,11 @@
 const ApplicationType = require("../models/ApplicationType");
 
-// Get all application types
+// Get all application types sorted by id in ascending order
 exports.getApplicationTypes = async (req, res) => {
   try {
-    const applicationTypes = await ApplicationType.findAll();
+    const applicationTypes = await ApplicationType.findAll({
+      order: [["id", "ASC"]], // Sort by `id` in ascending order
+    });
     res.json(applicationTypes);
   } catch (error) {
     console.error("Error fetching application types:", error);

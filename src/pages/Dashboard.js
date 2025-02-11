@@ -45,11 +45,15 @@ import { useDisclosure } from "@chakra-ui/react";
 import { PopoverHeader, List } from "@chakra-ui/react";
 
 import { useNavigate } from "react-router-dom"; // Import useNavigate
+import axios from "axios";
 
 // Use environment variable
 const API_URL = process.env.REACT_APP_API_URL;
 
 export default function Dashboard() {
+  const [appTypes, setAppTypes] = useState([]);
+
+  const [categorizedApps, setCategorizedApps] = useState({});
   const [apps, setApps] = useState([]);
   const [status, setStatus] = useState("");
   const [availableApps, setAvailableApps] = useState([]);
@@ -186,36 +190,75 @@ export default function Dashboard() {
       });
   }, []); // Empty dependency array to run once on component mount
 
+  // useEffect(() => {
+  //   if (currentUser && currentUser.id) {
+  //     console.log("Fetching categorized apps for user ID:", currentUser.id);
+
+  //     fetch(`${API_URL}/api/apps/available`, {
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         "x-user-id": currentUser.id,
+  //       },
+  //     })
+  //       .then((response) => {
+  //         if (!response.ok) {
+  //           throw new Error(`Failed to fetch apps: ${response.statusText}`);
+  //         }
+  //         return response.json();
+  //       })
+  //       .then((data) => {
+  //         if (data.pmdApplications && data.otherApplications) {
+  //           setApps(data); // Set apps if data is an array
+  //           setPmdApplications(data.pmdApplications);
+  //           setOtherApplications(data.otherApplications);
+  //         } else {
+  //           console.error("Unexpected response format for apps:", data);
+  //         }
+  //       })
+  //       .catch((error) => {
+  //         console.error("Error fetching apps:", error);
+  //       });
+  //   }
+  // }, [currentUser]); // Run when `currentUser` updates
+
+  useEffect(() => {
+    fetchApplicationTypes();
+  }, []);
+
   useEffect(() => {
     if (currentUser && currentUser.id) {
-      console.log("Fetching categorized apps for user ID:", currentUser.id);
+      fetchApplications();
+    }
+  }, [currentUser]); // Run when `currentUser` updates
 
-      fetch(`${API_URL}/api/apps/available`, {
+  const fetchApplicationTypes = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/application-types`);
+      if (!response.ok) throw new Error("Failed to fetch application types");
+      const data = await response.json();
+      setAppTypes(data); // Store fetched app types dynamically
+    } catch (error) {
+      console.error("Error fetching application types:", error);
+    }
+  };
+
+  const fetchApplications = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/apps/available`, {
         headers: {
           "Content-Type": "application/json",
           "x-user-id": currentUser.id,
         },
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`Failed to fetch apps: ${response.statusText}`);
-          }
-          return response.json();
-        })
-        .then((data) => {
-          if (data.pmdApplications && data.otherApplications) {
-            setApps(data); // Set apps if data is an array
-            setPmdApplications(data.pmdApplications);
-            setOtherApplications(data.otherApplications);
-          } else {
-            console.error("Unexpected response format for apps:", data);
-          }
-        })
-        .catch((error) => {
-          console.error("Error fetching apps:", error);
-        });
+      });
+
+      if (!response.ok)
+        throw new Error(`Failed to fetch apps: ${response.statusText}`);
+      const data = await response.json();
+      setCategorizedApps(data);
+    } catch (error) {
+      console.error("Error fetching apps:", error);
     }
-  }, [currentUser]); // Run when `currentUser` updates
+  };
 
   const handleSettingsClick = (app) => {
     setSelectedApp(app);
@@ -374,77 +417,21 @@ export default function Dashboard() {
         </Popover>
       </HStack>
 
-      {/* PMD Applications Section */}
-      {pmdApplications.length > 0 && (
-        <>
-          <Heading
-            as="h2"
-            size="lg"
-            mt={6}
-            mb={6}
-            display="flex"
-            alignItems="center"
-            color="orange.400" // Change the heading color if needed
-          >
-            <FiGrid style={{ marginRight: "8px", color: "blue.900" }} /> PMD
-            Applications
+      {/* Dynamically Render Applications Based on Application Types */}
+      {appTypes.map((type) => (
+        <Box key={type.id} mt={6}>
+          <Heading as="h2" size="lg" mb={4} display="flex" alignItems="center">
+            <FiGrid style={{ marginRight: "8px", color: "#F3C847" }} />
+            {type.name}
           </Heading>
-          <Box
-            display="flex"
-            justifyContent="left"
-            alignItems="center"
-            width="100%"
-          >
-            <SimpleGrid columns={columns} spacing={6}>
-              {pmdApplications.map((app) => (
-                <AppCard
-                  key={app.id}
-                  app={app}
-                  colors={colors}
-                  onSettingsClick={handleSettingsClick}
-                  handleNextcloudLogin={handleNextcloudLogin}
-                />
+          <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing={6}>
+            {categorizedApps[type.name] &&
+              categorizedApps[type.name].map((app) => (
+                <AppCard key={app.id} app={app} colors={colors} />
               ))}
-            </SimpleGrid>
-          </Box>
-        </>
-      )}
-
-      {/* Other Applications Section */}
-      {otherApplications.length > 0 && (
-        <>
-          <Heading
-            as="h2"
-            size="lg"
-            mt={6}
-            mb={6}
-            display="flex"
-            alignItems="center"
-            color="gray.700" // Change the heading color if needed
-          >
-            <FiGrid style={{ marginRight: "8px", color: "blue.900" }} />
-            Others
-          </Heading>
-          <Box
-            display="flex"
-            justifyContent="left"
-            alignItems="center"
-            width="100%"
-          >
-            <SimpleGrid columns={columns} spacing={6}>
-              {otherApplications.map((app) => (
-                <AppCard
-                  key={app.id}
-                  app={app}
-                  colors={colors}
-                  onSettingsClick={handleSettingsClick}
-                  handleNextcloudLogin={handleNextcloudLogin}
-                />
-              ))}
-            </SimpleGrid>
-          </Box>
-        </>
-      )}
+          </SimpleGrid>
+        </Box>
+      ))}
 
       {/* Modal for App Info */}
       {selectedApp && (

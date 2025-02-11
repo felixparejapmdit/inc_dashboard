@@ -31,6 +31,7 @@ import {
   Text,
   Avatar,
   Flex,
+  Select,
 } from "@chakra-ui/react";
 import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
 
@@ -39,12 +40,15 @@ const ITEMS_PER_PAGE = 10;
 
 const Applications = () => {
   const [apps, setApps] = useState([]);
+
+  const [appTypes, setAppTypes] = useState([]);
   const [filteredApps, setFilteredApps] = useState([]); // Search-filtered applications
   const [searchQuery, setSearchQuery] = useState(""); // Search input value
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [description, setDescription] = useState("");
   const [icon, setIcon] = useState(null);
+  const [appType, setAppType] = useState(""); // Stores selected application type
   const [status, setStatus] = useState("");
   const [editingApp, setEditingApp] = useState(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -66,6 +70,13 @@ const Applications = () => {
         setFilteredApps(data);
       })
       .catch((err) => console.error(err));
+
+    fetch(`${API_URL}/api/application-types`) // Fetch application types
+      .then((res) => res.json())
+      .then((data) => {
+        setAppTypes(data);
+      })
+      .catch((err) => console.error("Error fetching application types:", err));
   }, []);
 
   // Search filter logic (filter first, then paginate)
@@ -152,6 +163,7 @@ const Applications = () => {
     setUrl(app.url);
     setDescription(app.description);
     setIcon(app.icon);
+    setAppType(app.app_type); // Set selected app_type
     onOpen();
   };
 
@@ -234,6 +246,7 @@ const Applications = () => {
             <Th>Name</Th>
             <Th>URL</Th>
             <Th>Description</Th>
+            <Th>Type</Th>
             <Th>Actions</Th>
           </Tr>
         </Thead>
@@ -252,9 +265,12 @@ const Applications = () => {
                   <Text>{app.name}</Text>
                 </Flex>
               </Td>
-
               <Td>{app.url}</Td>
-              <Td>{app.description}</Td>
+              <Td>{app.description}</Td>{" "}
+              <Td>
+                {appTypes.find((type) => type.id === app.app_type)?.name ||
+                  "Unknown"}
+              </Td>
               <Td>
                 <IconButton
                   icon={<EditIcon />}
@@ -316,6 +332,21 @@ const Applications = () => {
                   onChange={(e) => setUrl(e.target.value)}
                   placeholder="Enter URL"
                 />
+              </FormControl>
+
+              <FormControl isRequired>
+                <FormLabel>Application Type</FormLabel>
+                <Select
+                  value={appType}
+                  onChange={(e) => setAppType(e.target.value)}
+                  placeholder="Select Application Type"
+                >
+                  {appTypes.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.name}
+                    </option>
+                  ))}
+                </Select>
               </FormControl>
 
               <FormControl>
