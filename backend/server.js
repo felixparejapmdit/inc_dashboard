@@ -42,6 +42,7 @@ const appRoutes = require("./routes/appRoutes");
 const suguanRoutes = require("./routes/suguanRoutes");
 const eventsRoutes = require("./routes/eventsRoutes");
 const locationRoutes = require("./routes/locationsRoutes");
+const applicationTypeRoutes = require("./routes/applicationTypeRoutes");
 
 const reminderRoutes = require("./routes/reminderRoutes");
 
@@ -85,6 +86,7 @@ app.use(reminderRoutes);
 app.use(suguanRoutes);
 app.use(eventsRoutes);
 app.use(locationRoutes);
+app.use(applicationTypeRoutes);
 
 app.use(personnelsRoutes);
 app.use(personnelContactsRoutes);

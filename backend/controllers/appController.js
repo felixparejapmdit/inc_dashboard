@@ -16,7 +16,7 @@ exports.getAllApps = async (req, res) => {
 
 // Get available apps for the logged-in user and categorize them
 exports.getAvailableApps = async (req, res) => {
-  const userId = req.headers["x-user-id"]; // Retrieve user ID from custom header
+  const userId = req.headers["x-user-id"];
   if (!userId) {
     return res
       .status(401)
@@ -27,7 +27,7 @@ exports.getAvailableApps = async (req, res) => {
     // Fetch available apps for the logged-in user
     const availableApps = await sequelize.query(
       `
-         SELECT apps.* 
+      SELECT apps.*, apps.app_type 
       FROM apps 
       INNER JOIN available_apps ON apps.id = available_apps.app_id 
       WHERE available_apps.user_id = :userId
@@ -38,10 +38,14 @@ exports.getAvailableApps = async (req, res) => {
       }
     );
 
-    // Debugging log
-    console.log("Fetched Available Apps:", availableApps);
+    // Categorize apps based on app_type
+    const categorizedApps = {
+      pmdApplications: availableApps.filter((app) => app.app_type === 1),
+      otherApplications: availableApps.filter((app) => app.app_type === 2),
+    };
 
-    res.json(availableApps);
+    console.log("Fetched Categorized Apps:", categorizedApps);
+    res.json(categorizedApps);
   } catch (error) {
     console.error("Error fetching available apps for user:", error);
     res.status(500).json({ message: "Database error" });

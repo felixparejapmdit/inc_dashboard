@@ -71,6 +71,9 @@ export default function Dashboard() {
   });
   const [searchQuery, setSearchQuery] = useState(""); // Search input
   const [currentUser, setCurrentUser] = useState({ name: "User" });
+  const [pmdApplications, setPmdApplications] = useState([]);
+  const [otherApplications, setOtherApplications] = useState([]);
+
   const [hoveredEvent, setHoveredEvent] = useState(null); // Hover state for events
   const [hoveredReminder, setHoveredReminder] = useState(null); // Hover state for reminders
   const { colorMode, toggleColorMode } = useColorMode(); // Color mode state
@@ -184,14 +187,13 @@ export default function Dashboard() {
   }, []); // Empty dependency array to run once on component mount
 
   useEffect(() => {
-    // Fetch available apps if currentUser exists
     if (currentUser && currentUser.id) {
-      console.log("Fetching available apps for user ID:", currentUser.id);
+      console.log("Fetching categorized apps for user ID:", currentUser.id);
 
       fetch(`${API_URL}/api/apps/available`, {
         headers: {
           "Content-Type": "application/json",
-          "x-user-id": currentUser.id, // Pass user ID in request header
+          "x-user-id": currentUser.id,
         },
       })
         .then((response) => {
@@ -201,26 +203,19 @@ export default function Dashboard() {
           return response.json();
         })
         .then((data) => {
-          if (Array.isArray(data)) {
+          if (data.pmdApplications && data.otherApplications) {
             setApps(data); // Set apps if data is an array
+            setPmdApplications(data.pmdApplications);
+            setOtherApplications(data.otherApplications);
           } else {
             console.error("Unexpected response format for apps:", data);
-            setApps([]); // Fallback to empty array
           }
         })
         .catch((error) => {
           console.error("Error fetching apps:", error);
-          setApps([]); // Fallback to empty array on fetch error
         });
     }
-  }, [currentUser]); // Dependency array to trigger fetch when currentUser changes
-
-  // Filter apps based on `availableApps` IDs and search query
-  const filteredApps = apps
-    .filter((app) => availableApps.includes(app.name)) // Filter by app name instead of ID
-    .filter((app) =>
-      app.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+  }, [currentUser]); // Run when `currentUser` updates
 
   const handleSettingsClick = (app) => {
     setSelectedApp(app);
@@ -379,64 +374,77 @@ export default function Dashboard() {
         </Popover>
       </HStack>
 
-      {/* Apps Section */}
-      <Heading
-        as="h2"
-        size="lg"
-        mt={6}
-        mb={6}
-        display="flex"
-        alignItems="center"
-        color="gray.800" // Change the heading color if needed
-      >
-        <FiGrid style={{ marginRight: "8px", color: "#F3C847" }} /> My
-        Applications
-      </Heading>
+      {/* PMD Applications Section */}
+      {pmdApplications.length > 0 && (
+        <>
+          <Heading
+            as="h2"
+            size="lg"
+            mt={6}
+            mb={6}
+            display="flex"
+            alignItems="center"
+            color="orange.400" // Change the heading color if needed
+          >
+            <FiGrid style={{ marginRight: "8px", color: "blue.900" }} /> PMD
+            Applications
+          </Heading>
+          <Box
+            display="flex"
+            justifyContent="left"
+            alignItems="center"
+            width="100%"
+          >
+            <SimpleGrid columns={columns} spacing={6}>
+              {pmdApplications.map((app) => (
+                <AppCard
+                  key={app.id}
+                  app={app}
+                  colors={colors}
+                  onSettingsClick={handleSettingsClick}
+                  handleNextcloudLogin={handleNextcloudLogin}
+                />
+              ))}
+            </SimpleGrid>
+          </Box>
+        </>
+      )}
 
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        width="100%"
-      >
-        <SimpleGrid columns={columns} spacing={6} width="80%">
-          {filteredApps.length > 0 ? (
-            filteredApps.map((app) => (
-              <AppCard
-                key={app.id} // Use app.id as the unique key
-                app={app}
-                colors={colors}
-                onSettingsClick={handleSettingsClick}
-                handleNextcloudLogin={handleNextcloudLogin}
-              />
-            ))
-          ) : (
-            <Box
-              display="flex"
-              flexDirection="column"
-              justifyContent="center"
-              alignItems="center"
-              textAlign="center"
-              height="100%"
-              py={10}
-              px={6}
-            >
-              <Image
-                src="placeholder-image-url.webp"
-                alt="No apps available"
-                boxSize="150px"
-                mb={4}
-              />
-              <Text fontSize="lg" fontWeight="bold" mb={2}>
-                You currently have no assigned apps.
-              </Text>
-              <Text color="gray.500">
-                Please contact the admin for access or add a new app.
-              </Text>
-            </Box>
-          )}
-        </SimpleGrid>
-      </Box>
+      {/* Other Applications Section */}
+      {otherApplications.length > 0 && (
+        <>
+          <Heading
+            as="h2"
+            size="lg"
+            mt={6}
+            mb={6}
+            display="flex"
+            alignItems="center"
+            color="gray.700" // Change the heading color if needed
+          >
+            <FiGrid style={{ marginRight: "8px", color: "blue.900" }} />
+            Others
+          </Heading>
+          <Box
+            display="flex"
+            justifyContent="left"
+            alignItems="center"
+            width="100%"
+          >
+            <SimpleGrid columns={columns} spacing={6}>
+              {otherApplications.map((app) => (
+                <AppCard
+                  key={app.id}
+                  app={app}
+                  colors={colors}
+                  onSettingsClick={handleSettingsClick}
+                  handleNextcloudLogin={handleNextcloudLogin}
+                />
+              ))}
+            </SimpleGrid>
+          </Box>
+        </>
+      )}
 
       {/* Modal for App Info */}
       {selectedApp && (

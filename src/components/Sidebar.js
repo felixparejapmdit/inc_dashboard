@@ -193,7 +193,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
       {/* Header */}
       <Box mb={8} display="flex" justifyContent="center">
         {isExpanded ? (
-          <Image src="/apps_logo.png" alt="INC Dashboard" boxSize="60px" />
+          <Image src="/apps_logo.png" alt="INC Dashboard" boxSize="100px" />
         ) : (
           <Icon as={FiMenu} boxSize={8} color={iconColor} />
         )}
@@ -406,6 +406,14 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
 
         <Collapse in={isManagementsExpanded} animateOpacity>
           <VStack align="start" ml={isExpanded ? 4 : 0} spacing={3}>
+            {hasPermission("applicationtype.view") && (
+              <SidebarItem
+                label="Application Type"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/managements/applicationtype")}
+                useDynamicIcon
+              />
+            )}
             {hasPermission("citizenship.view") && (
               <SidebarItem
                 label="Citizenship"
