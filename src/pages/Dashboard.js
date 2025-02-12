@@ -646,13 +646,13 @@ const AppCard = ({ app, colors, handleAppClick, small }) => (
     bg={colors.appBg}
     borderRadius="xl"
     border={`3px solid ${colors.cardBorder}`}
-    p={small ? 3 : 6}
+    p={small ? 2 : 6}
     spacing={2}
     boxShadow="md"
     _hover={{ transform: "scale(1.03)", transition: "all 0.2s ease-in-out" }}
     align="center"
     textAlign="center"
-    width={small ? "80px" : "100%"}
+    width={small ? "120px" : "100%"}
     minHeight={small ? "80px" : "200px"}
     onClick={(e) => {
       e.preventDefault(); // Prevent default behavior
