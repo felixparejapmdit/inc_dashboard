@@ -45,6 +45,8 @@ import { useDisclosure } from "@chakra-ui/react";
 import { PopoverHeader, List } from "@chakra-ui/react";
 
 import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+
 import axios from "axios";
 
 // Use environment variable
@@ -53,6 +55,7 @@ const API_URL = process.env.REACT_APP_API_URL;
 export default function Dashboard() {
   const [appTypes, setAppTypes] = useState([]);
 
+  const [recentApps, setRecentApps] = useState([]);
   const [categorizedApps, setCategorizedApps] = useState({});
   const [apps, setApps] = useState([]);
   const [status, setStatus] = useState("");
@@ -231,6 +234,12 @@ export default function Dashboard() {
     }
   }, [currentUser]); // Run when `currentUser` updates
 
+  useEffect(() => {
+    const storedRecentApps =
+      JSON.parse(localStorage.getItem("recentApps")) || [];
+    setRecentApps(storedRecentApps.slice(0, 5));
+  }, []);
+
   const fetchApplicationTypes = async () => {
     try {
       const response = await fetch(`${API_URL}/api/application-types`);
@@ -329,8 +338,41 @@ export default function Dashboard() {
     return `Good evening, ${userFullName}`;
   };
 
+  const handleAppClick = (app) => {
+    console.log("App Clicked:", app.name);
+
+    // Retrieve stored recently opened apps
+    const storedRecentApps =
+      JSON.parse(localStorage.getItem("recentApps")) || [];
+
+    // Add the clicked app to the front of the list (avoid duplicates)
+    const updatedRecentApps = [
+      app,
+      ...storedRecentApps.filter((a) => a.id !== app.id),
+    ].slice(0, 5);
+
+    // Save updated list to local storage
+    localStorage.setItem("recentApps", JSON.stringify(updatedRecentApps));
+
+    // Update state
+    setRecentApps(updatedRecentApps);
+  };
+
   // 🟢 Dynamic column count for responsiveness
   const columns = useBreakpointValue({ base: 1, sm: 1, md: 3, lg: 3, xl: 5 });
+
+  const handleDragEnd = (result, type) => {
+    if (!result.destination) return;
+
+    const reorderedApps = [...categorizedApps[type]];
+    const [movedApp] = reorderedApps.splice(result.source.index, 1);
+    reorderedApps.splice(result.destination.index, 0, movedApp);
+
+    setCategorizedApps((prev) => ({
+      ...prev,
+      [type]: reorderedApps,
+    }));
+  };
 
   return (
     <Box bg={useColorModeValue("gray.50", "gray.500")} minH="100vh" p={6}>
@@ -417,8 +459,28 @@ export default function Dashboard() {
         </Popover>
       </HStack>
 
+      {/* Recently Opened Apps Section */}
+      {recentApps.length > 0 && (
+        <Box mt={6}>
+          <Heading as="h2" size="m" mb={4} color="gray.700">
+            Recently Opened
+          </Heading>
+          <SimpleGrid columns={{ base: 2, sm: 3, md: 5 }} spacing={4}>
+            {recentApps.map((app) => (
+              <AppCard
+                key={app.id}
+                app={app}
+                colors={colors}
+                handleAppClick={handleAppClick}
+                small
+              />
+            ))}
+          </SimpleGrid>
+        </Box>
+      )}
+
       {/* Dynamically Render Applications Based on Application Types */}
-      {appTypes.map((type) => (
+      {/* {appTypes.map((type) => (
         <Box key={type.id} mt={6}>
           <Heading as="h2" size="lg" mb={4} display="flex" alignItems="center">
             <FiGrid style={{ marginRight: "8px", color: "#F3C847" }} />
@@ -427,11 +489,75 @@ export default function Dashboard() {
           <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing={6}>
             {categorizedApps[type.name] &&
               categorizedApps[type.name].map((app) => (
-                <AppCard key={app.id} app={app} colors={colors} />
+                <AppCard
+                  key={app.id}
+                  app={app}
+                  colors={colors}
+                  handleAppClick={handleAppClick}
+                />
               ))}
           </SimpleGrid>
         </Box>
-      ))}
+      ))} */}
+
+      <>
+        <DragDropContext
+          onDragEnd={(result) =>
+            handleDragEnd(result, result.source.droppableId)
+          }
+        >
+          {appTypes.map((type) => (
+            <Box key={type.id} mt={6}>
+              <Heading
+                as="h2"
+                size="lg"
+                mb={4}
+                display="flex"
+                alignItems="center"
+              >
+                <FiGrid style={{ marginRight: "8px", color: "#F3C847" }} />
+                {type.name}
+              </Heading>
+
+              <Droppable droppableId={type.name} direction="horizontal">
+                {(provided) => (
+                  <SimpleGrid
+                    columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
+                    spacing={6}
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                  >
+                    {categorizedApps[type.name] &&
+                      categorizedApps[type.name].map((app, index) => (
+                        <Draggable
+                          key={app.id}
+                          draggableId={app.id.toString()}
+                          index={index}
+                        >
+                          {(provided) => (
+                            <Box
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                            >
+                              <AppCard
+                                key={app.id}
+                                app={app}
+                                colors={colors}
+                                handleAppClick={handleAppClick}
+                              />
+                            </Box>
+                          )}
+                        </Draggable>
+                      ))}
+                    {provided.placeholder}
+                  </SimpleGrid>
+                )}
+              </Droppable>
+            </Box>
+          ))}
+        </DragDropContext>
+      </>
 
       {/* Modal for App Info */}
       {selectedApp && (
@@ -510,45 +636,36 @@ export default function Dashboard() {
 }
 
 // Card component for Apps
-const AppCard = ({ app, colors, onSettingsClick, handleNextcloudLogin }) => (
+const AppCard = ({ app, colors, handleAppClick, small }) => (
   <VStack
-    as="a"
-    href={app.url}
-    target="_blank"
-    rel="noopener noreferrer"
+    as="div" // Change from <a> to <div> to prevent conflicts with onClick
     bg={colors.appBg}
     borderRadius="xl"
     border={`3px solid ${colors.cardBorder}`}
-    p={6}
-    spacing={4}
+    p={small ? 3 : 6}
+    spacing={2}
     boxShadow="md"
     _hover={{ transform: "scale(1.03)", transition: "all 0.2s ease-in-out" }}
     align="center"
     textAlign="center"
-    width="100%"
+    width={small ? "80px" : "100%"}
+    minHeight={small ? "80px" : "200px"}
+    onClick={(e) => {
+      e.preventDefault(); // Prevent default behavior
+      if (handleAppClick) {
+        handleAppClick(app);
+      }
+      window.open(app.url, "_blank"); // Open in a new tab
+    }}
+    cursor="pointer"
   >
-    {/* Settings Icon */}
-    <Box position="absolute" display="none" top={4} right={4}>
-      <Icon
-        as={FiEdit}
-        boxSize={5}
-        color={colors.cardHeader}
-        cursor="pointer"
-        onClick={(e) => {
-          e.preventDefault(); // Prevent link navigation when clicking the settings icon
-          onSettingsClick(app);
-        }}
-        _hover={{ color: colors.cardHeaderHover }} // Change color on hover
-      />
-    </Box>
-
     {/* App Icon */}
     <Box>
       {app.icon ? (
         <Image
           src={app.icon}
           alt={`${app.name} Icon`}
-          boxSize="70px" // Larger icon for emphasis
+          boxSize={small ? "40px" : "70px"} // Larger icon for emphasis
           borderRadius="full" // Circular icon
           mb={4}
           boxShadow="md"
@@ -562,12 +679,19 @@ const AppCard = ({ app, colors, onSettingsClick, handleNextcloudLogin }) => (
 
     {/* App Name and Description */}
     <Box>
-      <Text fontSize="xl" fontWeight="bold" color={colors.cardHeader}>
+      <Text
+        fontSize={small ? "10px" : "xl"}
+        fontWeight="bold"
+        color={colors.cardHeader}
+      >
         {app.name}
       </Text>
-      <Text fontSize="sm" color={colors.cardText}>
-        {app.description}
-      </Text>
+      {/* Only show description if it's **not** a recently opened app */}
+      {!small && (
+        <Text fontSize="sm" color={colors.cardText}>
+          {app.description}
+        </Text>
+      )}
     </Box>
   </VStack>
 );
