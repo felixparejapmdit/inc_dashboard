@@ -20,8 +20,8 @@ export const PermissionProvider = ({ children }) => {
 
   // Check if the user has a specific permission
   const hasPermission = (permissionName) => {
-    console.log("Permissions: ", permissions); // Log all permissions
-    console.log("Checking permission: ", permissionName); // Log the permission being checked
+    //console.log("Permissions: ", permissions); // Log all permissions
+    //console.log("Checking permission: ", permissionName); // Log the permission being checked
 
     const permission = permissions.find(
       (perm) => perm.permission_name === permissionName
