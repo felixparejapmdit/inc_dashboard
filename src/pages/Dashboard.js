@@ -43,6 +43,7 @@ import {
 
 import { useDisclosure } from "@chakra-ui/react";
 import { PopoverHeader, List } from "@chakra-ui/react";
+import Chatbot from "../components/Chatbot"; // Import chatbot
 
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
@@ -635,6 +636,7 @@ export default function Dashboard() {
           </ModalContent>
         </Modal>
       )}
+      <Chatbot />
     </Box>
   );
 }
