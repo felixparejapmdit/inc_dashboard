@@ -48,7 +48,7 @@ const Applications = () => {
   const [url, setUrl] = useState("");
   const [description, setDescription] = useState("");
   const [icon, setIcon] = useState(null);
-  const [appType, setAppType] = useState(""); // Stores selected application type
+  const [app_type, setAppType] = useState(""); // Stores selected application type
   const [status, setStatus] = useState("");
   const [editingApp, setEditingApp] = useState(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -106,7 +106,7 @@ const Applications = () => {
       return;
     }
 
-    const newApp = { name, url, description, icon };
+    const newApp = { name, url, description, icon, app_type };
 
     if (editingApp) {
       fetch(`${API_URL}/api/apps/${editingApp.id}`, {
@@ -337,7 +337,7 @@ const Applications = () => {
               <FormControl isRequired>
                 <FormLabel>Application Type</FormLabel>
                 <Select
-                  value={appType}
+                  value={app_type}
                   onChange={(e) => setAppType(e.target.value)}
                   placeholder="Select Application Type"
                 >
