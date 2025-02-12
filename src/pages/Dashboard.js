@@ -458,7 +458,6 @@ export default function Dashboard() {
           </PopoverContent>
         </Popover>
       </HStack>
-
       {/* Recently Opened Apps Section */}
       {recentApps.length > 0 && (
         <Box mt={6}>
@@ -478,7 +477,6 @@ export default function Dashboard() {
           </SimpleGrid>
         </Box>
       )}
-
       {/* Dynamically Render Applications Based on Application Types */}
       {/* {appTypes.map((type) => (
         <Box key={type.id} mt={6}>
@@ -499,12 +497,19 @@ export default function Dashboard() {
           </SimpleGrid>
         </Box>
       ))} */}
-
       <>
         <DragDropContext
-          onDragEnd={(result) =>
-            handleDragEnd(result, result.source.droppableId)
-          }
+          onDragEnd={(result) => {
+            const { source, destination } = result;
+            if (!destination) return; // No valid drop location
+
+            // Prevent moving to a different app type
+            if (source.droppableId !== destination.droppableId) {
+              return;
+            }
+
+            handleDragEnd(result, source.droppableId);
+          }}
         >
           {appTypes.map((type) => (
             <Box key={type.id} mt={6}>
@@ -558,7 +563,6 @@ export default function Dashboard() {
           ))}
         </DragDropContext>
       </>
-
       {/* Modal for App Info */}
       {selectedApp && (
         <Modal isOpen={isOpen} onClose={onClose}>
