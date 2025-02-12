@@ -17,8 +17,8 @@ const ApplicationType = sequelize.define(
   {
     tableName: "applicationtypes",
     timestamps: true, // Disable automatic timestamps
-    createdAt: "created_at",
-    updatedAt: "updated_at",
+    createdAt: "createdAt",
+    updatedAt: "updatedAt",
   }
 );
 
