@@ -1,5 +1,5 @@
 const { DataTypes } = require("sequelize");
-const sequelize = require("../config/database"); // Adjust path to your DB config
+const sequelize = require("../config/database");
 
 const ApplicationType = sequelize.define(
   "ApplicationType",
@@ -10,9 +10,8 @@ const ApplicationType = sequelize.define(
       primaryKey: true,
     },
     name: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(150),
       allowNull: false,
-      unique: true,
     },
   },
   {
