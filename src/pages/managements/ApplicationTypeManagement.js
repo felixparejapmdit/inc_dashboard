@@ -78,7 +78,7 @@ const ApplicationTypeManagement = () => {
 
     try {
       await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/application-types`,
+        `${process.env.REACT_APP_API_URL}/api/add_application-types`,
         newAppType
       );
       fetchApplicationTypes();

@@ -8,7 +8,7 @@ router.get(
   applicationTypeController.getApplicationTypes
 );
 router.post(
-  "/api/application-types",
+  "/api/add_application-types",
   applicationTypeController.createApplicationType
 );
 router.put(
