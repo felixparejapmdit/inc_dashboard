@@ -52,7 +52,7 @@ exports.getAvailableApps = async (req, res) => {
       );
     });
 
-    console.log("Fetched Categorized Apps:", categorizedApps);
+    //console.log("Fetched Categorized Apps:", categorizedApps);
     res.json(categorizedApps);
   } catch (error) {
     console.error("Error fetching available apps for user:", error);

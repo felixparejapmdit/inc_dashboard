@@ -19,7 +19,8 @@ const Chatbot = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const chatEndRef = useRef(null);
-  const API_URL = "http://172.20.161.77:5000/api/chat"; // ✅ Make sure your server is running
+
+  const API_URL = `${process.env.REACT_APP_API_URL}/api/chat`; // ✅ Make sure your server is running
 
   // ✅ Define theme colors before rendering
   const bgColor = useColorModeValue("white", "gray.800");

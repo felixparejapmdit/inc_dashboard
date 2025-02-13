@@ -21,6 +21,12 @@ const db = mysql.createPool({
   database: "ppi",
 });
 
+// ✅ Function to fetch only the selected tables
+async function getSelectedTables() {
+  const selectedTables = ["personnels", "family_members", "suguan", "apps"];
+  return selectedTables; // Only return these specific tables
+}
+
 // ✅ Function to fetch all tables
 async function getAllTables() {
   const [tables] = await db.query("SHOW TABLES");
@@ -33,17 +39,17 @@ async function getTableData(table) {
   return rows;
 }
 
-// ✅ Main function to export all database content
+// ✅ Main function to export the entire database
 async function exportDatabase() {
   try {
     console.log("🔄 Connecting to MySQL database...");
 
-    // Test if connection is working
+    // Test connection
     const conn = await db.getConnection();
     console.log("✅ Connected to MySQL Database");
-    conn.release(); // Release the connection back to the pool
+    conn.release();
 
-    const tables = await getAllTables();
+    const tables = await getSelectedTables();
     let dbContent = {};
 
     for (const table of tables) {

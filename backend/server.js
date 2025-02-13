@@ -19,6 +19,8 @@ const importRoutes = require("./routes/importRoutes");
 const districtsRoutes = require("./routes/districtsRoutes");
 const localCongregationRoutes = require("./routes/localCongregationRoutes");
 
+const chatRoutes = require("./routes/chatRoutes");
+
 const IP_Address = process.env.REACT_IP_ADDRESS || "0.0.0.0"; // Default to listening on all interfaces
 
 const app = express();
@@ -138,6 +140,8 @@ app.use("/api", importRoutes);
 app.use(districtsRoutes);
 app.use(localCongregationRoutes);
 
+app.use(chatRoutes);
+
 // ✅ Connect to MySQL database
 const db = mysql.createConnection({
   host: process.env.MYSQL_HOST,
@@ -156,119 +160,119 @@ app.use(cors({ origin: "*" }));
 app.use(bodyParser.json());
 
 // ✅ API Endpoint: Chatbot with Database Search
-app.post("/api/chat", async (req, res) => {
-  const userMessage = req.body.message.toLowerCase();
-  const words = userMessage.split(" ");
+// app.post("/api/chat", async (req, res) => {
+//   const userMessage = req.body.message.toLowerCase();
+//   const words = userMessage.split(" ");
 
-  // 🔍 **Extract a potential name from the user input**
-  const searchName = words.find((word) => word.length > 2); // Get a potential name
+//   // 🔍 **Extract a potential name from the user input**
+//   const searchName = words.find((word) => word.length > 2); // Get a potential name
 
-  if (searchName) {
-    try {
-      // 🔍 Search personnel using Sequelize
-      const personnels = await Personnel.findAll({
-        where: {
-          [Op.or]: [
-            { givenname: { [Op.like]: `%${searchName}%` } },
-            { surname_husband: { [Op.like]: `%${searchName}%` } },
-            { nickname: { [Op.like]: `%${searchName}%` } },
-          ],
-        },
-        attributes: [
-          "reference_number",
-          "gender",
-          "civil_status",
-          "wedding_anniversary",
-          "givenname",
-          "surname_husband",
-          "nickname",
-          "date_of_birth",
-          "place_of_birth",
-        ],
-      });
+//   if (searchName) {
+//     try {
+//       // 🔍 Search personnel using Sequelize
+//       const personnels = await Personnel.findAll({
+//         where: {
+//           [Op.or]: [
+//             { givenname: { [Op.like]: `%${searchName}%` } },
+//             { surname_husband: { [Op.like]: `%${searchName}%` } },
+//             { nickname: { [Op.like]: `%${searchName}%` } },
+//           ],
+//         },
+//         attributes: [
+//           "reference_number",
+//           "gender",
+//           "civil_status",
+//           "wedding_anniversary",
+//           "givenname",
+//           "surname_husband",
+//           "nickname",
+//           "date_of_birth",
+//           "place_of_birth",
+//         ],
+//       });
 
-      // 🔍 Search family members using Sequelize
-      const familyMembers = await FamilyMember.findAll({
-        where: {
-          givenname: { [Op.like]: `%${searchName}%` },
-        },
-        attributes: [
-          "givenname",
-          "lastname",
-          "relationship_type",
-          "date_of_birth",
-          "gender",
-        ],
-      });
+//       // 🔍 Search family members using Sequelize
+//       const familyMembers = await FamilyMember.findAll({
+//         where: {
+//           givenname: { [Op.like]: `%${searchName}%` },
+//         },
+//         attributes: [
+//           "givenname",
+//           "lastname",
+//           "relationship_type",
+//           "date_of_birth",
+//           "gender",
+//         ],
+//       });
 
-      if (personnels.length === 0 && familyMembers.length === 0) {
-        return res.json({ reply: `No records found for "${searchName}".` });
-      }
+//       if (personnels.length === 0 && familyMembers.length === 0) {
+//         return res.json({ reply: `No records found for "${searchName}".` });
+//       }
 
-      // 📝 Format personnel details
-      let personnelInfo = personnels
-        .map(
-          (p) =>
-            `${p.givenname} ${p.surname_husband} (Nickname: ${
-              p.nickname || "N/A"
-            }) is a ${p.gender} with civil status ${p.civil_status}. Born on ${
-              p.date_of_birth
-            }, in ${p.place_of_birth}. Reference Number: ${
-              p.reference_number
-            }. Wedding Anniversary: ${p.wedding_anniversary || "N/A"}.`
-        )
-        .join("\n");
+//       // 📝 Format personnel details
+//       let personnelInfo = personnels
+//         .map(
+//           (p) =>
+//             `${p.givenname} ${p.surname_husband} (Nickname: ${
+//               p.nickname || "N/A"
+//             }) is a ${p.gender} with civil status ${p.civil_status}. Born on ${
+//               p.date_of_birth
+//             }, in ${p.place_of_birth}. Reference Number: ${
+//               p.reference_number
+//             }. Wedding Anniversary: ${p.wedding_anniversary || "N/A"}.`
+//         )
+//         .join("\n");
 
-      // 📝 Format family member details
-      let familyInfo = familyMembers
-        .map(
-          (f) =>
-            `${f.givenname} ${f.lastname} is a ${f.relationship_type}. Gender: ${f.gender}. Born on ${f.date_of_birth}.`
-        )
-        .join("\n");
+//       // 📝 Format family member details
+//       let familyInfo = familyMembers
+//         .map(
+//           (f) =>
+//             `${f.givenname} ${f.lastname} is a ${f.relationship_type}. Gender: ${f.gender}. Born on ${f.date_of_birth}.`
+//         )
+//         .join("\n");
 
-      // 🧠 **Send structured response to Ollama**
-      const ollamaPrompt = `
-      User asked about "${searchName}". Here is the information:
+//       // 🧠 **Send structured response to Ollama**
+//       const ollamaPrompt = `
+//       User asked about "${searchName}". Here is the information:
 
-      **Personnel Details:**
-      ${personnelInfo || "No personnel found."}
+//       **Personnel Details:**
+//       ${personnelInfo || "No personnel found."}
 
-      **Family Member Details:**
-      ${familyInfo || "No family members found."}
-      `;
+//       **Family Member Details:**
+//       ${familyInfo || "No family members found."}
+//       `;
 
-      const ollamaResponse = await generateOllamaResponse(ollamaPrompt);
-      res.json({ reply: ollamaResponse });
-    } catch (error) {
-      console.error("❌ Database query error:", error);
-      res.json({ reply: "Sorry, I couldn't retrieve the data." });
-    }
-    return;
-  }
+//       const ollamaResponse = await generateOllamaResponse(ollamaPrompt);
+//       res.json({ reply: ollamaResponse });
+//     } catch (error) {
+//       console.error("❌ Database query error:", error);
+//       res.json({ reply: "Sorry, I couldn't retrieve the data." });
+//     }
+//     return;
+//   }
 
-  // 🟢 **Default response if no match**
-  const ollamaResponse = await generateOllamaResponse(userMessage);
-  res.json({ reply: ollamaResponse });
-});
+//   // 🟢 **Default response if no match**
+//   const ollamaResponse = await generateOllamaResponse(userMessage);
+//   res.json({ reply: ollamaResponse });
+// });
 
 // ✅ Function to Call Ollama API
-async function generateOllamaResponse(prompt) {
-  try {
-    const response = await axios.post(
-      "http://172.18.125.54/api/generate", // ✅ Replace with your Ollama IP
-      {
-        model: "llama3.1", // or your chosen model
-        prompt,
-        stream: false,
-      }
-    );
-    return response.data.response;
-  } catch (error) {
-    console.error("❌ Ollama API error:", error);
-    return "I'm having trouble processing your request.";
-  }
-}
+// async function generateOllamaResponse(prompt) {
+//   try {
+//     const response = await axios.post(
+//       "http://172.18.121.50/api/generate", // ✅ Replace with your Ollama IP
+//       {
+//         model: "llama3.1", // or your chosen model
+//         prompt,
+//         stream: false,
+//       }
+//     );
+//     return response.data.response;
+//   } catch (error) {
+//     console.error("❌ Ollama API error:", error);
+//     return "I'm having trouble processing your request.";
+//   }
+// }
 
 // --- Start server ---
 app.listen(PORT, "0.0.0.0", () => {
