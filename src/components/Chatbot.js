@@ -18,6 +18,8 @@ const Chatbot = () => {
   const [isListening, setIsListening] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const [isTyping, setIsTyping] = useState(false);
   const chatEndRef = useRef(null);
   const chatboxRef = useRef(null); // ✅ Ref for detecting outside clicks
 
@@ -49,7 +51,8 @@ const Chatbot = () => {
     if (!input.trim()) return;
     setMessages((prev) => [...prev, { text: input, sender: "user" }]);
     setInput("");
-    setIsLoading(true);
+
+    setIsTyping(true); // ✅ Show typing indicator
 
     try {
       const response = await fetch(API_URL, {
@@ -66,7 +69,7 @@ const Chatbot = () => {
         { text: "Error connecting to AI. Please try again.", sender: "bot" },
       ]);
     } finally {
-      setIsLoading(false);
+      setIsTyping(false); // ✅ Hide typing indicator
     }
   };
 
@@ -149,6 +152,22 @@ const Chatbot = () => {
                 {msg.text}
               </Box>
             ))}
+
+            {/* ✅ Typing Indicator */}
+            {isTyping && (
+              <Box
+                p={3}
+                borderRadius="lg"
+                bg="gray.500"
+                alignSelf="flex-start"
+                color="white"
+                maxW="80%"
+                fontStyle="italic"
+              >
+                AI is typing...
+              </Box>
+            )}
+
             <div ref={chatEndRef}></div>
           </VStack>
 
@@ -164,7 +183,7 @@ const Chatbot = () => {
             <IconButton
               icon={isLoading ? <Spinner /> : <FiSend />}
               onClick={sendMessage}
-              isDisabled={isLoading}
+              isDisabled={isTyping} // ✅ Disable send button while AI is typing
             />
             <IconButton
               icon={isListening ? <Spinner /> : <FiMic />}

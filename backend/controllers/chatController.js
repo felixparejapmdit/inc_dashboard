@@ -7,6 +7,7 @@ const FamilyMember = require("../models/FamilyMember");
 const OLLAMA_HOST = process.env.OLLAMA_HOST || "172.18.121.50";
 const OLLAMA_PORT = process.env.OLLAMA_PORT || "11434";
 const OLLAMA_MODEL = "llama3.1";
+const ChatHistory = require("../models/ChatHistory"); // ✅ New model for chat storage
 const dbData = require("../scripts/database_export.json"); // ✅ Load the trained database
 
 // ✅ Function to Call Ollama API
@@ -123,6 +124,7 @@ async function generateOllamaResponse(prompt) {
 
 // ✅ Chatbot API Logic
 exports.chatbotHandler = async (req, res) => {
+  const { message, user_id } = req.body; // User ID for chat storage
   const userMessage = req.body.message.toLowerCase();
 
   // 🔍 **Step 1: Ask Ollama First**
@@ -157,5 +159,22 @@ exports.chatbotHandler = async (req, res) => {
     return res.json({ reply: matchedData });
   }
 
-  return res.json({ reply: "I couldn't find anything related to your query." });
+  return res.json({
+    reply: "I couldn't find anything related to your query.",
+  });
+};
+
+// ✅ Retrieve Chat History API
+exports.getChatHistory = async (req, res) => {
+  const { user_id } = req.params;
+  try {
+    const chatHistory = await ChatHistory.findAll({
+      where: { user_id },
+      order: [["timestamp", "ASC"]],
+    });
+    res.json(chatHistory);
+  } catch (error) {
+    console.error("❌ Chat history error:", error);
+    res.status(500).json({ error: "Failed to retrieve chat history." });
+  }
 };

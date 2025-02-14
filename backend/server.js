@@ -24,7 +24,7 @@ const chatRoutes = require("./routes/chatRoutes");
 const IP_Address = process.env.REACT_IP_ADDRESS || "0.0.0.0"; // Default to listening on all interfaces
 
 const app = express();
-const PORT = process.env.REACT_PORT || 5000;
+const PORT = process.env.REACT_PORT || 80;
 const API_URL = "http://172.18.125.54:11434/api/generate"; // Ollama local API
 
 const groupRoutes = require("./routes/groupRoutes");
