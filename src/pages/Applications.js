@@ -109,6 +109,16 @@ const Applications = () => {
     const newApp = { name, url, description, icon, app_type };
 
     if (editingApp) {
+      // ✅ Check if the URL is being updated
+      if (editingApp.url !== url) {
+        // ✅ Remove the old app data from localStorage
+        const recentApps = JSON.parse(localStorage.getItem("recentApps")) || [];
+        const updatedRecentApps = recentApps.filter(
+          (app) => app.url !== editingApp.url
+        );
+        localStorage.setItem("recentApps", JSON.stringify(updatedRecentApps));
+      }
+
       fetch(`${API_URL}/api/apps/${editingApp.id}`, {
         method: "PUT",
         headers: {

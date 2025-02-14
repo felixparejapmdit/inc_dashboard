@@ -636,7 +636,7 @@ export default function Dashboard() {
           </ModalContent>
         </Modal>
       )}
-      <Chatbot />
+      {/* <Chatbot /> */}
     </Box>
   );
 }

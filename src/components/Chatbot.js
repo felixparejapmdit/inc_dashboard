@@ -19,6 +19,7 @@ const Chatbot = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const chatEndRef = useRef(null);
+  const chatboxRef = useRef(null); // ✅ Ref for detecting outside clicks
 
   const API_URL = `${process.env.REACT_APP_API_URL}/api/chat`; // ✅ Make sure your server is running
 
@@ -29,6 +30,19 @@ const Chatbot = () => {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // ✅ Close chatbox when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (chatboxRef.current && !chatboxRef.current.contains(event.target)) {
+        setIsChatOpen(false);
+      }
+    }
+    if (isChatOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isChatOpen]);
 
   // ✅ Function to send a message
   const sendMessage = async () => {
@@ -90,6 +104,7 @@ const Chatbot = () => {
 
       {isChatOpen && (
         <Box
+          ref={chatboxRef} // ✅ Add ref to detect clicks outside
           w="350px"
           h="450px"
           bg={bgColor}

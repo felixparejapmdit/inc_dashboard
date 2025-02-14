@@ -61,6 +61,10 @@ import PermissionCategoriesManagement from "./pages/managements/PermissionCatego
 //import { PermissionProvider } from "./contexts/PermissionContext";
 import { PermissionProvider } from "./contexts/PermissionContext";
 
+import OllamaAPI from "./pages/AI/OllamaAPI";
+
+import Chatbot from "./components/Chatbot"; // Import Chatbot
+
 function App() {
   return (
     <PermissionProvider>
@@ -549,7 +553,11 @@ function App() {
                 </Layout>
               }
             />
+
+            <Route path="/ollama-api" element={<OllamaAPI />} />
           </Routes>
+          <Chatbot />{" "}
+          {/* ✅ Chatbot placed outside Routes to appear on all pages */}
         </Router>
       </ChakraProvider>
     </PermissionProvider>
