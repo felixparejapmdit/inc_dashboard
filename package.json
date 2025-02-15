@@ -126,7 +126,7 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "concurrently": "^9.1.0",
+    "concurrently": "^9.1.2",
     "nodemon": "^3.1.4",
     "react-app-rewired": "^2.2.1"
   },
