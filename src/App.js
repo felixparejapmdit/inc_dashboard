@@ -5,6 +5,7 @@ import {
   Routes,
   Route,
   Navigate,
+  useLocation,
 } from "react-router-dom";
 
 import Login from "./pages/Login";
@@ -70,7 +71,23 @@ function App() {
     <PermissionProvider>
       <ChakraProvider theme={customTheme}>
         <Router>
-          <Routes>
+      
+        <MainApp />
+         </Router>
+      </ChakraProvider>
+    </PermissionProvider>
+  );
+}
+
+
+function MainApp()
+{
+
+  const location = useLocation(); // Get current route
+  return (
+    <>
+
+<Routes>
             <Route path="/step1" element={<Step1 />} />
             <Route path="/step2" element={<Step2 />} />
             <Route path="/step3" element={<Step3 />} />
@@ -556,12 +573,11 @@ function App() {
 
             <Route path="/ollama-api" element={<OllamaAPI />} />
           </Routes>
-          <Chatbot />{" "}
-          {/* ✅ Chatbot placed outside Routes to appear on all pages */}
-        </Router>
-      </ChakraProvider>
-    </PermissionProvider>
-  );
-}
 
+{/* Render Chatbot only if the current path is NOT "/login" */}
+{location.pathname !== "/login" && <Chatbot />}
+</>
+    );
+
+}
 export default App;
