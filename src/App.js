@@ -66,518 +66,525 @@ import OllamaAPI from "./pages/AI/OllamaAPI";
 
 import Chatbot from "./components/Chatbot"; // Import Chatbot
 
+import DragDropSettings from "./pages/settings/DragDropSettings";
+
 function App() {
   return (
     <PermissionProvider>
       <ChakraProvider theme={customTheme}>
         <Router>
-      
-        <MainApp />
-         </Router>
+          <MainApp />
+        </Router>
       </ChakraProvider>
     </PermissionProvider>
   );
 }
 
-
-function MainApp()
-{
-
+function MainApp() {
   const location = useLocation(); // Get current route
   return (
     <>
+      <Routes>
+        <Route path="/step1" element={<Step1 />} />
+        <Route path="/step2" element={<Step2 />} />
+        <Route path="/step3" element={<Step3 />} />
+        <Route path="/step4" element={<Step4 />} />
+        <Route path="/step5" element={<Step5 />} />
+        <Route path="/step6" element={<Step6 />} />
+        <Route path="/step7" element={<Step7 />} />
 
-<Routes>
-            <Route path="/step1" element={<Step1 />} />
-            <Route path="/step2" element={<Step2 />} />
-            <Route path="/step3" element={<Step3 />} />
-            <Route path="/step4" element={<Step4 />} />
-            <Route path="/step5" element={<Step5 />} />
-            <Route path="/step6" element={<Step6 />} />
-            <Route path="/step7" element={<Step7 />} />
+        {/* Redirect the root URL to /login */}
+        <Route path="/" element={<Navigate to="/login" />} />
+        {/* Standalone Route for Enrollment Page */}
+        <Route path="/enroll" element={<Enrollment />} />
 
-            {/* Redirect the root URL to /login */}
-            <Route path="/" element={<Navigate to="/login" />} />
-            {/* Standalone Route for Enrollment Page */}
-            <Route path="/enroll" element={<Enrollment />} />
+        <Route path="/enrollment/:referenceNumber" element={<Enrollment />} />
 
-            <Route
-              path="/enrollment/:referenceNumber"
-              element={<Enrollment />}
-            />
+        {/* Define the login route */}
+        <Route path="/login" element={<Login />} />
+        {/* Routes wrapped with the sidebar layout */}
+        <Route
+          path="/dashboard"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <Dashboard />
+            </Layout>
+          }
+        />
+        <Route
+          path="/application"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <Applications />
+            </Layout>
+          }
+        />
+        <Route
+          path="/user"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <Users />
+            </Layout>
+          }
+        />
 
-            {/* Define the login route */}
-            <Route path="/login" element={<Login />} />
-            {/* Routes wrapped with the sidebar layout */}
-            <Route
-              path="/dashboard"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <Dashboard />
-                </Layout>
-              }
-            />
-            <Route
-              path="/application"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <Applications />
-                </Layout>
-              }
-            />
-            <Route
-              path="/user"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <Users />
-                </Layout>
-              }
-            />
+        <Route
+          path="/personnel-preview/:personnelId"
+          element={<PersonnelPreview />}
+        />
 
-            <Route
-              path="/personnel-preview/:personnelId"
-              element={<PersonnelPreview />}
-            />
+        <Route
+          path="/progresstracking"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <ProgressTracking />
+            </Layout>
+          }
+        />
 
-            <Route
-              path="/progresstracking"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <ProgressTracking />
-                </Layout>
-              }
-            />
+        <Route
+          path="/progress/step1"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <ProgressStep1 />
+            </Layout>
+          }
+        />
 
-            <Route
-              path="/progress/step1"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <ProgressStep1 />
-                </Layout>
-              }
-            />
+        {/* <Route path="/progress/step1" element={<ProgressStep1 />} /> */}
+        <Route
+          path="/progress/step2"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <ProgressStep2 />
+            </Layout>
+          }
+        />
+        <Route
+          path="/progress/step3"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <ProgressStep3 />
+            </Layout>
+          }
+        />
+        <Route
+          path="/progress/step4"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <ProgressStep4 />
+            </Layout>
+          }
+        />
 
-            {/* <Route path="/progress/step1" element={<ProgressStep1 />} /> */}
-            <Route
-              path="/progress/step2"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <ProgressStep2 />
-                </Layout>
-              }
-            />
-            <Route
-              path="/progress/step3"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <ProgressStep3 />
-                </Layout>
-              }
-            />
-            <Route
-              path="/progress/step4"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <ProgressStep4 />
-                </Layout>
-              }
-            />
+        <Route
+          path="/progress/step5"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <ProgressStep5 />
+            </Layout>
+          }
+        />
+        <Route
+          path="/progress/step6"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <ProgressStep6 />
+            </Layout>
+          }
+        />
+        <Route
+          path="/progress/step7"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <ProgressStep7 />
+            </Layout>
+          }
+        />
+        <Route
+          path="/progress/step8"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <ProgressStep8 />
+            </Layout>
+          }
+        />
 
-            <Route
-              path="/progress/step5"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <ProgressStep5 />
-                </Layout>
-              }
-            />
-            <Route
-              path="/progress/step6"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <ProgressStep6 />
-                </Layout>
-              }
-            />
-            <Route
-              path="/progress/step7"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <ProgressStep7 />
-                </Layout>
-              }
-            />
-            <Route
-              path="/progress/step8"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <ProgressStep8 />
-                </Layout>
-              }
-            />
+        <Route
+          path="/profile"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <Profile />
+            </Layout>
+          }
+        />
+        {/* New Routes for Add Apps, Add Suguan, Add Events, Add Reminders */}
+        <Route
+          path="/add-apps"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <Applications />
+            </Layout>
+          }
+        />
+        <Route
+          path="/add-suguan"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <Suguan />
+            </Layout>
+          }
+        />
+        <Route
+          path="/add-events"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <Events />
+            </Layout>
+          }
+        />
+        <Route
+          path="/reminders"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <Reminders />
+            </Layout>
+          }
+        />
+        <Route
+          path="/Mastodon"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <Mastodon />
+            </Layout>
+          }
+        />
+        {/* New Route for LdapUser */}
+        <Route
+          path="/ldap-users/"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <LdapUser />
+            </Layout>
+          }
+        />
+        {/* New Route for Department Management */}
+        <Route
+          path="/managements/departments"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <DepartmentManagement />
+            </Layout>
+          }
+        />
+        <Route
+          path="/managements/sections"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <SectionManagement />
+            </Layout>
+          }
+        />
+        <Route
+          path="/managements/subsections"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <SubsectionManagement />
+            </Layout>
+          }
+        />
+        <Route
+          path="/managements/designations"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <DesignationManagement />
+            </Layout>
+          }
+        />
+        <Route
+          path="/managements/districts"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <DistrictManagement />
+            </Layout>
+          }
+        />
+        <Route
+          path="/managements/citizenships"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <CitizenshipManagement />
+            </Layout>
+          }
+        />
+        <Route
+          path="/managements/nationalities"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <NationalityManagement />
+            </Layout>
+          }
+        />
+        <Route
+          path="/managements/languages"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <LanguagesManagement />
+            </Layout>
+          }
+        />
+        <Route
+          path="/managements/contact_infos"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <ContactTypeInfoManagement />
+            </Layout>
+          }
+        />
+        <Route
+          path="/managements/government_issued_ids"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <GovernmentIssuedIDManagement />
+            </Layout>
+          }
+        />
 
-            <Route
-              path="/profile"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <Profile />
-                </Layout>
-              }
-            />
-            {/* New Routes for Add Apps, Add Suguan, Add Events, Add Reminders */}
-            <Route
-              path="/add-apps"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <Applications />
-                </Layout>
-              }
-            />
-            <Route
-              path="/add-suguan"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <Suguan />
-                </Layout>
-              }
-            />
-            <Route
-              path="/add-events"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <Events />
-                </Layout>
-              }
-            />
-            <Route
-              path="/reminders"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <Reminders />
-                </Layout>
-              }
-            />
-            <Route
-              path="/Mastodon"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <Mastodon />
-                </Layout>
-              }
-            />
-            {/* New Route for LdapUser */}
-            <Route
-              path="/ldap-users/"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <LdapUser />
-                </Layout>
-              }
-            />
-            {/* New Route for Department Management */}
-            <Route
-              path="/managements/departments"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <DepartmentManagement />
-                </Layout>
-              }
-            />
-            <Route
-              path="/managements/sections"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <SectionManagement />
-                </Layout>
-              }
-            />
-            <Route
-              path="/managements/subsections"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <SubsectionManagement />
-                </Layout>
-              }
-            />
-            <Route
-              path="/managements/designations"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <DesignationManagement />
-                </Layout>
-              }
-            />
-            <Route
-              path="/managements/districts"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <DistrictManagement />
-                </Layout>
-              }
-            />
-            <Route
-              path="/managements/citizenships"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <CitizenshipManagement />
-                </Layout>
-              }
-            />
-            <Route
-              path="/managements/nationalities"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <NationalityManagement />
-                </Layout>
-              }
-            />
-            <Route
-              path="/managements/languages"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <LanguagesManagement />
-                </Layout>
-              }
-            />
-            <Route
-              path="/managements/contact_infos"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <ContactTypeInfoManagement />
-                </Layout>
-              }
-            />
-            <Route
-              path="/managements/government_issued_ids"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <GovernmentIssuedIDManagement />
-                </Layout>
-              }
-            />
+        <Route
+          path="/managements/locations"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <LocationManagement />
+            </Layout>
+          }
+        />
 
-            <Route
-              path="/managements/locations"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <LocationManagement />
-                </Layout>
-              }
-            />
+        <Route
+          path="/managements/applicationtype"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <ApplicationTypeManagement />
+            </Layout>
+          }
+        />
 
-            <Route
-              path="/managements/applicationtype"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <ApplicationTypeManagement />
-                </Layout>
-              }
-            />
+        <Route
+          path="/managements/groupmanagement"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <GroupManagement />
+            </Layout>
+          }
+        />
 
-            <Route
-              path="/managements/groupmanagement"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <GroupManagement />
-                </Layout>
-              }
-            />
+        <Route
+          path="/managements/permissionmanagement"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <PermissionManagement />
+            </Layout>
+          }
+        />
 
-            <Route
-              path="/managements/permissionmanagement"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <PermissionManagement />
-                </Layout>
-              }
-            />
+        <Route
+          path="/managements/categorymanagement"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <PermissionCategoriesManagement />
+            </Layout>
+          }
+        />
 
-            <Route
-              path="/managements/categorymanagement"
-              element={
-                <Layout
-                  currentUser={{
-                    name: "John Doe",
-                    avatarUrl: "/path/to/avatar.jpg",
-                  }}
-                >
-                  <PermissionCategoriesManagement />
-                </Layout>
-              }
-            />
+        <Route
+          path="/settings/drag-drop"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <DragDropSettings />
+            </Layout>
+          }
+        />
 
-            <Route path="/ollama-api" element={<OllamaAPI />} />
-          </Routes>
+        <Route path="/ollama-api" element={<OllamaAPI />} />
+      </Routes>
 
-{/* Render Chatbot only if the current path is NOT "/login" */}
-{location.pathname !== "/login" && <Chatbot />}
-</>
-    );
-
+      {/* Render Chatbot only if the current path is NOT "/login" */}
+      {location.pathname !== "/login" && <Chatbot />}
+    </>
+  );
 }
 export default App;

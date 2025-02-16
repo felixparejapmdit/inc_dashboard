@@ -245,6 +245,14 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 onClick={() => navigate("/managements/categorymanagement")} // Redirect to categorymanagement.js
               />
             )}
+            {hasPermission("dragdrop.view") && (
+              <SidebarItem
+                icon={FiCalendar}
+                label="Drap & Drop"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/settings/drag-drop")} // Redirect to categorymanagement.js
+              />
+            )}
             {hasPermission("events.view") && (
               <SidebarItem
                 icon={FiCalendar}

@@ -89,6 +89,23 @@ export default function Dashboard() {
 
   const navigate = useNavigate(); // Initialize useNavigate
 
+  // ✅ Detect if the screen is mobile-sized
+  const [isMobileDragEnabled, setIsMobileDragEnabled] = useState(false);
+
+  useEffect(() => {
+    const storedValue = localStorage.getItem("enableDragDropMobile");
+    setIsMobileDragEnabled(storedValue === "true");
+  }, []);
+
+  const isMobile = useBreakpointValue({
+    base: true,
+    sm: true,
+    md: false,
+    lg: false,
+    xl: false,
+  });
+  const shouldEnableDragDrop = !isMobile || isMobileDragEnabled;
+
   const colors = {
     reminderBg: useColorModeValue("orange.100", "orange.700"),
     eventBg: useColorModeValue("teal.100", "teal.700"),
@@ -363,7 +380,7 @@ export default function Dashboard() {
   const columns = useBreakpointValue({ base: 1, sm: 1, md: 3, lg: 3, xl: 5 });
 
   const handleDragEnd = (result, type) => {
-    if (!result.destination) return;
+    if (!result.destination || isMobile) return; // ✅ Disable drag on mobile
 
     const reorderedApps = [...categorizedApps[type]];
     const [movedApp] = reorderedApps.splice(result.source.index, 1);
@@ -499,42 +516,39 @@ export default function Dashboard() {
         </Box>
       ))} */}
       <>
-        <DragDropContext
-          onDragEnd={(result) => {
-            const { source, destination } = result;
-            if (!destination) return; // No valid drop location
+        {shouldEnableDragDrop ? (
+          <DragDropContext
+            onDragEnd={(result) => {
+              const { source, destination } = result;
+              if (!destination) return; // No valid drop location
+              if (source.droppableId !== destination.droppableId) {
+                return;
+              }
+              handleDragEnd(result, source.droppableId);
+            }}
+          >
+            {appTypes.map((type) => (
+              <Box key={type.id} mt={6}>
+                <Heading
+                  as="h2"
+                  size="lg"
+                  mb={4}
+                  display="flex"
+                  alignItems="center"
+                >
+                  <FiGrid style={{ marginRight: "8px", color: "#F3C847" }} />
+                  {type.name}
+                </Heading>
 
-            // Prevent moving to a different app type
-            if (source.droppableId !== destination.droppableId) {
-              return;
-            }
-
-            handleDragEnd(result, source.droppableId);
-          }}
-        >
-          {appTypes.map((type) => (
-            <Box key={type.id} mt={6}>
-              <Heading
-                as="h2"
-                size="lg"
-                mb={4}
-                display="flex"
-                alignItems="center"
-              >
-                <FiGrid style={{ marginRight: "8px", color: "#F3C847" }} />
-                {type.name}
-              </Heading>
-
-              <Droppable droppableId={type.name} direction="horizontal">
-                {(provided) => (
-                  <SimpleGrid
-                    columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
-                    spacing={6}
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                  >
-                    {categorizedApps[type.name] &&
-                      categorizedApps[type.name].map((app, index) => (
+                <Droppable droppableId={type.name} direction="horizontal">
+                  {(provided) => (
+                    <SimpleGrid
+                      columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
+                      spacing={6}
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                    >
+                      {categorizedApps[type.name]?.map((app, index) => (
                         <Draggable
                           key={app.id}
                           draggableId={app.id.toString()}
@@ -556,14 +570,45 @@ export default function Dashboard() {
                           )}
                         </Draggable>
                       ))}
-                    {provided.placeholder}
-                  </SimpleGrid>
-                )}
-              </Droppable>
+                      {provided.placeholder}
+                    </SimpleGrid>
+                  )}
+                </Droppable>
+              </Box>
+            ))}
+          </DragDropContext>
+        ) : (
+          appTypes.map((type) => (
+            <Box key={type.id} mt={6}>
+              <Heading
+                as="h2"
+                size="lg"
+                mb={4}
+                display="flex"
+                alignItems="center"
+              >
+                <FiGrid style={{ marginRight: "8px", color: "#F3C847" }} />
+                {type.name}
+              </Heading>
+
+              <SimpleGrid
+                columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
+                spacing={6}
+              >
+                {categorizedApps[type.name]?.map((app) => (
+                  <AppCard
+                    key={app.id}
+                    app={app}
+                    colors={colors}
+                    handleAppClick={handleAppClick}
+                  />
+                ))}
+              </SimpleGrid>
             </Box>
-          ))}
-        </DragDropContext>
+          ))
+        )}
       </>
+
       {/* Modal for App Info */}
       {selectedApp && (
         <Modal isOpen={isOpen} onClose={onClose}>
@@ -636,7 +681,6 @@ export default function Dashboard() {
           </ModalContent>
         </Modal>
       )}
-      {/* <Chatbot /> */}
     </Box>
   );
 }
