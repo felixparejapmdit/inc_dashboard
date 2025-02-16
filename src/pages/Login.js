@@ -462,7 +462,6 @@ const Login = () => {
       })
       .then(async (ldapResponse) => {
         const ldapUser = ldapResponse.data;
-        //const hashedPassword = md5HashPassword(password);
 
         const encryptionType = ldapUser.userPassword.match(/^\{(\w+)\}/)?.[1];
         if (!encryptionType) {
@@ -471,19 +470,12 @@ const Login = () => {
           return;
         }
 
-        const hashedPassword = hashPassword(password, encryptionType);
-
         const isPasswordValid = hashPassword(
           password,
           encryptionType,
           ldapUser.userPassword
         );
 
-        // alert(isPasswordValid);
-        // if (
-        //   isPasswordValid ||
-        //   (ldapUser && ldapUser.userPassword === hashedPassword)
-        // ) {
         if (isPasswordValid) {
           // Proceed with login
           // Fetch the user ID for the local login
