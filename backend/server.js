@@ -32,6 +32,8 @@ const permissionRoutes = require("./routes/permissionRoutes");
 
 const userGroupsRoutes = require("./routes/userGroupsRoutes");
 
+const settingRoutes = require("./routes/settingsRoutes");
+
 app.use(
   cors({
     origin: "*", // Allow all origins (update for production)
@@ -141,6 +143,7 @@ app.use(districtsRoutes);
 app.use(localCongregationRoutes);
 
 app.use(chatRoutes);
+app.use(settingRoutes);
 
 // ✅ Connect to MySQL database
 const db = mysql.createConnection({

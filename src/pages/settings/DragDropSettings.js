@@ -6,22 +6,56 @@ import {
   FormControl,
   FormLabel,
   VStack,
+  useToast,
 } from "@chakra-ui/react";
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 const DragDropSettings = () => {
   const [isDragDropEnabled, setIsDragDropEnabled] = useState(false);
+  const toast = useToast();
 
-  // Load the setting from localStorage when the component mounts
+  // Fetch setting from API
   useEffect(() => {
-    const storedValue = localStorage.getItem("enableDragDropMobile");
-    setIsDragDropEnabled(storedValue === "true");
+    fetch(`${API_URL}/api/settings/drag-drop`)
+      .then((res) => res.json())
+      .then((data) => {
+        setIsDragDropEnabled(data.enableDragDropMobile);
+      })
+      .catch((error) => console.error("Error fetching setting:", error));
   }, []);
 
-  // Function to toggle drag & drop setting
-  const handleToggle = () => {
+  // Update setting in API
+  const handleToggle = async () => {
     const newValue = !isDragDropEnabled;
     setIsDragDropEnabled(newValue);
-    localStorage.setItem("enableDragDropMobile", newValue.toString());
+
+    try {
+      const response = await fetch(`${API_URL}/api/settings/drag-drop`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enableDragDropMobile: newValue }),
+      });
+
+      if (!response.ok) throw new Error("Failed to update setting");
+
+      toast({
+        title: "Updated!",
+        description: `Drag & Drop is now ${
+          newValue ? "Enabled" : "Disabled"
+        } on Mobile.`,
+        status: "success",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Error updating setting:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update setting.",
+        status: "error",
+        duration: 3000,
+      });
+    }
   };
 
   return (

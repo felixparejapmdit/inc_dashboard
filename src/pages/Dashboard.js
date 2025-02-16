@@ -93,8 +93,14 @@ export default function Dashboard() {
   const [isMobileDragEnabled, setIsMobileDragEnabled] = useState(false);
 
   useEffect(() => {
-    const storedValue = localStorage.getItem("enableDragDropMobile");
-    setIsMobileDragEnabled(storedValue === "true");
+    fetch(`${API_URL}/api/settings/drag-drop`)
+      .then((res) => res.json())
+      .then((data) => {
+        setIsMobileDragEnabled(data.enableDragDropMobile);
+      })
+      .catch((error) =>
+        console.error("Error fetching Drag & Drop setting:", error)
+      );
   }, []);
 
   const isMobile = useBreakpointValue({
@@ -578,34 +584,40 @@ export default function Dashboard() {
             ))}
           </DragDropContext>
         ) : (
-          appTypes.map((type) => (
-            <Box key={type.id} mt={6}>
-              <Heading
-                as="h2"
-                size="lg"
-                mb={4}
-                display="flex"
-                alignItems="center"
-              >
-                <FiGrid style={{ marginRight: "8px", color: "#F3C847" }} />
-                {type.name}
-              </Heading>
+          <>
+            <Text fontSize="md" color="gray.500">
+              Drag & Drop is disabled for mobile.
+            </Text>
+            {/* ✅ Render apps without DragDropContext */}
+            {appTypes.map((type) => (
+              <Box key={type.id} mt={6}>
+                <Heading
+                  as="h2"
+                  size="lg"
+                  mb={4}
+                  display="flex"
+                  alignItems="center"
+                >
+                  <FiGrid style={{ marginRight: "8px", color: "#F3C847" }} />
+                  {type.name}
+                </Heading>
 
-              <SimpleGrid
-                columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
-                spacing={6}
-              >
-                {categorizedApps[type.name]?.map((app) => (
-                  <AppCard
-                    key={app.id}
-                    app={app}
-                    colors={colors}
-                    handleAppClick={handleAppClick}
-                  />
-                ))}
-              </SimpleGrid>
-            </Box>
-          ))
+                <SimpleGrid
+                  columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
+                  spacing={6}
+                >
+                  {categorizedApps[type.name]?.map((app) => (
+                    <AppCard
+                      key={app.id}
+                      app={app}
+                      colors={colors}
+                      handleAppClick={handleAppClick}
+                    />
+                  ))}
+                </SimpleGrid>
+              </Box>
+            ))}
+          </>
         )}
       </>
 
