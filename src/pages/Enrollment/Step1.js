@@ -730,14 +730,19 @@ const Step1 = ({
                 name="language_id"
                 value={
                   Array.isArray(personnelData.language_id)
-                    ? languages
-                        .filter((lang) =>
-                          personnelData.language_id.includes(lang.id)
-                        )
-                        .map((lang) => ({
-                          value: lang.id,
-                          label: `${lang.name} (${lang.country_name})`,
-                        })) // Show country
+                    ? personnelData.language_id
+                        .map((selectedId) => {
+                          const lang = languages.find(
+                            (l) => l.id === selectedId
+                          );
+                          return lang
+                            ? {
+                                value: lang.id,
+                                label: `${lang.name} (${lang.country_name})`,
+                              }
+                            : null;
+                        })
+                        .filter(Boolean) // Removes null values
                     : []
                 }
                 onChange={(selectedOptions) =>
@@ -749,9 +754,7 @@ const Step1 = ({
                   })
                 }
                 options={[
-                  ...new Map(
-                    languages.map((item) => [item.name, item])
-                  ).values(), // Ensure unique languages
+                  ...new Map(languages.map((item) => [item.id, item])).values(), // Ensures unique languages
                 ].map((language) => ({
                   value: language.id,
                   label: `${language.name} (${language.country_name})`, // Display language with country
