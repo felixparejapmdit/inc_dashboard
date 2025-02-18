@@ -32,6 +32,12 @@ router.get(
   personnelsController.getPersonnelByReferenceNumber
 );
 
+// Route to get user credentials based on personnel_id
+router.get(
+  "/api/get-user-credentials",
+  personnelsController.getUserCredentials
+);
+
 // Route to check if a personnel exists
 router.get(
   "/api/personnels_check",

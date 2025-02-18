@@ -39,11 +39,13 @@ const EnrollmentForm = ({ referenceNumber }) => {
   const [isFinishModalOpen, setIsFinishModalOpen] = useState(false); // Modal state
   const [isCongratulatoryModalOpen, setIsCongratulatoryModalOpen] =
     useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [searchParams] = useSearchParams();
   const personnelId = searchParams.get("personnel_id");
   const stepParam = searchParams.get("step");
   const typeParam = searchParams.get("type");
   const [progress, setProgress] = useState(0); // Update this based on API response
+  const personnelProgress = Number(searchParams.get("personnel_progress"));
 
   const [id, setPersonnelId] = useState(null);
 
@@ -105,6 +107,36 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
     fetchPersonnelDetails();
   }, []);
+
+  useEffect(() => {
+    // Get personnel_progress from the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const personnelProgressParam = urlParams.get("personnel_progress");
+
+    // Check if personnel_progress is present in the URL before showing the modal
+    if (personnelProgressParam !== null) {
+      setIsCongratulatoryModalOpen(true);
+    }
+  }, []);
+
+  // Hide the Congratulatory Modal if type=evaluation
+  useEffect(() => {
+    if (typeParam === "evaluation") {
+      setIsCongratulatoryModalOpen(false);
+    }
+  }, [typeParam]);
+
+  const handleEdit = () => {
+    setIsCongratulatoryModalOpen(false); // Close modal
+
+    // Ensure we get personnel_progress from the URL
+    const personnelProgress =
+      searchParams.get("personnel_progress") || stepParam;
+
+    navigate(
+      `/enroll?personnel_id=${personnelId}&step=${stepParam}&personnel_progress=${personnelProgress}`
+    ); // Navigate back to form
+  };
 
   // Step 1 values
   const [personnelData, setPersonnelData] = useState({
@@ -1397,7 +1429,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
         </ModalContent>
       </Modal>
 
-      {/* Congratulatory Modal */}
+      {/* ✅ Congratulatory Modal (Always Open on Page Load) */}
       <Modal
         isOpen={isCongratulatoryModalOpen}
         onClose={() => setIsCongratulatoryModalOpen(false)}
@@ -1483,44 +1515,109 @@ const EnrollmentForm = ({ referenceNumber }) => {
             </Box>
           </ModalBody>
           <ModalFooter>
-            <Button
-              colorScheme="blue"
-              width="full"
-              onClick={() => {
-                // Success toast message
-                toast({
-                  title: "Enrollment Process Completed",
-                  description:
-                    "Redirecting you to the login page. Make sure to keep your reference number safe.",
-                  status: "success",
-                  duration: 3000,
-                  isClosable: true,
-                  position: "bottom-left",
-                });
+            {/* If type=evaluation, show only the Okay button */}
+            {typeParam === "evaluation" ? (
+              <Button
+                colorScheme="blue"
+                width="full"
+                onClick={() => {
+                  toast({
+                    title: "Enrollment Process Completed",
+                    description:
+                      "Redirecting you to the login page. Make sure to keep your reference number safe.",
+                    status: "success",
+                    duration: 3000,
+                    isClosable: true,
+                    position: "bottom-left",
+                  });
 
-                // Determine the correct progress update
-                const personnelProgress =
-                  typeParam === "evaluation" ? "verified" : "0";
-
-                axios.put(
-                  `${API_URL}/api/users/update-progress`,
-                  {
+                  // Update progress
+                  axios.put(`${API_URL}/api/users/update-progress`, {
                     personnel_id: personnelId,
-                    personnel_progress: personnelProgress,
-                  },
-                  {
-                    headers: { "Content-Type": "application/json" },
-                  }
-                );
+                    personnel_progress: "verified",
+                  });
 
-                // Redirect to login
-                setTimeout(() => {
-                  navigate("/login");
-                }, 1000);
-              }}
-            >
-              Okay
-            </Button>
+                  // Redirect to login
+                  setTimeout(() => {
+                    navigate("/login");
+                  }, 1000);
+                }}
+              >
+                Okay
+              </Button>
+            ) : (
+              <>
+                {personnelProgress < 7 ? (
+                  <Button colorScheme="blue" onClick={handleEdit}>
+                    Edit Enrollment
+                  </Button>
+                ) : (
+                  <Button
+                    colorScheme="green"
+                    onClick={async () => {
+                      setIsDownloading(true);
+                      try {
+                        const response = await axios.get(
+                          `${API_URL}/api/get-user-credentials`,
+                          {
+                            params: { personnel_id: personnelId },
+                          }
+                        );
+
+                        const {
+                          username,
+                          password,
+                          reference_number,
+                          givenname,
+                          surname_husband,
+                        } = response.data;
+
+                        // Prepare the file content
+                        const fileContent = `Reference Number: ${reference_number}\nName: ${givenname} ${surname_husband}\nUsername: ${username}\nPassword: ${"Please contact the PMD-IT or Section Chief regarding your password."}`;
+                        const blob = new Blob([fileContent], {
+                          type: "text/plain",
+                        });
+                        const link = document.createElement("a");
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = `User_Credentials_${reference_number}.txt`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+
+                        // Success toast message
+                        toast({
+                          title: "Download Successful",
+                          description: "Your credentials have been downloaded.",
+                          status: "success",
+                          duration: 3000,
+                          isClosable: true,
+                          position: "bottom-left",
+                        });
+
+                        // Redirect to login
+                        setTimeout(() => {
+                          navigate("/login");
+                        }, 1000);
+                      } catch (error) {
+                        console.error("Error downloading credentials:", error);
+                        toast({
+                          title: "Error",
+                          description: "Failed to download credentials.",
+                          status: "error",
+                          duration: 3000,
+                          isClosable: true,
+                        });
+                      } finally {
+                        setIsDownloading(false);
+                      }
+                    }}
+                    isLoading={isDownloading}
+                  >
+                    Download Credentials
+                  </Button>
+                )}
+              </>
+            )}
           </ModalFooter>
         </ModalContent>
       </Modal>

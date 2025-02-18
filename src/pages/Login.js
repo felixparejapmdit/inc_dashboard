@@ -275,12 +275,15 @@ const Login = () => {
         `${API_URL}/api/getreference?reference_number=${trackingNumber}`
       );
 
+      console.log(response.data);
+
       if (response.data && response.data.personnel_id) {
-        const { personnel_id, enrollment_progress } = response.data;
+        const { personnel_id, enrollment_progress, personnel_progress } =
+          response.data;
 
         // Navigate to the EnrollmentForm with the appropriate step
         navigate(
-          `/enroll?personnel_id=${personnel_id}&step=${enrollment_progress}`
+          `/enroll?personnel_id=${personnel_id}&step=${enrollment_progress}&personnel_progress=${personnel_progress}`
         );
       } else {
         toast({

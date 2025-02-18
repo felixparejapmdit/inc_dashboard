@@ -224,6 +224,61 @@ exports.getPersonnelByReferenceNumber = async (req, res) => {
   }
 };
 
+// ✅ Get user credentials by personnel_id
+exports.getUserCredentials = async (req, res) => {
+  try {
+    const { personnel_id } = req.query;
+
+    if (!personnel_id) {
+      return res.status(400).json({ message: "Personnel ID is required" });
+    }
+
+    // Fetch user credentials using Sequelize
+    const user = await User.findOne({
+      where: { personnel_id },
+      attributes: ["username", "password"],
+      include: [
+        {
+          model: Personnel,
+          as: "personnel",
+          attributes: ["reference_number", "givenname", "surname_husband"],
+        },
+      ],
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User credentials not found" });
+    }
+
+    // If the password is encrypted, decrypt it (Assuming AES encryption)
+    let decryptedPassword = user.password;
+    if (user.password.startsWith("{AES}")) {
+      decryptedPassword = decryptPassword(user.password.replace("{AES}", ""));
+    }
+
+    res.status(200).json({
+      username: user.username,
+      password: decryptedPassword, // Ensure password is securely hashed
+      reference_number: user.personnel.reference_number,
+      givenname: user.personnel.givenname,
+      surname_husband: user.personnel.surname_husband,
+    });
+  } catch (error) {
+    console.error("Error fetching user credentials:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// AES decryption function
+const decryptPassword = (encryptedPassword) => {
+  const key = process.env.ENCRYPTION_KEY || "mysecretkey123456"; // Ensure 16, 24, or 32-byte key
+  const iv = Buffer.alloc(16, 0); // Initialization vector
+  const decipher = crypto.createDecipheriv("aes-256-cbc", key, iv);
+  let decrypted = decipher.update(encryptedPassword, "base64", "utf8");
+  decrypted += decipher.final("utf8");
+  return decrypted;
+};
+
 const generateReferenceNumber = () => {
   const prefix = "ENR";
   const year = new Date().getFullYear().toString().slice(-2); // Get last 2 digits of the year
