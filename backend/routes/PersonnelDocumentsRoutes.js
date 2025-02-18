@@ -28,7 +28,26 @@ const fileFilter = (req, file, cb) => {
     cb(new Error("Invalid file type. Only PDF, JPG, and PNG are allowed."));
   }
 };
-const upload = multer({ storage, fileFilter });
+// Configure Multer for file uploads
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, "uploads/"); // Ensure this folder exists
+    },
+    filename: (req, file, cb) => {
+      cb(null, Date.now() + "-" + file.originalname);
+    },
+  }),
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB file size limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only JPEG, PNG, and PDF files are allowed!"), false);
+    }
+  },
+});
 
 // Route to upload a document
 router.post(

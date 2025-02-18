@@ -86,6 +86,7 @@ export default function Dashboard() {
   const [hoveredReminder, setHoveredReminder] = useState(null); // Hover state for reminders
   const { colorMode, toggleColorMode } = useColorMode(); // Color mode state
   const [notifications, setNotifications] = useState([]);
+  const [filteredApps, setFilteredApps] = useState([]);
 
   const navigate = useNavigate(); // Initialize useNavigate
 
@@ -138,6 +139,28 @@ export default function Dashboard() {
       .catch((error) => {
         console.error("Error logging in to Nextcloud:", error);
       });
+  };
+
+  const handleSearch = (e) => {
+    const query = e.target.value.toLowerCase();
+    setSearchQuery(query);
+
+    if (!query.trim()) {
+      setFilteredApps([]); // Reset if empty
+      return;
+    }
+
+    const filtered = [];
+    for (const category in categorizedApps) {
+      const matchingApps = categorizedApps[category].filter((app) =>
+        app.name.toLowerCase().includes(query)
+      );
+      if (matchingApps.length > 0) {
+        filtered.push(...matchingApps);
+      }
+    }
+
+    setFilteredApps(filtered);
   };
 
   useEffect(() => {
@@ -410,7 +433,7 @@ export default function Dashboard() {
             bg="white"
             maxW="300px"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={handleSearch} // ✅ Use new function
             boxShadow="md"
           />
 
@@ -522,101 +545,126 @@ export default function Dashboard() {
         </Box>
       ))} */}
       <>
-        {shouldEnableDragDrop ? (
-          <DragDropContext
-            onDragEnd={(result) => {
-              const { source, destination } = result;
-              if (!destination) return; // No valid drop location
-              if (source.droppableId !== destination.droppableId) {
-                return;
-              }
-              handleDragEnd(result, source.droppableId);
-            }}
-          >
-            {appTypes.map((type) => (
-              <Box key={type.id} mt={6}>
-                <Heading
-                  as="h2"
-                  size="lg"
-                  mb={4}
-                  display="flex"
-                  alignItems="center"
-                >
-                  <FiGrid style={{ marginRight: "8px", color: "#F3C847" }} />
-                  {type.name}
-                </Heading>
+        {/* ✅ Show Search Results If Search Query Exists */}
+        {searchQuery && filteredApps.length > 0 ? (
+          <Box mt={6}>
+            <Heading as="h2" size="lg" mb={4} color="gray.700">
+              Search Results
+            </Heading>
+            <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing={6}>
+              {filteredApps.map((app) => (
+                <AppCard
+                  key={app.id}
+                  app={app}
+                  colors={colors}
+                  handleAppClick={handleAppClick}
+                />
+              ))}
+            </SimpleGrid>
+          </Box>
+        ) : (
+          <>
+            {shouldEnableDragDrop ? (
+              <DragDropContext
+                onDragEnd={(result) => {
+                  const { source, destination } = result;
+                  if (!destination) return; // No valid drop location
+                  if (source.droppableId !== destination.droppableId) {
+                    return;
+                  }
+                  handleDragEnd(result, source.droppableId);
+                }}
+              >
+                {appTypes.map((type) => (
+                  <Box key={type.id} mt={6}>
+                    <Heading
+                      as="h2"
+                      size="lg"
+                      mb={4}
+                      display="flex"
+                      alignItems="center"
+                    >
+                      <FiGrid
+                        style={{ marginRight: "8px", color: "#F3C847" }}
+                      />
+                      {type.name}
+                    </Heading>
 
-                <Droppable droppableId={type.name} direction="horizontal">
-                  {(provided) => (
+                    <Droppable droppableId={type.name} direction="horizontal">
+                      {(provided) => (
+                        <SimpleGrid
+                          columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
+                          spacing={6}
+                          ref={provided.innerRef}
+                          {...provided.droppableProps}
+                        >
+                          {categorizedApps[type.name]?.map((app, index) => (
+                            <Draggable
+                              key={app.id}
+                              draggableId={app.id.toString()}
+                              index={index}
+                            >
+                              {(provided) => (
+                                <Box
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  {...provided.dragHandleProps}
+                                >
+                                  <AppCard
+                                    key={app.id}
+                                    app={app}
+                                    colors={colors}
+                                    handleAppClick={handleAppClick}
+                                  />
+                                </Box>
+                              )}
+                            </Draggable>
+                          ))}
+                          {provided.placeholder}
+                        </SimpleGrid>
+                      )}
+                    </Droppable>
+                  </Box>
+                ))}
+              </DragDropContext>
+            ) : (
+              <>
+                <Text fontSize="md" color="gray.500">
+                  Drag & Drop is disabled for mobile.
+                </Text>
+                {/* ✅ Render apps without DragDropContext */}
+                {appTypes.map((type) => (
+                  <Box key={type.id} mt={6}>
+                    <Heading
+                      as="h2"
+                      size="lg"
+                      mb={4}
+                      display="flex"
+                      alignItems="center"
+                    >
+                      <FiGrid
+                        style={{ marginRight: "8px", color: "#F3C847" }}
+                      />
+                      {type.name}
+                    </Heading>
+
                     <SimpleGrid
                       columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
                       spacing={6}
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
                     >
-                      {categorizedApps[type.name]?.map((app, index) => (
-                        <Draggable
+                      {categorizedApps[type.name]?.map((app) => (
+                        <AppCard
                           key={app.id}
-                          draggableId={app.id.toString()}
-                          index={index}
-                        >
-                          {(provided) => (
-                            <Box
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                            >
-                              <AppCard
-                                key={app.id}
-                                app={app}
-                                colors={colors}
-                                handleAppClick={handleAppClick}
-                              />
-                            </Box>
-                          )}
-                        </Draggable>
+                          app={app}
+                          colors={colors}
+                          handleAppClick={handleAppClick}
+                        />
                       ))}
-                      {provided.placeholder}
                     </SimpleGrid>
-                  )}
-                </Droppable>
-              </Box>
-            ))}
-          </DragDropContext>
-        ) : (
-          <>
-            <Text fontSize="md" color="gray.500">
-              Drag & Drop is disabled for mobile.
-            </Text>
-            {/* ✅ Render apps without DragDropContext */}
-            {appTypes.map((type) => (
-              <Box key={type.id} mt={6}>
-                <Heading
-                  as="h2"
-                  size="lg"
-                  mb={4}
-                  display="flex"
-                  alignItems="center"
-                >
-                  <FiGrid style={{ marginRight: "8px", color: "#F3C847" }} />
-                  {type.name}
-                </Heading>
-
-                <SimpleGrid
-                  columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
-                  spacing={6}
-                >
-                  {categorizedApps[type.name]?.map((app) => (
-                    <AppCard
-                      key={app.id}
-                      app={app}
-                      colors={colors}
-                      handleAppClick={handleAppClick}
-                    />
-                  ))}
-                </SimpleGrid>
-              </Box>
-            ))}
+                  </Box>
+                ))}
+              </>
+            )}
           </>
         )}
       </>

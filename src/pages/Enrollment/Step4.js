@@ -1345,11 +1345,16 @@ const Step4 = ({
                       <Td colSpan={4} textAlign="center">
                         <IconButton
                           icon={parent.isEditing ? <CheckIcon /> : <EditIcon />}
-                          onClick={() =>
-                            parent.isEditing
-                              ? handleSaveOrUpdate(index)
-                              : onChange(index, "isEditing", true)
-                          }
+                          onClick={() => {
+                            if (parent.isEditing) {
+                              handleSaveOrUpdate(index); // Save data and disable editing
+                            } else {
+                              // Enable editing by updating the state
+                              const updatedParents = [...data];
+                              updatedParents[index].isEditing = true;
+                              setData(updatedParents);
+                            }
+                          }}
                           colorScheme={parent.isEditing ? "green" : "blue"}
                         />
                       </Td>

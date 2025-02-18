@@ -131,14 +131,29 @@ exports.updateGovID = async (req, res) => {
 
 exports.deleteGovID = async (req, res) => {
   try {
-    const deleted = await PersonnelGovID.destroy({
-      where: { id: req.params.id },
-    });
-    if (!deleted) {
-      return res.status(404).json({ message: "Government ID not found" });
+    const { id } = req.params;
+    const { personnel_id } = req.query; // Get personnel_id from the request query
+
+    if (!personnel_id) {
+      return res.status(400).json({ message: "Personnel ID is required" });
     }
-    res.status(200).json({ message: "Government ID deleted successfully" });
+
+    // Ensure the ID belongs to the given personnel
+    const deleted = await PersonnelGovID.destroy({
+      where: { id, personnel_id },
+    });
+
+    if (!deleted) {
+      return res.status(404).json({
+        message: "Government-issued ID not found for the specified personnel",
+      });
+    }
+
+    res
+      .status(200)
+      .json({ message: "Government-issued ID deleted successfully" });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error deleting government-issued ID:", error);
+    res.status(500).json({ message: "Error deleting government-issued ID" });
   }
 };

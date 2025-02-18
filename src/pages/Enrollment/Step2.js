@@ -155,7 +155,7 @@ const Step2 = () => {
           "Payload:",
           payload
         );
-       
+
         await axios.put(
           `${process.env.REACT_APP_API_URL}/api/personnel-contacts/${contact.id}`,
           payload
@@ -375,7 +375,7 @@ const Step2 = () => {
       if (govID.id) {
         // **Force update even if the data is unchanged**
         console.log("Updating record with ID:", govID.id, "Payload:", payload);
-        
+
         await axios.put(
           `${process.env.REACT_APP_API_URL}/api/personnel-gov-ids/${govID.id}`,
           payload
@@ -452,54 +452,103 @@ const Step2 = () => {
         throw new Error("No file selected for upload.");
       }
 
-      // Create FormData to include the file and other required fields
+      const maxSize = 2 * 1024 * 1024; // 2MB limit
+      if (file.size > maxSize) {
+        toast({
+          title: "File size too large",
+          description: "The file must be 2MB or smaller.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+          position: "bottom-left",
+        });
+        return;
+      }
+
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("document_id", govIDs[idx]?.govIDType || ""); // Ensure govIDType exists
-      formData.append("personnel_id", "2"); // Replace with actual logic to fetch personnel ID
+      formData.append("document_id", govIDs[idx]?.govIDType || "");
+      formData.append("personnel_id", personnelId); // Ensure personnel ID is used
       formData.append("description", "Uploaded document");
       formData.append("status", "active");
 
-      // API request to upload the file
+      console.log("Uploading document:", file.name, "Size:", file.size);
+
       const response = await axios.post(
         `${process.env.REACT_APP_API_URL}/api/personnel-documents/upload`,
         formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
+        { headers: { "Content-Type": "multipart/form-data" } }
       );
 
-      // Log response for debugging
-      console.log("Document uploaded successfully:", response.data);
+      console.log("Upload response:", response.data);
 
-      // Display success toast
       toast({
         title: "Document uploaded successfully.",
         status: "success",
         duration: 3000,
-        position: "bottom-left", // Position the toast on the bottom-left
+        position: "bottom-left",
+        isClosable: true,
       });
 
-      // Update the `govIDs` array to include the uploaded document info
       const updatedGovIDs = govIDs.map((id, i) =>
-        i === idx ? { ...id, document: response.data.document } : id
+        i === idx ? { ...id, document: response.data.document.file_name } : id
       );
       setGovIDs(updatedGovIDs);
     } catch (error) {
-      // Log and display error message
-      console.error("Error uploading document:", error.message);
+      console.error("Error uploading document:", error);
+
       toast({
-        title: "Error uploading document.",
-        description: error.response?.data?.message || error.message,
+        title: "Upload Failed",
+        description: error.response?.data?.message || "Server error occurred.",
         status: "error",
         duration: 3000,
-        position: "bottom-left", // Position the toast on the bottom-left
+        position: "bottom-left",
+        isClosable: true,
       });
     }
   };
 
-  const handleRemoveGovID = (index) => {
-    setGovIDs(govIDs.filter((_, idx) => idx !== index));
+  const handleRemoveGovID = async (index) => {
+    const govID = govIDs[index];
+
+    if (!govID.id) {
+      setGovIDs((prevGovIDs) => prevGovIDs.filter((_, idx) => idx !== index));
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this government-issued ID?"
+    );
+    if (!confirmed) return;
+
+    try {
+      await axios.delete(
+        `${process.env.REACT_APP_API_URL}/api/personnel-gov-ids/${govID.id}`,
+        { params: { personnel_id: personnelId } } // Send personnel_id as a parameter
+      );
+
+      setGovIDs((prevGovIDs) => prevGovIDs.filter((_, idx) => idx !== index));
+
+      toast({
+        title: "Government-issued ID deleted successfully.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom-left",
+      });
+    } catch (error) {
+      console.error("Error deleting government-issued ID:", error);
+      toast({
+        title: "Error deleting government-issued ID",
+        description:
+          error.response?.data?.message ||
+          "Failed to delete the government-issued ID.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom-left",
+      });
+    }
   };
 
   return (

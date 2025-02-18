@@ -711,7 +711,6 @@ const Step1 = ({
             justify="space-between"
           >
             {/* Language Selector */}
-            {/* Language Selector */}
             <Box
               width={{ base: "100%", sm: "48%", md: "33%" }}
               mb={{ base: "3", md: "0" }}
@@ -735,7 +734,10 @@ const Step1 = ({
                         .filter((lang) =>
                           personnelData.language_id.includes(lang.id)
                         )
-                        .map((lang) => ({ value: lang.id, label: lang.name }))
+                        .map((lang) => ({
+                          value: lang.id,
+                          label: `${lang.name} (${lang.country_name})`,
+                        })) // Show country
                     : []
                 }
                 onChange={(selectedOptions) =>
@@ -746,9 +748,13 @@ const Step1 = ({
                     },
                   })
                 }
-                options={languages.map((language) => ({
+                options={[
+                  ...new Map(
+                    languages.map((item) => [item.name, item])
+                  ).values(), // Ensure unique languages
+                ].map((language) => ({
                   value: language.id,
-                  label: language.name,
+                  label: `${language.name} (${language.country_name})`, // Display language with country
                 }))}
                 isClearable
                 styles={{

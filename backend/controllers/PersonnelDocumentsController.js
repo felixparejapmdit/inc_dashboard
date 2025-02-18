@@ -16,13 +16,18 @@ module.exports = {
         return res.status(400).json({ message: "No file uploaded." });
       }
 
+      // Ensure personnel_id is provided
+      if (!personnel_id) {
+        return res.status(400).json({ message: "Personnel ID is required." });
+      }
+
       // Save the uploaded document details in the database
       const newDocument = await PersonnelDocuments.create({
         document_id,
         personnel_id,
         document_type_id: document_id, // Assuming this is the document type ID
         file_name: req.file.originalname,
-        file_path: req.file.path,
+        file_path: `uploads/${req.file.filename}`, // Store only the relative path
         uploaded_by: req.user?.id || 1, // Replace with dynamic user ID logic
         upload_date: new Date(),
         description,
@@ -36,7 +41,9 @@ module.exports = {
       });
     } catch (error) {
       console.error("Error uploading document:", error);
-      res.status(500).json({ message: "Error uploading document." });
+      res
+        .status(500)
+        .json({ message: "Error uploading document.", error: error.message });
     }
   },
 
@@ -44,6 +51,10 @@ module.exports = {
   getDocumentsByPersonnelId: async (req, res) => {
     const { personnel_id } = req.params;
     try {
+      if (!personnel_id) {
+        return res.status(400).json({ message: "Personnel ID is required." });
+      }
+
       const documents = await PersonnelDocuments.findAll({
         where: { personnel_id },
       });

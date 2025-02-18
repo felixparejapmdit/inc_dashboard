@@ -1,9 +1,14 @@
 const Language = require("../models/language");
 
-// Get all languages
+// Get all unique languages grouped by country
 exports.getAllLanguages = async (req, res) => {
   try {
-    const languages = await Language.findAll();
+    const languages = await Language.findAll({
+      attributes: ["name", "country_name"],
+      group: ["name", "country_name"], // Ensures uniqueness
+      order: [["name", "ASC"]], // Sort alphabetically
+    });
+
     res.status(200).json(languages);
   } catch (error) {
     res.status(500).json({ message: "Error retrieving languages", error });
