@@ -68,6 +68,8 @@ import Chatbot from "./components/Chatbot"; // Import Chatbot
 
 import DragDropSettings from "./pages/settings/DragDropSettings";
 
+import Maintenance from "./pages/Maintenance";
+
 function App() {
   return (
     <PermissionProvider>
@@ -82,9 +84,20 @@ function App() {
 
 function MainApp() {
   const location = useLocation(); // Get current route
+  const isUnderMaintenance = true; // Change to `true` to enable maintenance mode
   return (
     <>
       <Routes>
+
+      {isUnderMaintenance ? (
+          <Route path="*" element={<Maintenance />} />
+        ) : (
+          <>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/maintenance" element={<Maintenance />} />
+          </>
+        )}
+
         <Route path="/step1" element={<Step1 />} />
         <Route path="/step2" element={<Step2 />} />
         <Route path="/step3" element={<Step3 />} />
