@@ -17,10 +17,6 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { CheckIcon } from "@chakra-ui/icons";
 
-const DISTRICT_API_URL = "http://172.18.121.72:5000/api/districts";
-const LOCAL_CONGREGATION_API_URL =
-  "http://172.18.121.72:5000/api/local-congregations";
-
 const Step1 = ({
   personnelData,
   setPersonnelData,
@@ -730,35 +726,46 @@ const Step1 = ({
                 name="language_id"
                 value={
                   Array.isArray(personnelData.language_id)
-                    ? personnelData.language_id
-                        .map((selectedId) => {
-                          const lang = languages.find(
-                            (l) => l.id === selectedId
-                          );
-                          return lang
-                            ? {
-                                value: lang.id,
-                                label: `${lang.name} (${lang.country_name})`,
-                              }
-                            : null;
-                        })
-                        .filter(Boolean) // Removes null values
+                    ? languages
+                        .filter((lang) =>
+                          personnelData.language_id.includes(lang.id)
+                        )
+                        .map((lang) => ({ value: lang.id, label: lang.name }))
                     : []
                 }
-                onChange={(selectedOptions) =>
-                  handleChange({
-                    target: {
-                      name: "language_id",
-                      value: selectedOptions.map((option) => option.value),
-                    },
-                  })
-                }
-                options={[
-                  ...new Map(languages.map((item) => [item.id, item])).values(), // Ensures unique languages
-                ].map((language) => ({
-                  value: language.id,
-                  label: `${language.name} (${language.country_name})`, // Display language with country
-                }))}
+                onChange={(selectedOptions) => {
+                  const selectedIds = selectedOptions
+                    ? selectedOptions.map((option) => option.value)
+                    : [];
+
+                  // ✅ Prevent re-selection of already selected languages
+                  const newSelections = selectedIds.filter(
+                    (id) => !personnelData.language_id.includes(id)
+                  );
+
+                  // ✅ Only update if new selections exist
+                  if (newSelections.length > 0) {
+                    handleChange({
+                      target: {
+                        name: "language_id",
+                        value: [...personnelData.language_id, ...newSelections],
+                      },
+                    });
+                  }
+                }}
+                options={Array.from(
+                  new Map(
+                    languages
+                      .filter(
+                        (language) =>
+                          !personnelData.language_id.includes(language.id)
+                      ) // ✅ Exclude already selected
+                      .map((language) => [
+                        language.name.toLowerCase(),
+                        { value: language.id, label: language.name },
+                      ])
+                  ).values()
+                )} // ✅ Remove duplicate languages based on name
                 isClearable
                 styles={{
                   container: (base) => ({

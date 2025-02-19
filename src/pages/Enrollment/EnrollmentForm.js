@@ -28,9 +28,9 @@ import Step6 from "./Step6"; // Import Step6 component for spouse
 import Step7 from "./Step7";
 
 const API_URL = process.env.REACT_APP_API_URL;
-const DISTRICT_API_URL = `http://172.18.121.72:5000/api/districts`;
-const LOCAL_CONGREGATION_API_URL = `http://172.18.121.72:5000/api/all-congregations`;
-
+const DISTRICT_API_URL = process.env.REACT_APP_DISTRICT_API_URL;
+const LOCAL_CONGREGATION_API_URL =
+  process.env.REACT_APP_LOCAL_CONGREGATION_API_URL;
 const EnrollmentForm = ({ referenceNumber }) => {
   const [step, setStep] = useState(1);
   const totalSteps = 7;
@@ -216,7 +216,8 @@ const EnrollmentForm = ({ referenceNumber }) => {
   useEffect(() => {
     const fetchDistricts = async () => {
       try {
-        const response = await axios.get(DISTRICT_API_URL);
+        const response = await axios.get(`${DISTRICT_API_URL}/api/districts`);
+
         setDistricts(response.data);
       } catch (error) {
         console.error("Error fetching districts:", error);
@@ -229,7 +230,9 @@ const EnrollmentForm = ({ referenceNumber }) => {
   useEffect(() => {
     const fetchLocalCongregations = async () => {
       try {
-        const response = await axios.get(LOCAL_CONGREGATION_API_URL);
+        const response = await axios.get(
+          `${LOCAL_CONGREGATION_API_URL}/api/all-congregations`
+        );
         setLocalCongregations(response.data); // ✅ Store the full list of local congregations
       } catch (error) {
         console.error("Error fetching local congregations:", error);
@@ -297,10 +300,22 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
   // Fetch data on component load
   useEffect(() => {
+    // Helper function to determine the correct API URL based on endpoint
+    const getApiUrl = (endpoint) => {
+      if (endpoint === "districts") {
+        return DISTRICT_API_URL;
+      } else if (endpoint === "local-congregations") {
+        return LOCAL_CONGREGATION_API_URL;
+      } else {
+        return API_URL;
+      }
+    };
+
     // Helper function to fetch and set data
     const fetchData = async (endpoint, setter) => {
       try {
-        const response = await axios.get(`${API_URL}/api/${endpoint}`);
+        const url = `${getApiUrl(endpoint)}/api/${endpoint}`; // Use correct base URL
+        const response = await axios.get(url);
         setter(response.data);
       } catch (error) {
         console.error(`Error fetching ${endpoint}:`, error);
@@ -1247,10 +1262,30 @@ const EnrollmentForm = ({ referenceNumber }) => {
         <Step4
           data={
             family.parents.length > 0
-              ? family.parents
+              ? ["Father", "Mother"].map(
+                  (relationship) =>
+                    family.parents.find(
+                      (parent) => parent.relationship_type === relationship
+                    ) || {
+                      relationship_type: relationship,
+                      givenname: "",
+                      lastname: "",
+                      isEditing: true,
+                    }
+                )
               : [
-                  { relationship_type: "Father", givenname: "", lastname: "" },
-                  { relationship_type: "Mother", givenname: "", lastname: "" },
+                  {
+                    relationship_type: "Father",
+                    givenname: "",
+                    lastname: "",
+                    isEditing: true,
+                  },
+                  {
+                    relationship_type: "Mother",
+                    givenname: "",
+                    lastname: "",
+                    isEditing: true,
+                  },
                 ]
           }
           setData={(updatedParents) =>

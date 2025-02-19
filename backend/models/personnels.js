@@ -84,7 +84,7 @@ const Personnel = sequelize.define(
       allowNull: true,
       get() {
         const value = this.getDataValue("language_id");
-        return value ? value.split(",").map(Number) : [];
+        return value ? value.split(",").map(Number) : []; // Convert to array
       },
       set(value) {
         this.setDataValue(

@@ -1093,13 +1093,31 @@ const Step6 = ({
               {/* Save and Edit Button */}
               <Tr>
                 <Td colSpan={4} textAlign="center">
+                  {/* <IconButton
+                    icon={spouse.isEditing ? <CheckIcon /> : <EditIcon />}
+                    onClick={() => {
+                      if (spouse.isEditing) {
+                        handleSaveOrUpdate(index); // Save when already in edit mode
+                      } else {
+                        const updatedSpouses = [...data];
+                        updatedSpouses[index].isEditing = true; // Set isEditing to true
+                        setData(updatedSpouses); // Update state to enable editing
+                      }
+                    }}
+                    colorScheme={spouse.isEditing ? "green" : "blue"}
+                  /> */}
+
                   <IconButton
                     icon={spouse.isEditing ? <CheckIcon /> : <EditIcon />}
-                    onClick={() =>
-                      spouse.isEditing
-                        ? handleSaveOrUpdate(index)
-                        : onChange(index, "isEditing", true)
-                    }
+                    onClick={() => {
+                      if (spouse.isEditing) {
+                        handleSaveOrUpdate(index); // Save when already in edit mode
+                      } else {
+                        const updatedSpouses = [...data];
+                        updatedSpouses[index].isEditing = true; // Set isEditing to true
+                        setData(updatedSpouses); // Update state to enable editing
+                      }
+                    }}
                     colorScheme={spouse.isEditing ? "green" : "blue"}
                   />
                 </Td>

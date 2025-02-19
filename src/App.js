@@ -88,8 +88,7 @@ function MainApp() {
   return (
     <>
       <Routes>
-
-      {isUnderMaintenance ? (
+        {isUnderMaintenance ? (
           <Route path="*" element={<Maintenance />} />
         ) : (
           <>
