@@ -507,7 +507,7 @@ export default function Dashboard() {
       </HStack>
       {/* Recently Opened Apps Section */}
       {recentApps.length > 0 && (
-        <Box mt={6}>
+        <Box mt={6} display="none">
           <Heading as="h2" size="m" mb={4} color="gray.700">
             Recently Opened
           </Heading>
