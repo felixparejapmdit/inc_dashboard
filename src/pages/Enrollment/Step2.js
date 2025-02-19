@@ -741,10 +741,10 @@ const Step2 = () => {
           </Button>
 
           {/* Government Issued IDs Section */}
-          <Text fontWeight="bold" fontSize="lg" mt={6} mb={2}>
+          <Text display="none" fontWeight="bold" fontSize="lg" mt={6} mb={2}>
             Government Issued IDs
           </Text>
-          <Table variant="striped" colorScheme="teal">
+          <Table display="none" variant="striped" colorScheme="teal">
             <Thead>
               <Tr>
                 <Th>ID Type</Th>
@@ -844,7 +844,12 @@ const Step2 = () => {
               )}
             </Tbody>
           </Table>
-          <Button onClick={handleAddGovID} colorScheme="teal" mt={4}>
+          <Button
+            display="none"
+            onClick={handleAddGovID}
+            colorScheme="teal"
+            mt={4}
+          >
             Add Government ID
           </Button>
         </Box>
