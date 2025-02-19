@@ -197,7 +197,7 @@ exports.updateFamilyMember = async (req, res) => {
         const trimmedValue = typeof value === "string" ? value.trim() : value;
 
         // Required fields validation
-        if (["lastname", "gender"].includes(key)) {
+        if (["lastname"].includes(key)) {
           if (trimmedValue === null || trimmedValue === "") {
             return res.status(400).json({
               message: `The field ${key} is required.`,
