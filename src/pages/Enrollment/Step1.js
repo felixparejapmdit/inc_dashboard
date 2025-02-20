@@ -16,7 +16,6 @@ import {
 import axios from "axios";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { CheckIcon } from "@chakra-ui/icons";
-
 const Step1 = ({
   personnelData,
   setPersonnelData,

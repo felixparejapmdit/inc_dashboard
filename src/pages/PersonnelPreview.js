@@ -20,9 +20,13 @@ import { EmailIcon, PhoneIcon } from "@chakra-ui/icons";
 import axios from "axios";
 
 import { FaPrint } from "react-icons/fa"; // Import the desired print icon
+
+import "./printStyles.css"; // ✅ Import CSS for print
 const API_URL = process.env.REACT_APP_API_URL;
-const DISTRICT_API_URL = `http://172.18.121.72:5000/api/districts`;
-const LOCAL_CONGREGATION_API_URL = `http://172.18.121.72:5000/api/all-congregations`;
+
+const DISTRICT_API_URL = process.env.REACT_APP_DISTRICT_API_URL;
+const LOCAL_CONGREGATION_API_URL =
+  process.env.REACT_APP_LOCAL_CONGREGATION_API_URL;
 
 const FAMILY_MEMBERS_API_URL = `${API_URL}/api/get-family-members`;
 
@@ -66,11 +70,13 @@ const PersonnelPreview = () => {
         );
 
         // Fetch districts separately from its dedicated API
-        const districtResponse = await axios.get(DISTRICT_API_URL);
+        const districtResponse = await axios.get(
+          `${DISTRICT_API_URL}/api/districts`
+        );
 
         // Fetch local congregations separately from its API
         const localCongregationResponse = await axios.get(
-          LOCAL_CONGREGATION_API_URL
+          `${LOCAL_CONGREGATION_API_URL}/api/all-congregations`
         );
 
         // Map fetched data to corresponding keys
@@ -269,19 +275,27 @@ const PersonnelPreview = () => {
             <GridItem>
               <Text>
                 <b>Language:</b>{" "}
-                {getNameById(personnel.language_id, lookupData.languages)}
+                {Array.isArray(personnel.language_id)
+                  ? personnel.language_id
+                      .map((id) => getNameById(id, lookupData.languages))
+                      .join(", ") || "N/A"
+                  : "N/A"}
               </Text>
             </GridItem>
+
             <GridItem>
               <Text>
                 <b>Citizenship:</b>{" "}
-                {getNameById(
-                  personnel.citizenship,
-                  lookupData.citizenships,
-                  "citizenship"
-                )}
+                {Array.isArray(personnel.citizenship)
+                  ? personnel.citizenship
+                      .map((id) =>
+                        getNameById(id, lookupData.citizenships, "citizenship")
+                      )
+                      .join(", ") || "N/A"
+                  : "N/A"}
               </Text>
             </GridItem>
+
             <GridItem>
               <Text>
                 <b>Ethnicity:</b>{" "}
@@ -415,34 +429,51 @@ const PersonnelPreview = () => {
           {/* Parents Section */}
           {parents.length > 0 && (
             <>
-              <Heading size="sm" mt={4} mb={2}>
+              <Heading size="sm" mt={6} mb={3}>
                 Parents
               </Heading>
-              <Grid templateColumns="repeat(2, 1fr)" gap={6}>
+              <Grid templateColumns="repeat(2, 1fr)" gap={8}>
                 {parents.map((parent) => (
                   <GridItem key={parent.id}>
-                    <Text>
+                    <Text mb={6}>
                       <b>Name:</b>{" "}
                       {`${parent.givenname} ${parent.middlename || ""} ${
                         parent.lastname
                       }`}
                     </Text>
-                    <Text>
+                    <Text mb={6}>
                       <b>Gender:</b> {parent.gender || "N/A"}
                     </Text>
-                    <Text>
+                    <Text mb={6}>
                       <b>Civil Status:</b> {parent.civil_status || "N/A"}
                     </Text>
-                    <Text>
+                    <Text mb={6}>
                       <b>Date of Birth:</b>{" "}
                       {parent.date_of_birth
-                        ? new Date(parent.date_of_birth).toLocaleDateString()
+                        ? new Date(parent.date_of_birth).toLocaleDateString(
+                            "en-GB"
+                          )
                         : "N/A"}
                     </Text>
-                    <Text>
-                      <b>Nationality:</b> {parent.nationality || "N/A"}
+                    <Text mb={6}>
+                      <b>Citizenship:</b>{" "}
+                      {parent.citizenship
+                        ? getNameById(
+                            parent.citizenship,
+                            lookupData.citizenships,
+                            "citizenship"
+                          ) || "N/A"
+                        : "N/A"}
                     </Text>
-                    <Text>
+                    <Text mb={6}>
+                      <b>Ethnicity:</b>{" "}
+                      {getNameById(
+                        parent.nationality,
+                        lookupData.nationalities,
+                        "nationality"
+                      ) || "N/A"}
+                    </Text>
+                    <Text mb={6}>
                       <b>Employment:</b> {parent.employment_type || "N/A"}
                     </Text>
                   </GridItem>
@@ -460,25 +491,44 @@ const PersonnelPreview = () => {
               <Grid templateColumns="repeat(2, 1fr)" gap={6}>
                 {siblings.map((sibling) => (
                   <GridItem key={sibling.id}>
-                    <Text>
+                    <Text mb={6}>
                       <b>Name:</b>{" "}
                       {`${sibling.givenname} ${sibling.middlename || ""} ${
                         sibling.lastname
                       }`}
                     </Text>
-                    <Text>
+                    <Text mb={6}>
                       <b>Gender:</b> {sibling.gender || "N/A"}
                     </Text>
-                    <Text>
+                    <Text mb={6}>
                       <b>Civil Status:</b> {sibling.civil_status || "N/A"}
                     </Text>
-                    <Text>
+                    <Text mb={6}>
                       <b>Date of Birth:</b>{" "}
                       {sibling.date_of_birth
                         ? new Date(sibling.date_of_birth).toLocaleDateString()
                         : "N/A"}
                     </Text>
-                    <Text>
+                    <Text mb={6}>
+                      <b>Citizenship:</b>{" "}
+                      {sibling.citizenship
+                        ? getNameById(
+                            sibling.citizenship,
+                            lookupData.citizenships,
+                            "citizenship"
+                          ) || "N/A"
+                        : "N/A"}
+                    </Text>
+
+                    <Text mb={6}>
+                      <b>Ethnicity:</b>{" "}
+                      {getNameById(
+                        sibling.nationality,
+                        lookupData.nationalities,
+                        "nationality"
+                      )}
+                    </Text>
+                    <Text mb={6}>
                       <b>Employment:</b> {sibling.employment_type || "N/A"}
                     </Text>
                   </GridItem>
@@ -495,28 +545,47 @@ const PersonnelPreview = () => {
               </Heading>
               <Grid templateColumns="repeat(2, 1fr)" gap={6}>
                 <GridItem>
-                  <Text>
+                  <Text mb={6}>
                     <b>Name:</b>{" "}
                     {`${spouse.givenname} ${spouse.middlename || ""} ${
                       spouse.lastname
                     }`}
                   </Text>
-                  <Text>
+                  <Text mb={6}>
                     <b>Gender:</b> {spouse.gender || "N/A"}
                   </Text>
-                  <Text>
+                  <Text mb={6}>
                     <b>Date of Birth:</b>{" "}
                     {spouse.date_of_birth
                       ? new Date(spouse.date_of_birth).toLocaleDateString()
                       : "N/A"}
                   </Text>
-                  <Text>
+                  <Text mb={6}>
+                    <b>Citizenship:</b>{" "}
+                    {spouse.citizenship
+                      ? getNameById(
+                          spouse.citizenship,
+                          lookupData.citizenships,
+                          "citizenship"
+                        ) || "N/A"
+                      : "N/A"}
+                  </Text>
+
+                  <Text mb={6}>
+                    <b>Ethnicity:</b>{" "}
+                    {getNameById(
+                      spouse.nationality,
+                      lookupData.nationalities,
+                      "nationality"
+                    )}
+                  </Text>
+                  <Text mb={6}>
                     <b>Employment Type:</b> {spouse.employment_type || "N/A"}
                   </Text>
-                  <Text>
+                  <Text mb={6}>
                     <b>Company:</b> {spouse.company || "N/A"}
                   </Text>
-                  <Text>
+                  <Text mb={6}>
                     <b>Position:</b> {spouse.position || "N/A"}
                   </Text>
                 </GridItem>
@@ -533,22 +602,41 @@ const PersonnelPreview = () => {
               <Grid templateColumns="repeat(2, 1fr)" gap={6}>
                 {children.map((child) => (
                   <GridItem key={child.id}>
-                    <Text>
+                    <Text mb={6}>
                       <b>Name:</b>{" "}
                       {`${child.givenname} ${child.middlename || ""} ${
                         child.lastname
                       }`}
                     </Text>
-                    <Text>
+                    <Text mb={6}>
                       <b>Gender:</b> {child.gender || "N/A"}
                     </Text>
-                    <Text>
+                    <Text mb={6}>
                       <b>Date of Birth:</b>{" "}
                       {child.date_of_birth
                         ? new Date(child.date_of_birth).toLocaleDateString()
                         : "N/A"}
                     </Text>
-                    <Text>
+                    <Text mb={6}>
+                      <b>Citizenship:</b>{" "}
+                      {child.citizenship
+                        ? getNameById(
+                            child.citizenship,
+                            lookupData.citizenships,
+                            "citizenship"
+                          ) || "N/A"
+                        : "N/A"}
+                    </Text>
+
+                    <Text mb={6}>
+                      <b>Ethnicity:</b>{" "}
+                      {getNameById(
+                        child.nationality,
+                        lookupData.nationalities,
+                        "nationality"
+                      )}
+                    </Text>
+                    <Text mb={6}>
                       <b>Education Level:</b> {child.education_level || "N/A"}
                     </Text>
                   </GridItem>

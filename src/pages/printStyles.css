@@ -1,0 +1,38 @@
+/* printStyles.css */
+
+/* ✅ Make sure everything fits in one page */
+@media print {
+  body {
+    zoom: 90%; /* Adjust zoom so everything fits */
+  }
+
+  /* ✅ Remove unnecessary padding/margins */
+  .print-container {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+
+  /* ✅ Ensure header is always visible */
+  .print-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: white;
+    padding: 10px;
+    z-index: 1000;
+  }
+
+  /* ✅ Adjust text spacing for print */
+  .print-container text {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  /* ✅ Hide buttons & non-essential UI */
+  .print-hide {
+    display: none !important;
+  }
+}

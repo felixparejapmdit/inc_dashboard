@@ -487,17 +487,17 @@ exports.updatePersonnel = async (req, res) => {
         ) {
           updates[key] = trimmedValue !== "" ? trimmedValue : 0;
         }
-        // ✅ Handle language_id as an array (store as comma-separated string)
+        // ✅ Handle `language_id` as an **array**
         else if (key === "language_id") {
-          updates[key] = Array.isArray(trimmedValue)
-            ? trimmedValue.join(",") // Store as "1,2,3"
-            : "";
+          updates[key] = Array.isArray(value)
+            ? JSON.stringify(value) // Convert to JSON before storing
+            : JSON.stringify([]);
         }
         // ✅ Handle `citizenship` as an **array**
         else if (key === "citizenship") {
-          updates[key] = Array.isArray(trimmedValue)
-            ? JSON.stringify(trimmedValue) // Save as JSON in DB
-            : JSON.stringify([]); // Default empty array
+          updates[key] = Array.isArray(value)
+            ? JSON.stringify(value) // Convert to JSON before storing
+            : JSON.stringify([]);
         }
         // For all other fields, assign the provided value
         else {
