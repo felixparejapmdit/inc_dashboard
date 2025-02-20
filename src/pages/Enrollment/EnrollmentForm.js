@@ -400,6 +400,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
         status: "error",
         duration: 3000,
         isClosable: true,
+        position: "bottom-left", // Position the toast on the bottom-left
       });
       return;
     }
@@ -411,6 +412,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
       status: "success",
       duration: 3000,
       isClosable: true,
+      position: "bottom-left", // Position the toast on the bottom-left
     });
 
     // Add the new family member to the state

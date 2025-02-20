@@ -27,6 +27,9 @@ router.get("/ldap/groups", ldapController.getGroups);
 
 router.post("/sync-ldap-user", ldapController.SyncLdapUser);
 
+// Route to change LDAP password
+router.post("/api/ldap/change-password", ldapController.changePassword);
+
 // Utility function to create LDAP client
 // const createLdapClient = () => {
 //   return ldap.createClient({

@@ -8,32 +8,32 @@ import {
   Text,
   IconButton,
   Spinner,
-  useColorModeValue, // ✅ Use this to support dark/light mode
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { FiSend, FiMic, FiMessageCircle, FiX } from "react-icons/fi";
+import ReactMarkdown from "react-markdown";
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isListening, setIsListening] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
   const [isTyping, setIsTyping] = useState(false);
   const chatEndRef = useRef(null);
-  const chatboxRef = useRef(null); // ✅ Ref for detecting outside clicks
+  const chatboxRef = useRef(null);
 
-  const API_URL = `${process.env.REACT_APP_API_URL}/api/chat`; // ✅ Make sure your server is running
+  const API_URL = `${process.env.REACT_APP_API_URL}/api/chat`;
 
-  // ✅ Define theme colors before rendering
-  const bgColor = useColorModeValue("white", "gray.800");
-  const chatBg = useColorModeValue("gray.100", "gray.700");
+  // Updated theme colors (matching login page)
+  const bgGradient = "linear(to-b, yellow.100, orange.200)";
+  const chatBg = "yellow.50";
+  const buttonColor = "orange.500";
+  const inputBorder = "orange.400";
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // ✅ Close chatbox when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (chatboxRef.current && !chatboxRef.current.contains(event.target)) {
@@ -46,13 +46,12 @@ const Chatbot = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isChatOpen]);
 
-  // ✅ Function to send a message
   const sendMessage = async () => {
     if (!input.trim()) return;
+    // Append user message with markdown formatting support
     setMessages((prev) => [...prev, { text: input, sender: "user" }]);
     setInput("");
-
-    setIsTyping(true); // ✅ Show typing indicator
+    setIsTyping(true);
 
     try {
       const response = await fetch(API_URL, {
@@ -66,14 +65,16 @@ const Chatbot = () => {
     } catch (error) {
       setMessages((prev) => [
         ...prev,
-        { text: "Error connecting to AI. Please try again.", sender: "bot" },
+        {
+          text: "Error connecting to AI. Please try again.",
+          sender: "bot",
+        },
       ]);
     } finally {
-      setIsTyping(false); // ✅ Hide typing indicator
+      setIsTyping(false);
     }
   };
 
-  // ✅ Voice recognition input
   const handleVoiceInput = () => {
     const recognition = new (window.SpeechRecognition ||
       window.webkitSpeechRecognition)();
@@ -99,7 +100,7 @@ const Chatbot = () => {
           icon={<FiMessageCircle />}
           isRound
           size="lg"
-          colorScheme="blue"
+          colorScheme="orange"
           onClick={() => setIsChatOpen(true)}
           boxShadow="xl"
         />
@@ -107,29 +108,30 @@ const Chatbot = () => {
 
       {isChatOpen && (
         <Box
-          ref={chatboxRef} // ✅ Add ref to detect clicks outside
+          ref={chatboxRef}
           w="350px"
           h="450px"
-          bg={bgColor}
+          bgGradient={bgGradient}
           boxShadow="2xl"
           borderRadius="lg"
           p={4}
           display="flex"
           flexDirection="column"
         >
-          {/* ✅ Chat Header */}
+          {/* Chat Header */}
           <HStack justifyContent="space-between" mb={4}>
-            <Text fontSize="lg" fontWeight="bold">
+            <Text fontSize="lg" fontWeight="bold" color="orange.700">
               Chat with AI
             </Text>
             <IconButton
               icon={<FiX />}
               size="sm"
+              colorScheme="red"
               onClick={() => setIsChatOpen(false)}
             />
           </HStack>
 
-          {/* ✅ Messages Section */}
+          {/* Messages Section */}
           <VStack
             flex="1"
             overflowY="auto"
@@ -144,23 +146,23 @@ const Chatbot = () => {
                 key={index}
                 p={3}
                 borderRadius="lg"
-                bg={msg.sender === "user" ? "blue.500" : "gray.500"}
+                bg={msg.sender === "user" ? "orange.400" : "yellow.300"}
                 alignSelf={msg.sender === "user" ? "flex-end" : "flex-start"}
-                color="white"
+                color="black"
                 maxW="80%"
               >
-                {msg.text}
+                <ReactMarkdown>{msg.text}</ReactMarkdown>
               </Box>
             ))}
 
-            {/* ✅ Typing Indicator */}
+            {/* Typing Indicator */}
             {isTyping && (
               <Box
                 p={3}
                 borderRadius="lg"
-                bg="gray.500"
+                bg="yellow.300"
                 alignSelf="flex-start"
-                color="white"
+                color="black"
                 maxW="80%"
                 fontStyle="italic"
               >
@@ -171,7 +173,7 @@ const Chatbot = () => {
             <div ref={chatEndRef}></div>
           </VStack>
 
-          {/* ✅ Input Section */}
+          {/* Input Section */}
           <HStack mt={2}>
             <Input
               flex="1"
@@ -179,14 +181,18 @@ const Chatbot = () => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && sendMessage()}
+              borderColor={inputBorder}
+              _focus={{ borderColor: "orange.600" }}
             />
             <IconButton
-              icon={isLoading ? <Spinner /> : <FiSend />}
+              icon={<FiSend />}
+              colorScheme="orange"
               onClick={sendMessage}
-              isDisabled={isTyping} // ✅ Disable send button while AI is typing
+              isDisabled={isTyping}
             />
             <IconButton
               icon={isListening ? <Spinner /> : <FiMic />}
+              colorScheme="yellow"
               onClick={handleVoiceInput}
             />
           </HStack>

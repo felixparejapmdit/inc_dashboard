@@ -25,27 +25,52 @@ import {
   useToast,
   Image,
   Tooltip,
+  InputGroup,
+  InputRightElement,
+  InputLeftElement,
 } from "@chakra-ui/react";
 import { FaEdit } from "react-icons/fa";
 import { FiLock, FiFile } from "react-icons/fi";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import { ViewIcon, EditIcon, ExternalLinkIcon } from "@chakra-ui/icons";
+import {
+  ViewIcon,
+  EditIcon,
+  ExternalLinkIcon,
+  ViewOffIcon,
+  LockIcon,
+} from "@chakra-ui/icons";
 
 const Profile = () => {
   const [user, setUser] = useState({ name: "", email: "", avatar: "" });
   const [loading, setLoading] = useState(true);
+
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState("");
   const [editUser, setEditUser] = useState({
     name: "",
     email: "",
     avatar: "",
   });
-  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  // Edit Profile Modal State
+  const {
+    isOpen: isEditProfileOpen,
+    onOpen: onEditProfileOpen,
+    onClose: onEditProfileClose,
+  } = useDisclosure();
+
+  // Change Password Modal State
   const {
     isOpen: isChangePassOpen,
     onOpen: onChangePassOpen,
     onClose: onChangePassClose,
   } = useDisclosure();
+
+  // New state for controlling modal loading
+  const [isModalLoading, setIsModalLoading] = useState(false);
+
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -122,6 +147,7 @@ const Profile = () => {
         status: "error",
         duration: 3000,
         isClosable: true,
+        position: "bottom-left", // Position the toast on the bottom-left
       });
       return;
     }
@@ -153,10 +179,11 @@ const Profile = () => {
           status: "success",
           duration: 3000,
           isClosable: true,
+          position: "bottom-left", // Position the toast on the bottom-left
         });
 
-        // Close the modal
-        onClose();
+        // ✅ Close the Edit Profile modal after success
+        onEditProfileClose();
       })
       .catch((error) => {
         console.error("Error updating avatar:", error);
@@ -169,12 +196,44 @@ const Profile = () => {
           status: "error",
           duration: 3000,
           isClosable: true,
+          position: "bottom-left", // Position the toast on the bottom-left
         });
       });
   };
 
-  // Change Password Logic
-  const handleChangePassword = () => {
+  // Check password strength
+  const checkPasswordStrength = (password) => {
+    if (password.length < 6) return "Weak";
+    if (
+      password.match(/[A-Z]/) &&
+      password.match(/[0-9]/) &&
+      password.match(/[\W]/)
+    )
+      return "Strong";
+    return "Medium";
+  };
+
+  // Handle Password Input Change
+  const handleNewPasswordChange = (e) => {
+    const password = e.target.value;
+    setNewPassword(password);
+    setPasswordStrength(checkPasswordStrength(password));
+  };
+
+  // Handle Change Password
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast({
+        title: "Validation Error",
+        description: "All fields are required.",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom-left", // Position the toast on the bottom-left
+      });
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
       toast({
         title: "Passwords do not match",
@@ -182,60 +241,76 @@ const Profile = () => {
         status: "error",
         duration: 3000,
         isClosable: true,
+        position: "bottom-left", // Position the toast on the bottom-left
       });
       return;
     }
 
-    fetch(`${process.env.REACT_APP_API_URL}/api/users/change-password`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        currentPassword,
-        newPassword,
-        userId: user.ID,
-      }),
-    })
-      .then((response) => {
-        if (response.ok) {
-          toast({
-            title: "Password updated",
-            description: "Your password has been updated successfully.",
-            status: "success",
-            duration: 3000,
-            isClosable: true,
-          });
-          onChangePassClose();
-          setCurrentPassword("");
-          setNewPassword("");
-          setConfirmPassword("");
-        } else {
-          toast({
-            title: "Error",
-            description: "Incorrect current password or an error occurred.",
-            status: "error",
-            duration: 3000,
-            isClosable: true,
-          });
+    setLoading(true);
+
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/ldap/change-password`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: user.username,
+            oldPassword: currentPassword,
+            newPassword: newPassword,
+          }),
         }
-      })
-      .catch((error) => {
-        console.error("Error changing password:", error);
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
         toast({
-          title: "Error changing password",
-          description: "An error occurred while changing your password.",
+          title: "Password Updated",
+          description: "Your password has been updated successfully.",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+          position: "bottom-left", // Position the toast on the bottom-left
+        });
+
+        // Close modal and reset fields
+        onChangePassClose();
+
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+        setPasswordStrength("");
+      } else {
+        toast({
+          title: "Error",
+          description: data.message || "Failed to change password.",
           status: "error",
           duration: 3000,
           isClosable: true,
+          position: "bottom-left", // Position the toast on the bottom-left
         });
+      }
+    } catch (error) {
+      console.error("Error changing password:", error);
+      toast({
+        title: "Network Error",
+        description: "Unable to connect to the server. Please try again later.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom-left", // Position the toast on the bottom-left
       });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const bgGradient = useColorModeValue(
-    "linear(to-r, teal.100, green.100)",
-    "linear(to-r, teal.700, green.700)"
+    "linear(to-b, yellow.100, orange.200)", // Light yellow to warm orange
+    "linear(to-b, yellow.300, orange.400)" // Darker version for dark mode
   );
+
   const boxShadow = useColorModeValue("lg", "dark-lg");
   const headingColor = useColorModeValue("teal.600", "teal.300");
 
@@ -253,7 +328,7 @@ const Profile = () => {
       alignItems="center"
     >
       {loading ? (
-        <Spinner size="xl" color="teal.500" />
+        <Spinner size="xl" color="orange.500" />
       ) : (
         <Box
           ref={profileRef}
@@ -286,47 +361,57 @@ const Profile = () => {
 
             <Divider borderColor="teal.300" />
 
+            {/* Icons Section */}
             <HStack spacing={4} mt={4} justifyContent="center">
+              {/* View Profile */}
               <Tooltip
                 label={
                   !user.personnel_id
-                    ? "No personnel data is available. To view, please click the Info icon to proceed."
+                    ? "No personnel data available. Click the Info icon to proceed."
                     : ""
                 }
               >
                 <IconButton
                   icon={<ViewIcon />}
                   mr={2}
-                  colorScheme="teal"
-                  onClick={() => handleViewUser(user.personnel_id)}
+                  colorScheme="yellow"
+                  onClick={() =>
+                    window.open(
+                      `/personnel-preview/${user.personnel_id}`,
+                      "_blank"
+                    )
+                  }
                   isDisabled={!user.personnel_id}
                 />
               </Tooltip>
+
+              {/* Edit Profile */}
               <IconButton
                 icon={<FaEdit />}
-                colorScheme="teal"
-                variant="solid"
+                colorScheme="orange"
                 size="md"
-                onClick={onOpen}
+                onClick={onEditProfileOpen}
                 aria-label="Edit Profile"
               />
+
+              {/* Change Password */}
               <IconButton
                 icon={<FiLock />}
-                colorScheme="blue"
-                variant="solid"
+                colorScheme="red"
                 size="md"
                 onClick={onChangePassOpen}
                 aria-label="Change Password"
               />
-              {/* Add Redirect IconButton */}
+
+              {/* Update Info */}
               <IconButton
-                icon={<ExternalLinkIcon />} // Replace with an appropriate icon for "Update Info"
-                colorScheme="green"
+                icon={<ExternalLinkIcon />}
+                colorScheme="teal"
                 variant="solid"
                 size="md"
-                aria-label="Update Info" // Accessibility label
+                aria-label="Update Info"
                 onClick={() => {
-                  const personnelId = user.personnel_id; // Adjust based on how personnel ID is stored in your `user` object
+                  const personnelId = user.personnel_id;
                   if (personnelId) {
                     window.location.href = `/enroll?personnel_id=${personnelId}&step=${user.enrollment_progress}`;
                   } else {
@@ -338,23 +423,28 @@ const Profile = () => {
           </VStack>
 
           {/* Edit Profile Modal */}
-          <Modal isOpen={isOpen} onClose={onClose}>
+          <Modal isOpen={isEditProfileOpen} onClose={onEditProfileClose}>
             <ModalOverlay />
-            <ModalContent>
-              <ModalHeader>Edit Profile</ModalHeader>
+            <ModalContent bg="yellow.50">
+              <ModalHeader color="orange.600">Edit Profile</ModalHeader>
               <ModalCloseButton />
               <ModalBody>
                 <VStack spacing={6} align="center">
+                  {/* User Avatar Preview */}
                   <Image
                     boxSize="150px"
                     borderRadius="full"
                     src={
                       editUser.avatarFile
                         ? editUser.avatar // Show Base64 preview if a new file is selected
-                        : `${process.env.REACT_APP_API_URL}${user.avatar}` // Otherwise, show the server URL
+                        : user.avatar
+                        ? `${process.env.REACT_APP_API_URL}${user.avatar}` // Use avatar URL if available
+                        : "/default-avatar.png" // Provide fallback default avatar
                     }
                     alt="User Avatar"
                   />
+
+                  {/* Upload New Avatar */}
                   <FormControl>
                     <FormLabel>Avatar</FormLabel>
                     <Input
@@ -364,83 +454,172 @@ const Profile = () => {
                     />
                   </FormControl>
 
+                  {/* Name Field (Read-Only) */}
                   <FormControl isRequired>
                     <FormLabel>Name</FormLabel>
                     <Input
                       name="name"
                       value={editUser.name}
                       onChange={handleInputChange}
-                      disabled // Disable editing name
+                      isReadOnly // Keeps the name field disabled
                     />
                   </FormControl>
+
+                  {/* Email Field (Read-Only) */}
                   <FormControl isRequired>
                     <FormLabel>Email</FormLabel>
                     <Input
                       name="email"
                       value={editUser.email}
                       onChange={handleInputChange}
-                      disabled // Disable editing email
+                      isReadOnly // Keeps the email field disabled
                     />
                   </FormControl>
                 </VStack>
               </ModalBody>
               <ModalFooter>
-                <Button colorScheme="teal" mr={3} onClick={handleSaveChanges}>
+                <Button colorScheme="orange" mr={3} onClick={handleSaveChanges}>
                   Save Changes
                 </Button>
-                <Button variant="ghost" onClick={onClose}>
+                <Button
+                  colorScheme="yellow"
+                  mr={3}
+                  onClick={onEditProfileClose}
+                >
                   Cancel
                 </Button>
               </ModalFooter>
             </ModalContent>
           </Modal>
 
-          {/* Change Password Modal */}
-          <Modal isOpen={isChangePassOpen} onClose={onChangePassClose}>
+          <Modal
+            isOpen={isChangePassOpen}
+            onClose={onChangePassClose}
+            isCentered
+            size="md"
+          >
             <ModalOverlay />
-            <ModalContent>
-              <ModalHeader>Change Password</ModalHeader>
+            <ModalContent
+              borderRadius="lg"
+              boxShadow="xl"
+              p={6}
+              bg="yellow.100" // Light yellow background like login form
+            >
+              <ModalHeader
+                fontSize="xl"
+                fontWeight="bold"
+                textAlign="center"
+                color="gray.800"
+              >
+                Change Password
+              </ModalHeader>
               <ModalCloseButton />
+
               <ModalBody>
                 <VStack spacing={4}>
+                  {/* Current Password */}
                   <FormControl isRequired>
-                    <FormLabel>Current Password</FormLabel>
-                    <Input
-                      type="password"
-                      placeholder="Enter current password"
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                    />
+                    <FormLabel fontSize="sm" color="gray.700">
+                      Current Password
+                    </FormLabel>
+                    <InputGroup>
+                      <InputLeftElement>
+                        <LockIcon color="gray.500" />
+                      </InputLeftElement>
+                      <Input
+                        type="password"
+                        placeholder="Enter current password"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        size="lg"
+                        borderRadius="md"
+                        bg="white"
+                      />
+                    </InputGroup>
                   </FormControl>
+
+                  {/* New Password */}
                   <FormControl isRequired>
-                    <FormLabel>New Password</FormLabel>
-                    <Input
-                      type="password"
-                      placeholder="Enter new password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                    />
+                    <FormLabel fontSize="sm" color="gray.700">
+                      New Password
+                    </FormLabel>
+                    <InputGroup>
+                      <InputLeftElement>
+                        <LockIcon color="gray.500" />
+                      </InputLeftElement>
+                      <Input
+                        type={showNewPassword ? "text" : "password"}
+                        placeholder="Enter new password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        size="lg"
+                        borderRadius="md"
+                        bg="white"
+                      />
+                      <InputRightElement>
+                        <IconButton
+                          variant="ghost"
+                          icon={
+                            showNewPassword ? <ViewOffIcon /> : <ViewIcon />
+                          }
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                        />
+                      </InputRightElement>
+                    </InputGroup>
                   </FormControl>
+
+                  {/* Confirm Password */}
                   <FormControl isRequired>
-                    <FormLabel>Confirm New Password</FormLabel>
-                    <Input
-                      type="password"
-                      placeholder="Confirm new password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                    />
+                    <FormLabel fontSize="sm" color="gray.700">
+                      Confirm New Password
+                    </FormLabel>
+                    <InputGroup>
+                      <InputLeftElement>
+                        <LockIcon color="gray.500" />
+                      </InputLeftElement>
+                      <Input
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="Confirm new password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        size="lg"
+                        borderRadius="md"
+                        bg="white"
+                      />
+                      <InputRightElement>
+                        <IconButton
+                          variant="ghost"
+                          icon={
+                            showConfirmPassword ? <ViewOffIcon /> : <ViewIcon />
+                          }
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
+                        />
+                      </InputRightElement>
+                    </InputGroup>
                   </FormControl>
                 </VStack>
               </ModalBody>
+
               <ModalFooter>
                 <Button
-                  colorScheme="blue"
-                  mr={3}
+                  bg="orange.400"
+                  color="white"
+                  _hover={{ bg: "orange.500" }}
+                  w="full"
+                  size="lg"
                   onClick={handleChangePassword}
+                  borderRadius="full"
                 >
                   Update Password
                 </Button>
-                <Button variant="ghost" onClick={onChangePassClose}>
+                <Button
+                  onClick={onChangePassClose}
+                  colorScheme="yellow"
+                  mr={3}
+                  color="white"
+                >
                   Cancel
                 </Button>
               </ModalFooter>

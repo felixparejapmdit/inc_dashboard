@@ -1,8 +1,13 @@
 // controllers/ldapController.js
+require("dotenv").config();
 const ldap = require("ldapjs");
+
 const fs = require("fs");
 const path = require("path");
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
+
+const { Attribute } = require("ldapjs"); // ✅ Ensure Attribute is imported
 
 const Personnel = require("../models/personnels");
 const LdapUser = require("../models/LDAP_Users");
@@ -17,6 +22,62 @@ const BASE_DN = process.env.BASE_DN;
 // Utility function to create an LDAP client
 const createLdapClient = () => {
   return ldap.createClient({ url: LDAP_URL });
+};
+
+exports.changePassword = async (req, res) => {
+  const { username, oldPassword, newPassword } = req.body;
+
+  if (!username || !oldPassword || !newPassword) {
+    return res.status(400).json({ message: "All fields are required." });
+  }
+
+  const client = ldap.createClient({ url: LDAP_URL });
+  const userDN = `uid=${username},cn=PMD-IT,dc=pmdmc,dc=net`;
+
+  // ✅ Step 1: Bind as the User to Verify Old Password
+  client.bind(userDN, oldPassword, (authErr) => {
+    if (authErr) {
+      client.unbind();
+      return res.status(401).json({ message: "Incorrect old password." });
+    }
+
+    // ✅ Step 2: Admin Bind to Change Password
+    client.bind(BIND_DN, BIND_PASSWORD, (adminErr) => {
+      if (adminErr) {
+        client.unbind();
+        return res
+          .status(500)
+          .json({ message: "LDAP admin bind failed.", error: adminErr });
+      }
+
+      // ✅ Step 3: Hash the New Password Correctly (MD5 + Base64)
+      const hashedNewPassword =
+        `{MD5}` + crypto.createHash("md5").update(newPassword).digest("base64");
+
+      // ✅ Step 4: Modify the Password (Fixed Format)
+      const change = new ldap.Change({
+        operation: "replace",
+        modification: new Attribute({
+          type: "userPassword",
+          values: [hashedNewPassword], // ✅ Correct format
+        }),
+      });
+
+      client.modify(userDN, change, (modErr) => {
+        if (modErr) {
+          client.unbind();
+          return res
+            .status(500)
+            .json({ message: "Failed to update password", error: modErr });
+        }
+
+        res.json({ message: "Password updated successfully." });
+
+        // ✅ Close connections properly
+        client.unbind();
+      });
+    });
+  });
 };
 
 // Test LDAP connection
@@ -263,7 +324,7 @@ exports.getUserByUsername = async (req, res) => {
       });
     });
 
-    //Search the ldap users from the login credentials
+  //Search the ldap users from the login credentials
   const searchLDAP = () =>
     new Promise((resolve, reject) => {
       const searchOptions = {
