@@ -506,7 +506,7 @@ const Step7 = ({
                   <Input
                     placeholder="Date of Marriage"
                     type="date"
-                    value={data.date_of_marriage}
+                    value={child.date_of_marriage}
                     onChange={(e) =>
                       onChange(index, "date_of_marriage", e.target.value)
                     }
