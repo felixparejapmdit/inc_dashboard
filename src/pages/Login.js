@@ -445,6 +445,53 @@ const Login = () => {
       return false;
     }
   };
+
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setIsLoading(true);
+  //   setError("");
+
+  //   if (!username || !password) {
+  //     setError("Username and password are required.");
+  //     setIsLoading(false);
+  //     return;
+  //   }
+
+  //   try {
+  //     // ✅ Attempt Login with JWT Authentication API
+  //     const response = await axios.post(
+  //       `${process.env.REACT_APP_API_URL}/api/auth/login`,
+  //       { username, password }
+  //     );
+
+  //     if (response.data.success) {
+  //       const { token, user } = response.data;
+
+  //       // ✅ Store JWT token & user details in localStorage
+  //       localStorage.setItem("token", token);
+  //       localStorage.setItem("userFullName", user.fullName || user.username);
+  //       localStorage.setItem("username", user.username);
+  //       localStorage.setItem("userId", user.id);
+  //       localStorage.setItem("groupId", user.groupId);
+
+  //       // ✅ Set Authorization Header for Future API Calls
+  //       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+  //       navigate("/dashboard"); // Redirect to Dashboard
+  //     } else {
+  //       setError("Invalid username or password.");
+  //     }
+  //   } catch (err) {
+  //     console.error("Login error:", err.response?.data || err.message);
+  //     setError(
+  //       err.response?.data?.message ||
+  //         "Error connecting to the server. Please try again."
+  //     );
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
