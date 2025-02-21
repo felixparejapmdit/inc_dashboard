@@ -24,6 +24,62 @@ const createLdapClient = () => {
   return ldap.createClient({ url: LDAP_URL });
 };
 
+// exports.changePassword = async (req, res) => {
+//   const { username, oldPassword, newPassword } = req.body;
+
+//   if (!username || !oldPassword || !newPassword) {
+//     return res.status(400).json({ message: "All fields are required." });
+//   }
+
+//   const client = ldap.createClient({ url: LDAP_URL });
+//   const userDN = `uid=${username},cn=PMD-IT,dc=pmdmc,dc=net`;
+
+//   // ✅ Step 1: Bind as the User to Verify Old Password
+//   client.bind(userDN, oldPassword, (authErr) => {
+//     if (authErr) {
+//       client.unbind();
+//       return res.status(401).json({ message: "Incorrect old password." });
+//     }
+
+//     // ✅ Step 2: Admin Bind to Change Password
+//     client.bind(BIND_DN, BIND_PASSWORD, (adminErr) => {
+//       if (adminErr) {
+//         client.unbind();
+//         return res
+//           .status(500)
+//           .json({ message: "LDAP admin bind failed.", error: adminErr });
+//       }
+
+//       // ✅ Step 3: Hash the New Password Correctly (MD5 + Base64)
+//       const hashedNewPassword =
+//         `{MD5}` + crypto.createHash("md5").update(newPassword).digest("base64");
+
+//       // ✅ Step 4: Modify the Password (Fixed Format)
+//       const change = new ldap.Change({
+//         operation: "replace",
+//         modification: new Attribute({
+//           type: "userPassword",
+//           values: [hashedNewPassword], // ✅ Correct format
+//         }),
+//       });
+
+//       client.modify(userDN, change, (modErr) => {
+//         if (modErr) {
+//           client.unbind();
+//           return res
+//             .status(500)
+//             .json({ message: "Failed to update password", error: modErr });
+//         }
+
+//         res.json({ message: "Password updated successfully." + username });
+
+//         // ✅ Close connections properly
+//         client.unbind();
+//       });
+//     });
+//   });
+// };
+
 exports.changePassword = async (req, res) => {
   const { username, oldPassword, newPassword } = req.body;
 
@@ -32,49 +88,122 @@ exports.changePassword = async (req, res) => {
   }
 
   const client = ldap.createClient({ url: LDAP_URL });
-  const userDN = `uid=${username},cn=PMD-IT,dc=pmdmc,dc=net`;
 
-  // ✅ Step 1: Bind as the User to Verify Old Password
-  client.bind(userDN, oldPassword, (authErr) => {
-    if (authErr) {
-      client.unbind();
-      return res.status(401).json({ message: "Incorrect old password." });
+  console.log(`🔍 Searching for user: ${username}`);
+
+  // ✅ Step 1: Search for User DN Dynamically
+  const opts = {
+    filter: `(uid=${username})`,
+    scope: "sub",
+    attributes: ["dn", "uid", "cn", "sn", "mail"], // Request more attributes
+  };
+
+  client.bind(BIND_DN, BIND_PASSWORD, (bindErr) => {
+    if (bindErr) {
+      console.error("❌ LDAP Admin Bind Failed:", bindErr);
+      return res
+        .status(500)
+        .json({ message: "LDAP Admin Bind Failed", error: bindErr });
     }
 
-    // ✅ Step 2: Admin Bind to Change Password
-    client.bind(BIND_DN, BIND_PASSWORD, (adminErr) => {
-      if (adminErr) {
+    client.search(BASE_DN, opts, (searchErr, searchRes) => {
+      if (searchErr) {
+        console.error("❌ LDAP Search Failed:", searchErr);
         client.unbind();
         return res
           .status(500)
-          .json({ message: "LDAP admin bind failed.", error: adminErr });
+          .json({ message: "LDAP Search Failed", error: searchErr });
       }
 
-      // ✅ Step 3: Hash the New Password Correctly (MD5 + Base64)
-      const hashedNewPassword =
-        `{MD5}` + crypto.createHash("md5").update(newPassword).digest("base64");
+      let userDN = null;
 
-      // ✅ Step 4: Modify the Password (Fixed Format)
-      const change = new ldap.Change({
-        operation: "replace",
-        modification: new Attribute({
-          type: "userPassword",
-          values: [hashedNewPassword], // ✅ Correct format
-        }),
-      });
+      searchRes.on("searchEntry", (entry) => {
+        console.log(
+          "✅ LDAP Entry (Full JSON):",
+          JSON.stringify(entry.pojo, null, 2)
+        ); // 🔹 Use `.pojo`
 
-      client.modify(userDN, change, (modErr) => {
-        if (modErr) {
-          client.unbind();
-          return res
-            .status(500)
-            .json({ message: "Failed to update password", error: modErr });
+        if (!entry.pojo || !entry.pojo.objectName) {
+          console.error("❌ LDAP Entry is missing 'objectName' field.");
+          return;
         }
 
-        res.json({ message: "Password updated successfully." });
+        // ✅ Extract DN correctly
+        userDN = entry.pojo.objectName;
+        console.log("✅ Extracted User DN:", userDN);
+      });
 
-        // ✅ Close connections properly
+      searchRes.on("end", () => {
+        if (!userDN) {
+          console.error("❌ No valid LDAP entry found.");
+          client.unbind();
+          return res.status(404).json({ message: "User not found in LDAP." });
+        }
+
+        console.log("✅ Final User DN:", userDN);
+
+        // ✅ Step 2: Bind as the User to Verify Old Password
+        const userClient = ldap.createClient({ url: LDAP_URL });
+
+        userClient.bind(userDN, oldPassword, (authErr) => {
+          if (authErr) {
+            console.error("❌ LDAP Bind Failed:", authErr);
+            client.unbind();
+            return res
+              .status(401)
+              .json({ message: "Incorrect old password.", error: authErr });
+          }
+
+          // ✅ Step 3: Admin Bind to Change Password
+          userClient.bind(BIND_DN, BIND_PASSWORD, (adminErr) => {
+            if (adminErr) {
+              console.error("❌ LDAP Admin Bind Failed:", adminErr);
+              userClient.unbind();
+              return res
+                .status(500)
+                .json({ message: "LDAP Admin Bind Failed.", error: adminErr });
+            }
+
+            // ✅ Step 4: Hash the New Password (MD5 + Base64)
+            const hashedNewPassword =
+              `{MD5}` +
+              crypto.createHash("md5").update(newPassword).digest("base64");
+
+            // ✅ Step 5: Modify the Password
+            const change = new ldap.Change({
+              operation: "replace",
+              modification: new Attribute({
+                type: "userPassword",
+                values: [hashedNewPassword], // ✅ Correct format
+              }),
+            });
+
+            userClient.modify(userDN, change, (modErr) => {
+              if (modErr) {
+                console.error("❌ Failed to Update Password:", modErr);
+                userClient.unbind();
+                return res.status(500).json({
+                  message: "Failed to update password",
+                  error: modErr,
+                });
+              }
+
+              console.log("✅ Password Updated Successfully for:", userDN);
+              res.json({ message: "Password updated successfully." });
+
+              // ✅ Close connections
+              userClient.unbind();
+            });
+          });
+        });
+      });
+
+      searchRes.on("error", (err) => {
+        console.error("❌ LDAP Search Error:", err);
         client.unbind();
+        return res
+          .status(500)
+          .json({ message: "LDAP search encountered an error", error: err });
       });
     });
   });

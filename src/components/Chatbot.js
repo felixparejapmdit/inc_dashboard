@@ -1,14 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
-  Button,
   Input,
   VStack,
   HStack,
   Text,
   IconButton,
   Spinner,
-  useColorModeValue,
 } from "@chakra-ui/react";
 import { FiSend, FiMic, FiMessageCircle, FiX } from "react-icons/fi";
 import ReactMarkdown from "react-markdown";
@@ -24,7 +22,7 @@ const Chatbot = () => {
 
   const API_URL = `${process.env.REACT_APP_API_URL}/api/chat`;
 
-  // Updated theme colors (matching login page)
+  // 🎨 Theme Colors Matching Your Login Page
   const bgGradient = "linear(to-b, yellow.100, orange.200)";
   const chatBg = "yellow.50";
   const buttonColor = "orange.500";
@@ -48,7 +46,7 @@ const Chatbot = () => {
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-    // Append user message with markdown formatting support
+
     setMessages((prev) => [...prev, { text: input, sender: "user" }]);
     setInput("");
     setIsTyping(true);
@@ -61,7 +59,10 @@ const Chatbot = () => {
       });
 
       const data = await response.json();
-      setMessages((prev) => [...prev, { text: data.reply, sender: "bot" }]);
+      const replyText = data.reply || "Error: No response from AI.";
+
+      // Display AI message character by character
+      displayAIMessageGradually(replyText);
     } catch (error) {
       setMessages((prev) => [
         ...prev,
@@ -70,9 +71,33 @@ const Chatbot = () => {
           sender: "bot",
         },
       ]);
-    } finally {
       setIsTyping(false);
     }
+  };
+
+  // 🎯 Display AI Message Gradually (Letter by Letter)
+  const displayAIMessageGradually = (text) => {
+    let index = 0;
+    setIsTyping(true);
+    const interval = setInterval(() => {
+      if (index < text.length) {
+        setMessages((prev) => {
+          const lastMessage = prev[prev.length - 1];
+          if (lastMessage?.sender === "bot") {
+            return [
+              ...prev.slice(0, -1),
+              { text: lastMessage.text + text[index], sender: "bot" },
+            ];
+          } else {
+            return [...prev, { text: text[index], sender: "bot" }];
+          }
+        });
+        index++;
+      } else {
+        clearInterval(interval);
+        setIsTyping(false);
+      }
+    }, 50); // Typing Speed: 50ms per letter
   };
 
   const handleVoiceInput = () => {

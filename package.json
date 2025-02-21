@@ -48,6 +48,7 @@
     "jest": "^27.4.3",
     "jest-resolve": "^27.4.2",
     "jest-watch-typeahead": "^1.0.0",
+    "jsonwebtoken": "^9.0.2",
     "jspdf": "^2.5.2",
     "ldapjs": "^3.0.7",
     "md5": "^2.3.0",
