@@ -98,7 +98,6 @@
   },
   "scripts": {
     "start": "concurrently \"npm run react\" \"npm run backend\"",
-    "dev": "concurrently \"npm run react\" \"npm run backend\"",
     "react": "react-app-rewired start",
     "backend": "nodemon backend/server.js",
     "build": "react-app-rewired build",
