@@ -1270,22 +1270,22 @@ const EnrollmentForm = ({ referenceNumber }) => {
                       (parent) => parent.relationship_type === relationship
                     ) || {
                       relationship_type: relationship,
-                      givenname: "",
-                      lastname: "",
+                      // givenname: "",
+                      // lastname: "",
                       isEditing: true,
                     }
                 )
               : [
                   {
                     relationship_type: "Father",
-                    givenname: "",
-                    lastname: "",
+                    // givenname: "",
+                    // lastname: "",
                     isEditing: true,
                   },
                   {
                     relationship_type: "Mother",
-                    givenname: "",
-                    lastname: "",
+                    // givenname: "",
+                    // lastname: "",
                     isEditing: true,
                   },
                 ]
