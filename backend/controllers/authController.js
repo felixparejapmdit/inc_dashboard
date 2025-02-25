@@ -1,6 +1,7 @@
 const ldap = require("ldapjs");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const axios = require("axios"); // Added axios for API requests
 const User = require("../models/User"); // Your local user model
 require("dotenv").config();
 
@@ -12,6 +13,7 @@ const BASE_DN = process.env.BASE_DN;
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1d";
 
+const API_URL = process.env.REACT_APP_API_URL; // Backend API URL
 // ✅ Generate JWT Token
 const generateToken = (user) => {
   return jwt.sign(
@@ -31,6 +33,7 @@ const authenticateLDAP = (username, password) => {
     const searchOptions = {
       filter: `(uid=${username})`,
       scope: "sub",
+      attributes: ["cn"], // Ensure we retrieve 'cn' (full name)
     };
 
     client.bind(BIND_DN, BIND_PASSWORD, (err) => {
@@ -48,6 +51,7 @@ const authenticateLDAP = (username, password) => {
         }
 
         let userDN = null;
+        let fullName = username;
 
         res.on("searchEntry", (entry) => {
           console.log(
@@ -57,7 +61,12 @@ const authenticateLDAP = (username, password) => {
 
           // Extract the correct DN from `entry.pojo`
           userDN = entry.pojo.objectName; // Ensure we get the correct DN
+          //fullName = entry.pojo.cn ? entry.pojo.cn[0] : username; // Get 'cn' or fallback to username
+
+          fullName = entry.attributes.cn ? entry.attributes.cn[0] : username; // ✅ Extract fullName safely
+
           console.log("✅ Extracted User DN:", userDN);
+          console.log("✅ Extracted Full Name:", fullName);
         });
 
         res.on("end", () => {
@@ -76,7 +85,7 @@ const authenticateLDAP = (username, password) => {
               return reject("Invalid LDAP credentials.");
             }
             console.log("✅ LDAP Authentication successful for:", userDN);
-            resolve({ userDN, username });
+            resolve({ userDN, username, fullName });
           });
         });
       });
@@ -100,6 +109,46 @@ const authenticateLocal = async (username, password) => {
   return user;
 };
 
+// ✅ Fetch userId and groupId from API
+const getUserGroupId = async (username) => {
+  try {
+    console.log(`🔍 Fetching User ID for username: ${username}`);
+    // ✅ Fetch the user ID
+    const userResponse = await axios.get(
+      `${API_URL}/api/users_access/${username}`
+    );
+
+    const userId = userResponse.data?.id;
+
+    if (!userId) {
+      console.error("❌ Error: User ID not found for", username);
+      return null;
+    }
+
+    console.log(`✅ Found User ID: ${userId}`);
+
+    // ✅ Fetch the group ID using the user ID
+    const groupResponse = await axios.get(
+      `${API_URL}/api/groups/user/${userId}`
+    );
+    const groupId = groupResponse.data?.groupId;
+
+    if (!groupId) {
+      console.error(`❌ Error: Group ID not found for User ID: ${userId}`);
+      return null;
+    }
+
+    console.log(`✅ Found Group ID: ${groupId}`);
+    return groupId; // Ensure groupId is properly returned
+  } catch (error) {
+    console.error(
+      "❌ Error fetching user groupId:",
+      error.response?.data || error.message
+    );
+    return null; // Ensure null is returned on failure
+  }
+};
+
 // ✅ Login Controller
 exports.Login = async (req, res) => {
   const { username, password } = req.body;
@@ -112,14 +161,18 @@ exports.Login = async (req, res) => {
 
   try {
     let user;
+    let groupId;
 
     // 🔍 Attempt LDAP Authentication First
     try {
       const ldapUser = await authenticateLDAP(username, password);
+      groupId = (await getUserGroupId(username)) || "LDAP_GROUP"; // Get groupId from DB or fallback
+
+      console.log("Group ID: ", groupId);
       user = {
         id: ldapUser.username,
         username: ldapUser.username,
-        groupId: "LDAP_GROUP",
+        groupId: groupId,
         fullName: ldapUser.username,
       };
 
@@ -133,9 +186,10 @@ exports.Login = async (req, res) => {
     // 🔍 Fall back to Local Authentication
     try {
       user = await authenticateLocal(username, password);
+      groupId = (await getUserGroupId(username)) || "LOCAL_GROUP"; // Use stored groupId from API
 
       // ✅ Generate JWT token for Local user
-      const token = generateToken(user);
+      const token = generateToken({ ...user, groupId });
       return res.json({ success: true, token, user });
     } catch (localErr) {
       return res.status(401).json({ message: "Invalid username or password." });

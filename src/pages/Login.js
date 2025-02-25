@@ -446,7 +446,7 @@ const Login = () => {
     }
   };
 
-  const handleSubmit1 = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
@@ -469,9 +469,18 @@ const Login = () => {
       if (response.data.success) {
         const { token, user } = response.data;
 
+        // Check if the group ID exists
+        if (!user.groupId) {
+          setError(
+            "User does not belong to any group. Please contact the administrator to Assign."
+          );
+          setIsLoading(false);
+          return;
+        }
+
         // ✅ Store JWT token & user details in localStorage
         localStorage.setItem("token", token);
-        localStorage.setItem("userFullName", user.fullName || user.username);
+        localStorage.setItem("userFullName", user.fullName);
         localStorage.setItem("username", user.username);
         localStorage.setItem("userId", user.id);
         localStorage.setItem("groupId", user.groupId);
@@ -494,7 +503,7 @@ const Login = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit1 = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
@@ -530,6 +539,7 @@ const Login = () => {
 
         if (isPasswordValid) {
           // Proceed with login
+
           // Fetch the user ID for the local login
           const userResponse = await axios.get(
             `${process.env.REACT_APP_API_URL}/api/users_access/${username}`
@@ -553,7 +563,7 @@ const Login = () => {
 
           // Store user data and navigate to dashboard
           const fullName = ldapUser.cn?.[0] || "User"; // Adjust to the LDAP format
-          localStorage.setItem("userFullName", fullName);
+          localStorage.setItem("userFullName", ldapUser.fullName);
           localStorage.setItem("username", ldapUser.uid); // or response.data.user.username for local login
           localStorage.setItem("userId", userId);
           // Store the group ID in localStorage
