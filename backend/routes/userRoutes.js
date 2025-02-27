@@ -20,6 +20,11 @@ const axios = require("axios");
 // const BIND_PASSWORD = process.env.BIND_PASSWORD;
 // const BASE_DN = process.env.BASE_DN;
 
+// API URLs for districts and local congregations
+
+const DISTRICT_API_URL = `${process.env.REACT_APP_DISTRICT_API_URL}/api/districts`;
+const LOCAL_CONGREGATION_API_URL = `${process.env.REACT_APP_LOCAL_CONGREGATION_API_URL}/api/all-congregations`;
+
 // Utility to create an LDAP client
 const createLdapClient = () => {
   const ldap = require("ldapjs");
@@ -490,8 +495,23 @@ router.put("/api/users/update-login-status", (req, res) => {
   });
 });
 
+// Function to fetch external API data
+const fetchApiData = async (url) => {
+  try {
+    const response = await axios.get(url);
+    return response.data || [];
+  } catch (error) {
+    console.error(`Error fetching data from ${url}:`, error.message);
+    return [];
+  }
+};
+
 // Get all users with their available apps and LDAP attributes
 router.get("/api/users", async (req, res) => {
+  // Fetch external API data
+  const districts = await fetchApiData(DISTRICT_API_URL);
+  const localCongregations = await fetchApiData(LOCAL_CONGREGATION_API_URL);
+
   const query = `
   SELECT 
   u.ID,
@@ -641,13 +661,22 @@ GROUP BY
           console.error("Error fetching users from database:", err);
           return reject("Database error");
         }
-        // Format the database results
+
         const formattedResults = Array.isArray(results)
           ? results.map((user) => ({
               ...user,
               availableApps: user.availableApps
                 ? user.availableApps.split(",")
                 : [],
+              // Convert ID to Name using fetched API data
+              personnel_district_assignment_name:
+                districts.find(
+                  (d) => d.id === user.personnel_district_assignment_id
+                )?.name || "N/A",
+              personnel_local_congregation_assignment_name:
+                localCongregations.find(
+                  (lc) => lc.id === user.personnel_local_congregation_assignment
+                )?.name || "N/A",
             }))
           : [];
         resolve(formattedResults);

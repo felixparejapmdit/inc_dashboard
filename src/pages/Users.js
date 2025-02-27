@@ -623,9 +623,9 @@ const Users = ({ personnelId }) => {
                       }`}</Text>
                     </HStack>
                   </Td>
-                  <Td>{item.personnel_district_name || "N/A"}</Td>
+                  <Td>{item.personnel_district_assignment_name || "N/A"}</Td>
                   <Td>
-                    {item.personnel_local_congregation_assignment || "N/A"}
+                    {item.personnel_local_congregation_assignment_name || "N/A"}
                   </Td>
                   <Td>{item.mail || "N/A"}</Td>
                   <Td>{item.groupname || "N/A"}</Td>
@@ -705,6 +705,13 @@ const Users = ({ personnelId }) => {
 
       {/* New Personnel Table */}
       <VStack align="start" spacing={4}>
+        <Input
+          placeholder="Search personnel..."
+          value={searchTerm}
+          onChange={handleSearchChange}
+          mb={4}
+        />
+
         {hasPermission("personnels.newly_enrolled_personnel") && (
           <Heading size="md">Newly Enrolled Personnel</Heading>
         )}
