@@ -606,12 +606,10 @@ const Users = ({ personnelId }) => {
                     <Td>{item.groupname || "N/A"}</Td>
                     <Td>
                       <HStack spacing={2}>
-                        {" "}
-                        {/* Keeps actions in a row */}
                         {hasPermission("personnels.edit") && (
                           <IconButton
                             icon={<EditIcon />}
-                            colorScheme="blue"
+                            colorScheme="yellow" // Changed from blue to yellow
                             onClick={() => handleEditUser(item)}
                           />
                         )}
@@ -625,7 +623,7 @@ const Users = ({ personnelId }) => {
                           >
                             <IconButton
                               icon={<ViewIcon />}
-                              colorScheme="teal"
+                              colorScheme="orange" // Changed from teal to light orange
                               onClick={() => handleViewUser(item.personnel_id)}
                               isDisabled={!item.personnel_id}
                             />
@@ -634,7 +632,7 @@ const Users = ({ personnelId }) => {
                         {hasPermission("personnels.info") && (
                           <IconButton
                             icon={<InfoIcon />}
-                            colorScheme="teal"
+                            colorScheme="orange" // Changed from teal to deep orange
                             onClick={() => {
                               const personnelId = item.personnel_id;
                               if (personnelId) {
@@ -648,7 +646,7 @@ const Users = ({ personnelId }) => {
                         {hasPermission("personnels.delete") && (
                           <IconButton
                             icon={<DeleteIcon />}
-                            colorScheme="red"
+                            colorScheme="red" // Kept red for delete
                             onClick={() => handleDeleteUser(item.ID)}
                           />
                         )}
@@ -752,7 +750,7 @@ const Users = ({ personnelId }) => {
                     {hasPermission("personnels.sync_to_users") && (
                       <Td>
                         <Button
-                          colorScheme="teal"
+                          colorScheme="yellow"
                           onClick={() =>
                             handleSyncToUsersTable(
                               personnel.personnel_id,
