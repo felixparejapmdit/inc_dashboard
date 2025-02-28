@@ -36,6 +36,7 @@ import {
   Select,
   useToast,
   Tooltip,
+  Divider,
 } from "@chakra-ui/react";
 import {
   AddIcon,
@@ -49,7 +50,7 @@ import axios from "axios";
 import { usePermissionContext } from "../contexts/PermissionContext";
 
 const API_URL = process.env.REACT_APP_API_URL;
-const ITEMS_PER_PAGE = 15;
+const ITEMS_PER_PAGE = 5;
 
 const Users = ({ personnelId }) => {
   const [users, setUsers] = useState([]);
@@ -88,6 +89,16 @@ const Users = ({ personnelId }) => {
     fetchUsers();
     fetchNewPersonnels();
   }, []);
+
+  const fetchUsers = async () => {
+    fetch(`${API_URL}/api/users`)
+      .then((res) => res.json())
+      .then((data) => setUsers(Array.isArray(data) ? data : []))
+      .catch(() =>
+        setStatus("Failed to load users from Sync users from ldap.")
+      );
+    setExistingPersonnel(response.data || []);
+  };
 
   const fetchNewPersonnels = async () => {
     try {
@@ -431,6 +442,14 @@ const Users = ({ personnelId }) => {
     );
   };
 
+  const handlePageChangeNewPersonnel = (direction) => {
+    setCurrentPageNew((prev) =>
+      direction === "next"
+        ? Math.min(prev + 1, totalPagesNew)
+        : Math.max(prev - 1, 1)
+    );
+  };
+
   const [loading, setLoading] = useState(false);
   const toast = useToast();
 
@@ -550,15 +569,6 @@ const Users = ({ personnelId }) => {
     }
   };
 
-  const fetchUsers = async () => {
-    fetch(`${API_URL}/api/users`)
-      .then((res) => res.json())
-      .then((data) => setUsers(Array.isArray(data) ? data : []))
-      .catch(() =>
-        setStatus("Failed to load users from Sync users from ldap.")
-      );
-  };
-
   const handleSyncUsers = async () => {
     setLoading(true);
     try {
@@ -651,6 +661,7 @@ const Users = ({ personnelId }) => {
         <Table variant="simple">
           <Thead>
             <Tr>
+              <Th>#</Th> {/* Row number column */}
               <Th>Avatar</Th>
               <Th>Full Name</Th>
               <Th>District</Th>
@@ -661,7 +672,7 @@ const Users = ({ personnelId }) => {
             </Tr>
           </Thead>
           <Tbody>
-            {currentItemsPersonnel.map((item) => {
+            {currentItemsPersonnel.map((item, index) => {
               // Prepend the base URL if needed
               const avatarSrc = item.avatar ? `${API_URL}${item.avatar}` : "";
               return (
@@ -670,6 +681,7 @@ const Users = ({ personnelId }) => {
                   cursor="pointer"
                   //onClick={() => handleRowClick(item.personnel_id)} // Pass personnel_id to Step6
                 >
+                  <Td>{index + 1}</Td> {/* Display the row number */}
                   <Td>
                     <Avatar
                       size="sm"
@@ -746,7 +758,7 @@ const Users = ({ personnelId }) => {
         </Table>
       </VStack>
 
-      <Flex justify="space-between" align="center" mt={4}>
+      <Flex justify="space-between" align="center" mt={4} mb={6}>
         <Button
           onClick={() => handlePageChange("previous")}
           disabled={currentPage === 1}
@@ -764,20 +776,47 @@ const Users = ({ personnelId }) => {
         </Button>
       </Flex>
 
-      {/* New Personnel Table */}
-      <VStack align="start" spacing={4}>
-        {/* Search bar for Newly Enrolled Personnel */}
-        <Input
-          placeholder="Search newly enrolled personnel..."
-          value={searchNewPersonnels}
-          onChange={(e) => setSearchNewPersonnels(e.target.value)}
-          mb={4}
-        />
+      <Divider style={{ borderBottom: "2px dotted black" }} />
 
-        {hasPermission("personnels.newly_enrolled_personnel") && (
-          <Heading size="md">Newly Enrolled Personnel</Heading>
-        )}
-        {/* Updated Table with Row Numbers and Action Button */}
+      {hasPermission("personnels.newly_enrolled_personnel") && (
+        <>
+          {/* Search bar for Newly Enrolled Personnel */}
+          <Input
+            placeholder="Search newly enrolled personnel..."
+            value={searchNewPersonnels}
+            onChange={(e) => setSearchNewPersonnels(e.target.value)}
+            mb={1}
+            mt={6}
+          />
+        </>
+      )}
+
+      {/* Updated Table with Row Numbers and Action Button */}
+      {hasPermission("personnels.newly_enrolled_personnel") && (
+        <Heading size="md">Newly Enrolled Personnel</Heading>
+      )}
+      {hasPermission("personnels.newly_enrolled_personnel") && (
+        <Flex justify="space-between" align="center" mt={4}>
+          <Button
+            onClick={() => handlePageChangeNewPersonnel("previous")}
+            disabled={currentPageNew === 1}
+          >
+            Previous
+          </Button>
+          <Text>
+            Page {currentPageNew} of {totalPagesNew}
+          </Text>
+          <Button
+            onClick={() => handlePageChangeNewPersonnel("next")}
+            disabled={currentPageNew === totalPagesNew}
+          >
+            Next
+          </Button>
+        </Flex>
+      )}
+
+      {/* New Personnel Table */}
+      <VStack align="start" spacing={4} mt={8}>
         {hasPermission("personnels.newly_enrolled_personnel") && (
           <Table variant="simple">
             <Thead>
