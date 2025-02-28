@@ -563,7 +563,7 @@ const Login = () => {
 
           // Store user data and navigate to dashboard
           const fullName = ldapUser.cn?.[0] || "User"; // Adjust to the LDAP format
-          localStorage.setItem("userFullName", ldapUser.fullName);
+          localStorage.setItem("userFullName", fullName);
           localStorage.setItem("username", ldapUser.uid); // or response.data.user.username for local login
           localStorage.setItem("userId", userId);
           // Store the group ID in localStorage
