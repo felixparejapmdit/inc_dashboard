@@ -77,8 +77,61 @@ const Users = ({ personnelId }) => {
 
   const [existingPersonnel, setExistingPersonnel] = useState([]); // Personnel already in LDAP but no personnel_id
   const [newPersonnels, setNewPersonnels] = useState([]);
+  const [searchPersonnelList, setSearchPersonnelList] = useState(""); // Search for personnel list
+  const [searchNewPersonnels, setSearchNewPersonnels] = useState(""); // Search for new enrolled personnel
+  const [currentPagePersonnel, setCurrentPagePersonnel] = useState(1);
+  const [currentPageNew, setCurrentPageNew] = useState(1);
 
   const avatarBaseUrl = `${API_URL}/uploads/`;
+
+  useEffect(() => {
+    fetchUsers();
+    fetchNewPersonnels();
+  }, []);
+
+  const fetchNewPersonnels = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/personnels/new`);
+      setNewPersonnels(response.data || []);
+    } catch (error) {
+      console.error("Failed to load new personnels:", error);
+    }
+  };
+
+  // Independent search for Personnel List
+  const filteredPersonnelList = users.filter((user) =>
+    `${user.personnel_givenname || ""} ${
+      user.personnel_surname_husband || ""
+    } ${user.personnel_email || ""} ${user.personnel_section || ""}`
+      .toLowerCase()
+      .includes(searchPersonnelList.toLowerCase())
+  );
+
+  // Independent search for Newly Enrolled Personnel (Filters from newPersonnels)
+  const filteredNewPersonnels = newPersonnels.filter((personnel) =>
+    `${personnel.givenname || ""} ${personnel.surname_husband || ""} ${
+      personnel.email_address || ""
+    } ${personnel.section || ""}`
+      .toLowerCase()
+      .includes(searchNewPersonnels.toLowerCase())
+  );
+
+  const totalPagesPersonnel = Math.ceil(
+    filteredPersonnelList.length / ITEMS_PER_PAGE
+  );
+  const totalPagesNew = Math.ceil(
+    filteredNewPersonnels.length / ITEMS_PER_PAGE
+  );
+
+  const currentItemsPersonnel = filteredPersonnelList.slice(
+    (currentPagePersonnel - 1) * ITEMS_PER_PAGE,
+    currentPagePersonnel * ITEMS_PER_PAGE
+  );
+
+  const currentItemsNew = filteredNewPersonnels.slice(
+    (currentPageNew - 1) * ITEMS_PER_PAGE,
+    currentPageNew * ITEMS_PER_PAGE
+  );
 
   useEffect(() => {
     fetch(`${API_URL}/api/users`)
@@ -551,11 +604,19 @@ const Users = ({ personnelId }) => {
           Sync Users from LDAP
         </Button>
       )}
-      <Input
+      {/* <Input
         placeholder="Search personnel..."
         value={searchTerm}
         onChange={handleSearchChange}
         mb={6}
+      /> */}
+
+      {/* Search bar for Personnel List */}
+      <Input
+        placeholder="Search personnel list..."
+        value={searchPersonnelList}
+        onChange={(e) => setSearchPersonnelList(e.target.value)}
+        mb={4}
       />
       {status && (
         <Alert
@@ -600,7 +661,7 @@ const Users = ({ personnelId }) => {
             </Tr>
           </Thead>
           <Tbody>
-            {currentItems.map((item) => {
+            {currentItemsPersonnel.map((item) => {
               // Prepend the base URL if needed
               const avatarSrc = item.avatar ? `${API_URL}${item.avatar}` : "";
               return (
@@ -705,10 +766,11 @@ const Users = ({ personnelId }) => {
 
       {/* New Personnel Table */}
       <VStack align="start" spacing={4}>
+        {/* Search bar for Newly Enrolled Personnel */}
         <Input
-          placeholder="Search personnel..."
-          value={searchTerm}
-          onChange={handleSearchChange}
+          placeholder="Search newly enrolled personnel..."
+          value={searchNewPersonnels}
+          onChange={(e) => setSearchNewPersonnels(e.target.value)}
           mb={4}
         />
 
@@ -730,7 +792,7 @@ const Users = ({ personnelId }) => {
               </Tr>
             </Thead>
             <Tbody>
-              {newPersonnels.map((personnel, index) => {
+              {currentItemsNew.map((personnel, index) => {
                 const personnelName = `${personnel.givenname} ${personnel.surname_husband}`; // Construct the full name dynamically
                 return (
                   <Tr key={personnel.personnel_id}>
