@@ -70,8 +70,6 @@ const Users = ({ personnelId }) => {
   const [avatarUrl, setAvatarUrl] = useState("");
   const [selectedApps, setSelectedApps] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [editingUser, setEditingUser] = useState(null);
   const [status, setStatus] = useState("");
@@ -85,19 +83,20 @@ const Users = ({ personnelId }) => {
 
   const avatarBaseUrl = `${API_URL}/uploads/`;
 
+  const navigate = useNavigate(); // Initialize navigation
+
   useEffect(() => {
     fetchUsers();
     fetchNewPersonnels();
   }, []);
 
   const fetchUsers = async () => {
-    fetch(`${API_URL}/api/users`)
-      .then((res) => res.json())
-      .then((data) => setUsers(Array.isArray(data) ? data : []))
-      .catch(() =>
-        setStatus("Failed to load users from Sync users from ldap.")
-      );
-    setExistingPersonnel(response.data || []);
+    try {
+      const response = await axios.get(`${API_URL}/api/users`);
+      setExistingPersonnel(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      console.error("Failed to load personnel list:", error);
+    }
   };
 
   const fetchNewPersonnels = async () => {
@@ -109,14 +108,39 @@ const Users = ({ personnelId }) => {
     }
   };
 
-  // Independent search for Personnel List
-  const filteredPersonnelList = users.filter((user) =>
-    `${user.personnel_givenname || ""} ${
-      user.personnel_surname_husband || ""
-    } ${user.personnel_email || ""} ${user.personnel_section || ""}`
-      .toLowerCase()
-      .includes(searchPersonnelList.toLowerCase())
-  );
+  const filteredUsers = existingPersonnel.filter((user) => {
+    const personnelFields = [
+      user.personnel_givenname || "",
+      user.personnel_middlename || "",
+      user.personnel_surname_husband || "",
+      user.personnel_surname_maiden || "",
+      user.personnel_suffix || "",
+      user.personnel_nickname || "",
+      user.personnel_email || "",
+      user.personnel_gender || "",
+      user.personnel_civil_status || "",
+      user.personnel_local_congregation || "",
+      user.personnel_type || "",
+      user.personnel_assigned_number || "",
+      user.personnel_department_name || "", // Updated to use resolved department name
+      user.personnel_section_name || "", // Updated to use resolved section name
+      user.personnel_subsection_name || "", // Updated to use resolved subsection name
+      user.personnel_designation_name || "", // Updated to use resolved designation name
+      user.personnel_district_name || "", // Updated to use resolved district name
+      user.personnel_language_name || "", // Updated to use resolved language name
+    ];
+
+    const combinedFields = [
+      user.username || "",
+      user.fullname || `${user.givenName || ""} ${user.sn || ""}`,
+      user.email || "",
+      ...personnelFields,
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    return combinedFields.includes(searchPersonnelList.toLowerCase());
+  });
 
   // Independent search for Newly Enrolled Personnel (Filters from newPersonnels)
   const filteredNewPersonnels = newPersonnels.filter((personnel) =>
@@ -127,16 +151,14 @@ const Users = ({ personnelId }) => {
       .includes(searchNewPersonnels.toLowerCase())
   );
 
-  const totalPagesPersonnel = Math.ceil(
-    filteredPersonnelList.length / ITEMS_PER_PAGE
-  );
-  const totalPagesNew = Math.ceil(
-    filteredNewPersonnels.length / ITEMS_PER_PAGE
-  );
-
-  const currentItemsPersonnel = filteredPersonnelList.slice(
+  const totalPagesPersonnel = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
+  const currentItemsPersonnel = filteredUsers.slice(
     (currentPagePersonnel - 1) * ITEMS_PER_PAGE,
     currentPagePersonnel * ITEMS_PER_PAGE
+  );
+
+  const totalPagesNew = Math.ceil(
+    filteredNewPersonnels.length / ITEMS_PER_PAGE
   );
 
   const currentItemsNew = filteredNewPersonnels.slice(
@@ -166,13 +188,6 @@ const Users = ({ personnelId }) => {
       .then((data) => setNewPersonnels(Array.isArray(data) ? data : []))
       .catch(() => setStatus("Failed to load new personnels."));
   }, []);
-
-  const navigate = useNavigate(); // Initialize navigation
-
-  const handleRowClick = (personnelId) => {
-    // Navigate to Step6 page with the personnelId as a query parameter
-    navigate(`/step6/${personnelId}`);
-  };
 
   const handleAddUser = async (e) => {
     e.preventDefault();
@@ -362,44 +377,10 @@ const Users = ({ personnelId }) => {
     onClose();
   };
 
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-    setCurrentPage(1); // Reset to the first page whenever search term changes
-  };
-
-  const filteredUsers = users.filter((user) => {
-    const personnelFields = [
-      user.personnel_givenname || "",
-      user.personnel_middlename || "",
-      user.personnel_surname_husband || "",
-      user.personnel_surname_maiden || "",
-      user.personnel_suffix || "",
-      user.personnel_nickname || "",
-      user.personnel_email || "",
-      user.personnel_gender || "",
-      user.personnel_civil_status || "",
-      user.personnel_local_congregation || "",
-      user.personnel_type || "",
-      user.personnel_assigned_number || "",
-      user.personnel_department_name || "", // Updated to use resolved department name
-      user.personnel_section_name || "", // Updated to use resolved section name
-      user.personnel_subsection_name || "", // Updated to use resolved subsection name
-      user.personnel_designation_name || "", // Updated to use resolved designation name
-      user.personnel_district_name || "", // Updated to use resolved district name
-      user.personnel_language_name || "", // Updated to use resolved language name
-    ];
-
-    const combinedFields = [
-      user.username || "",
-      user.fullname || `${user.givenName || ""} ${user.sn || ""}`,
-      user.email || "",
-      ...personnelFields,
-    ]
-      .join(" ")
-      .toLowerCase();
-
-    return combinedFields.includes(searchTerm.toLowerCase());
-  });
+  // const handleSearchChange = (e) => {
+  //   setSearchTerm(e.target.value);
+  //   setCurrentPage(1); // Reset to the first page whenever search term changes
+  // };
 
   const handleAssignGroup = async (userId, groupId) => {
     try {
@@ -428,16 +409,10 @@ const Users = ({ personnelId }) => {
     }
   };
 
-  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
-  const currentItems = filteredUsers.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
-
-  const handlePageChange = (direction) => {
-    setCurrentPage((prev) =>
+  const handlePageChangePersonnel = (direction) => {
+    setCurrentPagePersonnel((prev) =>
       direction === "next"
-        ? Math.min(prev + 1, totalPages)
+        ? Math.min(prev + 1, totalPagesPersonnel)
         : Math.max(prev - 1, 1)
     );
   };
@@ -450,92 +425,20 @@ const Users = ({ personnelId }) => {
     );
   };
 
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
+
+  const [loadingSyncUsers, setLoadingSyncUsers] = useState(false); // Loading state for LDAP Sync
+  const [loadingSyncPersonnel, setLoadingSyncPersonnel] = useState({}); // Individual loading states for each personnel
+
   const toast = useToast();
-
-  const handleSyncLdapUser = async () => {
-    if (!personnelId) {
-      toast({
-        title: "Validation Error",
-        description: "Personnel ID is required to sync LDAP user.",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await axios.post(`${API_URL}/api/sync-ldap-user`, {
-        personnelId,
-      });
-
-      toast({
-        title: "Success",
-        description: res.data.message,
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-
-      // Refresh users after syncing
-      const updatedUsers = await axios.get(`${API_URL}/api/users`);
-      setUsers(updatedUsers.data || []);
-    } catch (error) {
-      console.error("Error syncing LDAP user:", error);
-      toast({
-        title: "Error",
-        description:
-          error.response?.data?.message || "Failed to sync LDAP user.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Sync personnel_id for existing personnel
-  const handleSyncPersonnelId = async (personnel) => {
-    setLoading(true);
-    try {
-      const response = await axios.post(`${API_URL}/api/sync-personnel-id`, {
-        uid: personnel.uid, // Use LDAP uid to find the personnel
-      });
-
-      toast({
-        title: "Success",
-        description: response.data.message,
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-
-      // Refresh the existing personnel table
-      setExistingPersonnel((prev) =>
-        prev.filter((item) => item.uid !== personnel.uid)
-      );
-    } catch (error) {
-      console.error("Error syncing personnel ID:", error);
-      toast({
-        title: "Error",
-        description:
-          error.response?.data?.message || "Failed to sync personnel ID.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Sync to users table for new personnel
   const handleSyncToUsersTable = async (personnelId, personnelName) => {
     // alert(personnelId);
-    setLoading((prevLoading) => ({ ...prevLoading, [personnelId]: true })); // Set loading for the specific button
+    setLoadingSyncPersonnel((prevLoading) => ({
+      ...prevLoading,
+      [personnelId]: true,
+    })); // Set loading for the specific button
     try {
       const response = await axios.post(`${API_URL}/api/sync-to-users`, {
         personnelId,
@@ -565,12 +468,15 @@ const Users = ({ personnelId }) => {
         isClosable: true,
       });
     } finally {
-      setLoading((prevLoading) => ({ ...prevLoading, [personnelId]: false })); // Reset loading for the specific button
+      setLoadingSyncPersonnel((prevLoading) => ({
+        ...prevLoading,
+        [personnelId]: false,
+      })); // Reset loading for the specific button
     }
   };
 
   const handleSyncUsers = async () => {
-    setLoading(true);
+    setLoadingSyncUsers(true);
     try {
       await axios.post(`${API_URL}/api/migrateLdapToPmdLoginUsers`);
       toast({
@@ -591,8 +497,12 @@ const Users = ({ personnelId }) => {
         isClosable: true,
       });
     } finally {
-      setLoading(false);
+      setLoadingSyncUsers(false);
     }
+  };
+  const handleSearchChangePersonnel = (e) => {
+    setSearchPersonnelList(e.target.value);
+    setCurrentPagePersonnel(1); // Reset to first page on new search
   };
 
   const handleViewUser = (personnelId) => {
@@ -608,24 +518,18 @@ const Users = ({ personnelId }) => {
         <Button
           colorScheme="blue"
           mb={4}
-          isLoading={loading}
+          isLoading={loadingSyncUsers}
           onClick={handleSyncUsers}
         >
           Sync Users from LDAP
         </Button>
       )}
-      {/* <Input
-        placeholder="Search personnel..."
-        value={searchTerm}
-        onChange={handleSearchChange}
-        mb={6}
-      /> */}
 
       {/* Search bar for Personnel List */}
       <Input
         placeholder="Search personnel list..."
         value={searchPersonnelList}
-        onChange={(e) => setSearchPersonnelList(e.target.value)}
+        onChange={handleSearchChangePersonnel}
         mb={4}
       />
       {status && (
@@ -641,136 +545,136 @@ const Users = ({ personnelId }) => {
       <Heading size="md"> Personnel List</Heading>
       <Flex justify="space-between" align="center" mt={4} mb={6}>
         <Button
-          onClick={() => handlePageChange("previous")}
-          disabled={currentPage === 1}
+          onClick={() => handlePageChangePersonnel("previous")}
+          disabled={currentPagePersonnel === 1}
         >
           Previous
         </Button>
         <Text>
-          Page {currentPage} of {totalPages}
+          Page {currentPagePersonnel} of {totalPagesPersonnel}
         </Text>
         <Button
-          onClick={() => handlePageChange("next")}
-          disabled={currentPage === totalPages}
+          onClick={() => handlePageChangePersonnel("next")}
+          disabled={currentPagePersonnel === totalPagesPersonnel}
         >
           Next
         </Button>
       </Flex>
       {/* Existing Personnel Table */}
-      <VStack align="start" spacing={4} mb={6}>
-        <Table variant="simple">
-          <Thead>
-            <Tr>
-              <Th>#</Th> {/* Row number column */}
-              <Th>Avatar</Th>
-              <Th>Full Name</Th>
-              <Th>District</Th>
-              <Th>Local Congregation Assignment</Th>
-              <Th>Email</Th>
-              <Th>Group</Th>
-              <Th>Actions</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {currentItemsPersonnel.map((item, index) => {
-              // Prepend the base URL if needed
-              const avatarSrc = item.avatar ? `${API_URL}${item.avatar}` : "";
-              return (
-                <Tr
-                  key={item.ID}
-                  cursor="pointer"
-                  //onClick={() => handleRowClick(item.personnel_id)} // Pass personnel_id to Step6
-                >
-                  <Td>{index + 1}</Td> {/* Display the row number */}
-                  <Td>
-                    <Avatar
-                      size="sm"
-                      src={avatarSrc}
-                      name={`${item.givenName || "N/A"} ${item.sn || "N/A"}`}
-                    />
-                  </Td>
-                  <Td>
-                    <HStack spacing={3}>
-                      <Text>{`${item.givenName || "N/A"} ${
-                        item.sn || "N/A"
-                      }`}</Text>
-                    </HStack>
-                  </Td>
-                  <Td>{item.personnel_district_assignment_name || "N/A"}</Td>
-                  <Td>
-                    {item.personnel_local_congregation_assignment_name || "N/A"}
-                  </Td>
-                  <Td>{item.mail || "N/A"}</Td>
-                  <Td>{item.groupname || "N/A"}</Td>
-                  <Td>
-                    {hasPermission("personnels.edit") && (
-                      <IconButton
-                        icon={<EditIcon />}
-                        mr={2}
-                        colorScheme="blue"
-                        onClick={() => handleEditUser(item)}
+      <VStack align="start" spacing={4} mb={6} width="100%">
+        <Box width="100%" overflowX="auto">
+          <Table variant="simple" minWidth="1000px">
+            <Thead>
+              <Tr>
+                <Th>#</Th> {/* Row number column */}
+                <Th>Avatar</Th>
+                <Th>Full Name</Th>
+                <Th>District</Th>
+                <Th>Local Congregation Assignment</Th>
+                <Th>Email</Th>
+                <Th>Group</Th>
+                <Th whiteSpace="nowrap">Actions</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {currentItemsPersonnel.map((item, index) => {
+                // Prepend the base URL if needed
+                const avatarSrc = item.avatar ? `${API_URL}${item.avatar}` : "";
+                return (
+                  <Tr key={item.ID} cursor="pointer">
+                    <Td>{index + 1}</Td> {/* Display the row number */}
+                    <Td>
+                      <Avatar
+                        size="sm"
+                        src={avatarSrc}
+                        name={`${item.givenName || "N/A"} ${item.sn || "N/A"}`}
                       />
-                    )}
-                    {hasPermission("personnels.view") && (
-                      <Tooltip
-                        label={
-                          !item.personnel_id
-                            ? "No personnel data is available. To view, please click the Info icon to proceed."
-                            : ""
-                        }
-                      >
-                        <IconButton
-                          icon={<ViewIcon />}
-                          mr={2}
-                          colorScheme="teal"
-                          onClick={() => handleViewUser(item.personnel_id)}
-                          isDisabled={!item.personnel_id}
-                        />
-                      </Tooltip>
-                    )}
-                    {hasPermission("personnels.info") && (
-                      <IconButton
-                        icon={<InfoIcon />} // Change this to your preferred enrollment icon
-                        mr={2}
-                        colorScheme="teal"
-                        onClick={() => {
-                          const personnelId = item.personnel_id; // Adjust based on how `personnel_id` is stored in your `item` object
-                          if (personnelId) {
-                            window.location.href = `/enroll?personnel_id=${personnelId}`;
-                          } else {
-                            window.location.href = `/enroll?not_enrolled=${item.username}`;
-                          }
-                        }}
-                      />
-                    )}
-                    {hasPermission("personnels.delete") && (
-                      <IconButton
-                        icon={<DeleteIcon />}
-                        colorScheme="red"
-                        onClick={() => handleDeleteUser(item.ID)}
-                      />
-                    )}
-                  </Td>
-                </Tr>
-              );
-            })}
-          </Tbody>
-        </Table>
+                    </Td>
+                    <Td>
+                      <HStack spacing={3}>
+                        <Text>{`${item.givenName || "N/A"} ${
+                          item.sn || "N/A"
+                        }`}</Text>
+                      </HStack>
+                    </Td>
+                    <Td>{item.personnel_district_assignment_name || "N/A"}</Td>
+                    <Td>
+                      {item.personnel_local_congregation_assignment_name ||
+                        "N/A"}
+                    </Td>
+                    <Td>{item.mail || "N/A"}</Td>
+                    <Td>{item.groupname || "N/A"}</Td>
+                    <Td>
+                      <HStack spacing={2}>
+                        {" "}
+                        {/* Keeps actions in a row */}
+                        {hasPermission("personnels.edit") && (
+                          <IconButton
+                            icon={<EditIcon />}
+                            colorScheme="blue"
+                            onClick={() => handleEditUser(item)}
+                          />
+                        )}
+                        {hasPermission("personnels.view") && (
+                          <Tooltip
+                            label={
+                              !item.personnel_id
+                                ? "No personnel data is available."
+                                : ""
+                            }
+                          >
+                            <IconButton
+                              icon={<ViewIcon />}
+                              colorScheme="teal"
+                              onClick={() => handleViewUser(item.personnel_id)}
+                              isDisabled={!item.personnel_id}
+                            />
+                          </Tooltip>
+                        )}
+                        {hasPermission("personnels.info") && (
+                          <IconButton
+                            icon={<InfoIcon />}
+                            colorScheme="teal"
+                            onClick={() => {
+                              const personnelId = item.personnel_id;
+                              if (personnelId) {
+                                window.location.href = `/enroll?personnel_id=${personnelId}`;
+                              } else {
+                                window.location.href = `/enroll?not_enrolled=${item.username}`;
+                              }
+                            }}
+                          />
+                        )}
+                        {hasPermission("personnels.delete") && (
+                          <IconButton
+                            icon={<DeleteIcon />}
+                            colorScheme="red"
+                            onClick={() => handleDeleteUser(item.ID)}
+                          />
+                        )}
+                      </HStack>
+                    </Td>
+                  </Tr>
+                );
+              })}
+            </Tbody>
+          </Table>
+        </Box>
       </VStack>
 
       <Flex justify="space-between" align="center" mt={4} mb={6}>
         <Button
-          onClick={() => handlePageChange("previous")}
-          disabled={currentPage === 1}
+          onClick={() => handlePageChangePersonnel("previous")}
+          disabled={currentPagePersonnel === 1}
         >
           Previous
         </Button>
         <Text>
-          Page {currentPage} of {totalPages}
+          Page {currentPagePersonnel} of {totalPagesPersonnel}
         </Text>
         <Button
-          onClick={() => handlePageChange("next")}
-          disabled={currentPage === totalPages}
+          onClick={() => handlePageChangePersonnel("next")}
+          disabled={currentPagePersonnel === totalPagesPersonnel}
         >
           Next
         </Button>
@@ -855,7 +759,9 @@ const Users = ({ personnelId }) => {
                               personnelName
                             )
                           }
-                          isLoading={loading[personnel.personnel_id]} // Loading state specific to this button
+                          isLoading={
+                            loadingSyncPersonnel[personnel.personnel_id]
+                          } // Loading state specific to this button
                         >
                           Sync to Users Table
                         </Button>

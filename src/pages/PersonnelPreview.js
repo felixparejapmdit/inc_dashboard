@@ -18,10 +18,12 @@ import {
 } from "@chakra-ui/react";
 import { EmailIcon, PhoneIcon } from "@chakra-ui/icons";
 import axios from "axios";
-
+import { motion } from "framer-motion";
 import { FaPrint } from "react-icons/fa"; // Import the desired print icon
 
 import "./printStyles.css"; // ✅ Import CSS for print
+import NoPersonnelData from "./NoPersonnelData";
+
 const API_URL = process.env.REACT_APP_API_URL;
 
 const DISTRICT_API_URL = process.env.REACT_APP_DISTRICT_API_URL;
@@ -139,7 +141,13 @@ const PersonnelPreview = () => {
   }
 
   if (!personnel) {
-    return <Text>No data available</Text>;
+    return (
+      <Flex height="100vh" align="center" justify="center" p={4}>
+        <Box maxWidth="400px" width="100%">
+          <NoPersonnelData />
+        </Box>
+      </Flex>
+    );
   }
 
   // Format full name
