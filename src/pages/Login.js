@@ -446,7 +446,7 @@ const Login = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit1 = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
@@ -503,7 +503,7 @@ const Login = () => {
     }
   };
 
-  const handleSubmit1 = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
