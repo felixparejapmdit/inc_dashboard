@@ -163,6 +163,23 @@ exports.createFamilyMember = async (req, res) => {
       }
     }
 
+    // Convert empty strings to null for integer fields
+    const intFields = [
+      "contact_number",
+      "citizenship",
+      "nationality",
+      "district_id",
+      "local_congregation",
+      "start_year",
+      "completion_year",
+    ];
+
+    for (const key of intFields) {
+      if (req.body[key] !== undefined) {
+        newMemberData[key] = req.body[key] === "" ? null : req.body[key];
+      }
+    }
+
     console.log("Creating Family Member with Data:", newMemberData);
 
     // Create the new family member record
@@ -267,6 +284,23 @@ exports.updateFamilyMember = async (req, res) => {
         else {
           updates[key] = trimmedValue;
         }
+      }
+    }
+
+    // Convert empty strings to null for integer fields
+    const intFields = [
+      "contact_number",
+      "citizenship",
+      "nationality",
+      "district_id",
+      "local_congregation",
+      "start_year",
+      "completion_year",
+    ];
+
+    for (const key of intFields) {
+      if (req.body[key] !== undefined) {
+        updates[key] = req.body[key] === "" ? null : req.body[key];
       }
     }
 
