@@ -150,6 +150,9 @@ const Step5 = () => {
         isClosable: true,
       });
 
+      // Refresh table after verification
+      // await fetchPersonnel();
+
       // ✅ Hide Personnel Info and Checklist After Verification
       setSelectedUser(null);
       setPersonnelInfo(null);
