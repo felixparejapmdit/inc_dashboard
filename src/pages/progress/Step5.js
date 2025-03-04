@@ -92,6 +92,17 @@ const Step5 = () => {
   };
 
   const handleVerify = async () => {
+    if (!selectedUser || !selectedUser.personnel_id) {
+      toast({
+        title: "Verification Failed",
+        description: "Please select a personnel before verifying.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
     const allChecked = Object.values(photos).every((photo) => photo);
 
     if (!allChecked) {
@@ -138,6 +149,10 @@ const Step5 = () => {
         duration: 3000,
         isClosable: true,
       });
+
+      // ✅ Hide Personnel Info and Checklist After Verification
+      setSelectedUser(null);
+      setPersonnelInfo(null);
     } finally {
       setLoading(false);
     }
@@ -166,10 +181,6 @@ const Step5 = () => {
   };
 
   const handleUserSelect = async (user) => {
-    setSelectedUser(user);
-
-    fetchPersonnelDetails(user.personnel_id);
-
     try {
       const response = await axios.get(
         `${API_URL}/api/personnels/${user.personnel_id}`
@@ -186,6 +197,10 @@ const Step5 = () => {
       });
       setPersonnelInfo(null);
     }
+
+    setSelectedUser(user);
+
+    fetchPersonnelDetails(user.personnel_id);
   };
 
   const handlePhotoChange = (field) => {
@@ -230,10 +245,7 @@ const Step5 = () => {
                     <Button
                       colorScheme="blue"
                       size="sm"
-                      onClick={() => {
-                        setSelectedUser(personnel); // Set the selected personnel
-                        setIsPhotoModalOpen(true); // Open the modal
-                      }}
+                      onClick={() => handleUserSelect(personnel)} // Only selects personnel
                     >
                       Select
                     </Button>
@@ -242,6 +254,98 @@ const Step5 = () => {
               ))}
             </Tbody>
           </Table>
+          {selectedUser && ( // Only show when a personnel is selected
+            <Flex
+              direction="column"
+              align="center"
+              justify="center"
+              w="100%"
+              bg="white"
+              p={6}
+              borderRadius="lg"
+              boxShadow="md"
+              maxWidth="500px"
+              mx="auto"
+            >
+              <Text fontSize="xl" fontWeight="bold" mb={4}>
+                Photo Checklist
+              </Text>
+
+              {/* Upload Photos Button - Opens Modal */}
+              <Button
+                colorScheme="blue"
+                size="md"
+                w="100%"
+                mb={4}
+                onClick={() => setIsPhotoModalOpen(true)} // Opens Photoshoot Modal
+              >
+                Upload Photos
+              </Button>
+
+              {/* Select All Checkbox */}
+              <Checkbox
+                isChecked={Object.values(photos).every((item) => item)}
+                onChange={(e) => {
+                  const isChecked = e.target.checked;
+                  const updatedChecklist = {};
+                  Object.keys(photos).forEach((key) => {
+                    updatedChecklist[key] = isChecked;
+                  });
+                  setPhotos(updatedChecklist);
+                }}
+                colorScheme="teal"
+                size="lg"
+                w="100%"
+                fontWeight="bold"
+                mb={2}
+              >
+                Select All
+              </Checkbox>
+
+              {/* Individual Photo Checkboxes */}
+              <VStack align="start" spacing={3} w="100%">
+                <Checkbox
+                  isChecked={photos.twoByTwo}
+                  onChange={() => handlePhotoChange("twoByTwo")}
+                  colorScheme="teal"
+                  size="lg"
+                >
+                  2x2 Photo
+                </Checkbox>
+                <Checkbox
+                  isChecked={photos.halfBody}
+                  onChange={() => handlePhotoChange("halfBody")}
+                  colorScheme="teal"
+                  size="lg"
+                >
+                  Half Body Photo
+                </Checkbox>
+                <Checkbox
+                  isChecked={photos.fullBody}
+                  onChange={() => handlePhotoChange("fullBody")}
+                  colorScheme="teal"
+                  size="lg"
+                >
+                  Full Body Photo
+                </Checkbox>
+              </VStack>
+
+              {/* Verify Button */}
+              <Button
+                colorScheme="teal"
+                mt={6}
+                size="lg"
+                w="100%"
+                onClick={handleVerify}
+                isDisabled={
+                  !Object.values(photos).every((photo) => photo) ||
+                  !selectedUser?.personnel_id
+                }
+              >
+                Verify and Proceed
+              </Button>
+            </Flex>
+          )}
         </>
       )}
 
