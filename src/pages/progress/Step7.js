@@ -39,29 +39,28 @@ const Step7 = () => {
   const toast = useToast();
 
   // Fetch personnel list
+
+  const fetchPersonnel = async () => {
+    setLoading(true);
+    try {
+      //const response = await axios.get(`${API_URL}/api/personnels/new`);
+      const response = await axios.get(`${API_URL}/api/personnels/progress/6`);
+      setPersonnelList(response.data);
+      setFilteredPersonnel(response.data);
+    } catch (error) {
+      console.error("Error fetching personnel list:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch personnel list.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
-    const fetchPersonnel = async () => {
-      setLoading(true);
-      try {
-        //const response = await axios.get(`${API_URL}/api/personnels/new`);
-        const response = await axios.get(
-          `${API_URL}/api/personnels/progress/6`
-        );
-        setPersonnelList(response.data);
-        setFilteredPersonnel(response.data);
-      } catch (error) {
-        console.error("Error fetching personnel list:", error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch personnel list.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchPersonnel();
   }, [toast]);
 
@@ -104,6 +103,13 @@ const Step7 = () => {
         duration: 3000,
         isClosable: true,
       });
+
+      // ✅ Refresh the personnel list after verification
+      fetchPersonnel();
+
+      // ✅ Clear selected user & personnel panel after verification
+      setSelectedUser(null);
+      setPersonnelInfo(null);
     } catch (error) {
       console.error("Error during verification:", error);
       toast({

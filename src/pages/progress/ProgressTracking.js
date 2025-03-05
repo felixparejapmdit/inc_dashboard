@@ -1,4 +1,3 @@
-// src/pages/progress/ProgressTracking.js
 import React, { useEffect, useState } from "react";
 import {
   Box,
@@ -17,9 +16,14 @@ import {
   Th,
   Td,
   Input,
+  Flex,
+  Divider,
+  Slide,
+  useDisclosure,
 } from "@chakra-ui/react";
-import { CheckIcon, CloseIcon, Search2Icon } from "@chakra-ui/icons";
+import { CheckIcon, Search2Icon } from "@chakra-ui/icons";
 import axios from "axios";
+import { MdTrackChanges } from "react-icons/md"; // Import Track Icon
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -29,7 +33,7 @@ const stages = [
   "Report to the Building Security Overseer",
   "Report to PMD IT",
   "Report to Ka Marco Cervantes for Photoshoot",
-  "Report Ka Karl Dematera for Instructions on Confidentiality",
+  "Report to Ka Karl Dematera for Confidentiality",
   "Submit forms to ATG Office for Approval",
   "Report to the Personnel Office to get the ID",
 ];
@@ -43,13 +47,13 @@ const ProgressTracking = () => {
   const toast = useToast();
   const [search, setSearch] = useState("");
 
+  // Chakra UI Hook for Slide Panel Control
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
   useEffect(() => {
-    // Fetch all users
     const fetchUsers = async () => {
       try {
         const response = await axios.get(`${API_URL}/api/personnels/new`);
-
-        // Combine givenname and surname_husband into fullname
         const formattedUsers = response.data.map((user) => ({
           ...user,
           fullname: `${user.givenname || ""} ${
@@ -58,7 +62,7 @@ const ProgressTracking = () => {
         }));
 
         setUsers(formattedUsers);
-        setFilteredUsers(formattedUsers); // Initialize filtered users
+        setFilteredUsers(formattedUsers);
       } catch (error) {
         console.error("Error fetching users:", error);
         toast({
@@ -77,14 +81,14 @@ const ProgressTracking = () => {
   const handleUserSelect = async (user) => {
     setLoading(true);
     try {
-      // Fetch updated progress of the selected user
       const response = await axios.get(
         `${API_URL}/api/personnels/${user.personnel_id}`
       );
       const updatedUser = response.data;
 
       setSelectedUser(updatedUser);
-      setProgress(updatedUser.personnel_progress || 0); // Set the progress of the selected user
+      setProgress(updatedUser.personnel_progress || 0);
+      onOpen(); // Open the sidebar when selecting a user
     } catch (error) {
       console.error("Error fetching selected user progress:", error);
       toast({
@@ -99,105 +103,14 @@ const ProgressTracking = () => {
     }
   };
 
-  const handleApprove = async (stageIndex) => {
-    // Prevent approving already approved stages
-    if (stageIndex < progress) {
-      toast({
-        title: "Already Approved",
-        description: `Stage ${stageIndex + 1} has already been approved.`,
-        status: "info",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      await axios.put(`${API_URL}/api/users/update-progress`, {
-        personnel_id: selectedUser.personnel_id,
-        personnel_progress: stageIndex + 1,
-      });
-
-      setProgress(stageIndex + 1); // Update the local progress state
-      toast({
-        title: "Stage Approved",
-        description: `Stage ${stageIndex + 1} approved successfully.`,
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-    } catch (error) {
-      console.error("Error approving stage:", error);
-      toast({
-        title: "Error",
-        description:
-          error.response?.data?.message ||
-          "Failed to approve stage. Please try again.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCancel = async (stageIndex) => {
-    if (stageIndex >= progress) {
-      toast({
-        title: "Not Approved Yet",
-        description: `Stage ${stageIndex + 1} is not approved yet.`,
-        status: "info",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      await axios.put(`${API_URL}/api/users/update-progress`, {
-        personnel_id: selectedUser.personnel_id,
-        personnel_progress: stageIndex, // Revert progress to the previous stage
-      });
-
-      setProgress(stageIndex);
-      toast({
-        title: "Approval Cancelled",
-        description: `Approval for stage ${stageIndex + 1} has been cancelled.`,
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
-    } catch (error) {
-      console.error("Error cancelling stage:", error);
-      toast({
-        title: "Error",
-        description:
-          error.response?.data?.message ||
-          "Failed to cancel approval. Please try again.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSearch = (e) => {
     const query = e.target.value.toLowerCase();
     setSearch(query);
     const filtered = users.filter((user) => {
-      const fullname = user.fullname || ""; // Fallback to empty string if null/undefined
-      const username = user.username || ""; // Fallback to empty string if null/undefined
-      const email = user.email || ""; // Fallback to empty string if null/undefined
+      const fullname = user.fullname || "";
+      const email = user.email || "";
       return (
         fullname.toLowerCase().includes(query) ||
-        username.toLowerCase().includes(query) ||
         email.toLowerCase().includes(query)
       );
     });
@@ -205,21 +118,24 @@ const ProgressTracking = () => {
   };
 
   return (
-    <Box p={6} bg="gray.50" minHeight="100vh">
-      <Heading as="h1" size="lg" textAlign="center" mb={8}>
-        Personnel Progress Tracking
-      </Heading>
+    <Flex p={6} bg="gray.50" minHeight="100vh">
+      {/* Left: Personnel Table */}
+      <Box flex="2" pr={6}>
+        <Heading as="h1" size="lg" textAlign="center" mb={6}>
+          Personnel Progress Tracking
+        </Heading>
 
-      {/* Searchable User List */}
-      <Box mb={6}>
+        {/* Search Input */}
         <Input
-          placeholder="Search by fullname, username, or email"
+          placeholder="Search by fullname or email"
           value={search}
           onChange={handleSearch}
           mb={4}
           size="lg"
           variant="outline"
         />
+
+        {/* Personnel List Table */}
         <Table variant="striped" colorScheme="gray">
           <Thead>
             <Tr>
@@ -237,12 +153,12 @@ const ProgressTracking = () => {
                 <Td>{user.email_address || "No Email"}</Td>
                 <Td>
                   <Button
-                    leftIcon={<Search2Icon />}
+                    leftIcon={<MdTrackChanges />}
                     colorScheme="blue"
                     size="sm"
                     onClick={() => handleUserSelect(user)}
                   >
-                    Evaluate
+                    Track
                   </Button>
                 </Td>
               </Tr>
@@ -251,66 +167,87 @@ const ProgressTracking = () => {
         </Table>
       </Box>
 
-      {/* Progress Tracker for Selected User */}
-      {selectedUser ? (
-        <Box>
-          <Text fontSize="xl" fontWeight="bold" mb={4}>
-            Tracking Progress for:{" "}
-            {selectedUser.givenname + " " + selectedUser.surname_husband}
-          </Text>
+      {/* Right: Progress Sidebar */}
+      <Slide direction="right" in={isOpen} style={{ zIndex: 20 }}>
+        <Box
+          position="fixed"
+          top="0"
+          right="0"
+          height="100vh"
+          width={{ base: "100%", sm: "400px" }} // Responsive width
+          bg="white"
+          p={6}
+          boxShadow="lg"
+          borderLeft="4px solid teal"
+          display="flex"
+          flexDirection="column"
+          justifyContent="space-between"
+        >
+          <Box>
+            {selectedUser ? (
+              <>
+                <Heading size="md" mb={4} color="teal.600">
+                  Tracking Progress
+                </Heading>
 
-          <VStack spacing={6} align="stretch">
-            {stages.map((stage, index) => (
-              <HStack
-                key={index}
-                bg={progress > index ? "green.100" : "white"}
-                borderRadius="md"
-                p={4}
-                boxShadow="sm"
-                justifyContent="space-between"
-                align="center"
-              >
-                <Text
-                  fontWeight={progress > index ? "bold" : "normal"}
-                  color={progress > index ? "green.800" : "gray.800"}
-                >
-                  {index + 1}. {stage}
+                <Text fontSize="lg" fontWeight="bold" mb={4}>
+                  {selectedUser.givenname} {selectedUser.surname_husband}
                 </Text>
-                {/* <HStack>
-                  <IconButton
-                    icon={<CheckIcon />}
-                    colorScheme={progress > index ? "green" : "blue"}
-                    isDisabled={progress > index}
-                    isLoading={loading && progress === index}
-                    onClick={() => handleApprove(index)}
-                  />
-                  <IconButton
-                    icon={<CloseIcon />}
-                    colorScheme="red"
-                    isDisabled={progress <= index}
-                    onClick={() => handleCancel(index)}
-                  />
-                </HStack> */}
-              </HStack>
-            ))}
-          </VStack>
 
-          <Box mt={8}>
-            <Text fontSize="md" fontWeight="bold">
-              Overall Progress
-            </Text>
-            <Progress
-              value={(progress / stages.length) * 100}
-              colorScheme="green"
-              size="lg"
-              borderRadius="md"
-            />
+                <VStack spacing={4} align="stretch">
+                  {stages.map((stage, index) => (
+                    <HStack
+                      key={index}
+                      p={3}
+                      bg={progress > index ? "green.100" : "gray.100"}
+                      borderRadius="md"
+                    >
+                      <Box
+                        w="10px"
+                        h="10px"
+                        borderRadius="50%"
+                        bg={progress > index ? "green.500" : "gray.400"}
+                        boxShadow={
+                          progress > index ? "0px 0px 6px green" : "none"
+                        }
+                      />
+                      <Text
+                        fontSize="sm"
+                        fontWeight={progress > index ? "bold" : "normal"}
+                        color={progress > index ? "green.700" : "gray.700"}
+                      >
+                        {stage}
+                      </Text>
+                    </HStack>
+                  ))}
+                </VStack>
+              </>
+            ) : (
+              <Text>Select a user to see progress.</Text>
+            )}
           </Box>
+
+          {/* Close Button */}
+          <Button colorScheme="red" onClick={onClose} mt={4} w="100%">
+            Close
+          </Button>
         </Box>
-      ) : (
-        <Text>Select a user from the list above to view progress.</Text>
+      </Slide>
+
+      {/* Background Overlay (Click Outside to Close) */}
+      {isOpen && (
+        <Box
+          position="fixed"
+          top="0"
+          left="0"
+          w="100%"
+          h="100vh"
+          bg="blackAlpha.500"
+          zIndex="10"
+          onClick={onClose}
+        />
       )}
-    </Box>
+    </Flex>
   );
 };
 

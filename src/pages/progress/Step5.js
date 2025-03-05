@@ -140,15 +140,6 @@ const Step5 = () => {
         duration: 3000,
         isClosable: true,
       });
-    } catch (error) {
-      console.error("Error during verification:", error);
-      toast({
-        title: "Verification Failed",
-        description: "An error occurred during verification.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
 
       // Refresh table after verification
       fetchPersonnel();
@@ -158,6 +149,15 @@ const Step5 = () => {
       setPersonnelInfo(null);
       // ✅ Hide the checklist panel after verification
       setShowChecklist(false);
+    } catch (error) {
+      console.error("Error during verification:", error);
+      toast({
+        title: "Verification Failed",
+        description: "An error occurred during verification.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
     } finally {
       setLoading(false);
     }

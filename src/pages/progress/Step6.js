@@ -39,30 +39,28 @@ const Step6 = () => {
   const [personnelInfo, setPersonnelInfo] = useState(null);
   const toast = useToast();
 
-  // Fetch new personnel list
+  const fetchPersonnel = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`${API_URL}/api/personnels/progress/5`);
+      setPersonnelList(response.data);
+      setFilteredPersonnel(response.data);
+    } catch (error) {
+      console.error("Error fetching personnel list:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch personnel list.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch new personnel list when component mounts
   useEffect(() => {
-    const fetchPersonnel = async () => {
-      setLoading(true);
-      try {
-        //const response = await axios.get(`${API_URL}/api/personnels/new`);
-        const response = await axios.get(
-          `${API_URL}/api/personnels/progress/5`
-        );
-        setPersonnelList(response.data);
-        setFilteredPersonnel(response.data);
-      } catch (error) {
-        console.error("Error fetching personnel list:", error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch personnel list.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchPersonnel();
   }, [toast]);
 
@@ -117,6 +115,17 @@ const Step6 = () => {
         duration: 3000,
         isClosable: true,
       });
+
+      // ✅ Hide the checklist and personnel panel
+      setSelectedUser(null);
+      setPersonnelInfo(null);
+      setChecklist({
+        confidentiality: false,
+        informationSheet: false,
+      });
+
+      // ✅ Refresh the personnel list
+      fetchPersonnel();
     } catch (error) {
       console.error("Error during verification:", error);
       toast({
@@ -320,6 +329,27 @@ const Step6 = () => {
                 <Text fontSize="xl" fontWeight="bold" mb={4}>
                   Checklist
                 </Text>
+
+                {/* Select All Checkbox */}
+                <Checkbox
+                  isChecked={Object.values(checklist).every((item) => item)}
+                  onChange={(e) => {
+                    const isChecked = e.target.checked;
+                    const updatedChecklist = {};
+                    Object.keys(checklist).forEach((key) => {
+                      updatedChecklist[key] = isChecked;
+                    });
+                    setChecklist(updatedChecklist);
+                  }}
+                  colorScheme="teal"
+                  size="lg"
+                  w="100%"
+                  fontWeight="bold"
+                  mb={2}
+                >
+                  Select All
+                </Checkbox>
+
                 <VStack align="start" spacing={3} w="100%">
                   <Checkbox
                     isChecked={checklist.confidentiality}
@@ -339,6 +369,7 @@ const Step6 = () => {
                     Final checking of information sheet
                   </Checkbox>
                 </VStack>
+
                 <Button
                   colorScheme="teal"
                   mt={6}
