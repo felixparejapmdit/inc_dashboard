@@ -344,56 +344,56 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
 
             {hasPermission("sectionchief.view") && (
               <SidebarItem
-                label="Step 1: Section Chief"
+                label="Section Chief"
                 isExpanded={isExpanded}
                 onClick={() => navigate("/progress/step1")} // Step 1: Section Chief
               />
             )}
             {hasPermission("adminoffice.view") && (
               <SidebarItem
-                label="Step 2: Admin Office"
+                label="Admin Office"
                 isExpanded={isExpanded}
                 onClick={() => navigate("/progress/step2")} // Step 2: Admin Office
               />
             )}
             {hasPermission("securityoverseer.view") && (
               <SidebarItem
-                label="Step 3: Security Overseer"
+                label="Security Overseer"
                 isExpanded={isExpanded}
                 onClick={() => navigate("/progress/step3")} // Step 3: Security Overseer
               />
             )}
             {hasPermission("pmdit.view") && (
               <SidebarItem
-                label="Step 4: PMD IT"
+                label="PMD IT"
                 isExpanded={isExpanded}
                 onClick={() => navigate("/progress/step4")} // Step 4: PMD IT
               />
             )}
             {hasPermission("mc.view") && (
               <SidebarItem
-                label="Step 5: Ka Marco Cervantes"
+                label="ATG Office 1"
                 isExpanded={isExpanded}
                 onClick={() => navigate("/progress/step5")} // Step 5: Marco Cervantes
               />
             )}
             {hasPermission("kd.view") && (
               <SidebarItem
-                label="Step 6: Ka Karl Dematera"
+                label="ATG Office 2"
                 isExpanded={isExpanded}
                 onClick={() => navigate("/progress/step6")} // Step 6: Karl Dematera
               />
             )}
             {hasPermission("atgapproval.view") && (
               <SidebarItem
-                label="Step 7: ATG Office Approval"
+                label="ATG Office Approval"
                 isExpanded={isExpanded}
                 onClick={() => navigate("/progress/step7")} // Step 7: ATG Office
               />
             )}
             {hasPermission("personneloffice.view") && (
               <SidebarItem
-                label="Step 8: Personnel Office"
+                label="Personnel Office"
                 isExpanded={isExpanded}
                 onClick={() => navigate("/progress/step8")} // Step 8: Personnel Office
               />

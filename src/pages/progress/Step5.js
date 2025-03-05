@@ -48,36 +48,36 @@ const Step5 = () => {
   const [search, setSearch] = useState("");
   const [personnelInfo, setPersonnelInfo] = useState(null);
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false); // Manage Photoshoot modal
+  const [showChecklist, setShowChecklist] = useState(false);
 
   const toast = useToast();
 
-  // Fetch new personnel list
-  useEffect(() => {
-    const fetchPersonnel = async () => {
-      setLoading(true);
-      try {
-        //const response = await axios.get(`${API_URL}/api/personnels/new`);
-        const response = await axios.get(
-          `${API_URL}/api/personnels/progress/4`
-        );
+  const fetchPersonnel = async () => {
+    setLoading(true);
+    try {
+      //const response = await axios.get(`${API_URL}/api/personnels/new`);
+      const response = await axios.get(`${API_URL}/api/personnels/progress/4`);
 
-        setPersonnelList(response.data);
-        setFilteredPersonnel(response.data);
-      } catch (error) {
-        console.error("Error fetching personnel list:", error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch personnel list.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+      setPersonnelList(response.data);
+      setFilteredPersonnel(response.data);
+    } catch (error) {
+      console.error("Error fetching personnel list:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch personnel list.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch new personnel list when component mounts
+  useEffect(() => {
     fetchPersonnel();
-  }, [toast]);
+  }, []);
 
   const handleSearch = (e) => {
     const query = e.target.value.toLowerCase();
@@ -151,11 +151,13 @@ const Step5 = () => {
       });
 
       // Refresh table after verification
-      // await fetchPersonnel();
+      fetchPersonnel();
 
       // ✅ Hide Personnel Info and Checklist After Verification
       setSelectedUser(null);
       setPersonnelInfo(null);
+      // ✅ Hide the checklist panel after verification
+      setShowChecklist(false);
     } finally {
       setLoading(false);
     }
@@ -202,6 +204,7 @@ const Step5 = () => {
     }
 
     setSelectedUser(user);
+    setShowChecklist(true); // ✅ Show the checklist when a user is selected
 
     fetchPersonnelDetails(user.personnel_id);
   };
