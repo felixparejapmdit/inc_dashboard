@@ -38,6 +38,10 @@ import {
   FiBookOpen,
   FiTool,
   FiMap,
+  FiShield,
+  FiCpu,
+  FiCheckCircle,
+  FiUserCheck,
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
@@ -344,6 +348,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
 
             {hasPermission("sectionchief.view") && (
               <SidebarItem
+                icon={FiUser}
                 label="Section Chief"
                 isExpanded={isExpanded}
                 onClick={() => navigate("/progress/step1")} // Step 1: Section Chief
@@ -351,6 +356,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
             )}
             {hasPermission("adminoffice.view") && (
               <SidebarItem
+                icon={FiBriefcase}
                 label="Admin Office"
                 isExpanded={isExpanded}
                 onClick={() => navigate("/progress/step2")} // Step 2: Admin Office
@@ -358,6 +364,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
             )}
             {hasPermission("securityoverseer.view") && (
               <SidebarItem
+                icon={FiShield}
                 label="Security Overseer"
                 isExpanded={isExpanded}
                 onClick={() => navigate("/progress/step3")} // Step 3: Security Overseer
@@ -365,6 +372,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
             )}
             {hasPermission("pmdit.view") && (
               <SidebarItem
+                icon={FiCpu}
                 label="PMD IT"
                 isExpanded={isExpanded}
                 onClick={() => navigate("/progress/step4")} // Step 4: PMD IT
@@ -372,6 +380,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
             )}
             {hasPermission("mc.view") && (
               <SidebarItem
+                icon={FiHome}
                 label="ATG Office 1"
                 isExpanded={isExpanded}
                 onClick={() => navigate("/progress/step5")} // Step 5: Marco Cervantes
@@ -379,6 +388,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
             )}
             {hasPermission("kd.view") && (
               <SidebarItem
+                icon={FiHome}
                 label="ATG Office 2"
                 isExpanded={isExpanded}
                 onClick={() => navigate("/progress/step6")} // Step 6: Karl Dematera
@@ -386,6 +396,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
             )}
             {hasPermission("atgapproval.view") && (
               <SidebarItem
+                icon={FiCheckCircle}
                 label="ATG Office Approval"
                 isExpanded={isExpanded}
                 onClick={() => navigate("/progress/step7")} // Step 7: ATG Office
@@ -393,6 +404,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
             )}
             {hasPermission("personneloffice.view") && (
               <SidebarItem
+                icon={FiUserCheck}
                 label="Personnel Office"
                 isExpanded={isExpanded}
                 onClick={() => navigate("/progress/step8")} // Step 8: Personnel Office
