@@ -4,7 +4,7 @@ const Designation = require("../models/Designation");
 exports.getAllDesignations = async (req, res) => {
   try {
     const designations = await Designation.findAll({
-      order: [["name", "ASC"]], // Order by 'name' in ascending order
+      order: [["id", "ASC"]], // Order by 'name' in ascending order
     });
     res.status(200).json(designations);
   } catch (error) {

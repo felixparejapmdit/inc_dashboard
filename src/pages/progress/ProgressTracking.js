@@ -21,7 +21,7 @@ import {
   Slide,
   useDisclosure,
 } from "@chakra-ui/react";
-import { CheckIcon, Search2Icon } from "@chakra-ui/icons";
+import { CheckIcon, Search2Icon, CloseIcon } from "@chakra-ui/icons";
 import axios from "axios";
 import { MdTrackChanges } from "react-icons/md"; // Import Track Icon
 
@@ -32,8 +32,8 @@ const stages = [
   "Report to the Building Admin Office",
   "Report to the Building Security Overseer",
   "Report to PMD IT",
-  "Report to Ka Marco Cervantes for Photoshoot",
-  "Report to Ka Karl Dematera for Confidentiality",
+  "Report to ATG Office 1 for Photoshoot",
+  "Report to ATG Office 2 for Confidentiality",
   "Submit forms to ATG Office for Approval",
   "Report to the Personnel Office to get the ID",
 ];
@@ -154,7 +154,7 @@ const ProgressTracking = () => {
                 <Td>
                   <Button
                     leftIcon={<MdTrackChanges />}
-                    colorScheme="blue"
+                    colorScheme="orange"
                     size="sm"
                     onClick={() => handleUserSelect(user)}
                   >
@@ -168,69 +168,91 @@ const ProgressTracking = () => {
       </Box>
 
       {/* Right: Progress Sidebar */}
-      <Slide direction="right" in={isOpen} style={{ zIndex: 20 }}>
+      <Slide direction="right" in={isOpen} style={{ zIndex: 50 }}>
         <Box
           position="fixed"
           top="0"
           right="0"
           height="100vh"
           width={{ base: "100%", sm: "400px" }} // Responsive width
-          bg="white"
+          bgGradient="linear(to-b, white, orange.50)" // Gradient effect
           p={6}
-          boxShadow="lg"
-          borderLeft="4px solid teal"
+          boxShadow="2xl"
+          borderLeft="8px solid orange"
           display="flex"
           flexDirection="column"
-          justifyContent="space-between"
+          transition="all 0.3s ease-in-out"
         >
-          <Box>
+          {/* Close Button at the Upper Right */}
+          <IconButton
+            icon={<CloseIcon />}
+            aria-label="Close Progress Tracking"
+            colorScheme="red"
+            position="absolute"
+            top="10px"
+            right="10px"
+            size="md"
+            variant="ghost"
+            _hover={{ bg: "red.200", transform: "scale(1.1)" }}
+            onClick={onClose}
+          />
+
+          <Box mt={6}>
             {selectedUser ? (
               <>
-                <Heading size="md" mb={4} color="teal.600">
+                <Heading size="md" mb={2} color="orange.600">
                   Tracking Progress
                 </Heading>
 
-                <Text fontSize="lg" fontWeight="bold" mb={4}>
+                <Text fontSize="lg" fontWeight="bold" mb={4} color="gray.700">
                   {selectedUser.givenname} {selectedUser.surname_husband}
                 </Text>
 
-                <VStack spacing={4} align="stretch">
+                <VStack spacing={3} align="stretch">
                   {stages.map((stage, index) => (
                     <HStack
                       key={index}
-                      p={3}
-                      bg={progress > index ? "green.100" : "gray.100"}
+                      p={4}
+                      bg={progress > index ? "green.100" : "red.100"}
                       borderRadius="md"
+                      boxShadow="md"
+                      transition="all 0.2s ease-in-out"
+                      _hover={{ transform: "scale(1.02)", boxShadow: "lg" }}
                     >
-                      <Box
-                        w="10px"
-                        h="10px"
-                        borderRadius="50%"
-                        bg={progress > index ? "green.500" : "gray.400"}
-                        boxShadow={
-                          progress > index ? "0px 0px 6px green" : "none"
-                        }
-                      />
+                      <Box>
+                        {progress > index ? (
+                          <CheckIcon color="green.600" boxSize={5} /> // ✔ Check Icon for completed
+                        ) : (
+                          <CloseIcon color="red.500" boxSize={5} /> // ✖ X Icon for incomplete
+                        )}
+                      </Box>
                       <Text
-                        fontSize="sm"
+                        fontSize="md"
                         fontWeight={progress > index ? "bold" : "normal"}
-                        color={progress > index ? "green.700" : "gray.700"}
+                        color={progress > index ? "green.700" : "red.700"}
                       >
                         {stage}
                       </Text>
                     </HStack>
                   ))}
                 </VStack>
+
+                <Divider my={4} />
+
+                <Text
+                  fontSize="sm"
+                  textAlign="center"
+                  fontWeight="bold"
+                  color="gray.600"
+                >
+                  Overall Progress:{" "}
+                  {((progress / stages.length) * 100).toFixed(0)}%
+                </Text>
               </>
             ) : (
               <Text>Select a user to see progress.</Text>
             )}
           </Box>
-
-          {/* Close Button */}
-          <Button colorScheme="red" onClick={onClose} mt={4} w="100%">
-            Close
-          </Button>
         </Box>
       </Slide>
 

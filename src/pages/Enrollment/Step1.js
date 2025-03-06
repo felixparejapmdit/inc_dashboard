@@ -108,20 +108,20 @@ const Step1 = ({
     }
   }, [personnelData.section_id, subsections]);
 
-  // Filter designations based on section and subsection
-  useEffect(() => {
-    if (personnelData.section_id) {
-      const filtered = designations.filter(
-        (designation) =>
-          designation.section_id === parseInt(personnelData.section_id) &&
-          (!personnelData.subsection_id ||
-            designation.subsection_id === parseInt(personnelData.subsection_id))
-      );
-      setFilteredDesignations(filtered);
-    } else {
-      setFilteredDesignations([]);
-    }
-  }, [personnelData.section_id, personnelData.subsection_id, designations]);
+  // // Filter designations based on section and subsection
+  // useEffect(() => {
+  //   if (personnelData.section_id) {
+  //     const filtered = designations.filter(
+  //       (designation) =>
+  //         designation.section_id === parseInt(personnelData.section_id) &&
+  //         (!personnelData.subsection_id ||
+  //           designation.subsection_id === parseInt(personnelData.subsection_id))
+  //     );
+  //     setFilteredDesignations(filtered);
+  //   } else {
+  //     setFilteredDesignations([]);
+  //   }
+  // }, [personnelData.section_id, personnelData.subsection_id, designations]);
 
   useEffect(() => {
     if (personnelData.registered_district_id) {
@@ -737,35 +737,20 @@ const Step1 = ({
                     ? selectedOptions.map((option) => option.value)
                     : [];
 
-                  // ✅ Prevent re-selection of already selected languages
-                  const newSelections = selectedIds.filter(
-                    (id) => !personnelData.language_id.includes(id)
-                  );
-
-                  // ✅ Only update if new selections exist
-                  if (newSelections.length > 0) {
-                    handleChange({
-                      target: {
-                        name: "language_id",
-                        value: [...personnelData.language_id, ...newSelections],
-                      },
-                    });
-                  }
+                  // ✅ Update state correctly by replacing the whole array
+                  handleChange({
+                    target: {
+                      name: "language_id",
+                      value: selectedIds, // Directly assign selected values
+                    },
+                  });
                 }}
-                options={Array.from(
-                  new Map(
-                    languages
-                      .filter(
-                        (language) =>
-                          !personnelData.language_id.includes(language.id)
-                      ) // ✅ Exclude already selected
-                      .map((language) => [
-                        language.name.toLowerCase(),
-                        { value: language.id, label: language.name },
-                      ])
-                  ).values()
-                )} // ✅ Remove duplicate languages based on name
+                options={languages.map((language) => ({
+                  value: language.id,
+                  label: language.name,
+                }))}
                 isClearable
+                closeMenuOnSelect={false} // Keep menu open for multiple selections
                 styles={{
                   container: (base) => ({
                     ...base,
@@ -1026,7 +1011,7 @@ const Step1 = ({
           >
             {/* Department Selector */}
             <Box
-              width={{ base: "100%", md: "48%" }}
+              width={{ base: "100%", md: "30%" }}
               mb={{ base: "3", md: "3" }}
             >
               <Text
@@ -1073,7 +1058,7 @@ const Step1 = ({
 
             {/* Section */}
             <Box
-              width={{ base: "100%", md: "48%" }}
+              width={{ base: "100%", md: "30%" }}
               mb={{ base: "3", md: "3" }}
             >
               <Text
@@ -1119,7 +1104,7 @@ const Step1 = ({
 
             {/* Subsection */}
             <Box
-              width={{ base: "100%", md: "48%" }}
+              width={{ base: "100%", md: "0%" }}
               mb={{ base: "3", md: "3" }}
               display="none"
             >
@@ -1168,9 +1153,8 @@ const Step1 = ({
 
             {/* Designation */}
             <Box
-              width={{ base: "100%", md: "48%" }}
+              width={{ base: "100%", md: "30%" }}
               mb={{ base: "3", md: "3" }}
-              display="none"
             >
               <Text
                 fontWeight="bold"
@@ -1179,19 +1163,21 @@ const Step1 = ({
                 whiteSpace="nowrap"
                 color="#0a5856"
               >
-                Designation:
+                Role:
               </Text>
               <Select
                 placeholder="Select Designation"
                 name="designation_id"
-                value={designations
-                  .map((designation) => ({
-                    value: designation.id,
-                    label: designation.name,
-                  }))
-                  .find(
-                    (option) => option.value === personnelData.designation_id
-                  )}
+                value={
+                  designations
+                    .map((designation) => ({
+                      value: designation.id,
+                      label: designation.name,
+                    }))
+                    .find(
+                      (option) => option.value === personnelData.designation_id
+                    ) || null
+                }
                 onChange={(selectedOption) =>
                   handleChange({
                     target: {
@@ -1200,11 +1186,10 @@ const Step1 = ({
                     },
                   })
                 }
-                options={filteredDesignations.map((designation) => ({
+                options={designations.map((designation) => ({
                   value: designation.id,
                   label: designation.name,
                 }))}
-                isDisabled={!personnelData.subsection_id} // Disable if no subsection is selected
                 isClearable
                 styles={{
                   container: (base) => ({

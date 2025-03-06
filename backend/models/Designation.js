@@ -11,7 +11,7 @@ const Designation = sequelize.define(
     },
     section_id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
     },
     subsection_id: {
       type: DataTypes.INTEGER,
