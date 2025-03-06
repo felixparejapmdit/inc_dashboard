@@ -1166,7 +1166,7 @@ const Step1 = ({
                 Role:
               </Text>
               <Select
-                placeholder="Select Designation"
+                placeholder="Select Role"
                 name="designation_id"
                 value={
                   designations
