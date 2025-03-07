@@ -233,12 +233,14 @@ const LanguagesManagement = () => {
                   <span>Actions</span>
                   {!isAdding && !editingLanguage && (
                     <IconButton
-                      icon={<AddIcon />}
+                      icon={<AddIcon boxSize={5} />} // ⬅️ Increased size
                       onClick={() => setIsAdding(true)}
-                      size="sm"
+                      size="md" // ⬅️ Bigger button
                       aria-label="Add language"
-                      variant="ghost"
-                      _hover={{ bg: "gray.100" }}
+                      variant="solid" // ⬅️ More prominent button
+                      colorScheme="green" // ⬅️ Green for visibility
+                      _hover={{ bg: "green.500", color: "white" }} // ⬅️ Better hover effect
+                      borderRadius="full" // ⬅️ Rounded button
                     />
                   )}
                 </Flex>
@@ -350,7 +352,7 @@ const LanguagesManagement = () => {
                     <Td>{language.country_name}</Td>
                     <Td>{language.name}</Td>
                     <Td>
-                      <Flex justify="flex-end">
+                      <Flex justify="flex-center">
                         <IconButton
                           icon={<EditIcon />}
                           onClick={() => handleEditLanguage(language)}
