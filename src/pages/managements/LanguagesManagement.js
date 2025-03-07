@@ -112,7 +112,7 @@ const LanguagesManagement = () => {
         toast({ title: "Language updated", status: "success", duration: 3000 });
       } else {
         await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/languages`,
+          `${process.env.REACT_APP_API_URL}/api/add_languages`,
           newLanguage
         );
         toast({ title: "Language added", status: "success", duration: 3000 });
