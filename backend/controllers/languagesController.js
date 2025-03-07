@@ -27,6 +27,7 @@ exports.getLanguageById = async (req, res) => {
 // Create a new language
 exports.createLanguage = async (req, res) => {
   try {
+    console.log("Received Data:", req.body);
     const newLanguage = await Language.create(req.body);
     res.status(201).json(newLanguage);
   } catch (error) {

@@ -9,7 +9,7 @@ router.get("/api/languages", languagesController.getAllLanguages);
 router.get("/api/languages/:id", languagesController.getLanguageById);
 
 // Create a new language
-router.post("/api/languages/", languagesController.createLanguage);
+router.post("/api/add_languages/", languagesController.createLanguage);
 
 // Update a language by ID
 router.put("/api/languages/:id", languagesController.updateLanguage);

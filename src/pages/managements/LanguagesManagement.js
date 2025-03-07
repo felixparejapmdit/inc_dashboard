@@ -31,8 +31,9 @@ const LanguagesManagement = () => {
   const [filteredLanguages, setFilteredLanguages] = useState([]);
   const [newLanguage, setNewLanguage] = useState({
     country_name: "",
-    language: "",
+    name: "", // ✅ Match database field name
   });
+
   const [isAdding, setIsAdding] = useState(false);
   const [editingLanguage, setEditingLanguage] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -71,7 +72,7 @@ const LanguagesManagement = () => {
   };
 
   const handleAddOrEditLanguage = async () => {
-    if (!newLanguage.country_name || !newLanguage.language) {
+    if (!newLanguage.country_name || !newLanguage.name) {
       toast({
         title: "Fields Required",
         description: "Both Country Name and Language are required.",
@@ -80,12 +81,13 @@ const LanguagesManagement = () => {
       });
       return;
     }
+
     // Prevent duplicates
     const duplicate = languages.find(
       (lang) =>
-        lang.country_name.toLowerCase() ===
-          newLanguage.country_name.toLowerCase() &&
-        lang.language.toLowerCase() === newLanguage.language.toLowerCase()
+        lang.country_name?.toLowerCase() ===
+          newLanguage.country_name?.toLowerCase() &&
+        lang.name?.toLowerCase() === newLanguage.name?.toLowerCase()
     );
 
     if (
@@ -107,24 +109,17 @@ const LanguagesManagement = () => {
           `${process.env.REACT_APP_API_URL}/api/languages/${editingLanguage.id}`,
           newLanguage
         );
-        toast({
-          title: "Language updated",
-          status: "success",
-          duration: 3000,
-        });
+        toast({ title: "Language updated", status: "success", duration: 3000 });
       } else {
         await axios.post(
           `${process.env.REACT_APP_API_URL}/api/languages`,
           newLanguage
         );
-        toast({
-          title: "Language added",
-          status: "success",
-          duration: 3000,
-        });
+        toast({ title: "Language added", status: "success", duration: 3000 });
       }
+
       fetchLanguages();
-      setNewLanguage({ country_name: "", language: "" });
+      setNewLanguage({ country_name: "", name: "" }); // ✅ Fix field reference
       setIsAdding(false);
       setEditingLanguage(null);
     } catch (error) {
@@ -139,8 +134,8 @@ const LanguagesManagement = () => {
 
   const handleEditLanguage = (language) => {
     setNewLanguage({
-      country_name: language.country_name,
-      language: language.language,
+      country_name: language.country_name || "", // ✅ Default empty string
+      name: language.name || "", // ✅ Ensure it’s always defined
     });
     setEditingLanguage(language);
   };
@@ -171,7 +166,7 @@ const LanguagesManagement = () => {
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
     const filtered = languages.filter((lang) =>
-      `${lang.country_name} ${lang.language}`
+      `${lang.country_name} ${lang.name}`
         .toLowerCase()
         .includes(event.target.value.toLowerCase())
     );
@@ -270,12 +265,10 @@ const LanguagesManagement = () => {
                 <Td>
                   <Input
                     placeholder="Language"
-                    value={newLanguage.language}
-                    onChange={(e) =>
-                      setNewLanguage({
-                        ...newLanguage,
-                        language: e.target.value,
-                      })
+                    value={newLanguage.name} // ✅ Ensure this is correct
+                    onChange={
+                      (e) =>
+                        setNewLanguage({ ...newLanguage, name: e.target.value }) // ✅ Proper state update
                     }
                   />
                 </Td>
@@ -319,11 +312,12 @@ const LanguagesManagement = () => {
                     </Td>
                     <Td>
                       <Input
-                        value={newLanguage.language}
+                        placeholder="Language"
+                        value={newLanguage.name}
                         onChange={(e) =>
                           setNewLanguage({
                             ...newLanguage,
-                            language: e.target.value,
+                            name: e.target.value,
                           })
                         }
                       />
@@ -341,7 +335,7 @@ const LanguagesManagement = () => {
                         <Button
                           onClick={() => {
                             setEditingLanguage(null);
-                            setNewLanguage({ country_name: "", language: "" });
+                            setNewLanguage({ country_name: "", name: "" });
                           }}
                           colorScheme="red"
                           size="sm"
@@ -354,7 +348,7 @@ const LanguagesManagement = () => {
                 ) : (
                   <>
                     <Td>{language.country_name}</Td>
-                    <Td>{language.language}</Td>
+                    <Td>{language.name}</Td>
                     <Td>
                       <Flex justify="flex-end">
                         <IconButton
@@ -416,8 +410,7 @@ const LanguagesManagement = () => {
               <AlertDialogBody>
                 Are you sure you want to delete the language:{" "}
                 <strong>
-                  {deletingLanguage?.country_name} -{" "}
-                  {deletingLanguage?.language}
+                  {deletingLanguage?.country_name} - {deletingLanguage?.name}
                 </strong>
                 ? This action cannot be undone.
               </AlertDialogBody>
