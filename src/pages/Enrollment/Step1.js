@@ -14,8 +14,7 @@ import {
   Flex,
 } from "@chakra-ui/react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
-import { CheckIcon } from "@chakra-ui/icons";
+
 const Step1 = ({
   personnelData,
   setPersonnelData,
@@ -33,8 +32,11 @@ const Step1 = ({
   localCongregations,
   suffixOptions,
   bloodtypes,
+  isEditing, // ✅ Receive isEditing as a prop
+  toggleEdit, // ✅ Receive toggleEdit function as a prop
 }) => {
   const [step, setStep] = useState(1);
+
   const totalSteps = 10;
 
   const civilStatuses = ["Single", "Married"];
@@ -107,21 +109,6 @@ const Step1 = ({
       setFilteredSubsections([]);
     }
   }, [personnelData.section_id, subsections]);
-
-  // // Filter designations based on section and subsection
-  // useEffect(() => {
-  //   if (personnelData.section_id) {
-  //     const filtered = designations.filter(
-  //       (designation) =>
-  //         designation.section_id === parseInt(personnelData.section_id) &&
-  //         (!personnelData.subsection_id ||
-  //           designation.subsection_id === parseInt(personnelData.subsection_id))
-  //     );
-  //     setFilteredDesignations(filtered);
-  //   } else {
-  //     setFilteredDesignations([]);
-  //   }
-  // }, [personnelData.section_id, personnelData.subsection_id, designations]);
 
   useEffect(() => {
     if (personnelData.registered_district_id) {
@@ -229,6 +216,7 @@ const Step1 = ({
                     })
                   }
                   value={personnelData.gender}
+                  isDisabled={!isEditing} // Fields disabled if not editing
                 >
                   <Stack direction="row" spacing={2}>
                     <Radio value="Male">Male</Radio>
@@ -260,6 +248,7 @@ const Step1 = ({
                     })
                   }
                   value={personnelData.civil_status}
+                  isDisabled={!isEditing} // Fields disabled if not editing
                 >
                   <Stack direction="row" spacing={2}>
                     {civilStatuses.map((status) => (
@@ -300,6 +289,7 @@ const Step1 = ({
                     }))
                   }
                   width="100%"
+                  isDisabled={!isEditing} // Fields disabled if not editing
                 />
               </Flex>
             </Box>
@@ -333,6 +323,7 @@ const Step1 = ({
                 value={personnelData.givenname}
                 onChange={handleChange}
                 width="100%"
+                isDisabled={!isEditing} // Fields disabled if not editing
               />
             </Box>
 
@@ -356,6 +347,7 @@ const Step1 = ({
                 value={personnelData.middlename}
                 onChange={handleChange}
                 width="100%"
+                isDisabled={!isEditing} // Fields disabled if not editing
               />
             </Box>
 
@@ -408,6 +400,7 @@ const Step1 = ({
                 value={personnelData.surname_husband}
                 onChange={handleChange}
                 width="100%"
+                isDisabled={!isEditing} // Fields disabled if not editing
               />
             </Box>
           </Flex>
@@ -453,7 +446,7 @@ const Step1 = ({
                   })
                 }
                 width="100%"
-                isDisabled={personnelData.gender === "Female"} // Disable for Female gender
+                isDisabled={!isEditing || personnelData.gender === "Female"} // Disabled if not in edit mode or gender is Female
                 options={suffixOptions.map((suffix) => ({
                   value: suffix,
                   label: suffix,
@@ -488,6 +481,7 @@ const Step1 = ({
                 value={personnelData.nickname}
                 onChange={handleChange}
                 width="100%"
+                isDisabled={!isEditing} // Fields disabled if not editing
               />
             </Box>
 
@@ -536,6 +530,7 @@ const Step1 = ({
                     width: "100%",
                   }),
                 }}
+                isDisabled={!isEditing} // Fields disabled if not editing
               />
             </Box>
 
@@ -575,7 +570,7 @@ const Step1 = ({
                   value: congregation.id,
                   label: congregation.name,
                 }))}
-                isDisabled={!personnelData.registered_district_id} // Disable if no district is selected
+                isDisabled={!isEditing || !personnelData.registered_district_id} // Disable if no district is selected
                 isClearable
                 styles={{
                   container: (base) => ({
@@ -618,6 +613,7 @@ const Step1 = ({
                   })
                 }
                 width="100%"
+                isDisabled={!isEditing} // Fields disabled if not editing
               />
             </Box>
 
@@ -640,6 +636,7 @@ const Step1 = ({
                 value={age}
                 readOnly
                 width="100%"
+                isDisabled={!isEditing} // Fields disabled if not editing
               />
             </Box>
 
@@ -666,6 +663,7 @@ const Step1 = ({
                   })
                 }
                 width="100%"
+                isDisabled={!isEditing} // Fields disabled if not editing
               />
             </Box>
 
@@ -694,6 +692,7 @@ const Step1 = ({
                   })
                 }
                 width="100%"
+                isDisabled={!isEditing} // Fields disabled if not editing
               />
             </Box>
           </Flex>
@@ -757,6 +756,7 @@ const Step1 = ({
                     width: "100%",
                   }),
                 }}
+                isDisabled={!isEditing} // Fields disabled if not editing
               />
             </Box>
 
@@ -802,6 +802,7 @@ const Step1 = ({
                     width: "100%",
                   }),
                 }}
+                isDisabled={!isEditing} // Fields disabled if not editing
               />
             </Box>
 
@@ -876,6 +877,7 @@ const Step1 = ({
                 errorBorderColor="red.300"
                 borderColor={emailError ? "red.500" : "gray.300"}
                 focusBorderColor={emailError ? "red.500" : "teal.400"} // Add focus styling
+                isDisabled={!isEditing} // Fields disabled if not editing
               />
               {emailError && (
                 <Box
@@ -953,6 +955,7 @@ const Step1 = ({
                     width: "100%",
                   }),
                 }}
+                isDisabled={!isEditing} // Fields disabled if not editing
               />
             </Box>
 
@@ -998,6 +1001,7 @@ const Step1 = ({
                     width: "100%",
                   }),
                 }}
+                isDisabled={!isEditing} // Fields disabled if not editing
               />
             </Box>
           </Flex>
@@ -1053,6 +1057,7 @@ const Step1 = ({
                     width: "100%",
                   }),
                 }}
+                isDisabled={!isEditing} // Fields disabled if not editing
               />
             </Box>
 
@@ -1091,7 +1096,7 @@ const Step1 = ({
                   value: section.id,
                   label: section.name,
                 }))}
-                isDisabled={!personnelData.department_id} // Disable if no department is selected
+                isDisabled={!isEditing || !personnelData.department_id} // Disable if no department is selected
                 isClearable
                 styles={{
                   container: (base) => ({
@@ -1197,6 +1202,7 @@ const Step1 = ({
                     width: "100%",
                   }),
                 }}
+                isDisabled={!isEditing} // Fields disabled if not editing
               />
             </Box>
           </Flex>
@@ -1269,6 +1275,7 @@ const Step1 = ({
                     width: "100%",
                   }),
                 }}
+                isDisabled={!isEditing} // Fields disabled if not editing
               />
             </Box>
 
@@ -1309,7 +1316,7 @@ const Step1 = ({
                     label: congregation.name,
                   })
                 )}
-                isDisabled={!personnelData.district_id} // Disable if no district is selected
+                isDisabled={!isEditing || !personnelData.district_id} // Disable if no district is selected
                 isClearable
                 styles={{
                   container: (base) => ({
@@ -1332,6 +1339,7 @@ const Step1 = ({
               }}
               value={personnelData.personnel_type}
               width="100%"
+              isDisabled={!isEditing} // Fields disabled if not editing
             >
               <Stack
                 direction={{ base: "column", md: "row" }}
@@ -1384,6 +1392,7 @@ const Step1 = ({
                     }
                     width="calc(100% - 140px)" // Adjusted to fit next to label
                     min="0"
+                    isDisabled={!isEditing} // Fields disabled if not editing
                   />
                 </Flex>
 
@@ -1398,6 +1407,7 @@ const Step1 = ({
                       handleChange({ target: { name: "m_status", value } })
                     }
                     value={personnelData.m_status}
+                    isDisabled={!isEditing} // Fields disabled if not editing
                   >
                     <Stack direction="row" spacing={4} wrap="wrap">
                       <Radio value="May Destino">May Destino</Radio>
@@ -1461,6 +1471,7 @@ const Step1 = ({
                       width: "100%",
                     }),
                   }}
+                  isDisabled={!isEditing} // Fields disabled if not editing
                 />
               </Box>
 
@@ -1502,7 +1513,9 @@ const Step1 = ({
                       label: congregation.name,
                     })
                   )}
-                  isDisabled={!personnelData.district_assignment_id} // Disable if no district is selected
+                  isDisabled={
+                    !isEditing || !personnelData.district_assignment_id
+                  } // Disable if no district is selected
                   isClearable
                   styles={{
                     container: (base) => ({
@@ -1539,6 +1552,7 @@ const Step1 = ({
                     })
                   }
                   width="calc(100% - 250px)" // Matches remaining width
+                  isDisabled={!isEditing} // Fields disabled if not editing
                 />
               </Flex>
             )}
@@ -1570,6 +1584,7 @@ const Step1 = ({
                     })
                   }
                   width="calc(100% - 250px)" // Matches remaining width
+                  isDisabled={!isEditing} // Fields disabled if not editing
                 />
               </Flex>
             )}

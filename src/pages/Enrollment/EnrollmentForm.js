@@ -15,10 +15,11 @@ import {
   ModalBody,
   ModalFooter,
   Text,
+  IconButton,
 } from "@chakra-ui/react";
 import axios from "axios";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { CheckIcon } from "@chakra-ui/icons";
+import { CheckIcon, EditIcon } from "@chakra-ui/icons";
 import Step1 from "./Step1";
 import Step2 from "./Step2";
 import Step3 from "./Step3";
@@ -49,6 +50,14 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
   const [id, setPersonnelId] = useState(null);
 
+  //const [searchParams] = useSearchParams();
+  //const personnelId = searchParams.get("personnel_id");
+  const [isEditing, setIsEditing] = useState(!personnelId); // Enabled if personnel_id exists
+
+  const toggleEdit = () => {
+    setIsEditing((prev) => !prev);
+  };
+
   const steps = [
     { label: "District Office", progressValue: 0 },
     { label: "Section Chief", progressValue: 0 },
@@ -67,7 +76,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
     const personnelIdFromUrl = searchParams.get("personnel_id");
 
     // Set the step from the URL if available
-    if (stepFromUrl) {
+    if (!isNaN(stepFromUrl) && stepFromUrl) {
       setStep(Number(stepFromUrl));
     }
 
@@ -304,7 +313,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
     const getApiUrl = (endpoint) => {
       if (endpoint === "districts") {
         return DISTRICT_API_URL;
-      } else if (endpoint === "local-congregations") {
+      } else if (endpoint === "all-congregations") {
         return LOCAL_CONGREGATION_API_URL;
       } else {
         return API_URL;
@@ -483,14 +492,6 @@ const EnrollmentForm = ({ referenceNumber }) => {
         isEditing: true,
       },
     ]);
-
-  const [personnelImage, setPersonnelImage] = useState(null);
-  //const [personnelId, setPersonnelId] = useState(null);
-
-  const handleSaveImage = (imageData) => {
-    setPersonnelImage(imageData);
-    // Here you can add code to save `imageData` to your database if needed.
-  };
 
   const navigate = useNavigate();
 
@@ -675,7 +676,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
     });
   };
 
-  const handleNext = async () => {
+  const handleSave = async () => {
     setIsLoading(true);
     try {
       // Email validation before proceeding
@@ -787,29 +788,68 @@ const EnrollmentForm = ({ referenceNumber }) => {
           isClosable: true,
           position: "bottom-left", // Position the toast on the bottom-left
         });
-        // Calculate the next step
-        //const nextStep = currentStep + 1;
 
-        // If the next step is within the range, update the URL dynamically
-        // Navigate to the next step
-
-        if (nextStep <= totalSteps) {
-          navigate(`/enroll?personnel_id=${personnelId}&step=${nextStep}`);
-          setStep(nextStep);
-        } else {
-          toast({
-            title: "Process Complete",
-            description: "You have completed the enrollment process.",
-            status: "success",
-            duration: 3000,
-            isClosable: true,
-          });
-        }
+        // ✅ After saving, switch icon to `EditIcon`
+        setIsEditing(false);
       }
-      //}
+    } catch (error) {
+      console.error("Error handling next step:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save enrollment data. Please try again.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom-left", // Position the toast on the bottom-left
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-      // Move to the next step
-      //setStep((prevStep) => prevStep + 1);
+  const handleNext = async () => {
+    setIsLoading(true);
+    try {
+      // ✅ Prevent proceeding if editing is enabled
+      if (isEditing) {
+        toast({
+          title: "Save Required",
+          description:
+            "Please save your changes before proceeding to the next step.",
+          status: "warning",
+          duration: 3000,
+          isClosable: true,
+          position: "bottom-left",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      const currentStep = parseInt(searchParams.get("step"), 10) || step;
+      let nextStep = currentStep + 1;
+
+      // Skip Step 6 if civil_status is Single
+      if (personnelData.civil_status === "Single" && nextStep === 6) {
+        nextStep = 7;
+      }
+
+      if (nextStep <= totalSteps) {
+        navigate(`/enroll?personnel_id=${personnelId}&step=${nextStep}`);
+        setStep(nextStep);
+      } else {
+        toast({
+          title: "Process Complete",
+          description: "You have completed the enrollment process.",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+
+      await axios.put(`${API_URL}/api/personnels/${personnelId}`, {
+        ...personnelData,
+        enrollment_progress: currentStep.toString(), // Update enrollment_progress
+      });
     } catch (error) {
       console.error("Error handling next step:", error);
       toast({
@@ -1230,6 +1270,8 @@ const EnrollmentForm = ({ referenceNumber }) => {
           suffixOptions={suffixOptions}
           civilStatusOptions={civilStatusOptions}
           bloodtypes={bloodtypes}
+          isEditing={isEditing} // ✅ Pass isEditing as a prop
+          toggleEdit={toggleEdit} // ✅ Pass toggleEdit function
         />
       )}
 
@@ -1715,6 +1757,16 @@ const EnrollmentForm = ({ referenceNumber }) => {
           </ModalFooter>
         </ModalContent>
       </Modal>
+      {step === 1 && ( // ✅ Only show on Step 1
+        <Flex justify="center" align="center" mt={2} mb={2}>
+          <IconButton
+            icon={isEditing ? <CheckIcon /> : <EditIcon />}
+            // onClick={toggleEdit}
+            onClick={isEditing ? handleSave : () => setIsEditing(true)} // ✅ Save before disabling fields
+            colorScheme={isEditing ? "green" : "blue"}
+          />
+        </Flex>
+      )}
     </VStack>
   );
 };
