@@ -124,13 +124,13 @@ const Step5 = ({
       ...siblingData
     } = sibling;
 
-    // Prepare the data to send
+    // Prepare data for saving/updating
     const formattedData = {
       ...siblingData,
-      gender: sibling.gender,
       givenname: sibling.givenname,
       lastname: sibling.lastname,
-      relationship_type: relationship_type,
+      gender: sibling.gender,
+      relationship_type: "Sibling",
       personnel_id: personnelId,
       date_of_birth: sibling.date_of_birth || null, // Ensure empty date is set to null
     };
