@@ -289,7 +289,7 @@ exports.updateFamilyMember = async (req, res) => {
 
     // Convert empty strings to null for integer fields
     const intFields = [
-      "contact_number",
+      // "contact_number",
       "citizenship",
       "nationality",
       "district_id",

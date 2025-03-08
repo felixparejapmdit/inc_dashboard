@@ -133,6 +133,9 @@ const Step5 = ({
       relationship_type: "Sibling",
       personnel_id: personnelId,
       date_of_birth: sibling.date_of_birth || null, // Ensure empty date is set to null
+      contact_number: sibling.contact_number
+        ? String(sibling.contact_number)
+        : null, // Ensure it is a string
     };
     console.log("Formatted Data:", formattedData);
     // Validate required fields

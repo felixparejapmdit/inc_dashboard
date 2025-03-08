@@ -50,7 +50,7 @@ const FamilyMember = db.define(
       allowNull: true,
     },
     contact_number: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(50),
       allowNull: true,
     },
     date_of_marriage: {
