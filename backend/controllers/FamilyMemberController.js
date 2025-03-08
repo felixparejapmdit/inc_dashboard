@@ -157,14 +157,7 @@ exports.createFamilyMember = async (req, res) => {
           ].includes(key)
         ) {
           newMemberData[key] = trimmedValue !== "" ? trimmedValue : null;
-        }
-        // Ensure `contact_number` is stored as a string
-        else if (key === "contact_number") {
-          newMemberData[key] =
-            trimmedValue !== "" ? String(trimmedValue) : null;
-        }
-        // Handle other fields normally
-        else {
+        } else {
           newMemberData[key] = trimmedValue;
         }
       }
@@ -172,6 +165,7 @@ exports.createFamilyMember = async (req, res) => {
 
     // Convert empty strings to null for integer fields
     const intFields = [
+      // "contact_number",
       "citizenship",
       "nationality",
       "district_id",
@@ -191,17 +185,9 @@ exports.createFamilyMember = async (req, res) => {
     // Create the new family member record
     const newMember = await FamilyMember.create(newMemberData);
 
-    // ✅ Ensure the ID is returned to the frontend
     res.status(201).json({
       message: "Family member created successfully",
-      family_member: {
-        id: newMember.id, // ✅ Ensure the ID is always included
-        personnel_id: newMember.personnel_id,
-        relationship_type: newMember.relationship_type,
-        givenname: newMember.givenname,
-        lastname: newMember.lastname,
-        // ✅ Add more fields as necessary
-      },
+      family_member: newMember,
     });
   } catch (error) {
     console.error(
@@ -214,135 +200,6 @@ exports.createFamilyMember = async (req, res) => {
     });
   }
 };
-
-// exports.createFamilyMember = async (req, res) => {
-//   try {
-//     // Required fields for validation
-//     const requiredFields = [
-//       "personnel_id",
-//       "relationship_type",
-//       "givenname",
-//       "lastname",
-//     ];
-
-//     // Validate required fields
-//     for (const field of requiredFields) {
-//       if (
-//         req.body[field] === undefined || // Check if field is missing
-//         req.body[field] === null || // Check if field is null
-//         (typeof req.body[field] === "string" && req.body[field].trim() === "") // Check if string field is empty
-//       ) {
-//         return res
-//           .status(400)
-//           .json({ message: `The field ${field} is required.` });
-//       }
-//     }
-
-//     // List of valid fields for the FamilyMember model
-//     const validFields = [
-//       "personnel_id",
-//       "relationship_type",
-//       "givenname",
-//       "middlename",
-//       "lastname",
-//       "suffix",
-//       "nickname",
-//       "gender",
-//       "date_of_birth",
-//       "contact_number",
-//       "bloodtype",
-//       "civil_status",
-//       "date_of_marriage",
-//       "place_of_marriage",
-//       "citizenship",
-//       "nationality",
-//       "church_duties",
-//       "livelihood",
-//       "district_id",
-//       "local_congregation",
-//       "minister_officiated",
-//       "employment_type",
-//       "company",
-//       "address",
-//       "position",
-//       "department",
-//       "section",
-//       "start_date",
-//       "end_date",
-//       "reason_for_leaving",
-//       "education_level",
-//       "start_year",
-//       "completion_year",
-//       "school",
-//       "field_of_study",
-//       "degree",
-//       "institution",
-//       "professional_licensure_examination",
-//       "created_at",
-//       "updated_at",
-//     ];
-
-//     const newMemberData = {};
-
-//     // Process and validate fields
-//     for (const key of validFields) {
-//       if (req.body[key] !== undefined) {
-//         const value = req.body[key];
-//         const trimmedValue = typeof value === "string" ? value.trim() : value;
-
-//         // Handle date fields (convert empty string or undefined to null)
-//         if (
-//           [
-//             "date_of_birth",
-//             "date_of_marriage",
-//             "start_date",
-//             "end_date",
-//           ].includes(key)
-//         ) {
-//           newMemberData[key] = trimmedValue !== "" ? trimmedValue : null;
-//         } else {
-//           newMemberData[key] = trimmedValue;
-//         }
-//       }
-//     }
-
-//     // Convert empty strings to null for integer fields
-//     const intFields = [
-//       // "contact_number",
-//       "citizenship",
-//       "nationality",
-//       "district_id",
-//       "local_congregation",
-//       "start_year",
-//       "completion_year",
-//     ];
-
-//     for (const key of intFields) {
-//       if (req.body[key] !== undefined) {
-//         newMemberData[key] = req.body[key] === "" ? null : req.body[key];
-//       }
-//     }
-
-//     console.log("Creating Family Member with Data:", newMemberData);
-
-//     // Create the new family member record
-//     const newMember = await FamilyMember.create(newMemberData);
-
-//     res.status(201).json({
-//       message: "Family member created successfully",
-//       family_member: newMember,
-//     });
-//   } catch (error) {
-//     console.error(
-//       "Error creating family member:",
-//       error.stack || error.message
-//     );
-//     res.status(500).json({
-//       error:
-//         error.message || "An error occurred while creating the family member.",
-//     });
-//   }
-// };
 
 exports.updateFamilyMember = async (req, res) => {
   try {
