@@ -307,9 +307,13 @@ exports.updateFamilyMember = async (req, res) => {
     console.log("Updates to Apply:", updates);
 
     await member.update(updates);
+
+    const updatedMember = await FamilyMember.findByPk(req.params.id); // Fetch the updated record with the correct ID
+
     res.status(200).json({
       message: "Family member updated successfully",
-      family_member: member,
+      id: updatedMember.id, // ✅ Ensure ID is explicitly returned
+      family_member: updatedMember,
     });
   } catch (error) {
     console.error(
