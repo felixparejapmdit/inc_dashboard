@@ -264,14 +264,16 @@ const Step4 = ({
           `${API_URL}/api/family-members/${id}`,
           formattedData
         );
-        updatedParent = response.data;
+        //updatedParent = response.data;
+        updatedParent = response.data.family_member;
       } else {
         // Save new parent record
         const response = await axios.post(
           `${API_URL}/api/family-members`,
           formattedData
         );
-        updatedParent = response.data;
+        //updatedParent = response.data;
+        updatedParent = response.data.family_member;
       }
 
       // Update parent in state

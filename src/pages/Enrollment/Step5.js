@@ -175,14 +175,16 @@ const Step5 = ({
           `${API_URL}/api/family-members/${id}`,
           formattedData
         );
-        updatedSibling = response.data;
+        //updatedSibling = response.data;
+        updatedSibling = response.data.family_member;
       } else {
         // Save new sibling record
         const response = await axios.post(
           `${API_URL}/api/family-members`,
           formattedData
         );
-        updatedSibling = response.data;
+        // updatedSibling = response.data;
+        updatedSibling = response.data.family_member;
       }
 
       // Update sibling in state

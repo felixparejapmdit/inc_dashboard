@@ -207,14 +207,16 @@ const Step6 = ({
           `${API_URL}/api/family-members/${id}`,
           formattedData
         );
-        updatedSpouse = response.data;
+        // updatedSpouse = response.data;
+        updatedSpouse = response.data.family_member;
       } else {
         // Save new spouse record
         const response = await axios.post(
           `${API_URL}/api/family-members`,
           formattedData
         );
-        updatedSpouse = response.data;
+        //updatedSpouse = response.data;
+        updatedSpouse = response.data.family_member;
       }
 
       // Update spouse in state

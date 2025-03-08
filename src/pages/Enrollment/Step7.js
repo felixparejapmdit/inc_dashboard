@@ -112,7 +112,7 @@ const Step7 = ({
 
   const handleSaveOrUpdate = async (index) => {
     setLoading(true);
-    const child = data[index];
+    let child = data[index];
 
     const {
       id,
@@ -166,20 +166,25 @@ const Step7 = ({
 
     try {
       let updateChildren;
+
       if (id) {
         // Update existing children record
         const response = await axios.put(
           `${API_URL}/api/family-members/${id}`,
           formattedData
         );
-        updateChildren = response.data;
+        // updateChildren = response.data;
+
+        updateChildren = response.data.family_member;
       } else {
         // Save new children record
         const response = await axios.post(
           `${API_URL}/api/family-members`,
           formattedData
         );
-        updateChildren = response.data;
+        //updateChildren = response.data;
+
+        updateChildren = response.data.family_member; // ✅ Ensure we get the new ID
       }
 
       // Update children in state
@@ -1089,11 +1094,19 @@ const Step7 = ({
                 <Td colSpan={4} textAlign="center">
                   <IconButton
                     icon={child.isEditing ? <CheckIcon /> : <EditIcon />}
-                    onClick={() =>
-                      child.isEditing
-                        ? handleSaveOrUpdate(index)
-                        : onChange(index, "isEditing", true)
-                    }
+                    // onClick={() =>
+                    //   child.isEditing
+                    //     ? handleSaveOrUpdate(index)
+                    //     : onChange(index, "isEditing", true)
+                    // }
+                    onClick={async () => {
+                      if (child.isEditing) {
+                        await handleSaveOrUpdate(index); // ✅ Save or update logic
+                        onChange(index, "isEditing", false); // ✅ Disable editing mode after saving
+                      } else {
+                        onChange(index, "isEditing", true); // ✅ Enable editing mode
+                      }
+                    }}
                     colorScheme={child.isEditing ? "green" : "blue"}
                   />
                   <IconButton
