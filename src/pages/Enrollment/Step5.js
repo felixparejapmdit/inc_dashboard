@@ -1253,11 +1253,14 @@ const Step5 = ({
                 <Td colSpan={4} textAlign="center">
                   <IconButton
                     icon={sibling.isEditing ? <CheckIcon /> : <EditIcon />}
-                    onClick={() =>
-                      sibling.isEditing
-                        ? handleSaveOrUpdate(index)
-                        : onChange(index, "isEditing", true)
-                    }
+                    onClick={async () => {
+                      if (sibling.isEditing) {
+                        await handleSaveOrUpdate(index); // ✅ Save or update logic
+                        onChange(index, "isEditing", false); // ✅ Disable editing mode after saving
+                      } else {
+                        onChange(index, "isEditing", true); // ✅ Enable editing mode
+                      }
+                    }}
                     colorScheme={sibling.isEditing ? "green" : "blue"}
                   />
 
