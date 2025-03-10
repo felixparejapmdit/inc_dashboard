@@ -427,6 +427,9 @@ const Step4 = ({
                             value: suffix,
                             label: suffix,
                           }))}
+                          isDisabled={
+                            !parent.isEditing || parent.gender === "Female"
+                          } // Conditionally disable for Female or when not editing
                           isClearable // Adds a clear button to reset selection
                           styles={{
                             container: (base) => ({
