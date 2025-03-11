@@ -199,34 +199,33 @@ const Step4 = ({
 
   const handleSaveOrUpdate = async (index) => {
     setLoading(true);
-    const parent = data[index];
+
+    // Fetch the latest parent data from the state
+    const updatedParent = data[index];
 
     const {
       id,
       isEditing,
-      relationship_type = parent.relationship_type, // Fallback to the existing key if relationship_type is undefined,
+      relationship_type = updatedParent.relationship_type, // Fallback to the existing key if relationship_type is undefined,
+      gender,
       givenName,
       lastName,
-      gender,
       ...parentData
-    } = parent;
+    } = updatedParent;
 
     // Prepare the data to send
     const formattedData = {
       ...parentData,
-      givenname: parent.givenname,
-      lastname: parent.lastname,
-      gender:
-        relationship_type === "Father"
-          ? "Male"
-          : relationship_type === "Mother"
-          ? "Female"
-          : parent.gender, // Automatically set gender for Father and Mother
+      gender: updatedParent.gender,
+      givenname: updatedParent.givenname,
+      lastname: updatedParent.lastname,
+      date_of_birth: updatedParent.date_of_birth,
       relationship_type: relationship_type,
       personnel_id: personnelId,
-      date_of_birth: parent.date_of_birth || null, // Ensure empty date is set to null
     };
-    console.log("Formatted Data:", formattedData);
+
+    console.log("🛠️ Debug - Formatted Data:", formattedData);
+
     // Validate required fields
     const requiredFields = [
       "personnel_id",
@@ -234,83 +233,196 @@ const Step4 = ({
       "givenname",
       "lastname",
       "gender",
-      "date_of_birth", // Add date_of_birth as required
+      "date_of_birth",
     ];
     const missingField = requiredFields.find(
-      (field) =>
-        !formattedData[field] ||
-        (typeof formattedData[field] === "string" &&
-          formattedData[field].trim() === "")
+      (field) => !formattedData[field] || formattedData[field] === ""
     );
+
+    console.log("⚠️ Debug - Missing Field:", missingField);
 
     if (missingField) {
       toast({
         title: "Validation Error",
-        description: `The field "${missingField}" is required for ${relationship_type}.`,
+        description: `The field "${missingField}" is required for ${updatedParent.relationship_type}.`,
         status: "error",
         duration: 3000,
         isClosable: true,
-        position: "bottom-left", // Position the toast on the bottom-left
+        position: "bottom-left",
       });
-      setLoading(false); // Reset loading state
+      setLoading(false);
       return;
     }
 
     try {
-      let updatedParent;
-      if (id) {
-        // Update existing parent record
-        const response = await axios.put(
-          `${API_URL}/api/family-members/${id}`,
+      let response;
+      if (updatedParent.id) {
+        response = await axios.put(
+          `${API_URL}/api/family-members/${updatedParent.id}`,
           formattedData
         );
-        //updatedParent = response.data;
-        updatedParent = response.data.family_member;
       } else {
-        // Save new parent record
-        const response = await axios.post(
+        response = await axios.post(
           `${API_URL}/api/family-members`,
           formattedData
         );
-        //updatedParent = response.data;
-        updatedParent = response.data.family_member;
       }
 
-      // Update parent in state
-      onToggleEdit(index); // Disable editing mode for the updated parent
-      onChange(index, "id", updatedParent.id); // Update the `id` field if it was a new record
+      const savedParent = response.data.family_member;
+
+      setData((prevData) => {
+        const newData = [...prevData];
+        newData[index] = { ...savedParent, isEditing: false };
+        return newData;
+      });
 
       toast({
-        title: id ? "Parent Updated" : "Parent Added",
-        description: `${relationship_type} information has been ${
-          id ? "updated" : "added"
-        } successfully.`,
+        title: updatedParent.id ? "Parent Updated" : "Parent Added",
+        description: `${updatedParent.relationship_type} information has been successfully saved.`,
         status: "success",
         duration: 3000,
         isClosable: true,
-        position: "bottom-left", // Position the toast on the bottom-left
+        position: "bottom-left",
       });
     } catch (error) {
       console.error(
-        "Error saving/updating parent information:",
+        "❌ Error saving/updating parent information:",
         error.response
       );
       toast({
         title: "Error",
-        description: `Failed to ${
-          id ? "update" : "add"
-        } ${relationship_type} information. ${
+        description: `Failed to save ${
+          updatedParent.relationship_type
+        } information. ${
           error.response?.data?.message || "Please try again later."
         }`,
         status: "error",
         duration: 3000,
         isClosable: true,
-        position: "bottom-left", // Position the toast on the bottom-left
+        position: "bottom-left",
       });
     } finally {
-      setLoading(false); // Reset loading state
+      setLoading(false);
     }
   };
+
+  // const handleSaveOrUpdate = async (index) => {
+  //   setLoading(true);
+  //   const parent = data[index];
+
+  //   // Ensure default values for required fields
+  //   const id = parent?.id || null;
+  //   const relationship_type = parent?.relationship_type || "";
+  //   const givenname = parent?.givenname?.trim() || "";
+  //   const lastname = parent?.lastname?.trim() || "";
+
+  //   console.log("🔍 Debug - Parent Data Before Formatting:", parent);
+
+  //   // Prepare the data to send
+  //   const formattedData = {
+  //     ...parent,
+  //     givenname: givenname,
+  //     lastname: lastname,
+  //     gender: relationship_type === "Father" ? "Male" : "Female",
+  //     relationship_type: relationship_type,
+  //     personnel_id: personnelId,
+  //     date_of_birth: parent?.date_of_birth || null, // Ensure empty date is set to null
+  //   };
+
+  //   console.log("🛠️ Debug - Formatted Data:", formattedData);
+
+  //   // Validate required fields
+  //   const requiredFields = [
+  //     "personnel_id",
+  //     "relationship_type",
+  //     "givenname",
+  //     "lastname",
+  //     "gender",
+  //     "date_of_birth",
+  //   ];
+  //   const missingField = requiredFields.find(
+  //     (field) =>
+  //       !formattedData[field] ||
+  //       (typeof formattedData[field] === "string" &&
+  //         formattedData[field].trim() === "")
+  //   );
+
+  //   console.log("⚠️ Debug - Missing Field:", missingField);
+
+  //   if (missingField) {
+  //     toast({
+  //       title: "Validation Error",
+  //       description: `The field "${missingField}" is required for ${parent.relationship_type}.`,
+  //       status: "error",
+  //       duration: 3000,
+  //       isClosable: true,
+  //       position: "bottom-left",
+  //     });
+  //     setLoading(false);
+  //     return;
+  //   }
+
+  //   alert("5");
+  //   try {
+  //     let updatedParent;
+  //     if (parent.id) {
+  //       // Update existing parent record
+  //       const response = await axios.put(
+  //         `${API_URL}/api/family-members/${id}`,
+  //         formattedData
+  //       );
+  //       //updatedParent = response.data;
+  //       updatedParent = response.data.family_member;
+  //     } else {
+  //       // Save new parent record
+  //       const response = await axios.post(
+  //         `${API_URL}/api/family-members`,
+  //         formattedData
+  //       );
+  //       //updatedParent = response.data;
+  //       updatedParent = response.data.family_member;
+  //     }
+
+  //     // Update parent in state
+  //     onToggleEdit(index); // Disable editing mode for the updated parent
+  //     onChange(index, "id", updatedParent.id); // Update the `id` field if it was a new record
+
+  //     // Update state with new parent data
+  //     const updatedData = [...data];
+  //     updatedData[index] = { ...updatedParent, isEditing: false }; // Ensure editing is disabled after save
+  //     setData(updatedData);
+
+  //     toast({
+  //       title: id ? "Parent Updated" : "Parent Added",
+  //       description: `${relationship_type} information has been ${
+  //         id ? "updated" : "added"
+  //       } successfully.`,
+  //       status: "success",
+  //       duration: 3000,
+  //       isClosable: true,
+  //       position: "bottom-left", // Position the toast on the bottom-left
+  //     });
+  //   } catch (error) {
+  //     console.error(
+  //       "Error saving/updating parent information:",
+  //       error.response
+  //     );
+  //     toast({
+  //       title: "Error",
+  //       description: `Failed to ${
+  //         id ? "update" : "add"
+  //       } ${relationship_type} information. ${
+  //         error.response?.data?.message || "Please try again later."
+  //       }`,
+  //       status: "error",
+  //       duration: 3000,
+  //       isClosable: true,
+  //       position: "bottom-left", // Position the toast on the bottom-left
+  //     });
+  //   } finally {
+  //     setLoading(false); // Reset loading state
+  //   }
+  // };
 
   return (
     <Box width="100%" bg="white" boxShadow="sm" my={85} p={5}>
@@ -1349,9 +1461,8 @@ const Step4 = ({
                           icon={parent.isEditing ? <CheckIcon /> : <EditIcon />}
                           onClick={() => {
                             if (parent.isEditing) {
-                              handleSaveOrUpdate(index); // Save data and disable editing
+                              handleSaveOrUpdate(index);
                             } else {
-                              // Enable editing by updating the state
                               const updatedParents = [...data];
                               updatedParents[index].isEditing = true;
                               setData(updatedParents);

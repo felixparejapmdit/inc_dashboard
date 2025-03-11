@@ -435,18 +435,44 @@ const EnrollmentForm = ({ referenceNumber }) => {
   };
 
   // Edit Family Member
-  const handleFamilyMemberChange = (type, index, field, value) => {
-    console.log("Type:", type);
-    console.log("Index:", index);
-    console.log("Field:", field);
-    console.log("Value:", value);
+  // const handleFamilyMemberChange = (type, index, field, value) => {
+  //   console.log("Type:", type);
+  //   console.log("Index:", index);
+  //   console.log("Field:", field);
+  //   console.log("Value:", value);
 
-    setFamily((prevFamily) => ({
-      ...prevFamily,
-      [type]: prevFamily[type].map((member, i) =>
-        i === index ? { ...member, [field]: value } : member
-      ),
-    }));
+  //   setFamily((prevFamily) => ({
+  //     ...prevFamily,
+  //     [type]: prevFamily[type].map((member, i) =>
+  //       i === index ? { ...member, [field]: value } : member
+  //     ),
+  //   }));
+  // };
+
+  const handleFamilyMemberChange = (type, index, field, value) => {
+    console.log("🛠️ Debug - Type:", type);
+    console.log("🛠️ Debug - Index:", index);
+    console.log("🛠️ Debug - Field:", field);
+    console.log("🛠️ Debug - Value Before Update:", value);
+
+    setFamily((prevFamily) => {
+      if (!prevFamily || !prevFamily[type]) {
+        console.error(`❌ Error: Family data for '${type}' is undefined!`);
+        return prevFamily;
+      }
+
+      // Create a new updated array of family members
+      const updatedMembers = prevFamily[type].map((member, i) =>
+        i === index ? { ...member, [field]: value.trim() } : member
+      );
+
+      console.log("✅ Debug - Updated Members:", updatedMembers);
+
+      return {
+        ...prevFamily,
+        [type]: updatedMembers,
+      };
+    });
   };
 
   // Toggle Edit Mode
