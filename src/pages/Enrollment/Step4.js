@@ -198,34 +198,35 @@ const Step4 = ({
   }, [personnelId]);
 
   const handleSaveOrUpdate = async (index) => {
-    // ✅ Ensure async is used
     setLoading(true);
 
-    let parent = data[index];
+    // Fetch the latest parent data from the state
+    const updatedParent = data[index];
 
     const {
       id,
       isEditing,
-      relationship_type = parent.relationship_type, // Fallback to the existing key if relationship_type is undefined,
+      relationship_type = updatedParent.relationship_type, // Fallback to the existing key if relationship_type is undefined,
       gender,
       givenName,
       lastName,
       ...parentData
-    } = parent;
+    } = updatedParent;
 
     // Prepare the data to send
     const formattedData = {
       ...parentData,
-      gender: parent.gender,
-      givenname: parent.givenname,
-      lastname: parent.lastname,
-      date_of_birth: parent.date_of_birth,
+      gender: updatedParent.gender,
+      givenname: updatedParent.givenname,
+      lastname: updatedParent.lastname,
+      date_of_birth: updatedParent.date_of_birth,
       relationship_type: relationship_type,
       personnel_id: personnelId,
     };
-    console.log("✅ Debug - Formatted Data:", formattedData); // Debugging
 
-    // ✅ Validate required fields before submitting
+    console.log("🛠️ Debug - Formatted Data:", formattedData);
+
+    // Validate required fields
     const requiredFields = [
       "personnel_id",
       "relationship_type",
@@ -235,16 +236,15 @@ const Step4 = ({
       "date_of_birth",
     ];
     const missingField = requiredFields.find(
-      (field) =>
-        !formattedData[field] ||
-        (typeof formattedData[field] === "string" &&
-          formattedData[field].trim() === "")
+      (field) => !formattedData[field] || formattedData[field] === ""
     );
+
+    console.log("⚠️ Debug - Missing Field:", missingField);
 
     if (missingField) {
       toast({
         title: "Validation Error",
-        description: `The field "${missingField}" is required for ${parent.relationship_type}.`,
+        description: `The field "${missingField}" is required for ${updatedParent.relationship_type}.`,
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -256,10 +256,9 @@ const Step4 = ({
 
     try {
       let response;
-      if (parent.id) {
-        // ✅ Ensure `await` is inside an `async` function
+      if (updatedParent.id) {
         response = await axios.put(
-          `${API_URL}/api/family-members/${parent.id}`,
+          `${API_URL}/api/family-members/${updatedParent.id}`,
           formattedData
         );
       } else {
@@ -269,17 +268,17 @@ const Step4 = ({
         );
       }
 
-      const updatedResponseData = response.data.family_member || response.data;
+      const savedParent = response.data.family_member;
 
-      // ✅ Ensure state updates after save
-      onToggleEdit(index);
-      onChange(index, "id", updatedResponseData.id);
+      setData((prevData) => {
+        const newData = [...prevData];
+        newData[index] = { ...savedParent, isEditing: false };
+        return newData;
+      });
 
       toast({
-        title: parent.id ? "Parent Updated" : "Parent Added",
-        description: `${parent.relationship_type} information has been ${
-          parent.id ? "updated" : "added"
-        } successfully.`,
+        title: updatedParent.id ? "Parent Updated" : "Parent Added",
+        description: `${updatedParent.relationship_type} information has been successfully saved.`,
         status: "success",
         duration: 3000,
         isClosable: true,
@@ -292,8 +291,8 @@ const Step4 = ({
       );
       toast({
         title: "Error",
-        description: `Failed to ${parent.id ? "update" : "add"} ${
-          parent.relationship_type
+        description: `Failed to save ${
+          updatedParent.relationship_type
         } information. ${
           error.response?.data?.message || "Please try again later."
         }`,
@@ -1460,20 +1459,6 @@ const Step4 = ({
                       <Td colSpan={4} textAlign="center">
                         <IconButton
                           icon={parent.isEditing ? <CheckIcon /> : <EditIcon />}
-                          onClick={() =>
-                            parent.isEditing
-                              ? handleSaveOrUpdate(index)
-                              : onChange(index, "isEditing", true)
-                          }
-                          colorScheme={parent.isEditing ? "green" : "blue"}
-                        />
-                      </Td>
-                    </Tr>
-                    {/*                     
-                    <Tr>
-                      <Td colSpan={4} textAlign="center">
-                        <IconButton
-                          icon={parent.isEditing ? <CheckIcon /> : <EditIcon />}
                           onClick={() => {
                             if (parent.isEditing) {
                               handleSaveOrUpdate(index);
@@ -1486,7 +1471,7 @@ const Step4 = ({
                           colorScheme={parent.isEditing ? "green" : "blue"}
                         />
                       </Td>
-                    </Tr> */}
+                    </Tr>
                   </Tbody>
                 </Table>
               </TabPanel>

@@ -113,7 +113,7 @@ const Step7 = ({
   const handleSaveOrUpdate = async (index) => {
     setLoading(true);
     let child = data[index];
-    alert(index);
+
     const {
       id,
       isEditing,

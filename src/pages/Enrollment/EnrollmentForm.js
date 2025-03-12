@@ -450,37 +450,30 @@ const EnrollmentForm = ({ referenceNumber }) => {
   // };
 
   const handleFamilyMemberChange = (type, index, field, value) => {
-    console.log("Type:", type);
-    console.log("Index:", index);
-    console.log("Field:", field);
-    console.log("Value:", value);
+    console.log("🛠️ Debug - Type:", type);
+    console.log("🛠️ Debug - Index:", index);
+    console.log("🛠️ Debug - Field:", field);
+    console.log("🛠️ Debug - Value Before Update:", value);
 
-    setFamily((prevFamily) => ({
-      ...prevFamily,
-      [type]: prevFamily[type].map((member, i) =>
-        i === index ? { ...member, [field]: value } : member
-      ),
-    }));
+    setFamily((prevFamily) => {
+      if (!prevFamily || !prevFamily[type]) {
+        console.error(`❌ Error: Family data for '${type}' is undefined!`);
+        return prevFamily;
+      }
+
+      // Create a new updated array of family members
+      const updatedMembers = prevFamily[type].map((member, i) =>
+        i === index ? { ...member, [field]: value.trim() } : member
+      );
+
+      console.log("✅ Debug - Updated Members:", updatedMembers);
+
+      return {
+        ...prevFamily,
+        [type]: updatedMembers,
+      };
+    });
   };
-
-  // const handleFamilyMemberChange = (type, index, field, value) => {
-  //   console.log("Type:", type);
-  //   console.log("Index:", index);
-  //   console.log("Field:", field);
-  //   console.log("Value Before Update:", value);
-
-  //   setFamily((prevFamily) => {
-  //     const updatedFamily = {
-  //       ...prevFamily,
-  //       [type]: prevFamily[type].map((member, i) =>
-  //         i === index ? { ...member, [field]: value } : member
-  //       ),
-  //     };
-
-  //     console.log("Updated Family Data:", updatedFamily); // Debugging Log
-  //     return updatedFamily;
-  //   });
-  // };
 
   // Toggle Edit Mode
   const toggleEditFamilyMember = (type, index) => {
@@ -1339,52 +1332,38 @@ const EnrollmentForm = ({ referenceNumber }) => {
         <Step4
           data={
             family.parents.length > 0
-              ? ["Father", "Mother"].map((relationship) => {
-                  const existingParent = family.parents.find(
-                    (parent) => parent.relationship_type === relationship
-                  );
-
-                  return existingParent
-                    ? {
-                        ...existingParent,
-                        givenname: existingParent.givenname ?? "", // Ensure givenname exists
-                        lastname: existingParent.lastname ?? "", // Ensure lastname exists
-                        isEditing: existingParent.isEditing ?? true, // Preserve edit mode
-                      }
-                    : {
-                        relationship_type: relationship,
-                        givenname: "", // Default empty values for new entries
-                        lastname: "",
-                        isEditing: true,
-                      };
-                })
+              ? ["Father", "Mother"].map(
+                  (relationship) =>
+                    family.parents.find(
+                      (parent) => parent.relationship_type === relationship
+                    ) || {
+                      relationship_type: relationship,
+                      // givenname: "",
+                      // lastname: "",
+                      isEditing: true,
+                    }
+                )
               : [
                   {
                     relationship_type: "Father",
-                    givenname: "", // Ensure new Father entry has default values
-                    lastname: "",
+                    // givenname: "",
+                    // lastname: "",
                     isEditing: true,
                   },
                   {
                     relationship_type: "Mother",
-                    givenname: "", // Ensure new Mother entry has default values
-                    lastname: "",
+                    // givenname: "",
+                    // lastname: "",
                     isEditing: true,
                   },
                 ]
           }
-          setData={(updatedParents) => {
-            console.log("🔄 Updating parents state:", updatedParents);
+          setData={(updatedParents) =>
             setFamily((prevFamily) => ({
               ...prevFamily,
-              parents: updatedParents.map((parent) => ({
-                ...parent,
-                givenname: parent.givenname ?? "", // Ensure givenname exists
-                lastname: parent.lastname ?? "", // Ensure lastname exists
-                isEditing: parent.isEditing ?? true, // Preserve edit mode
-              })),
-            }));
-          }}
+              parents: updatedParents,
+            }))
+          }
           onChange={(index, field, value) =>
             handleFamilyMemberChange("parents", index, field, value)
           }
