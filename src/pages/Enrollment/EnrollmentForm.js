@@ -450,29 +450,17 @@ const EnrollmentForm = ({ referenceNumber }) => {
   // };
 
   const handleFamilyMemberChange = (type, index, field, value) => {
-    console.log("🛠️ Debug - Type:", type);
-    console.log("🛠️ Debug - Index:", index);
-    console.log("🛠️ Debug - Field:", field);
-    console.log("🛠️ Debug - Value Before Update:", value);
+    console.log("Type:", type);
+    console.log("Index:", index);
+    console.log("Field:", field);
+    console.log("Value:", value);
 
-    setFamily((prevFamily) => {
-      if (!prevFamily || !prevFamily[type]) {
-        console.error(`❌ Error: Family data for '${type}' is undefined!`);
-        return prevFamily;
-      }
-
-      // Create a new updated array of family members
-      const updatedMembers = prevFamily[type].map((member, i) =>
-        i === index ? { ...member, [field]: value.trim() } : member
-      );
-
-      console.log("✅ Debug - Updated Members:", updatedMembers);
-
-      return {
-        ...prevFamily,
-        [type]: updatedMembers,
-      };
-    });
+    setFamily((prevFamily) => ({
+      ...prevFamily,
+      [type]: prevFamily[type].map((member, i) =>
+        i === index ? { ...member, [field]: value } : member
+      ),
+    }));
   };
 
   // Toggle Edit Mode
@@ -1330,34 +1318,60 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
       {step === 4 && (
         <Step4
-          data={
-            family.parents.length > 0
-              ? ["Father", "Mother"].map(
-                  (relationship) =>
-                    family.parents.find(
-                      (parent) => parent.relationship_type === relationship
-                    ) || {
-                      relationship_type: relationship,
-                      // givenname: "",
-                      // lastname: "",
-                      isEditing: true,
-                    }
-                )
-              : [
-                  {
-                    relationship_type: "Father",
-                    // givenname: "",
-                    // lastname: "",
-                    isEditing: true,
-                  },
-                  {
-                    relationship_type: "Mother",
-                    // givenname: "",
-                    // lastname: "",
-                    isEditing: true,
-                  },
-                ]
-          }
+          // data={
+          //   family.parents.length > 0
+          //     ? ["Father", "Mother"].map(
+          //         (relationship) =>
+          //           family.parents.find(
+          //             (parent) => parent.relationship_type === relationship
+          //           ) || {
+          //             relationship_type: relationship,
+          //             // givenname: "",
+          //             // lastname: "",
+          //             isEditing: true,
+          //           }
+          //       )
+          //     : [
+          //         {
+          //           relationship_type: "Father",
+          //           // givenname: "",
+          //           // lastname: "",
+          //           isEditing: true,
+          //         },
+          //         {
+          //           relationship_type: "Mother",
+          //           // givenname: "",
+          //           // lastname: "",
+          //           isEditing: true,
+          //         },
+          //       ]
+          // }
+          data={["Father", "Mother"].map((relationship) => {
+            // Ensure `family.parents` is an array, otherwise default to an empty array
+            const parentsArray = Array.isArray(family.parents)
+              ? family.parents
+              : [];
+
+            const existingParent = parentsArray.find(
+              (parent) => parent.relationship_type === relationship
+            );
+
+            return existingParent
+              ? {
+                  ...existingParent,
+                  givenname: existingParent.givenname || "", // Ensure givenname exists
+                  lastname: existingParent.lastname || "", // Ensure lastname exists
+                  gender:
+                    existingParent.gender ||
+                    (relationship === "Father" ? "Male" : "Female"),
+                }
+              : {
+                  relationship_type: relationship,
+                  givenname: "",
+                  lastname: "",
+                  gender: relationship === "Father" ? "Male" : "Female",
+                };
+          })}
           setData={(updatedParents) =>
             setFamily((prevFamily) => ({
               ...prevFamily,
