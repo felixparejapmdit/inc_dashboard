@@ -1461,8 +1461,9 @@ const Step4 = ({
                           icon={parent.isEditing ? <CheckIcon /> : <EditIcon />}
                           onClick={() => {
                             if (parent.isEditing) {
-                              handleSaveOrUpdate(index);
+                              handleSaveOrUpdate(index); // Save data and disable editing
                             } else {
+                              // Enable editing by updating the state
                               const updatedParents = [...data];
                               updatedParents[index].isEditing = true;
                               setData(updatedParents);

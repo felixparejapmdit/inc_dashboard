@@ -1364,12 +1364,14 @@ const EnrollmentForm = ({ referenceNumber }) => {
                   gender:
                     existingParent.gender ||
                     (relationship === "Father" ? "Male" : "Female"),
+                  //isEditing: existingParent.isEditing ?? true, // Preserve edit mode
                 }
               : {
                   relationship_type: relationship,
                   givenname: "",
                   lastname: "",
                   gender: relationship === "Father" ? "Male" : "Female",
+                  //isEditing: true, // Always allow editing for new entries
                 };
           })}
           setData={(updatedParents) =>
