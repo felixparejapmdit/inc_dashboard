@@ -41,7 +41,10 @@ import {
   LockIcon,
 } from "@chakra-ui/icons";
 
+import { usePermissionContext } from "../contexts/PermissionContext";
+
 const Profile = () => {
+  const { hasPermission } = usePermissionContext(); // Correct usage
   const [user, setUser] = useState({ name: "", email: "", avatar: "" });
   const [loading, setLoading] = useState(true);
 
@@ -364,61 +367,67 @@ const Profile = () => {
             {/* Icons Section */}
             <HStack spacing={4} mt={4} justifyContent="center">
               {/* View Profile */}
-              <Tooltip
-                label={
-                  !user.personnel_id
-                    ? "No personnel data available. Click the Info icon to proceed."
-                    : ""
-                }
-              >
-                <IconButton
-                  icon={<ViewIcon />}
-                  mr={2}
-                  colorScheme="yellow"
-                  onClick={() =>
-                    window.open(
-                      `/personnel-preview/${user.personnel_id}`,
-                      "_blank"
-                    )
+              {hasPermission("profile.preview") && (
+                <Tooltip
+                  label={
+                    !user.personnel_id
+                      ? "No personnel data available. Click the Info icon to proceed."
+                      : ""
                   }
-                  isDisabled={!user.personnel_id}
-                />
-              </Tooltip>
-
+                >
+                  <IconButton
+                    icon={<ViewIcon />}
+                    mr={2}
+                    colorScheme="yellow"
+                    onClick={() =>
+                      window.open(
+                        `/personnel-preview/${user.personnel_id}`,
+                        "_blank"
+                      )
+                    }
+                    isDisabled={!user.personnel_id}
+                  />
+                </Tooltip>
+              )}
               {/* Edit Profile */}
-              <IconButton
-                icon={<FaEdit />}
-                colorScheme="orange"
-                size="md"
-                onClick={onEditProfileOpen}
-                aria-label="Edit Profile"
-              />
-
+              {hasPermission("profile.edit") && (
+                <IconButton
+                  icon={<FaEdit />}
+                  colorScheme="orange"
+                  size="md"
+                  onClick={onEditProfileOpen}
+                  aria-label="Edit Profile"
+                />
+              )}
               {/* Change Password */}
-              <IconButton
-                icon={<FiLock />}
-                colorScheme="red"
-                size="md"
-                onClick={onChangePassOpen}
-                aria-label="Change Password"
-              />
+              {hasPermission("profile.changepassword") && (
+                <IconButton
+                  icon={<FiLock />}
+                  colorScheme="red"
+                  size="md"
+                  onClick={onChangePassOpen}
+                  aria-label="Change Password"
+                />
+              )}
 
               {/* Update Info */}
-              <IconButton
-                icon={<ExternalLinkIcon />}
-                colorScheme="teal"
-                variant="solid"
-                size="md"
-                aria-label="Update Info"
-                onClick={() => {
-                  const personnelId = user.personnel_id;
-                  if (personnelId) {
-                    window.location.href = `/enroll?personnel_id=${personnelId}&step=${user.enrollment_progress}`;
-                  } else {
-                    window.location.href = `/enroll?not_enrolled=${user.username}`;
-                  }
-                }}
-              />
+              {hasPermission("profile.info") && (
+                <IconButton
+                  icon={<ExternalLinkIcon />}
+                  colorScheme="teal"
+                  variant="solid"
+                  size="md"
+                  aria-label="Update Info"
+                  onClick={() => {
+                    const personnelId = user.personnel_id;
+                    if (personnelId) {
+                      window.location.href = `/enroll?personnel_id=${personnelId}&step=${user.enrollment_progress}`;
+                    } else {
+                      window.location.href = `/enroll?not_enrolled=${user.username}`;
+                    }
+                  }}
+                />
+              )}
             </HStack>
           </VStack>
 

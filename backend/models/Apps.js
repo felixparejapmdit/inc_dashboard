@@ -1,6 +1,6 @@
-// models/App.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
+const ApplicationType = require("./ApplicationType");
 
 const App = sequelize.define(
   "App",
@@ -27,8 +27,12 @@ const App = sequelize.define(
       allowNull: true,
     },
     app_type: {
-      type: DataTypes.INTEGER, // 1 = PMD Applications, 2 = Others
+      type: DataTypes.INTEGER, // Foreign key reference to ApplicationType
       allowNull: false,
+      references: {
+        model: ApplicationType,
+        key: "id",
+      },
     },
   },
   {
@@ -36,5 +40,11 @@ const App = sequelize.define(
     timestamps: false,
   }
 );
+
+// **Define Association**
+App.belongsTo(ApplicationType, {
+  foreignKey: "app_type",
+  as: "applicationType", // Make sure this alias matches in the query
+});
 
 module.exports = App;

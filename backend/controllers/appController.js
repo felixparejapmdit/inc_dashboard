@@ -1,16 +1,76 @@
 // controllers/appController.js
 const App = require("../models/Apps");
+const ApplicationType = require("../models/ApplicationType");
 const { Op } = require("sequelize");
 const sequelize = require("../config/database"); // Ensure you import sequelize if needed for raw queries
 
 // Get all apps
 exports.getAllApps = async (req, res) => {
   try {
-    const apps = await App.findAll();
-    res.json(apps);
+    const apps = await App.findAll({
+      include: [
+        {
+          model: ApplicationType,
+          as: "applicationType", // This should match the alias in the association
+          attributes: ["name"], // Only fetch the name of the application type
+        },
+      ],
+    });
+
+    // Transform the response to include the category name
+    const transformedApps = apps.map((app) => ({
+      id: app.id,
+      name: app.name,
+      url: app.url,
+      description: app.description,
+      icon: app.icon,
+      app_type: app.applicationType ? app.applicationType.name : "Others", // Use name instead of ID
+    }));
+
+    res.json(transformedApps);
   } catch (error) {
     console.error("Error fetching apps:", error);
-    res.status(500).json({ message: "Database error" });
+    res.status(500).json({ message: "Database error", error });
+  }
+};
+
+exports.getAppsWithTypes = async (req, res) => {
+  try {
+    const apps = await App.findAll({
+      include: [
+        {
+          model: ApplicationType,
+          as: "appType",
+          attributes: ["id", "name"],
+        },
+      ],
+      order: [
+        ["app_type", "ASC"],
+        ["name", "ASC"],
+      ],
+    });
+
+    // Categorize apps by application type
+    const categorizedApps = apps.reduce((acc, app) => {
+      const category = app.appType?.name || "Others";
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push({
+        id: app.id,
+        name: app.name,
+        url: app.url,
+        description: app.description,
+        icon: app.icon,
+        app_type: app.app_type,
+      });
+      return acc;
+    }, {});
+
+    res.status(200).json(categorizedApps);
+  } catch (error) {
+    console.error("Error fetching categorized apps:", error);
+    res.status(500).json({ message: "Error fetching apps", error });
   }
 };
 

@@ -81,6 +81,8 @@ const Users = ({ personnelId }) => {
   const [currentPagePersonnel, setCurrentPagePersonnel] = useState(1);
   const [currentPageNew, setCurrentPageNew] = useState(1);
 
+  const [categorizedApps, setCategorizedApps] = useState({});
+
   const avatarBaseUrl = `${API_URL}/uploads/`;
 
   const navigate = useNavigate(); // Initialize navigation
@@ -90,6 +92,34 @@ const Users = ({ personnelId }) => {
     fetchNewPersonnels();
   }, []);
 
+  const fetchApps = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/apps`);
+      console.log("Fetched Apps Data:", response.data); // Debug API response
+      if (!response.data || !Array.isArray(response.data)) {
+        throw new Error("Invalid API response structure");
+      }
+
+      // Group apps by application type name instead of ID
+      const groupedApps = response.data.reduce((acc, app) => {
+        const category = app.app_type || "Others"; // Use application type name instead of ID
+        if (!acc[category]) {
+          acc[category] = [];
+        }
+        acc[category].push(app);
+        return acc;
+      }, {});
+
+      setCategorizedApps(groupedApps);
+    } catch (error) {
+      console.error("Failed to load apps:", error);
+      setCategorizedApps({});
+    }
+  };
+
+  useEffect(() => {
+    fetchApps();
+  }, []);
   const fetchUsers = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/users`);
@@ -342,9 +372,24 @@ const Users = ({ personnelId }) => {
     onOpen();
   };
 
-  const handleAppChange = (selectedValues) => {
-    setSelectedApps(selectedValues);
-    setSelectAll(selectedValues.length === apps.length);
+  // const handleAppChange = (selectedValues) => {
+  //   setSelectedApps(selectedValues);
+  //   setSelectAll(selectedValues.length === apps.length);
+  // };
+
+  const [forceRender, setForceRender] = useState(false);
+
+  const handleAppChange = (updatedSelection, categoryApps) => {
+    // Ensure only valid selections are kept
+    setSelectedApps(updatedSelection);
+
+    // Check if all category apps are selected
+    const allSelected = categoryApps.every((app) =>
+      updatedSelection.includes(app.name)
+    );
+
+    // Toggle forceRender to trigger a re-render
+    setForceRender((prev) => !prev);
   };
 
   const handleSelectAll = (isChecked) => {
@@ -502,6 +547,20 @@ const Users = ({ personnelId }) => {
 
   const handleViewUser = (personnelId) => {
     window.open(`/personnel-preview/${personnelId}`, "_blank");
+  };
+
+  const handleCategorySelectAll = (category, apps, isChecked) => {
+    setSelectedApps((prevSelected) => {
+      const categoryApps = apps.map((app) => app.name);
+
+      if (isChecked) {
+        // Select all apps in the category
+        return [...new Set([...prevSelected, ...categoryApps])];
+      } else {
+        // Deselect only the apps within this category
+        return prevSelected.filter((app) => !categoryApps.includes(app));
+      }
+    });
   };
 
   return (
@@ -860,7 +919,7 @@ const Users = ({ personnelId }) => {
                 </Select>
               </FormControl>
 
-              <FormControl>
+              {/* <FormControl>
                 <FormLabel>Available Apps</FormLabel>
                 <Checkbox
                   isChecked={selectAll}
@@ -877,6 +936,89 @@ const Users = ({ personnelId }) => {
                     ))}
                   </Stack>
                 </CheckboxGroup>
+              </FormControl> */}
+
+              <FormControl>
+                <FormLabel fontSize="lg" fontWeight="bold" mb={3}>
+                  Available Apps
+                </FormLabel>
+
+                {categorizedApps && Object.keys(categorizedApps).length > 0 ? (
+                  Object.entries(categorizedApps).map(([category, apps]) => {
+                    // Check if all apps in this category are selected
+                    const allSelected = apps.every((app) =>
+                      selectedApps.includes(app.name)
+                    );
+
+                    return (
+                      <Box
+                        key={category}
+                        mt={4}
+                        p={3}
+                        borderRadius="md"
+                        border="1px solid #e2e8f0"
+                      >
+                        <Flex
+                          alignItems="center"
+                          justifyContent="space-between"
+                          mb={2}
+                        >
+                          <Text
+                            fontWeight="bold"
+                            fontSize="md"
+                            color="gray.700"
+                          >
+                            {category}
+                          </Text>
+                          <Checkbox
+                            isChecked={allSelected}
+                            onChange={(e) =>
+                              handleCategorySelectAll(
+                                category,
+                                apps,
+                                e.target.checked
+                              )
+                            }
+                            colorScheme="blue"
+                          >
+                            Select All
+                          </Checkbox>
+                        </Flex>
+
+                        <CheckboxGroup
+                          value={selectedApps}
+                          onChange={(updatedSelection) =>
+                            handleAppChange(updatedSelection, apps)
+                          }
+                        >
+                          <Stack spacing={2} pl={4}>
+                            {apps.map((app) => (
+                              <Checkbox
+                                key={app.id}
+                                value={app.name}
+                                colorScheme="blue"
+                                _hover={{
+                                  transform: "scale(1.02)",
+                                  transition: "0.2s ease-in-out",
+                                }}
+                                _focus={{
+                                  borderColor: "blue.400",
+                                  boxShadow: "0 0 4px blue",
+                                }}
+                              >
+                                {app.name}
+                              </Checkbox>
+                            ))}
+                          </Stack>
+                        </CheckboxGroup>
+                      </Box>
+                    );
+                  })
+                ) : (
+                  <Text mt={3} color="gray.500">
+                    No apps available
+                  </Text>
+                )}
               </FormControl>
             </VStack>
           </ModalBody>

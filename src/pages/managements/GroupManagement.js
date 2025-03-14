@@ -30,6 +30,7 @@ import {
   ModalCloseButton,
   ModalBody,
   ModalFooter,
+  Checkbox,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import {
@@ -126,10 +127,15 @@ const GroupManagement = () => {
     }
   };
 
-  const handleSelectGroup = (group) => {
+  const handleShowUsers = (group) => {
     setSelectedGroup(group);
     fetchGroupUsers(group.id);
     setIsUserGroupModalOpen(true); // Open modal when a group row is clicked
+  };
+
+  const handleSelectGroup = (group) => {
+    setSelectedGroup(group);
+    fetchGroupUsers(group.id);
   };
 
   const handlePermissionChange = async (
@@ -370,7 +376,7 @@ const GroupManagement = () => {
               return (
                 <React.Fragment key={group.id}>
                   <Tr
-                    onClick={() => handleSelectGroup(group)}
+                    onClick={() => handleShowUsers(group)}
                     style={{
                       cursor: "pointer",
                       background:
@@ -420,15 +426,22 @@ const GroupManagement = () => {
                           <>
                             <Button
                               colorScheme="green"
-                              onClick={handleUpdateGroup}
+                              onClick={(event) => {
+                                event.stopPropagation(); // Prevents row click event
+                                handleUpdateGroup();
+                              }}
                               size="sm"
                               mr={2}
                             >
                               Save
                             </Button>
+
                             <Button
                               colorScheme="red"
-                              onClick={() => setEditingGroup(null)}
+                              onClick={(event) => {
+                                event.stopPropagation(); // Prevents row click event
+                                setEditingGroup(null);
+                              }}
                               size="sm"
                               mr={2}
                             >
@@ -439,7 +452,8 @@ const GroupManagement = () => {
                           <>
                             <IconButton
                               icon={<EditIcon />}
-                              onClick={() => {
+                              onClick={(event) => {
+                                event.stopPropagation(); // Prevent triggering row click
                                 setSelectedGroup(group);
                                 setIsAddingOrEditing("edit");
                                 setEditingGroup(group);
@@ -451,7 +465,10 @@ const GroupManagement = () => {
                             />
                             <IconButton
                               icon={<DeleteIcon />}
-                              onClick={() => handleDeleteGroup(group)}
+                              onClick={(event) => {
+                                event.stopPropagation(); // Prevent triggering row click
+                                handleDeleteGroup(group);
+                              }}
                               size="sm"
                               colorScheme="red"
                             />
@@ -486,7 +503,60 @@ const GroupManagement = () => {
                               <Th width="30%">Category</Th>
                               <Th width="40%">Permission</Th>
                               <Th width="15%" textAlign="center">
-                                Grant
+                                <Flex align="center" justify="center">
+                                  <Checkbox
+                                    isChecked={permissions.every((category) =>
+                                      category.permissions.every(
+                                        (perm) => perm.accessrights === 1
+                                      )
+                                    )}
+                                    onChange={() => {
+                                      const allGranted = permissions.every(
+                                        (category) =>
+                                          category.permissions.every(
+                                            (perm) => perm.accessrights === 1
+                                          )
+                                      );
+
+                                      const newAccessRight = allGranted ? 0 : 1;
+
+                                      const updatedPermissions =
+                                        permissions.map((cat) => ({
+                                          ...cat,
+                                          permissions: cat.permissions.map(
+                                            (perm) => ({
+                                              ...perm,
+                                              accessrights: newAccessRight,
+                                            })
+                                          ),
+                                        }));
+
+                                      setPermissions(updatedPermissions);
+
+                                      permissions.forEach((category) =>
+                                        category.permissions.forEach(
+                                          (permission) => {
+                                            handlePermissionChange(
+                                              selectedGroup.id,
+                                              permission.id,
+                                              category.categoryId,
+                                              newAccessRight
+                                            );
+                                          }
+                                        )
+                                      );
+                                    }}
+                                  />
+                                  <span style={{ marginLeft: "8px" }}>
+                                    {permissions.every((category) =>
+                                      category.permissions.every(
+                                        (perm) => perm.accessrights === 1
+                                      )
+                                    )
+                                      ? "Unselect All"
+                                      : "Grant All"}
+                                  </span>
+                                </Flex>
                               </Th>
                               <Th width="15%" textAlign="center">
                                 Deny
@@ -494,71 +564,187 @@ const GroupManagement = () => {
                             </Tr>
                           </Thead>
                           <Tbody>
-                            {permissions.map((category) => (
-                              <React.Fragment key={category.categoryId}>
-                                <Tr bg="gray.100">
-                                  <Td colSpan={4} fontWeight="bold">
-                                    {category.categoryName}
-                                  </Td>
-                                </Tr>
-                                {/* Render permissions under the category */}
-                                {category.permissions.map(
-                                  (permission, permissionIndex) => (
-                                    <Tr key={permission.id}>
-                                      <Td textAlign="center">
-                                        {permissionIndex + 1}
-                                      </Td>
-                                      <Td>{permission.name}</Td>
-                                      <Td colSpan={2} textAlign="center">
-                                        {/* Single RadioGroup for Grant and Deny */}
-                                        <RadioGroup
-                                          onChange={async (value) => {
-                                            // Optimistic UI update
-                                            const updatedPermissions = [
-                                              ...permissions,
-                                            ];
-                                            const categoryToUpdate =
-                                              updatedPermissions.find(
-                                                (cat) =>
-                                                  cat.categoryId ===
-                                                  category.categoryId
-                                              );
-                                            const permissionToUpdate =
-                                              categoryToUpdate.permissions.find(
-                                                (perm) =>
-                                                  perm.id === permission.id
-                                              );
-                                            permissionToUpdate.accessrights =
-                                              parseInt(value);
+                            {permissions.map((category) => {
+                              // Check if all permissions in this category are granted
+                              const allCategoryGranted =
+                                category.permissions.every(
+                                  (permission) => permission.accessrights === 1
+                                );
 
-                                            // Update state immediately
+                              return (
+                                <React.Fragment key={category.categoryId}>
+                                  {/* Category Header with Checkbox */}
+                                  <Tr bg="gray.100">
+                                    <Td colSpan={2} fontWeight="bold">
+                                      {category.categoryName}
+                                    </Td>
+                                    <Td textAlign="center">
+                                      <Flex align="left" justify="left" gap={2}>
+                                        <Checkbox
+                                          isChecked={allCategoryGranted}
+                                          onChange={() => {
+                                            const newAccessRight =
+                                              allCategoryGranted ? 0 : 1;
+
+                                            const updatedPermissions =
+                                              permissions.map((cat) =>
+                                                cat.categoryId ===
+                                                category.categoryId
+                                                  ? {
+                                                      ...cat,
+                                                      permissions:
+                                                        cat.permissions.map(
+                                                          (perm) => ({
+                                                            ...perm,
+                                                            accessrights:
+                                                              newAccessRight,
+                                                          })
+                                                        ),
+                                                    }
+                                                  : cat
+                                              );
+
                                             setPermissions(updatedPermissions);
 
-                                            // Make API call
-                                            await handlePermissionChange(
-                                              selectedGroup.id,
-                                              permission.id,
-                                              category.categoryId,
-                                              parseInt(value)
+                                            category.permissions.forEach(
+                                              (permission) => {
+                                                handlePermissionChange(
+                                                  selectedGroup.id,
+                                                  permission.id,
+                                                  category.categoryId,
+                                                  newAccessRight
+                                                );
+                                              }
                                             );
                                           }}
-                                          value={String(
-                                            permission.accessrights
-                                          )}
-                                        >
-                                          <Flex justifyContent="center" gap={6}>
-                                            <Radio value="1">Grant</Radio>
-                                            <Radio value="0">Deny</Radio>
-                                          </Flex>
-                                        </RadioGroup>
-                                      </Td>
-                                    </Tr>
-                                  )
-                                )}
-                              </React.Fragment>
-                            ))}
+                                        />
+                                        <Text fontSize="sm" fontWeight="bold">
+                                          Select All
+                                        </Text>
+                                      </Flex>
+                                    </Td>
+                                    <Td />
+                                  </Tr>
+
+                                  {/* Render Permissions Under the Category */}
+                                  {category.permissions.map(
+                                    (permission, permissionIndex) => (
+                                      <Tr key={permission.id}>
+                                        <Td textAlign="center">
+                                          {permissionIndex + 1}
+                                        </Td>
+                                        <Td>{permission.name}</Td>
+                                        <Td textAlign="center">
+                                          <RadioGroup
+                                            onChange={async (value) => {
+                                              const updatedPermissions =
+                                                permissions.map((cat) =>
+                                                  cat.categoryId ===
+                                                  category.categoryId
+                                                    ? {
+                                                        ...cat,
+                                                        permissions:
+                                                          cat.permissions.map(
+                                                            (perm) =>
+                                                              perm.id ===
+                                                              permission.id
+                                                                ? {
+                                                                    ...perm,
+                                                                    accessrights:
+                                                                      parseInt(
+                                                                        value
+                                                                      ),
+                                                                  }
+                                                                : perm
+                                                          ),
+                                                      }
+                                                    : cat
+                                                );
+
+                                              setPermissions(
+                                                updatedPermissions
+                                              );
+
+                                              await handlePermissionChange(
+                                                selectedGroup.id,
+                                                permission.id,
+                                                category.categoryId,
+                                                parseInt(value)
+                                              );
+                                            }}
+                                            value={String(
+                                              permission.accessrights
+                                            )}
+                                          >
+                                            <Flex
+                                              justifyContent="left"
+                                              align="left"
+                                              gap={10}
+                                            >
+                                              <Radio value="1">Grant</Radio>
+                                            </Flex>
+                                          </RadioGroup>
+                                        </Td>
+                                        <Td textAlign="center">
+                                          <RadioGroup
+                                            onChange={async (value) => {
+                                              const updatedPermissions =
+                                                permissions.map((cat) =>
+                                                  cat.categoryId ===
+                                                  category.categoryId
+                                                    ? {
+                                                        ...cat,
+                                                        permissions:
+                                                          cat.permissions.map(
+                                                            (perm) =>
+                                                              perm.id ===
+                                                              permission.id
+                                                                ? {
+                                                                    ...perm,
+                                                                    accessrights:
+                                                                      parseInt(
+                                                                        value
+                                                                      ),
+                                                                  }
+                                                                : perm
+                                                          ),
+                                                      }
+                                                    : cat
+                                                );
+
+                                              setPermissions(
+                                                updatedPermissions
+                                              );
+
+                                              await handlePermissionChange(
+                                                selectedGroup.id,
+                                                permission.id,
+                                                category.categoryId,
+                                                parseInt(value)
+                                              );
+                                            }}
+                                            value={String(
+                                              permission.accessrights
+                                            )}
+                                          >
+                                            <Flex
+                                              justifyContent="center"
+                                              align="center"
+                                              gap={6}
+                                            >
+                                              <Radio value="0">Deny</Radio>
+                                            </Flex>
+                                          </RadioGroup>
+                                        </Td>
+                                      </Tr>
+                                    )
+                                  )}
+                                </React.Fragment>
+                              );
+                            })}
                           </Tbody>
                         </Table>
+
                         <Flex mt={4} justify="flex-end">
                           <Button
                             colorScheme="green"
