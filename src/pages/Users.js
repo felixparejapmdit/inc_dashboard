@@ -377,11 +377,6 @@ const Users = ({ personnelId }) => {
     onClose();
   };
 
-  // const handleSearchChange = (e) => {
-  //   setSearchTerm(e.target.value);
-  //   setCurrentPage(1); // Reset to the first page whenever search term changes
-  // };
-
   const handleAssignGroup = async (userId, groupId) => {
     try {
       const response = await fetch(
@@ -569,8 +564,8 @@ const Users = ({ personnelId }) => {
                 <Th>#</Th> {/* Row number column */}
                 <Th>Avatar</Th>
                 <Th>Full Name</Th>
-                <Th>District</Th>
-                <Th>Local Congregation Assignment</Th>
+                {/* <Th>District</Th>
+                <Th>Local Congregation Assignment</Th> */}
                 <Th>Email</Th>
                 <Th>Group</Th>
                 <Th whiteSpace="nowrap">Actions</Th>
@@ -597,11 +592,11 @@ const Users = ({ personnelId }) => {
                         }`}</Text>
                       </HStack>
                     </Td>
-                    <Td>{item.personnel_district_assignment_name || "N/A"}</Td>
+                    {/* <Td>{item.personnel_district_assignment_name || "N/A"}</Td>
                     <Td>
                       {item.personnel_local_congregation_assignment_name ||
                         "N/A"}
-                    </Td>
+                    </Td> */}
                     <Td>{item.mail || "N/A"}</Td>
                     <Td>{item.groupname || "N/A"}</Td>
                     <Td>

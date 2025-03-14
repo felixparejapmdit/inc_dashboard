@@ -23,6 +23,13 @@ import {
   AlertDialogHeader,
   AlertDialogBody,
   AlertDialogFooter,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import {
@@ -39,6 +46,7 @@ const GroupManagement = () => {
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [isAddingOrEditing, setIsAddingOrEditing] = useState(false); // To handle Add/Edit mode
+  const [isUserGroupModalOpen, setIsUserGroupModalOpen] = useState(false);
 
   const [groupUsers, setGroupUsers] = useState([]);
   const [permissions, setPermissions] = useState([]);
@@ -121,6 +129,7 @@ const GroupManagement = () => {
   const handleSelectGroup = (group) => {
     setSelectedGroup(group);
     fetchGroupUsers(group.id);
+    setIsUserGroupModalOpen(true); // Open modal when a group row is clicked
   };
 
   const handlePermissionChange = async (
@@ -570,7 +579,83 @@ const GroupManagement = () => {
           </Tbody>
         </Table>
 
-        {selectedGroup && (
+        <Modal
+          isOpen={isUserGroupModalOpen}
+          onClose={() => setIsUserGroupModalOpen(false)}
+          isCentered
+          size={{ base: "full", md: "xl", lg: "3xl" }} // Dynamic sizing
+        >
+          <ModalOverlay />
+          <ModalContent
+            maxWidth={{ base: "90vw", md: "80vw", lg: "60vw" }} // Responsive width
+            overflow="hidden"
+            p={4}
+          >
+            {/* Fixed Modal Header */}
+            <ModalHeader>Users in Group: {selectedGroup?.name}</ModalHeader>
+            <ModalCloseButton />
+
+            <ModalBody>
+              <Box maxHeight="400px" overflowY="auto">
+                {" "}
+                {/* Scrollable tbody */}
+                <Table variant="simple">
+                  <Thead
+                    position="sticky"
+                    top="0"
+                    zIndex="1"
+                    backgroundColor="white"
+                    boxShadow="md"
+                  >
+                    <Tr>
+                      <Th>#</Th>
+                      <Th>Fullname</Th>
+                      <Th>Username</Th>
+                      <Th>Email</Th>
+                      <Th>Group</Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {groupUsers.map((user, index) => (
+                      <Tr key={user.id}>
+                        <Td>{index + 1}</Td> {/* Row number */}
+                        <Td>{user.fullname || "N/A"}</Td>
+                        <Td>{user.username}</Td>
+                        <Td>{user.email || "N/A"}</Td>
+                        <Td>
+                          <Select
+                            placeholder="Select Group"
+                            value={user.group_id || selectedGroup?.id || ""}
+                            onChange={(e) =>
+                              handleGroupChange(user.id, e.target.value)
+                            }
+                          >
+                            {groups.map((group) => (
+                              <option key={group.id} value={group.id}>
+                                {group.name}
+                              </option>
+                            ))}
+                          </Select>
+                        </Td>
+                      </Tr>
+                    ))}
+                  </Tbody>
+                </Table>
+              </Box>
+            </ModalBody>
+
+            <ModalFooter>
+              <Button
+                colorScheme="blue"
+                onClick={() => setIsUserGroupModalOpen(false)}
+              >
+                Close
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        {/* {selectedGroup && (
           <Box mt={5}>
             <Text fontSize="xl" fontWeight="bold" mb={3}>
               Users in Group: {selectedGroup.name}
@@ -616,7 +701,7 @@ const GroupManagement = () => {
               </Tbody>
             </Table>
           </Box>
-        )}
+        )} */}
       </Stack>
     </Box>
   );

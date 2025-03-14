@@ -37,6 +37,7 @@ exports.getGroupById = async (req, res) => {
 exports.getGroupUsers = async (req, res) => {
   try {
     const groupId = req.params.groupId;
+    console.log(`Fetching users for group ID: ${groupId}`);
 
     // Fetch user mappings for the group
     const userMappings = await UserGroupMapping.findAll({
@@ -48,17 +49,33 @@ exports.getGroupUsers = async (req, res) => {
           attributes: ["id", "username"],
         },
       ],
-      order: [["User", "username", "ASC"]], // Order by 'username' in ascending order
+      order: [["User", "username", "ASC"]],
     });
 
-    // Fetch additional data from the LDAP API
-    const ldapResponse = await axios.get(
-      `${process.env.REACT_APP_API_URL}/api/ldap/users`
-    );
-    const ldapUsers = ldapResponse.data;
+    console.log("User Mappings:", userMappings);
+
+    // Fetch additional data from LDAP API
+    let ldapUsers = [];
+    try {
+      const ldapResponse = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/ldap/users`
+      );
+      ldapUsers = ldapResponse.data;
+    } catch (ldapError) {
+      console.error("Error fetching LDAP users:", ldapError);
+    }
 
     // Map database user data with LDAP user data
     const users = userMappings.map((mapping) => {
+      if (!mapping.User) {
+        console.warn("Warning: Null User detected for mapping:", mapping);
+        return {
+          id: "N/A",
+          username: "Unknown",
+          fullname: "N/A",
+          email: "N/A",
+        };
+      }
       const ldapUser = ldapUsers.find(
         (ldap) => ldap.uid === mapping.User.username
       );
@@ -70,6 +87,7 @@ exports.getGroupUsers = async (req, res) => {
       };
     });
 
+    console.log("Final Users Data:", users);
     res.status(200).json(users);
   } catch (error) {
     console.error("Error retrieving group users:", error);
