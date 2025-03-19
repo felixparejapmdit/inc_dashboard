@@ -3,6 +3,34 @@ const path = require("path");
 const PersonnelImage = require("../models/PersonnelImage");
 
 // Create a new personnel image
+// exports.createImage = async (req, res) => {
+//   try {
+//     const { personnel_id, type } = req.body;
+
+//     // Validate required fields
+//     if (!personnel_id || !type || !req.file) {
+//       return res.status(400).json({ message: "Missing required fields." });
+//     }
+
+//     // Save the file path in the database
+//     const imagePath = `/uploads/avatar/${req.file.filename}`;
+//     const newImage = await PersonnelImage.create({
+//       personnel_id,
+//       type,
+//       image_url: imagePath,
+//       created_at: new Date(),
+//     });
+
+//     res.status(201).json({
+//       message: "Image saved successfully",
+//       image: newImage,
+//     });
+//   } catch (error) {
+//     console.error("Error saving image:", error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
+
 exports.createImage = async (req, res) => {
   try {
     const { personnel_id, type } = req.body;
@@ -12,7 +40,35 @@ exports.createImage = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields." });
     }
 
-    // Save the file path in the database
+    // Check if an image already exists for this personnel_id and type
+    const existingImage = await PersonnelImage.findOne({
+      where: { personnel_id, type },
+    });
+
+    if (existingImage) {
+      // Delete the old image file from the uploads folder
+      const oldFilePath = path.join(
+        __dirname,
+        "../../uploads/avatar",
+        path.basename(existingImage.image_url)
+      );
+
+      if (fs.existsSync(oldFilePath)) {
+        fs.unlinkSync(oldFilePath);
+      }
+
+      // Update the existing record with new file path and timestamp
+      existingImage.image_url = `/uploads/avatar/${req.file.filename}`;
+      existingImage.updated_at = new Date();
+      await existingImage.save();
+
+      return res.status(200).json({
+        message: "Image updated successfully",
+        image: existingImage,
+      });
+    }
+
+    // If no existing image, create a new record
     const imagePath = `/uploads/avatar/${req.file.filename}`;
     const newImage = await PersonnelImage.create({
       personnel_id,

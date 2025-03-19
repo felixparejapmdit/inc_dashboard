@@ -40,9 +40,9 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [imageSize, setImageSize] = useState("2x2"); // Default to 2x2
   const [images, setImages] = useState({
-    "2x2 Picture": null,
-    "Half Body Picture": null,
-    "Full Body Picture": null,
+    twoByTwo: null,
+    halfBody: null,
+    fullBody: null,
   });
 
   const fileInputRef = useRef(null);
@@ -62,12 +62,22 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
   const [step, setStep] = useState(0); // Track the current step
 
   // Function to get step label
-  const stepLabels = ["2x2 Picture", "Half Body Picture", "Full Body Picture"];
+  const getStepLabel = (step) =>
+    ["2x2 Picture", "Half Body Picture", "Full Body Picture"][step];
 
-  const getStepLabel = (step) => stepLabels[step] || "2x2 Picture";
+  // Move to next step only if image is uploaded
+  const nextStep = () => {
+    if (step < 2 && images[getStepLabel(step).toLowerCase().replace(/\s/g, "")])
+      setStep(step + 1);
+  };
+
+  // Move to previous step
+  const prevStep = () => {
+    if (step > 0) setStep(step - 1);
+  };
 
   useEffect(() => {
-    if (!personnelId) return;
+    if (!personnelId) return; // Prevent fetching if no personnelId
 
     const fetchImages = async () => {
       try {
@@ -77,19 +87,19 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
         const data = await response.json();
 
         if (data.success) {
-          const imagesByType = {};
+          console.log("Fetched Images:", data.data); // Debugging: Check fetched images
 
-          // Store images in the correct type slot
-          data.data.forEach((img) => {
-            imagesByType[
-              img.type
-            ] = `${process.env.REACT_APP_API_URL}${img.image_url}`;
-          });
-
+          // Ensure images are stored in correct keys
           setImages({
-            "2x2 Picture": imagesByType["2x2 Picture"] || null,
-            "Half Body Picture": imagesByType["Half Body Picture"] || null,
-            "Full Body Picture": imagesByType["Full Body Picture"] || null,
+            twoByTwo:
+              data.data.find((img) => img.type === "2x2 Picture")?.image_url ||
+              null,
+            halfBody:
+              data.data.find((img) => img.type === "Half Body Picture")
+                ?.image_url || null,
+            fullBody:
+              data.data.find((img) => img.type === "Full Body Picture")
+                ?.image_url || null,
           });
         }
       } catch (error) {
@@ -98,33 +108,7 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
     };
 
     fetchImages();
-  }, [personnelId]);
-
-  // Move to next step only if image is uploaded
-  const nextStep = () => {
-    const currentLabel = getStepLabel(step);
-
-    if (!images[currentLabel]) {
-      toast({
-        title: "Upload required",
-        description: `Please upload a ${currentLabel} before proceeding.`,
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    if (step < 2) {
-      setStep(step + 1);
-    }
-  };
-
-  const prevStep = () => {
-    if (step > 0) {
-      setStep(step - 1);
-    }
-  };
+  }, [personnelId]); // Ensure this runs when personnelId changes
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
@@ -253,73 +237,6 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
     }
   };
 
-  // const handleSaveImage = async () => {
-  //   if (!image) {
-  //     toast({
-  //       title: "No image to save",
-  //       description: "Please upload or capture an image before saving.",
-  //       status: "warning",
-  //       duration: 3000,
-  //       isClosable: true,
-  //     });
-  //     return;
-  //   }
-
-  //   const formData = new FormData();
-  //   formData.append("personnel_id", personnelId);
-  //   formData.append("type", getStepLabel(step));
-  //   const fileData = dataURLtoFile(image, `${Date.now()}.png`);
-  //   if (!fileData) {
-  //     toast({
-  //       title: "Image conversion failed",
-  //       description: "Please try again.",
-  //       status: "error",
-  //       duration: 3000,
-  //       isClosable: true,
-  //     });
-  //     return;
-  //   }
-
-  //   formData.append("image", fileData);
-
-  //   try {
-  //     const response = await fetch(
-  //       `${process.env.REACT_APP_API_URL}/api/personnel_images`,
-  //       {
-  //         method: "POST",
-  //         body: formData,
-  //       }
-  //     );
-
-  //     if (response.ok) {
-  //       toast({
-  //         title: "Image saved successfully",
-  //         status: "success",
-  //         duration: 3000,
-  //         isClosable: true,
-  //       });
-
-  //       // Update the stored images and move to next step
-  //       setImages((prev) => ({
-  //         ...prev,
-  //         [getStepLabel(step).toLowerCase().replace(/\s/g, "")]: image,
-  //       }));
-  //       setImage(null);
-  //       if (step < 2) nextStep();
-  //     } else {
-  //       throw new Error("Failed to save the image.");
-  //     }
-  //   } catch (err) {
-  //     toast({
-  //       title: "Error saving image",
-  //       description: "Something went wrong. Please try again.",
-  //       status: "error",
-  //       duration: 3000,
-  //       isClosable: true,
-  //     });
-  //   }
-  // };
-
   const handleSaveImage = async () => {
     if (!image) {
       toast({
@@ -334,9 +251,8 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
 
     const formData = new FormData();
     formData.append("personnel_id", personnelId);
-    formData.append("type", getStepLabel(step)); // Send correct step type
+    formData.append("type", getStepLabel(step));
     const fileData = dataURLtoFile(image, `${Date.now()}.png`);
-
     if (!fileData) {
       toast({
         title: "Image conversion failed",
@@ -359,32 +275,28 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
         }
       );
 
-      const result = await response.json();
-
       if (response.ok) {
         toast({
-          title: "Image updated successfully",
+          title: "Image saved successfully",
           status: "success",
           duration: 3000,
           isClosable: true,
         });
 
-        // Update the stored images and refresh the UI
+        // Update the stored images and move to next step
         setImages((prev) => ({
           ...prev,
-          [getStepLabel(
-            step
-          )]: `${process.env.REACT_APP_API_URL}${result.image.image_url}`,
+          [getStepLabel(step).toLowerCase().replace(/\s/g, "")]: image,
         }));
-
         setImage(null);
+        if (step < 2) nextStep();
       } else {
-        throw new Error(result.message || "Failed to save the image.");
+        throw new Error("Failed to save the image.");
       }
     } catch (err) {
       toast({
         title: "Error saving image",
-        description: err.message || "Something went wrong. Please try again.",
+        description: "Something went wrong. Please try again.",
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -573,29 +485,50 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
         <Button onClick={prevStep} isDisabled={step === 0}>
           Previous
         </Button>
-        <Button onClick={nextStep} isDisabled={step === 2}>
+        <Button
+          onClick={nextStep}
+          isDisabled={
+            step === 2 ||
+            !images[getStepLabel(step).toLowerCase().replace(/\s/g, "")]
+          }
+        >
           Next
         </Button>
       </HStack>
-
       {/* Image Preview (Only the selected step) */}
-      <Box textAlign="center">
-        <Text fontWeight="bold">{getStepLabel(step)}</Text>
-        {images[getStepLabel(step)] ? (
-          <Image
-            src={images[getStepLabel(step)]}
-            width="150px"
-            height="150px"
-            objectFit="cover"
-            fallbackSrc="/fallback-image.png"
-          />
-        ) : (
-          <Text fontSize="sm" color="gray.500">
-            No image uploaded for {getStepLabel(step)}
-          </Text>
+      <Box display="flex" flexWrap="wrap" justifyContent="center" gap={4}>
+        {images[getStepLabel(step).toLowerCase().replace(/\s/g, "")] && (
+          <Box
+            border="1px solid"
+            borderColor="gray.300"
+            p={4}
+            textAlign="center"
+          >
+            <Text fontWeight="bold">{getStepLabel(step)}</Text>
+            <Image
+              src={
+                new URL(
+                  images[
+                    getStepLabel(step).toLowerCase().replace(/\s/g, "")
+                  ]?.replace(/^\/+/, ""),
+                  process.env.REACT_APP_API_URL
+                ).href
+              }
+              width="150px"
+              height="150px"
+              objectFit="cover"
+              onError={(e) => (e.target.src = "/fallback-image.png")} // Use fallback if image is broken
+            />
+
+            <IconButton
+              icon={<MdDelete />}
+              colorScheme="red"
+              mt={2}
+              onClick={() => handleDeleteImage(imageToDelete)}
+            />
+          </Box>
         )}
       </Box>
-
       {/* Camera Modal */}
       <Modal isOpen={isCameraOpen} onClose={closeCamera}>
         <ModalOverlay />

@@ -27,6 +27,7 @@ import {
   ModalCloseButton,
   ModalBody,
   ModalFooter,
+  Image, // ✅ Add Image here
 } from "@chakra-ui/react";
 import axios from "axios";
 
@@ -77,13 +78,40 @@ const Step5 = () => {
     }
   };
 
+  // const fetchPersonnelImages = async (personnelId) => {
+  //   try {
+  //     const response = await axios.get(
+  //       `${API_URL}/api/personnel_images/${personnelId}`
+  //     );
+  //     if (response.data.success) {
+  //       setPersonnelImages(response.data.data);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching personnel images:", error);
+  //   }
+  // };
+
   const fetchPersonnelImages = async (personnelId) => {
     try {
       const response = await axios.get(
         `${API_URL}/api/personnel_images/${personnelId}`
       );
+
       if (response.data.success) {
-        setPersonnelImages(response.data.data);
+        const imagesByType = {};
+
+        // Debugging: Log the API response
+        console.log("Fetched Personnel Images:", response.data.data);
+
+        // Store images based on type
+        response.data.data.forEach((img) => {
+          imagesByType[img.type.trim()] = `${API_URL}${img.image_url}`;
+        });
+
+        setPersonnelImages(imagesByType); // Store images in state
+
+        // Debugging: Log the mapped images
+        console.log("Mapped Personnel Images:", imagesByType);
       }
     } catch (error) {
       console.error("Error fetching personnel images:", error);
@@ -98,19 +126,19 @@ const Step5 = () => {
   };
 
   // Determine Image URL based on Step
-  const getCurrentImage = () => {
-    const imageTypes = [
-      "2x2 Picture",
-      "Half Body Picture",
-      "Full Body Picture",
-    ];
-    const selectedType = imageTypes[currentStep - 1];
+  // const getCurrentImage = () => {
+  //   const imageTypes = [
+  //     "2x2 Picture",
+  //     "Half Body Picture",
+  //     "Full Body Picture",
+  //   ];
+  //   const selectedType = imageTypes[currentStep - 1];
 
-    const foundImage = personnelImages.find((img) => img.type === selectedType);
-    return foundImage
-      ? `${API_URL}${foundImage.image_url}`
-      : `${API_URL}/uploads/avatar/default.png`;
-  };
+  //   const foundImage = personnelImages.find((img) => img.type === selectedType);
+  //   return foundImage
+  //     ? `${API_URL}${foundImage.image_url}`
+  //     : `${API_URL}/uploads/avatar/default.png`;
+  // };
 
   // Fetch new personnel list when component mounts
   useEffect(() => {
@@ -242,9 +270,10 @@ const Step5 = () => {
     }
 
     setSelectedUser(user);
-    setShowChecklist(true); // ✅ Show the checklist when a user is selected
+    setShowChecklist(true);
 
-    fetchPersonnelDetails(user.personnel_id);
+    // ✅ Fetch images when a user is selected
+    fetchPersonnelImages(user.personnel_id);
   };
 
   const handlePhotoChange = (field) => {
@@ -346,32 +375,123 @@ const Step5 = () => {
                 Select All
               </Checkbox>
 
-              {/* Individual Photo Checkboxes */}
-              <VStack align="start" spacing={3} w="100%">
-                <Checkbox
-                  isChecked={photos.twoByTwo}
-                  onChange={() => handlePhotoChange("twoByTwo")}
-                  colorScheme="teal"
-                  size="lg"
+              <VStack align="start" spacing={4} w="100%">
+                {/* 2x2 Photo */}
+                <Flex
+                  align="center"
+                  w="100%"
+                  p={2}
+                  borderRadius="md"
+                  _hover={{ bg: "gray.100" }}
                 >
-                  2x2 Photo
-                </Checkbox>
-                <Checkbox
-                  isChecked={photos.halfBody}
-                  onChange={() => handlePhotoChange("halfBody")}
-                  colorScheme="teal"
-                  size="lg"
+                  <Checkbox
+                    isChecked={photos.twoByTwo}
+                    onChange={() => handlePhotoChange("twoByTwo")}
+                    colorScheme="teal"
+                    size="lg"
+                    mr={3}
+                  />
+                  {personnelImages["2x2 Picture"] ? (
+                    <Image
+                      src={personnelImages["2x2 Picture"]}
+                      alt="2x2 Photo"
+                      boxSize="50px"
+                      objectFit="cover"
+                      borderRadius="md"
+                      border="1px solid #ccc"
+                      shadow="sm"
+                      mr={3}
+                    />
+                  ) : (
+                    <Box
+                      boxSize="50px"
+                      bg="gray.200"
+                      borderRadius="md"
+                      mr={3}
+                    />
+                  )}
+                  <Text fontSize="md" fontWeight="medium">
+                    2x2 Photo
+                  </Text>
+                </Flex>
+
+                {/* Half Body Photo */}
+                <Flex
+                  align="center"
+                  w="100%"
+                  p={2}
+                  borderRadius="md"
+                  _hover={{ bg: "gray.100" }}
                 >
-                  Half Body Photo
-                </Checkbox>
-                <Checkbox
-                  isChecked={photos.fullBody}
-                  onChange={() => handlePhotoChange("fullBody")}
-                  colorScheme="teal"
-                  size="lg"
+                  <Checkbox
+                    isChecked={photos.halfBody}
+                    onChange={() => handlePhotoChange("halfBody")}
+                    colorScheme="teal"
+                    size="lg"
+                    mr={3}
+                  />
+                  {personnelImages["Half Body Picture"] ? (
+                    <Image
+                      src={personnelImages["Half Body Picture"]}
+                      alt="Half Body"
+                      boxSize="50px"
+                      objectFit="cover"
+                      borderRadius="md"
+                      border="1px solid #ccc"
+                      shadow="sm"
+                      mr={3}
+                    />
+                  ) : (
+                    <Box
+                      boxSize="50px"
+                      bg="gray.200"
+                      borderRadius="md"
+                      mr={3}
+                    />
+                  )}
+                  <Text fontSize="md" fontWeight="medium">
+                    Half Body Photo
+                  </Text>
+                </Flex>
+
+                {/* Full Body Photo */}
+                <Flex
+                  align="center"
+                  w="100%"
+                  p={2}
+                  borderRadius="md"
+                  _hover={{ bg: "gray.100" }}
                 >
-                  Full Body Photo
-                </Checkbox>
+                  <Checkbox
+                    isChecked={photos.fullBody}
+                    onChange={() => handlePhotoChange("fullBody")}
+                    colorScheme="teal"
+                    size="lg"
+                    mr={3}
+                  />
+                  {personnelImages["Full Body Picture"] ? (
+                    <Image
+                      src={personnelImages["Full Body Picture"]}
+                      alt="Full Body"
+                      boxSize="50px"
+                      objectFit="cover"
+                      borderRadius="md"
+                      border="1px solid #ccc"
+                      shadow="sm"
+                      mr={3}
+                    />
+                  ) : (
+                    <Box
+                      boxSize="50px"
+                      bg="gray.200"
+                      borderRadius="md"
+                      mr={3}
+                    />
+                  )}
+                  <Text fontSize="md" fontWeight="medium">
+                    Full Body Photo
+                  </Text>
+                </Flex>
               </VStack>
 
               {/* Verify Button */}
