@@ -405,16 +405,19 @@ const GroupManagement = () => {
                         )}
                       </Flex>
                     </Td>
-                    <Td>
+                    <Td
+                      onClick={(e) => e.stopPropagation()} // Prevent row click when clicking on input
+                    >
                       {editingGroup && editingGroup.id === group.id ? (
                         <Input
                           value={editingGroup.description}
-                          onChange={(e) =>
+                          onChange={(e) => {
+                            e.stopPropagation(); // Prevent triggering row click
                             setEditingGroup({
                               ...editingGroup,
                               description: e.target.value,
-                            })
-                          }
+                            });
+                          }}
                         />
                       ) : (
                         group.description
@@ -500,10 +503,11 @@ const GroupManagement = () => {
                         <Table variant="striped" mt={2}>
                           <Thead>
                             <Tr>
-                              <Th width="30%">Category</Th>
-                              <Th width="40%">Permission</Th>
-
-                              <Th width="15%" textAlign="center">
+                              <Th width="10%">Category</Th>
+                              <Th width="20%">Permission</Th>
+                              <Th width="30%">Description</Th>{" "}
+                              {/* Keep description properly aligned */}
+                              <Th width="10%" textAlign="center">
                                 <Flex align="center" justify="center">
                                   <Checkbox
                                     isChecked={permissions.every((category) =>
@@ -579,8 +583,11 @@ const GroupManagement = () => {
                                     <Td colSpan={2} fontWeight="bold">
                                       {category.categoryName}
                                     </Td>
+                                    <Td>
+                                      {/* Keep this blank to align the description column */}
+                                    </Td>
                                     <Td textAlign="center">
-                                      <Flex align="left" justify="left" gap={2}>
+                                      <Flex align="center" justify="center">
                                         <Checkbox
                                           isChecked={allCategoryGranted}
                                           onChange={() => {
@@ -619,12 +626,18 @@ const GroupManagement = () => {
                                             );
                                           }}
                                         />
-                                        <Text fontSize="sm" fontWeight="bold">
+                                        <Text
+                                          fontSize="sm"
+                                          fontWeight="bold"
+                                          minWidth="80px"
+                                          textAlign="left"
+                                        >
                                           Select All
                                         </Text>
                                       </Flex>
                                     </Td>
-                                    <Td />
+                                    <Td />{" "}
+                                    {/* Empty column to maintain correct alignment */}
                                   </Tr>
 
                                   {/* Render Permissions Under the Category */}
@@ -635,6 +648,11 @@ const GroupManagement = () => {
                                           {permissionIndex + 1}
                                         </Td>
                                         <Td>{permission.name}</Td>
+                                        <Td>
+                                          {permission.description ||
+                                            "No description available"}
+                                        </Td>{" "}
+                                        {/* Add this line */}
                                         <Td textAlign="center">
                                           <RadioGroup
                                             onChange={async (value) => {

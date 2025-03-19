@@ -39,6 +39,8 @@ const PersonnelPreview = () => {
   const [familyMembers, setFamilyMembers] = useState([]); // ✅ Store all family members
   const [loading, setLoading] = useState(true);
 
+  const [personnelImage, setPersonnelImage] = useState(null); // Store single image instead of array
+
   // Store lookup data
   const [lookupData, setLookupData] = useState({
     languages: [],
@@ -120,10 +122,25 @@ const PersonnelPreview = () => {
       }
     };
 
-    Promise.all([fetchAllData(), fetchPersonnel(), fetchFamilyMembers()]).then(
-      () => setLoading(false)
-    );
-  }, [personnelId]);
+    const fetch2x2Image = async () => {
+      try {
+        const response = await axios.get(
+          `${API_URL}/api/personnel_images/2x2/${personnelId}`
+        );
+        if (response.data.success && response.data.data) {
+          setPersonnelImage(response.data.data); // ✅ Store single image object
+        }
+      } catch (error) {
+        console.error("Error fetching 2x2 picture:", error);
+      }
+    };
+
+    // Execute all required API calls
+    fetchAllData();
+    fetchPersonnel();
+    fetchFamilyMembers();
+    fetch2x2Image().then(() => setLoading(false)); // ✅ Ensure loading state updates only after fetching image
+  }, [personnelId]); // ✅ Dependency array remains correct
 
   // Helper function to get the name from the array based on the ID and a custom name field
   const getNameById = (id, array, nameField = "name") => {
@@ -196,12 +213,19 @@ const PersonnelPreview = () => {
           <HStack alignItems="center" spacing={6}>
             <Avatar
               size="2xl"
-              src={`${API_URL}${personnel.avatar || ""}`}
-              name={fullName}
+              src={
+                personnelImage && personnelImage.image_url
+                  ? `${API_URL}${personnelImage.image_url}` // ✅ Use personnel image if available
+                  : `${API_URL}/uploads/avatar/default.png` // ✅ Use default if no valid image
+              }
+              onError={(e) => {
+                e.target.src = `${API_URL}/uploads/avatar/default.png`; // ✅ Fallback in case of broken URL
+              }}
             />
+
             <VStack align="start">
               <Heading size="lg">{fullName}</Heading>
-              <Text color="gray.500" fontSize="lg">
+              <Text color="gray.500" fontSize="lg" fontWeight={100}>
                 {personnel.personnel_type}
               </Text>
               <Text color="gray.600">{personnel.email_address}</Text>

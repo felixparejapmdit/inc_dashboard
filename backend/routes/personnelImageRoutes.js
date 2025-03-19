@@ -16,6 +16,12 @@ router.get(
   personnelImageController.getImagesByPersonnelId
 );
 
+// ✅ New Route: Fetch personnel image of type "2x2 Picture"
+router.get(
+  "/api/personnel_images/2x2/:personnel_id",
+  personnelImageController.get2x2ImageByPersonnelId
+);
+
 router.delete(
   "/api/personnel_images/:id",
   personnelImageController.deleteImage

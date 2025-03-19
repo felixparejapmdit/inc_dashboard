@@ -47,6 +47,28 @@ exports.getImagesByPersonnelId = async (req, res) => {
   }
 };
 
+// ✅ Fetch personnel image where type is "2x2 Picture"
+exports.get2x2ImageByPersonnelId = async (req, res) => {
+  const { personnel_id } = req.params;
+
+  try {
+    const image = await PersonnelImage.findOne({
+      where: { personnel_id, type: "2x2 Picture" }, // Filter by "2x2 Picture"
+    });
+
+    if (!image) {
+      return res
+        .status(404)
+        .json({ success: false, message: "No 2x2 picture found" });
+    }
+
+    res.status(200).json({ success: true, data: image });
+  } catch (err) {
+    console.error("Error fetching 2x2 picture:", err);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
 exports.deleteImage = async (req, res) => {
   const { id } = req.params;
 

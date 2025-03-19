@@ -50,6 +50,9 @@ const Step5 = () => {
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false); // Manage Photoshoot modal
   const [showChecklist, setShowChecklist] = useState(false);
 
+  const [personnelImages, setPersonnelImages] = useState([]);
+  const [currentStep, setCurrentStep] = useState(1); // Step 1: 2x2, Step 2: Half Body, Step 3: Full Body
+
   const toast = useToast();
 
   const fetchPersonnel = async () => {
@@ -72,6 +75,41 @@ const Step5 = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchPersonnelImages = async (personnelId) => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/personnel_images/${personnelId}`
+      );
+      if (response.data.success) {
+        setPersonnelImages(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching personnel images:", error);
+    }
+  };
+
+  // Open Photoshoot Modal and Fetch Images
+  const openPhotoshootModal = (user) => {
+    setSelectedUser(user);
+    setIsPhotoModalOpen(true);
+    fetchPersonnelImages(user.personnel_id); // Fetch images on modal open
+  };
+
+  // Determine Image URL based on Step
+  const getCurrentImage = () => {
+    const imageTypes = [
+      "2x2 Picture",
+      "Half Body Picture",
+      "Full Body Picture",
+    ];
+    const selectedType = imageTypes[currentStep - 1];
+
+    const foundImage = personnelImages.find((img) => img.type === selectedType);
+    return foundImage
+      ? `${API_URL}${foundImage.image_url}`
+      : `${API_URL}/uploads/avatar/default.png`;
   };
 
   // Fetch new personnel list when component mounts
