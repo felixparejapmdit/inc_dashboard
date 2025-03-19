@@ -502,6 +502,7 @@ const GroupManagement = () => {
                             <Tr>
                               <Th width="30%">Category</Th>
                               <Th width="40%">Permission</Th>
+
                               <Th width="15%" textAlign="center">
                                 <Flex align="center" justify="center">
                                   <Checkbox
