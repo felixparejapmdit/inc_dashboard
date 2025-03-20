@@ -386,13 +386,20 @@ const GroupManagement = () => {
                     }}
                   >
                     <Td>{index + 1}</Td> {/* Add row number */}
-                    <Td>
+                    <Td
+                      onClick={(e) => {
+                        if (editingGroup && editingGroup.id === group.id) {
+                          e.stopPropagation(); // Prevent modal from opening if editing
+                        }
+                      }}
+                    >
                       <Flex align="center">
                         {groupIcon && <Box mr={2}>{groupIcon}</Box>}{" "}
                         {/* Display icon */}
                         {editingGroup && editingGroup.id === group.id ? (
                           <Input
                             value={editingGroup.name}
+                            onClick={(e) => e.stopPropagation()} // Prevent event from propagating while editing
                             onChange={(e) =>
                               setEditingGroup({
                                 ...editingGroup,
@@ -401,7 +408,7 @@ const GroupManagement = () => {
                             }
                           />
                         ) : (
-                          group.name
+                          <Text>{group.name}</Text> // Clicking here should still open the modal
                         )}
                       </Flex>
                     </Td>

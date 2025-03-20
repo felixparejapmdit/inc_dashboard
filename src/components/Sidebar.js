@@ -241,6 +241,14 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 onClick={() => navigate("/application")} // Redirect to application.js
               />
             )}
+            {hasPermission("applicationtype.view") && (
+              <SidebarItem
+                label="Application Type"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/managements/applicationtype")}
+                useDynamicIcon
+              />
+            )}
             {hasPermission("categories.view") && (
               <SidebarItem
                 icon={FiCalendar}
@@ -426,14 +434,6 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
 
         <Collapse in={isManagementsExpanded} animateOpacity>
           <VStack align="start" ml={isExpanded ? 4 : 0} spacing={3}>
-            {hasPermission("applicationtype.view") && (
-              <SidebarItem
-                label="Application Type"
-                isExpanded={isExpanded}
-                onClick={() => navigate("/managements/applicationtype")}
-                useDynamicIcon
-              />
-            )}
             {hasPermission("citizenship.view") && (
               <SidebarItem
                 label="Citizenship"
