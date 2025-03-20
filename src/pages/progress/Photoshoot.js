@@ -530,22 +530,34 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
           icon={<BsUpload />}
           colorScheme="green"
           as="label"
-          htmlFor="file-upload" // This links the button to the input
+          htmlFor="file-upload"
         />
+
         <input
           id="file-upload"
           type="file"
-          accept="image/*"
+          accept="image/jpeg, image/png, image/jpg, image/gif, image/bmp, image/webp" // ✅ Restrict file selection to only image formats
           hidden
           onChange={(e) => {
             const file = e.target.files[0];
             if (!file) return;
 
-            // Validate file type
-            if (!file.type.startsWith("image/")) {
+            // ✅ Allowed image types
+            const allowedTypes = [
+              "image/jpeg",
+              "image/png",
+              "image/jpg",
+              "image/gif",
+              "image/bmp",
+              "image/webp",
+            ];
+            const isValidType = allowedTypes.includes(file.type);
+
+            if (!isValidType) {
               toast({
                 title: "Invalid file type",
-                description: "Only image files are allowed.",
+                description:
+                  "Only JPG, PNG, GIF, BMP, and WebP image formats are allowed.",
                 status: "error",
                 duration: 3000,
                 isClosable: true,
@@ -553,7 +565,7 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
               return;
             }
 
-            // Convert file to base64
+            // ✅ Convert file to base64
             const reader = new FileReader();
             reader.onload = (event) => {
               setImage(event.target.result); // Store base64 image
@@ -568,6 +580,7 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
           </Button>
         )}
       </HStack>
+
       {/* Navigation Buttons */}
       <HStack spacing={4} mt={4}>
         <Button onClick={prevStep} isDisabled={step === 0}>

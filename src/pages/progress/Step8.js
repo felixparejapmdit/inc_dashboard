@@ -22,10 +22,11 @@ import {
   Flex,
 } from "@chakra-ui/react";
 import axios from "axios";
+import ScanRFIDQRBarcode from "./ScanRFIDQRBarcode"; // Import the scan component
 
 const API_URL = process.env.REACT_APP_API_URL;
 
-const Step8 = () => {
+const Step8 = ({ onScanComplete }) => {
   const [isVerified, setIsVerified] = useState(false);
   const [loading, setLoading] = useState(false);
   const [personnelList, setPersonnelList] = useState([]);
@@ -34,6 +35,8 @@ const Step8 = () => {
   const [search, setSearch] = useState("");
   const [personnelInfo, setPersonnelInfo] = useState(null);
   const toast = useToast();
+  const [isCheckboxChecked, setIsCheckboxChecked] = useState(false);
+  const [rfidInput, setRfidInput] = useState("");
 
   // Fetch personnel list
   const fetchPersonnel = async () => {
@@ -141,6 +144,19 @@ const Step8 = () => {
     }
   };
 
+  // Handle checkbox change
+  const handleCheckboxChange = (e) => {
+    setIsCheckboxChecked(e.target.checked);
+    if (!e.target.checked) {
+      setRfidInput(""); // Clear input when unchecked
+    }
+  };
+
+  // Handle input change
+  const handleInputChange = (e) => {
+    setRfidInput(e.target.value);
+  };
+
   return (
     <Box p={6} bg="gray.50" minHeight="100vh" borderRadius="md">
       <Heading size="lg" mb={4}>
@@ -231,6 +247,7 @@ const Step8 = () => {
                   <b>Email Address:</b> {personnelInfo?.email_address || "N/A"}
                 </Text>
               </Box>
+              {/* Checklist */}
               <Flex
                 direction="column"
                 align="center"
@@ -246,21 +263,32 @@ const Step8 = () => {
                 <Text fontSize="xl" fontWeight="bold" mb={4}>
                   Checklist
                 </Text>
+
+                {/* ID Issued Checkbox */}
                 <Checkbox
-                  isChecked={isVerified}
-                  isDisabled
+                  isChecked={isCheckboxChecked}
+                  onChange={handleCheckboxChange}
                   colorScheme="teal"
                   size="lg"
                 >
                   ID Issued
                 </Checkbox>
+
+                {/* Show Scan Component if checkbox is checked */}
+                {isCheckboxChecked && (
+                  <ScanRFIDQRBarcode
+                    onScanComplete={(code) => setRfidInput(code)}
+                  />
+                )}
+
+                {/* Submit Button */}
                 <Button
                   colorScheme="teal"
                   mt={6}
                   size="lg"
                   w="100%"
                   onClick={handleVerify}
-                  isDisabled={isVerified}
+                  isDisabled={!rfidInput.trim()} // Only enabled if input has a value
                 >
                   Issue ID and Complete Process
                 </Button>

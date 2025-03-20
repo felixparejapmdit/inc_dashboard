@@ -280,6 +280,12 @@ const Step5 = () => {
     setPhotos((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
+  const imageMapping = {
+    twoByTwo: "2x2 Picture",
+    halfBody: "Half Body Picture",
+    fullBody: "Full Body Picture",
+  };
+
   return (
     <Box p={6} bg="gray.50" minHeight="100vh" borderRadius="md">
       <Heading size="lg" mb={4}>
@@ -357,13 +363,19 @@ const Step5 = () => {
 
               {/* Select All Checkbox */}
               <Checkbox
-                isChecked={Object.values(photos).every((item) => item)}
+                isChecked={Object.keys(photos).every(
+                  (key) => photos[key] && personnelImages[imageMapping[key]]
+                )}
                 onChange={(e) => {
                   const isChecked = e.target.checked;
                   const updatedChecklist = {};
+
+                  // ✅ Only check items where an image exists
                   Object.keys(photos).forEach((key) => {
-                    updatedChecklist[key] = isChecked;
+                    updatedChecklist[key] =
+                      isChecked && personnelImages[imageMapping[key]];
                   });
+
                   setPhotos(updatedChecklist);
                 }}
                 colorScheme="teal"
@@ -371,6 +383,11 @@ const Step5 = () => {
                 w="100%"
                 fontWeight="bold"
                 mb={2}
+                isDisabled={
+                  !Object.keys(photos).every(
+                    (key) => personnelImages[imageMapping[key]]
+                  )
+                } // ✅ Disable if any image is missing
               >
                 Select All
               </Checkbox>
@@ -390,6 +407,7 @@ const Step5 = () => {
                     colorScheme="teal"
                     size="lg"
                     mr={3}
+                    isDisabled={!personnelImages["2x2 Picture"]} // ✅ Disable if no image
                   />
                   {personnelImages["2x2 Picture"] ? (
                     <Image
@@ -429,6 +447,7 @@ const Step5 = () => {
                     colorScheme="teal"
                     size="lg"
                     mr={3}
+                    isDisabled={!personnelImages["Half Body Picture"]} // ✅ Disable if no image
                   />
                   {personnelImages["Half Body Picture"] ? (
                     <Image
@@ -468,6 +487,7 @@ const Step5 = () => {
                     colorScheme="teal"
                     size="lg"
                     mr={3}
+                    isDisabled={!personnelImages["Full Body Picture"]} // ✅ Disable if no image
                   />
                   {personnelImages["Full Body Picture"] ? (
                     <Image
@@ -514,9 +534,15 @@ const Step5 = () => {
       )}
 
       {/* Photoshoot Modal */}
+      {/* Photoshoot Modal */}
       <Modal
         isOpen={isPhotoModalOpen}
-        onClose={() => setIsPhotoModalOpen(false)}
+        onClose={() => {
+          setIsPhotoModalOpen(false);
+          if (selectedUser) {
+            fetchPersonnelImages(selectedUser.personnel_id); // ✅ Fetch latest images after closing modal
+          }
+        }}
         size="xl"
         isCentered
       >
@@ -525,13 +551,24 @@ const Step5 = () => {
           <ModalHeader>Photoshoot and Upload</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            {selectedUser && <Photoshoot personnel={selectedUser} />}
+            {selectedUser && (
+              <Photoshoot
+                personnel={selectedUser}
+                onClose={() => {
+                  setIsPhotoModalOpen(false);
+                  fetchPersonnelImages(selectedUser.personnel_id); // ✅ Ensure images are refreshed
+                }}
+              />
+            )}
           </ModalBody>
           <ModalFooter>
             <Button
               colorScheme="blue"
               mr={3}
-              onClick={() => setIsPhotoModalOpen(false)}
+              onClick={() => {
+                setIsPhotoModalOpen(false);
+                fetchPersonnelImages(selectedUser.personnel_id); // ✅ Fetch latest images on Close button click
+              }}
             >
               Close
             </Button>
