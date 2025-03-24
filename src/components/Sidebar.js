@@ -386,7 +386,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 onClick={() => navigate("/progress/step4")} // Step 4: PMD IT
               />
             )}
-            {hasPermission("mc.view") && (
+            {hasPermission("atg1.view") && (
               <SidebarItem
                 icon={FiHome}
                 label="ATG Office 1"
@@ -394,7 +394,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 onClick={() => navigate("/progress/step5")} // Step 5: Marco Cervantes
               />
             )}
-            {hasPermission("kd.view") && (
+            {hasPermission("atg2.view") && (
               <SidebarItem
                 icon={FiHome}
                 label="ATG Office 2"

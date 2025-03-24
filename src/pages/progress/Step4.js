@@ -375,9 +375,11 @@ const Step4 = () => {
                       size="lg"
                       w="100%"
                     >
-                      {key
-                        .replace(/([A-Z])/g, " $1")
-                        .replace(/^./, (str) => str.toUpperCase())}
+                      {key === "nextCloud"
+                        ? "Nextcloud"
+                        : key
+                            .replace(/([A-Z])/g, " $1")
+                            .replace(/^./, (str) => str.toUpperCase())}
                     </Checkbox>
                   ))}
                 </VStack>
