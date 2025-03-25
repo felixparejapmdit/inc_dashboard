@@ -289,6 +289,14 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 onClick={() => navigate("/managements/groupmanagement")} // Redirect to groupmanagement.js
               />
             )}
+            {hasPermission("lokalprofile.view") && (
+              <SidebarItem
+                icon={FiCalendar}
+                label="Lokal Profile"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/lokalprofile")} // Redirect to lokalprofile.js
+              />
+            )}
             {hasPermission("permission.view") && (
               <SidebarItem
                 icon={FiCalendar}

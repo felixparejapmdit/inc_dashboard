@@ -81,6 +81,8 @@ const personnelDocumentsRoutes = require("./routes/PersonnelDocumentsRoutes");
 const educationalBackgroundRoutes = require("./routes/educationalBackgroundRoutes");
 const workExperienceRoutes = require("./routes/workExperienceRoutes");
 
+const lokalProfileRoutes = require("./routes/lokalProfileRoutes");
+
 const authRoutes = require("./routes/authRoutes");
 
 app.use(express.json()); // Middleware to parse JSON request bodies
@@ -147,6 +149,8 @@ app.use(localCongregationRoutes);
 app.use(chatRoutes);
 app.use(settingRoutes);
 app.use(authRoutes);
+
+app.use(lokalProfileRoutes);
 
 // ✅ Connect to MySQL database
 const db = mysql.createConnection({

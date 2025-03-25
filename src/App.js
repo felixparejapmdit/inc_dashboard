@@ -46,6 +46,8 @@ import GovernmentIssuedIDManagement from "./pages/managements/GovernmentIssuedID
 import LocationManagement from "./pages/managements/LocationManagement.js";
 import ApplicationTypeManagement from "./pages/managements/ApplicationTypeManagement.js";
 
+import LokalProfile from "./pages/LokalProfile.js";
+
 import Enrollment from "./pages/Enrollment/EnrollmentForm.js"; // Import LdapUser page
 import Step1 from "./pages/Enrollment/Step1.js";
 import Step2 from "./pages/Enrollment/Step2.js";
@@ -348,6 +350,21 @@ function MainApp() {
             </Layout>
           }
         />
+
+        <Route
+          path="/lokalprofile"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <LokalProfile />
+            </Layout>
+          }
+        />
+
         <Route
           path="/Mastodon"
           element={
