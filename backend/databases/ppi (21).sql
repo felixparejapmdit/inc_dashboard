@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 24, 2025 at 09:30 AM
+-- Generation Time: Mar 25, 2025 at 09:26 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -907,6 +907,7 @@ INSERT INTO `group_permission_mappings` (`group_id`, `permission_id`, `category_
 (1, 47, 4, 1),
 (1, 48, 3, 1),
 (1, 49, 3, 1),
+(1, 50, 4, 1),
 (2, 1, 4, 1),
 (2, 14, 4, 1),
 (2, 15, 4, 1),
@@ -1421,6 +1422,47 @@ INSERT INTO `login_attempts` (`id`, `username`, `remote_ip`, `user_agent`, `succ
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `lokal_profiles`
+--
+
+CREATE TABLE `lokal_profiles` (
+  `id` int(11) NOT NULL,
+  `district` int(11) NOT NULL,
+  `lokal` int(11) NOT NULL,
+  `anniversary` date DEFAULT NULL,
+  `serialNumber` varchar(100) DEFAULT NULL,
+  `destinado` varchar(255) DEFAULT NULL,
+  `destinadoContact` varchar(100) DEFAULT NULL,
+  `districtChronicler` varchar(255) DEFAULT NULL,
+  `chroniclerContact` varchar(100) DEFAULT NULL,
+  `districtMinister` varchar(255) DEFAULT NULL,
+  `ministerContact` varchar(100) DEFAULT NULL,
+  `seatingCapacity` int(11) DEFAULT NULL,
+  `distanceFromCentral` varchar(100) DEFAULT NULL,
+  `travelTimeFromCentral` varchar(100) DEFAULT NULL,
+  `internetSpeed` varchar(50) DEFAULT NULL,
+  `ledWall` tinyint(1) DEFAULT 0,
+  `generator` tinyint(1) DEFAULT 0,
+  `preparedBy` varchar(255) DEFAULT NULL,
+  `signature` varchar(255) DEFAULT NULL,
+  `datePrepared` date DEFAULT NULL,
+  `imageUrl` varchar(255) DEFAULT NULL,
+  `scheduleMidweek` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`scheduleMidweek`)),
+  `scheduleWeekend` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`scheduleWeekend`)),
+  `createdAt` datetime DEFAULT current_timestamp(),
+  `updatedAt` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `lokal_profiles`
+--
+
+INSERT INTO `lokal_profiles` (`id`, `district`, `lokal`, `anniversary`, `serialNumber`, `destinado`, `destinadoContact`, `districtChronicler`, `chroniclerContact`, `districtMinister`, `ministerContact`, `seatingCapacity`, `distanceFromCentral`, `travelTimeFromCentral`, `internetSpeed`, `ledWall`, `generator`, `preparedBy`, `signature`, `datePrepared`, `imageUrl`, `scheduleMidweek`, `scheduleWeekend`, `createdAt`, `updatedAt`) VALUES
+(1, 51, 2622, '2010-09-26', 'GH-0023-SN', 'Bro. John Doe', '+63 917 123 4567', 'Sis. Jane Smith', '+63 915 765 4321', 'Bro. Carlos Reyes', '+63 918 888 9999', 250, '12 km', '45 minutes', '200 Mbps', 1, 1, 'Felix Pareja', 'signed_by_felix.png', '2025-03-25', '/uploads/lokals/greenhills.jpg', '\"{\\r\\n    \\\"Tuesday\\\": \\\"6:00 AM, 7:00 PM\\\",\\r\\n    \\\"Thursday\\\": \\\"7:00 PM\\\"\\r\\n  }\"', '\"{\\r\\n    \\\"Sunday\\\": \\\"9:00 AM, 5:00 PM\\\"\\r\\n  }\"', '2025-03-25 13:35:46', '2025-03-25 06:35:48');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `nationalities`
 --
 
@@ -1728,7 +1770,8 @@ INSERT INTO `permission_category_mappings` (`id`, `permission_id`, `category_id`
 (46, 46, 4, '2025-02-11 03:20:10', '2025-03-20 03:49:36'),
 (47, 47, 4, '2025-02-16 06:52:10', '2025-02-16 06:52:10'),
 (48, 48, 3, '2025-03-14 08:18:39', '2025-03-14 08:18:39'),
-(49, 49, 3, '2025-03-14 08:21:35', '2025-03-14 08:21:35');
+(49, 49, 3, '2025-03-14 08:21:35', '2025-03-14 08:21:35'),
+(50, 50, 4, '2025-03-25 05:48:19', '2025-03-25 05:48:19');
 
 -- --------------------------------------------------------
 
@@ -1797,7 +1840,8 @@ INSERT INTO `permission_definitions` (`id`, `name`, `description`, `created_at`,
 (46, 'applicationtype.view', 'View Application Type', '2025-02-11 03:20:10', '2025-02-11 03:20:10'),
 (47, 'dragdrop.view', 'View Drag Drop', '2025-02-16 06:52:10', '2025-02-16 06:52:10'),
 (48, 'profile.preview', 'Preview Profile', '2025-03-14 08:18:39', '2025-03-14 08:18:39'),
-(49, 'profile.info', 'Info Profile', '2025-03-14 08:21:35', '2025-03-14 08:21:35');
+(49, 'profile.info', 'Info Profile', '2025-03-14 08:21:35', '2025-03-14 08:21:35'),
+(50, 'lokalprofile.view', 'View Lokal Profile', '2025-03-25 05:48:19', '2025-03-25 05:48:19');
 
 -- --------------------------------------------------------
 
@@ -2932,6 +2976,12 @@ ALTER TABLE `login_attempts`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `lokal_profiles`
+--
+ALTER TABLE `lokal_profiles`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `nationalities`
 --
 ALTER TABLE `nationalities`
@@ -3191,6 +3241,12 @@ ALTER TABLE `login_attempts`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=162;
 
 --
+-- AUTO_INCREMENT for table `lokal_profiles`
+--
+ALTER TABLE `lokal_profiles`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- AUTO_INCREMENT for table `nationalities`
 --
 ALTER TABLE `nationalities`
@@ -3212,13 +3268,13 @@ ALTER TABLE `permission_categories`
 -- AUTO_INCREMENT for table `permission_category_mappings`
 --
 ALTER TABLE `permission_category_mappings`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
 
 --
 -- AUTO_INCREMENT for table `permission_definitions`
 --
 ALTER TABLE `permission_definitions`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
 
 --
 -- AUTO_INCREMENT for table `permission_groups`
