@@ -42,6 +42,7 @@ import {
   FiCpu,
   FiCheckCircle,
   FiUserCheck,
+  FiSliders,
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
@@ -84,6 +85,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
   const [isSettingsExpanded, setIsSettingsExpanded] = useState(false); // State for expanding settings submenu
   const [isManagementsExpanded, setIsManagementsExpanded] = useState(false);
   const [isProgressStepsExpanded, setIsProgressStepsExpanded] = useState(false);
+  const [isPluginsExpanded, setIsPluginsExpanded] = useState(false); // State for expanding settings submenu
   const [user, setUser] = useState({ name: "", avatarUrl: "" }); // State to store logged-in user
   const [isLogoutAlertOpen, setIsLogoutAlertOpen] = useState(false); // State for the alert dialog
   const bgGradient = useColorModeValue(
@@ -138,6 +140,11 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
         }
       })
       .catch((error) => console.error("Error logging out:", error));
+  };
+
+  // Handle Plugins toggle
+  const handlePluginsToggle = () => {
+    setIsPluginsExpanded(!isPluginsExpanded);
   };
 
   // Handle Settings toggle
@@ -287,14 +294,6 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 label="Groups"
                 isExpanded={isExpanded}
                 onClick={() => navigate("/managements/groupmanagement")} // Redirect to groupmanagement.js
-              />
-            )}
-            {hasPermission("lokalprofile.view") && (
-              <SidebarItem
-                icon={FiCalendar}
-                label="Lokal Profile"
-                isExpanded={isExpanded}
-                onClick={() => navigate("/lokalprofile")} // Redirect to lokalprofile.js
               />
             )}
             {hasPermission("permission.view") && (
@@ -521,6 +520,30 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 isExpanded={isExpanded}
                 onClick={() => navigate("/managements/subsections")}
                 useDynamicIcon
+              />
+            )}
+          </VStack>
+        </Collapse>
+
+        {/* Managements Section */}
+        {hasPermission("*plugins.view") && (
+          <SidebarItem
+            icon={FiSliders} // Change icon to FiBriefcase or any other appropriate icon
+            label="Plugins"
+            isExpanded={isExpanded}
+            onClick={handlePluginsToggle}
+            rightIcon={isManagementsExpanded ? FiArrowUp : FiArrowDown}
+          />
+        )}
+
+        <Collapse in={isPluginsExpanded} animateOpacity>
+          <VStack align="start" ml={isExpanded ? 4 : 0} spacing={3}>
+            {hasPermission("lokalprofile.view") && (
+              <SidebarItem
+                icon={FiCalendar}
+                label="Lokal Profile"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/lokalprofile")} // Redirect to lokalprofile.js
               />
             )}
           </VStack>
