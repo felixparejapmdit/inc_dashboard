@@ -32,6 +32,7 @@ import {
   Avatar,
   Flex,
   Select,
+  Textarea,
 } from "@chakra-ui/react";
 import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
 
@@ -106,7 +107,13 @@ const Applications = () => {
       return;
     }
 
-    const newApp = { name, url, description, icon, app_type };
+    const newApp = {
+      name,
+      url,
+      description: description.trim() === "" ? null : description.trim(),
+      icon,
+      app_type,
+    };
 
     if (editingApp) {
       // ✅ Check if the URL is being updated
@@ -128,9 +135,15 @@ const Applications = () => {
       })
         .then((response) => response.json())
         .then(() => {
+          const typeName =
+            appTypes.find((t) => t.id === parseInt(app_type))?.name ||
+            "Unknown";
+
           setApps((prevApps) =>
             prevApps.map((app) =>
-              app.id === editingApp.id ? { ...newApp, id: editingApp.id } : app
+              app.id === editingApp.id
+                ? { ...newApp, id: editingApp.id, app_type_name: typeName }
+                : app
             )
           );
           setStatus(`App "${name}" updated successfully.`);
@@ -171,7 +184,7 @@ const Applications = () => {
     setEditingApp(app);
     setName(app.name);
     setUrl(app.url);
-    setDescription(app.description);
+    setDescription(app.description || "");
     setIcon(app.icon);
     setAppType(app.app_type); // Set selected app_type
     onOpen();
@@ -249,25 +262,39 @@ const Applications = () => {
           </Button>
         </Flex>
       )}
-      <Table variant="simple">
-        <Thead>
+      <Table
+        variant="simple"
+        size="md"
+        mt={4}
+        borderRadius="md"
+        border="1px solid"
+        borderColor="gray.200"
+        bg="white"
+      >
+        <Thead bg="gray.50">
           <Tr>
             <Th>#</Th>
             <Th>Name</Th>
             <Th>URL</Th>
             <Th>Description</Th>
             <Th>Type</Th>
-            <Th>Actions</Th>
+            <Th textAlign="center">Actions</Th>
           </Tr>
         </Thead>
         <Tbody>
           {currentItems.map((app, index) => (
-            <Tr key={app.id}>
+            <Tr
+              key={app.id}
+              _hover={{
+                bg: "gray.50",
+                transition: "background 0.2s ease-in-out",
+              }}
+            >
               <Td>{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</Td>
               <Td>
                 <Flex align="center">
                   <Avatar
-                    src={app.icon ? app.icon : ""}
+                    src={app.icon || ""}
                     name={app.name}
                     size="sm"
                     mr={2}
@@ -275,29 +302,46 @@ const Applications = () => {
                   <Text>{app.name}</Text>
                 </Flex>
               </Td>
-              <Td>{app.url}</Td>
-              <Td>{app.description}</Td>{" "}
               <Td>
-                {appTypes.find((type) => type.id === app.app_type)?.name ||
-                  "Unknown"}
+                <Text fontSize="sm" color="blue.600" isTruncated>
+                  {app.url}
+                </Text>
               </Td>
               <Td>
-                <IconButton
-                  icon={<EditIcon />}
-                  mr={2}
-                  colorScheme="blue"
-                  onClick={() => handleEditApp(app)}
-                />
-                <IconButton
-                  icon={<DeleteIcon />}
-                  colorScheme="red"
-                  onClick={() => handleOpenDeleteDialog(app.id)}
-                />
+                <Text fontSize="sm" color="gray.600" isTruncated>
+                  {app.description || "—"}
+                </Text>
+              </Td>
+              <Td>
+                <Text fontSize="sm" color="gray.700">
+                  {app.app_type_name || "Unknown"}
+                </Text>
+              </Td>
+              <Td>
+                <Flex gap={1} justify="center">
+                  <IconButton
+                    icon={<EditIcon />}
+                    aria-label="Edit"
+                    size="xs"
+                    variant="ghost"
+                    colorScheme="blue"
+                    onClick={() => handleEditApp(app)}
+                  />
+                  <IconButton
+                    icon={<DeleteIcon />}
+                    aria-label="Delete"
+                    size="xs"
+                    variant="ghost"
+                    colorScheme="red"
+                    onClick={() => handleOpenDeleteDialog(app.id)}
+                  />
+                </Flex>
               </Td>
             </Tr>
           ))}
         </Tbody>
       </Table>
+
       {totalPages > 1 && (
         <Flex justify="space-between" align="center" mt={4}>
           <Button
@@ -358,14 +402,30 @@ const Applications = () => {
                   ))}
                 </Select>
               </FormControl>
-
               <FormControl>
                 <FormLabel>Description</FormLabel>
-                <Input
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Enter Description"
-                />
+                <VStack align="stretch" spacing={1}>
+                  <Textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Enter Description"
+                    resize="vertical"
+                    size="md"
+                    maxLength={50}
+                    borderColor="gray.300"
+                    _hover={{ borderColor: "teal.400" }}
+                    _focus={{
+                      borderColor: "teal.500",
+                      boxShadow: "0 0 0 1px teal",
+                    }}
+                  />
+                  <Text
+                    fontSize="sm"
+                    color={description.length >= 40 ? "red.500" : "gray.500"}
+                  >
+                    {50 - description.length} characters remaining
+                  </Text>
+                </VStack>
               </FormControl>
 
               <FormControl>

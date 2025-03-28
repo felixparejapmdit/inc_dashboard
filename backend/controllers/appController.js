@@ -24,7 +24,8 @@ exports.getAllApps = async (req, res) => {
       url: app.url,
       description: app.description,
       icon: app.icon,
-      app_type: app.applicationType ? app.applicationType.name : "Others", // Use name instead of ID
+      app_type: app.app_type, // ID
+      app_type_name: app.applicationType ? app.applicationType.name : "Others", // Name
     }));
 
     res.json(transformedApps);
@@ -123,9 +124,9 @@ exports.getAvailableApps = async (req, res) => {
 exports.addApp = async (req, res) => {
   const { name, url, description, icon, app_type } = req.body;
 
-  if (!name || !url || !description || !app_type) {
+  if (!name || !url || !app_type) {
     return res.status(400).json({
-      message: "All fields (name, url, description, app_type) are required.",
+      message: "Name, URL, and App Type fields are required.",
     });
   }
 
