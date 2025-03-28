@@ -88,7 +88,14 @@ const authRoutes = require("./routes/authRoutes");
 app.use(express.json()); // Middleware to parse JSON request bodies
 
 app.use(cors({ origin: "*" }));
-app.use(bodyParser.json({ limit: "100mb" })); // Increased limit to handle Base64 images
+// app.use(bodyParser.json({ limit: "100mb" })); // Increased limit to handle Base64 images
+// app.use(bodyParser.urlencoded({ limit: "100mb", extended: true }));
+
+// Instead of body-parser
+app.use(express.json({ limit: "100mb" }));
+app.use(express.urlencoded({ limit: "100mb", extended: true }));
+
+app.use(bodyParser.json({ limit: "100mb" }));
 app.use(bodyParser.urlencoded({ limit: "100mb", extended: true }));
 
 app.use(userRoutes);

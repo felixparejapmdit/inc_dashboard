@@ -36,7 +36,11 @@ const LokalProfile = sequelize.define(
     preparedBy: DataTypes.STRING,
     signature: DataTypes.STRING,
     datePrepared: DataTypes.DATE,
-    imageUrl: DataTypes.STRING,
+    imageUrl: {
+      type: DataTypes.STRING, // ✅ this is enough to store the relative path or filename
+      allowNull: true,
+    },
+
     scheduleMidweek: DataTypes.JSON,
     scheduleWeekend: DataTypes.JSON,
   },
