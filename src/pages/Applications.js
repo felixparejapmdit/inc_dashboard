@@ -33,6 +33,7 @@ import {
   Flex,
   Select,
   Textarea,
+  InputGroup,
 } from "@chakra-ui/react";
 import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
 
@@ -218,144 +219,163 @@ const Applications = () => {
     );
   };
 
+  const hasUnsavedInput =
+    name.trim() !== "" ||
+    url.trim() !== "" ||
+    app_type !== "" ||
+    description.trim() !== "" ||
+    icon !== null;
+
   return (
     <Box p={6}>
       <Heading mb={6}>Manage Applications</Heading>
 
-      <Flex justify="space-between" mb={4}>
+      <Flex
+        justify="space-between"
+        align="center"
+        flexWrap="wrap"
+        gap={2}
+        mb={4}
+      >
+        <InputGroup width={["100%", "300px"]}>
+          <Input
+            placeholder="Search Applications..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </InputGroup>
         <Button
           leftIcon={<AddIcon />}
+          colorScheme="orange"
           onClick={() => {
             resetForm();
             onOpen();
           }}
-          colorScheme="teal"
         >
-          Add App
+          Application
         </Button>
-
-        {/* 🔍 Search Bar */}
-        <Input
-          placeholder="Search Applications..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          width="250px"
-        />
       </Flex>
 
       {totalPages > 1 && (
         <Flex justify="space-between" align="center" mt={4}>
           <Button
             onClick={() => handlePageChange("previous")}
-            disabled={currentPage === 1}
+            isDisabled={currentPage === 1}
+            colorScheme="gray"
+            variant="outline"
           >
             Previous
           </Button>
-          <Text>
+
+          <Text fontSize="sm" color="gray.600">
             Page {currentPage} of {totalPages}
           </Text>
+
           <Button
             onClick={() => handlePageChange("next")}
-            disabled={currentPage === totalPages}
+            isDisabled={currentPage === totalPages}
+            colorScheme="gray"
+            variant="outline"
           >
             Next
           </Button>
         </Flex>
       )}
-      <Table
-        variant="simple"
-        size="md"
-        mt={4}
-        borderRadius="md"
-        border="1px solid"
-        borderColor="gray.200"
-        bg="white"
-      >
-        <Thead bg="gray.50">
-          <Tr>
-            <Th>#</Th>
-            <Th>Name</Th>
-            <Th>URL</Th>
-            <Th>Description</Th>
-            <Th>Type</Th>
-            <Th textAlign="center">Actions</Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-          {currentItems.map((app, index) => (
-            <Tr
-              key={app.id}
-              _hover={{
-                bg: "gray.50",
-                transition: "background 0.2s ease-in-out",
-              }}
-            >
-              <Td>{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</Td>
-              <Td>
-                <Flex align="center">
-                  <Avatar
-                    src={app.icon || ""}
-                    name={app.name}
-                    size="sm"
-                    mr={2}
-                  />
-                  <Text>{app.name}</Text>
-                </Flex>
-              </Td>
-              <Td>
-                <Text fontSize="sm" color="blue.600" isTruncated>
-                  {app.url}
-                </Text>
-              </Td>
-              <Td>
-                <Text fontSize="sm" color="gray.600" isTruncated>
-                  {app.description || "—"}
-                </Text>
-              </Td>
-              <Td>
-                <Text fontSize="sm" color="gray.700">
-                  {app.app_type_name || "Unknown"}
-                </Text>
-              </Td>
-              <Td>
-                <Flex gap={1} justify="center">
-                  <IconButton
-                    icon={<EditIcon />}
-                    aria-label="Edit"
-                    size="xs"
-                    variant="ghost"
-                    colorScheme="blue"
-                    onClick={() => handleEditApp(app)}
-                  />
-                  <IconButton
-                    icon={<DeleteIcon />}
-                    aria-label="Delete"
-                    size="xs"
-                    variant="ghost"
-                    colorScheme="red"
-                    onClick={() => handleOpenDeleteDialog(app.id)}
-                  />
-                </Flex>
-              </Td>
+
+      <Box overflowX="auto">
+        <Table
+          variant="simple"
+          size="md"
+          mt={4}
+          borderRadius="md"
+          border="1px solid"
+          borderColor="gray.200"
+          bg="white"
+          whiteSpace="nowrap"
+        >
+          <Thead bg="gray.50">
+            <Tr>
+              <Th>#</Th>
+              <Th>Name</Th>
+              <Th>Type</Th>
+              <Th>URL</Th>
+              <Th>Description</Th>
+              <Th textAlign="center">Actions</Th>
             </Tr>
-          ))}
-        </Tbody>
-      </Table>
+          </Thead>
+          <Tbody>
+            {currentItems.map((app, index) => (
+              <Tr key={app.id} _hover={{ bg: "gray.50", transition: "0.2s" }}>
+                <Td>{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</Td>
+                <Td>
+                  <Flex align="center" gap={2}>
+                    <Avatar src={app.icon || ""} name={app.name} size="sm" />
+                    <Text fontSize="sm" isTruncated maxW="150px">
+                      {app.name}
+                    </Text>
+                  </Flex>
+                </Td>
+                <Td>
+                  <Text fontSize="sm" color="gray.700" isTruncated maxW="150px">
+                    {app.app_type_name || "Unknown"}
+                  </Text>
+                </Td>
+                <Td maxW="250px" isTruncated>
+                  <Text fontSize="sm" color="blue.600" isTruncated>
+                    {app.url}
+                  </Text>
+                </Td>
+                <Td maxW="200px" isTruncated>
+                  <Text fontSize="sm" color="gray.600" isTruncated>
+                    {app.description || "—"}
+                  </Text>
+                </Td>
+                <Td>
+                  <Flex gap={1} justify="center">
+                    <IconButton
+                      icon={<EditIcon />}
+                      aria-label="Edit"
+                      size="xs"
+                      variant="ghost"
+                      colorScheme="blue"
+                      onClick={() => handleEditApp(app)}
+                    />
+                    <IconButton
+                      icon={<DeleteIcon />}
+                      aria-label="Delete"
+                      size="xs"
+                      variant="ghost"
+                      colorScheme="red"
+                      onClick={() => handleOpenDeleteDialog(app.id)}
+                    />
+                  </Flex>
+                </Td>
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
+      </Box>
 
       {totalPages > 1 && (
         <Flex justify="space-between" align="center" mt={4}>
           <Button
             onClick={() => handlePageChange("previous")}
-            disabled={currentPage === 1}
+            isDisabled={currentPage === 1}
+            colorScheme="gray"
+            variant="outline"
           >
             Previous
           </Button>
-          <Text>
+
+          <Text fontSize="sm" color="gray.600">
             Page {currentPage} of {totalPages}
           </Text>
+
           <Button
             onClick={() => handlePageChange("next")}
-            disabled={currentPage === totalPages}
+            isDisabled={currentPage === totalPages}
+            colorScheme="gray"
+            variant="outline"
           >
             Next
           </Button>
@@ -363,7 +383,11 @@ const Applications = () => {
       )}
 
       {/* Add/Edit Modal */}
-      <Modal isOpen={isOpen} onClose={onClose}>
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        closeOnOverlayClick={!hasUnsavedInput}
+      >
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>{editingApp ? "Edit App" : "Add App"}</ModalHeader>

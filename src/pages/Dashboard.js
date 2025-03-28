@@ -568,101 +568,120 @@ export default function Dashboard() {
               <DragDropContext
                 onDragEnd={(result) => {
                   const { source, destination } = result;
-                  if (!destination) return; // No valid drop location
-                  if (source.droppableId !== destination.droppableId) {
-                    return;
-                  }
+                  if (!destination) return;
+                  if (source.droppableId !== destination.droppableId) return;
                   handleDragEnd(result, source.droppableId);
                 }}
               >
-                {appTypes.map((type) => (
-                  <Box key={type.id} mt={6}>
-                    <Heading
-                      as="h2"
-                      size="lg"
-                      mb={4}
-                      display="flex"
-                      alignItems="center"
-                    >
-                      <FiGrid
-                        style={{ marginRight: "8px", color: "#F3C847" }}
-                      />
-                      {type.name}
-                    </Heading>
+                {appTypes.map((type) => {
+                  const apps = categorizedApps[type.name] || [];
+                  return (
+                    <Box key={type.id} mt={6}>
+                      <Heading
+                        as="h2"
+                        size="lg"
+                        mb={4}
+                        display="flex"
+                        alignItems="center"
+                      >
+                        <FiGrid
+                          style={{ marginRight: "8px", color: "#F3C847" }}
+                        />
+                        {type.name}
+                      </Heading>
 
-                    <Droppable droppableId={type.name} direction="horizontal">
-                      {(provided) => (
-                        <SimpleGrid
-                          columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
-                          spacing={6}
-                          ref={provided.innerRef}
-                          {...provided.droppableProps}
+                      {apps.length > 0 ? (
+                        <Droppable
+                          droppableId={type.name}
+                          direction="horizontal"
                         >
-                          {categorizedApps[type.name]?.map((app, index) => (
-                            <Draggable
-                              key={app.id}
-                              draggableId={app.id.toString()}
-                              index={index}
+                          {(provided) => (
+                            <SimpleGrid
+                              columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
+                              spacing={6}
+                              ref={provided.innerRef}
+                              {...provided.droppableProps}
                             >
-                              {(provided) => (
-                                <Box
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  {...provided.dragHandleProps}
+                              {apps.map((app, index) => (
+                                <Draggable
+                                  key={app.id}
+                                  draggableId={app.id.toString()}
+                                  index={index}
                                 >
-                                  <AppCard
-                                    key={app.id}
-                                    app={app}
-                                    colors={colors}
-                                    handleAppClick={handleAppClick}
-                                  />
-                                </Box>
-                              )}
-                            </Draggable>
-                          ))}
-                          {provided.placeholder}
-                        </SimpleGrid>
+                                  {(provided) => (
+                                    <Box
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                    >
+                                      <AppCard
+                                        key={app.id}
+                                        app={app}
+                                        colors={colors}
+                                        handleAppClick={handleAppClick}
+                                      />
+                                    </Box>
+                                  )}
+                                </Draggable>
+                              ))}
+                              {provided.placeholder}
+                            </SimpleGrid>
+                          )}
+                        </Droppable>
+                      ) : (
+                        <Text fontSize="sm" color="gray.500" ml={2}>
+                          No application assigned
+                        </Text>
                       )}
-                    </Droppable>
-                  </Box>
-                ))}
+                    </Box>
+                  );
+                })}
               </DragDropContext>
             ) : (
               <>
                 <Text fontSize="md" color="gray.500">
                   Drag & Drop is disabled for mobile.
                 </Text>
-                {/* ✅ Render apps without DragDropContext */}
-                {appTypes.map((type) => (
-                  <Box key={type.id} mt={6}>
-                    <Heading
-                      as="h2"
-                      size="lg"
-                      mb={4}
-                      display="flex"
-                      alignItems="center"
-                    >
-                      <FiGrid
-                        style={{ marginRight: "8px", color: "#F3C847" }}
-                      />
-                      {type.name}
-                    </Heading>
 
-                    <SimpleGrid
-                      columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
-                      spacing={6}
-                    >
-                      {categorizedApps[type.name]?.map((app) => (
-                        <AppCard
-                          key={app.id}
-                          app={app}
-                          colors={colors}
-                          handleAppClick={handleAppClick}
+                {appTypes.map((type) => {
+                  const apps = categorizedApps[type.name] || [];
+                  return (
+                    <Box key={type.id} mt={6}>
+                      <Heading
+                        as="h2"
+                        size="lg"
+                        mb={4}
+                        display="flex"
+                        alignItems="center"
+                      >
+                        <FiGrid
+                          style={{ marginRight: "8px", color: "#F3C847" }}
                         />
-                      ))}
-                    </SimpleGrid>
-                  </Box>
-                ))}
+                        {type.name}
+                      </Heading>
+
+                      {apps.length > 0 ? (
+                        <SimpleGrid
+                          columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
+                          spacing={6}
+                        >
+                          {apps.map((app) => (
+                            <AppCard
+                              key={app.id}
+                              app={app}
+                              colors={colors}
+                              handleAppClick={handleAppClick}
+                            />
+                          ))}
+                        </SimpleGrid>
+                      ) : (
+                        <Text fontSize="sm" color="gray.500" ml={2}>
+                          No application assigned
+                        </Text>
+                      )}
+                    </Box>
+                  );
+                })}
               </>
             )}
           </>

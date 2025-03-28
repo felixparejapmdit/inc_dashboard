@@ -11,21 +11,24 @@ exports.getAllApps = async (req, res) => {
       include: [
         {
           model: ApplicationType,
-          as: "applicationType", // This should match the alias in the association
-          attributes: ["name"], // Only fetch the name of the application type
+          as: "applicationType",
+          attributes: ["name"],
         },
+      ],
+      order: [
+        ["app_type", "ASC"], // Sort by application type
+        ["name", "ASC"], // Then by name
       ],
     });
 
-    // Transform the response to include the category name
     const transformedApps = apps.map((app) => ({
       id: app.id,
       name: app.name,
       url: app.url,
       description: app.description,
       icon: app.icon,
-      app_type: app.app_type, // ID
-      app_type_name: app.applicationType ? app.applicationType.name : "Others", // Name
+      app_type: app.app_type,
+      app_type_name: app.applicationType ? app.applicationType.name : "Others",
     }));
 
     res.json(transformedApps);

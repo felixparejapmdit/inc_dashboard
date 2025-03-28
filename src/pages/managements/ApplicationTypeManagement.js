@@ -157,15 +157,6 @@ const ApplicationTypeManagement = () => {
 
         {/* Search Bar and Add Button Aligned */}
         <Flex justify="space-between" align="center">
-          {/* Add New Button on the Left */}
-          <Button
-            leftIcon={<AddIcon />}
-            colorScheme="blue"
-            onClick={() => setIsModalOpen(true)}
-          >
-            Add New Application Type
-          </Button>
-
           {/* Search Bar on the Right */}
           <Input
             placeholder="Search Application Types..."
@@ -173,6 +164,15 @@ const ApplicationTypeManagement = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
             width="250px"
           />
+
+          {/* Add New Button on the Left */}
+          <Button
+            leftIcon={<AddIcon />}
+            colorScheme="orange"
+            onClick={() => setIsModalOpen(true)}
+          >
+            New Application Type
+          </Button>
         </Flex>
 
         {/* Application Type Table */}
