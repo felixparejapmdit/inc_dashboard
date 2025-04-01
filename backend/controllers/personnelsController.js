@@ -15,6 +15,7 @@ exports.getAllNewPersonnels = async (req, res) => {
         "givenname", // Include given name
         "surname_husband", // Include surname husband
         "email_address", // Include email address
+        "personnel_progress", // ✅ Include progress
       ],
       include: [
         {
@@ -42,6 +43,7 @@ exports.getAllNewPersonnels = async (req, res) => {
       email_address: personnel.email_address, // Include email address
       username: personnel.user ? personnel.user.username : "No Username",
       section: personnel.Section ? personnel.Section.name : "No Section", // Show section name or "No Section"
+      personnel_progress: personnel.personnel_progress || "Not Started", // ✅ Include for frontend use
     }));
 
     res.status(200).json(formattedResults);

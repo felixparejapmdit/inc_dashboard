@@ -570,7 +570,7 @@ const Users = ({ personnelId }) => {
       {/* Sync Users Button */}
       {hasPermission("personnels.syncfromldap") && (
         <Button
-          colorScheme="blue"
+          colorScheme="orange"
           mb={4}
           isLoading={loadingSyncUsers}
           onClick={handleSyncUsers}
@@ -803,7 +803,7 @@ const Users = ({ personnelId }) => {
                     {/* Display email address */}
                     {hasPermission("personnels.sync_to_users") && (
                       <Td>
-                        <Button
+                        {/* <Button
                           colorScheme="yellow"
                           onClick={() =>
                             handleSyncToUsersTable(
@@ -814,6 +814,22 @@ const Users = ({ personnelId }) => {
                           isLoading={
                             loadingSyncPersonnel[personnel.personnel_id]
                           } // Loading state specific to this button
+                        >
+                          Sync to Users Table
+                        </Button> */}
+
+                        <Button
+                          colorScheme="yellow"
+                          onClick={() =>
+                            handleSyncToUsersTable(
+                              personnel.personnel_id,
+                              personnelName
+                            )
+                          }
+                          isLoading={
+                            loadingSyncPersonnel[personnel.personnel_id]
+                          }
+                          isDisabled={personnel.personnel_progress !== "Done"} // ✅ Only enable if 'Done'
                         >
                           Sync to Users Table
                         </Button>
