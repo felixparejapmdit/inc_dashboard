@@ -21,7 +21,7 @@ import {
   Slide,
   useDisclosure,
 } from "@chakra-ui/react";
-import { CheckIcon, Search2Icon, CloseIcon } from "@chakra-ui/icons";
+import { CheckIcon, Search2Icon, CloseIcon, ViewIcon } from "@chakra-ui/icons";
 import axios from "axios";
 import { MdTrackChanges } from "react-icons/md"; // Import Track Icon
 
@@ -156,10 +156,24 @@ const ProgressTracking = () => {
                     leftIcon={<MdTrackChanges />}
                     colorScheme="orange"
                     size="sm"
+                    mr={2}
                     onClick={() => handleUserSelect(user)}
                   >
                     Track
                   </Button>
+
+                  <IconButton
+                    icon={<ViewIcon />}
+                    aria-label="Print"
+                    colorScheme="yellow"
+                    size="sm"
+                    onClick={() =>
+                      window.open(
+                        `/personnel-preview/${user.personnel_id}`,
+                        "_blank"
+                      )
+                    }
+                  />
                 </Td>
               </Tr>
             ))}

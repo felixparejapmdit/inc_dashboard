@@ -322,7 +322,7 @@ const Step5 = () => {
                   <Td>{personnel.email_address || "N/A"}</Td>
                   <Td>
                     <Button
-                      colorScheme="blue"
+                      colorScheme="orange"
                       size="sm"
                       onClick={() => handleUserSelect(personnel)} // Only selects personnel
                     >
@@ -516,7 +516,7 @@ const Step5 = () => {
 
               {/* Verify Button */}
               <Button
-                colorScheme="teal"
+                colorScheme="orange"
                 mt={6}
                 size="lg"
                 w="100%"

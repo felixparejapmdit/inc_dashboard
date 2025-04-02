@@ -237,7 +237,7 @@ const Step2 = () => {
                   <Td>{personnel.email_address || "N/A"}</Td>
                   <Td>
                     <Button
-                      colorScheme="blue"
+                      colorScheme="orange"
                       size="sm"
                       onClick={() => handleUserSelect(personnel)}
                     >
@@ -482,7 +482,7 @@ const Step2 = () => {
 
                 {/* Verify and Proceed Button */}
                 <Button
-                  colorScheme="teal"
+                  colorScheme="orange"
                   mt={6}
                   size="lg"
                   w="100%"

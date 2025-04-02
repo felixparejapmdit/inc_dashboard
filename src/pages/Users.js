@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate for navigation
 
 import {
@@ -37,6 +37,11 @@ import {
   useToast,
   Tooltip,
   Divider,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Icon,
 } from "@chakra-ui/react";
 import {
   AddIcon,
@@ -44,8 +49,12 @@ import {
   DeleteIcon,
   InfoIcon,
   ViewIcon,
+  DownloadIcon,
 } from "@chakra-ui/icons";
 import axios from "axios";
+
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 import { usePermissionContext } from "../contexts/PermissionContext";
 
@@ -80,6 +89,16 @@ const Users = ({ personnelId }) => {
   const [searchNewPersonnels, setSearchNewPersonnels] = useState(""); // Search for new enrolled personnel
   const [currentPagePersonnel, setCurrentPagePersonnel] = useState(1);
   const [currentPageNew, setCurrentPageNew] = useState(1);
+
+  const [columnVisibility, setColumnVisibility] = useState({});
+
+  // To control menu open/close
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // For select all
+  const allKeys =
+    existingPersonnel.length > 0 ? Object.keys(existingPersonnel[0]) : [];
+  const allVisible = allKeys.every((key) => columnVisibility[key]);
 
   const [categorizedApps, setCategorizedApps] = useState({});
 
@@ -563,6 +582,106 @@ const Users = ({ personnelId }) => {
     });
   };
 
+  useEffect(() => {
+    if (existingPersonnel.length > 0) {
+      const sample = existingPersonnel[0];
+      const defaultVisibility = Object.keys(sample).reduce((acc, key) => {
+        acc[key] = true; // all columns visible by default
+        return acc;
+      }, {});
+      setColumnVisibility(defaultVisibility);
+    }
+  }, [existingPersonnel]);
+
+  const toggleSelectAll = () => {
+    const updated = {};
+    allKeys.forEach((key) => {
+      updated[key] = !allVisible;
+    });
+    setColumnVisibility(updated);
+  };
+
+  const toggleColumn = (key) => {
+    setColumnVisibility((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
+  const exportAsCSV = () => {
+    if (!existingPersonnel || existingPersonnel.length === 0) {
+      alert("No data to export.");
+      return;
+    }
+
+    // Filter visible columns
+    const visibleColumns = Object.keys(columnVisibility).filter(
+      (key) => columnVisibility[key]
+    );
+
+    const headers = visibleColumns.map((key) =>
+      key
+        .replace("personnel_", "")
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase())
+    );
+
+    const csvRows = [
+      headers.join(","), // Header row
+      ...existingPersonnel.map((user) =>
+        visibleColumns.map((key) => `"${user[key] || ""}"`).join(",")
+      ),
+    ];
+
+    const csvContent = csvRows.join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "personnel_list.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportAsPDF = () => {
+    if (!existingPersonnel || existingPersonnel.length === 0) {
+      alert("No data to export.");
+      return;
+    }
+
+    const doc = new jsPDF();
+    doc.setFontSize(14);
+    doc.text("Personnel List", 14, 15);
+
+    const visibleColumns = Object.keys(columnVisibility).filter(
+      (key) => columnVisibility[key]
+    );
+
+    const headers = visibleColumns.map((key) =>
+      key
+        .replace("personnel_", "")
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase())
+    );
+
+    const data = existingPersonnel.map((user) =>
+      visibleColumns.map((key) => user[key] || "")
+    );
+
+    autoTable(doc, {
+      startY: 20,
+      head: [headers],
+      body: data,
+      theme: "grid",
+      headStyles: { fillColor: [0, 122, 204] },
+      styles: { fontSize: 9 },
+    });
+
+    doc.save("personnel_list.pdf");
+  };
+
   return (
     <Box p={6}>
       <Heading mb={6}>Personnel Management</Heading>
@@ -579,22 +698,65 @@ const Users = ({ personnelId }) => {
         </Button>
       )}
 
-      {/* Search bar for Personnel List */}
-      <Input
-        placeholder="Search personnel list..."
-        value={searchPersonnelList}
-        onChange={handleSearchChangePersonnel}
-        mb={4}
-      />
-      {status && (
-        <Alert
-          status={status.includes("successfully") ? "success" : "error"}
-          mb={4}
-        >
-          <AlertIcon />
-          {status}
-        </Alert>
-      )}
+      <Flex mb={4} align="center" gap={2}>
+        {/* Search bar for Personnel List */}
+        <Input
+          placeholder="Search personnel list..."
+          value={searchPersonnelList}
+          onChange={handleSearchChangePersonnel}
+          maxW="300px"
+        />
+
+        {/* Columns Menu */}
+        <Menu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)}>
+          <MenuButton
+            as={IconButton}
+            icon={<ViewIcon />}
+            aria-label="Columns"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          />
+          <MenuList maxHeight="300px" overflowY="auto" minW="250px" px={2}>
+            {/* ✅ Select All Option */}
+            <Box px={2} py={1}>
+              <Checkbox isChecked={allVisible} onChange={toggleSelectAll}>
+                Select All
+              </Checkbox>
+            </Box>
+            <Divider />
+
+            {/* ✅ Individual Columns */}
+            {allKeys.map((key) => (
+              <MenuItem key={key} as="div" _hover={{ bg: "transparent" }}>
+                <Checkbox
+                  isChecked={columnVisibility[key]}
+                  onChange={(e) => {
+                    e.stopPropagation(); // Prevent menu from closing
+                    toggleColumn(key);
+                  }}
+                >
+                  {key
+                    .replace("personnel_", "")
+                    .replace(/_/g, " ")
+                    .replace(/\b\w/g, (char) => char.toUpperCase())}
+                </Checkbox>
+              </MenuItem>
+            ))}
+          </MenuList>
+        </Menu>
+
+        {/* Export Menu */}
+        <Menu>
+          <MenuButton
+            as={IconButton}
+            icon={<DownloadIcon />}
+            aria-label="Export"
+          />
+          <MenuList>
+            <MenuItem onClick={exportAsCSV}>Export as CSV</MenuItem>
+            <MenuItem onClick={exportAsPDF}>Export as PDF</MenuItem>
+          </MenuList>
+        </Menu>
+      </Flex>
 
       <Heading size="md"> Personnel List</Heading>
       <Flex justify="space-between" align="center" mt={4} mb={6}>
@@ -620,50 +782,56 @@ const Users = ({ personnelId }) => {
           <Table variant="simple" minWidth="1000px">
             <Thead>
               <Tr>
-                <Th>#</Th> {/* Row number column */}
-                <Th>Avatar</Th>
-                <Th>Full Name</Th>
-                {/* <Th>District</Th>
-                <Th>Local Congregation Assignment</Th> */}
-                <Th>Email</Th>
-                <Th>Group</Th>
-                <Th whiteSpace="nowrap">Actions</Th>
+                {existingPersonnel.length > 0 &&
+                  Object.keys(existingPersonnel[0]).map(
+                    (key) =>
+                      columnVisibility[key] && (
+                        <Th key={key}>
+                          {key
+                            .replace("personnel_", "")
+                            .replace(/_/g, " ")
+                            .replace(/\b\w/g, (c) => c.toUpperCase())}
+                        </Th>
+                      )
+                  )}
+                <Th>Actions</Th>
               </Tr>
             </Thead>
             <Tbody>
               {currentItemsPersonnel.map((item, index) => {
-                // Prepend the base URL if needed
                 const avatarSrc = item.avatar ? `${API_URL}${item.avatar}` : "";
+
                 return (
                   <Tr key={item.ID} cursor="pointer">
-                    <Td>{index + 1}</Td> {/* Display the row number */}
-                    <Td>
-                      <Avatar
-                        size="sm"
-                        src={avatarSrc}
-                        name={`${item.givenName || "N/A"} ${item.sn || "N/A"}`}
-                      />
-                    </Td>
-                    <Td>
-                      <HStack spacing={3}>
-                        <Text>{`${item.givenName || "N/A"} ${
-                          item.sn || "N/A"
-                        }`}</Text>
-                      </HStack>
-                    </Td>
-                    {/* <Td>{item.personnel_district_assignment_name || "N/A"}</Td>
-                    <Td>
-                      {item.personnel_local_congregation_assignment_name ||
-                        "N/A"}
-                    </Td> */}
-                    <Td>{item.mail || "N/A"}</Td>
-                    <Td>{item.groupname || "N/A"}</Td>
+                    {Object.entries(item).map(
+                      ([key, value]) =>
+                        columnVisibility[key] && (
+                          <Td key={key}>
+                            {key === "avatar" ? (
+                              <Avatar
+                                size="sm"
+                                src={avatarSrc}
+                                name={`${item.givenName || "N/A"} ${
+                                  item.sn || "N/A"
+                                }`}
+                              />
+                            ) : key === "givenName" || key === "sn" ? null : (
+                              <Text fontSize="sm">
+                                {typeof value === "object"
+                                  ? JSON.stringify(value)
+                                  : value || "N/A"}
+                              </Text>
+                            )}
+                          </Td>
+                        )
+                    )}
+
                     <Td>
                       <HStack spacing={2}>
                         {hasPermission("personnels.edit") && (
                           <IconButton
                             icon={<EditIcon />}
-                            colorScheme="yellow" // Changed from blue to yellow
+                            colorScheme="yellow"
                             onClick={() => handleEditUser(item)}
                           />
                         )}
@@ -677,7 +845,7 @@ const Users = ({ personnelId }) => {
                           >
                             <IconButton
                               icon={<ViewIcon />}
-                              colorScheme="orange" // Changed from teal to light orange
+                              colorScheme="orange"
                               onClick={() => handleViewUser(item.personnel_id)}
                               isDisabled={!item.personnel_id}
                             />
@@ -686,7 +854,7 @@ const Users = ({ personnelId }) => {
                         {hasPermission("personnels.info") && (
                           <IconButton
                             icon={<InfoIcon />}
-                            colorScheme="orange" // Changed from teal to deep orange
+                            colorScheme="orange"
                             onClick={() => {
                               const personnelId = item.personnel_id;
                               if (personnelId) {
@@ -700,7 +868,7 @@ const Users = ({ personnelId }) => {
                         {hasPermission("personnels.delete") && (
                           <IconButton
                             icon={<DeleteIcon />}
-                            colorScheme="red" // Kept red for delete
+                            colorScheme="red"
                             onClick={() => handleDeleteUser(item.ID)}
                           />
                         )}
@@ -829,7 +997,7 @@ const Users = ({ personnelId }) => {
                           isLoading={
                             loadingSyncPersonnel[personnel.personnel_id]
                           }
-                          isDisabled={personnel.personnel_progress !== "Done"} // ✅ Only enable if 'Done'
+                          isDisabled={personnel.personnel_progress !== "8"} // ✅ Only enable if 'Done'
                         >
                           Sync to Users Table
                         </Button>

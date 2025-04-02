@@ -193,7 +193,7 @@ const Step8 = ({ onScanComplete }) => {
                   <Td>{personnel.email_address || "N/A"}</Td>
                   <Td>
                     <Button
-                      colorScheme="blue"
+                      colorScheme="orange"
                       size="sm"
                       onClick={() => handleUserSelect(personnel)}
                     >
@@ -283,12 +283,12 @@ const Step8 = ({ onScanComplete }) => {
 
                 {/* Submit Button */}
                 <Button
-                  colorScheme="teal"
+                  colorScheme="orange"
                   mt={6}
                   size="lg"
                   w="100%"
                   onClick={handleVerify}
-                  isDisabled={!rfidInput.trim()} // Only enabled if input has a value
+                  isDisabled={!isCheckboxChecked || !rfidInput.trim()} // ✅ Both must be true
                 >
                   Issue ID and Complete Process
                 </Button>

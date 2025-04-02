@@ -51,6 +51,7 @@
     "jest-watch-typeahead": "^1.0.0",
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^2.5.2",
+    "jspdf-autotable": "^5.0.2",
     "jsqr": "^1.4.0",
     "ldapjs": "^3.0.7",
     "md5": "^2.3.0",

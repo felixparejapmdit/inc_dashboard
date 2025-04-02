@@ -23,9 +23,18 @@ import {
   Th,
   Td,
 } from "@chakra-ui/react";
-import { Search2Icon, SearchIcon, CheckIcon } from "@chakra-ui/icons";
+import {
+  Search2Icon,
+  SearchIcon,
+  CheckIcon,
+  InfoIcon,
+  CheckCircleIcon,
+  TimeIcon,
+  ViewIcon,
+} from "@chakra-ui/icons";
 import axios from "axios";
-import { Navigate } from "react-router-dom";
+
+import { useNavigate } from "react-router-dom";
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Step1 = () => {
@@ -37,6 +46,9 @@ const Step1 = () => {
   const [personnelInfo, setPersonnelInfo] = useState(null);
   const [search, setSearch] = useState("");
   const toast = useToast();
+
+  // Inside your component
+  const navigate = useNavigate();
 
   // Fetch all users
   const fetchUsers = async () => {
@@ -104,8 +116,8 @@ const Step1 = () => {
   };
 
   const handleUserSelect = (user) => {
-    setSelectedUser(user);
-    fetchPersonnelDetails(user.personnel_id);
+    //setSelectedUser(user);
+    //fetchPersonnelDetails(user.personnel_id);
     const url = `/enroll?personnel_id=${user.personnel_id}&step=1&type=evaluation`;
     window.open(url, "_blank"); // "_blank" opens the URL in a new tab
   };
@@ -192,14 +204,16 @@ const Step1 = () => {
                     <Td>{user.fullname || "N/A"}</Td>
                     <Td>{user.email_address || "N/A"}</Td>
                     <Td>
-                      <IconButton
-                        aria-label="Evaluate"
-                        icon={<SearchIcon />} // Use an icon that represents evaluation
-                        colorScheme="blue"
+                      <Button
+                        leftIcon={<InfoIcon />}
+                        colorScheme="orange"
                         size="sm"
                         onClick={() => handleUserSelect(user)}
-                        mr={2} // Add margin for spacing
-                      />
+                        mr={2}
+                      >
+                        Evaluate
+                      </Button>
+
                       <IconButton
                         aria-label="Verify and Proceed"
                         icon={<CheckIcon />} // Use an icon that represents verification
@@ -207,6 +221,7 @@ const Step1 = () => {
                         size="sm"
                         isDisabled={parseInt(user.personnel_progress, 10) === 0} // Disable if personnel_progress is 0
                         onClick={() => handleVerify(user)}
+                        display="none"
                       />
                     </Td>
                   </Tr>

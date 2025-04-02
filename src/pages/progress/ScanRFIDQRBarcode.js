@@ -1,191 +1,127 @@
 import { useState, useEffect, useRef } from "react";
 import {
-  Box,
+  VStack,
   Text,
   Input,
-  Button,
-  Icon,
-  VStack,
-  HStack,
-  useToast,
   InputGroup,
   InputLeftElement,
-  IconButton,
-  Spinner,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalCloseButton,
-  ModalBody,
+  Icon,
+  Checkbox,
+  useToast,
 } from "@chakra-ui/react";
-import { FaQrcode, FaBarcode, FaIdCard, FaCheckCircle } from "react-icons/fa";
-import { MdCancel, MdCameraAlt } from "react-icons/md";
-import jsQR from "jsqr";
-import Quagga from "@ericblade/quagga2";
+import { FaCheckCircle, FaIdCard } from "react-icons/fa";
+import { MdCancel } from "react-icons/md";
 
 const ScanRFIDQRBarcode = ({ onScanComplete }) => {
   const [scanValue, setScanValue] = useState("");
-  const [isScanning, setIsScanning] = useState(false);
   const [isValid, setIsValid] = useState(null);
-  const [isCameraOpen, setIsCameraOpen] = useState(false);
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
+  const [lastScanned, setLastScanned] = useState("");
   const toast = useToast();
+  const inputRef = useRef(null);
+  const buffer = useRef("");
+  const timeout = useRef(null);
 
-  // ✅ Detect scan input from a physical barcode/QR scanner (keyboard input)
-  useEffect(() => {
-    const handleKeyPress = (event) => {
-      if (event.key === "Enter" && scanValue.trim().length >= 5) {
-        handleScan();
-      }
-    };
-    window.addEventListener("keydown", handleKeyPress);
-    return () => {
-      window.removeEventListener("keydown", handleKeyPress);
-    };
-  }, [scanValue]);
-
-  // ✅ Handle manual input
-  const handleInputChange = (e) => {
-    setScanValue(e.target.value);
+  // ✅ Focus the input when checkbox is clicked
+  const handleCheckboxClick = () => {
+    inputRef.current?.focus();
+    setScanValue(""); // clear before scan
     setIsValid(null);
   };
 
-  // ✅ Open camera and start scanning
-  const openCamera = async () => {
-    setIsCameraOpen(true);
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
-      });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-    } catch (error) {
-      toast({
-        title: "Camera Error",
-        description: "Failed to access camera. Please check permissions.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-  };
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      setScanValue((prev) => {
+        const newValue = prev + e.key;
 
-  // ✅ Close camera and stop streaming
-  const closeCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject;
-      const tracks = stream.getTracks();
-      tracks.forEach((track) => track.stop());
-    }
-    setIsCameraOpen(false);
-  };
-
-  // ✅ Scan for QR codes using jsQR
-  const scanQRCode = () => {
-    if (!canvasRef.current || !videoRef.current) return;
-
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    const video = videoRef.current;
-
-    const scan = () => {
-      if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height);
-
-        if (code) {
-          setScanValue(code.data);
-          handleScan();
-          closeCamera();
-        } else {
-          requestAnimationFrame(scan);
+        // Clear and validate if ENTER is pressed
+        if (e.key === "Enter") {
+          if (newValue.length >= 5) {
+            setIsValid(true);
+            if (onScanComplete) onScanComplete(newValue);
+          } else {
+            setIsValid(false);
+          }
+          return ""; // Clear after reading
         }
-      }
+
+        return newValue;
+      });
     };
 
-    requestAnimationFrame(scan);
-  };
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, []);
 
-  // ✅ Scan barcodes using QuaggaJS
+  // ✅ Scanner input buffer
   useEffect(() => {
-    if (isCameraOpen) {
-      Quagga.init(
-        {
-          inputStream: {
-            type: "LiveStream",
-            constraints: { facingMode: "environment" },
-            target: videoRef.current,
-          },
-          decoder: {
-            readers: ["code_128_reader", "ean_reader", "ean_8_reader"],
-          },
-        },
-        (err) => {
-          if (err) {
-            console.error("Error initializing Quagga:", err);
-            return;
-          }
-          Quagga.start();
-        }
-      );
+    const handleKeyDown = (e) => {
+      if (timeout.current) clearTimeout(timeout.current);
 
-      Quagga.onDetected((result) => {
-        setScanValue(result.codeResult.code);
-        handleScan();
-        closeCamera();
-        Quagga.stop();
-      });
-    }
-  }, [isCameraOpen]);
+      if (e.key === "Enter") {
+        const value = buffer.current;
+        buffer.current = "";
+        processScan(value);
+        return;
+      }
 
-  // ✅ Simulate scanning effect & validation
-  const handleScan = () => {
-    if (!scanValue.trim()) {
+      buffer.current += e.key;
+
+      timeout.current = setTimeout(() => {
+        const value = buffer.current;
+        buffer.current = "";
+        processScan(value);
+      }, 300); // wait 300ms before processing
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  const processScan = (value) => {
+    const trimmed = value.trim();
+
+    if (!trimmed || trimmed.length < 5) {
+      setIsValid(false);
+      setScanValue(trimmed);
       toast({
-        title: "Scan Failed",
-        description: "Please enter or scan a valid RFID, QR, or Barcode.",
+        title: "Invalid Scan",
+        description: "Code is too short.",
         status: "error",
-        duration: 3000,
+        duration: 2500,
         isClosable: true,
       });
       return;
     }
 
-    setIsScanning(true);
+    if (trimmed === lastScanned) {
+      setScanValue("");
+      setIsValid(null);
+      setLastScanned("");
+      toast({
+        title: "Duplicate Scan",
+        description: "Same ID tapped again. Input cleared.",
+        status: "warning",
+        duration: 2500,
+        isClosable: true,
+      });
+      return;
+    }
 
-    setTimeout(() => {
-      setIsScanning(false);
-      if (scanValue.length >= 5) {
-        setIsValid(true);
-        toast({
-          title: "Scan Successful",
-          description: "Code accepted!",
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
+    setScanValue(trimmed);
+    setLastScanned(trimmed);
+    setIsValid(true);
 
-        if (onScanComplete) {
-          onScanComplete(scanValue);
-        }
-      } else {
-        setIsValid(false);
-        toast({
-          title: "Invalid Code",
-          description: "Scanned code is too short.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      }
-    }, 1000);
+    toast({
+      title: "Scan Successful",
+      description: "Code accepted.",
+      status: "success",
+      duration: 2500,
+      isClosable: true,
+    });
+
+    if (onScanComplete) {
+      onScanComplete(trimmed);
+    }
   };
 
   return (
@@ -198,11 +134,10 @@ const ScanRFIDQRBarcode = ({ onScanComplete }) => {
       w="100%"
       maxW="400px"
     >
-      <Text fontSize="lg" fontWeight="bold" color="teal.500">
+      <Text fontSize="lg" fontWeight="bold" color="teal.500" mt={4}>
         Scan RFID / QR Code / Barcode
       </Text>
 
-      {/* Input Field with Icons */}
       <InputGroup>
         <InputLeftElement pointerEvents="none">
           {isValid === true ? (
@@ -213,55 +148,22 @@ const ScanRFIDQRBarcode = ({ onScanComplete }) => {
             <Icon as={FaIdCard} color="gray.400" />
           )}
         </InputLeftElement>
+
         <Input
-          placeholder="Tap to Scan or Enter Code..."
+          ref={inputRef}
+          placeholder="Tap ID to scan"
           size="lg"
           value={scanValue}
-          onChange={handleInputChange}
+          cursor="not-allowed"
+          readOnly // prevents typing
+          tabIndex={-1} // ⛔ prevents focus via keyboard or tab
+          onFocus={(e) => e.target.blur()} // ⛔ prevents clicking inside
           textAlign="center"
           fontSize="lg"
           borderColor={isValid === false ? "red.400" : "gray.300"}
           focusBorderColor={isValid === false ? "red.400" : "teal.400"}
-          onClick={openCamera}
         />
       </InputGroup>
-
-      {/* Camera Button */}
-      <IconButton
-        icon={<MdCameraAlt />}
-        colorScheme="teal"
-        onClick={openCamera}
-        aria-label="Open Camera"
-      />
-
-      {/* Scan Button */}
-      <Button
-        colorScheme="teal"
-        size="lg"
-        w="100%"
-        onClick={handleScan}
-        isDisabled={isScanning || !scanValue.trim()}
-      >
-        {isScanning ? "Scanning..." : "Verify Scan"}
-      </Button>
-
-      {/* Camera Modal */}
-      <Modal isOpen={isCameraOpen} onClose={closeCamera} size="lg">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Scan QR Code / Barcode</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              style={{ width: "100%" }}
-            />
-            <canvas ref={canvasRef} style={{ display: "none" }} />
-          </ModalBody>
-        </ModalContent>
-      </Modal>
     </VStack>
   );
 };

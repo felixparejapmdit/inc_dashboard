@@ -52,6 +52,8 @@ const Applications = () => {
   const [icon, setIcon] = useState(null);
   const [app_type, setAppType] = useState(""); // Stores selected application type
   const [status, setStatus] = useState("");
+  const [fileError, setFileError] = useState("");
+
   const [editingApp, setEditingApp] = useState(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const {
@@ -93,6 +95,14 @@ const Applications = () => {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 102400) {
+        setFileError("The image size should be less than 100 KB.");
+        setIcon(null); // prevent saving
+        return;
+      } else {
+        setFileError(""); // clear previous error if valid
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setIcon(reader.result);
@@ -105,6 +115,11 @@ const Applications = () => {
     e.preventDefault();
     if (!name.trim() || !url.trim()) {
       setStatus("Name and URL fields are required.");
+      return;
+    }
+
+    if (icon === null) {
+      setStatus("Please upload a valid icon (less than 100KB).");
       return;
     }
 
@@ -459,6 +474,11 @@ const Applications = () => {
                   accept="image/*"
                   onChange={handleImageUpload}
                 />
+                {fileError && (
+                  <Text fontSize="sm" color="red.500" mt={1}>
+                    {fileError}
+                  </Text>
+                )}
               </FormControl>
             </VStack>
           </ModalBody>

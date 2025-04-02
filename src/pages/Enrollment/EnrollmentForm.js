@@ -47,6 +47,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
   const typeParam = searchParams.get("type");
   const [progress, setProgress] = useState(0); // Update this based on API response
   const personnelProgress = Number(searchParams.get("personnel_progress"));
+  const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
 
   const [id, setPersonnelId] = useState(null);
 
@@ -65,7 +66,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
     { label: "Building Admin", progressValue: 1 },
     { label: "Security Section", progressValue: 2 },
     { label: "PMD-IT", progressValue: 3 },
-    { label: "ATG Office", progressValue: [4, 5] }, // Combine 4 and 5 under "ATG Office"
+    { label: "ATG Office", progressValue: [4, 5] }, // ✅ This is correct
     { label: "ATG Office Approval", progressValue: 6 },
     { label: "Personnel Office", progressValue: 7 },
   ];
@@ -101,7 +102,8 @@ const EnrollmentForm = ({ referenceNumber }) => {
         const personnel = response.data;
 
         //setSelectedUser(personnel); // Set the personnel data
-        setProgress(personnel.personnel_progress || 0); // Set the progress
+        //(personnel.personnel_progress || 0); // Set the progress
+        setProgress(Number(personnel.personnel_progress) || 0);
       } catch (error) {
         console.error("Error fetching personnel details:", error);
         toast({
@@ -848,7 +850,14 @@ const EnrollmentForm = ({ referenceNumber }) => {
       }
 
       if (nextStep <= totalSteps) {
-        navigate(`/enroll?personnel_id=${personnelId}&step=${nextStep}`);
+        //navigate(`/enroll?personnel_id=${personnelId}&step=${nextStep}`);
+
+        navigate(
+          `/enroll?personnel_id=${personnelId}&step=${nextStep}${
+            typeParam === "evaluation" ? "&type=evaluation" : ""
+          }`
+        );
+
         setStep(nextStep);
       } else {
         toast({
@@ -1538,12 +1547,83 @@ const EnrollmentForm = ({ referenceNumber }) => {
               mr={3}
               onClick={() => {
                 setIsFinishModalOpen(false);
-                setIsCongratulatoryModalOpen(true); // Open the congratulatory modal
+
+                if (typeParam === "evaluation") {
+                  setIsVerifyModalOpen(true); // ✅ show verification modal
+                } else {
+                  setIsCongratulatoryModalOpen(true);
+                }
               }}
             >
               Yes, Finish
             </Button>
-            <Button variant="ghost" onClick={() => setIsFinishModalOpen(false)}>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      <Modal
+        isOpen={isVerifyModalOpen}
+        onClose={() => setIsVerifyModalOpen(false)}
+        isCentered
+        size="lg"
+      >
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Personnel Summary</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Text mb={2}>
+              <strong>Name:</strong> {personnelData.givenname}{" "}
+              {personnelData.surname_husband}
+            </Text>
+            <Text mb={2}>
+              <strong>Personnel Type:</strong> {personnelData.personnel_type}
+            </Text>
+            <Text mb={2}>
+              <strong>Department:</strong>{" "}
+              {departments.find((d) => d.id === personnelData.department_id)
+                ?.name || "N/A"}
+            </Text>
+            <Text mb={2}>
+              <strong>Designation:</strong>{" "}
+              {designations.find((d) => d.id === personnelData.designation_id)
+                ?.name || "N/A"}
+            </Text>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              colorScheme="teal"
+              onClick={async () => {
+                try {
+                  // Update progress before redirecting
+                  await axios.put(`${API_URL}/api/users/update-progress`, {
+                    personnel_id: personnelId,
+                    personnel_progress: "1", // or any other progress level
+                  });
+
+                  // Redirect to the Personnel Preview page
+                  navigate(`/personnel-preview/${personnelId}`);
+                } catch (error) {
+                  console.error("Failed to update progress:", error);
+                  toast({
+                    title: "Error",
+                    description: "Failed to update progress. Please try again.",
+                    status: "error",
+                    duration: 3000,
+                    isClosable: true,
+                    position: "bottom-left",
+                  });
+                }
+              }}
+            >
+              Verify & Proceed
+            </Button>
+
+            <Button
+              variant="ghost"
+              ml={3}
+              onClick={() => setIsVerifyModalOpen(false)}
+            >
               Cancel
             </Button>
           </ModalFooter>
@@ -1582,8 +1662,8 @@ const EnrollmentForm = ({ referenceNumber }) => {
               <Flex justifyContent="space-between" alignItems="center" mt={6}>
                 {steps.map((step, index) => {
                   const isCompleted = Array.isArray(step.progressValue)
-                    ? step.progressValue.includes(progress)
-                    : progress >= step.progressValue;
+                    ? step.progressValue.includes(Number(progress))
+                    : Number(progress) >= step.progressValue;
 
                   return (
                     <Flex
@@ -1655,7 +1735,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
                   // Update progress
                   axios.put(`${API_URL}/api/users/update-progress`, {
                     personnel_id: personnelId,
-                    personnel_progress: "verified",
+                    personnel_progress: "0",
                   });
 
                   // Redirect to login
