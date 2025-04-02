@@ -160,7 +160,7 @@ app.use(settingRoutes);
 app.use(authRoutes);
 
 app.use(lokalProfileRoutes);
-app.use(housingRoutes);
+//app.use(housingRoutes);
 
 // ✅ Connect to MySQL database
 const db = mysql.createConnection({
