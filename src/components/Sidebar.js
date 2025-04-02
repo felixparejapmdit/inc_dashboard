@@ -481,6 +481,14 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 useDynamicIcon
               />
             )}
+            {hasPermission("housing.view") && (
+              <SidebarItem
+                label="Housing"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/managements/housingmanagement")}
+                useDynamicIcon
+              />
+            )}
             {hasPermission("issued_id.view") && (
               <SidebarItem
                 label="Issued ID"

@@ -45,6 +45,7 @@ import ContactTypeInfoManagement from "./pages/managements/ContactTypeInfoManage
 import GovernmentIssuedIDManagement from "./pages/managements/GovernmentIssuedIDManagement.js";
 import LocationManagement from "./pages/managements/LocationManagement.js";
 import ApplicationTypeManagement from "./pages/managements/ApplicationTypeManagement.js";
+import HousingManagement from "./pages/managements/HousingManagement.js";
 
 import LokalProfile from "./pages/LokalProfile.js";
 
@@ -548,6 +549,20 @@ function MainApp() {
               }}
             >
               <ApplicationTypeManagement />
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/managements/housingmanagement"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <HousingManagement />
             </Layout>
           }
         />
