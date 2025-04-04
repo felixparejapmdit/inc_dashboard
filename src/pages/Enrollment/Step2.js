@@ -22,6 +22,7 @@ import {
   DeleteIcon,
   CheckIcon,
   AttachmentIcon,
+  CloseIcon,
 } from "@chakra-ui/icons";
 import axios from "axios";
 const Step2 = () => {
@@ -124,11 +125,52 @@ const Step2 = () => {
     ]);
   };
 
+  // const handleContactChange = (idx, field, value) => {
+  //   const updatedContacts = contacts.map((contact, i) =>
+  //     i === idx ? { ...contact, [field]: value } : contact
+  //   );
+  //   setContacts(updatedContacts);
+  // };
+
   const handleContactChange = (idx, field, value) => {
-    const updatedContacts = contacts.map((contact, i) =>
-      i === idx ? { ...contact, [field]: value } : contact
-    );
+    const updatedContacts = contacts.map((contact, i) => {
+      if (i === idx) {
+        let newValue = value;
+
+        // Find the selected contact type
+        const contactType = contactTypes.find(
+          (type) => type.id == contact.contactype_id
+        );
+
+        // If the contact type is Telegram, enforce username format
+        if (contactType?.name.toLowerCase() === "telegram") {
+          if (!newValue.startsWith("@")) {
+            newValue = "@" + newValue.replace(/^@/, ""); // Ensure @ is present
+          }
+        }
+
+        return { ...contact, [field]: newValue };
+      }
+      return contact;
+    });
+
     setContacts(updatedContacts);
+  };
+
+  const handleCancelEdit = (idx) => {
+    setContacts((prevContacts) => {
+      const contact = prevContacts[idx];
+
+      // If contact is new (not saved yet), remove it from the list
+      if (!contact.id) {
+        return prevContacts.filter((_, i) => i !== idx);
+      }
+
+      // Otherwise, just cancel edit mode
+      return prevContacts.map((c, i) =>
+        i === idx ? { ...c, isEditing: false } : c
+      );
+    });
   };
 
   const handleAddressChange = (idx, field, value) => {
@@ -321,6 +363,22 @@ const Step2 = () => {
     const updatedAddresses = [...addresses];
     updatedAddresses[idx].isEditing = !updatedAddresses[idx].isEditing;
     setAddresses(updatedAddresses);
+  };
+
+  const handleCancelEditAddress = (idx) => {
+    setAddresses((prevAddresses) => {
+      const address = prevAddresses[idx];
+
+      // If the address is new (not saved yet), remove it from the list
+      if (!address.id) {
+        return prevAddresses.filter((_, i) => i !== idx);
+      }
+
+      // Otherwise, just cancel edit mode
+      return prevAddresses.map((addr, i) =>
+        i === idx ? { ...addr, isEditing: false } : addr
+      );
+    });
   };
 
   const handleRemoveAddress = (idx) => {
@@ -607,7 +665,13 @@ const Step2 = () => {
                     </Td>
                     <Td>
                       <Input
-                        placeholder="Contact Info"
+                        placeholder={
+                          contactTypes
+                            .find((type) => type.id == contact.contactype_id)
+                            ?.name.toLowerCase() === "telegram"
+                            ? "Enter Telegram username (@username)"
+                            : "Enter Contact Info"
+                        }
                         value={contact.contact_info}
                         isDisabled={!contact.isEditing} // Disable if not editing
                         onChange={(e) =>
@@ -619,6 +683,7 @@ const Step2 = () => {
                         }
                       />
                     </Td>
+
                     <Td>
                       <Flex>
                         {/* Save/Edit Button */}
@@ -635,12 +700,24 @@ const Step2 = () => {
                               : toggleEditContact(idx)
                           }
                         />
-                        <IconButton
-                          icon={<DeleteIcon />}
-                          size="sm"
-                          colorScheme="red"
-                          onClick={() => handleRemoveContact(idx)}
-                        />
+
+                        {/* Cancel Button (Shown when Editing) */}
+                        {contact.isEditing ? (
+                          <IconButton
+                            icon={<CloseIcon />}
+                            size="sm"
+                            colorScheme="gray"
+                            onClick={() => handleCancelEdit(idx)}
+                          />
+                        ) : (
+                          /* Delete Button (Shown when NOT Editing) */
+                          <IconButton
+                            icon={<DeleteIcon />}
+                            size="sm"
+                            colorScheme="red"
+                            onClick={() => handleRemoveContact(idx)}
+                          />
+                        )}
                       </Flex>
                     </Td>
                   </Tr>
@@ -712,18 +789,31 @@ const Step2 = () => {
                           }
                           size="sm"
                           colorScheme={address.isEditing ? "green" : "blue"}
+                          mr={2}
                           onClick={() =>
                             address.isEditing
                               ? handleSaveOrUpdateAddress(idx)
                               : toggleEditAddress(idx)
                           }
                         />
-                        <IconButton
-                          icon={<DeleteIcon />}
-                          size="sm"
-                          colorScheme="red"
-                          onClick={() => handleRemoveAddress(idx)}
-                        />
+
+                        {/* Cancel Button (Shown when Editing) */}
+                        {address.isEditing ? (
+                          <IconButton
+                            icon={<CloseIcon />}
+                            size="sm"
+                            colorScheme="gray"
+                            onClick={() => handleCancelEditAddress(idx)}
+                          />
+                        ) : (
+                          /* Delete Button (Shown when NOT Editing) */
+                          <IconButton
+                            icon={<DeleteIcon />}
+                            size="sm"
+                            colorScheme="red"
+                            onClick={() => handleRemoveAddress(idx)}
+                          />
+                        )}
                       </Flex>
                     </Td>
                   </Tr>
