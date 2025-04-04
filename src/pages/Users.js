@@ -53,8 +53,8 @@ import {
 } from "@chakra-ui/icons";
 import axios from "axios";
 
-// import jsPDF from "jspdf";
-// import autoTable from "jspdf-autotable";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 import { usePermissionContext } from "../contexts/PermissionContext";
 
@@ -645,42 +645,42 @@ const Users = ({ personnelId }) => {
     document.body.removeChild(link);
   };
 
-  // const exportAsPDF = () => {
-  //   if (!existingPersonnel || existingPersonnel.length === 0) {
-  //     alert("No data to export.");
-  //     return;
-  //   }
+  const exportAsPDF = () => {
+    if (!existingPersonnel || existingPersonnel.length === 0) {
+      alert("No data to export.");
+      return;
+    }
 
-  //   const doc = new jsPDF();
-  //   doc.setFontSize(14);
-  //   doc.text("Personnel List", 14, 15);
+    const doc = new jsPDF();
+    doc.setFontSize(14);
+    doc.text("Personnel List", 14, 15);
 
-  //   const visibleColumns = Object.keys(columnVisibility).filter(
-  //     (key) => columnVisibility[key]
-  //   );
+    const visibleColumns = Object.keys(columnVisibility).filter(
+      (key) => columnVisibility[key]
+    );
 
-  //   const headers = visibleColumns.map((key) =>
-  //     key
-  //       .replace("personnel_", "")
-  //       .replace(/_/g, " ")
-  //       .replace(/\b\w/g, (c) => c.toUpperCase())
-  //   );
+    const headers = visibleColumns.map((key) =>
+      key
+        .replace("personnel_", "")
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase())
+    );
 
-  //   const data = existingPersonnel.map((user) =>
-  //     visibleColumns.map((key) => user[key] || "")
-  //   );
+    const data = existingPersonnel.map((user) =>
+      visibleColumns.map((key) => user[key] || "")
+    );
 
-  //   autoTable(doc, {
-  //     startY: 20,
-  //     head: [headers],
-  //     body: data,
-  //     theme: "grid",
-  //     headStyles: { fillColor: [0, 122, 204] },
-  //     styles: { fontSize: 9 },
-  //   });
+    autoTable(doc, {
+      startY: 20,
+      head: [headers],
+      body: data,
+      theme: "grid",
+      headStyles: { fillColor: [0, 122, 204] },
+      styles: { fontSize: 9 },
+    });
 
-  //   doc.save("personnel_list.pdf");
-  // };
+    doc.save("personnel_list.pdf");
+  };
 
   return (
     <Box p={6}>
@@ -708,7 +708,11 @@ const Users = ({ personnelId }) => {
         />
 
         {/* Columns Menu */}
-        <Menu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)}>
+        <Menu
+          isOpen={isMenuOpen}
+          onClose={() => setIsMenuOpen(false)}
+          closeOnSelect={false}
+        >
           <MenuButton
             as={IconButton}
             icon={<ViewIcon />}
@@ -718,7 +722,13 @@ const Users = ({ personnelId }) => {
           <MenuList maxHeight="300px" overflowY="auto" minW="250px" px={2}>
             {/* ✅ Select All Option */}
             <Box px={2} py={1}>
-              <Checkbox isChecked={allVisible} onChange={toggleSelectAll}>
+              <Checkbox
+                isChecked={allVisible}
+                onChange={(e) => {
+                  e.stopPropagation(); // Prevent menu from closing
+                  toggleSelectAll();
+                }}
+              >
                 Select All
               </Checkbox>
             </Box>
@@ -745,7 +755,7 @@ const Users = ({ personnelId }) => {
         </Menu>
 
         {/* Export Menu */}
-        {/* <Menu>
+        <Menu>
           <MenuButton
             as={IconButton}
             icon={<DownloadIcon />}
@@ -755,7 +765,7 @@ const Users = ({ personnelId }) => {
             <MenuItem onClick={exportAsCSV}>Export as CSV</MenuItem>
             <MenuItem onClick={exportAsPDF}>Export as PDF</MenuItem>
           </MenuList>
-        </Menu> */}
+        </Menu>
       </Flex>
 
       <Heading size="md"> Personnel List</Heading>

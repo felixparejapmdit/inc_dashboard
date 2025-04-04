@@ -690,6 +690,7 @@ const Step2 = () => {
                         <option>Home Address</option>
                         <option>Provincial Address</option>
                         <option>Work Address</option>
+                        <option>INC Housing</option>
                       </Select>
                     </Td>
                     <Td>
