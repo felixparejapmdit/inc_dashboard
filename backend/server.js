@@ -84,6 +84,7 @@ const workExperienceRoutes = require("./routes/workExperienceRoutes");
 const lokalProfileRoutes = require("./routes/lokalProfileRoutes");
 
 const housingRoutes = require("./routes/housingRoutes.js");
+const fileRoutes = require("./routes/fileRoutes.js");
 
 const authRoutes = require("./routes/authRoutes");
 
@@ -161,6 +162,7 @@ app.use(authRoutes);
 
 app.use(lokalProfileRoutes);
 //app.use(housingRoutes);
+app.use(fileRoutes);
 
 // ✅ Connect to MySQL database
 const db = mysql.createConnection({

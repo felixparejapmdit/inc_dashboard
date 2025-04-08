@@ -47,6 +47,8 @@ import LocationManagement from "./pages/managements/LocationManagement.js";
 import ApplicationTypeManagement from "./pages/managements/ApplicationTypeManagement.js";
 import HousingManagement from "./pages/managements/HousingManagement.js";
 
+import FileManagement from "./pages/managements/FileManagement.js";
+
 import LokalProfile from "./pages/LokalProfile.js";
 
 import Enrollment from "./pages/Enrollment/EnrollmentForm.js"; // Import LdapUser page
@@ -563,6 +565,20 @@ function MainApp() {
               }}
             >
               <HousingManagement />
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/managements/filemanagement"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <FileManagement />
             </Layout>
           }
         />

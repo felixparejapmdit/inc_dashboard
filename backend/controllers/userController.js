@@ -122,24 +122,36 @@ exports.assignGroup = async (req, res) => {
 };
 
 // Fetch user details by username
+// controllers/UserController.js
 exports.getUserByUsername = async (req, res) => {
   const { username } = req.params;
 
   try {
+    if (!username) {
+      res.setHeader("Content-Type", "application/json");
+      return res.status(400).json({ message: "Username is required." });
+    }
+
     const user = await User.findOne({ where: { username } });
 
     if (!user) {
+      res.setHeader("Content-Type", "application/json");
       return res.status(404).json({ message: "User not found." });
     }
 
-    res.status(200).json({
+    res.setHeader("Content-Type", "application/json");
+    return res.status(200).json({
       id: user.id,
       username: user.username,
-      email: user.email,
+      email: user.email || null,
     });
   } catch (error) {
     console.error("Error fetching user by username:", error);
-    res.status(500).json({ message: "Error fetching user.", error });
+    res.setHeader("Content-Type", "application/json");
+    return res.status(500).json({
+      message: "Error fetching user.",
+      error: error.message || error,
+    });
   }
 };
 

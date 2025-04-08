@@ -288,6 +288,14 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 useDynamicIcon
               />
             )}
+            {hasPermission("files.view") && (
+              <SidebarItem
+                label="Files"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/managements/filemanagement")}
+                useDynamicIcon
+              />
+            )}
             {hasPermission("groups.view") && (
               <SidebarItem
                 icon={FiCalendar}

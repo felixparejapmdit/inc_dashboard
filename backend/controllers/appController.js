@@ -79,6 +79,51 @@ exports.getAppsWithTypes = async (req, res) => {
 };
 
 // Get available apps for the logged-in user and categorize them
+exports.getAvailableApps1 = async (req, res) => {
+  const userId = req.headers["x-user-id"];
+  if (!userId) {
+    return res
+      .status(401)
+      .json({ message: "Unauthorized: No user ID provided" });
+  }
+
+  try {
+    // Fetch all app types dynamically
+    const appTypes = await sequelize.query(
+      `SELECT id, name FROM applicationtypes ORDER BY id ASC`,
+      { type: sequelize.QueryTypes.SELECT }
+    );
+
+    // Fetch available apps for the logged-in user
+    const availableApps = await sequelize.query(
+      `
+      SELECT apps.*, apps.app_type
+      FROM apps
+      INNER JOIN available_apps ON apps.id = available_apps.app_id
+      WHERE available_apps.user_id = :userId
+      `,
+      {
+        replacements: { userId },
+        type: sequelize.QueryTypes.SELECT,
+      }
+    );
+
+    // Categorize apps dynamically based on `app_type`
+    let categorizedApps = {};
+    appTypes.forEach((type) => {
+      categorizedApps[type.name] = availableApps.filter(
+        (app) => app.app_type === type.id
+      );
+    });
+
+    //console.log("Fetched Categorized Apps:", categorizedApps);
+    res.json(categorizedApps);
+  } catch (error) {
+    console.error("Error fetching available apps for user:", error);
+    res.status(500).json({ message: "Database error" });
+  }
+};
+
 exports.getAvailableApps = async (req, res) => {
   const userId = req.headers["x-user-id"];
   if (!userId) {
@@ -108,21 +153,49 @@ exports.getAvailableApps = async (req, res) => {
       }
     );
 
+    // Fetch files data (filename and generated_code)
+    const filesData = await sequelize.query(
+      `SELECT filename, generated_code FROM files`,
+      { type: sequelize.QueryTypes.SELECT }
+    );
+
+    // Combine available apps and files into a single structure
+    const combinedData = [
+      ...availableApps.map((app) => ({
+        ...app,
+        type: "app", // Mark apps for distinction
+      })),
+      ...filesData.map((file) => ({
+        ...file,
+        type: "file", // Mark files for distinction
+      })),
+    ];
+
     // Categorize apps dynamically based on `app_type`
     let categorizedApps = {};
+
+    // Initialize the categorizedApps object with categories based on appTypes
     appTypes.forEach((type) => {
-      categorizedApps[type.name] = availableApps.filter(
-        (app) => app.app_type === type.id
+      categorizedApps[type.name] = combinedData.filter(
+        (item) => item.type === "app" && item.app_type === type.id // Filter for apps by app_type
       );
     });
 
-    //console.log("Fetched Categorized Apps:", categorizedApps);
+    // Add files to a "Files" category
+    categorizedApps["Files"] = combinedData.filter(
+      (item) => item.type === "file"
+    );
+
+    // Send the dynamically categorized response
     res.json(categorizedApps);
+
+    console.log("Categorized Apps and Files:", categorizedApps);
   } catch (error) {
     console.error("Error fetching available apps for user:", error);
     res.status(500).json({ message: "Database error" });
   }
 };
+
 // Add a new app
 exports.addApp = async (req, res) => {
   const { name, url, description, icon, app_type } = req.body;

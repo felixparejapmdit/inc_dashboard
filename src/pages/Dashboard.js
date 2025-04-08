@@ -49,7 +49,7 @@ import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 import axios from "axios";
-
+import { usePermissionContext } from "../contexts/PermissionContext";
 // Use environment variable
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -141,6 +141,28 @@ export default function Dashboard() {
       });
   };
 
+  // const handleSearch = (e) => {
+  //   const query = e.target.value.toLowerCase();
+  //   setSearchQuery(query);
+
+  //   if (!query.trim()) {
+  //     setFilteredApps([]); // Reset if empty
+  //     return;
+  //   }
+
+  //   const filtered = [];
+  //   for (const category in categorizedApps) {
+  //     const matchingApps = categorizedApps[category].filter((app) =>
+  //       app.name.toLowerCase().includes(query)
+  //     );
+  //     if (matchingApps.length > 0) {
+  //       filtered.push(...matchingApps);
+  //     }
+  //   }
+
+  //   setFilteredApps(filtered);
+  // };
+
   const handleSearch = (e) => {
     const query = e.target.value.toLowerCase();
     setSearchQuery(query);
@@ -151,12 +173,17 @@ export default function Dashboard() {
     }
 
     const filtered = [];
+    // Ensure you're filtering both Apps and Files correctly
     for (const category in categorizedApps) {
-      const matchingApps = categorizedApps[category].filter((app) =>
-        app.name.toLowerCase().includes(query)
-      );
+      const matchingApps = categorizedApps[category].filter((app) => {
+        const nameMatch = app.name && app.name.toLowerCase().includes(query); // Check if name exists
+        const codeMatch =
+          app.generated_code &&
+          app.generated_code.toLowerCase().includes(query); // Search in generated_code
+        return nameMatch || codeMatch;
+      });
       if (matchingApps.length > 0) {
-        filtered.push(...matchingApps);
+        filtered.push(...matchingApps); // Combine matching results
       }
     }
 
@@ -298,6 +325,24 @@ export default function Dashboard() {
     }
   };
 
+  // const fetchApplications = async () => {
+  //   try {
+  //     const response = await fetch(`${API_URL}/api/apps/available`, {
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         "x-user-id": currentUser.id,
+  //       },
+  //     });
+
+  //     if (!response.ok)
+  //       throw new Error(`Failed to fetch apps: ${response.statusText}`);
+  //     const data = await response.json();
+  //     setCategorizedApps(data);
+  //   } catch (error) {
+  //     console.error("Error fetching apps:", error);
+  //   }
+  // };
+
   const fetchApplications = async () => {
     try {
       const response = await fetch(`${API_URL}/api/apps/available`, {
@@ -309,8 +354,23 @@ export default function Dashboard() {
 
       if (!response.ok)
         throw new Error(`Failed to fetch apps: ${response.statusText}`);
+
       const data = await response.json();
-      setCategorizedApps(data);
+      console.log("Fetched Apps Data:", data); // Log the data to ensure it's coming through
+
+      // Initialize an empty object for categorized apps
+      let categorizedApps = {};
+
+      // Iterate over each category in the fetched data
+      for (const category in data) {
+        if (data.hasOwnProperty(category)) {
+          // Initialize the category in categorizedApps if it doesn't exist
+          categorizedApps[category] = data[category];
+        }
+      }
+
+      // Update the categorizedApps state
+      setCategorizedApps(categorizedApps);
     } catch (error) {
       console.error("Error fetching apps:", error);
     }
@@ -427,7 +487,7 @@ export default function Dashboard() {
         {/* Search Input Section */}
         <VStack spacing={4} align="start" width="100%">
           <Input
-            placeholder="Search Apps"
+            placeholder="Search"
             size="md"
             borderRadius="full"
             bg="white"
@@ -765,62 +825,145 @@ export default function Dashboard() {
 }
 
 // Card component for Apps
-const AppCard = ({ app, colors, handleAppClick, small }) => (
-  <VStack
-    as="div" // Change from <a> to <div> to prevent conflicts with onClick
-    bg={colors.appBg}
-    borderRadius="xl"
-    border={`3px solid ${colors.cardBorder}`}
-    p={small ? 2 : 6}
-    spacing={2}
-    boxShadow="md"
-    _hover={{ transform: "scale(1.03)", transition: "all 0.2s ease-in-out" }}
-    align="center"
-    textAlign="center"
-    width={small ? "120px" : "100%"}
-    minHeight={small ? "80px" : "200px"}
-    onClick={(e) => {
-      e.preventDefault(); // Prevent default behavior
-      if (handleAppClick) {
-        handleAppClick(app);
-      }
-      window.open(app.url, "_blank"); // Open in a new tab
-    }}
-    cursor="pointer"
-  >
-    {/* App Icon */}
-    <Box>
-      {app.icon ? (
-        <Image
-          src={app.icon}
-          alt={`${app.name} Icon`}
-          boxSize={small ? "40px" : "70px"} // Larger icon for emphasis
-          borderRadius="full" // Circular icon
-          mb={4}
-          boxShadow="md"
-          border="2px solid"
-          borderColor={colors.cardBorder}
-        />
-      ) : (
-        <Icon as={FiFile} boxSize={12} color={colors.cardHeader} mb={4} />
-      )}
-    </Box>
+// const AppCard = ({ app, colors, handleAppClick, small }) => (
+//   <VStack
+//     as="div" // Change from <a> to <div> to prevent conflicts with onClick
+//     bg={colors.appBg}
+//     borderRadius="xl"
+//     border={`3px solid ${colors.cardBorder}`}
+//     p={small ? 2 : 6}
+//     spacing={2}
+//     boxShadow="md"
+//     _hover={{ transform: "scale(1.03)", transition: "all 0.2s ease-in-out" }}
+//     align="center"
+//     textAlign="center"
+//     width={small ? "120px" : "100%"}
+//     minHeight={small ? "80px" : "200px"}
+//     onClick={(e) => {
+//       e.preventDefault(); // Prevent default behavior
+//       if (handleAppClick) {
+//         handleAppClick(app);
+//       }
+//       window.open(app.url, "_blank"); // Open in a new tab
+//     }}
+//     cursor="pointer"
+//   >
+//     {/* App Icon */}
+//     <Box>
+//       {app.icon ? (
+//         <Image
+//           src={app.icon}
+//           alt={`${app.name} Icon`}
+//           boxSize={small ? "40px" : "70px"} // Larger icon for emphasis
+//           borderRadius="full" // Circular icon
+//           mb={4}
+//           boxShadow="md"
+//           border="2px solid"
+//           borderColor={colors.cardBorder}
+//         />
+//       ) : (
+//         <Icon as={FiFile} boxSize={12} color={colors.cardHeader} mb={4} />
+//       )}
+//     </Box>
 
-    {/* App Name and Description */}
-    <Box>
-      <Text
-        fontSize={small ? "10px" : "xl"}
-        fontWeight="bold"
-        color={colors.cardHeader}
-      >
-        {app.name}
-      </Text>
-      {/* Only show description if it's **not** a recently opened app */}
-      {!small && (
-        <Text fontSize="sm" color={colors.cardText}>
-          {app.description}
+//     {/* App Name and Description */}
+//     <Box>
+//       <Text
+//         fontSize={small ? "10px" : "xl"}
+//         fontWeight="bold"
+//         color={colors.cardHeader}
+//       >
+//         {app.name}
+//       </Text>
+//       {/* Only show description if it's **not** a recently opened app */}
+//       {!small && (
+//         <Text fontSize="sm" color={colors.cardText}>
+//           {app.description}
+//         </Text>
+//       )}
+//     </Box>
+//   </VStack>
+// );
+
+const AppCard = ({ app, colors, handleAppClick, small }) => {
+  // Check if the app is from the 'files' table (you can add a condition to check for the source)
+  const isFileData = app.generated_code && app.filename; // This is just a check for the 'files' table data
+
+  // Check permission using context
+  const { hasPermission } = usePermissionContext();
+
+  return (
+    <VStack
+      as="div" // Change from <a> to <div> to prevent conflicts with onClick
+      bg={colors.appBg}
+      borderRadius="xl"
+      border={`3px solid ${colors.cardBorder}`}
+      p={small ? 2 : 6}
+      spacing={2}
+      boxShadow="md"
+      _hover={{ transform: "scale(1.03)", transition: "all 0.2s ease-in-out" }}
+      align="center"
+      textAlign="center"
+      width={small ? "120px" : "100%"}
+      minHeight={small ? "80px" : "200px"}
+      onClick={(e) => {
+        e.preventDefault(); // Prevent default behavior
+        if (handleAppClick) {
+          handleAppClick(app);
+        }
+        window.open(app.url, "_blank"); // Open in a new tab
+      }}
+      cursor="pointer"
+    >
+      {/* App Icon */}
+
+      <Box>
+        {app.icon ? (
+          <Image
+            src={app.icon}
+            alt={`${app.name} Icon`}
+            boxSize={small ? "40px" : "70px"} // Larger icon for emphasis
+            borderRadius="full" // Circular icon
+            mb={4}
+            boxShadow="md"
+            border="2px solid"
+            borderColor={colors.cardBorder}
+          />
+        ) : (
+          <Icon as={FiFile} boxSize={12} color={colors.cardHeader} mb={4} />
+        )}
+      </Box>
+
+      {/* App Name and Description */}
+      <Box>
+        <Text
+          fontSize={small ? "10px" : "xl"}
+          fontWeight="bold"
+          color={colors.cardHeader}
+        >
+          {app.name}
         </Text>
-      )}
-    </Box>
-  </VStack>
-);
+
+        {/* Display filename and generated_code if this is from the 'files' table */}
+
+        {isFileData && hasPermission("atgfile.view") && (
+          <Box mt={2}>
+            <Text fontSize="sm" color={colors.cardText}>
+              <strong>Filename:</strong> {app.filename}
+            </Text>
+            <Text fontSize="sm" color={colors.cardText}>
+              <strong>Generated Code:</strong> {app.generated_code}
+            </Text>
+          </Box>
+        )}
+
+        {/* Only show description if it's **not** a recently opened app */}
+        {!small && !isFileData && (
+          <Text fontSize="sm" color={colors.cardText}>
+            {app.description}
+          </Text>
+        )}
+      </Box>
+    </VStack>
+  );
+};

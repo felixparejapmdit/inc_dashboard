@@ -1,0 +1,521 @@
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Box,
+  Button,
+  IconButton,
+  Input,
+  Stack,
+  Table,
+  Tbody,
+  Td,
+  Th,
+  Thead,
+  Tr,
+  useToast,
+  Text,
+  AlertDialog,
+  AlertDialogOverlay,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogBody,
+  AlertDialogFooter,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  Flex,
+  FormControl,
+} from "@chakra-ui/react";
+import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
+import axios from "axios";
+//import Barcode from "react-qrcode";
+import { QRCodeCanvas } from "qrcode.react";
+
+import QRCode from "qrcode.react";
+
+const FileManagement = () => {
+  const [files, setFiles] = useState([]);
+  const [filteredFiles, setFilteredFiles] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [newFile, setNewFile] = useState({
+    filename: "",
+    url: "",
+    generated_code: "",
+    qrcode: "",
+    user_id: "",
+  });
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingFile, setEditingFile] = useState(null);
+  const [deletingFile, setDeletingFile] = useState(null);
+  const toast = useToast();
+  const cancelRef = useRef();
+  const [fileId, setFileId] = useState(
+    editingFile ? editingFile.id : newFile.id
+  );
+
+  const [currentUserId, setCurrentUserId] = useState(null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const filesPerPage = 5;
+
+  useEffect(() => {
+    const username = localStorage.getItem("username");
+
+    if (username) {
+      fetch(`http://localhost/api/users_access/${username}`) // update this if needed
+        .then(async (res) => {
+          const contentType = res.headers.get("content-type");
+          const text = await res.text();
+
+          console.log("Content-Type:", contentType);
+          console.log("Raw response text:", text);
+
+          if (!contentType || !contentType.includes("application/json")) {
+            throw new Error(`Expected JSON but received:\n${text}`);
+          }
+
+          const data = JSON.parse(text);
+
+          setCurrentUserId(data.id);
+          setNewFile((prev) => ({
+            ...prev,
+            user_id: data.id,
+          }));
+        })
+        .catch((err) => {
+          console.error("Failed to fetch user:", err);
+        });
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchFiles();
+  }, []);
+
+  const fetchFiles = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/files`
+      );
+      setFiles(response.data);
+      setFilteredFiles(response.data);
+    } catch (error) {
+      toast({
+        title: "Error loading files",
+        description: error.message,
+        status: "error",
+        duration: 3000,
+      });
+    }
+  };
+
+  useEffect(() => {
+    const filtered = files.filter((file) => {
+      return (
+        file?.filename
+          ?.toLowerCase()
+          .includes(searchQuery?.toLowerCase() || "") ||
+        file?.url?.toLowerCase().includes(searchQuery?.toLowerCase() || "") ||
+        file?.generated_code
+          ?.toLowerCase()
+          .includes(searchQuery?.toLowerCase() || "") ||
+        file?.qrcode?.toLowerCase().includes(searchQuery?.toLowerCase() || "")
+      );
+    });
+
+    // Calculate which files to display based on the current page
+    const indexOfLastFile = currentPage * filesPerPage;
+    const indexOfFirstFile = indexOfLastFile - filesPerPage;
+    const currentFiles = filtered.slice(indexOfFirstFile, indexOfLastFile);
+
+    setFilteredFiles(currentFiles);
+  }, [searchQuery, files, currentPage]);
+
+  const totalPages = Math.ceil(files.length / filesPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // This Set will keep track of already generated codes in this session
+  const generatedCodes = new Set();
+
+  const generateCode = () => {
+    const getRandomLetters = () => {
+      const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      return (
+        letters.charAt(Math.floor(Math.random() * 26)) +
+        letters.charAt(Math.floor(Math.random() * 26))
+      );
+    };
+
+    const getRandomDigits = () => {
+      return Math.floor(10 + Math.random() * 90); // Two-digit number: 10–99
+    };
+
+    let newCode = "";
+
+    do {
+      const letters = getRandomLetters();
+      const digits = getRandomDigits();
+      newCode = `${letters}${digits}`;
+    } while (generatedCodes.has(newCode)); // Regenerate if already exists
+
+    generatedCodes.add(newCode); // Store to avoid duplication
+    return newCode;
+  };
+
+  const handleGenerateCode = () => {
+    const generatedCode = generateCode();
+    const qrcode = generatedCode; // Rename qrcode to qrcode
+
+    if (editingFile) {
+      setEditingFile({
+        ...editingFile,
+        generated_code: generatedCode,
+        qrcode: qrcode, // Save qrcode instead of qrcode
+      });
+    } else {
+      setNewFile({
+        ...newFile,
+        generated_code: generatedCode,
+        qrcode: qrcode, // Save qrcode instead of qrcode
+      });
+    }
+  };
+
+  const handleAddFile = async () => {
+    const { filename, url, generated_code, qrcode } = newFile;
+
+    if (!filename || !url || !generated_code || !qrcode) {
+      toast({
+        title: "All fields are required",
+        description:
+          "Filename, URL, Generated Code, and Barcode must be filled.",
+        status: "warning",
+        duration: 3000,
+      });
+      return;
+    }
+
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/add-file`,
+        newFile
+      );
+      fetchFiles();
+      setNewFile({ name: "" });
+      setIsModalOpen(false);
+      toast({ title: "File added", status: "success", duration: 3000 });
+    } catch (error) {
+      toast({
+        title: "Error adding file",
+        status: "error",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleUpdateFile = async () => {
+    const { filename, url, generated_code, qrcode } = editingFile;
+
+    if (!filename || !url || !generated_code || !qrcode) {
+      toast({
+        title: "All fields are required",
+        description:
+          "Filename, URL, Generated Code, and Barcode must be filled.",
+        status: "warning",
+        duration: 3000,
+      });
+      return;
+    }
+
+    try {
+      await axios.put(
+        `${process.env.REACT_APP_API_URL}/api/file-management/${editingFile.id}`,
+        editingFile
+      );
+      fetchFiles();
+      setEditingFile(null);
+      setIsModalOpen(false);
+      toast({ title: "File updated", status: "success", duration: 3000 });
+    } catch (error) {
+      toast({
+        title: "Error updating file",
+        status: "error",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleDeleteFile = async () => {
+    try {
+      await axios.delete(
+        `${process.env.REACT_APP_API_URL}/api/file-management/${deletingFile.id}`
+      );
+      fetchFiles();
+      toast({ title: "File deleted", status: "success", duration: 3000 });
+    } catch (error) {
+      toast({
+        title: "Error deleting file",
+        status: "error",
+        duration: 3000,
+      });
+    } finally {
+      setDeletingFile(null);
+    }
+  };
+
+  return (
+    <Box p={5}>
+      <Stack spacing={4}>
+        <Text fontSize="28px" fontWeight="bold">
+          File Management
+        </Text>
+
+        <Flex justify="space-between" align="center">
+          <Input
+            placeholder="Search Files..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            width="250px"
+          />
+
+          <Button
+            leftIcon={<AddIcon />}
+            colorScheme="orange"
+            onClick={() => setIsModalOpen(true)}
+          >
+            New File
+          </Button>
+        </Flex>
+        <Box display="flex" justifyContent="space-between" mt={4}>
+          <Button
+            onClick={() => handlePageChange(currentPage - 1)}
+            isDisabled={currentPage === 1}
+          >
+            Previous
+          </Button>
+
+          <Text alignSelf="center">
+            Page {currentPage} of {totalPages}
+          </Text>
+
+          <Button
+            onClick={() => handlePageChange(currentPage + 1)}
+            isDisabled={currentPage === totalPages}
+          >
+            Next
+          </Button>
+        </Box>
+
+        <Table variant="striped">
+          <Thead>
+            <Tr>
+              <Th>#</Th>
+              <Th>Filename</Th>
+              <Th>URL</Th>
+              <Th>Generated Code</Th>
+              <Th>QR Code</Th>
+              <Th width="20%" textAlign="right">
+                Actions
+              </Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {filteredFiles.length > 0 ? (
+              filteredFiles.map((file, index) => (
+                <Tr key={file.id}>
+                  <Td>{index + 1}</Td>
+                  <Td>{file.filename}</Td>
+                  <Td>{file.url}</Td>
+                  <Td>{file.generated_code}</Td>
+                  <Td>
+                    {file.qrcode ? (
+                      <img
+                        src={`https://bwipjs-api.metafloor.com/?bcid=code128&text=${file.qrcode}&scale=3&includetext`}
+                        alt={`Barcode for ${file.qrcode}`}
+                        style={{ height: "50px" }}
+                      />
+                    ) : (
+                      "N/A"
+                    )}
+                  </Td>
+
+                  <Td textAlign="right">
+                    <IconButton
+                      icon={<EditIcon />}
+                      colorScheme="yellow"
+                      aria-label="Edit"
+                      onClick={() => {
+                        setEditingFile(file);
+                        setIsModalOpen(true);
+                      }}
+                      mr={2}
+                    />
+                    <IconButton
+                      icon={<DeleteIcon />}
+                      colorScheme="red"
+                      aria-label="Delete"
+                      onClick={() => setDeletingFile(file)}
+                    />
+                  </Td>
+                </Tr>
+              ))
+            ) : (
+              <Tr>
+                <Td colSpan={6} textAlign="center">
+                  No files found.
+                </Td>
+              </Tr>
+            )}
+          </Tbody>
+        </Table>
+
+        <Box display="flex" justifyContent="space-between" mt={4}>
+          <Button
+            onClick={() => handlePageChange(currentPage - 1)}
+            isDisabled={currentPage === 1}
+          >
+            Previous
+          </Button>
+
+          <Text alignSelf="center">
+            Page {currentPage} of {totalPages}
+          </Text>
+
+          <Button
+            onClick={() => handlePageChange(currentPage + 1)}
+            isDisabled={currentPage === totalPages}
+          >
+            Next
+          </Button>
+        </Box>
+      </Stack>
+
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>
+            {editingFile ? "Edit File" : "Add New File"}
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody display="flex" flexDirection="column" gap={3}>
+            <FormControl isRequired>
+              <Input
+                placeholder="Filename"
+                value={
+                  editingFile ? editingFile.filename : newFile.filename || ""
+                }
+                onChange={(e) =>
+                  editingFile
+                    ? setEditingFile({
+                        ...editingFile,
+                        filename: e.target.value,
+                      })
+                    : setNewFile({ ...newFile, filename: e.target.value })
+                }
+              />
+            </FormControl>
+
+            <FormControl isRequired>
+              <Input
+                placeholder="URL"
+                value={editingFile ? editingFile.url : newFile.url || ""}
+                onChange={(e) =>
+                  editingFile
+                    ? setEditingFile({ ...editingFile, url: e.target.value })
+                    : setNewFile({ ...newFile, url: e.target.value })
+                }
+              />
+            </FormControl>
+
+            <FormControl isRequired>
+              <Input
+                placeholder="Generated Code"
+                value={
+                  editingFile
+                    ? editingFile.generated_code
+                    : newFile.generated_code || ""
+                }
+                onChange={(e) =>
+                  editingFile
+                    ? setEditingFile({
+                        ...editingFile,
+                        generated_code: e.target.value,
+                      })
+                    : setNewFile({ ...newFile, generated_code: e.target.value })
+                }
+                isReadOnly
+              />
+            </FormControl>
+            <Button onClick={handleGenerateCode} colorScheme="blue" mb={3}>
+              Generate Code
+            </Button>
+            {(editingFile?.qrcode || newFile?.qrcode) && (
+              <Box>
+                <Text fontWeight="bold">QR Code Preview:</Text>
+                <QRCodeCanvas
+                  value={editingFile?.qrcode || newFile?.qrcode}
+                  size={128}
+                  bgColor="#ffffff"
+                  fgColor="#000000"
+                  level="H"
+                />
+              </Box>
+            )}
+
+            {currentUserId && (
+              <Input value={currentUserId} isReadOnly placeholder="User ID" />
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              colorScheme="blue"
+              onClick={editingFile ? handleUpdateFile : handleAddFile}
+            >
+              {editingFile ? "Update" : "Save"}
+            </Button>
+            <Button onClick={() => setIsModalOpen(false)} ml={3}>
+              Cancel
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        isOpen={!!deletingFile}
+        leastDestructiveRef={cancelRef}
+        onClose={() => setDeletingFile(null)}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Delete File
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              Are you sure you want to delete "{deletingFile?.name}"? This
+              action cannot be undone.
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={() => setDeletingFile(null)}>
+                Cancel
+              </Button>
+              <Button colorScheme="red" onClick={handleDeleteFile} ml={3}>
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
+    </Box>
+  );
+};
+
+export default FileManagement;
