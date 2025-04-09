@@ -203,16 +203,35 @@ const FileManagement = (qrcode) => {
   };
 
   const handleGenerateCode = () => {
-    // Check if filename and url are filled
-    if (!newFile.filename || !newFile.url) {
-      // Optionally show a message to prompt the user
-      alert(
-        "Please fill in both the filename and URL before generating the code."
-      );
+    const handleGenerateCode = () => {
+      // Check if filename and url are filled
+      if (!newFile.filename || !newFile.url) {
+        // Optionally show a message to prompt the user
+        alert(
+          "Please fill in both the filename and URL before generating the code."
+        );
 
-      // Prevent further execution if fields are still empty
-      return;
-    }
+        // Prevent further execution if fields are still empty
+        return;
+      }
+
+      const generatedCode = generateCode();
+      const qrcode = generatedCode; // Rename qrcode to qrcode
+
+      if (editingFile) {
+        setEditingFile({
+          ...editingFile,
+          generated_code: generatedCode,
+          qrcode: qrcode, // Save qrcode instead of qrcode
+        });
+      } else {
+        setNewFile({
+          ...newFile,
+          generated_code: generatedCode,
+          qrcode: qrcode, // Save qrcode instead of qrcode
+        });
+      }
+    };
 
     const generatedCode = generateCode();
     const qrcode = generatedCode; // Rename qrcode to qrcode
@@ -374,7 +393,6 @@ const FileManagement = (qrcode) => {
             <Tr>
               <Th>#</Th>
               <Th>Filename</Th>
-              <Th>URL</Th>
               <Th>Generated Code</Th>
               <Th>QR Code</Th>
               <Th width="20%" textAlign="right">
@@ -405,14 +423,12 @@ const FileManagement = (qrcode) => {
                           textDecoration: "underline",
                         }} // Styling the link
                       >
-                        {file.url}
+                        {file.generated_code}
                       </a>
                     ) : (
                       "N/A"
                     )}
                   </Td>
-
-                  <Td>{file.generated_code}</Td>
                   <Td>
                     {qrcode ? (
                       <div style={{ display: "flex", alignItems: "center" }}>
