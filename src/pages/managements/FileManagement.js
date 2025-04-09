@@ -84,6 +84,7 @@ const FileManagement = (qrcode) => {
   };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalPreviewOpen, setIsModalPreviewOpen] = useState(false);
   const [editingFile, setEditingFile] = useState(null);
   const [deletingFile, setDeletingFile] = useState(null);
   const toast = useToast();
@@ -430,16 +431,21 @@ const FileManagement = (qrcode) => {
                     )}
                   </Td>
                   <Td>
-                    {qrcode ? (
+                    {file.url ? (
                       <div style={{ display: "flex", alignItems: "center" }}>
-                        <div style={{ textAlign: "center" }} ref={qrCodeRef}>
+                        <div style={{ textAlign: "center" }}>
                           <QRCodeCanvas
                             value={file.url}
                             size={64}
                             bgColor="#ffffff"
                             fgColor="#000000"
                             level="H"
-                            style={{ width: "64px", height: "64px" }}
+                            style={{
+                              width: "64px",
+                              height: "64px",
+                              cursor: "pointer",
+                            }}
+                            onClick={() => setIsModalPreviewOpen(true)}
                           />
                           <div
                             style={{
@@ -465,6 +471,58 @@ const FileManagement = (qrcode) => {
                       </div>
                     ) : (
                       "N/A"
+                    )}
+
+                    {/* Modal Implementation */}
+                    {isModalPreviewOpen && (
+                      <div
+                        style={{
+                          position: "fixed",
+                          top: 0,
+                          left: 0,
+                          width: "100%",
+                          height: "100%",
+                          backgroundColor: "rgba(0,0,0,0.5)",
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          zIndex: 1000,
+                        }}
+                        onClick={() => setIsModalPreviewOpen(false)}
+                      >
+                        <div
+                          style={{
+                            backgroundColor: "#fff",
+                            padding: "20px",
+                            borderRadius: "8px",
+                            position: "relative",
+                          }}
+                          onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the modal
+                        >
+                          <QRCodeCanvas
+                            value={file.url}
+                            size={256}
+                            bgColor="#ffffff"
+                            fgColor="#000000"
+                            level="H"
+                            style={{ width: "256px", height: "256px" }}
+                          />
+                          <button
+                            onClick={() => setIsModalPreviewOpen(false)}
+                            style={{
+                              position: "absolute",
+                              top: "10px",
+                              right: "10px",
+                              background: "none",
+                              border: "none",
+                              fontSize: "16px",
+                              cursor: "pointer",
+                            }}
+                          >
+                            &times;
+                          </button>
+                        </div>
+                      </div>
                     )}
                   </Td>
 
