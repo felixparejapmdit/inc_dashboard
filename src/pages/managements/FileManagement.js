@@ -352,7 +352,6 @@ const FileManagement = (qrcode) => {
         <Text fontSize="28px" fontWeight="bold">
           File Management
         </Text>
-
         <Flex justify="space-between" align="center">
           <Input
             placeholder="Search Files..."
@@ -369,212 +368,221 @@ const FileManagement = (qrcode) => {
             New File
           </Button>
         </Flex>
-        <Box display="flex" justifyContent="space-between" mt={4}>
-          <Button
-            onClick={() => handlePageChange(currentPage - 1)}
-            isDisabled={currentPage === 1}
-          >
-            Previous
-          </Button>
+        {filteredFiles.length === 0 ? (
+          <p style={{ color: "gray", textAlign: "center" }}>
+            No data available
+          </p>
+        ) : (
+          <>
+            <Box display="flex" justifyContent="space-between" mt={4}>
+              <Button
+                onClick={() => handlePageChange(currentPage - 1)}
+                isDisabled={currentPage === 1}
+              >
+                Previous
+              </Button>
 
-          <Text alignSelf="center">
-            Page {currentPage} of {totalPages}
-          </Text>
+              <Text alignSelf="center">
+                Page {currentPage} of {totalPages}
+              </Text>
 
-          <Button
-            onClick={() => handlePageChange(currentPage + 1)}
-            isDisabled={currentPage === totalPages}
-          >
-            Next
-          </Button>
-        </Box>
+              <Button
+                onClick={() => handlePageChange(currentPage + 1)}
+                isDisabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
+            </Box>
 
-        <Table variant="striped">
-          <Thead>
-            <Tr>
-              <Th>#</Th>
-              <Th>Filename</Th>
-              <Th>Generated Code</Th>
-              <Th>QR Code</Th>
-              <Th width="20%" textAlign="right">
-                Actions
-              </Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {filteredFiles.length > 0 ? (
-              filteredFiles.map((file, index) => (
-                <Tr key={file.id}>
-                  <Td>{index + 1}</Td>
-                  <Td>
-                    {file.filename
-                      ? file.filename.charAt(0).toUpperCase() +
-                        file.filename.slice(1)
-                      : "N/A"}
-                  </Td>
+            <Table variant="striped">
+              <Thead>
+                <Tr>
+                  <Th>#</Th>
+                  <Th>Filename</Th>
+                  <Th>Generated Code</Th>
+                  <Th>QR Code</Th>
+                  <Th width="20%" textAlign="right">
+                    Actions
+                  </Th>
+                </Tr>
+              </Thead>
+              <Tbody>
+                {filteredFiles.length > 0 ? (
+                  filteredFiles.map((file, index) => (
+                    <Tr key={file.id}>
+                      <Td>{index + 1}</Td>
+                      <Td>
+                        {file.filename
+                          ? file.filename.charAt(0).toUpperCase() +
+                            file.filename.slice(1)
+                          : "N/A"}
+                      </Td>
 
-                  <Td>
-                    {file.url ? (
-                      <a
-                        href={file.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                          color: "#1a73e8",
-                          textDecoration: "underline",
-                        }} // Styling the link
-                      >
-                        {file.generated_code}
-                      </a>
-                    ) : (
-                      "N/A"
-                    )}
-                  </Td>
-                  <Td>
-                    {file.url ? (
-                      <div style={{ display: "flex", alignItems: "center" }}>
-                        <div style={{ textAlign: "center" }}>
-                          <QRCodeCanvas
-                            value={file.url}
-                            size={64}
-                            bgColor="#ffffff"
-                            fgColor="#000000"
-                            level="H"
+                      <Td>
+                        {file.url ? (
+                          <a
+                            href={file.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             style={{
-                              width: "64px",
-                              height: "64px",
-                              cursor: "pointer",
-                            }}
-                            onClick={() => setIsModalPreviewOpen(true)}
-                          />
-                          <div
-                            style={{
-                              fontSize: "12px",
-                              marginTop: "4px",
-                              color: "#333",
-                            }}
+                              color: "#1a73e8",
+                              textDecoration: "underline",
+                            }} // Styling the link
                           >
                             {file.generated_code}
-                          </div>
-                        </div>
-                        <i
-                          onClick={downloadQRCode}
-                          style={{
-                            marginLeft: "10px",
-                            cursor: "pointer",
-                            fontSize: "24px",
-                            color: "#4CAF50",
-                          }}
-                        >
-                          <FaDownload />
-                        </i>
-                      </div>
-                    ) : (
-                      "N/A"
-                    )}
-
-                    {/* Modal Implementation */}
-                    {isModalPreviewOpen && (
-                      <div
-                        style={{
-                          position: "fixed",
-                          top: 0,
-                          left: 0,
-                          width: "100%",
-                          height: "100%",
-                          backgroundColor: "rgba(0,0,0,0.5)",
-                          display: "flex",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          zIndex: 1000,
-                        }}
-                        onClick={() => setIsModalPreviewOpen(false)}
-                      >
-                        <div
-                          style={{
-                            backgroundColor: "#fff",
-                            padding: "20px",
-                            borderRadius: "8px",
-                            position: "relative",
-                          }}
-                          onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the modal
-                        >
-                          <QRCodeCanvas
-                            value={file.url}
-                            size={256}
-                            bgColor="#ffffff"
-                            fgColor="#000000"
-                            level="H"
-                            style={{ width: "256px", height: "256px" }}
-                          />
-                          <button
-                            onClick={() => setIsModalPreviewOpen(false)}
-                            style={{
-                              position: "absolute",
-                              top: "10px",
-                              right: "10px",
-                              background: "none",
-                              border: "none",
-                              fontSize: "16px",
-                              cursor: "pointer",
-                            }}
+                          </a>
+                        ) : (
+                          "N/A"
+                        )}
+                      </Td>
+                      <Td>
+                        {file.url ? (
+                          <div
+                            style={{ display: "flex", alignItems: "center" }}
                           >
-                            &times;
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </Td>
+                            <div style={{ textAlign: "center" }}>
+                              <QRCodeCanvas
+                                value={file.url}
+                                size={64}
+                                bgColor="#ffffff"
+                                fgColor="#000000"
+                                level="H"
+                                style={{
+                                  width: "64px",
+                                  height: "64px",
+                                  cursor: "pointer",
+                                }}
+                                onClick={() => setIsModalPreviewOpen(true)}
+                              />
+                              <div
+                                style={{
+                                  fontSize: "12px",
+                                  marginTop: "4px",
+                                  color: "#333",
+                                }}
+                              >
+                                {file.generated_code}
+                              </div>
+                            </div>
+                            <i
+                              onClick={downloadQRCode}
+                              style={{
+                                marginLeft: "10px",
+                                cursor: "pointer",
+                                fontSize: "24px",
+                                color: "#4CAF50",
+                              }}
+                            >
+                              <FaDownload />
+                            </i>
+                          </div>
+                        ) : (
+                          "N/A"
+                        )}
 
-                  <Td textAlign="right">
-                    <IconButton
-                      icon={<EditIcon />}
-                      colorScheme="yellow"
-                      aria-label="Edit"
-                      onClick={() => {
-                        setEditingFile(file);
-                        setIsModalOpen(true);
-                      }}
-                      mr={2}
-                    />
-                    <IconButton
-                      icon={<DeleteIcon />}
-                      colorScheme="red"
-                      aria-label="Delete"
-                      onClick={() => setDeletingFile(file)}
-                    />
-                  </Td>
-                </Tr>
-              ))
-            ) : (
-              <Tr>
-                <Td colSpan={6} textAlign="center">
-                  No files found.
-                </Td>
-              </Tr>
-            )}
-          </Tbody>
-        </Table>
+                        {/* Modal Implementation */}
+                        {isModalPreviewOpen && (
+                          <div
+                            style={{
+                              position: "fixed",
+                              top: 0,
+                              left: 0,
+                              width: "100%",
+                              height: "100%",
+                              backgroundColor: "rgba(0,0,0,0.5)",
+                              display: "flex",
+                              justifyContent: "center",
+                              alignItems: "center",
+                              zIndex: 1000,
+                            }}
+                            onClick={() => setIsModalPreviewOpen(false)}
+                          >
+                            <div
+                              style={{
+                                backgroundColor: "#fff",
+                                padding: "20px",
+                                borderRadius: "8px",
+                                position: "relative",
+                              }}
+                              onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the modal
+                            >
+                              <QRCodeCanvas
+                                value={file.url}
+                                size={256}
+                                bgColor="#ffffff"
+                                fgColor="#000000"
+                                level="H"
+                                style={{ width: "256px", height: "256px" }}
+                              />
+                              <button
+                                onClick={() => setIsModalPreviewOpen(false)}
+                                style={{
+                                  position: "absolute",
+                                  top: "10px",
+                                  right: "10px",
+                                  background: "none",
+                                  border: "none",
+                                  fontSize: "16px",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                &times;
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </Td>
 
-        <Box display="flex" justifyContent="space-between" mt={4}>
-          <Button
-            onClick={() => handlePageChange(currentPage - 1)}
-            isDisabled={currentPage === 1}
-          >
-            Previous
-          </Button>
+                      <Td textAlign="right">
+                        <IconButton
+                          icon={<EditIcon />}
+                          colorScheme="yellow"
+                          aria-label="Edit"
+                          onClick={() => {
+                            setEditingFile(file);
+                            setIsModalOpen(true);
+                          }}
+                          mr={2}
+                        />
+                        <IconButton
+                          icon={<DeleteIcon />}
+                          colorScheme="red"
+                          aria-label="Delete"
+                          onClick={() => setDeletingFile(file)}
+                        />
+                      </Td>
+                    </Tr>
+                  ))
+                ) : (
+                  <Tr>
+                    <Td colSpan={6} textAlign="center">
+                      No files found.
+                    </Td>
+                  </Tr>
+                )}
+              </Tbody>
+            </Table>
+            <Box display="flex" justifyContent="space-between" mt={4}>
+              <Button
+                onClick={() => handlePageChange(currentPage - 1)}
+                isDisabled={currentPage === 1}
+              >
+                Previous
+              </Button>
 
-          <Text alignSelf="center">
-            Page {currentPage} of {totalPages}
-          </Text>
+              <Text alignSelf="center">
+                Page {currentPage} of {totalPages}
+              </Text>
 
-          <Button
-            onClick={() => handlePageChange(currentPage + 1)}
-            isDisabled={currentPage === totalPages}
-          >
-            Next
-          </Button>
-        </Box>
+              <Button
+                onClick={() => handlePageChange(currentPage + 1)}
+                isDisabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
+            </Box>
+          </>
+        )}
       </Stack>
 
       <Modal
