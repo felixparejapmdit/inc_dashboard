@@ -28,12 +28,13 @@ import {
   ModalFooter,
   Flex,
   FormControl,
+  Select,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import axios from "axios";
 //import Barcode from "react-qrcode";
 import { QRCodeCanvas } from "qrcode.react";
-import { FaDownload } from "react-icons/fa"; // Font Awesome download icon
+import { FaDownload, FaShareAlt } from "react-icons/fa"; // Font Awesome download icon
 const FileManagement = (qrcode) => {
   const [files, setFiles] = useState([]);
   const [filteredFiles, setFilteredFiles] = useState([]);
@@ -89,7 +90,13 @@ const FileManagement = (qrcode) => {
   const [deletingFile, setDeletingFile] = useState(null);
   const toast = useToast();
   const cancelRef = useRef();
-  const [fileId, setFileId] = useState(
+
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedUserId, setSelectedUserId] = useState("");
+  const [users, setUsers] = useState([]);
+
+  const [file_id, setFileId] = useState(
     editingFile ? editingFile.id : newFile.id
   );
 
@@ -127,13 +134,15 @@ const FileManagement = (qrcode) => {
   }, []);
 
   useEffect(() => {
-    fetchFiles();
-  }, []);
+    if (currentUserId) {
+      fetchFilesByUserId(currentUserId); // only fetch when we have a user ID
+    }
+  }, [currentUserId]);
 
-  const fetchFiles = async () => {
+  const fetchFilesByUserId = async (userId) => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/files`
+        `${process.env.REACT_APP_API_URL}/api/files/user/${userId}`
       );
       setFiles(response.data);
       setFilteredFiles(response.data);
@@ -281,7 +290,7 @@ const FileManagement = (qrcode) => {
         `${process.env.REACT_APP_API_URL}/api/add-file`,
         newFile
       );
-      fetchFiles();
+      fetchFilesByUserId(user_id);
       setNewFile({
         filename: "",
         url: "",
@@ -297,7 +306,7 @@ const FileManagement = (qrcode) => {
   };
 
   const handleUpdateFile = async () => {
-    const { filename, url, generated_code, qrcode } = editingFile;
+    const { filename, url, generated_code, user_id, qrcode } = editingFile;
 
     if (!filename || !url || !generated_code || !qrcode) {
       toast({
@@ -315,7 +324,7 @@ const FileManagement = (qrcode) => {
         `${process.env.REACT_APP_API_URL}/api/file-management/${editingFile.id}`,
         editingFile
       );
-      fetchFiles();
+      fetchFilesByUserId(user_id);
       setEditingFile(null);
       setIsModalOpen(false);
       toast({ title: "File updated", status: "success", duration: 3000 });
@@ -333,7 +342,7 @@ const FileManagement = (qrcode) => {
       await axios.delete(
         `${process.env.REACT_APP_API_URL}/api/file-management/${deletingFile.id}`
       );
-      fetchFiles();
+      fetchFilesByUserId(currentUserId);
       toast({ title: "File deleted", status: "success", duration: 3000 });
     } catch (error) {
       toast({
@@ -343,6 +352,80 @@ const FileManagement = (qrcode) => {
       });
     } finally {
       setDeletingFile(null);
+    }
+  };
+
+  const openShareModal = (file) => {
+    setSelectedFile(file);
+    setIsShareModalOpen(true);
+    fetchUsers(); // load list of users to show
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/users`
+      );
+      setUsers(response.data);
+    } catch (error) {
+      console.error("Failed to load users:", error);
+    }
+  };
+
+  const handleShareFile = async () => {
+    alert(selectedUserId);
+    if (!selectedFile?.id || !selectedUserId) {
+      toast({
+        title: "Missing file or user",
+        status: "warning",
+        duration: 3000,
+      });
+      return;
+    }
+
+    try {
+      const payload = {
+        file_id: selectedFile.id, // The ID of the file being shared
+        user_id: selectedUserId, // The ID of the user selected in the modal
+      };
+
+      console.log("Sharing file with payload:", payload); // Debugging
+
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/files/share`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "File shared successfully!",
+          status: "success",
+          duration: 3000,
+        });
+        setIsShareModalOpen(false);
+      } else {
+        toast({
+          title: data.message || "Failed to share file.",
+          status: "error",
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      console.error("Error sharing file:", error);
+      toast({
+        title: "Error sharing file.",
+        description: error.message,
+        status: "error",
+        duration: 3000,
+      });
     }
   };
 
@@ -436,20 +519,23 @@ const FileManagement = (qrcode) => {
                         )}
                       </Td>
                       <Td>
-                        {file.url ? (
+                        {qrcode ? (
                           <div
                             style={{ display: "flex", alignItems: "center" }}
                           >
-                            <div style={{ textAlign: "center" }}>
+                            <div
+                              ref={qrCodeRef}
+                              style={{ textAlign: "center" }}
+                            >
                               <QRCodeCanvas
                                 value={file.url}
-                                size={64}
-                                bgColor="#ffffff"
+                                size={48}
+                                bgColor="transparent"
                                 fgColor="#000000"
                                 level="H"
                                 style={{
-                                  width: "64px",
-                                  height: "64px",
+                                  width: "48px",
+                                  height: "48px",
                                   cursor: "pointer",
                                 }}
                                 onClick={() => setIsModalPreviewOpen(true)}
@@ -469,7 +555,7 @@ const FileManagement = (qrcode) => {
                               style={{
                                 marginLeft: "10px",
                                 cursor: "pointer",
-                                fontSize: "24px",
+                                fontSize: "20px",
                                 color: "#4CAF50",
                               }}
                             >
@@ -549,7 +635,59 @@ const FileManagement = (qrcode) => {
                           colorScheme="red"
                           aria-label="Delete"
                           onClick={() => setDeletingFile(file)}
+                          mr={2}
                         />
+
+                        <IconButton
+                          icon={<FaShareAlt />}
+                          colorScheme="blue"
+                          aria-label="Share"
+                          onClick={() => openShareModal(file)} // Pass the file as argument to open the modal
+                        />
+
+                        <Modal
+                          isOpen={isShareModalOpen}
+                          onClose={() => setIsShareModalOpen(false)}
+                        >
+                          <ModalOverlay />
+                          <ModalContent>
+                            <ModalHeader>
+                              Select a user to share this file with
+                            </ModalHeader>
+                            <ModalCloseButton />
+                            <ModalBody>
+                              <Select
+                                placeholder="Select user"
+                                onChange={(e) =>
+                                  setSelectedUserId(e.target.value)
+                                } // Get the user_id as the value
+                                value={selectedUserId}
+                              >
+                                {users.map((user) => (
+                                  <option key={user.id} value={user.user_id}>
+                                    {" "}
+                                    {/* Use user.user_id as value */}
+                                    {user.givenName} {user.sn} - {user.user_id}
+                                  </option>
+                                ))}
+                              </Select>
+                            </ModalBody>
+                            <ModalFooter>
+                              <Button
+                                colorScheme="blue"
+                                onClick={handleShareFile}
+                              >
+                                Share
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                onClick={() => setIsShareModalOpen(false)}
+                              >
+                                Cancel
+                              </Button>
+                            </ModalFooter>
+                          </ModalContent>
+                        </Modal>
                       </Td>
                     </Tr>
                   ))

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 08, 2025 at 10:56 AM
+-- Generation Time: Apr 09, 2025 at 11:20 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -821,7 +821,7 @@ CREATE TABLE `files` (
   `filename` varchar(255) NOT NULL,
   `url` varchar(255) NOT NULL,
   `generated_code` varchar(50) NOT NULL,
-  `barcode` varchar(50) NOT NULL,
+  `qrcode` varchar(50) NOT NULL,
   `user_id` int(11) NOT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `updated_at` datetime NOT NULL DEFAULT current_timestamp()
@@ -831,10 +831,30 @@ CREATE TABLE `files` (
 -- Dumping data for table `files`
 --
 
-INSERT INTO `files` (`id`, `filename`, `url`, `generated_code`, `barcode`, `user_id`, `created_at`, `updated_at`) VALUES
-(6, 'test', 'asd', 'NG17', 'NG17', 46, '2025-04-08 05:41:05', '2025-04-08 05:41:05'),
-(7, 'test_four', 'treter1112', 'TK87', 'TK87', 46, '2025-04-08 05:42:01', '2025-04-08 05:42:01'),
-(8, 'ATG-File', 'asdasdsa', 'SO83', 'SO83', 46, '2025-04-08 06:10:42', '2025-04-08 06:10:42');
+INSERT INTO `files` (`id`, `filename`, `url`, `generated_code`, `qrcode`, `user_id`, `created_at`, `updated_at`) VALUES
+(5, 'TEST', 'https://drive.pmdmc.net/s/wMSkEZENTNM45Qz', 'ZK11', 'ZK11', 46, '2025-04-09 08:40:51', '2025-04-09 08:40:51');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `file_shares`
+--
+
+CREATE TABLE `file_shares` (
+  `id` int(11) NOT NULL,
+  `file_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `shared_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `file_shares`
+--
+
+INSERT INTO `file_shares` (`id`, `file_id`, `user_id`, `shared_at`) VALUES
+(1, 5, 46, '2025-04-09 09:02:31'),
+(3, 5, 1, '2025-04-09 09:18:27'),
+(4, 5, 102, '2025-04-09 09:19:14');
 
 -- --------------------------------------------------------
 
@@ -972,6 +992,7 @@ INSERT INTO `group_permission_mappings` (`group_id`, `permission_id`, `category_
 (3, 37, 7, 0),
 (3, 38, 7, 0),
 (3, 46, 5, 0),
+(3, 53, 4, 1),
 (13, 19, 2, 1),
 (13, 21, 3, 1),
 (13, 22, 2, 1),
@@ -1033,7 +1054,8 @@ INSERT INTO `group_permission_mappings` (`group_id`, `permission_id`, `category_
 (14, 46, 5, 0),
 (14, 47, 4, 1),
 (14, 48, 3, 1),
-(14, 49, 3, 1);
+(14, 49, 3, 1),
+(14, 53, 4, 1);
 
 -- --------------------------------------------------------
 
@@ -1979,11 +2001,11 @@ CREATE TABLE `personnels` (
 --
 
 INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progress`, `personnel_progress`, `gender`, `civil_status`, `wedding_anniversary`, `givenname`, `middlename`, `surname_maiden`, `surname_husband`, `suffix`, `nickname`, `registered_district_id`, `registered_local_congregation`, `date_of_birth`, `place_of_birth`, `datejoined`, `language_id`, `bloodtype`, `work_email_address`, `email_address`, `citizenship`, `nationality`, `department_id`, `section_id`, `subsection_id`, `designation_id`, `district_id`, `local_congregation`, `personnel_type`, `district_assignment_id`, `local_congregation_assignment`, `assigned_number`, `m_status`, `panunumpa_date`, `ordination_date`, `created_at`, `updated_at`) VALUES
-(10, 'ENR-2412-EP1-8972', '1', '4', 'Male', 'Married', '2025-02-07', 'Felix', 'Morales', '', 'Pareja', 'No Suffix', 'Chok', 51, 2625, '1990-11-09', 'San Francisco Delmonte, Quezon City', '2022-08-22', '145,10', 'O+', 'felixpareja07@gmail.com', 'felixpareja.pmdit07@gmail.com', '138', 103, 1, 2, 1, 5, 51, 2658, 'Regular', 51, 2625, 20149, 'May Destino', '2022-09-16', NULL, '2024-12-09 04:43:34', '2025-03-24 06:59:29'),
+(10, 'ENR-2412-EP1-8972', '1', '4', 'Male', 'Married', '2025-02-07', 'Felix', 'Morales', '', 'Pareja', 'No Suffix', 'Chok', 51, 2625, '1990-11-09', 'San Francisco Delmonte, Quezon City', '2022-08-22', '145,10', 'O+', 'felixpareja07@gmail.com', 'felixpareja.pmdit07@gmail.com', '138', 103, 1, 2, 1, 5, 51, 2658, 'Regular', 51, 2625, 20149, 'May Destino', '2022-09-16', NULL, '2024-12-09 04:43:34', '2025-04-09 05:33:43'),
 (36, 'ENR-2501-EP1-5540', '1', '0', 'Male', 'Single', NULL, 'Michael', NULL, NULL, 'Shohdy', NULL, NULL, NULL, NULL, '1992-01-08', NULL, NULL, NULL, NULL, NULL, 'abc@yahoo.com', NULL, NULL, NULL, 0, 0, 0, NULL, NULL, 'Regular', NULL, NULL, NULL, 'May Destino', '2025-01-08', NULL, '2025-01-08 04:34:30', '2025-01-26 09:45:39'),
 (37, 'ENR-2501-EP1-3640', '3', '0', 'Male', 'Single', NULL, 'Roland Kim', 'Sato', NULL, 'Amaro', '', 'Roland, Kim', 45, 0, '1996-08-09', 'Baao, Camarines Sur', '2022-04-20', '2', 'O+', NULL, 'amarorolandkim@gmail.com', '1,138,84', 138, 1, 2, 1, 3, 45, 0, 'Regular', NULL, NULL, 17026, 'Fulltime', '2019-07-27', NULL, '2025-01-08 05:15:21', '2025-01-31 12:45:41'),
 (59, 'ENR-2501-EP1-9274', '2', '8', 'Male', 'Single', NULL, 'Policarpio', NULL, NULL, 'Sumbilong', NULL, NULL, NULL, NULL, '1996-01-09', NULL, NULL, '1', NULL, NULL, 'poli@pmdmc.net', '138', 138, 1, 2, 1, 1, 17, 0, 'Regular', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:52:47', '2025-04-01 08:52:03'),
-(60, 'ENR-2501-EP1-9003', '1', '0', 'Female', 'Married', NULL, 'Poncia', NULL, NULL, 'Plato', NULL, NULL, NULL, NULL, '1996-01-11', NULL, NULL, '1', NULL, NULL, 'poli@pmdmc.net', '138', 138, NULL, 0, 0, 0, NULL, NULL, 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:56:16', '2025-01-26 09:45:39'),
+(60, 'ENR-2501-EP1-9003', '4', '0', 'Female', 'Married', NULL, 'Poncia', NULL, NULL, 'Plato', NULL, NULL, NULL, NULL, '1996-01-11', NULL, NULL, '1', NULL, NULL, 'poli@pmdmc.net', '138', 138, NULL, 0, 0, 0, NULL, NULL, 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:56:16', '2025-04-09 05:33:34'),
 (61, 'ENR-2501-EP1-9018', '1', '8', 'Female', 'Married', NULL, 'Laarni', NULL, NULL, 'Eustaquio', NULL, '', NULL, NULL, '1996-01-11', NULL, NULL, '1', NULL, NULL, 'laitors19@gmail.com', '138', 138, NULL, 0, 0, 0, NULL, NULL, 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:57:52', '2025-04-01 06:45:11'),
 (62, 'ENR-2501-EP1-1659', '1', '0', 'Female', 'Married', '2003-01-07', 'Joan', 'Villanueva', 'Endique', 'Solitario', NULL, NULL, NULL, 0, '1978-03-01', 'Legazpi City, Albay, Philippines', '2013-05-01', '2', 'B+', NULL, 'joan.solitario@gmail.com', '185', 138, 1, 9, 0, 0, 45, 0, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:59:58', '2025-01-26 09:45:39'),
 (63, 'ENR-2501-EP1-8509', '1', '1', 'Male', 'Single', NULL, 'Harvey Guy', NULL, NULL, 'Mackay', NULL, NULL, NULL, NULL, '1984-07-08', NULL, NULL, '1', '', NULL, 'harveyguy.mackay@gmail.com', '', NULL, 1, 11, 0, 0, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 04:00:40', '2025-02-28 03:51:47'),
@@ -2582,7 +2604,7 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (15, 'kvdematera', NULL, '', 'kvdematera', '{SSHA}+728w4RErOoPkuPO2W5zP1n6+cAkj1Ru', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (16, 'rreyes', NULL, NULL, 'rreyes', '{MD5}WDUuJDKCc7XD+0pC/8DHwg==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (17, 'zpetorio', NULL, NULL, 'zpetorio', '{SSHA}Q2+NyJ1+Fhx4XN6H1W7n3xvmqmHK0Gvc', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(18, 'ATG', NULL, '', 'ATG', '{MD5}jMnoutNavel8/QA7J2mK3g==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
+(18, 'ATG', NULL, '', 'ATG', '{MD5}jMnoutNavel8/QA7J2mK3g==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (19, 'pmdit', NULL, NULL, 'pmdit', '{SSHA}1c2pNTw54K4Avjn7GQ90PMyXBD714zOt', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (20, 'atgstaff', NULL, NULL, 'atgstaff', '{SSHA}gy6OWTydaQLnRY11qhdccao0Add7gNdz', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (21, 'eeustaquio', NULL, '', 'eeustaquio', '{MD5}tRnpZ0iqYDF7QA4j1EFfkw==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
@@ -2992,6 +3014,12 @@ ALTER TABLE `files`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `file_shares`
+--
+ALTER TABLE `file_shares`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `government_issued_id`
 --
 ALTER TABLE `government_issued_id`
@@ -3277,7 +3305,13 @@ ALTER TABLE `family_members`
 -- AUTO_INCREMENT for table `files`
 --
 ALTER TABLE `files`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `file_shares`
+--
+ALTER TABLE `file_shares`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `government_issued_id`

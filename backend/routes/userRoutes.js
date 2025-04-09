@@ -549,7 +549,8 @@ router.get("/api/users", async (req, res) => {
   ss.name AS personnel_subsection_name,
   dg.name AS personnel_designation_name,
   dt.name AS personnel_district_name,
-  l.name AS personnel_language_name
+  l.name AS personnel_language_name,
+  u.id as user_id
 FROM users u 
 LEFT JOIN user_group_mappings ugm ON ugm.user_id = u.ID 
 LEFT JOIN user_groups ug ON ug.id = ugm.group_id 
@@ -594,7 +595,8 @@ GROUP BY
   ss.name, 
   dg.name, 
   dt.name, 
-  l.name;
+  l.name,
+  u.id;
 `;
 
   // Function to fetch users from LDAP
