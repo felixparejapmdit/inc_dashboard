@@ -21,7 +21,7 @@ const File = sequelize.define(
       type: DataTypes.STRING(50), // Adjust the length as needed
       allowNull: false,
     },
-    barcode: {
+    qrcode: {
       type: DataTypes.STRING(50), // Adjust the length as needed
       allowNull: false,
     },

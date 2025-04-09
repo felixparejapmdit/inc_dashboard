@@ -155,7 +155,7 @@ exports.getAvailableApps = async (req, res) => {
 
     // Fetch files data (filename and generated_code)
     const filesData = await sequelize.query(
-      `SELECT filename, generated_code FROM files`,
+      `SELECT filename, url, generated_code FROM files`,
       { type: sequelize.QueryTypes.SELECT }
     );
 

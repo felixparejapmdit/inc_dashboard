@@ -886,44 +886,56 @@ export default function Dashboard() {
 // );
 
 const AppCard = ({ app, colors, handleAppClick, small }) => {
-  // Check if the app is from the 'files' table (you can add a condition to check for the source)
-  const isFileData = app.generated_code && app.filename; // This is just a check for the 'files' table data
-
-  // Check permission using context
+  const isFileData = app.generated_code && app.filename;
   const { hasPermission } = usePermissionContext();
+
+  // Determine if the card should be clickable
+  const isClickable = !isFileData || hasPermission("atgfile.view");
+
+  const handleClick = (e) => {
+    if (!isClickable) return;
+
+    e.preventDefault();
+    if (handleAppClick) {
+      handleAppClick(app);
+    }
+
+    const targetUrl = app.url;
+
+    if (targetUrl) {
+      window.open(targetUrl, "_blank");
+    }
+  };
 
   return (
     <VStack
-      as="div" // Change from <a> to <div> to prevent conflicts with onClick
+      as="div"
       bg={colors.appBg}
       borderRadius="xl"
       border={`3px solid ${colors.cardBorder}`}
       p={small ? 2 : 6}
       spacing={2}
       boxShadow="md"
-      _hover={{ transform: "scale(1.03)", transition: "all 0.2s ease-in-out" }}
+      _hover={
+        isClickable
+          ? { transform: "scale(1.03)", transition: "all 0.2s ease-in-out" }
+          : {}
+      }
       align="center"
       textAlign="center"
       width={small ? "120px" : "100%"}
       minHeight={small ? "80px" : "200px"}
-      onClick={(e) => {
-        e.preventDefault(); // Prevent default behavior
-        if (handleAppClick) {
-          handleAppClick(app);
-        }
-        window.open(app.url, "_blank"); // Open in a new tab
-      }}
-      cursor="pointer"
+      onClick={handleClick}
+      cursor={isClickable ? "pointer" : "not-allowed"}
     >
       {/* App Icon */}
-
       <Box>
         {app.icon ? (
           <Image
             src={app.icon}
             alt={`${app.name} Icon`}
-            boxSize={small ? "40px" : "70px"} // Larger icon for emphasis
-            borderRadius="full" // Circular icon
+            boxSize={small ? "40px" : "70px"}
+            borderRadius="full"
             mb={4}
             boxShadow="md"
             border="2px solid"
@@ -944,20 +956,25 @@ const AppCard = ({ app, colors, handleAppClick, small }) => {
           {app.name}
         </Text>
 
-        {/* Display filename and generated_code if this is from the 'files' table */}
-
-        {isFileData && hasPermission("atgfile.view") && (
-          <Box mt={2}>
+        {/* File info */}
+        {isFileData ? (
+          hasPermission("atgfile.view") ? (
+            <Box mt={2}>
+              <Text fontSize="sm" color={colors.cardText}>
+                <strong>Filename:</strong> {app.filename}
+              </Text>
+              <Text fontSize="sm" color={colors.cardText}>
+                <strong>Generated Code:</strong> {app.generated_code}
+              </Text>
+            </Box>
+          ) : (
             <Text fontSize="sm" color={colors.cardText}>
-              <strong>Filename:</strong> {app.filename}
+              No Files Found
             </Text>
-            <Text fontSize="sm" color={colors.cardText}>
-              <strong>Generated Code:</strong> {app.generated_code}
-            </Text>
-          </Box>
-        )}
+          )
+        ) : null}
 
-        {/* Only show description if it's **not** a recently opened app */}
+        {/* Regular app description */}
         {!small && !isFileData && (
           <Text fontSize="sm" color={colors.cardText}>
             {app.description}

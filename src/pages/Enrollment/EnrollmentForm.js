@@ -897,7 +897,14 @@ const EnrollmentForm = ({ referenceNumber }) => {
     }
 
     setStep(previousStep);
-    navigate(`/enroll?personnel_id=${personnelId}&step=${previousStep}`);
+    //navigate(`/enroll?personnel_id=${personnelId}&step=${previousStep}`);
+
+    // Include type=evaluation in the URL if typeParam is "evaluation"
+    navigate(
+      `/enroll?personnel_id=${personnelId}&step=${previousStep}${
+        typeParam === "evaluation" ? "&type=evaluation" : ""
+      }`
+    );
   };
 
   // Confirm Early Completion and Save Step 1 Data

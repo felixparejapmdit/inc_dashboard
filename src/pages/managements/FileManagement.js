@@ -33,20 +33,55 @@ import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import axios from "axios";
 //import Barcode from "react-qrcode";
 import { QRCodeCanvas } from "qrcode.react";
-
-import QRCode from "qrcode.react";
-
-const FileManagement = () => {
+import { FaDownload } from "react-icons/fa"; // Font Awesome download icon
+const FileManagement = (qrcode) => {
   const [files, setFiles] = useState([]);
   const [filteredFiles, setFilteredFiles] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const [currentUserId, setCurrentUserId] = useState(null);
+
+  const qrCodeRef = useRef(null);
+
   const [newFile, setNewFile] = useState({
     filename: "",
     url: "",
     generated_code: "",
     qrcode: "",
-    user_id: "",
+    user_id: null, // Start as null
   });
+
+  // Function to handle QR code download
+  const downloadQRCode = () => {
+    // Check if the ref and canvas are available
+    if (qrCodeRef.current) {
+      const canvas = qrCodeRef.current.querySelector("canvas"); // Get the canvas element
+      if (canvas) {
+        const dataUrl = canvas.toDataURL("image/png"); // Get the data URL of the canvas as an image
+        const link = document.createElement("a");
+        link.href = dataUrl;
+        link.download = "qrcode.png"; // Set a default filename for the download
+        link.click(); // Trigger the download
+        toast({
+          title: "QR code downloaded",
+          status: "success",
+          duration: 3000,
+        });
+      } else {
+        toast({
+          title: "Error: QR code not rendered",
+          status: "error",
+          duration: 3000,
+        });
+      }
+    } else {
+      toast({
+        title: "Error: QR code reference not found",
+        status: "error",
+        duration: 3000,
+      });
+    }
+  };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingFile, setEditingFile] = useState(null);
@@ -56,8 +91,6 @@ const FileManagement = () => {
   const [fileId, setFileId] = useState(
     editingFile ? editingFile.id : newFile.id
   );
-
-  const [currentUserId, setCurrentUserId] = useState(null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const filesPerPage = 5;
@@ -170,6 +203,17 @@ const FileManagement = () => {
   };
 
   const handleGenerateCode = () => {
+    // Check if filename and url are filled
+    if (!newFile.filename || !newFile.url) {
+      // Optionally show a message to prompt the user
+      alert(
+        "Please fill in both the filename and URL before generating the code."
+      );
+
+      // Prevent further execution if fields are still empty
+      return;
+    }
+
     const generatedCode = generateCode();
     const qrcode = generatedCode; // Rename qrcode to qrcode
 
@@ -189,13 +233,23 @@ const FileManagement = () => {
   };
 
   const handleAddFile = async () => {
-    const { filename, url, generated_code, qrcode } = newFile;
+    const { filename, url, generated_code, qrcode, user_id } = newFile;
 
-    if (!filename || !url || !generated_code || !qrcode) {
+    // URL validation regex (simple version, you can adjust it as needed)
+    const isValidUrl = /^(https?|chrome):\/\/[^\s$.?#].[^\s]*$/gm.test(url);
+
+    if (!filename || !url || !generated_code || !qrcode || !user_id) {
       toast({
-        title: "All fields are required",
-        description:
-          "Filename, URL, Generated Code, and Barcode must be filled.",
+        title: "All fields including user must be filled",
+        status: "warning",
+        duration: 3000,
+      });
+      return;
+    }
+
+    if (!isValidUrl) {
+      toast({
+        title: "Please enter a valid URL",
         status: "warning",
         duration: 3000,
       });
@@ -208,15 +262,17 @@ const FileManagement = () => {
         newFile
       );
       fetchFiles();
-      setNewFile({ name: "" });
+      setNewFile({
+        filename: "",
+        url: "",
+        generated_code: "",
+        qrcode: "",
+        user_id,
+      }); // reset with user_id retained
       setIsModalOpen(false);
       toast({ title: "File added", status: "success", duration: 3000 });
     } catch (error) {
-      toast({
-        title: "Error adding file",
-        status: "error",
-        duration: 3000,
-      });
+      toast({ title: "Error adding file", status: "error", duration: 3000 });
     }
   };
 
@@ -331,16 +387,66 @@ const FileManagement = () => {
               filteredFiles.map((file, index) => (
                 <Tr key={file.id}>
                   <Td>{index + 1}</Td>
-                  <Td>{file.filename}</Td>
-                  <Td>{file.url}</Td>
+                  <Td>
+                    {file.filename
+                      ? file.filename.charAt(0).toUpperCase() +
+                        file.filename.slice(1)
+                      : "N/A"}
+                  </Td>
+
+                  <Td>
+                    {file.url ? (
+                      <a
+                        href={file.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          color: "#1a73e8",
+                          textDecoration: "underline",
+                        }} // Styling the link
+                      >
+                        {file.url}
+                      </a>
+                    ) : (
+                      "N/A"
+                    )}
+                  </Td>
+
                   <Td>{file.generated_code}</Td>
                   <Td>
-                    {file.qrcode ? (
-                      <img
-                        src={`https://bwipjs-api.metafloor.com/?bcid=code128&text=${file.qrcode}&scale=3&includetext`}
-                        alt={`Barcode for ${file.qrcode}`}
-                        style={{ height: "50px" }}
-                      />
+                    {qrcode ? (
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        <div style={{ textAlign: "center" }} ref={qrCodeRef}>
+                          <QRCodeCanvas
+                            value={file.url}
+                            size={64}
+                            bgColor="#ffffff"
+                            fgColor="#000000"
+                            level="H"
+                            style={{ width: "64px", height: "64px" }}
+                          />
+                          <div
+                            style={{
+                              fontSize: "12px",
+                              marginTop: "4px",
+                              color: "#333",
+                            }}
+                          >
+                            {file.generated_code}
+                          </div>
+                        </div>
+                        <i
+                          onClick={downloadQRCode}
+                          style={{
+                            marginLeft: "10px",
+                            cursor: "pointer",
+                            fontSize: "24px",
+                            color: "#4CAF50",
+                          }}
+                        >
+                          <FaDownload />
+                        </i>
+                      </div>
                     ) : (
                       "N/A"
                     )}
@@ -397,7 +503,15 @@ const FileManagement = () => {
         </Box>
       </Stack>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => {
+          // Check if any of the fields have values
+          if (!newFile.filename && !newFile.url && !newFile.generated_code) {
+            setIsModalOpen(false); // Close modal only if no field has a value
+          }
+        }}
+      >
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>
@@ -457,21 +571,47 @@ const FileManagement = () => {
               Generate Code
             </Button>
             {(editingFile?.qrcode || newFile?.qrcode) && (
-              <Box>
-                <Text fontWeight="bold">QR Code Preview:</Text>
-                <QRCodeCanvas
-                  value={editingFile?.qrcode || newFile?.qrcode}
-                  size={128}
-                  bgColor="#ffffff"
-                  fgColor="#000000"
-                  level="H"
-                />
+              <Box
+                style={{
+                  display: "flex",
+                  flexDirection: "column", // Stack text and QR code vertically
+                  justifyContent: "center", // Centers horizontally
+                  alignItems: "center", // Centers vertically
+                  marginTop: "5px", // Optional: Adjust spacing from the top
+                }}
+              >
+                <Text
+                  fontWeight="bold"
+                  style={{ textAlign: "center", marginBottom: "10px" }}
+                >
+                  QR Code Preview:
+                </Text>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center", // Centers QR code horizontally
+                    alignItems: "center", // Centers QR code vertically
+                  }}
+                >
+                  <QRCodeCanvas
+                    value={editingFile?.qrcode || newFile?.qrcode}
+                    size={128}
+                    bgColor="#ffffff"
+                    fgColor="#000000"
+                    level="H"
+                  />
+                </div>
               </Box>
             )}
 
-            {currentUserId && (
-              <Input value={currentUserId} isReadOnly placeholder="User ID" />
-            )}
+            {currentUserId ? (
+              <Input
+                type="hidden"
+                value={currentUserId}
+                isReadOnly
+                placeholder="User ID"
+              />
+            ) : null}
           </ModalBody>
           <ModalFooter>
             <Button
