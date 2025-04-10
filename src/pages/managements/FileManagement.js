@@ -745,8 +745,7 @@ const FileManagement = (qrcode) => {
                                           user.user_id
                                         )} // Disable if already shared
                                       >
-                                        {user.givenName} {user.sn} -{" "}
-                                        {user.user_id}
+                                        {user.givenName} {user.sn}
                                       </Checkbox>
                                     ))}
                                 {users.length === 0 && (
