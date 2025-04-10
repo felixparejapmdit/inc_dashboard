@@ -227,6 +227,16 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
           isExpanded={isExpanded}
           onClick={() => navigate("/profile")}
         />
+
+        {hasPermission("files.view") && (
+          <SidebarItem
+            label="Share a link"
+            isExpanded={isExpanded}
+            onClick={() => navigate("/managements/filemanagement")}
+            useDynamicIcon
+          />
+        )}
+
         {/* Settings with submenu */}
         {hasPermission("*settings.view") && (
           <SidebarItem
@@ -288,14 +298,14 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 useDynamicIcon
               />
             )}
-            {hasPermission("files.view") && (
+            {/* {hasPermission("files.view") && (
               <SidebarItem
-                label="Files"
+                label="Share a link"
                 isExpanded={isExpanded}
                 onClick={() => navigate("/managements/filemanagement")}
                 useDynamicIcon
               />
-            )}
+            )} */}
             {hasPermission("groups.view") && (
               <SidebarItem
                 icon={FiCalendar}
