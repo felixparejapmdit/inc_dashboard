@@ -29,6 +29,7 @@ import {
   Flex,
   FormControl,
   Select,
+  Checkbox,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import axios from "axios";
@@ -91,10 +92,15 @@ const FileManagement = (qrcode) => {
   const toast = useToast();
   const cancelRef = useRef();
 
+  const [users, setUsers] = useState([]);
+  const [alreadySharedUserIds, setAlreadySharedUserIds] = useState([]); // List of users who already have the file
+  const [alreadySharedUsers, setAlreadySharedUsers] = useState([]); // new
+
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [selectedUserId, setSelectedUserId] = useState("");
-  const [users, setUsers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedUserIds, setSelectedUserIds] = useState([]);
 
   const [file_id, setFileId] = useState(
     editingFile ? editingFile.id : newFile.id
@@ -107,7 +113,7 @@ const FileManagement = (qrcode) => {
     const username = localStorage.getItem("username");
 
     if (username) {
-      fetch(`http://localhost/api/users_access/${username}`) // update this if needed
+      fetch(`${process.env.REACT_APP_API_URL}/api/users_access/${username}`) // update this if needed
         .then(async (res) => {
           const contentType = res.headers.get("content-type");
           const text = await res.text();
@@ -213,35 +219,16 @@ const FileManagement = (qrcode) => {
   };
 
   const handleGenerateCode = () => {
-    const handleGenerateCode = () => {
-      // Check if filename and url are filled
-      if (!newFile.filename || !newFile.url) {
-        // Optionally show a message to prompt the user
-        alert(
-          "Please fill in both the filename and URL before generating the code."
-        );
+    // Check if filename and url are filled
+    if (!newFile.filename || !newFile.url) {
+      // Optionally show a message to prompt the user
+      alert(
+        "Please fill in both the filename and URL before generating the code."
+      );
 
-        // Prevent further execution if fields are still empty
-        return;
-      }
-
-      const generatedCode = generateCode();
-      const qrcode = generatedCode; // Rename qrcode to qrcode
-
-      if (editingFile) {
-        setEditingFile({
-          ...editingFile,
-          generated_code: generatedCode,
-          qrcode: qrcode, // Save qrcode instead of qrcode
-        });
-      } else {
-        setNewFile({
-          ...newFile,
-          generated_code: generatedCode,
-          qrcode: qrcode, // Save qrcode instead of qrcode
-        });
-      }
-    };
+      // Prevent further execution if fields are still empty
+      return;
+    }
 
     const generatedCode = generateCode();
     const qrcode = generatedCode; // Rename qrcode to qrcode
@@ -355,10 +342,21 @@ const FileManagement = (qrcode) => {
     }
   };
 
-  const openShareModal = (file) => {
-    setSelectedFile(file);
-    setIsShareModalOpen(true);
-    fetchUsers(); // load list of users to show
+  const fetchAlreadySharedUserIds = async (fileId) => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/files/${fileId.id}/shared-users`
+      );
+      setAlreadySharedUserIds(response.data.sharedUserIds);
+
+      // Match full user data from `users`
+      const sharedUsers = users.filter((user) =>
+        response.data.sharedUserIds.includes(user.user_id)
+      );
+      setAlreadySharedUsers(sharedUsers);
+    } catch (error) {
+      console.error("Failed to fetch already shared users:", error);
+    }
   };
 
   const fetchUsers = async () => {
@@ -372,9 +370,42 @@ const FileManagement = (qrcode) => {
     }
   };
 
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  useEffect(() => {
+    const matches = users.filter((user) =>
+      `${user.givenName} ${user.sn} ${user.user_id}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
+    );
+
+    // Combine with alreadySharedUsers
+    const combined = [...matches, ...alreadySharedUsers];
+
+    // Deduplicate by user_id
+    const uniqueUsers = combined.filter(
+      (user, index, self) =>
+        index === self.findIndex((u) => u.user_id === user.user_id)
+    );
+
+    setFilteredUsers(uniqueUsers);
+  }, [searchTerm, users, alreadySharedUsers]);
+
+  const handleCheckboxChange = (user_id) => {
+    setSelectedUserIds((prevSelected) =>
+      prevSelected.includes(user_id)
+        ? prevSelected.filter((id) => id !== user_id)
+        : [...prevSelected, user_id]
+    );
+  };
+
   const handleShareFile = async () => {
-    alert(selectedUserId);
-    if (!selectedFile?.id || !selectedUserId) {
+    if (
+      !selectedFile?.id ||
+      (selectedUserIds && selectedUserIds.length === 0)
+    ) {
       toast({
         title: "Missing file or user",
         status: "warning",
@@ -386,7 +417,7 @@ const FileManagement = (qrcode) => {
     try {
       const payload = {
         file_id: selectedFile.id, // The ID of the file being shared
-        user_id: selectedUserId, // The ID of the user selected in the modal
+        user_ids: selectedUserIds || [], // Ensure user_ids is always an array
       };
 
       console.log("Sharing file with payload:", payload); // Debugging
@@ -403,6 +434,9 @@ const FileManagement = (qrcode) => {
       );
 
       const data = await response.json();
+      if (data.alreadySharedUserIds) {
+        setAlreadySharedUserIds(data.alreadySharedUserIds || []); // Update the already shared users safely
+      }
 
       if (response.ok) {
         toast({
@@ -637,45 +671,94 @@ const FileManagement = (qrcode) => {
                           onClick={() => setDeletingFile(file)}
                           mr={2}
                         />
-
                         <IconButton
                           icon={<FaShareAlt />}
                           colorScheme="blue"
                           aria-label="Share"
-                          onClick={() => openShareModal(file)} // Pass the file as argument to open the modal
+                          onClick={() => {
+                            setSelectedFile(file);
+                            fetchAlreadySharedUserIds(file); // Fetch shared users here
+                            setIsShareModalOpen(true);
+                          }}
                         />
 
                         <Modal
                           isOpen={isShareModalOpen}
                           onClose={() => setIsShareModalOpen(false)}
+                          size="lg"
                         >
                           <ModalOverlay />
                           <ModalContent>
                             <ModalHeader>
-                              Select a user to share this file with
+                              Select users to share this file with
                             </ModalHeader>
                             <ModalCloseButton />
                             <ModalBody>
-                              <Select
-                                placeholder="Select user"
-                                onChange={(e) =>
-                                  setSelectedUserId(e.target.value)
-                                } // Get the user_id as the value
-                                value={selectedUserId}
+                              <Input
+                                placeholder="Search users..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                mb={4}
+                              />
+                              <Stack
+                                spacing={3}
+                                maxHeight="450px" // Limit the height to fit 15 users
+                                overflowY="auto" // Add scroll bar
                               >
-                                {users.map((user) => (
-                                  <option key={user.id} value={user.user_id}>
-                                    {" "}
-                                    {/* Use user.user_id as value */}
-                                    {user.givenName} {user.sn} - {user.user_id}
-                                  </option>
-                                ))}
-                              </Select>
+                                {users &&
+                                  users
+                                    .filter(
+                                      (user) =>
+                                        selectedUserIds.includes(
+                                          user.user_id
+                                        ) ||
+                                        user.givenName
+                                          .toLowerCase()
+                                          .includes(searchTerm.toLowerCase()) ||
+                                        user.sn
+                                          .toLowerCase()
+                                          .includes(searchTerm.toLowerCase()) ||
+                                        String(user.user_id)
+                                          .toLowerCase()
+                                          .includes(searchTerm.toLowerCase())
+                                    )
+                                    .filter(
+                                      (user, index, self) =>
+                                        index ===
+                                        self.findIndex(
+                                          (u) => u.user_id === user.user_id
+                                        )
+                                    )
+                                    .sort((a, b) =>
+                                      a.givenName.localeCompare(b.givenName)
+                                    ) // Sort users by givenName
+                                    .map((user) => (
+                                      <Checkbox
+                                        key={user.id}
+                                        isChecked={selectedUserIds.includes(
+                                          user.user_id
+                                        )}
+                                        onChange={() =>
+                                          handleCheckboxChange(user.user_id)
+                                        }
+                                        isDisabled={alreadySharedUserIds.includes(
+                                          user.user_id
+                                        )} // Disable if already shared
+                                      >
+                                        {user.givenName} {user.sn} -{" "}
+                                        {user.user_id}
+                                      </Checkbox>
+                                    ))}
+                                {users.length === 0 && (
+                                  <Box>No users found.</Box>
+                                )}
+                              </Stack>
                             </ModalBody>
                             <ModalFooter>
                               <Button
                                 colorScheme="blue"
                                 onClick={handleShareFile}
+                                isDisabled={selectedUserIds.length === 0}
                               >
                                 Share
                               </Button>

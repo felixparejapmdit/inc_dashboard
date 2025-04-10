@@ -25,18 +25,52 @@ const getFileById = async (req, res) => {
   }
 };
 
-// Get files by user ID
+// // Get files by user ID
+// const getFileByUserID = async (req, res) => {
+//   const userId = req.params.userId;
+
+//   try {
+//     const files = await File.findAll({
+//       where: { user_id: userId },
+//       order: [["created_at", "DESC"]],
+//     });
+
+//     res.status(200).json(files);
+//   } catch (error) {
+//     res.status(500).json({ message: "Error retrieving user's files", error });
+//   }
+// };
+
+// Get files by user ID (uploaded or shared)
 const getFileByUserID = async (req, res) => {
   const userId = req.params.userId;
 
   try {
-    const files = await File.findAll({
+    // Files uploaded by the user
+    const uploadedFiles = await File.findAll({
       where: { user_id: userId },
-      order: [["created_at", "DESC"]],
     });
 
-    res.status(200).json(files);
+    // Files shared with the user
+    const sharedFileIds = await FileShare.findAll({
+      where: { user_id: userId },
+      attributes: ["file_id"],
+    });
+
+    const sharedFileIdList = sharedFileIds.map((item) => item.file_id);
+
+    const sharedFiles = await File.findAll({
+      where: { id: sharedFileIdList },
+    });
+
+    // Combine uploaded and shared files
+    const allFiles = [...uploadedFiles, ...sharedFiles].sort(
+      (a, b) => new Date(b.created_at) - new Date(a.created_at)
+    );
+
+    res.status(200).json(allFiles);
   } catch (error) {
+    console.error("Error retrieving files:", error);
     res.status(500).json({ message: "Error retrieving user's files", error });
   }
 };
@@ -109,6 +143,25 @@ const shareFile = async (file_id, user_id) => {
   }
 };
 
+// Get users the file is already shared with
+const getSharedUsers = async (req, res) => {
+  try {
+    const fileId = req.params.id;
+
+    const shares = await FileShare.findAll({
+      where: { file_id: fileId },
+      attributes: ["user_id"],
+    });
+
+    const sharedUserIds = shares.map((share) => share.user_id);
+
+    res.status(200).json({ sharedUserIds });
+  } catch (error) {
+    console.error("Error fetching shared users:", error);
+    res.status(500).json({ message: "Failed to fetch shared users", error });
+  }
+};
+
 module.exports = {
   getAllFiles,
   getFileById,
@@ -117,4 +170,5 @@ module.exports = {
   updateFile,
   deleteFile,
   shareFile,
+  getSharedUsers,
 };
