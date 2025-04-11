@@ -555,11 +555,14 @@ const FileManagement = (qrcode) => {
                   {hasPermission("link.qrcode") && <Th>QR Code</Th>}
                   <Th>Sender</Th>
                   <Th>Date Created</Th>
-                  {hasPermission("link.action") && (
-                    <Th width="20%" textAlign="right">
-                      Actions
-                    </Th>
-                  )}
+                  {hasPermission("link.action") &&
+                    filteredFiles.some(
+                      (file) => file.user_id === currentUserId
+                    ) && (
+                      <Th width="20%" textAlign="right">
+                        Actions
+                      </Th>
+                    )}
                 </Tr>
               </Thead>
               <Tbody>
@@ -709,7 +712,8 @@ const FileManagement = (qrcode) => {
                         })}
                       </Td>
 
-                      {hasPermission("link.action") && (
+                      {hasPermission("link.action") &&
+                      file.user_id === currentUserId ? (
                         <Td textAlign="right">
                           <IconButton
                             icon={<EditIcon />}
@@ -848,12 +852,25 @@ const FileManagement = (qrcode) => {
                             </ModalContent>
                           </Modal>
                         </Td>
+                      ) : (
+                        <Td
+                          textAlign="right"
+                          fontWeight="bold"
+                          color="blue.600"
+                        >
+                          Shared link
+                        </Td>
                       )}
                     </Tr>
                   ))
                 ) : (
                   <Tr>
-                    <Td colSpan={6} textAlign="center">
+                    <Td
+                      colSpan={6}
+                      textAlign="center"
+                      fontWeight="bold"
+                      color="gray.600"
+                    >
                       No files found.
                     </Td>
                   </Tr>
