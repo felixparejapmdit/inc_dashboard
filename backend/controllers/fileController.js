@@ -137,7 +137,10 @@ const getFileByUserID = async (req, res) => {
       );
     }
 
-    res.status(200).json(allFiles);
+    res.status(200).json({
+      files: allFiles,
+      isVIP: !!isVIP, // returns true or false
+    });
   } catch (error) {
     console.error("Error retrieving files:", error);
     res.status(500).json({ message: "Error retrieving user's files", error });

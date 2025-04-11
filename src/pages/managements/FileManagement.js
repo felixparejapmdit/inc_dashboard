@@ -112,6 +112,8 @@ const FileManagement = (qrcode) => {
   const [currentPage, setCurrentPage] = useState(1);
   const filesPerPage = 5;
 
+  const [isVIP, setIsVIP] = useState(false); // default to false
+
   useEffect(() => {
     const username = localStorage.getItem("username");
 
@@ -154,8 +156,12 @@ const FileManagement = (qrcode) => {
       const response = await axios.get(
         `${process.env.REACT_APP_API_URL}/api/files/user/${userId}`
       );
-      setFiles(response.data);
-      setFilteredFiles(response.data);
+
+      const { files, isVIP } = response.data;
+
+      setFiles(files);
+      setFilteredFiles(files);
+      setIsVIP(isVIP); // Add this line to set VIP status in state
     } catch (error) {
       toast({
         title: "Error loading files",
@@ -166,7 +172,31 @@ const FileManagement = (qrcode) => {
     }
   };
 
+  // useEffect(() => {
+  //   const filtered = files.filter((file) => {
+  //     return (
+  //       file?.filename
+  //         ?.toLowerCase()
+  //         .includes(searchQuery?.toLowerCase() || "") ||
+  //       file?.url?.toLowerCase().includes(searchQuery?.toLowerCase() || "") ||
+  //       file?.generated_code
+  //         ?.toLowerCase()
+  //         .includes(searchQuery?.toLowerCase() || "") ||
+  //       file?.qrcode?.toLowerCase().includes(searchQuery?.toLowerCase() || "")
+  //     );
+  //   });
+
+  //   // Calculate which files to display based on the current page
+  //   const indexOfLastFile = currentPage * filesPerPage;
+  //   const indexOfFirstFile = indexOfLastFile - filesPerPage;
+  //   const currentFiles = filtered.slice(indexOfFirstFile, indexOfLastFile);
+
+  //   setFilteredFiles(currentFiles);
+  // }, [searchQuery, files, currentPage]);
+
   useEffect(() => {
+    if (!Array.isArray(files)) return;
+
     const filtered = files.filter((file) => {
       return (
         file?.filename
@@ -180,7 +210,6 @@ const FileManagement = (qrcode) => {
       );
     });
 
-    // Calculate which files to display based on the current page
     const indexOfLastFile = currentPage * filesPerPage;
     const indexOfFirstFile = indexOfLastFile - filesPerPage;
     const currentFiles = filtered.slice(indexOfFirstFile, indexOfLastFile);
@@ -520,7 +549,7 @@ const FileManagement = (qrcode) => {
           )}
         </Flex>
         {filteredFiles.length === 0 ? (
-          <p style={{ color: "gray", textAlign: "center" }}>
+          <p style={{ textAlign: "center", fontWeight: "bold", color: "gray" }}>
             No data available
           </p>
         ) : (
@@ -853,13 +882,15 @@ const FileManagement = (qrcode) => {
                           </Modal>
                         </Td>
                       ) : (
-                        <Td
-                          textAlign="right"
-                          fontWeight="bold"
-                          color="blue.600"
-                        >
-                          Shared link
-                        </Td>
+                        !isVIP && (
+                          <Td
+                            textAlign="right"
+                            fontWeight="bold"
+                            color="blue.600"
+                          >
+                            Shared link
+                          </Td>
+                        )
                       )}
                     </Tr>
                   ))
