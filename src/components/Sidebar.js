@@ -44,6 +44,8 @@ import {
   FiUserCheck,
   FiSliders,
 } from "react-icons/fi";
+
+import { FaDownload, FaShareAlt } from "react-icons/fa"; // Font Awesome download icon
 import { useNavigate } from "react-router-dom";
 
 import { usePermissionContext } from "../contexts/PermissionContext";
@@ -228,12 +230,12 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
           onClick={() => navigate("/profile")}
         />
 
-        {hasPermission("files.view") && (
+        {hasPermission("links.view") && (
           <SidebarItem
             label="Share a link"
             isExpanded={isExpanded}
             onClick={() => navigate("/managements/filemanagement")}
-            useDynamicIcon
+            icon={FaShareAlt}
           />
         )}
 

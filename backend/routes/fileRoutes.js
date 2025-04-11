@@ -17,7 +17,7 @@ router.delete("/api/file-management/:id", fileController.deleteFile);
 
 // Share file with multiple users
 router.post("/api/files/share", async (req, res) => {
-  const { file_id, user_ids } = req.body; // expects user_ids as an array
+  const { file_id, user_ids } = req.body;
 
   if (!file_id || !Array.isArray(user_ids) || user_ids.length === 0) {
     return res.status(400).json({
@@ -30,17 +30,21 @@ router.post("/api/files/share", async (req, res) => {
       user_ids.map((user_id) => fileController.shareFile(file_id, user_id))
     );
 
-    const success = results.filter(
-      (r) => r.message === "File shared successfully."
-    );
-    const alreadyShared = results.filter((r) =>
-      r.message.includes("already shared")
-    );
+    const sharedWith = [];
+    const alreadySharedWith = [];
+
+    results.forEach((result) => {
+      if (result.message === "File shared successfully.") {
+        sharedWith.push(result.data.user_id);
+      } else if (result.message.includes("already shared")) {
+        alreadySharedWith.push(result.data.user_id);
+      }
+    });
 
     res.status(200).json({
       message: "Sharing process completed.",
-      sharedWith: success.map((r) => r.data?.user_id),
-      alreadySharedWith: alreadyShared.map((r, idx) => user_ids[idx]),
+      sharedWith,
+      alreadySharedWith, // 🔁 This is what your frontend needs
     });
   } catch (error) {
     console.error("Error sharing file:", error);

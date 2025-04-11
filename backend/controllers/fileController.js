@@ -1,6 +1,9 @@
 const FileShare = require("../models/FileShare"); // Import the FileShare model
 const File = require("../models/File");
 const User = require("../models/User"); // Import the User model
+const Personnel = require("../models/personnels"); // Import the User model
+const UserGroupMapping = require("../models/UserGroupMapping");
+const { Op } = require("sequelize");
 
 // Get all files
 const getAllFiles = async (req, res) => {
@@ -42,31 +45,97 @@ const getFileById = async (req, res) => {
 // };
 
 // Get files by user ID (uploaded or shared)
+// const getFileByUserID = async (req, res) => {
+//   const userId = req.params.userId;
+
+//   try {
+//     // Files uploaded by the user
+//     const uploadedFiles = await File.findAll({
+//       where: { user_id: userId },
+//     });
+
+//     // Files shared with the user
+//     const sharedFileIds = await FileShare.findAll({
+//       where: { user_id: userId },
+//       attributes: ["file_id"],
+//     });
+
+//     const sharedFileIdList = sharedFileIds.map((item) => item.file_id);
+
+//     const sharedFiles = await File.findAll({
+//       where: { id: sharedFileIdList },
+//     });
+
+//     // Combine uploaded and shared files
+//     const allFiles = [...uploadedFiles, ...sharedFiles].sort(
+//       (a, b) => new Date(b.created_at) - new Date(a.created_at)
+//     );
+
+//     res.status(200).json(allFiles);
+//   } catch (error) {
+//     console.error("Error retrieving files:", error);
+//     res.status(500).json({ message: "Error retrieving user's files", error });
+//   }
+// };
+
 const getFileByUserID = async (req, res) => {
   const userId = req.params.userId;
 
   try {
-    // Files uploaded by the user
-    const uploadedFiles = await File.findAll({
-      where: { user_id: userId },
+    const isVIP = await UserGroupMapping.findOne({
+      where: {
+        user_id: userId,
+        group_id: 2,
+      },
     });
 
-    // Files shared with the user
-    const sharedFileIds = await FileShare.findAll({
-      where: { user_id: userId },
-      attributes: ["file_id"],
-    });
+    let allFiles = [];
 
-    const sharedFileIdList = sharedFileIds.map((item) => item.file_id);
+    const fileInclude = [
+      {
+        model: User,
+        as: "user",
+        include: [
+          {
+            model: Personnel,
+            as: "personnel",
+            attributes: ["givenname", "middlename", "surname_husband"],
+          },
+        ],
+      },
+    ];
 
-    const sharedFiles = await File.findAll({
-      where: { id: sharedFileIdList },
-    });
+    if (isVIP) {
+      allFiles = await File.findAll({
+        order: [["created_at", "DESC"]],
+        include: fileInclude,
+      });
+    } else {
+      const uploadedFiles = await File.findAll({
+        where: { user_id: userId },
+        include: fileInclude,
+      });
 
-    // Combine uploaded and shared files
-    const allFiles = [...uploadedFiles, ...sharedFiles].sort(
-      (a, b) => new Date(b.created_at) - new Date(a.created_at)
-    );
+      const sharedFileIds = await FileShare.findAll({
+        where: { user_id: userId },
+        attributes: ["file_id"],
+      });
+
+      const sharedFileIdList = sharedFileIds.map((item) => item.file_id);
+
+      const sharedFiles = await File.findAll({
+        where: {
+          id: {
+            [Op.in]: sharedFileIdList,
+          },
+        },
+        include: fileInclude,
+      });
+
+      allFiles = [...uploadedFiles, ...sharedFiles].sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      );
+    }
 
     res.status(200).json(allFiles);
   } catch (error) {
@@ -119,12 +188,13 @@ const deleteFile = async (req, res) => {
 const shareFile = async (file_id, user_id) => {
   try {
     const existingShare = await FileShare.findOne({
-      where: { file_id, user_id },
+      where: { file_id, user_id }, // 🔒 Checks exact combination
     });
 
     if (existingShare) {
       return {
         message: "File is already shared with this user.",
+        data: { file_id, user_id },
       };
     }
 

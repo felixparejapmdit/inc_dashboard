@@ -36,11 +36,14 @@ import axios from "axios";
 //import Barcode from "react-qrcode";
 import { QRCodeCanvas } from "qrcode.react";
 import { FaDownload, FaShareAlt } from "react-icons/fa"; // Font Awesome download icon
+import { usePermissionContext } from "../../contexts/PermissionContext";
+
 const FileManagement = (qrcode) => {
   const [files, setFiles] = useState([]);
   const [filteredFiles, setFilteredFiles] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
 
+  const { hasPermission } = usePermissionContext(); // Correct usage
   const [currentUserId, setCurrentUserId] = useState(null);
 
   const qrCodeRef = useRef(null);
@@ -142,6 +145,7 @@ const FileManagement = (qrcode) => {
   useEffect(() => {
     if (currentUserId) {
       fetchFilesByUserId(currentUserId); // only fetch when we have a user ID
+      setNewFile((prev) => ({ ...prev, user_id: currentUserId }));
     }
   }, [currentUserId]);
 
@@ -249,12 +253,19 @@ const FileManagement = (qrcode) => {
   };
 
   const handleAddFile = async () => {
-    const { filename, url, generated_code, qrcode, user_id } = newFile;
+    const code = generateCode();
+    // Ensure user_id is present from state or fallback to currentUserId
+    const updatedNewFile = {
+      ...newFile,
+      user_id: newFile.user_id || currentUserId, // Add fallback if needed
+      generated_code: code,
+      qrcode: code,
+    };
+    const { filename, url, generated_code, qrcode, user_id } = updatedNewFile;
 
-    // URL validation regex (simple version, you can adjust it as needed)
     const isValidUrl = /^(https?|chrome):\/\/[^\s$.?#].[^\s]*$/gm.test(url);
 
-    if (!filename || !url || !generated_code || !qrcode || !user_id) {
+    if (!filename || !url || !qrcode || !user_id) {
       toast({
         title: "All fields including user must be filled",
         status: "warning",
@@ -275,7 +286,7 @@ const FileManagement = (qrcode) => {
     try {
       await axios.post(
         `${process.env.REACT_APP_API_URL}/api/add-file`,
-        newFile
+        updatedNewFile
       );
       fetchFilesByUserId(user_id);
       setNewFile({
@@ -284,7 +295,7 @@ const FileManagement = (qrcode) => {
         generated_code: "",
         qrcode: "",
         user_id,
-      }); // reset with user_id retained
+      });
       setIsModalOpen(false);
       toast({ title: "File added", status: "success", duration: 3000 });
     } catch (error) {
@@ -293,7 +304,15 @@ const FileManagement = (qrcode) => {
   };
 
   const handleUpdateFile = async () => {
-    const { filename, url, generated_code, user_id, qrcode } = editingFile;
+    //const code = generateCode();
+    const updatedEditingFile = {
+      ...editingFile,
+      // generated_code: code,
+      // qrcode: code,
+    };
+
+    const { filename, url, generated_code, user_id, qrcode } =
+      updatedEditingFile;
 
     if (!filename || !url || !generated_code || !qrcode) {
       toast({
@@ -309,7 +328,7 @@ const FileManagement = (qrcode) => {
     try {
       await axios.put(
         `${process.env.REACT_APP_API_URL}/api/file-management/${editingFile.id}`,
-        editingFile
+        updatedEditingFile
       );
       fetchFilesByUserId(user_id);
       setEditingFile(null);
@@ -434,8 +453,12 @@ const FileManagement = (qrcode) => {
       );
 
       const data = await response.json();
-      if (data.alreadySharedUserIds) {
-        setAlreadySharedUserIds(data.alreadySharedUserIds || []); // Update the already shared users safely
+      // if (data.alreadySharedUserIds) {
+      //   setAlreadySharedUserIds(data.alreadySharedUserIds || []); // Update the already shared users safely
+      // }
+
+      if (data.alreadySharedWith) {
+        setAlreadySharedUserIds(data.alreadySharedWith || []);
       }
 
       if (response.ok) {
@@ -467,23 +490,34 @@ const FileManagement = (qrcode) => {
     <Box p={5}>
       <Stack spacing={4}>
         <Text fontSize="28px" fontWeight="bold">
-          File Management
+          Share a link
         </Text>
         <Flex justify="space-between" align="center">
           <Input
-            placeholder="Search Files..."
+            placeholder="Search here..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             width="250px"
           />
 
-          <Button
-            leftIcon={<AddIcon />}
-            colorScheme="orange"
-            onClick={() => setIsModalOpen(true)}
-          >
-            New File
-          </Button>
+          {hasPermission("link.newfile") && (
+            <Button
+              leftIcon={<AddIcon />}
+              colorScheme="orange"
+              onClick={() => {
+                setEditingFile(null); // Reset editing mode
+                setNewFile({
+                  filename: "",
+                  url: "",
+                  generated_code: "",
+                  qrcode: "",
+                }); // Optional: clear newFile state
+                setIsModalOpen(true);
+              }}
+            >
+              New File
+            </Button>
+          )}
         </Flex>
         {filteredFiles.length === 0 ? (
           <p style={{ color: "gray", textAlign: "center" }}>
@@ -517,10 +551,15 @@ const FileManagement = (qrcode) => {
                   <Th>#</Th>
                   <Th>Filename</Th>
                   <Th>Generated Code</Th>
-                  <Th>QR Code</Th>
-                  <Th width="20%" textAlign="right">
-                    Actions
-                  </Th>
+
+                  {hasPermission("link.qrcode") && <Th>QR Code</Th>}
+                  <Th>Sender</Th>
+                  <Th>Date Created</Th>
+                  {hasPermission("link.action") && (
+                    <Th width="20%" textAlign="right">
+                      Actions
+                    </Th>
+                  )}
                 </Tr>
               </Thead>
               <Tbody>
@@ -552,225 +591,264 @@ const FileManagement = (qrcode) => {
                           "N/A"
                         )}
                       </Td>
-                      <Td>
-                        {qrcode ? (
-                          <div
-                            style={{ display: "flex", alignItems: "center" }}
-                          >
+                      {hasPermission("link.qrcode") && (
+                        <Td>
+                          {qrcode ? (
                             <div
-                              ref={qrCodeRef}
-                              style={{ textAlign: "center" }}
+                              style={{ display: "flex", alignItems: "center" }}
                             >
-                              <QRCodeCanvas
-                                value={file.url}
-                                size={48}
-                                bgColor="transparent"
-                                fgColor="#000000"
-                                level="H"
+                              <div
+                                ref={qrCodeRef}
+                                style={{ textAlign: "center" }}
+                              >
+                                <QRCodeCanvas
+                                  value={file.url}
+                                  size={48}
+                                  bgColor="transparent"
+                                  fgColor="#000000"
+                                  level="H"
+                                  style={{
+                                    width: "48px",
+                                    height: "48px",
+                                    cursor: "pointer",
+                                  }}
+                                  onClick={() => setIsModalPreviewOpen(true)}
+                                />
+                                <div
+                                  style={{
+                                    fontSize: "12px",
+                                    marginTop: "4px",
+                                    color: "#333",
+                                  }}
+                                >
+                                  {file.generated_code}
+                                </div>
+                              </div>
+                              <i
+                                onClick={downloadQRCode}
                                 style={{
-                                  width: "48px",
-                                  height: "48px",
+                                  marginLeft: "10px",
                                   cursor: "pointer",
+                                  fontSize: "20px",
+                                  color: "#4CAF50",
                                 }}
-                                onClick={() => setIsModalPreviewOpen(true)}
-                              />
+                              >
+                                <FaDownload />
+                              </i>
+                            </div>
+                          ) : (
+                            "N/A"
+                          )}
+
+                          {/* Modal Implementation */}
+                          {isModalPreviewOpen && (
+                            <div
+                              style={{
+                                position: "fixed",
+                                top: 0,
+                                left: 0,
+                                width: "100%",
+                                height: "100%",
+                                backgroundColor: "rgba(0,0,0,0.5)",
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                zIndex: 1000,
+                              }}
+                              onClick={() => setIsModalPreviewOpen(false)}
+                            >
                               <div
                                 style={{
-                                  fontSize: "12px",
-                                  marginTop: "4px",
-                                  color: "#333",
+                                  backgroundColor: "#fff",
+                                  padding: "20px",
+                                  borderRadius: "8px",
+                                  position: "relative",
                                 }}
+                                onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the modal
                               >
-                                {file.generated_code}
+                                <QRCodeCanvas
+                                  value={file.url}
+                                  size={256}
+                                  bgColor="#ffffff"
+                                  fgColor="#000000"
+                                  level="H"
+                                  style={{ width: "256px", height: "256px" }}
+                                />
+                                <button
+                                  onClick={() => setIsModalPreviewOpen(false)}
+                                  style={{
+                                    position: "absolute",
+                                    top: "10px",
+                                    right: "10px",
+                                    background: "none",
+                                    border: "none",
+                                    fontSize: "16px",
+                                    cursor: "pointer",
+                                  }}
+                                >
+                                  &times;
+                                </button>
                               </div>
                             </div>
-                            <i
-                              onClick={downloadQRCode}
-                              style={{
-                                marginLeft: "10px",
-                                cursor: "pointer",
-                                fontSize: "20px",
-                                color: "#4CAF50",
-                              }}
-                            >
-                              <FaDownload />
-                            </i>
-                          </div>
-                        ) : (
-                          "N/A"
-                        )}
+                          )}
+                        </Td>
+                      )}
+                      <Td>
+                        {file.user?.personnel
+                          ? `${file.user.personnel.givenname || ""} ${
+                              file.user.personnel.middlename || ""
+                            } ${file.user.personnel.surname_husband || ""}`
+                          : "N/A"}
+                      </Td>
 
-                        {/* Modal Implementation */}
-                        {isModalPreviewOpen && (
-                          <div
-                            style={{
-                              position: "fixed",
-                              top: 0,
-                              left: 0,
-                              width: "100%",
-                              height: "100%",
-                              backgroundColor: "rgba(0,0,0,0.5)",
-                              display: "flex",
-                              justifyContent: "center",
-                              alignItems: "center",
-                              zIndex: 1000,
+                      <Td>
+                        {new Date(file.created_at).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </Td>
+
+                      {hasPermission("link.action") && (
+                        <Td textAlign="right">
+                          <IconButton
+                            icon={<EditIcon />}
+                            colorScheme="yellow"
+                            aria-label="Edit"
+                            onClick={() => {
+                              setEditingFile(file);
+                              setIsModalOpen(true);
                             }}
-                            onClick={() => setIsModalPreviewOpen(false)}
+                            mr={2}
+                          />
+                          <IconButton
+                            icon={<DeleteIcon />}
+                            colorScheme="red"
+                            aria-label="Delete"
+                            onClick={() => setDeletingFile(file)}
+                            mr={2}
+                          />
+                          <IconButton
+                            icon={<FaShareAlt />}
+                            colorScheme="blue"
+                            aria-label="Share"
+                            onClick={() => {
+                              setSelectedFile(file);
+                              fetchAlreadySharedUserIds(file); // Fetch shared users here
+                              setIsShareModalOpen(true);
+                            }}
+                          />
+
+                          <Modal
+                            isOpen={isShareModalOpen}
+                            onClose={() => setIsShareModalOpen(false)}
+                            size="lg"
                           >
-                            <div
-                              style={{
-                                backgroundColor: "#fff",
-                                padding: "20px",
-                                borderRadius: "8px",
-                                position: "relative",
-                              }}
-                              onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the modal
-                            >
-                              <QRCodeCanvas
-                                value={file.url}
-                                size={256}
-                                bgColor="#ffffff"
-                                fgColor="#000000"
-                                level="H"
-                                style={{ width: "256px", height: "256px" }}
-                              />
-                              <button
-                                onClick={() => setIsModalPreviewOpen(false)}
-                                style={{
-                                  position: "absolute",
-                                  top: "10px",
-                                  right: "10px",
-                                  background: "none",
-                                  border: "none",
-                                  fontSize: "16px",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                &times;
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </Td>
-
-                      <Td textAlign="right">
-                        <IconButton
-                          icon={<EditIcon />}
-                          colorScheme="yellow"
-                          aria-label="Edit"
-                          onClick={() => {
-                            setEditingFile(file);
-                            setIsModalOpen(true);
-                          }}
-                          mr={2}
-                        />
-                        <IconButton
-                          icon={<DeleteIcon />}
-                          colorScheme="red"
-                          aria-label="Delete"
-                          onClick={() => setDeletingFile(file)}
-                          mr={2}
-                        />
-                        <IconButton
-                          icon={<FaShareAlt />}
-                          colorScheme="blue"
-                          aria-label="Share"
-                          onClick={() => {
-                            setSelectedFile(file);
-                            fetchAlreadySharedUserIds(file); // Fetch shared users here
-                            setIsShareModalOpen(true);
-                          }}
-                        />
-
-                        <Modal
-                          isOpen={isShareModalOpen}
-                          onClose={() => setIsShareModalOpen(false)}
-                          size="lg"
-                        >
-                          <ModalOverlay />
-                          <ModalContent>
-                            <ModalHeader>
-                              Select users to share this file with
-                            </ModalHeader>
-                            <ModalCloseButton />
-                            <ModalBody>
-                              <Input
-                                placeholder="Search users..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                mb={4}
-                              />
-                              <Stack
-                                spacing={3}
-                                maxHeight="450px" // Limit the height to fit 15 users
-                                overflowY="auto" // Add scroll bar
-                              >
-                                {users &&
-                                  users
-                                    .filter(
-                                      (user) =>
-                                        selectedUserIds.includes(
-                                          user.user_id
-                                        ) ||
-                                        user.givenName
-                                          .toLowerCase()
-                                          .includes(searchTerm.toLowerCase()) ||
-                                        user.sn
-                                          .toLowerCase()
-                                          .includes(searchTerm.toLowerCase()) ||
-                                        String(user.user_id)
-                                          .toLowerCase()
-                                          .includes(searchTerm.toLowerCase())
-                                    )
-                                    .filter(
-                                      (user, index, self) =>
-                                        index ===
-                                        self.findIndex(
-                                          (u) => u.user_id === user.user_id
-                                        )
-                                    )
-                                    .sort((a, b) =>
-                                      a.givenName.localeCompare(b.givenName)
-                                    ) // Sort users by givenName
-                                    .map((user) => (
-                                      <Checkbox
-                                        key={user.id}
-                                        isChecked={selectedUserIds.includes(
-                                          user.user_id
-                                        )}
-                                        onChange={() =>
-                                          handleCheckboxChange(user.user_id)
-                                        }
-                                        isDisabled={alreadySharedUserIds.includes(
-                                          user.user_id
-                                        )} // Disable if already shared
-                                      >
-                                        {user.givenName} {user.sn}
-                                      </Checkbox>
-                                    ))}
-                                {users.length === 0 && (
-                                  <Box>No users found.</Box>
-                                )}
-                              </Stack>
-                            </ModalBody>
-                            <ModalFooter>
-                              <Button
-                                colorScheme="blue"
-                                onClick={handleShareFile}
-                                isDisabled={selectedUserIds.length === 0}
-                              >
-                                Share
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                onClick={() => setIsShareModalOpen(false)}
-                              >
-                                Cancel
-                              </Button>
-                            </ModalFooter>
-                          </ModalContent>
-                        </Modal>
-                      </Td>
+                            <ModalOverlay />
+                            <ModalContent>
+                              <ModalHeader>
+                                Select users to share this file with
+                              </ModalHeader>
+                              <ModalCloseButton />
+                              <ModalBody>
+                                <Input
+                                  placeholder="Search users..."
+                                  value={searchTerm}
+                                  onChange={(e) =>
+                                    setSearchTerm(e.target.value)
+                                  }
+                                  mb={4}
+                                />
+                                <Stack
+                                  spacing={3}
+                                  maxHeight="450px"
+                                  overflowY="auto"
+                                >
+                                  {users &&
+                                    users
+                                      .filter(
+                                        (user) =>
+                                          selectedUserIds.includes(
+                                            user.user_id
+                                          ) ||
+                                          user.givenName
+                                            .toLowerCase()
+                                            .includes(
+                                              searchTerm.toLowerCase()
+                                            ) ||
+                                          user.sn
+                                            .toLowerCase()
+                                            .includes(
+                                              searchTerm.toLowerCase()
+                                            ) ||
+                                          String(user.user_id)
+                                            .toLowerCase()
+                                            .includes(searchTerm.toLowerCase())
+                                      )
+                                      .filter(
+                                        (user, index, self) =>
+                                          index ===
+                                          self.findIndex(
+                                            (u) => u.user_id === user.user_id
+                                          )
+                                      )
+                                      .sort((a, b) =>
+                                        a.givenName.localeCompare(b.givenName)
+                                      )
+                                      .map((user) => (
+                                        <Checkbox
+                                          key={user.id}
+                                          isChecked={
+                                            selectedUserIds.includes(
+                                              user.user_id
+                                            ) ||
+                                            alreadySharedUserIds.includes(
+                                              user.user_id
+                                            )
+                                          }
+                                          onChange={() =>
+                                            handleCheckboxChange(user.user_id)
+                                          }
+                                        >
+                                          {user.givenName} {user.sn}{" "}
+                                          {alreadySharedUserIds.includes(
+                                            user.user_id
+                                          ) && (
+                                            <span
+                                              style={{
+                                                color: "green",
+                                                marginLeft: "8px",
+                                              }}
+                                            >
+                                              ✔
+                                            </span>
+                                          )}
+                                        </Checkbox>
+                                      ))}
+                                  {users.length === 0 && (
+                                    <Box>No users found.</Box>
+                                  )}
+                                </Stack>
+                              </ModalBody>
+                              <ModalFooter>
+                                <Button
+                                  colorScheme="blue"
+                                  onClick={handleShareFile}
+                                  isDisabled={selectedUserIds.length === 0}
+                                >
+                                  Share
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  onClick={() => setIsShareModalOpen(false)}
+                                >
+                                  Cancel
+                                </Button>
+                              </ModalFooter>
+                            </ModalContent>
+                          </Modal>
+                        </Td>
+                      )}
                     </Tr>
                   ))
                 ) : (
@@ -850,7 +928,7 @@ const FileManagement = (qrcode) => {
               />
             </FormControl>
 
-            <FormControl isRequired>
+            {/* <FormControl isRequired>
               <Input
                 placeholder="Generated Code"
                 value={
@@ -871,7 +949,7 @@ const FileManagement = (qrcode) => {
             </FormControl>
             <Button onClick={handleGenerateCode} colorScheme="blue" mb={3}>
               Generate Code
-            </Button>
+            </Button> */}
             {(editingFile?.qrcode || newFile?.qrcode) && (
               <Box
                 style={{
