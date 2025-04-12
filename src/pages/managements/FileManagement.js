@@ -68,8 +68,9 @@ const FileManagement = (qrcode) => {
         const originalWidth = qrCanvas.width;
         const originalHeight = qrCanvas.height;
 
-        const scaledWidth = originalWidth * 1.7;
-        const scaledHeight = originalHeight * 1.7;
+        const scale = 1.8;
+        const scaledWidth = originalWidth * scale;
+        const scaledHeight = originalHeight * scale;
         const padding = 20;
         const textHeight = 30;
 
