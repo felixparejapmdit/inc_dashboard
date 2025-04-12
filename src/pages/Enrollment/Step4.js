@@ -499,10 +499,10 @@ const Step4 = ({
                           whiteSpace="nowrap"
                           color="#0a5856"
                         >
-                          Maiden Name:
+                          Surname(Maiden Name)
                         </Text>
                         <Input
-                          placeholder="Maiden Name"
+                          placeholder="Surname(Maiden Name)"
                           value={parent.lastname}
                           onChange={(e) =>
                             onChange(index, "lastname", e.target.value)
