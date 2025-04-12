@@ -87,7 +87,7 @@ const FileManagement = (qrcode) => {
           const targetWidth = scaledWidth;
 
           // Calculate font size to exactly fit the label within the targetWidth
-          let fontSize = 100; // Start with a large font size
+          let fontSize = 118; // Start with a large font size
           let textWidth = 0;
 
           // Decrease font size until the text width matches the target width
