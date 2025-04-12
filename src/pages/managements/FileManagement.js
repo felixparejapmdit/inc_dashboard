@@ -63,13 +63,12 @@ const FileManagement = (qrcode) => {
     document.body.appendChild(tempWrapper);
 
     const tempQRCode = (
-      <QRCodeCanvas value={url} size={200} includeMargin={true} level="H" />
+      <QRCodeCanvas value={url} size={200} includeMargin={false} level="H" />
     );
 
     import("react-dom").then((ReactDOM) => {
       ReactDOM.render(tempQRCode, tempWrapper);
 
-      // Wait briefly to ensure the canvas is rendered
       setTimeout(() => {
         const qrCanvas = tempWrapper.querySelector("canvas");
 
@@ -79,34 +78,55 @@ const FileManagement = (qrcode) => {
           const scale = 1.5;
           const scaledWidth = originalWidth * scale;
           const scaledHeight = originalHeight * scale;
-          const padding = 20;
-          const textHeight = 30;
+          const padding = 10; // Reduced padding to minimize space
 
           const canvas = document.createElement("canvas");
-          canvas.width = scaledWidth + padding * 2;
-          canvas.height = scaledHeight + padding * 2 + textHeight;
-
           const ctx = canvas.getContext("2d");
 
-          // White background
+          // Set the target width for the label (same as the QR code width)
+          const targetWidth = scaledWidth;
+
+          // Calculate font size to exactly fit the label within the targetWidth
+          let fontSize = 100; // Start with a large font size
+          let textWidth = 0;
+
+          // Decrease font size until the text width matches the target width
+          do {
+            ctx.font = `bold ${fontSize}px Calibri`;
+            textWidth = ctx.measureText(generatedCode).width;
+            fontSize--;
+          } while (textWidth > targetWidth && fontSize > 0); // Ensure label fits within the width of the QR code
+
+          // Measure final label height (approximate)
+          const textHeight = fontSize + 10;
+
+          canvas.width = scaledWidth + padding * 2;
+          canvas.height = scaledHeight + padding + textHeight + padding;
+
+          // Draw white background
           ctx.fillStyle = "#ffffff";
           ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-          // Draw scaled QR
+          // Draw scaled QR code
           ctx.imageSmoothingEnabled = false;
           ctx.drawImage(qrCanvas, padding, padding, scaledWidth, scaledHeight);
 
-          // Add label
-          ctx.fillStyle = "#000000";
-          ctx.font = "bold 49px Calibri";
-          ctx.textAlign = "center";
-          ctx.fillText(
-            generatedCode,
-            canvas.width / 2,
-            scaledHeight + padding + 20
-          );
+          // Draw a red border around the QR code area (for debugging)
+          //ctx.strokeStyle = "red";
+          //ctx.lineWidth = 5;
+          //ctx.strokeRect(padding, padding, scaledWidth, scaledHeight);
 
-          // Save image
+          // Draw label below the QR code, matching its width
+          ctx.fillStyle = "#000000";
+          ctx.font = `bold ${fontSize}px Calibri`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "top";
+
+          // Position the label closer to the QR code
+          const labelTopPosition = scaledHeight + padding + 5; // minimal gap between QR and label
+          ctx.fillText(generatedCode, canvas.width / 2, labelTopPosition);
+
+          // Download the QR code with label
           const dataUrl = canvas.toDataURL("image/png");
           const link = document.createElement("a");
           link.href = dataUrl;
@@ -119,7 +139,6 @@ const FileManagement = (qrcode) => {
             duration: 3000,
           });
 
-          // Cleanup
           ReactDOM.unmountComponentAtNode(tempWrapper);
           document.body.removeChild(tempWrapper);
         } else {
@@ -130,7 +149,7 @@ const FileManagement = (qrcode) => {
           });
           document.body.removeChild(tempWrapper);
         }
-      }, 100); // Short delay to let the canvas render
+      }, 100);
     });
   };
 
