@@ -48,6 +48,7 @@ const FileManagement = (qrcode) => {
 
   const qrCodeRef = useRef(null);
   const [selectedQrUrl, setSelectedQrUrl] = useState(null);
+  const [selectedGeneratedCode, setSelectedGeneratedCode] = useState("");
 
   const [newFile, setNewFile] = useState({
     filename: "",
@@ -58,34 +59,49 @@ const FileManagement = (qrcode) => {
   });
 
   // Function to handle QR code download
-  const downloadQRCode = () => {
-    // Check if the ref and canvas are available
+  const downloadQRCode = (file) => {
     if (qrCodeRef.current) {
-      const canvas = qrCodeRef.current.querySelector("canvas"); // Get the canvas element
-      if (canvas) {
-        const dataUrl = canvas.toDataURL("image/png"); // Get the data URL of the canvas as an image
+      const canvas = document.createElement("canvas");
+      const qrCanvas = qrCodeRef.current.querySelector("canvas");
+      const codeText = file.generated_code || ""; // Adjust if needed
+
+      if (qrCanvas) {
+        const qrWidth = qrCanvas.width;
+        const qrHeight = qrCanvas.height;
+        const padding = 20;
+        const textHeight = 30;
+
+        canvas.width = qrWidth + padding * 2;
+        canvas.height = qrHeight + padding * 2 + textHeight;
+
+        const ctx = canvas.getContext("2d");
+
+        // White background
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw QR
+        ctx.drawImage(qrCanvas, padding, padding);
+
+        // Draw code text
+        ctx.fillStyle = "#000";
+        ctx.font = "16px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(codeText, canvas.width / 2, qrHeight + padding + 20);
+
+        // Trigger download
+        const dataUrl = canvas.toDataURL("image/png");
         const link = document.createElement("a");
         link.href = dataUrl;
-        link.download = "qrcode.png"; // Set a default filename for the download
-        link.click(); // Trigger the download
+        link.download = "qrcode_with_code.png";
+        link.click();
+
         toast({
-          title: "QR code downloaded",
+          title: "QR code downloaded with code",
           status: "success",
           duration: 3000,
         });
-      } else {
-        toast({
-          title: "Error: QR code not rendered",
-          status: "error",
-          duration: 3000,
-        });
       }
-    } else {
-      toast({
-        title: "Error: QR code reference not found",
-        status: "error",
-        duration: 3000,
-      });
     }
   };
 
@@ -647,6 +663,9 @@ const FileManagement = (qrcode) => {
                                   }}
                                   onClick={() => {
                                     setSelectedQrUrl(file.url); // set selected QR
+                                    setSelectedGeneratedCode(
+                                      file.generated_code
+                                    ); // new
                                     setIsModalPreviewOpen(true);
                                   }}
                                 />
@@ -661,7 +680,7 @@ const FileManagement = (qrcode) => {
                                 </div>
                               </div>
                               <i
-                                onClick={downloadQRCode}
+                                onClick={() => downloadQRCode(file)}
                                 style={{
                                   marginLeft: "10px",
                                   cursor: "pointer",
@@ -713,6 +732,16 @@ const FileManagement = (qrcode) => {
                                   level="H"
                                   style={{ width: "256px", height: "256px" }}
                                 />
+                                <p
+                                  style={{
+                                    textAlign: "center",
+                                    marginTop: "10px",
+                                    fontWeight: "bold",
+                                  }}
+                                >
+                                  {selectedGeneratedCode}
+                                </p>
+
                                 <button
                                   onClick={() => {
                                     setIsModalPreviewOpen(false);
