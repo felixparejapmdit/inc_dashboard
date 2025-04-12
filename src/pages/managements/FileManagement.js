@@ -58,63 +58,80 @@ const FileManagement = (qrcode) => {
     user_id: null, // Start as null
   });
 
-  // Function to handle QR code download
-  const downloadQRCode = (file) => {
-    if (qrCodeRef.current) {
-      const qrCanvas = qrCodeRef.current.querySelector("canvas");
-      const codeText = file.generated_code || "";
+  const downloadQRCode = (url, generatedCode = "") => {
+    const tempWrapper = document.createElement("div");
+    document.body.appendChild(tempWrapper);
 
-      if (qrCanvas) {
-        const originalWidth = qrCanvas.width;
-        const originalHeight = qrCanvas.height;
+    const tempQRCode = (
+      <QRCodeCanvas value={url} size={200} includeMargin={true} level="H" />
+    );
 
-        const scale = 1.8;
-        const scaledWidth = originalWidth * scale;
-        const scaledHeight = originalHeight * scale;
-        const padding = 20;
-        const textHeight = 30;
+    import("react-dom").then((ReactDOM) => {
+      ReactDOM.render(tempQRCode, tempWrapper);
 
-        const canvas = document.createElement("canvas");
-        canvas.width = scaledWidth + padding * 2;
-        canvas.height = scaledHeight + padding * 2 + textHeight;
+      // Wait briefly to ensure the canvas is rendered
+      setTimeout(() => {
+        const qrCanvas = tempWrapper.querySelector("canvas");
 
-        const ctx = canvas.getContext("2d");
+        if (qrCanvas) {
+          const originalWidth = qrCanvas.width;
+          const originalHeight = qrCanvas.height;
+          const scale = 1.5;
+          const scaledWidth = originalWidth * scale;
+          const scaledHeight = originalHeight * scale;
+          const padding = 20;
+          const textHeight = 30;
 
-        // Background
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+          const canvas = document.createElement("canvas");
+          canvas.width = scaledWidth + padding * 2;
+          canvas.height = scaledHeight + padding * 2 + textHeight;
 
-        // Create a temporary canvas to scale QR code
-        const tempCanvas = document.createElement("canvas");
-        tempCanvas.width = scaledWidth;
-        tempCanvas.height = scaledHeight;
-        const tempCtx = tempCanvas.getContext("2d");
+          const ctx = canvas.getContext("2d");
 
-        tempCtx.drawImage(qrCanvas, 0, 0, scaledWidth, scaledHeight);
+          // White background
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw scaled QR to main canvas
-        ctx.drawImage(tempCanvas, padding, padding);
+          // Draw scaled QR
+          ctx.imageSmoothingEnabled = false;
+          ctx.drawImage(qrCanvas, padding, padding, scaledWidth, scaledHeight);
 
-        // Draw code text below
-        ctx.fillStyle = "#000";
-        ctx.font = "16px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText(codeText, canvas.width / 2, scaledHeight + padding + 20);
+          // Add label
+          ctx.fillStyle = "#000000";
+          ctx.font = "bold 30px Calibri";
+          ctx.textAlign = "center";
+          ctx.fillText(
+            generatedCode,
+            canvas.width / 2,
+            scaledHeight + padding + 20
+          );
 
-        // Trigger download
-        const dataUrl = canvas.toDataURL("image/png");
-        const link = document.createElement("a");
-        link.href = dataUrl;
-        link.download = "qrcode_with_code.png";
-        link.click();
+          // Save image
+          const dataUrl = canvas.toDataURL("image/png");
+          const link = document.createElement("a");
+          link.href = dataUrl;
+          link.download = "qrcode_with_code.png";
+          link.click();
 
-        toast({
-          title: "QR code downloaded with code",
-          status: "success",
-          duration: 3000,
-        });
-      }
-    }
+          toast({
+            title: "QR code downloaded successfully",
+            status: "success",
+            duration: 3000,
+          });
+
+          // Cleanup
+          ReactDOM.unmountComponentAtNode(tempWrapper);
+          document.body.removeChild(tempWrapper);
+        } else {
+          toast({
+            title: "Failed to render QR code",
+            status: "error",
+            duration: 3000,
+          });
+          document.body.removeChild(tempWrapper);
+        }
+      }, 100); // Short delay to let the canvas render
+    });
   };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -684,6 +701,8 @@ const FileManagement = (qrcode) => {
                                 <div
                                   style={{
                                     fontSize: "12px",
+                                    fontWeight: "bold",
+                                    fontFamily: "Calibri, sans-serif",
                                     marginTop: "4px",
                                     color: "#333",
                                   }}
@@ -692,7 +711,9 @@ const FileManagement = (qrcode) => {
                                 </div>
                               </div>
                               <i
-                                onClick={() => downloadQRCode(file)}
+                                onClick={() =>
+                                  downloadQRCode(file.url, file.generated_code)
+                                }
                                 style={{
                                   marginLeft: "10px",
                                   cursor: "pointer",
