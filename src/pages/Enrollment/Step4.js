@@ -499,7 +499,7 @@ const Step4 = ({
                           whiteSpace="nowrap"
                           color="#0a5856"
                         >
-                          Surname(Maiden Name)
+                          Surname (Maiden Name)
                         </Text>
                         <Input
                           placeholder="Surname(Maiden Name)"
