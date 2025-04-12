@@ -98,7 +98,7 @@ const FileManagement = (qrcode) => {
 
           // Add label
           ctx.fillStyle = "#000000";
-          ctx.font = "bold 39px Calibri";
+          ctx.font = "bold 49px Calibri";
           ctx.textAlign = "center";
           ctx.fillText(
             generatedCode,
