@@ -61,33 +61,44 @@ const FileManagement = (qrcode) => {
   // Function to handle QR code download
   const downloadQRCode = (file) => {
     if (qrCodeRef.current) {
-      const canvas = document.createElement("canvas");
       const qrCanvas = qrCodeRef.current.querySelector("canvas");
-      const codeText = file.generated_code || ""; // Adjust if needed
+      const codeText = file.generated_code || "";
 
       if (qrCanvas) {
-        const qrWidth = qrCanvas.width;
-        const qrHeight = qrCanvas.height;
+        const originalWidth = qrCanvas.width;
+        const originalHeight = qrCanvas.height;
+
+        const scaledWidth = originalWidth * 1.7;
+        const scaledHeight = originalHeight * 1.7;
         const padding = 20;
         const textHeight = 30;
 
-        canvas.width = qrWidth + padding * 2;
-        canvas.height = qrHeight + padding * 2 + textHeight;
+        const canvas = document.createElement("canvas");
+        canvas.width = scaledWidth + padding * 2;
+        canvas.height = scaledHeight + padding * 2 + textHeight;
 
         const ctx = canvas.getContext("2d");
 
-        // White background
-        ctx.fillStyle = "#fff";
+        // Background
+        ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw QR
-        ctx.drawImage(qrCanvas, padding, padding);
+        // Create a temporary canvas to scale QR code
+        const tempCanvas = document.createElement("canvas");
+        tempCanvas.width = scaledWidth;
+        tempCanvas.height = scaledHeight;
+        const tempCtx = tempCanvas.getContext("2d");
 
-        // Draw code text
+        tempCtx.drawImage(qrCanvas, 0, 0, scaledWidth, scaledHeight);
+
+        // Draw scaled QR to main canvas
+        ctx.drawImage(tempCanvas, padding, padding);
+
+        // Draw code text below
         ctx.fillStyle = "#000";
         ctx.font = "16px Arial";
         ctx.textAlign = "center";
-        ctx.fillText(codeText, canvas.width / 2, qrHeight + padding + 20);
+        ctx.fillText(codeText, canvas.width / 2, scaledHeight + padding + 20);
 
         // Trigger download
         const dataUrl = canvas.toDataURL("image/png");
