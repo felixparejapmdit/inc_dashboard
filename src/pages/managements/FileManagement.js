@@ -47,6 +47,7 @@ const FileManagement = (qrcode) => {
   const [currentUserId, setCurrentUserId] = useState(null);
 
   const qrCodeRef = useRef(null);
+  const [selectedQrUrl, setSelectedQrUrl] = useState(null);
 
   const [newFile, setNewFile] = useState({
     filename: "",
@@ -644,7 +645,10 @@ const FileManagement = (qrcode) => {
                                     height: "48px",
                                     cursor: "pointer",
                                   }}
-                                  onClick={() => setIsModalPreviewOpen(true)}
+                                  onClick={() => {
+                                    setSelectedQrUrl(file.url); // set selected QR
+                                    setIsModalPreviewOpen(true);
+                                  }}
                                 />
                                 <div
                                   style={{
@@ -687,7 +691,10 @@ const FileManagement = (qrcode) => {
                                 alignItems: "center",
                                 zIndex: 1000,
                               }}
-                              onClick={() => setIsModalPreviewOpen(false)}
+                              onClick={() => {
+                                setIsModalPreviewOpen(false);
+                                setSelectedQrUrl(null);
+                              }}
                             >
                               <div
                                 style={{
@@ -699,7 +706,7 @@ const FileManagement = (qrcode) => {
                                 onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the modal
                               >
                                 <QRCodeCanvas
-                                  value={file.url}
+                                  value={selectedQrUrl}
                                   size={256}
                                   bgColor="#ffffff"
                                   fgColor="#000000"
@@ -707,7 +714,10 @@ const FileManagement = (qrcode) => {
                                   style={{ width: "256px", height: "256px" }}
                                 />
                                 <button
-                                  onClick={() => setIsModalPreviewOpen(false)}
+                                  onClick={() => {
+                                    setIsModalPreviewOpen(false);
+                                    setSelectedQrUrl(null);
+                                  }}
                                   style={{
                                     position: "absolute",
                                     top: "10px",

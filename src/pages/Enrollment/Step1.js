@@ -275,7 +275,7 @@ const Step1 = ({
                   color="#0a5856"
                   whiteSpace="nowrap"
                 >
-                  Wedding Anniversary:
+                  Wedding Date:
                 </Text>
                 <Input
                   placeholder="Wedding Anniversary"
