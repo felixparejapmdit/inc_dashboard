@@ -499,10 +499,12 @@ const Step4 = ({
                           whiteSpace="nowrap"
                           color="#0a5856"
                         >
-                          Surname (Maiden Name)
+                          {parent.relationship_type === "Mother"
+                            ? "Surname (Maiden Name)"
+                            : "Surname"}
                         </Text>
                         <Input
-                          placeholder="Surname(Maiden Name)"
+                          placeholder="Surname"
                           value={parent.lastname}
                           onChange={(e) =>
                             onChange(index, "lastname", e.target.value)
