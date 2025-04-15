@@ -86,6 +86,8 @@ const lokalProfileRoutes = require("./routes/lokalProfileRoutes");
 const housingRoutes = require("./routes/housingRoutes.js");
 const fileRoutes = require("./routes/fileRoutes.js");
 
+const phoneDirectoryRoutes = require("./routes/phoneDirectoryRoutes");
+
 const authRoutes = require("./routes/authRoutes");
 
 app.use(express.json()); // Middleware to parse JSON request bodies
@@ -163,6 +165,7 @@ app.use(authRoutes);
 app.use(lokalProfileRoutes);
 //app.use(housingRoutes);
 app.use(fileRoutes);
+app.use(phoneDirectoryRoutes);
 
 // ✅ Connect to MySQL database
 const db = mysql.createConnection({

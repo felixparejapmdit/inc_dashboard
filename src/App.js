@@ -49,6 +49,8 @@ import HousingManagement from "./pages/managements/HousingManagement.js";
 
 import FileManagement from "./pages/managements/FileManagement.js";
 
+import PhoneDirectory from "./pages/managements/PhoneDirectory.js";
+
 import LokalProfile from "./pages/LokalProfile.js";
 
 import Enrollment from "./pages/Enrollment/EnrollmentForm.js"; // Import LdapUser page
@@ -579,6 +581,20 @@ function MainApp() {
               }}
             >
               <FileManagement />
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/managements/phonedirectory"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <PhoneDirectory />
             </Layout>
           }
         />

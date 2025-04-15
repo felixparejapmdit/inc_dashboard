@@ -197,6 +197,51 @@ const Step4 = ({
     }
   }, [personnelId]);
 
+  const fetchParents = () => {
+    if (!personnelId) return;
+
+    axios
+      .get(`${API_URL}/api/get-family-members`, {
+        params: {
+          personnel_id: personnelId,
+          relationship_type: ["Father", "Mother"],
+        },
+      })
+      .then((res) => {
+        const parents = [
+          {
+            relationship_type: "Father",
+            givenname: "",
+            lastname: "",
+            isEditing: true,
+          },
+          {
+            relationship_type: "Mother",
+            givenname: "",
+            lastname: "",
+            isEditing: true,
+          },
+        ];
+
+        const mergedParents = parents.map(
+          (defaultParent) =>
+            res.data.find(
+              (item) =>
+                item.relationship_type === defaultParent.relationship_type
+            ) || { ...defaultParent, isEditing: true }
+        );
+
+        setData(mergedParents);
+      })
+      .catch((err) => {
+        console.error("Error fetching parents:", err);
+      });
+  };
+
+  useEffect(() => {
+    fetchParents();
+  }, [personnelId]);
+
   const handleSaveOrUpdate = async (index) => {
     setLoading(true);
 
@@ -222,6 +267,14 @@ const Step4 = ({
       date_of_birth: updatedParent.date_of_birth,
       relationship_type: relationship_type,
       personnel_id: personnelId,
+      // New fields
+      suffix: updatedParent.suffix,
+      civil_status: updatedParent.civil_status,
+      bloodtype: updatedParent.bloodtype,
+      citizenship: updatedParent.citizenship,
+      ethnicity: updatedParent.ethnicity,
+      district: updatedParent.district,
+      local_congregation: updatedParent.local_congregation,
     };
 
     console.log("🛠️ Debug - Formatted Data:", formattedData);
@@ -272,9 +325,18 @@ const Step4 = ({
 
       setData((prevData) => {
         const newData = [...prevData];
-        newData[index] = { ...savedParent, isEditing: false };
+
+        newData[index] = {
+          ...prevData[index], // preserve frontend-only fields
+          ...savedParent, // merge backend fields (e.g. updated names)
+          isEditing: false, // turn off editing
+        };
+
         return newData;
       });
+
+      fetchParents();
+      console.log("Saved parent from response:", savedParent);
 
       toast({
         title: updatedParent.id ? "Parent Updated" : "Parent Added",
@@ -472,6 +534,7 @@ const Step4 = ({
                           isDisabled={!parent.isEditing}
                         />
                       </Td>
+
                       <Td>
                         <Text
                           fontWeight="bold"

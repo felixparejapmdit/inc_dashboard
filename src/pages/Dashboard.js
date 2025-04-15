@@ -482,89 +482,104 @@ export default function Dashboard() {
   };
 
   return (
-    <Box bg={useColorModeValue("gray.50", "gray.500")} minH="100vh" p={6}>
-      <HStack justify="space-between" mb={0}>
-        {/* Search Input Section */}
-        <VStack spacing={4} align="start" width="100%">
-          <Input
-            placeholder="Search"
-            size="md"
-            borderRadius="full"
-            bg="white"
-            maxW="300px"
-            value={searchQuery}
-            onChange={handleSearch} // ✅ Use new function
-            boxShadow="md"
+    <Box bg={useColorModeValue("white.50", "white.500")} minH="100vh" p={6}>
+      {/* Sticky Header Section */}
+      <Box
+        position="sticky"
+        top="0"
+        zIndex="1000"
+        boxShadow={"sm"}
+        bg="white" // Background to prevent transparency
+        px={4}
+        py={2}
+      >
+        <HStack justify="space-between" mb={0}>
+          {/* Search Input Section */}
+
+          <VStack spacing={4} align="start" width="100%">
+            {/* Search Input Section */}
+            <Input
+              placeholder="Search"
+              size="md"
+              borderRadius="full"
+              bg="white"
+              maxW="300px"
+              value={searchQuery}
+              onChange={handleSearch}
+              boxShadow="md"
+            />
+
+            {/* Greeting Section */}
+            <Box
+              bgGradient="linear(to-r, orange.400, yellow.300)"
+              borderRadius="xl"
+              p={6}
+              textAlign="left"
+              boxShadow="xl"
+              width="100%"
+            >
+              <Text fontSize="sm" color="whiteAlpha.900">
+                {currentDate.toLocaleDateString("en-US", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </Text>
+
+              <Heading as="h1" size="lg" color="white">
+                {getTimeBasedGreeting()}
+              </Heading>
+
+              <Text fontSize="md" color="whiteAlpha.800">
+                Have a nice day.
+              </Text>
+            </Box>
+          </VStack>
+
+          {/* Color mode toggle button */}
+          <IconButton
+            icon={colorMode === "light" ? <FiMoon /> : <FiSun />}
+            onClick={toggleColorMode}
+            isRound
+            display="none"
+            size="lg"
+            aria-label="Toggle color mode"
+            mr={0} // Remove margin between icons
           />
 
-          {/* Greeting Section */}
-          <Box
-            bgGradient="linear(to-r, orange.400, yellow.300)"
-            borderRadius="xl"
-            p={10}
-            textAlign="left"
-            boxShadow="xl"
-            width="100%"
-          >
-            <Text fontSize="sm" color="whiteAlpha.900">
-              {currentDate.toLocaleDateString("en-US", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </Text>
+          {/* Notification Bell */}
+          <Popover>
+            <PopoverTrigger>
+              <IconButton
+                icon={<FiBell />}
+                isRound
+                size="lg"
+                aria-label="Notifications"
+                display="none"
+                mr={0} // Remove margin to bring it closer to the color mode icon
+              />
+            </PopoverTrigger>
+            <PopoverContent>
+              <PopoverArrow />
+              <PopoverCloseButton />
+              <PopoverBody>
+                {notifications.length > 0 ? (
+                  notifications.map((notif) => (
+                    <Box key={notif.id} p={2}>
+                      <Text fontWeight="bold">{notif.title}</Text>
+                      <Text fontSize="sm">{notif.description}</Text>
+                    </Box>
+                  ))
+                ) : (
+                  <Text>No new notifications</Text>
+                )}
+              </PopoverBody>
+            </PopoverContent>
+          </Popover>
+        </HStack>
+      </Box>
 
-            <Heading as="h1" size="lg" color="white">
-              {getTimeBasedGreeting()}
-            </Heading>
-
-            <Text fontSize="md" color="whiteAlpha.800">
-              Have a nice day.
-            </Text>
-          </Box>
-        </VStack>
-        {/* Color mode toggle button */}
-        <IconButton
-          icon={colorMode === "light" ? <FiMoon /> : <FiSun />}
-          onClick={toggleColorMode}
-          isRound
-          display="none"
-          size="lg"
-          aria-label="Toggle color mode"
-          mr={0} // Remove margin between icons
-        />
-
-        {/* Notification Bell */}
-        <Popover>
-          <PopoverTrigger>
-            <IconButton
-              icon={<FiBell />}
-              isRound
-              size="lg"
-              aria-label="Notifications"
-              display="none"
-              mr={0} // Remove margin to bring it closer to the color mode icon
-            />
-          </PopoverTrigger>
-          <PopoverContent>
-            <PopoverArrow />
-            <PopoverCloseButton />
-            <PopoverBody>
-              {notifications.length > 0 ? (
-                notifications.map((notif) => (
-                  <Box key={notif.id} p={2}>
-                    <Text fontWeight="bold">{notif.title}</Text>
-                    <Text fontSize="sm">{notif.description}</Text>
-                  </Box>
-                ))
-              ) : (
-                <Text>No new notifications</Text>
-              )}
-            </PopoverBody>
-          </PopoverContent>
-        </Popover>
-      </HStack>
       {/* Recently Opened Apps Section */}
       {recentApps.length > 0 && (
         <Box mt={6} display="none">

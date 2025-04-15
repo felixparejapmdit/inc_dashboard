@@ -771,7 +771,7 @@ const Step2 = () => {
                     </Td>
                     <Td>
                       <Input
-                        placeholder="Address"
+                        placeholder="Street, Zone, Barangay, Town/City, Province, Country"
                         value={address.name}
                         isDisabled={!address.isEditing} // Disable unless editing
                         onChange={(e) =>
