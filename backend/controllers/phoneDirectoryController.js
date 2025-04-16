@@ -1,47 +1,106 @@
 const PhoneDirectory = require("../models/PhoneDirectory");
 
-// Get all phone entries
+const { Sequelize, Op, fn, col } = require("sequelize"); // Import Sequelize and Op
+
+const sequelize = require("../config/database"); // Ensure Sequelize instance is imported
+
+// Get all entries
 exports.getPhoneDirectories = async (req, res) => {
   try {
     const entries = await PhoneDirectory.findAll({ order: [["id", "ASC"]] });
-    console.log("📄 All phone directory entries:", entries);
     res.json(entries);
   } catch (error) {
-    console.error("❌ Error fetching phone entries:", error);
+    console.error("❌ Error fetching entries:", error);
     res.status(500).json({ message: "Database error" });
+  }
+};
+
+exports.getUniqueNames = async (req, res) => {
+  try {
+    const names = await PhoneDirectory.findAll({
+      attributes: [[sequelize.fn("DISTINCT", sequelize.col("name")), "name"]],
+      order: [["name", "ASC"]],
+    });
+
+    console.log(names); // Check the structure here
+
+    res.json(names.map((entry) => entry.name));
+  } catch (error) {
+    console.error("❌ Error fetching names:", error);
+    res.status(500).json({ message: "Database error" });
+  }
+};
+
+// ✅ Import Phone Directory Entries
+exports.importPhoneDirectory = async (req, res) => {
+  try {
+    const { data } = req.body;
+
+    let insertedCount = 0;
+    let skippedCount = 0;
+
+    for (const row of data) {
+      const { name, extension } = row;
+
+      // Validate required fields
+      if (!name || !extension) {
+        continue; // skip invalid rows
+      }
+
+      const existingEntry = await PhoneDirectory.findOne({
+        where: {
+          name: row.name,
+          extension: row.extension,
+        },
+      });
+
+      if (!existingEntry) {
+        await PhoneDirectory.create(row);
+        insertedCount++;
+      } else {
+        skippedCount++;
+      }
+    }
+
+    res.status(200).json({
+      message: "Import complete.",
+      inserted: insertedCount,
+      skipped: skippedCount,
+    });
+  } catch (error) {
+    console.error("❌ Error importing phone directory:", error);
+    res.status(500).json({ message: "Error importing data." });
   }
 };
 
 // Create new entry
 exports.createPhoneDirectory = async (req, res) => {
   const {
-    personnel_id,
+    name,
     location,
+    prefix,
     extension,
-    phone_number,
     phone_name,
+    dect_number,
     is_active,
   } = req.body;
 
-  console.log("📥 Request to create entry:", req.body);
-
-  if (!personnel_id || !location) {
+  if (!name || !location || !prefix || !extension || !phone_name) {
     return res
       .status(400)
-      .json({ message: "Personnel and location are required" });
+      .json({ message: "All fields except DECT number are required" });
   }
 
   try {
     const newEntry = await PhoneDirectory.create({
-      personnel_id,
+      name,
       location,
+      prefix,
       extension,
-      phone_number,
       phone_name,
+      dect_number,
       is_active,
     });
-
-    console.log("✅ Entry created:", newEntry);
 
     res.status(201).json({
       message: "Phone directory entry added successfully",
@@ -57,34 +116,32 @@ exports.createPhoneDirectory = async (req, res) => {
 exports.updatePhoneDirectory = async (req, res) => {
   const { id } = req.params;
   const {
-    personnel_id,
+    name,
     location,
+    prefix,
     extension,
-    phone_number,
     phone_name,
+    dect_number,
     is_active,
   } = req.body;
-
-  console.log(`🔧 Updating entry ID ${id} with data:`, req.body);
 
   try {
     const entry = await PhoneDirectory.findByPk(id);
     if (!entry) {
-      console.log("❗ Entry not found:", id);
       return res.status(404).json({ message: "Entry not found" });
     }
 
     Object.assign(entry, {
-      personnel_id: personnel_id ?? entry.personnel_id,
+      name: name ?? entry.name,
       location: location ?? entry.location,
-      extension,
-      phone_number,
-      phone_name,
-      is_active,
+      prefix: prefix ?? entry.prefix,
+      extension: extension ?? entry.extension,
+      phone_name: phone_name ?? entry.phone_name,
+      dect_number: dect_number ?? entry.dect_number,
+      is_active: is_active ?? entry.is_active,
     });
 
     await entry.save();
-    console.log("✅ Entry updated:", entry);
     res.json({ message: "Entry updated", data: entry });
   } catch (error) {
     console.error("❌ Error updating entry:", error);
@@ -96,17 +153,13 @@ exports.updatePhoneDirectory = async (req, res) => {
 exports.deletePhoneDirectory = async (req, res) => {
   const { id } = req.params;
 
-  console.log("🗑️ Deleting entry ID:", id);
-
   try {
     const entry = await PhoneDirectory.findByPk(id);
     if (!entry) {
-      console.log("❗ Entry not found:", id);
       return res.status(404).json({ message: "Entry not found" });
     }
 
     await entry.destroy();
-    console.log("✅ Entry deleted:", entry);
     res.json({ message: "Entry deleted successfully" });
   } catch (error) {
     console.error("❌ Error deleting entry:", error);

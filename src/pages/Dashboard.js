@@ -180,7 +180,9 @@ export default function Dashboard() {
         const codeMatch =
           app.generated_code &&
           app.generated_code.toLowerCase().includes(query); // Search in generated_code
-        return nameMatch || codeMatch;
+        const phoneMatch =
+          app.phone_name && app.phone_name.toLowerCase().includes(query);
+        return nameMatch || codeMatch || phoneMatch;
       });
       if (matchingApps.length > 0) {
         filtered.push(...matchingApps); // Combine matching results
@@ -189,6 +191,35 @@ export default function Dashboard() {
 
     setFilteredApps(filtered);
   };
+
+  // const handleSearch = (e) => {
+  //   const query = e.target.value.toLowerCase();
+  //   setSearchQuery(query);
+
+  //   if (!query.trim()) {
+  //     setFilteredApps([]); // Reset if empty
+  //     return;
+  //   }
+
+  //   const filtered = [];
+  //   // Ensure you're filtering both Apps and Files correctly
+  //   for (const category in categorizedApps) {
+  //     const matchingApps = categorizedApps[category].filter((app) => {
+  //       const nameMatch = app.name && app.name.toLowerCase().includes(query); // Check if name exists
+  //       const codeMatch =
+  //         app.generated_code &&
+  //         app.generated_code.toLowerCase().includes(query); // Search in generated_code
+  //       const phoneMatch =
+  //         app.phone_name && app.phone_name.toLowerCase().includes(query);
+  //       return nameMatch || codeMatch || phoneMatch;
+  //     });
+  //     if (matchingApps.length > 0) {
+  //       filtered.push(...matchingApps); // Combine matching results
+  //     }
+  //   }
+
+  //   setFilteredApps(filtered);
+  // };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -899,30 +930,100 @@ export default function Dashboard() {
 //     </Box>
 //   </VStack>
 // );
-
 const AppCard = ({ app, colors, handleAppClick, small }) => {
   const isFileData = app.generated_code && app.filename;
+  const isPhoneDirectory = app.name && app.phone_name;
   const { hasPermission } = usePermissionContext();
 
-  // Determine if the card should be clickable
-  const isClickable = !isFileData || hasPermission("atgfile.view");
+  const isClickable =
+    !isFileData || (hasPermission("atgfile.view") && !isPhoneDirectory);
 
   const handleClick = (e) => {
     if (!isClickable) return;
-
     e.preventDefault();
     if (handleAppClick) {
       handleAppClick(app);
     }
-
     const targetUrl = app.url;
-
     if (targetUrl) {
       window.open(targetUrl, "_blank");
     }
   };
 
-  return (
+  return isPhoneDirectory ? (
+    // Phone Directory Layout
+    <VStack
+      as="div"
+      bg={colors.appBg}
+      borderRadius="xl"
+      border={`3px solid ${colors.cardBorder}`}
+      p={small ? 2 : 6}
+      spacing={2}
+      boxShadow="md"
+      align="center"
+      textAlign="center"
+      width={small ? "120px" : "100%"}
+      minHeight={small ? "80px" : "200px"}
+      cursor="default"
+    >
+      {/* Avatar */}
+      <Box>
+        <Image
+          src={
+            app.avatar
+              ? app.avatar
+              : "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+          }
+          alt={app.name}
+          boxSize={small ? "40px" : "70px"}
+          borderRadius="full"
+          mb={3}
+          boxShadow="md"
+          border="2px solid"
+          borderColor={colors.cardBorder}
+        />
+      </Box>
+
+      {/* Name & Phone Info */}
+      <Box textAlign="center">
+        <Text
+          fontSize={small ? "10px" : "xl"}
+          fontWeight="bold"
+          color={colors.cardHeader}
+          mb={1}
+        >
+          {app.name}
+        </Text>
+
+        <Text fontSize="sm" color={colors.cardText} mb={1}>
+          <strong>Phone:</strong> {app.phone_name}
+        </Text>
+
+        {(app.prefix || app.extension) && (
+          <HStack spacing={2} justify="center" mb={1}>
+            {app.prefix && (
+              <Text fontSize="sm" color={colors.cardText}>
+                <strong>Prefix:</strong> {app.prefix}
+              </Text>
+            )}
+            {app.extension && (
+              <Text fontSize="sm" color={colors.cardText}>
+                <strong>Ext:</strong> {app.extension}
+              </Text>
+            )}
+          </HStack>
+        )}
+
+        <Text fontSize="sm" color={colors.cardText}>
+          <strong>DECT:</strong>{" "}
+          {app.dect_number && app.dect_number.trim() !== ""
+            ? app.dect_number
+            : "N/A"}
+        </Text>
+      </Box>
+    </VStack>
+  ) : (
+    // Regular App Layout
     <VStack
       as="div"
       bg={colors.appBg}
@@ -989,7 +1090,7 @@ const AppCard = ({ app, colors, handleAppClick, small }) => {
           )
         ) : null}
 
-        {/* Regular app description */}
+        {/* App description */}
         {!small && !isFileData && (
           <Text fontSize="sm" color={colors.cardText}>
             {app.description}

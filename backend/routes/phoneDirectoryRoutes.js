@@ -7,6 +7,17 @@ router.get(
   "/api/phone-directory",
   phoneDirectoryController.getPhoneDirectories
 );
+
+router.get(
+  "/api/phone-directory/names",
+  phoneDirectoryController.getUniqueNames
+);
+
+router.post(
+  "/api/import-phone-directory",
+  phoneDirectoryController.importPhoneDirectory
+);
+
 router.post(
   "/api/add_phone-directory",
   phoneDirectoryController.createPhoneDirectory

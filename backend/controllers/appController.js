@@ -159,6 +159,12 @@ exports.getAvailableApps = async (req, res) => {
       { type: sequelize.QueryTypes.SELECT }
     );
 
+    // ✅ Fetch phone_directories data (include name and phone_name)
+    const phoneDirectoryData = await sequelize.query(
+      `SELECT name, phone_name, prefix, extension, dect_number FROM phone_directories`,
+      { type: sequelize.QueryTypes.SELECT }
+    );
+
     // Combine available apps and files into a single structure
     const combinedData = [
       ...availableApps.map((app) => ({
@@ -168,6 +174,10 @@ exports.getAvailableApps = async (req, res) => {
       ...filesData.map((file) => ({
         ...file,
         type: "file", // Mark files for distinction
+      })),
+      ...phoneDirectoryData.map((directory) => ({
+        ...directory,
+        type: "phone_directory",
       })),
     ];
 
@@ -184,6 +194,11 @@ exports.getAvailableApps = async (req, res) => {
     // Add files to a "Files" category
     categorizedApps["Files"] = combinedData.filter(
       (item) => item.type === "file"
+    );
+
+    // ✅ Add phone directories to "Phone Directories" category
+    categorizedApps["Phone Directories"] = combinedData.filter(
+      (item) => item.type === "phone_directory"
     );
 
     // Send the dynamically categorized response

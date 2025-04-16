@@ -9,24 +9,28 @@ const PhoneDirectory = sequelize.define(
       autoIncrement: true,
       primaryKey: true,
     },
-    personnel_id: {
-      type: DataTypes.INTEGER,
+    name: {
+      type: DataTypes.STRING(255),
       allowNull: false,
     },
     location: {
       type: DataTypes.STRING(255),
       allowNull: false,
     },
+    prefix: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+    },
     extension: {
       type: DataTypes.STRING(50),
-      allowNull: true,
-    },
-    phone_number: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
+      allowNull: false,
     },
     phone_name: {
       type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+    dect_number: {
+      type: DataTypes.STRING(50),
       allowNull: true,
     },
     is_active: {
