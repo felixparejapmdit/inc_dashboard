@@ -38,10 +38,14 @@ const PhoneDirectory = () => {
   const [filtered, setFiltered] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [newEntry, setNewEntry] = useState({
-    name: "",
-    phone: "",
-    department: "",
+    personnel_id: "",
+    location: "",
+    extension: "",
+    phone_number: "",
+    phone_name: "",
+    is_active: true,
   });
+
   const [editingEntry, setEditingEntry] = useState(null);
   const [deletingEntry, setDeletingEntry] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -56,6 +60,7 @@ const PhoneDirectory = () => {
         const response = await axios.get(
           `${process.env.REACT_APP_API_URL}/api/personnels`
         );
+        console.log("Fetched personnels:", response.data); // Debug log
         setPersonnelList(response.data);
       } catch (error) {
         console.error("Failed to fetch personnels", error);
@@ -64,6 +69,14 @@ const PhoneDirectory = () => {
 
     fetchPersonnels();
   }, []);
+
+  const getPersonnelName = (id) => {
+    const person = personnelList.find((p) => p.personnel_id === id);
+
+    return person
+      ? `${person.givenname || ""} ${person.surname_husband || ""}`.trim()
+      : "No Name";
+  };
 
   useEffect(() => {
     fetchDirectory();
@@ -82,11 +95,21 @@ const PhoneDirectory = () => {
   };
 
   useEffect(() => {
-    const filteredResults = directory.filter((entry) =>
-      `${entry.personnel_id} ${entry.location} ${entry.extension} ${entry.phone_number} ${entry.phone_name}`
+    const filteredResults = directory.filter((entry) => {
+      const fullText = `
+      ${entry.personnel?.givenname || ""}
+      ${entry.personnel?.surname_husband || ""}
+      ${entry.location || ""}
+      ${entry.extension || ""}
+      ${entry.phone_number || ""}
+      ${entry.phone_name || ""}
+    `
         .toLowerCase()
-        .includes(searchQuery.toLowerCase())
-    );
+        .trim();
+
+      return fullText.includes(searchQuery.toLowerCase());
+    });
+
     setFiltered(filteredResults);
   }, [searchQuery, directory]);
 
@@ -112,7 +135,7 @@ const PhoneDirectory = () => {
         toast({ title: "Entry updated", status: "success", duration: 3000 });
       } else {
         await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/phone-directory`,
+          `${process.env.REACT_APP_API_URL}/api/add_phone-directory`,
           newEntry
         );
         toast({ title: "Entry added", status: "success", duration: 3000 });
@@ -165,7 +188,7 @@ const PhoneDirectory = () => {
         </Flex>
 
         <Input
-          placeholder="Search name or department..."
+          placeholder="Search name, department, location, extension, phone..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           size="md"
@@ -177,8 +200,11 @@ const PhoneDirectory = () => {
             <Tr>
               <Th>#</Th>
               <Th>Name</Th>
-              <Th>Phone</Th>
-              <Th>Department</Th>
+              <Th>Location</Th>
+              <Th>Extension</Th>
+              <Th>Phone Number</Th>
+              <Th>Phone Name</Th>
+              <Th>Status</Th>
               <Th textAlign="right">Actions</Th>
             </Tr>
           </Thead>
@@ -187,9 +213,19 @@ const PhoneDirectory = () => {
               filtered.map((entry, index) => (
                 <Tr key={entry.id}>
                   <Td>{index + 1}</Td>
-                  <Td>{entry.name}</Td>
-                  <Td>{entry.phone}</Td>
-                  <Td>{entry.department}</Td>
+                  <Td>{getPersonnelName(entry.personnel_id)}</Td>
+
+                  <Td>{entry.location}</Td>
+                  <Td>{entry.extension}</Td>
+                  <Td>{entry.phone_number}</Td>
+                  <Td>{entry.phone_name}</Td>
+                  <Td>
+                    {entry.is_active ? (
+                      <Text color="green.500">Active</Text>
+                    ) : (
+                      <Text color="red.500">Inactive</Text>
+                    )}
+                  </Td>
                   <Td textAlign="right">
                     <IconButton
                       icon={<EditIcon />}
@@ -210,7 +246,7 @@ const PhoneDirectory = () => {
               ))
             ) : (
               <Tr>
-                <Td colSpan={5} textAlign="center">
+                <Td colSpan={8} textAlign="center">
                   No entries found.
                 </Td>
               </Tr>
@@ -246,11 +282,11 @@ const PhoneDirectory = () => {
                   editingEntry
                     ? setEditingEntry({
                         ...editingEntry,
-                        personnel_id: e.target.value,
+                        personnel_id: parseInt(e.target.value),
                       })
                     : setNewEntry({
                         ...newEntry,
-                        personnel_id: e.target.value,
+                        personnel_id: parseInt(e.target.value),
                       })
                 }
               >

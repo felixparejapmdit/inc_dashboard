@@ -4,9 +4,10 @@ const PhoneDirectory = require("../models/PhoneDirectory");
 exports.getPhoneDirectories = async (req, res) => {
   try {
     const entries = await PhoneDirectory.findAll({ order: [["id", "ASC"]] });
+    console.log("📄 All phone directory entries:", entries);
     res.json(entries);
   } catch (error) {
-    console.error("Error fetching phone entries:", error);
+    console.error("❌ Error fetching phone entries:", error);
     res.status(500).json({ message: "Database error" });
   }
 };
@@ -21,6 +22,8 @@ exports.createPhoneDirectory = async (req, res) => {
     phone_name,
     is_active,
   } = req.body;
+
+  console.log("📥 Request to create entry:", req.body);
 
   if (!personnel_id || !location) {
     return res
@@ -37,6 +40,8 @@ exports.createPhoneDirectory = async (req, res) => {
       phone_name,
       is_active,
     });
+
+    console.log("✅ Entry created:", newEntry);
 
     res.status(201).json({
       message: "Phone directory entry added successfully",
@@ -60,9 +65,14 @@ exports.updatePhoneDirectory = async (req, res) => {
     is_active,
   } = req.body;
 
+  console.log(`🔧 Updating entry ID ${id} with data:`, req.body);
+
   try {
     const entry = await PhoneDirectory.findByPk(id);
-    if (!entry) return res.status(404).json({ message: "Entry not found" });
+    if (!entry) {
+      console.log("❗ Entry not found:", id);
+      return res.status(404).json({ message: "Entry not found" });
+    }
 
     Object.assign(entry, {
       personnel_id: personnel_id ?? entry.personnel_id,
@@ -74,9 +84,10 @@ exports.updatePhoneDirectory = async (req, res) => {
     });
 
     await entry.save();
+    console.log("✅ Entry updated:", entry);
     res.json({ message: "Entry updated", data: entry });
   } catch (error) {
-    console.error("Error updating entry:", error);
+    console.error("❌ Error updating entry:", error);
     res.status(500).json({ message: "Database error" });
   }
 };
@@ -85,14 +96,20 @@ exports.updatePhoneDirectory = async (req, res) => {
 exports.deletePhoneDirectory = async (req, res) => {
   const { id } = req.params;
 
+  console.log("🗑️ Deleting entry ID:", id);
+
   try {
     const entry = await PhoneDirectory.findByPk(id);
-    if (!entry) return res.status(404).json({ message: "Entry not found" });
+    if (!entry) {
+      console.log("❗ Entry not found:", id);
+      return res.status(404).json({ message: "Entry not found" });
+    }
 
     await entry.destroy();
+    console.log("✅ Entry deleted:", entry);
     res.json({ message: "Entry deleted successfully" });
   } catch (error) {
-    console.error("Error deleting entry:", error);
+    console.error("❌ Error deleting entry:", error);
     res.status(500).json({ message: "Database error" });
   }
 };
