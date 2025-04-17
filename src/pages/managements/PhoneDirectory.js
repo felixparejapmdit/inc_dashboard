@@ -37,6 +37,8 @@ import {
   EditIcon,
   DownloadIcon,
   PhoneIcon,
+  CheckIcon,
+  CloseIcon,
 } from "@chakra-ui/icons";
 import * as XLSX from "xlsx";
 import axios from "axios";
@@ -64,6 +66,10 @@ const PhoneDirectory = () => {
   const toast = useToast();
 
   const [nameList, setNameList] = useState([]);
+
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editableName, setEditableName] = useState("");
+
   const [isAdding, setIsAdding] = useState(false); // Track whether user is adding a new name
   const [newName, setNewName] = useState(""); // Track the new name input
 
@@ -71,6 +77,36 @@ const PhoneDirectory = () => {
   const [isImporting, setIsImporting] = useState(false);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const handleUpdateName = () => {
+    if (!editableName.trim()) {
+      toast({
+        title: "Name cannot be empty.",
+        status: "warning",
+        duration: 3000,
+      });
+      return;
+    }
+
+    const updatedList = nameList.map((name) =>
+      name === (editingEntry ? editingEntry.name : newEntry.name)
+        ? editableName
+        : name
+    );
+    setNameList(updatedList);
+
+    editingEntry
+      ? setEditingEntry({ ...editingEntry, name: editableName })
+      : setNewEntry({ ...newEntry, name: editableName });
+
+    setIsEditingName(false);
+    toast({
+      title: "Name updated.",
+      status: "success",
+      duration: 3000,
+    });
+  };
+
   // Handle name addition
   const handleAddName = () => {
     if (newName.trim()) {
@@ -81,10 +117,9 @@ const PhoneDirectory = () => {
     }
   };
 
-  // Handle cancel
-  const handleCancel = () => {
-    setIsAdding(false); // Hide the input field
-    setNewName(""); // Clear the input field
+  const handleCancelAdd = () => {
+    setIsAdding(false);
+    setNewName("");
   };
 
   const handleFileChange = (e) => {
@@ -197,7 +232,14 @@ const PhoneDirectory = () => {
   }, [searchQuery, directory]);
 
   const handleSave = async () => {
-    const entry = editingEntry || newEntry;
+    const entry = editingEntry ? { ...editingEntry } : { ...newEntry };
+
+    // Use editableName if editing is active
+    if (isEditingName && editableName) {
+      entry.name = editableName;
+      setIsEditingName(false);
+    }
+
     const { name, location, prefix, extension, phone_name } = entry;
 
     if (!name || !location || !prefix || !extension || !phone_name) {
@@ -215,13 +257,13 @@ const PhoneDirectory = () => {
       if (editingEntry) {
         await axios.put(
           `${process.env.REACT_APP_API_URL}/api/phone-directory/${editingEntry.id}`,
-          editingEntry
+          entry
         );
         toast({ title: "Entry updated", status: "success", duration: 3000 });
       } else {
         await axios.post(
           `${process.env.REACT_APP_API_URL}/api/add_phone-directory`,
-          newEntry
+          entry
         );
         toast({ title: "Entry added", status: "success", duration: 3000 });
       }
@@ -471,105 +513,139 @@ const PhoneDirectory = () => {
           <ModalCloseButton />
           <ModalBody>
             <Stack spacing={4}>
-              <div style={{ position: "relative" }}>
-                <Box position="relative">
-                  <Select
-                    placeholder="Select Personnel Name"
-                    value={editingEntry ? editingEntry.name : newEntry.name}
-                    onChange={(e) =>
-                      editingEntry
-                        ? setEditingEntry({
-                            ...editingEntry,
-                            name: e.target.value,
-                          })
-                        : setNewEntry({ ...newEntry, name: e.target.value })
-                    }
-                    isDisabled={isAdding} // Disable Select dropdown while adding new name
-                    border="1px solid #ccc"
-                    borderRadius="md"
-                    padding="8px"
-                    fontSize="16px"
-                  >
-                    {nameList.map((name, index) => (
-                      <option key={index} value={name}>
-                        {name}
-                      </option>
-                    ))}
-                  </Select>
-
-                  {/* Add Icon Button */}
-                  <IconButton
-                    icon={<AddIcon />}
-                    onClick={() => setIsAdding(true)} // Show input field for new name
-                    position="absolute"
-                    top="0"
-                    right="0"
-                    zIndex="1"
-                    aria-label="Add New Name"
-                    colorScheme="blue"
-                    variant="outline"
-                    borderRadius="full"
-                    size="sm"
-                  />
-                </Box>
-
-                {/* Input Field for Adding New Name */}
-                {isAdding && (
-                  <Box
-                    display="flex"
-                    flexDirection="column"
-                    alignItems="flex-start"
-                    width="100%"
-                  >
-                    <Input
-                      placeholder="Enter New Name"
-                      value={newName}
-                      onChange={(e) => setNewName(e.target.value)}
-                      mb={3}
+              <Box position="relative" w="100%">
+                {!isEditingName ? (
+                  <Flex gap={2} alignItems="center">
+                    <Select
+                      placeholder="Select Personnel Name"
+                      value={editingEntry ? editingEntry.name : newEntry.name}
+                      onChange={(e) =>
+                        editingEntry
+                          ? setEditingEntry({
+                              ...editingEntry,
+                              name: e.target.value,
+                            })
+                          : setNewEntry({ ...newEntry, name: e.target.value })
+                      }
                       border="1px solid #ccc"
                       borderRadius="md"
                       padding="8px"
                       fontSize="16px"
-                      width="100%"
-                    />
-                    <Box
-                      display="flex"
-                      width="100%"
-                      justifyContent="space-between"
+                      flex="1"
                     >
+                      {nameList.map((name, index) => (
+                        <option key={index} value={name}>
+                          {name}
+                        </option>
+                      ))}
+                    </Select>
+
+                    <IconButton
+                      icon={<EditIcon />}
+                      onClick={() => {
+                        const currentName = editingEntry
+                          ? editingEntry.name
+                          : newEntry.name;
+                        setEditableName(currentName || "");
+                        setIsEditingName(true);
+                      }}
+                      aria-label="Edit Name"
+                      size="sm"
+                      colorScheme="yellow"
+                      isDisabled={
+                        (editingEntry ? editingEntry.name : newEntry.name) ===
+                        ""
+                      }
+                    />
+
+                    <IconButton
+                      icon={<AddIcon />}
+                      onClick={() => setIsAdding(true)}
+                      aria-label="Add New Name"
+                      size="sm"
+                      colorScheme="blue"
+                    />
+                  </Flex>
+                ) : (
+                  <Flex gap={2} alignItems="center" mb={2}>
+                    <Input
+                      placeholder="Edit Name"
+                      value={editableName}
+                      onChange={(e) => setEditableName(e.target.value)}
+                      flex="1"
+                    />
+                    <IconButton
+                      icon={<CheckIcon />}
+                      onClick={() => {
+                        if (!editableName.trim()) return;
+
+                        // Update name in the nameList
+                        setNameList((prev) => {
+                          const oldName = editingEntry
+                            ? editingEntry.name
+                            : newEntry.name;
+                          return prev.map((name) =>
+                            name === oldName ? editableName : name
+                          );
+                        });
+
+                        // Update currently selected entry
+                        if (editingEntry) {
+                          setEditingEntry({
+                            ...editingEntry,
+                            name: editableName,
+                          });
+                        } else {
+                          setNewEntry({ ...newEntry, name: editableName });
+                        }
+
+                        setIsEditingName(false);
+                      }}
+                      aria-label="Update Name"
+                      size="sm"
+                      colorScheme="teal"
+                    />
+
+                    <IconButton
+                      icon={<CloseIcon />}
+                      onClick={() => setIsEditingName(false)}
+                      aria-label="Cancel Edit"
+                      size="sm"
+                      colorScheme="red"
+                    />
+                  </Flex>
+                )}
+
+                {/* Add new name section */}
+                {isAdding && (
+                  <Box mt={2}>
+                    <Input
+                      placeholder="Enter New Name"
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      mb={2}
+                    />
+                    <Flex gap={2}>
                       <Button
                         onClick={handleAddName}
                         colorScheme="teal"
                         size="sm"
-                        width="48%"
-                        borderRadius="md"
+                        width="100%"
                       >
                         Add Name
                       </Button>
                       <Button
-                        onClick={handleCancel}
+                        onClick={handleCancelAdd}
                         colorScheme="red"
                         size="sm"
-                        width="48%"
-                        borderRadius="md"
+                        width="100%"
                       >
                         Cancel
                       </Button>
-                    </Box>
+                    </Flex>
                   </Box>
                 )}
-
-                {/* Add Icon Button */}
-                <IconButton
-                  icon={<AddIcon />}
-                  onClick={() => setIsAdding(true)} // When clicked, show input for new name
-                  position="absolute"
-                  top="0"
-                  right="0"
-                  zIndex="1"
-                  aria-label="Add New Name"
-                />
-              </div>
+              </Box>
 
               {/* Location */}
               <Input

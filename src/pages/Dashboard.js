@@ -996,7 +996,7 @@ const AppCard = ({ app, colors, handleAppClick, small }) => {
         </Text>
 
         <Text fontSize="sm" color={colors.cardText} mb={1}>
-          <strong>Phone:</strong> {app.phone_name}
+          <strong>Phone Name:</strong> {app.phone_name}
         </Text>
 
         {(app.prefix || app.extension) && (

@@ -3,6 +3,7 @@ const App = require("../models/Apps");
 const ApplicationType = require("../models/ApplicationType");
 const { Op } = require("sequelize");
 const sequelize = require("../config/database"); // Ensure you import sequelize if needed for raw queries
+const UserGroupMapping = require("../models/UserGroupMapping");
 
 // Get all apps
 exports.getAllApps = async (req, res) => {
@@ -126,6 +127,14 @@ exports.getAvailableApps1 = async (req, res) => {
 
 exports.getAvailableApps = async (req, res) => {
   const userId = req.headers["x-user-id"];
+
+  const isVIP = await UserGroupMapping.findOne({
+    where: {
+      user_id: userId,
+      group_id: 2,
+    },
+  });
+
   if (!userId) {
     return res
       .status(401)
@@ -159,11 +168,21 @@ exports.getAvailableApps = async (req, res) => {
       { type: sequelize.QueryTypes.SELECT }
     );
 
-    // ✅ Fetch phone_directories data (include name and phone_name)
-    const phoneDirectoryData = await sequelize.query(
-      `SELECT name, phone_name, prefix, extension, dect_number FROM phone_directories`,
-      { type: sequelize.QueryTypes.SELECT }
-    );
+    // Base query
+    let query = `
+      SELECT name, phone_name, prefix, extension, dect_number 
+      FROM phone_directories
+    `;
+
+    // If user is NOT VIP, exclude "VIP Area"
+    if (!isVIP) {
+      query += ` WHERE location != 'VIP Area'`;
+    }
+
+    // Execute query
+    const phoneDirectoryData = await sequelize.query(query, {
+      type: sequelize.QueryTypes.SELECT,
+    });
 
     // Combine available apps and files into a single structure
     const combinedData = [
