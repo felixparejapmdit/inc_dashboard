@@ -205,7 +205,7 @@ UNION ALL
 
 SELECT 
   CONCAT(p.givenname, ' ', p.surname_husband) AS name,
-  NULL AS phone_name,
+  MAX(pd.phone_name) AS phone_name,
   MAX(pd.prefix) AS prefix, 
   MAX(pd.extension) AS extension, 
   MAX(pd.dect_number) AS dect_number, 
