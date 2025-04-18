@@ -932,7 +932,7 @@ export default function Dashboard() {
 // );
 const AppCard = ({ app, colors, handleAppClick, small }) => {
   const isFileData = app.generated_code && app.filename;
-  const isPhoneDirectory = (app.name && app.phone_name) || app.name;
+  const isPhoneDirectory = app.name && app.phone_name;
   const { hasPermission } = usePermissionContext();
 
   const isClickable =
