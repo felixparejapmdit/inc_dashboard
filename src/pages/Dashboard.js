@@ -971,7 +971,7 @@ const AppCard = ({ app, colors, handleAppClick, small }) => {
         <Image
           src={
             app.avatar
-              ? app.avatar
+              ? `${process.env.REACT_APP_API_URL}${app.avatar}`
               : "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
           }
           alt={app.name}
@@ -980,12 +980,22 @@ const AppCard = ({ app, colors, handleAppClick, small }) => {
           mb={3}
           boxShadow="md"
           border="2px solid"
+          cursor={app.personnel_id ? "pointer" : "default"}
           borderColor={colors.cardBorder}
+          onClick={() =>
+            window.open(`/personnel-preview/${app.personnel_id}`, "_blank")
+          }
         />
       </Box>
 
       {/* Name & Phone Info */}
-      <Box textAlign="center">
+      <Box
+        textAlign="center"
+        cursor={app.personnel_id ? "pointer" : "default"}
+        onClick={() =>
+          window.open(`/personnel-preview/${app.personnel_id}`, "_blank")
+        }
+      >
         <Text
           fontSize={small ? "10px" : "xl"}
           fontWeight="bold"

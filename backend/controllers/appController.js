@@ -169,9 +169,29 @@ exports.getAvailableApps = async (req, res) => {
     );
 
     // Base query
+    // let query = `
+    //   SELECT name, phone_name, prefix, extension, dect_number
+    //   FROM phone_directories
+    // `;
+
+    // Build query conditionally
     let query = `
-      SELECT name, phone_name, prefix, extension, dect_number 
-      FROM phone_directories
+     SELECT 
+  pd.name, 
+  pd.phone_name, 
+  pd.prefix, 
+  pd.extension, 
+  pd.dect_number, 
+  pi.image_url AS avatar, p.personnel_id
+FROM 
+  phone_directories pd
+LEFT JOIN 
+  personnels p 
+  ON pd.name LIKE CONCAT('%', SUBSTRING_INDEX(p.givenname, ' ', 1), '%', p.surname_husband, '%')
+LEFT JOIN 
+  personnel_images pi 
+  ON pi.personnel_id = p.personnel_id 
+  AND pi.type = '2x2 Picture'
     `;
 
     // If user is NOT VIP, exclude "VIP Area"
