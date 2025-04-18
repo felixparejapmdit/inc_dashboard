@@ -27,7 +27,13 @@ exports.getContactById = async (req, res) => {
 };
 
 exports.createContact = async (req, res) => {
-  const { personnel_id, contactype_id, contact_info } = req.body;
+  const {
+    personnel_id,
+    contactype_id,
+    contact_info,
+    contact_location,
+    phone_name,
+  } = req.body;
 
   if (!personnel_id || !contactype_id || !contact_info) {
     return res.status(400).json({
@@ -40,6 +46,8 @@ exports.createContact = async (req, res) => {
       personnel_id,
       contactype_id,
       contact_info,
+      contact_location,
+      phone_name,
     });
 
     res.status(201).json({
@@ -53,14 +61,13 @@ exports.createContact = async (req, res) => {
 };
 
 exports.updateContact = async (req, res) => {
-  const { personnel_id, contactype_id, contact_info } = req.body;
-
-  console.log("Received ID for update:", req.params.id);
-  console.log("Received Payload:", {
+  const {
     personnel_id,
     contactype_id,
     contact_info,
-  });
+    contact_location,
+    phone_name,
+  } = req.body;
 
   if (!personnel_id || !contactype_id || !contact_info) {
     return res.status(400).json({
@@ -78,10 +85,11 @@ exports.updateContact = async (req, res) => {
     const isUnchanged =
       existingRecord.personnel_id === personnel_id &&
       existingRecord.contactype_id === contactype_id &&
-      existingRecord.contact_info === contact_info;
+      existingRecord.contact_info === contact_info &&
+      existingRecord.contact_location === contact_location &&
+      existingRecord.phone_name === phone_name;
 
     if (isUnchanged) {
-      console.log("No changes detected in the data.");
       return res.status(200).json({
         message: "No changes were made.",
         data: existingRecord,
@@ -92,9 +100,9 @@ exports.updateContact = async (req, res) => {
       personnel_id,
       contactype_id,
       contact_info,
+      contact_location,
+      phone_name,
     });
-
-    console.log("Updated Record:", existingRecord);
 
     res.status(200).json({
       message: "Contact updated successfully.",

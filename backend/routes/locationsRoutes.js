@@ -1,12 +1,20 @@
-// ✅ Lokal Profile Route Updates
 const express = require("express");
 const router = express.Router();
-const LokalProfileController = require("../controllers/lokalProfileController");
+const LocationController = require("../controllers/locationsController"); // Make sure filename matches this!
 
-router.get("/api/lokal_profiles", LokalProfileController.getAllProfiles);
-router.get("/api/lokal_profiles/:id", LokalProfileController.getProfileById);
-router.post("/api/lokal_profiles", LokalProfileController.createProfile);
-router.put("/api/lokal_profiles/:id", LokalProfileController.updateProfile);
-router.delete("/api/lokal_profiles/:id", LokalProfileController.deleteProfile);
+// Get all locations
+router.get("/api/locations", LocationController.getAllLocations);
+
+// Get a single location by ID
+router.get("/api/locations/:id", LocationController.getLocationById);
+
+// Create a new location
+router.post("/api/locations", LocationController.createLocation);
+
+// Update a location by ID
+router.put("/api/locations/:id", LocationController.updateLocation);
+
+// Delete a location by ID
+router.delete("/api/locations/:id", LocationController.deleteLocation);
 
 module.exports = router;

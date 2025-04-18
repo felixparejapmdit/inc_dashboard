@@ -31,6 +31,10 @@ const Step2 = () => {
   const [govIDs, setGovIDs] = useState([]);
 
   const [contactTypes, setContactTypes] = useState([]);
+
+  const [phoneLocations, setPhoneLocations] = useState([]);
+  const [phoneDirectories, setPhoneDirectories] = useState([]);
+
   const [governmentIDs, setGovernmentIDs] = useState([]);
   const toast = useToast();
 
@@ -55,14 +59,23 @@ const Step2 = () => {
 
     const fetchDropdownData = async () => {
       try {
-        const [contactTypeRes, governmentIDRes] = await Promise.all([
+        const [
+          contactTypeRes,
+          governmentIDRes,
+          phoneLocationsRes,
+          phoneDirectoriesRes,
+        ] = await Promise.all([
           axios.get(`${process.env.REACT_APP_API_URL}/api/contact-type-info`),
           axios.get(
             `${process.env.REACT_APP_API_URL}/api/government-issued-ids`
           ),
+          axios.get(`${process.env.REACT_APP_API_URL}/api/phonelocations`), // 📍 Contact Location
+          axios.get(`${process.env.REACT_APP_API_URL}/api/phone-directory`), // ☎️ Phone Nam
         ]);
         setContactTypes(contactTypeRes.data || []);
         setGovernmentIDs(governmentIDRes.data || []);
+        setPhoneLocations(phoneLocationsRes.data || []);
+        setPhoneDirectories(phoneDirectoriesRes.data || []);
       } catch (error) {
         console.error("Error fetching dropdown data:", error);
         toast({
@@ -185,7 +198,9 @@ const Step2 = () => {
     const payload = {
       personnel_id: personnelId,
       contactype_id: contact.contactype_id,
-      contact_info: contact.contact_info,
+      contact_info: contact.contact_info || "-",
+      contact_location: contact.contact_location || null,
+      phone_name: contact.phone_name || null,
     };
 
     try {
@@ -636,101 +651,170 @@ const Step2 = () => {
               <Tr>
                 <Th>Type</Th>
                 <Th>Contact Info</Th>
+                <Th>Contact Location</Th>
+                <Th>Phone Name</Th>
                 <Th>Actions</Th>
               </Tr>
             </Thead>
             <Tbody>
               {contacts.length > 0 ? (
-                contacts.map((contact, idx) => (
-                  <Tr key={idx}>
-                    <Td>
-                      <Select
-                        placeholder="Select Type"
-                        value={contact.contactype_id}
-                        isDisabled={!contact.isEditing} // Disable if not editing
-                        onChange={(e) =>
-                          handleContactChange(
-                            idx,
-                            "contactype_id",
-                            e.target.value
-                          )
-                        }
-                      >
-                        {contactTypes.map((type) => (
-                          <option key={type.id} value={type.id}>
-                            {type.name}
-                          </option>
-                        ))}
-                      </Select>
-                    </Td>
-                    <Td>
-                      <Input
-                        placeholder={
-                          contactTypes
-                            .find((type) => type.id == contact.contactype_id)
-                            ?.name.toLowerCase() === "telegram"
-                            ? "Enter Telegram username (@username)"
-                            : "Enter Contact Info"
-                        }
-                        value={contact.contact_info}
-                        isDisabled={!contact.isEditing} // Disable if not editing
-                        onChange={(e) =>
-                          handleContactChange(
-                            idx,
-                            "contact_info",
-                            e.target.value
-                          )
-                        }
-                      />
-                    </Td>
+                contacts.map((contact, idx) => {
+                  const selectedType = contactTypes.find(
+                    (type) => type.id == contact.contactype_id
+                  );
 
-                    <Td>
-                      <Flex>
-                        {/* Save/Edit Button */}
-                        <IconButton
-                          icon={
-                            contact.isEditing ? <CheckIcon /> : <EditIcon />
+                  const isTelephone =
+                    selectedType?.name.toLowerCase() === "telephone";
+
+                  // Filter phone names by selected location
+                  const filteredPhones = phoneDirectories.filter(
+                    (phone) => phone.location === contact.contact_location
+                  );
+
+                  return (
+                    <Tr key={idx}>
+                      <Td>
+                        <Select
+                          placeholder="Select Type"
+                          value={contact.contactype_id}
+                          isDisabled={!contact.isEditing}
+                          onChange={(e) =>
+                            handleContactChange(
+                              idx,
+                              "contactype_id",
+                              e.target.value
+                            )
                           }
-                          size="sm"
-                          colorScheme={contact.isEditing ? "green" : "blue"}
-                          mr={2}
-                          onClick={() =>
-                            contact.isEditing
-                              ? handleSaveOrUpdateContact(idx)
-                              : toggleEditContact(idx)
+                        >
+                          {contactTypes.map((type) => (
+                            <option key={type.id} value={type.id}>
+                              {type.name}
+                            </option>
+                          ))}
+                        </Select>
+                      </Td>
+
+                      <Td>
+                        <Input
+                          placeholder={
+                            selectedType?.name.toLowerCase() === "telephone"
+                              ? "-"
+                              : selectedType?.name.toLowerCase() === "telegram"
+                              ? "Enter Telegram username (@username)"
+                              : "Enter Contact Info"
+                          }
+                          value={contact.contact_info || "-"}
+                          isReadOnly={
+                            !contact.isEditing ||
+                            selectedType?.name.toLowerCase() === "telephone"
+                          }
+                          onChange={(e) =>
+                            handleContactChange(
+                              idx,
+                              "contact_info",
+                              e.target.value
+                            )
                           }
                         />
+                      </Td>
 
-                        {/* Cancel Button (Shown when Editing) */}
-                        {contact.isEditing ? (
-                          <IconButton
-                            icon={<CloseIcon />}
-                            size="sm"
-                            colorScheme="gray"
-                            onClick={() => handleCancelEdit(idx)}
-                          />
+                      {/* Contact Location (Visible only for Telephone) */}
+                      <Td>
+                        {isTelephone ? (
+                          <Select
+                            placeholder="Select Location"
+                            value={contact.contact_location || ""}
+                            isDisabled={!contact.isEditing}
+                            onChange={(e) =>
+                              handleContactChange(
+                                idx,
+                                "contact_location",
+                                e.target.value
+                              )
+                            }
+                          >
+                            {phoneLocations.map((loc) => (
+                              <option key={loc.id} value={loc.name}>
+                                {loc.name}
+                              </option>
+                            ))}
+                          </Select>
                         ) : (
-                          /* Delete Button (Shown when NOT Editing) */
-                          <IconButton
-                            icon={<DeleteIcon />}
-                            size="sm"
-                            colorScheme="red"
-                            onClick={() => handleRemoveContact(idx)}
-                          />
+                          "—"
                         )}
-                      </Flex>
-                    </Td>
-                  </Tr>
-                ))
+                      </Td>
+
+                      {/* Phone Name (based on selected location) */}
+                      <Td>
+                        {isTelephone ? (
+                          <Select
+                            placeholder="Select Phone"
+                            value={contact.phone_name || ""}
+                            isDisabled={!contact.isEditing}
+                            onChange={(e) =>
+                              handleContactChange(
+                                idx,
+                                "phone_name",
+                                e.target.value
+                              )
+                            }
+                          >
+                            {filteredPhones.map((ph) => (
+                              <option key={ph.id} value={ph.phone_name}>
+                                {ph.phone_name}
+                              </option>
+                            ))}
+                          </Select>
+                        ) : (
+                          "—"
+                        )}
+                      </Td>
+
+                      <Td>
+                        <Flex>
+                          <IconButton
+                            icon={
+                              contact.isEditing ? <CheckIcon /> : <EditIcon />
+                            }
+                            size="sm"
+                            colorScheme={contact.isEditing ? "green" : "blue"}
+                            mr={2}
+                            onClick={() =>
+                              contact.isEditing
+                                ? handleSaveOrUpdateContact(idx)
+                                : toggleEditContact(idx)
+                            }
+                          />
+                          {contact.isEditing ? (
+                            <IconButton
+                              icon={<CloseIcon />}
+                              size="sm"
+                              colorScheme="gray"
+                              onClick={() => handleCancelEdit(idx)}
+                            />
+                          ) : (
+                            <IconButton
+                              icon={<DeleteIcon />}
+                              size="sm"
+                              colorScheme="red"
+                              onClick={() => handleRemoveContact(idx)}
+                            />
+                          )}
+                        </Flex>
+                      </Td>
+                    </Tr>
+                  );
+                })
               ) : (
                 <Tr>
-                  <Td colSpan="3" textAlign="center">
+                  <Td colSpan="5" textAlign="center">
                     No contacts available. Click "Add Contact" to create one.
                   </Td>
                 </Tr>
               )}
             </Tbody>
           </Table>
+
           <Button onClick={handleAddContact} colorScheme="teal" mt={4}>
             Add Contact
           </Button>

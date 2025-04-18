@@ -24,7 +24,7 @@ import {
 import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import axios from "axios";
 
-const LocationManagement = () => {
+const PhoneLocationManagement = () => {
   const [locations, setLocations] = useState([]);
   const [newLocation, setNewLocation] = useState("");
   const [isAdding, setIsAdding] = useState(false);
@@ -41,7 +41,7 @@ const LocationManagement = () => {
   const fetchLocations = async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/locations`
+        `${process.env.REACT_APP_API_URL}/api/phonelocations`
       );
       setLocations(response.data);
     } catch (error) {
@@ -66,7 +66,7 @@ const LocationManagement = () => {
     }
 
     try {
-      await axios.post(`${process.env.REACT_APP_API_URL}/api/locations`, {
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/phonelocations`, {
         name: newLocation,
       });
       fetchLocations();
@@ -100,7 +100,7 @@ const LocationManagement = () => {
 
     try {
       await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/locations/${editingLocation.id}`,
+        `${process.env.REACT_APP_API_URL}/api/phonelocations/${editingLocation.id}`,
         { name: editingLocation.name }
       );
       fetchLocations();
@@ -126,7 +126,7 @@ const LocationManagement = () => {
 
     try {
       await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/locations/${deletingLocation.id}`
+        `${process.env.REACT_APP_API_URL}/api/phonelocations/${deletingLocation.id}`
       );
       fetchLocations();
       toast({
@@ -151,7 +151,7 @@ const LocationManagement = () => {
       <Stack spacing={4}>
         <Flex justify="space-between" align="center">
           <Text fontSize="2xl" fontWeight="bold">
-            Event Locations
+            Phone Locations
           </Text>
         </Flex>
 
@@ -305,4 +305,4 @@ const LocationManagement = () => {
   );
 };
 
-export default LocationManagement;
+export default PhoneLocationManagement;

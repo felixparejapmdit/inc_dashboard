@@ -44,6 +44,7 @@ import LanguagesManagement from "./pages/managements/LanguagesManagement.js";
 import ContactTypeInfoManagement from "./pages/managements/ContactTypeInfoManagement.js";
 import GovernmentIssuedIDManagement from "./pages/managements/GovernmentIssuedIDManagement.js";
 import LocationManagement from "./pages/managements/LocationManagement.js";
+import PhoneLocationManagement from "./pages/managements/PhoneLocationManagement.js";
 import ApplicationTypeManagement from "./pages/managements/ApplicationTypeManagement.js";
 import HousingManagement from "./pages/managements/HousingManagement.js";
 
@@ -539,6 +540,20 @@ function MainApp() {
               }}
             >
               <LocationManagement />
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/managements/phonelocations"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <PhoneLocationManagement />
             </Layout>
           }
         />

@@ -335,6 +335,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   useDynamicIcon
                 />
               )}
+
               {/* {hasPermission("files.view") && (
               <SidebarItem
                 label="Share a link"
@@ -366,6 +367,14 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   label="Personnel"
                   isExpanded={isExpanded}
                   onClick={() => navigate("/user")} // Redirect to users.js
+                />
+              )}
+              {hasPermission("phonelocations.view") && (
+                <SidebarItem
+                  label="Phone Locations"
+                  isExpanded={isExpanded}
+                  onClick={() => navigate("/managements/phonelocations")}
+                  useDynamicIcon
                 />
               )}
               {hasPermission("phonedirectory.view") && (

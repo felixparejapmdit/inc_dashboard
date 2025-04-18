@@ -188,21 +188,74 @@ FROM
   phone_directories pd
 LEFT JOIN 
   personnels p 
-  ON (
-    pd.name LIKE CONCAT('%', SUBSTRING_INDEX(p.givenname, ' ', 1), '%', p.surname_husband, '%') 
-    OR 
-    pd.name LIKE CONCAT('%', SUBSTRING_INDEX(SUBSTRING_INDEX(p.givenname, ' ', 2), ' ', -1), '%', p.surname_husband, '%')
-  )
+    ON (
+      pd.name LIKE CONCAT('%', SUBSTRING_INDEX(p.givenname, ' ', 1), '%', p.surname_husband, '%') 
+      OR 
+      pd.name LIKE CONCAT('%', SUBSTRING_INDEX(SUBSTRING_INDEX(p.givenname, ' ', 2), ' ', -1), '%', p.surname_husband, '%')
+    )
 LEFT JOIN 
   personnel_images pi 
-  ON pi.personnel_id = p.personnel_id 
-  AND pi.type = '2x2 Picture'
-    `;
+    ON pi.personnel_id = p.personnel_id 
+    AND pi.type = '2x2 Picture'
+WHERE 
+  pd.phone_name IS NOT NULL
+  ${isVIP ? "" : 'AND pd.location != "VIP Area"'}
 
-    // If user is NOT VIP, exclude "VIP Area"
-    if (!isVIP) {
-      query += ` WHERE location != 'VIP Area'`;
-    }
+UNION ALL
+
+SELECT 
+  CONCAT(p.givenname, ' ', p.surname_husband) AS name,
+  NULL AS phone_name,
+  MAX(pd.prefix) AS prefix, 
+  MAX(pd.extension) AS extension, 
+  MAX(pd.dect_number) AS dect_number, 
+  MAX(pi.image_url) AS avatar, 
+  p.personnel_id
+FROM 
+  personnels p
+LEFT JOIN 
+  personnel_images pi 
+    ON pi.personnel_id = p.personnel_id 
+    AND pi.type = '2x2 Picture'
+LEFT JOIN 
+  personnel_contacts pc 
+    ON pc.personnel_id = p.personnel_id
+LEFT JOIN 
+  phone_directories pd 
+    ON (
+      pd.name LIKE CONCAT('%', SUBSTRING_INDEX(p.givenname, ' ', 1), '%', p.surname_husband, '%') 
+      OR pd.name LIKE CONCAT('%', SUBSTRING_INDEX(SUBSTRING_INDEX(p.givenname, ' ', 2), ' ', -1), '%', p.surname_husband, '%')
+      OR (pc.contact_location = pd.location AND pc.phone_name = pd.phone_name)
+    )
+WHERE 
+  NOT EXISTS (
+    SELECT 1
+    FROM phone_directories pd2
+    WHERE 
+      pd2.phone_name IS NOT NULL AND (
+        REPLACE(SUBSTRING_INDEX(pd2.name, ' ', 1), '-', '') = REPLACE(SUBSTRING_INDEX(p.givenname, ' ', 1), '-', '')
+        AND SUBSTRING_INDEX(pd2.name, ' ', -1) = p.surname_husband
+      )
+  )
+  AND NOT EXISTS (
+    SELECT 1
+    FROM phone_directories pd3
+    WHERE pd3.phone_name IS NOT NULL 
+    AND REPLACE(SUBSTRING_INDEX(pd3.name, ' ', 1), '-', '') = REPLACE(SUBSTRING_INDEX(p.givenname, ' ', 1), '-', '')
+    AND SUBSTRING_INDEX(pd3.name, ' ', -1) = p.surname_husband
+  )
+  -- 👇 New Condition: Exclude if second word of givenname + surname_husband already exists in pd.name
+  AND NOT EXISTS (
+    SELECT 1
+    FROM phone_directories pd5
+    WHERE pd5.phone_name IS NOT NULL
+      AND TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(p.givenname, ' ', 2), ' ', -1)) = TRIM(SUBSTRING_INDEX(pd5.name, ' ', 1))
+      AND p.surname_husband = TRIM(SUBSTRING_INDEX(pd5.name, ' ', -1))
+  )
+  ${isVIP ? "" : 'AND pd.location != "VIP Area"'}
+GROUP BY 
+  p.personnel_id, p.givenname, p.surname_husband
+`;
 
     // Execute query
     const phoneDirectoryData = await sequelize.query(query, {
