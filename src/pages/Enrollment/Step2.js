@@ -200,7 +200,7 @@ const Step2 = () => {
       contactype_id: contact.contactype_id,
       contact_info: contact.contact_info || "-",
       contact_location: contact.contact_location || null,
-      phone_name: contact.phone_name || null,
+      extension: contact.extension || null,
     };
 
     try {
@@ -652,7 +652,7 @@ const Step2 = () => {
                 <Th>Type</Th>
                 <Th>Contact Info</Th>
                 <Th>Contact Location</Th>
-                <Th>Phone Name</Th>
+                <Th>Extension</Th>
                 <Th>Actions</Th>
               </Tr>
             </Thead>
@@ -749,19 +749,19 @@ const Step2 = () => {
                         {isTelephone ? (
                           <Select
                             placeholder="Select Phone"
-                            value={contact.phone_name || ""}
+                            value={contact.extension || ""}
                             isDisabled={!contact.isEditing}
                             onChange={(e) =>
                               handleContactChange(
                                 idx,
-                                "phone_name",
+                                "extension",
                                 e.target.value
                               )
                             }
                           >
                             {filteredPhones.map((ph) => (
-                              <option key={ph.id} value={ph.phone_name}>
-                                {ph.phone_name}
+                              <option key={ph.id} value={ph.extension}>
+                                {ph.extension}
                               </option>
                             ))}
                           </Select>

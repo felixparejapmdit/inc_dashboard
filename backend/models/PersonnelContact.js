@@ -25,7 +25,7 @@ const PersonnelContact = db.define(
       type: DataTypes.STRING(50),
       allowNull: true,
     },
-    phone_name: {
+    extension: {
       type: DataTypes.STRING(50),
       allowNull: true,
     },

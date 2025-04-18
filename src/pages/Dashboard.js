@@ -181,7 +181,7 @@ export default function Dashboard() {
           app.generated_code &&
           app.generated_code.toLowerCase().includes(query); // Search in generated_code
         const phoneMatch =
-          app.phone_name && app.phone_name.toLowerCase().includes(query);
+          app.extension && app.extension.toLowerCase().includes(query);
         return nameMatch || codeMatch || phoneMatch;
       });
       if (matchingApps.length > 0) {
@@ -210,7 +210,7 @@ export default function Dashboard() {
   //         app.generated_code &&
   //         app.generated_code.toLowerCase().includes(query); // Search in generated_code
   //       const phoneMatch =
-  //         app.phone_name && app.phone_name.toLowerCase().includes(query);
+  //         app.extension && app.extension.toLowerCase().includes(query);
   //       return nameMatch || codeMatch || phoneMatch;
   //     });
   //     if (matchingApps.length > 0) {
@@ -932,7 +932,7 @@ export default function Dashboard() {
 // );
 const AppCard = ({ app, colors, handleAppClick, small }) => {
   const isFileData = app.generated_code && app.filename;
-  const isPhoneDirectory = app.name && app.phone_name;
+  const isPhoneDirectory = app.name && app.extension;
   const { hasPermission } = usePermissionContext();
 
   const isClickable =

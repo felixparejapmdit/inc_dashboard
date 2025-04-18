@@ -178,7 +178,7 @@ exports.getAvailableApps = async (req, res) => {
     let query = `
 SELECT 
   pd.name, 
-  pd.phone_name, 
+  pd.phone_name,
   pd.prefix, 
   pd.extension, 
   pd.dect_number, 
@@ -198,7 +198,7 @@ LEFT JOIN
     ON pi.personnel_id = p.personnel_id 
     AND pi.type = '2x2 Picture'
 WHERE 
-  pd.phone_name IS NOT NULL
+  pd.extension IS NOT NULL
   ${isVIP ? "" : 'AND pd.location != "VIP Area"'}
 
 UNION ALL
@@ -225,14 +225,14 @@ LEFT JOIN
     ON (
       pd.name LIKE CONCAT('%', SUBSTRING_INDEX(p.givenname, ' ', 1), '%', p.surname_husband, '%') 
       OR pd.name LIKE CONCAT('%', SUBSTRING_INDEX(SUBSTRING_INDEX(p.givenname, ' ', 2), ' ', -1), '%', p.surname_husband, '%')
-      OR (pc.contact_location = pd.location AND pc.phone_name = pd.phone_name)
+      OR (pc.contact_location = pd.location AND pc.extension = pd.extension)
     )
 WHERE 
   NOT EXISTS (
     SELECT 1
     FROM phone_directories pd2
     WHERE 
-      pd2.phone_name IS NOT NULL AND (
+      pd2.extension IS NOT NULL AND (
         REPLACE(SUBSTRING_INDEX(pd2.name, ' ', 1), '-', '') = REPLACE(SUBSTRING_INDEX(p.givenname, ' ', 1), '-', '')
         AND SUBSTRING_INDEX(pd2.name, ' ', -1) = p.surname_husband
       )
@@ -240,7 +240,7 @@ WHERE
   AND NOT EXISTS (
     SELECT 1
     FROM phone_directories pd3
-    WHERE pd3.phone_name IS NOT NULL 
+    WHERE pd3.extension IS NOT NULL 
     AND REPLACE(SUBSTRING_INDEX(pd3.name, ' ', 1), '-', '') = REPLACE(SUBSTRING_INDEX(p.givenname, ' ', 1), '-', '')
     AND SUBSTRING_INDEX(pd3.name, ' ', -1) = p.surname_husband
   )
@@ -248,7 +248,7 @@ WHERE
   AND NOT EXISTS (
     SELECT 1
     FROM phone_directories pd5
-    WHERE pd5.phone_name IS NOT NULL
+    WHERE pd5.extension IS NOT NULL
       AND TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(p.givenname, ' ', 2), ' ', -1)) = TRIM(SUBSTRING_INDEX(pd5.name, ' ', 1))
       AND p.surname_husband = TRIM(SUBSTRING_INDEX(pd5.name, ' ', -1))
   )

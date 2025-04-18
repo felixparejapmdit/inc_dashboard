@@ -32,7 +32,7 @@ exports.createContact = async (req, res) => {
     contactype_id,
     contact_info,
     contact_location,
-    phone_name,
+    extension,
   } = req.body;
 
   if (!personnel_id || !contactype_id || !contact_info) {
@@ -47,7 +47,7 @@ exports.createContact = async (req, res) => {
       contactype_id,
       contact_info,
       contact_location,
-      phone_name,
+      extension,
     });
 
     res.status(201).json({
@@ -66,7 +66,7 @@ exports.updateContact = async (req, res) => {
     contactype_id,
     contact_info,
     contact_location,
-    phone_name,
+    extension,
   } = req.body;
 
   if (!personnel_id || !contactype_id || !contact_info) {
@@ -87,7 +87,7 @@ exports.updateContact = async (req, res) => {
       existingRecord.contactype_id === contactype_id &&
       existingRecord.contact_info === contact_info &&
       existingRecord.contact_location === contact_location &&
-      existingRecord.phone_name === phone_name;
+      existingRecord.extension === extension;
 
     if (isUnchanged) {
       return res.status(200).json({
@@ -101,7 +101,7 @@ exports.updateContact = async (req, res) => {
       contactype_id,
       contact_info,
       contact_location,
-      phone_name,
+      extension,
     });
 
     res.status(200).json({
