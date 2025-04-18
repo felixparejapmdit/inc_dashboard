@@ -176,18 +176,23 @@ exports.getAvailableApps = async (req, res) => {
 
     // Build query conditionally
     let query = `
-     SELECT 
+SELECT 
   pd.name, 
   pd.phone_name, 
   pd.prefix, 
   pd.extension, 
   pd.dect_number, 
-  pi.image_url AS avatar, p.personnel_id
+  pi.image_url AS avatar, 
+  p.personnel_id
 FROM 
   phone_directories pd
 LEFT JOIN 
   personnels p 
-  ON pd.name LIKE CONCAT('%', SUBSTRING_INDEX(p.givenname, ' ', 1), '%', p.surname_husband, '%')
+  ON (
+    pd.name LIKE CONCAT('%', SUBSTRING_INDEX(p.givenname, ' ', 1), '%', p.surname_husband, '%') 
+    OR 
+    pd.name LIKE CONCAT('%', SUBSTRING_INDEX(SUBSTRING_INDEX(p.givenname, ' ', 2), ' ', -1), '%', p.surname_husband, '%')
+  )
 LEFT JOIN 
   personnel_images pi 
   ON pi.personnel_id = p.personnel_id 
