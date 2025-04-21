@@ -28,6 +28,7 @@ import Step5 from "./Step5"; // Import Step5 component for siblings
 import Step6 from "./Step6"; // Import Step6 component for spouse
 import Step7 from "./Step7";
 import { AiFillHome } from "react-icons/ai"; // Add this at the top of your component
+import { FiArrowLeft } from "react-icons/fi"; // Add this
 
 const API_URL = process.env.REACT_APP_API_URL;
 const DISTRICT_API_URL = process.env.REACT_APP_DISTRICT_API_URL;
@@ -145,8 +146,24 @@ const EnrollmentForm = ({ referenceNumber }) => {
     const personnelProgress =
       searchParams.get("personnel_progress") || stepParam;
 
+    // navigate(
+    //   `/enroll?personnel_id=${personnelId}&step=${stepParam}&personnel_progress=${personnelProgress}`
+    // ); // Navigate back to form
+
     navigate(
-      `/enroll?personnel_id=${personnelId}&step=${stepParam}&personnel_progress=${personnelProgress}`
+      `/enroll?personnel_id=${personnelId}&step=${stepParam}&personnel_progress=${personnelProgress}${
+        typeParam === "evaluation"
+          ? "&type=evaluation"
+          : typeParam === "editprofile"
+          ? "&type=editprofile"
+          : typeParam === "editpersonnel"
+          ? "&type=editpersonnel"
+          : typeParam === "track"
+          ? "&type=track"
+          : typeParam === "new"
+          ? "&type=new"
+          : ""
+      }`
     ); // Navigate back to form
   };
 
@@ -513,12 +530,20 @@ const EnrollmentForm = ({ referenceNumber }) => {
   const navigate = useNavigate();
 
   const handleBackHome = () => {
-    if (typeParam === "editprofile") {
+    if (typeParam === "track" || typeParam === "new") {
+      const confirmExit = window.confirm(
+        "Are you sure you want to exit? Please make sure all necessary data is saved."
+      );
+      if (!confirmExit) return;
+      navigate("/login");
+    } else if (typeParam === "editprofile") {
       navigate("/profile");
+    } else if (typeParam === "editpersonnel") {
+      navigate("/user");
     } else if (typeParam === "evaluation") {
       navigate("/progress/step1");
     } else {
-      navigate("/dashboard"); // fallback, if needed
+      navigate("/dashboard"); // fallback
     }
   };
 
@@ -865,7 +890,11 @@ const EnrollmentForm = ({ referenceNumber }) => {
               ? "&type=evaluation"
               : typeParam === "editprofile"
               ? "&type=editprofile"
-              : ""
+              : typeParam === "track"
+              ? "&type=track"
+              : typeParam === "new"
+              ? "&type=new"
+              : "&type=editpersonnel"
           }`
         );
 
@@ -917,7 +946,11 @@ const EnrollmentForm = ({ referenceNumber }) => {
           ? "&type=evaluation"
           : typeParam === "editprofile"
           ? "&type=editprofile"
-          : ""
+          : typeParam === "track"
+          ? "&type=track"
+          : typeParam === "new"
+          ? "&type=new"
+          : "&type=editpersonnel"
       }`
     );
   };
@@ -1205,7 +1238,13 @@ const EnrollmentForm = ({ referenceNumber }) => {
         boxShadow="sm"
       >
         <Flex alignItems="center" my={2}>
-          {typeParam === "editprofile" || typeParam === "evaluation" ? (
+          {[
+            "editprofile",
+            "editpersonnel",
+            "evaluation",
+            "track",
+            "new",
+          ].includes(typeParam) && (
             <Button
               ml={4}
               mr={4}
@@ -1216,9 +1255,13 @@ const EnrollmentForm = ({ referenceNumber }) => {
               height="40px"
               p={0}
             >
-              <AiFillHome size={20} />
+              {typeParam === "track" || typeParam === "new" ? (
+                <FiArrowLeft size={20} />
+              ) : (
+                <AiFillHome size={20} />
+              )}
             </Button>
-          ) : null}
+          )}
 
           <Heading
             as="h2"
@@ -1266,8 +1309,14 @@ const EnrollmentForm = ({ referenceNumber }) => {
                   const newUrl = `/enroll?personnel_id=${personnelId}&step=${selectedStep}${
                     typeParam === "evaluation"
                       ? "&type=evaluation"
+                      : typeParam === "editpersonnel"
+                      ? "&type=editpersonnel"
                       : typeParam === "editprofile"
                       ? "&type=editprofile"
+                      : typeParam === "track"
+                      ? "&type=track"
+                      : typeParam === "new"
+                      ? "&type=new"
                       : ""
                   }`;
 

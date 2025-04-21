@@ -283,7 +283,7 @@ const Login = () => {
 
         // Navigate to the EnrollmentForm with the appropriate step
         navigate(
-          `/enroll?personnel_id=${personnel_id}&step=${enrollment_progress}&personnel_progress=${personnel_progress}`
+          `/enroll?personnel_id=${personnel_id}&step=${enrollment_progress}&personnel_progress=${personnel_progress}&type=track`
         );
       } else {
         toast({
@@ -317,7 +317,7 @@ const Login = () => {
   };
 
   const handleEnroll = () => {
-    navigate("/enroll");
+    navigate("/enroll?type=new");
   };
 
   // Hash the password for LDAP MD5 format

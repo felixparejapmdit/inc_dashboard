@@ -868,9 +868,9 @@ const Users = ({ personnelId }) => {
                             onClick={() => {
                               const personnelId = item.personnel_id;
                               if (personnelId) {
-                                window.location.href = `/enroll?personnel_id=${personnelId}`;
+                                window.location.href = `/enroll?personnel_id=${personnelId}&type=editpersonnel`;
                               } else {
-                                window.location.href = `/enroll?not_enrolled=${item.username}`;
+                                window.location.href = `/enroll?not_enrolled=${item.username}&type=editpersonnel`;
                               }
                             }}
                           />
