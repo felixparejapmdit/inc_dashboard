@@ -27,6 +27,7 @@ import Step4 from "./Step4"; // Import Step4 component
 import Step5 from "./Step5"; // Import Step5 component for siblings
 import Step6 from "./Step6"; // Import Step6 component for spouse
 import Step7 from "./Step7";
+import { AiFillHome } from "react-icons/ai"; // Add this at the top of your component
 
 const API_URL = process.env.REACT_APP_API_URL;
 const DISTRICT_API_URL = process.env.REACT_APP_DISTRICT_API_URL;
@@ -1205,7 +1206,13 @@ const EnrollmentForm = ({ referenceNumber }) => {
       >
         <Flex alignItems="center" my={2}>
           {typeParam === "editprofile" || typeParam === "evaluation" ? (
-            <Button colorScheme="gray" onClick={handleBackHome} mr={4}>
+            <Button
+              leftIcon={<AiFillHome />}
+              ml={4}
+              colorScheme="gray"
+              onClick={handleBackHome}
+              mr={4}
+            >
               Home
             </Button>
           ) : null}
