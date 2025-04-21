@@ -1205,17 +1205,20 @@ const EnrollmentForm = ({ referenceNumber }) => {
         boxShadow="sm"
       >
         <Flex alignItems="center" my={2}>
-          {typeParam === "editprofile" || typeParam === "evaluation" ? (
-            <Button
-              leftIcon={<AiFillHome />}
-              ml={4}
-              colorScheme="gray"
-              onClick={handleBackHome}
-              mr={4}
-            >
-              Home
-            </Button>
-          ) : null}
+        {typeParam === "editprofile" || typeParam === "evaluation" ? (
+  <Button
+    ml={4}
+    mr={4}
+    colorScheme="yellow"
+    onClick={handleBackHome}
+    justifyContent="center"
+    width="40px"
+    height="40px"
+    p={0}
+  >
+    <AiFillHome size={20} />
+  </Button>
+) : null}
 
           <Heading
             as="h2"
