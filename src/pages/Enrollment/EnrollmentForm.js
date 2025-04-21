@@ -511,8 +511,14 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
   const navigate = useNavigate();
 
-  const handleBackToLogin = () => {
-    navigate("/login"); // Navigate back to login page
+  const handleBackHome = () => {
+    if (typeParam === "editprofile") {
+      navigate("/profile");
+    } else if (typeParam === "evaluation") {
+      navigate("/progress/step1");
+    } else {
+      navigate("/dashboard"); // fallback, if needed
+    }
   };
 
   const handleFinish = () => {
@@ -854,7 +860,11 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
         navigate(
           `/enroll?personnel_id=${personnelId}&step=${nextStep}${
-            typeParam === "evaluation" ? "&type=evaluation" : ""
+            typeParam === "evaluation"
+              ? "&type=evaluation"
+              : typeParam === "editprofile"
+              ? "&type=editprofile"
+              : ""
           }`
         );
 
@@ -902,7 +912,11 @@ const EnrollmentForm = ({ referenceNumber }) => {
     // Include type=evaluation in the URL if typeParam is "evaluation"
     navigate(
       `/enroll?personnel_id=${personnelId}&step=${previousStep}${
-        typeParam === "evaluation" ? "&type=evaluation" : ""
+        typeParam === "evaluation"
+          ? "&type=evaluation"
+          : typeParam === "editprofile"
+          ? "&type=editprofile"
+          : ""
       }`
     );
   };
@@ -1190,14 +1204,11 @@ const EnrollmentForm = ({ referenceNumber }) => {
         boxShadow="sm"
       >
         <Flex alignItems="center" my={2}>
-          <Button
-            display="none"
-            colorScheme="gray"
-            onClick={handleBackToLogin}
-            mr={4}
-          >
-            Back to Login
-          </Button>
+          {typeParam === "editprofile" || typeParam === "evaluation" ? (
+            <Button colorScheme="gray" onClick={handleBackHome} mr={4}>
+              Home
+            </Button>
+          ) : null}
 
           <Heading
             as="h2"
@@ -1243,7 +1254,11 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
                   // Construct the new URL based on typeParam
                   const newUrl = `/enroll?personnel_id=${personnelId}&step=${selectedStep}${
-                    typeParam === "evaluation" ? "&type=evaluation" : ""
+                    typeParam === "evaluation"
+                      ? "&type=evaluation"
+                      : typeParam === "editprofile"
+                      ? "&type=editprofile"
+                      : ""
                   }`;
 
                   // Navigate to the updated URL

@@ -421,9 +421,9 @@ const Profile = () => {
                   onClick={() => {
                     const personnelId = user.personnel_id;
                     if (personnelId) {
-                      window.location.href = `/enroll?personnel_id=${personnelId}&step=${user.enrollment_progress}`;
+                      window.location.href = `/enroll?personnel_id=${personnelId}&step=${user.enrollment_progress}&type=editprofile`;
                     } else {
-                      window.location.href = `/enroll?not_enrolled=${user.username}`;
+                      window.location.href = `/enroll?not_enrolled=${user.username}&type=editprofile`;
                     }
                   }}
                 />
