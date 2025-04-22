@@ -259,6 +259,20 @@ WHERE
       pd6.extension IS NOT NULL
       AND TRIM(REPLACE(CONCAT(p.givenname, ' ', p.surname_husband), '-', '')) = TRIM(REPLACE(pd6.name, '-', ''))
   )
+-- 4. Exclude if phone_name and personnel_id already exist in matched list
+AND NOT EXISTS (
+  SELECT 1
+  FROM phone_directories pd7
+  LEFT JOIN personnels p7 
+    ON (
+      pd7.name LIKE CONCAT('%', SUBSTRING_INDEX(p7.givenname, ' ', 1), '%', p7.surname_husband, '%') 
+      OR pd7.name LIKE CONCAT('%', SUBSTRING_INDEX(SUBSTRING_INDEX(p7.givenname, ' ', 2), ' ', -1), '%', p7.surname_husband, '%')
+    )
+  WHERE 
+    pd7.extension IS NOT NULL
+    AND p7.personnel_id = p.personnel_id
+    AND pd7.phone_name = CONCAT(p.givenname, ' ', p.surname_husband)
+)
 
   ${isVIP ? "" : 'AND pd.location != "VIP Area"'}
 GROUP BY 

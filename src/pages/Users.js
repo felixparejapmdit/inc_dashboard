@@ -582,11 +582,33 @@ const Users = ({ personnelId }) => {
     });
   };
 
+  // useEffect(() => {
+  //   if (existingPersonnel.length > 0) {
+  //     const sample = existingPersonnel[0];
+  //     const defaultVisibility = Object.keys(sample).reduce((acc, key) => {
+  //       acc[key] = true; // all columns visible by default
+  //       return acc;
+  //     }, {});
+  //     setColumnVisibility(defaultVisibility);
+  //   }
+  // }, [existingPersonnel]);
+
   useEffect(() => {
+    console.log("existingPersonnel:", existingPersonnel); // ✅ Debug log
+
     if (existingPersonnel.length > 0) {
       const sample = existingPersonnel[0];
+
+      // Define your default selected columns here
+      const defaultColumns = [
+        "ID",
+        "avatar",
+        "personnel_givenname",
+        "personnel_surname_husband",
+      ];
+
       const defaultVisibility = Object.keys(sample).reduce((acc, key) => {
-        acc[key] = true; // all columns visible by default
+        acc[key] = defaultColumns.includes(key); // true only for default columns
         return acc;
       }, {});
       setColumnVisibility(defaultVisibility);
