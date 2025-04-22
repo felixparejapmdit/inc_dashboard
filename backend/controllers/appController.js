@@ -176,6 +176,7 @@ exports.getAvailableApps = async (req, res) => {
 
     // Build query conditionally
     let query = `
+-- First Query: Matched phone directories
 SELECT 
   pd.name, 
   pd.phone_name,
@@ -203,6 +204,7 @@ WHERE
 
 UNION ALL
 
+-- Second Query: Avoid duplicates
 SELECT 
   CONCAT(p.givenname, ' ', p.surname_husband) AS name,
   MAX(pd.phone_name) AS phone_name,
@@ -228,6 +230,7 @@ LEFT JOIN
       OR (pc.contact_location = pd.location AND pc.extension = pd.extension)
     )
 WHERE 
+  -- 1. Exclude if first name + surname match (hyphen-safe)
   NOT EXISTS (
     SELECT 1
     FROM phone_directories pd2
@@ -237,21 +240,26 @@ WHERE
         AND SUBSTRING_INDEX(pd2.name, ' ', -1) = p.surname_husband
       )
   )
-  AND NOT EXISTS (
-    SELECT 1
-    FROM phone_directories pd3
-    WHERE pd3.extension IS NOT NULL 
-    AND REPLACE(SUBSTRING_INDEX(pd3.name, ' ', 1), '-', '') = REPLACE(SUBSTRING_INDEX(p.givenname, ' ', 1), '-', '')
-    AND SUBSTRING_INDEX(pd3.name, ' ', -1) = p.surname_husband
-  )
-  -- 👇 New Condition: Exclude if second word of givenname + surname_husband already exists in pd.name
+
+  -- 2. Exclude if second part of givenname + surname match
   AND NOT EXISTS (
     SELECT 1
     FROM phone_directories pd5
-    WHERE pd5.extension IS NOT NULL
-      AND TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(p.givenname, ' ', 2), ' ', -1)) = TRIM(SUBSTRING_INDEX(pd5.name, ' ', 1))
-      AND p.surname_husband = TRIM(SUBSTRING_INDEX(pd5.name, ' ', -1))
+    WHERE 
+      pd5.extension IS NOT NULL
+      AND REPLACE(SUBSTRING_INDEX(SUBSTRING_INDEX(p.givenname, ' ', 2), ' ', -1), '-', '') = REPLACE(SUBSTRING_INDEX(pd5.name, ' ', 1), '-', '')
+      AND p.surname_husband = SUBSTRING_INDEX(pd5.name, ' ', -1)
   )
+
+  -- 3. Exclude if full name (givenname + surname_husband) already exists in pd.name
+  AND NOT EXISTS (
+    SELECT 1
+    FROM phone_directories pd6
+    WHERE 
+      pd6.extension IS NOT NULL
+      AND TRIM(REPLACE(CONCAT(p.givenname, ' ', p.surname_husband), '-', '')) = TRIM(REPLACE(pd6.name, '-', ''))
+  )
+
   ${isVIP ? "" : 'AND pd.location != "VIP Area"'}
 GROUP BY 
   p.personnel_id, p.givenname, p.surname_husband
