@@ -55,6 +55,7 @@
     "jspdf-autotable": "^5.0.2",
     "jsqr": "^1.4.0",
     "ldapjs": "^3.0.7",
+    "lucide-react": "^0.503.0",
     "md5": "^2.3.0",
     "mini-css-extract-plugin": "^2.4.5",
     "moment": "^2.30.1",
