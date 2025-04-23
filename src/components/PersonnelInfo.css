@@ -1,0 +1,45 @@
+.personnel-info {
+  padding: 30px;
+  background-color: white;
+  flex: 1;
+}
+
+.fullname {
+  font-weight: bold;
+  font-size: 1.8em;
+  margin-bottom: 10px;
+}
+
+.icons-row {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 20px;
+}
+
+.info-section {
+  margin-bottom: 30px;
+}
+
+.section-title {
+  background-color: yellow;
+  padding: 8px;
+  font-weight: bold;
+}
+
+.section-body {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-top: none;
+}
+
+.children-cards {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.child-card {
+  background-color: #f3f3f3;
+  padding: 10px;
+  border-radius: 8px;
+}
