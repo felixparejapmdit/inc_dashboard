@@ -5,6 +5,11 @@ const controller = require("../controllers/WorkExperienceController");
 // Get all work experiences
 router.get("/api/work-experiences", controller.getAllWorkExperiences);
 
+router.get(
+  "/api/work-experience/pid/:personnel_id",
+  controller.getWorkExperienceByPersonnelId
+);
+
 // Add a new work experience
 router.post("/api/work-experiences", controller.addWorkExperience);
 

@@ -26,6 +26,27 @@ exports.getContactById = async (req, res) => {
   }
 };
 
+exports.getContactByPersonnelId = async (req, res) => {
+  try {
+    const { personnel_id } = req.params;
+
+    const contacts = await PersonnelContact.findAll({
+      where: { personnel_id },
+    });
+
+    if (!contacts || contacts.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No contacts found for this personnel ID." });
+    }
+
+    res.status(200).json(contacts);
+  } catch (error) {
+    console.error("Error fetching contacts by personnel ID:", error.message);
+    res.status(500).json({ error: "Failed to fetch contacts." });
+  }
+};
+
 exports.createContact = async (req, res) => {
   const {
     personnel_id,

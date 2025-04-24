@@ -15,6 +15,11 @@ router.get(
   PersonnelContactController.getContactById
 );
 
+router.get(
+  "/api/personnel-contacts/pid/:personnel_id",
+  PersonnelContactController.getContactByPersonnelId
+);
+
 // Add a new personnel contact
 router.post(
   "/api/personnel-contacts",

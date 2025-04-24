@@ -24,6 +24,24 @@ exports.getAddressById = async (req, res) => {
   }
 };
 
+exports.getAddressByPersonnelId = async (req, res) => {
+  try {
+    const addresses = await PersonnelAddress.findAll({
+      where: { personnel_id: req.params.personnel_id },
+    });
+
+    if (!addresses || addresses.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No addresses found for this personnel." });
+    }
+
+    res.status(200).json(addresses);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 exports.createAddress = async (req, res) => {
   try {
     const newAddress = await PersonnelAddress.create(req.body);

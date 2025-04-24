@@ -18,6 +18,25 @@ module.exports = {
     }
   },
 
+  getWorkExperienceByPersonnelId: async (req, res) => {
+    try {
+      const workExperience = await WorkExperience.findAll({
+        where: { personnel_id: req.params.personnel_id },
+      });
+
+      if (!workExperience || workExperience.length === 0) {
+        return res
+          .status(404)
+          .json({ message: "No work experience records found." });
+      }
+
+      res.status(200).json(workExperience);
+    } catch (error) {
+      console.error("Error fetching work experience:", error.message);
+      res.status(500).json({ error: "Failed to fetch work experience." });
+    }
+  },
+
   addWorkExperience: async (req, res) => {
     try {
       const {

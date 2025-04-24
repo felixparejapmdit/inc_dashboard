@@ -18,6 +18,11 @@ const PersonnelPreview = () => {
   const [familyMembers, setFamilyMembers] = useState([]); // Family members array
   const [loading, setLoading] = useState(true); // Loading state
   const [personnelImage, setPersonnelImage] = useState(null); // Image storage
+  const [personnelAddress, setPersonnelAddress] = useState(null); // Address storage
+  const [personnelContact, setPersonnelContact] = useState(null); // Contact storage
+  const [personnelEducationalBackground, setPersonnelEducationalBackground] =
+    useState(null); // Educational background storage
+  const [personnelWorkExperience, setPersonnelWorkExperience] = useState(null); // Work experience storage
 
   // Lookup data for other dropdowns or lookups
   const [lookupData, setLookupData] = useState({
@@ -114,10 +119,68 @@ const PersonnelPreview = () => {
       }
     };
 
+    // Function to fetch personnel address
+    const fetchPersonnelAddress = async () => {
+      try {
+        const response = await axios.get(
+          `${API_URL}/api/personnel-addresses/pid/${personnelId}`
+        );
+        setPersonnelAddress(response.data); // Set personnel address data
+      } catch (error) {
+        console.error("Error fetching personnel address:", error);
+      }
+    };
+
+    const fetchPersonnelContacts = async () => {
+      try {
+        if (!personnelId) {
+          console.warn("Personnel ID is not set.");
+          return;
+        }
+
+        const response = await axios.get(
+          `${API_URL}/api/personnel-contacts/pid/${personnelId}`
+        );
+        setPersonnelContact(response.data);
+      } catch (error) {
+        console.error(
+          "Error fetching personnel contacts:",
+          error.response?.data || error.message
+        );
+      }
+    };
+
+    const fetchPersonnelEducational = async () => {
+      try {
+        const response = await axios.get(
+          `${API_URL}/api/personnel-educational/${personnelId}`
+        );
+        setPersonnelEducationalBackground(response.data); // Set personnel contact data
+      } catch (error) {
+        console.error("Error fetching personnel educational:", error);
+      }
+    };
+
+    const fetchPersonnelWorkExperience = async () => {
+      try {
+        const response = await axios.get(
+          `${API_URL}/api/personnel-educational/${personnelId}`
+        );
+        setPersonnelWorkExperience(response.data); // Set personnel work experience data
+      } catch (error) {
+        console.error("Error fetching personnel work experience:", error);
+      }
+    };
+
     // Execute all API calls
     fetchAllData();
     fetchPersonnel();
     fetchFamilyMembers();
+    fetchPersonnelAddress();
+    fetchPersonnelContacts();
+    fetchPersonnelEducational();
+    fetchPersonnelWorkExperience();
+
     fetch2x2Image().then(() => setLoading(false));
   }, [personnelId]); // Dependency on personnelId, triggers fetch when changed
 
@@ -129,12 +192,19 @@ const PersonnelPreview = () => {
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
       {/* Passing the correct props to ProfileSidebar and PersonnelInfo */}
-      <ProfileSidebar personnel={personnel} />
+      <ProfileSidebar 
+        personnel={personnel}
+        personnelContact={personnelContact}
+        personnelEducationalBackground={personnelEducationalBackground}
+        personnelWorkExperience={personnelWorkExperience}
+       />
       <PersonnelInfo
         personnel={personnel}
         familyMembers={familyMembers}
         lookupData={lookupData}
         personnelImage={personnelImage}
+        personnelAddress={personnelAddress}
+      
       />
     </div>
   );

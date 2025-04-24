@@ -15,6 +15,12 @@ router.get(
   PersonnelAddressController.getAddressById
 );
 
+// Get a specific personnel address by personnel id
+router.get(
+  "/api/personnel-addresses/pid/:personnel_id",
+  PersonnelAddressController.getAddressByPersonnelId
+);
+
 // Add a new personnel address
 router.post(
   "/api/personnel-addresses",

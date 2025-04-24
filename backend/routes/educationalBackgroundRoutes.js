@@ -26,6 +26,11 @@ router.get(
   controller.getAllEducationalBackgrounds
 );
 
+router.get(
+  "/api/educational-background/pid/:personnel_id",
+  controller.getEducationByPersonnelId
+);
+
 // Add a new educational background
 router.post(
   "/api/educational-backgrounds",
@@ -58,10 +63,6 @@ router.put(
 );
 
 // Update certificate_files to remove a certificate
-router.put(
-  "/api/remove-certificate",
-  controller.removeCertificate
-);
-
+router.put("/api/remove-certificate", controller.removeCertificate);
 
 module.exports = router;
