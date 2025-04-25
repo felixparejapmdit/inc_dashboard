@@ -9,16 +9,9 @@ const ProfileSidebar = ({
 }) => {
   if (!personnel) return <div>No personnel data found.</div>;
 
-  const {
-    profile_photo_path,
-    username,
-  } = personnel;
+  const { profile_photo_path, username } = personnel;
 
-  const {
-    email,
-    mobile_number,
-    address,
-  } = personnelContact;
+  const { email, mobile_number, address } = personnelContact;
 
   // Ensure fallback to empty arrays if null/undefined
   const educationList = Array.isArray(personnelEducationalBackground)
@@ -79,29 +72,52 @@ const ProfileSidebar = ({
         </div>
       </div>
 
-{/* Contact Section */}
-<div style={sectionStyle}>
-  <h4 style={itemTitleStyle}>Contact</h4>
-  <div style={{ marginTop: "0.75rem" }}>
-    <div style={{ display: "flex", alignItems: "center", marginBottom: "0.5rem" }}>
-      <Mail size={16} style={{ marginRight: "0.5rem" }} />
-      <span style={subTextStyle}>{email || "No email"}</span>
-    </div>
-    <div style={{ display: "flex", alignItems: "center", marginBottom: "0.5rem" }}>
-      <Phone size={16} style={{ marginRight: "0.5rem" }} />
-      <span style={subTextStyle}>{mobile_number || "No phone"}</span>
-    </div>
-    <div style={{ display: "flex", alignItems: "center", marginBottom: "0.5rem" }}>
-      <MapPin size={16} style={{ marginRight: "0.5rem" }} />
-      <span style={subTextStyle}>{address || "No address"}</span>
-    </div>
-    <div style={{ display: "flex", alignItems: "center", marginBottom: "0.5rem" }}>
-      <Send size={16} style={{ marginRight: "0.5rem" }} />
-      <span style={subTextStyle}>@{username || "username"}</span>
-    </div>
-  </div>
-</div>
-
+      {/* Contact Section */}
+      <div style={sectionStyle}>
+        <h4 style={itemTitleStyle}>Contact</h4>
+        <div style={{ marginTop: "0.75rem" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              marginBottom: "0.5rem",
+            }}
+          >
+            <Mail size={16} style={{ marginRight: "0.5rem" }} />
+            <span style={subTextStyle}>{email || "No email"}</span>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              marginBottom: "0.5rem",
+            }}
+          >
+            <Phone size={16} style={{ marginRight: "0.5rem" }} />
+            <span style={subTextStyle}>{mobile_number || "No phone"}</span>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              marginBottom: "0.5rem",
+            }}
+          >
+            <MapPin size={16} style={{ marginRight: "0.5rem" }} />
+            <span style={subTextStyle}>{address || "No address"}</span>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              marginBottom: "0.5rem",
+            }}
+          >
+            <Send size={16} style={{ marginRight: "0.5rem" }} />
+            <span style={subTextStyle}>@{username || "username"}</span>
+          </div>
+        </div>
+      </div>
 
       {/* Education Section */}
       <div style={sectionStyle}>
@@ -111,9 +127,7 @@ const ProfileSidebar = ({
         )}
         {educationList.map((edu, idx) => (
           <div key={idx} style={{ marginTop: "0.5rem" }}>
-            <p style={{ fontWeight: "normal" }}>
-              {edu.course || "No course"}
-            </p>
+            <p style={{ fontWeight: "normal" }}>{edu.course || "No course"}</p>
             <p style={{ fontWeight: "bold", fontSize: "0.85rem" }}>
               {edu.school_name || "No school name"}
             </p>
