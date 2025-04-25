@@ -1,11 +1,16 @@
 import React from "react";
 import { FaBriefcase, FaUserTie, FaUserCheck } from "react-icons/fa"; // Icons used in image layout
+import styles from "./PersonnelImage.module.css";
+
+// Configuration for API URLs
+const API_URL = process.env.REACT_APP_API_URL; // API URL
+
 const PersonnelInfo = ({
   personnel,
   familyMembers,
   lookupData,
-  personnelImage,
   personnelAddress,
+  personnelImage,
 }) => {
   if (!personnel) return <div>No personnel data found.</div>;
 
@@ -129,7 +134,7 @@ const PersonnelInfo = ({
         style={{
           fontSize: "32px",
           fontWeight: "bold",
-          marginBottom: "10px",
+          marginBottom: "0px",
           textAlign: "center",
         }}
       >
@@ -141,7 +146,7 @@ const PersonnelInfo = ({
           display: "flex",
           justifyContent: "center",
           gap: "40px",
-          marginBottom: "20px",
+          marginBottom: "30px",
           flexWrap: "nowrap", // Ensure it's a single row
           textAlign: "center",
           fontSize: "14px",
@@ -190,7 +195,7 @@ const PersonnelInfo = ({
           color: "black",
           width: "fit-content",
           marginBottom: "0",
-          marginTop: "2rem",
+          marginTop: "1rem",
           position: "relative", // Important for the yellow line
         }}
       >
@@ -201,7 +206,7 @@ const PersonnelInfo = ({
           height: "2px",
           backgroundColor: "#F57C00", // dark orange line below
           width: "100%",
-          marginBottom: "1rem",
+          marginBottom: "0.50rem",
         }}
       ></div>
 
@@ -309,7 +314,7 @@ const PersonnelInfo = ({
           color: "black",
           width: "fit-content",
           marginBottom: "0",
-          marginTop: "2rem",
+          marginTop: "1rem",
           position: "relative", // Important for underline
         }}
       >
@@ -320,7 +325,7 @@ const PersonnelInfo = ({
           height: "2px",
           backgroundColor: "#F57C00", // dark orange line below
           width: "100%",
-          marginBottom: "1rem",
+          marginBottom: "0.50rem",
         }}
       ></div>
 
@@ -425,7 +430,7 @@ const PersonnelInfo = ({
           color: "black",
           width: "fit-content",
           marginBottom: "0",
-          marginTop: "2rem",
+          marginTop: "1rem",
           position: "relative", // for line positioning
         }}
       >
@@ -436,7 +441,7 @@ const PersonnelInfo = ({
           height: "2px",
           backgroundColor: "#F57C00", // dark orange underline
           width: "100%",
-          marginBottom: "1rem",
+          marginBottom: "0.50rem",
         }}
       ></div>
 
@@ -588,7 +593,7 @@ const PersonnelInfo = ({
           color: "black",
           width: "fit-content",
           marginBottom: "0",
-          marginTop: "2rem",
+          marginTop: "1rem",
           position: "relative",
         }}
       >
@@ -599,7 +604,7 @@ const PersonnelInfo = ({
           height: "2px",
           backgroundColor: "#F57C00", // dark orange underline
           width: "100%",
-          marginBottom: "1rem",
+          marginBottom: "0.50rem",
         }}
       ></div>
 
@@ -756,7 +761,7 @@ const PersonnelInfo = ({
           color: "black",
           width: "fit-content",
           marginBottom: "0",
-          marginTop: "2rem",
+          marginTop: "1rem",
           position: "relative",
         }}
       >
@@ -767,7 +772,7 @@ const PersonnelInfo = ({
           height: "2px",
           backgroundColor: "#F57C00", // dark orange underline
           width: "100%",
-          marginBottom: "1rem",
+          marginBottom: "0.50rem",
         }}
       ></div>
 
@@ -833,6 +838,107 @@ const PersonnelInfo = ({
         ))
       ) : (
         <p>No children listed.</p>
+      )}
+
+      {/* === PAGE BREAK & WHOLE BODY FOR PRINT === */}
+      {personnelImage?.wholeBody && (
+        <div
+          className={`${styles.printOnly} ${styles.pageBreak}`}
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginBottom: "2rem",
+          }}
+        >
+          <div style={{ textAlign: "center" }}>
+            <img
+              src={`${API_URL}${personnelImage.wholeBody}`}
+              alt="Whole Body"
+              style={{
+                width: "100%",
+                maxWidth: "600px",
+                height: "auto",
+                margin: "1rem auto",
+                display: "block",
+                objectFit: "contain",
+                border: "2px solid #000",
+                borderRadius: "8px",
+              }}
+            />
+            <div style={{ fontSize: "0.85rem", marginTop: "4px" }}>
+              Whole Body Picture
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* === DISPLAY 2x2 & HALF BODY === */}
+      {(personnelImage?.twoByTwo || personnelImage?.halfBody) && (
+        <div
+          className={styles.printOnly}
+          style={{
+            marginTop: "2rem",
+            textAlign: "center",
+          }}
+        >
+          {/* 2x2 Pictures Grid */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(2, 1fr)",
+              gap: "1rem",
+              justifyContent: "center",
+              marginBottom: "2rem",
+            }}
+          >
+            {[...Array(4)].map((_, index) => (
+              <div key={index} style={{ textAlign: "center" }}>
+                <img
+                  src={
+                    personnelImage.twoByTwo
+                      ? `${API_URL}${personnelImage.twoByTwo}`
+                      : "/default-avatar.png"
+                  }
+                  alt={`2x2 Picture ${index + 1}`}
+                  style={{
+                    width: "100%",
+                    maxWidth: "150px",
+                    height: "auto",
+                    objectFit: "cover",
+                    border: "1px solid #ccc",
+                    borderRadius: "4px",
+                    margin: "0 auto",
+                  }}
+                />
+                <div style={{ fontSize: "0.8rem", marginTop: "4px" }}>
+                  2x2 Picture
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Half Body Picture */}
+          {personnelImage.halfBody && (
+            <div style={{ textAlign: "center" }}>
+              <img
+                src={`${API_URL}${personnelImage.halfBody}`}
+                alt="Half Body"
+                style={{
+                  width: "100%",
+                  maxWidth: "300px",
+                  height: "auto",
+                  objectFit: "cover",
+                  border: "2px solid #333",
+                  borderRadius: "6px",
+                  margin: "0 auto",
+                }}
+              />
+              <div style={{ fontSize: "0.85rem", marginTop: "4px" }}>
+                Half Body Picture
+              </div>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

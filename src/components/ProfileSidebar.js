@@ -1,26 +1,20 @@
 import React from "react";
-import { Mail, Phone, MapPin, Send } from "lucide-react";
+import { Mail, Phone, MapPin, Send, Instagram } from "lucide-react";
+
+// Configuration for API URLs
+const API_URL = process.env.REACT_APP_API_URL; // API URL
 
 const ProfileSidebar = ({
   personnel,
-  personnelContact = {},
-  personnelEducationalBackground,
-  personnelWorkExperience,
+  personnelImage = {},
+  personnelContact = [],
+  personnelEducationalBackground = [],
+  personnelWorkExperience = [],
 }) => {
-  if (!personnel) return <div>No personnel data found.</div>;
+  const { twoByTwo = "", halfBody = "", wholeBody = "" } = personnelImage;
+  if (!personnel) return <div>Loading personnel data...</div>;
 
-  const { profile_photo_path, username } = personnel;
-
-  const { email, mobile_number, address } = personnelContact;
-
-  // Ensure fallback to empty arrays if null/undefined
-  const educationList = Array.isArray(personnelEducationalBackground)
-    ? personnelEducationalBackground
-    : [];
-
-  const workList = Array.isArray(personnelWorkExperience)
-    ? personnelWorkExperience
-    : [];
+  const { username } = personnel;
 
   const sectionStyle = {
     borderTop: "1px solid #fff",
@@ -40,6 +34,23 @@ const ProfileSidebar = ({
     marginBottom: "0.5rem",
   };
 
+  // Helpers
+  const getContactByType = (id) =>
+    personnelContact.find(
+      (c) =>
+        c.contactype_id === id &&
+        c.contact_info !== "n/a" &&
+        c.contact_info !== "-"
+    );
+
+  const cellphone = getContactByType(1);
+  const telegram = getContactByType(2);
+  const facebook = getContactByType(3);
+  const instagram = getContactByType(4);
+  const telephone = personnelContact.find(
+    (c) => c.contactype_id === 5 && (c.contact_location || c.extension)
+  );
+
   return (
     <div
       style={{
@@ -51,6 +62,7 @@ const ProfileSidebar = ({
         fontSize: "0.9rem",
       }}
     >
+      {/* Profile Image (2x2 Picture) */}
       <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
         <div
           style={{
@@ -62,12 +74,18 @@ const ProfileSidebar = ({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            overflow: "hidden",
           }}
         >
           <img
-            src={profile_photo_path || "/default-avatar.png"}
-            alt="Avatar"
-            style={{ width: "60%", borderRadius: "50%" }}
+            src={twoByTwo ? `${API_URL}${twoByTwo}` : "/default-avatar.png"}
+            alt="2x2 Avatar"
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              borderRadius: "50%",
+            }}
           />
         </div>
       </div>
@@ -76,87 +94,133 @@ const ProfileSidebar = ({
       <div style={sectionStyle}>
         <h4 style={itemTitleStyle}>Contact</h4>
         <div style={{ marginTop: "0.75rem" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              marginBottom: "0.5rem",
-            }}
-          >
-            <Mail size={16} style={{ marginRight: "0.5rem" }} />
-            <span style={subTextStyle}>{email || "No email"}</span>
-          </div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              marginBottom: "0.5rem",
-            }}
-          >
-            <Phone size={16} style={{ marginRight: "0.5rem" }} />
-            <span style={subTextStyle}>{mobile_number || "No phone"}</span>
-          </div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              marginBottom: "0.5rem",
-            }}
-          >
-            <MapPin size={16} style={{ marginRight: "0.5rem" }} />
-            <span style={subTextStyle}>{address || "No address"}</span>
-          </div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              marginBottom: "0.5rem",
-            }}
-          >
-            <Send size={16} style={{ marginRight: "0.5rem" }} />
-            <span style={subTextStyle}>@{username || "username"}</span>
-          </div>
+          {cellphone && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                marginBottom: "0.5rem",
+              }}
+            >
+              <Phone size={16} style={{ marginRight: "0.5rem" }} />
+              <span style={subTextStyle}>{cellphone.contact_info}</span>
+            </div>
+          )}
+          {telegram && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                marginBottom: "0.5rem",
+              }}
+            >
+              <Send size={16} style={{ marginRight: "0.5rem" }} />
+              <span style={subTextStyle}>
+                Telegram: {telegram.contact_info}
+              </span>
+            </div>
+          )}
+          {facebook && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                marginBottom: "0.5rem",
+              }}
+            >
+              <Send size={16} style={{ marginRight: "0.5rem" }} />
+              <span style={subTextStyle}>
+                Facebook: {facebook.contact_info}
+              </span>
+            </div>
+          )}
+          {instagram && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                marginBottom: "0.5rem",
+              }}
+            >
+              <Instagram size={16} style={{ marginRight: "0.5rem" }} />
+              <span style={subTextStyle}>
+                Instagram: {instagram.contact_info}
+              </span>
+            </div>
+          )}
+          {telephone && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "start",
+                marginBottom: "0.5rem",
+              }}
+            >
+              <MapPin
+                size={16}
+                style={{ marginRight: "0.5rem", marginTop: "0.2rem" }}
+              />
+              <div>
+                <span style={subTextStyle}>
+                  {telephone.contact_location || "N/A"}
+                </span>
+                {telephone.extension && (
+                  <div style={{ fontSize: "0.75rem", color: "#fff" }}>
+                    Ext: {telephone.extension}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Education Section */}
       <div style={sectionStyle}>
         <h4 style={itemTitleStyle}>Education</h4>
-        {educationList.length === 0 && (
-          <p style={subTextStyle}>No education data</p>
-        )}
-        {educationList.map((edu, idx) => (
-          <div key={idx} style={{ marginTop: "0.5rem" }}>
-            <p style={{ fontWeight: "normal" }}>{edu.course || "No course"}</p>
-            <p style={{ fontWeight: "bold", fontSize: "0.85rem" }}>
-              {edu.school_name || "No school name"}
-            </p>
-            <p style={{ fontSize: "0.75rem", marginBottom: "0.5rem" }}>
-              {edu.start_year} - {edu.end_year}
-            </p>
-          </div>
-        ))}
+        {personnelEducationalBackground &&
+          personnelEducationalBackground.length === 0 && (
+            <p style={subTextStyle}>No education data</p>
+          )}
+        {personnelEducationalBackground &&
+          personnelEducationalBackground.length > 0 &&
+          personnelEducationalBackground.map((edu, idx) => (
+            <div key={idx} style={{ marginTop: "0.5rem" }}>
+              <p style={{ fontWeight: "normal" }}>
+                {edu.degree || "No degree specified"}
+              </p>
+              <p style={{ fontWeight: "bold", fontSize: "0.85rem" }}>
+                {edu.school || "No school name"}
+              </p>
+              <p style={{ fontSize: "0.75rem", marginBottom: "0.5rem" }}>
+                {edu.startfrom} - {edu.completion_year}
+              </p>
+            </div>
+          ))}
       </div>
 
       {/* Work Experience Section */}
       <div style={sectionStyle}>
         <h4 style={itemTitleStyle}>Work Experience</h4>
-        {workList.length === 0 && (
+        {personnelWorkExperience && personnelWorkExperience.length === 0 && (
           <p style={subTextStyle}>No work experience data</p>
         )}
-        {workList.map((job, idx) => (
-          <div key={idx} style={{ marginTop: "0.5rem" }}>
-            <p style={{ fontWeight: "bold" }}>
-              {job.position_title || "No position"}
-            </p>
-            <p style={{ fontWeight: "bold", fontSize: "0.85rem" }}>
-              {job.company_name || "No company name"}
-            </p>
-            <p style={{ fontSize: "0.75rem", marginBottom: "0.5rem" }}>
-              {job.start_year} - {job.end_year}
-            </p>
-          </div>
-        ))}
+        {personnelWorkExperience &&
+          personnelWorkExperience.length > 0 &&
+          personnelWorkExperience.map((job, idx) => (
+            <div key={idx} style={{ marginTop: "0.5rem" }}>
+              <p style={{ fontWeight: "normal" }}>
+                {job.position || "No position"}
+              </p>
+              <p style={{ fontWeight: "bold", fontSize: "0.85rem" }}>
+                {job.company || "No company name"}
+              </p>
+              <p style={{ fontSize: "0.75rem", marginBottom: "0.5rem" }}>
+                {job.start_date?.substring(0, 4)} -{" "}
+                {job.end_date?.substring(0, 4)}
+              </p>
+            </div>
+          ))}
       </div>
     </div>
   );

@@ -112,7 +112,7 @@ const PersonnelPreview = () => {
           `${API_URL}/api/personnel_images/2x2/${personnelId}`
         );
         if (response.data.success && response.data.data) {
-          setPersonnelImage(response.data.data); // Store the image data
+          //setPersonnelImage(response.data.data.image_url); // Store the image data
         }
       } catch (error) {
         console.error("Error fetching 2x2 picture:", error);
@@ -128,6 +128,41 @@ const PersonnelPreview = () => {
         setPersonnelAddress(response.data); // Set personnel address data
       } catch (error) {
         console.error("Error fetching personnel address:", error);
+      }
+    };
+
+    const fetchPersonnelImages = async () => {
+      try {
+        if (!personnelId) {
+          console.warn("Personnel ID is not set.");
+          return;
+        }
+
+        const response = await axios.get(
+          `${API_URL}/api/personnel_images/${personnelId}`
+        );
+
+        const imageData = response.data?.data || [];
+
+        // Extract specific image types
+        const twoByTwo = imageData.find((img) => img.type === "2x2 Picture");
+        const halfBody = imageData.find(
+          (img) => img.type === "Half Body Picture"
+        );
+        const wholeBody = imageData.find(
+          (img) => img.type === "Whole Body Picture"
+        );
+
+        setPersonnelImage({
+          twoByTwo: twoByTwo?.image_url || "",
+          halfBody: halfBody?.image_url || "",
+          wholeBody: wholeBody?.image_url || "",
+        });
+      } catch (error) {
+        console.error(
+          "Error fetching personnel images:",
+          error.response?.data || error.message
+        );
       }
     };
 
@@ -152,23 +187,39 @@ const PersonnelPreview = () => {
 
     const fetchPersonnelEducational = async () => {
       try {
+        if (!personnelId) {
+          console.warn("Personnel ID is not set.");
+          return;
+        }
+
         const response = await axios.get(
-          `${API_URL}/api/personnel-educational/${personnelId}`
+          `${API_URL}/api/educational-background/pid/${personnelId}`
         );
-        setPersonnelEducationalBackground(response.data); // Set personnel contact data
+        setPersonnelEducationalBackground(response.data);
       } catch (error) {
-        console.error("Error fetching personnel educational:", error);
+        console.error(
+          "Error fetching personnel educational:",
+          error.response?.data || error.message
+        );
       }
     };
 
     const fetchPersonnelWorkExperience = async () => {
       try {
+        if (!personnelId) {
+          console.warn("Personnel ID is not set.");
+          return;
+        }
+
         const response = await axios.get(
-          `${API_URL}/api/personnel-educational/${personnelId}`
+          `${API_URL}/api/work-experience/pid/${personnelId}`
         );
-        setPersonnelWorkExperience(response.data); // Set personnel work experience data
+        setPersonnelWorkExperience(response.data);
       } catch (error) {
-        console.error("Error fetching personnel work experience:", error);
+        console.error(
+          "Error fetching personnel work experience:",
+          error.response?.data || error.message
+        );
       }
     };
 
@@ -180,7 +231,7 @@ const PersonnelPreview = () => {
     fetchPersonnelContacts();
     fetchPersonnelEducational();
     fetchPersonnelWorkExperience();
-
+    fetchPersonnelImages();
     fetch2x2Image().then(() => setLoading(false));
   }, [personnelId]); // Dependency on personnelId, triggers fetch when changed
 
@@ -192,19 +243,19 @@ const PersonnelPreview = () => {
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
       {/* Passing the correct props to ProfileSidebar and PersonnelInfo */}
-      <ProfileSidebar 
+      <ProfileSidebar
         personnel={personnel}
+        personnelImage={personnelImage}
         personnelContact={personnelContact}
         personnelEducationalBackground={personnelEducationalBackground}
         personnelWorkExperience={personnelWorkExperience}
-       />
+      />
       <PersonnelInfo
         personnel={personnel}
         familyMembers={familyMembers}
         lookupData={lookupData}
-        personnelImage={personnelImage}
         personnelAddress={personnelAddress}
-      
+        personnelImage={personnelImage}
       />
     </div>
   );

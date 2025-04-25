@@ -1,0 +1,19 @@
+/* PersonnelImage.module.css */
+
+.printOnly {
+  page-break-inside: avoid;
+}
+
+.pageBreak {
+  page-break-after: always;
+}
+
+@media print {
+  .printOnly {
+    page-break-inside: avoid;
+  }
+
+  .pageBreak {
+    page-break-after: always;
+  }
+}
