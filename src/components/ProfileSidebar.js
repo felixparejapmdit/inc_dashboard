@@ -178,12 +178,9 @@ const ProfileSidebar = ({
       {/* Education Section */}
       <div style={sectionStyle}>
         <h4 style={itemTitleStyle}>Education</h4>
+
         {personnelEducationalBackground &&
-          personnelEducationalBackground.length === 0 && (
-            <p style={subTextStyle}>No education data</p>
-          )}
-        {personnelEducationalBackground &&
-          personnelEducationalBackground.length > 0 &&
+        personnelEducationalBackground.length > 0 ? (
           personnelEducationalBackground.map((edu, idx) => (
             <div key={idx} style={{ marginTop: "0.5rem" }}>
               <p style={{ fontWeight: "normal" }}>
@@ -193,20 +190,21 @@ const ProfileSidebar = ({
                 {edu.school || "No school name"}
               </p>
               <p style={{ fontSize: "0.75rem", marginBottom: "0.5rem" }}>
-                {edu.startfrom} - {edu.completion_year}
+                {edu.startfrom || "Start Year"} -{" "}
+                {edu.completion_year || "Completion Year"}
               </p>
             </div>
-          ))}
+          ))
+        ) : (
+          <p style={subTextStyle}>No education data</p>
+        )}
       </div>
 
       {/* Work Experience Section */}
       <div style={sectionStyle}>
         <h4 style={itemTitleStyle}>Work Experience</h4>
-        {personnelWorkExperience && personnelWorkExperience.length === 0 && (
-          <p style={subTextStyle}>No work experience data</p>
-        )}
-        {personnelWorkExperience &&
-          personnelWorkExperience.length > 0 &&
+
+        {personnelWorkExperience && personnelWorkExperience.length > 0 ? (
           personnelWorkExperience.map((job, idx) => (
             <div key={idx} style={{ marginTop: "0.5rem" }}>
               <p style={{ fontWeight: "normal" }}>
@@ -216,11 +214,14 @@ const ProfileSidebar = ({
                 {job.company || "No company name"}
               </p>
               <p style={{ fontSize: "0.75rem", marginBottom: "0.5rem" }}>
-                {job.start_date?.substring(0, 4)} -{" "}
-                {job.end_date?.substring(0, 4)}
+                {job.start_date?.substring(0, 4) || "Start Date"} -{" "}
+                {job.end_date?.substring(0, 4) || "Present"}
               </p>
             </div>
-          ))}
+          ))
+        ) : (
+          <p style={subTextStyle}>No work experience data</p>
+        )}
       </div>
     </div>
   );

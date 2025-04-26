@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom"; // To access the URL parameter
 import axios from "axios"; // Axios for API calls
 import ProfileSidebar from "../components/ProfileSidebar"; // ✅ default import
@@ -23,6 +23,29 @@ const PersonnelPreview = () => {
   const [personnelEducationalBackground, setPersonnelEducationalBackground] =
     useState(null); // Educational background storage
   const [personnelWorkExperience, setPersonnelWorkExperience] = useState(null); // Work experience storage
+
+  const wholeBodyRef = useRef(null);
+  const [hideSidebarOnPrint, setHideSidebarOnPrint] = useState(false);
+
+  useEffect(() => {
+    const checkWholeBodyPageSize = () => {
+      if (wholeBodyRef.current) {
+        const height = wholeBodyRef.current.getBoundingClientRect().height;
+        const pageHeight = 1122; // A4 page height at 96dpi
+
+        if (height >= pageHeight * 0.8) {
+          setHideSidebarOnPrint(true);
+        } else {
+          setHideSidebarOnPrint(false);
+        }
+      }
+    };
+
+    checkWholeBodyPageSize();
+
+    window.addEventListener("resize", checkWholeBodyPageSize);
+    return () => window.removeEventListener("resize", checkWholeBodyPageSize);
+  }, [personnelImage]);
 
   // Lookup data for other dropdowns or lookups
   const [lookupData, setLookupData] = useState({
@@ -243,6 +266,8 @@ const PersonnelPreview = () => {
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
       {/* Passing the correct props to ProfileSidebar and PersonnelInfo */}
+
+      <div className={hideSidebarOnPrint ? "no-print" : ""}></div>
       <ProfileSidebar
         personnel={personnel}
         personnelImage={personnelImage}

@@ -74,6 +74,8 @@ import OllamaAPI from "./pages/AI/OllamaAPI";
 
 import Chatbot from "./components/Chatbot"; // Import Chatbot
 
+import "./App.css"; // ✅ Import your global CSS
+
 import DragDropSettings from "./pages/settings/DragDropSettings";
 
 import Maintenance from "./pages/Maintenance";
@@ -673,8 +675,12 @@ function MainApp() {
         <Route path="/ollama-api" element={<OllamaAPI />} />
       </Routes>
 
-      {/* Render Chatbot only if the current path is NOT "/login" */}
-      {location.pathname !== "/login" && <Chatbot />}
+      {/* Render Chatbot only if NOT on /login AND hide it when printing */}
+      {location.pathname !== "/login" && (
+        <div className="noPrint">
+          <Chatbot />
+        </div>
+      )}
     </>
   );
 }

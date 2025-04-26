@@ -3,3 +3,22 @@
   width: 100%;
   min-height: 100vh;
 }
+/* Hide sidebar only in print preview during whole body picture page */
+@media print {
+  .hideSidebarOnlyForPrint {
+    display: none !important;
+  }
+
+  .pageBreak {
+    page-break-before: always;
+  }
+
+  .printOnly {
+    display: block !important;
+  }
+}
+
+/* For screen */
+.printOnly {
+  display: none;
+}

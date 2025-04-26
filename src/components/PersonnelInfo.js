@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FaBriefcase, FaUserTie, FaUserCheck } from "react-icons/fa"; // Icons used in image layout
 import styles from "./PersonnelImage.module.css";
 
@@ -213,7 +213,7 @@ const PersonnelInfo = ({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+          gridTemplateColumns: "repeat(5, 1fr)", // ✅ Fixed to 5 columns
           gap: "1px",
         }}
       >
@@ -257,6 +257,7 @@ const PersonnelInfo = ({
           {
             label: "Place of Birth",
             value: capitalizeFullName(place_of_birth),
+            colSpan: 2,
           },
           { label: "Blood Type", value: capitalizeFullName(bloodtype) },
           {
@@ -269,7 +270,7 @@ const PersonnelInfo = ({
           {
             label: "Home Address",
             value: capitalizeFullName(home?.name) || "N/A",
-            colSpan: 2,
+            colSpan: 3,
           },
           {
             label: "Provincial Address",
@@ -303,122 +304,125 @@ const PersonnelInfo = ({
         ))}
       </div>
 
-      <h4
-        style={{
-          backgroundColor: "#FFD600", // yellow background
-          padding: "0.15rem 1rem",
-          fontSize: "1.2rem",
-          fontWeight: "bold",
-          letterSpacing: "5px",
-          textTransform: "uppercase",
-          color: "black",
-          width: "fit-content",
-          marginBottom: "0",
-          marginTop: "1rem",
-          position: "relative", // Important for underline
-        }}
-      >
-        CHURCH MEMBERSHIP
-      </h4>
-      <div
-        style={{
-          height: "2px",
-          backgroundColor: "#F57C00", // dark orange line below
-          width: "100%",
-          marginBottom: "0.50rem",
-        }}
-      ></div>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-          gap: "6px",
-        }}
-      >
-        {[
-          {
-            label: "Personnel Type",
-            value: capitalizeFullName(personnel_type),
-          },
-          { label: "Assigned Number", value: assigned_number },
-          {
-            label: "Oath-taking as Worker",
-            value: panunumpa_date,
-          },
-          {
-            label: "Date of Ordination",
-            value: ordination_date,
-          },
-          {
-            label: "Office Start Date",
-            value: datejoined,
-          },
-          {
-            label: "District Origin",
-            value:
-              capitalizeFullName(
-                getNamesByIds(personnel.district_id, lookupData.districts)
-              ) || "N/A",
-          },
-          {
-            label: "Local Origin",
-            value:
-              capitalizeFullName(
-                getNamesByIds(
-                  personnel.local_congregation,
-                  lookupData.localCongregations
-                )
-              ) || "N/A",
-          },
-          {
-            label: "District Assignment",
-            value:
-              capitalizeFullName(
-                getNamesByIds(
-                  personnel.district_assignment_id,
-                  lookupData.districts
-                )
-              ) || "N/A",
-          },
-          {
-            label: "Local Assignment",
-            value:
-              capitalizeFullName(
-                getNamesByIds(
-                  personnel.local_congregation_assignment,
-                  lookupData.localCongregations
-                )
-              ) || "N/A",
-          },
-        ].map((item, index) => (
-          <div
-            key={index}
+      {personnel?.personnel_type !== "Lay Member" && (
+        <>
+          <h4
             style={{
-              border: "1px solid #ccc",
-              borderRadius: "5px",
-              padding: "0.4rem 0.5rem",
-              textAlign: "center",
+              backgroundColor: "#FFD600", // yellow background
+              padding: "0.15rem 1rem",
+              fontSize: "1.2rem",
               fontWeight: "bold",
-              fontSize: "0.85rem",
-              lineHeight: "1.2",
+              letterSpacing: "5px",
+              textTransform: "uppercase",
+              color: "black",
+              width: "fit-content",
+              marginBottom: "0",
+              marginTop: "1rem",
+              position: "relative", // Important for underline
             }}
           >
-            {item.value || "N/A"}
-            <div
-              style={{
-                fontWeight: "normal",
-                fontSize: "0.7rem",
-                color: "#555",
-                marginTop: "2px",
-              }}
-            >
-              {item.label}
-            </div>
-          </div>
-        ))}
-      </div>
+            CHURCH MEMBERSHIP
+          </h4>
+          <div
+            style={{
+              height: "2px",
+              backgroundColor: "#F57C00", // dark orange line below
+              width: "100%",
+              marginBottom: "0.50rem",
+            }}
+          ></div>
 
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(5, 1fr)", // ✅ Fixed to 5 columns
+              gap: "6px",
+            }}
+          >
+            {[
+              {
+                label: "Personnel Type",
+                value: capitalizeFullName(personnel_type),
+              },
+              { label: "Assigned Number", value: assigned_number },
+              {
+                label: "Oath-taking as Worker",
+                value: panunumpa_date,
+              },
+              {
+                label: "Date of Ordination",
+                value: ordination_date,
+              },
+              {
+                label: "Office Start Date",
+                value: datejoined,
+              },
+              {
+                label: "District Origin",
+                value:
+                  capitalizeFullName(
+                    getNamesByIds(personnel.district_id, lookupData.districts)
+                  ) || "N/A",
+              },
+              {
+                label: "Local Origin",
+                value:
+                  capitalizeFullName(
+                    getNamesByIds(
+                      personnel.local_congregation,
+                      lookupData.localCongregations
+                    )
+                  ) || "N/A",
+              },
+              {
+                label: "District Assignment",
+                value:
+                  capitalizeFullName(
+                    getNamesByIds(
+                      personnel.district_assignment_id,
+                      lookupData.districts
+                    )
+                  ) || "N/A",
+              },
+              {
+                label: "Local Assignment",
+                value:
+                  capitalizeFullName(
+                    getNamesByIds(
+                      personnel.local_congregation_assignment,
+                      lookupData.localCongregations
+                    )
+                  ) || "N/A",
+              },
+            ].map((item, index) => (
+              <div
+                key={index}
+                style={{
+                  border: "1px solid #ccc",
+                  borderRadius: "5px",
+                  padding: "0.4rem 0.5rem",
+                  textAlign: "center",
+                  fontWeight: "bold",
+                  fontSize: "0.85rem",
+                  lineHeight: "1.2",
+                }}
+              >
+                {item.value || "N/A"}
+                <div
+                  style={{
+                    fontWeight: "normal",
+                    fontSize: "0.7rem",
+                    color: "#555",
+                    marginTop: "2px",
+                  }}
+                >
+                  {item.label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
       <h4
         style={{
           backgroundColor: "#FFD600", // yellow background
@@ -582,118 +586,285 @@ const PersonnelInfo = ({
         })}
       </div>
 
-      <h4
-        style={{
-          backgroundColor: "#FFD600", // yellow background
-          padding: "0.15rem 1rem",
-          fontSize: "1.2rem",
-          fontWeight: "bold",
-          letterSpacing: "5px",
-          textTransform: "uppercase",
-          color: "black",
-          width: "fit-content",
-          marginBottom: "0",
-          marginTop: "1rem",
-          position: "relative",
-        }}
-      >
-        SPOUSE INFORMATION
-      </h4>
-      <div
-        style={{
-          height: "2px",
-          backgroundColor: "#F57C00", // dark orange underline
-          width: "100%",
-          marginBottom: "0.50rem",
-        }}
-      ></div>
+      {personnel?.civil_status === "Married" && (
+        <div
+          style={{
+            breakInside: "avoid", // Prevent breaking across pages
+            pageBreakInside: "avoid", // Fallback for older browsers
+          }}
+        >
+          <h4
+            style={{
+              backgroundColor: "#FFD600", // yellow background
+              padding: "0.15rem 1rem",
+              fontSize: "1.2rem",
+              fontWeight: "bold",
+              letterSpacing: "5px",
+              textTransform: "uppercase",
+              color: "black",
+              width: "fit-content",
+              marginBottom: "0",
+              marginTop: "1rem",
+              position: "relative",
+            }}
+          >
+            SPOUSE INFORMATION
+          </h4>
+          <div
+            style={{
+              height: "2px",
+              backgroundColor: "#F57C00", // dark orange underline
+              width: "100%",
+              marginBottom: "0.50rem",
+            }}
+          ></div>
 
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)", // ✅ Fixed to 5 columns
+              gap: "6px",
+            }}
+          >
+            {[
+              {
+                label: "Spouse's Name",
+                value: spouse
+                  ? capitalizeFullName(
+                      `${spouse.givenname} ${spouse.middlename || ""} ${
+                        spouse.lastname || ""
+                      } `
+                    )
+                  : "N/A",
+              },
+              {
+                label: "Wedding Date",
+                value: personnel?.wedding_anniversary
+                  ? new Date(personnel.wedding_anniversary).toLocaleDateString()
+                  : "N/A",
+              },
+              {
+                label: "Citizenship",
+                value: spouse?.citizenship
+                  ? capitalizeFullName(
+                      getNamesByIds(
+                        spouse.citizenship,
+                        lookupData.citizenships,
+                        "citizenship"
+                      )
+                    )
+                  : "N/A",
+              },
+              {
+                label: "Ethnicity",
+                value: spouse?.nationality
+                  ? capitalizeFullName(
+                      getNamesByIds(
+                        spouse.nationality,
+                        lookupData.nationalities,
+                        "nationality"
+                      )
+                    )
+                  : "N/A",
+              },
+              {
+                label: "Present Address",
+                value: capitalizeFullName(spouse?.address) || "N/A",
+              },
+              {
+                label: "Occupation",
+                value: capitalizeFullName(spouse?.position) || "N/A",
+              },
+              {
+                label: "Date of Birth",
+                value: spouse?.date_of_birth
+                  ? new Date(spouse.date_of_birth).toLocaleDateString()
+                  : "N/A",
+              },
+              {
+                label: "Contact Number",
+                value: spouse?.contact_number || "N/A",
+              },
+              {
+                label: "District",
+                value: spouse?.district_id
+                  ? capitalizeFullName(
+                      getNamesByIds(spouse.district_id, lookupData.districts)
+                    )
+                  : "N/A",
+                colSpan: 2,
+              },
+              {
+                label: "Local Congregation",
+                value: spouse?.district_id
+                  ? capitalizeFullName(
+                      getNamesByIds(
+                        spouse.local_congregation,
+                        lookupData.localCongregations
+                      )
+                    )
+                  : "N/A",
+                colSpan: 2,
+              },
+            ].map((item, index) => {
+              // Handle paired items
+              if (item.isPair) {
+                return (
+                  <div
+                    key={index}
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: "6px",
+                    }}
+                  >
+                    {[
+                      { value: item.value, label: item.label },
+                      { value: item.pairValue, label: item.pairLabel },
+                    ].map((col, i) => (
+                      <div
+                        key={i}
+                        style={{
+                          border: "1px solid #ccc",
+                          borderRadius: "5px",
+                          padding: "0.4rem 0.5rem",
+                          textAlign: "center",
+                          fontWeight: "bold",
+                          fontSize: "0.85rem",
+                          lineHeight: "1.2",
+                          gridColumn: col.colSpan
+                            ? `span ${col.colSpan}`
+                            : "span 1",
+                        }}
+                      >
+                        {col.value}
+                        <div
+                          style={{
+                            fontWeight: "normal",
+                            fontSize: "0.7rem",
+                            color: "#555",
+                            marginTop: "2px",
+                          }}
+                        >
+                          {col.label}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              }
+
+              return (
+                <div
+                  key={index}
+                  style={{
+                    border: "1px solid #ccc",
+                    borderRadius: "5px",
+                    padding: "0.4rem 0.5rem",
+                    textAlign: "center",
+                    fontWeight: "bold",
+                    fontSize: "0.85rem",
+                    lineHeight: "1.2",
+                    gridColumn: item.colSpan
+                      ? `span ${item.colSpan}`
+                      : "span 1", // ✅ Apply colSpan
+                  }}
+                >
+                  {item.value}
+                  <div
+                    style={{
+                      fontWeight: "normal",
+                      fontSize: "0.7rem",
+                      color: "#555",
+                      marginTop: "2px",
+                    }}
+                  >
+                    {item.label}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "6px",
+            }}
+          >
+            {/* the map loop for spouse info here */}
+          </div>
+        </div>
+      )}
       <div
         style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "6px",
+          breakInside: "avoid", // Prevent breaking across pages
+          pageBreakInside: "avoid", // Fallback for older browsers
         }}
       >
-        {[
-          {
-            label: "Spouse's Name",
-            value: spouse
-              ? capitalizeFullName(
-                  `${spouse.givenname} ${spouse.middlename || ""} ${
-                    spouse.lastname || ""
-                  } `
-                )
-              : "N/A",
-          },
-          {
-            label: "Wedding Date",
-            value: personnel?.wedding_anniversary
-              ? new Date(personnel.wedding_anniversary).toLocaleDateString()
-              : "N/A",
-          },
-          {
-            label: "Citizenship",
-            value: spouse?.citizenship
-              ? capitalizeFullName(
-                  getNamesByIds(
-                    spouse.citizenship,
-                    lookupData.citizenships,
-                    "citizenship"
-                  )
-                )
-              : "N/A",
-          },
-          {
-            label: "Ethnicity",
-            value: spouse?.nationality
-              ? capitalizeFullName(
-                  getNamesByIds(
-                    spouse.nationality,
-                    lookupData.nationalities,
-                    "nationality"
-                  )
-                )
-              : "N/A",
-          },
-          {
-            label: "District",
-            value: spouse?.district_id
-              ? capitalizeFullName(
-                  getNamesByIds(spouse.district_id, lookupData.districts)
-                )
-              : "N/A",
-          },
-          {
-            label: "Occupation",
-            value: capitalizeFullName(spouse?.position) || "N/A",
-          },
-          {
-            label: "Date of Birth",
-            value: spouse?.date_of_birth
-              ? new Date(spouse.date_of_birth).toLocaleDateString()
-              : "N/A",
-            isPair: true,
-            pairLabel: "Contact Number",
-            pairValue: spouse?.contact_number || "N/A",
-          },
-        ].map((item, index) => {
-          if (item.isPair) {
-            return (
+        {children.length > 0 ? (
+          <>
+            <h4
+              style={{
+                backgroundColor: "#FFD600", // yellow background
+                padding: "0.15rem 1rem",
+                fontSize: "1.2rem",
+                fontWeight: "bold",
+                letterSpacing: "5px",
+                textTransform: "uppercase",
+                color: "black",
+                width: "fit-content",
+                marginBottom: "0",
+                marginTop: "1rem",
+                position: "relative",
+              }}
+            >
+              CHILDREN
+            </h4>
+            <div
+              style={{
+                height: "2px",
+                backgroundColor: "#F57C00", // dark orange underline
+                width: "100%",
+                marginBottom: "0.50rem",
+              }}
+            ></div>
+            {children.map((child, idx) => (
               <div
-                key={index}
+                key={idx}
                 style={{
+                  border: "1px solid #ccc",
+                  borderRadius: "6px",
+                  padding: "0.6rem",
+                  marginBottom: "0.5rem",
                   display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "6px",
+                  gridTemplateColumns: "repeat(4, 1fr)", // 4 columns for 4 fields
+                  gap: "8px",
+                  alignItems: "center",
                 }}
               >
                 {[
-                  { value: item.value, label: item.label },
-                  { value: item.pairValue, label: item.pairLabel },
-                ].map((col, i) => (
+                  {
+                    label: "Name",
+                    value: child
+                      ? capitalizeFullName(
+                          `${child.givenname} ${child.middlename || ""} ${
+                            child.lastname || ""
+                          }  ${
+                            child.suffix !== "No Suffix" ? child.suffix : ""
+                          }`
+                        )
+                      : "N/A",
+                  },
+                  { label: "Gender", value: capitalizeFullName(child.gender) },
+                  { label: "Age", value: calculateAge(child.date_of_birth) },
+                  {
+                    label: "Occupation",
+                    value: capitalizeFullName(child.position),
+                  },
+                ].map((item, index) => (
                   <div
-                    key={i}
+                    key={index}
                     style={{
                       border: "1px solid #ccc",
                       borderRadius: "5px",
@@ -704,7 +875,7 @@ const PersonnelInfo = ({
                       lineHeight: "1.2",
                     }}
                   >
-                    {col.value}
+                    {item.value || "N/A"}
                     <div
                       style={{
                         fontWeight: "normal",
@@ -713,137 +884,25 @@ const PersonnelInfo = ({
                         marginTop: "2px",
                       }}
                     >
-                      {col.label}
+                      {item.label}
                     </div>
                   </div>
                 ))}
               </div>
-            );
-          }
-
-          return (
-            <div
-              key={index}
-              style={{
-                border: "1px solid #ccc",
-                borderRadius: "5px",
-                padding: "0.4rem 0.5rem",
-                textAlign: "center",
-                fontWeight: "bold",
-                fontSize: "0.85rem",
-                lineHeight: "1.2",
-              }}
-            >
-              {item.value}
-              <div
-                style={{
-                  fontWeight: "normal",
-                  fontSize: "0.7rem",
-                  color: "#555",
-                  marginTop: "2px",
-                }}
-              >
-                {item.label}
-              </div>
-            </div>
-          );
-        })}
+            ))}
+          </>
+        ) : (
+          spouse?.civil_status === "Married" && <p>No children listed.</p>
+        )}
       </div>
 
-      <h4
-        style={{
-          backgroundColor: "#FFD600", // yellow background
-          padding: "0.15rem 1rem",
-          fontSize: "1.2rem",
-          fontWeight: "bold",
-          letterSpacing: "5px",
-          textTransform: "uppercase",
-          color: "black",
-          width: "fit-content",
-          marginBottom: "0",
-          marginTop: "1rem",
-          position: "relative",
-        }}
-      >
-        CHILDREN
-      </h4>
-      <div
-        style={{
-          height: "2px",
-          backgroundColor: "#F57C00", // dark orange underline
-          width: "100%",
-          marginBottom: "0.50rem",
-        }}
-      ></div>
-
-      {children.length > 0 ? (
-        children.map((child, idx) => (
-          <div
-            key={idx}
-            style={{
-              border: "1px solid #ccc",
-              borderRadius: "6px",
-              padding: "0.6rem",
-              marginBottom: "0.5rem",
-              display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)", // 4 columns for 4 fields
-              gap: "8px",
-              alignItems: "center",
-            }}
-          >
-            {[
-              {
-                label: "Name",
-                value: child
-                  ? capitalizeFullName(
-                      `${child.givenname} ${child.middlename || ""} ${
-                        child.lastname || ""
-                      }  ${child.suffix !== "No Suffix" ? child.suffix : ""}`
-                    )
-                  : "N/A",
-              },
-              { label: "Gender", value: capitalizeFullName(child.gender) },
-              { label: "Age", value: calculateAge(child.date_of_birth) },
-              {
-                label: "Occupation",
-                value: capitalizeFullName(child.position),
-              },
-            ].map((item, index) => (
-              <div
-                key={index}
-                style={{
-                  border: "1px solid #ccc",
-                  borderRadius: "5px",
-                  padding: "0.4rem 0.5rem",
-                  textAlign: "center",
-                  fontWeight: "bold",
-                  fontSize: "0.85rem",
-                  lineHeight: "1.2",
-                }}
-              >
-                {item.value || "N/A"}
-                <div
-                  style={{
-                    fontWeight: "normal",
-                    fontSize: "0.7rem",
-                    color: "#555",
-                    marginTop: "2px",
-                  }}
-                >
-                  {item.label}
-                </div>
-              </div>
-            ))}
-          </div>
-        ))
-      ) : (
-        <p>No children listed.</p>
-      )}
+      {/* === FORCE PAGE BREAK AFTER CHILDREN === */}
+      <div className={styles.pageBreak}></div>
 
       {/* === PAGE BREAK & WHOLE BODY FOR PRINT === */}
       {personnelImage?.wholeBody && (
         <div
-          className={`${styles.printOnly} ${styles.pageBreak}`}
+          className={`${styles.printOnly} ${styles.pageBreak} wholeBodyPrint`}
           style={{
             display: "flex",
             justifyContent: "center",
@@ -875,7 +934,7 @@ const PersonnelInfo = ({
       {/* === DISPLAY 2x2 & HALF BODY === */}
       {(personnelImage?.twoByTwo || personnelImage?.halfBody) && (
         <div
-          className={styles.printOnly}
+          className={`${styles.printOnly} twoByTwoHalfBodyPrint`}
           style={{
             marginTop: "2rem",
             textAlign: "center",
