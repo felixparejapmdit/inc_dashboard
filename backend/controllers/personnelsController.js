@@ -1,8 +1,10 @@
 const Personnel = require("../models/personnels"); // Ensure the correct path
+
 const User = require("../models/User"); // Ensure this model is correctly defined
 const { Sequelize, Op, fn, col } = require("sequelize"); // Import Sequelize and Op
 const Section = require("../models/Section");
 const sequelize = require("../config/database"); // Ensure Sequelize instance is imported
+const PersonnelChurchDuties = require("../models/PersonnelChurchDuties");
 
 const moment = require("moment");
 
@@ -51,6 +53,34 @@ exports.getAllNewPersonnels = async (req, res) => {
     console.error("Error retrieving new personnels:", error);
     res.status(500).json({
       message: "Error retrieving new personnels",
+      error: error.message,
+    });
+  }
+};
+
+// Controller to get church duties by personnel ID
+exports.getPersonnelDutiesByPersonnelId = async (req, res) => {
+  try {
+    const personnelId = req.params.personnelId; // Get the personnel ID from the request parameters
+
+    // Fetch church duties for the given personnel ID using Sequelize's findAll method
+    const duties = await PersonnelChurchDuties.findAll({
+      where: { personnel_id: personnelId }, // Filter by personnel_id
+    });
+
+    // If no duties are found for this personnel, return a message
+    // if (duties.length === 0) {
+    //   return res.status(404).json({
+    //     message: `No church duties found for personnel ID ${personnelId}`,
+    //   });
+    // }
+
+    // Respond with the church duties data for this personnel
+    res.status(200).json(duties);
+  } catch (error) {
+    console.error("Error fetching church duties:", error);
+    res.status(500).json({
+      message: "An error occurred while fetching church duties.",
       error: error.message,
     });
   }
@@ -381,6 +411,13 @@ exports.createPersonnel = async (req, res) => {
       designation_id: personnelData.designation_id || 0,
       district_id: personnelData.district_id || 0,
       local_congregation: personnelData.local_congregation || null,
+      is_offered: personnelData.is_offered || null,
+      minister_officiated: personnelData.minister_officiated || null,
+      date_baptized: personnelData.date_baptized || null,
+      place_of_baptism: personnelData.place_of_baptism || null,
+      local_first_registered: personnelData.local_first_registered || null,
+      district_first_registered:
+        personnelData.district_first_registered || null,
       personnel_type: personnelData.personnel_type || null,
       district_assignment_id: personnelData.district_assignment_id || null,
       local_congregation_assignment:
@@ -445,6 +482,12 @@ exports.updatePersonnel = async (req, res) => {
       "designation_id",
       "district_id",
       "local_congregation",
+      "is_offered",
+      "minister_officiated",
+      "date_baptized",
+      "place_of_baptism",
+      "local_first_registered",
+      "district_first_registered",
       "personnel_type",
       "district_assignment_id",
       "local_congregation_assignment",
@@ -568,6 +611,107 @@ exports.checkPersonnelExistence = async (req, res) => {
     console.error("Error checking personnel existence:", error);
     res.status(500).json({
       message: "An error occurred while checking personnel existence.",
+    });
+  }
+}; // Create a new personnel_church_duty record
+exports.createPersonnelChurchDuty = async (req, res) => {
+  try {
+    const { personnel_id, duty, start_year, end_year } = req.body;
+
+    // Validation: Ensure required fields are present
+    if (!personnel_id || !duty || !start_year) {
+      return res.status(400).json({
+        message: "Missing required fields: personnel_id, duty, start_year",
+      });
+    }
+
+    // Create new duty record
+    const newDuty = await PersonnelChurchDuties.create({
+      personnel_id,
+      duty,
+      start_year,
+      end_year: end_year || null,
+    });
+
+    return res.status(201).json({
+      message: "Personnel church duty created successfully",
+      personnelChurchDuty: newDuty,
+    });
+  } catch (error) {
+    console.error("Error creating personnel church duty:", error.message);
+    return res.status(500).json({
+      message: "Error creating personnel church duty",
+      error: error.message,
+    });
+  }
+};
+
+// Update an existing personnel_church_duty record
+exports.updatePersonnelChurchDuty = async (req, res) => {
+  try {
+    const { id } = req.params; // id from URL params
+    const { duty, start_year, end_year } = req.body;
+
+    // Validation: Ensure required fields are present
+    if (!duty || !start_year) {
+      return res.status(400).json({
+        message: "Missing required fields: duty, start_year",
+      });
+    }
+
+    // Find the existing duty record
+    const existingDuty = await PersonnelChurchDuties.findByPk(id);
+
+    if (!existingDuty) {
+      return res.status(404).json({
+        message: `Personnel church duty with ID ${id} not found`,
+      });
+    }
+
+    // Update fields
+    existingDuty.duty = duty;
+    existingDuty.start_year = start_year;
+    existingDuty.end_year = end_year || null;
+
+    await existingDuty.save();
+
+    return res.status(200).json({
+      message: "Personnel church duty updated successfully",
+      personnelChurchDuty: existingDuty,
+    });
+  } catch (error) {
+    console.error("Error updating personnel church duty:", error.message);
+    return res.status(500).json({
+      message: "Error updating personnel church duty",
+      error: error.message,
+    });
+  }
+};
+// Delete a personnel_church_duty record
+exports.deletePersonnelChurchDuty = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find the duty record
+    const existingDuty = await PersonnelChurchDuties.findByPk(id);
+
+    if (!existingDuty) {
+      return res.status(404).json({
+        message: `Personnel church duty with ID ${id} not found`,
+      });
+    }
+
+    // Delete the record
+    await existingDuty.destroy();
+
+    return res.status(200).json({
+      message: "Personnel church duty deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting personnel church duty:", error.message);
+    return res.status(500).json({
+      message: "Error deleting personnel church duty",
+      error: error.message,
     });
   }
 };

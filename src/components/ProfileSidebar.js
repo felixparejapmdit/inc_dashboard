@@ -35,21 +35,28 @@ const ProfileSidebar = ({
   };
 
   // Helpers
-  const getContactByType = (id) =>
-    personnelContact.find(
+  const getContactByType = (id) => {
+    if (!personnelContact || !Array.isArray(personnelContact)) return null;
+
+    return personnelContact.find(
       (c) =>
         c.contactype_id === id &&
         c.contact_info !== "n/a" &&
         c.contact_info !== "-"
     );
+  };
 
   const cellphone = getContactByType(1);
   const telegram = getContactByType(2);
   const facebook = getContactByType(3);
   const instagram = getContactByType(4);
-  const telephone = personnelContact.find(
-    (c) => c.contactype_id === 5 && (c.contact_location || c.extension)
-  );
+
+  const telephone =
+    personnelContact && Array.isArray(personnelContact)
+      ? personnelContact.find(
+          (c) => c.contactype_id === 5 && (c.contact_location || c.extension)
+        )
+      : null;
 
   return (
     <div

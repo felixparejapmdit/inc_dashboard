@@ -12,8 +12,18 @@ import {
   Radio,
   Stack,
   Flex,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  IconButton,
 } from "@chakra-ui/react";
+import { DeleteIcon } from "@chakra-ui/icons";
 import axios from "axios";
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 const Step1 = ({
   personnelData,
@@ -34,6 +44,8 @@ const Step1 = ({
   bloodtypes,
   isEditing, // ✅ Receive isEditing as a prop
   toggleEdit, // ✅ Receive toggleEdit function as a prop
+  dutiesToDelete, // 🔥 ADD THIS
+  setDutiesToDelete, // 🔥 AND THIS
 }) => {
   const [step, setStep] = useState(1);
 
@@ -53,15 +65,24 @@ const Step1 = ({
 
   // Filter Personnel Type based on Gender
   useEffect(() => {
+    let updatedTypes = [];
+
     if (personnelData.gender === "Female") {
-      setFilteredPersonnelTypes(["Minister's Wife", "Lay Member"]);
+      updatedTypes = ["Minister's Wife", "Lay Member"];
+    } else if (personnelData.gender === "Male") {
+      updatedTypes = totalPersonnelTypes.filter(
+        (type) => type !== "Minister's Wife"
+      );
     } else {
-      setFilteredPersonnelTypes(totalPersonnelTypes);
+      updatedTypes = totalPersonnelTypes;
     }
-    // Reset personnel_type if it's invalid for the new gender
+
+    setFilteredPersonnelTypes(updatedTypes);
+
+    // Reset personnel_type if it doesn't exist in the updated options
     setPersonnelData((prevData) => ({
       ...prevData,
-      personnel_type: totalPersonnelTypes.includes(prevData.personnel_type)
+      personnel_type: updatedTypes.includes(prevData.personnel_type)
         ? prevData.personnel_type
         : "",
     }));
@@ -72,9 +93,20 @@ const Step1 = ({
   const [filteredSubsections, setFilteredSubsections] = useState([]);
   const [filteredDesignations, setFilteredDesignations] = useState([]);
 
+  const [duties, setDuties] = useState(personnelData.church_duties || []);
+
+  useEffect(() => {
+    if (personnelData.church_duties) {
+      if (personnelData.church_duties.length > 0) {
+        setDuties(personnelData.church_duties);
+      }
+    }
+  }, [personnelData.church_duties]);
+
   const [filteredLocalCongregations, setFilteredLocalCongregations] = useState(
     []
   );
+
   const [
     filteredLocalCongregationsOrigin,
     setFilteredLocalCongregationsOrigin,
@@ -82,6 +114,12 @@ const Step1 = ({
   const [
     filteredLocalCongregationsAssignment,
     setFilteredLocalCongregationsAssignment,
+  ] = useState([]);
+
+  const [
+    filteredFirstLocalCongregations,
+    setFilteredFirstLocalCongregations,
+    ,
   ] = useState([]);
 
   // Filter sections based on department
@@ -148,6 +186,19 @@ const Step1 = ({
     }
   }, [personnelData.district_assignment_id, localCongregations]);
 
+  useEffect(() => {
+    if (personnelData.district_first_registered) {
+      const filtered = localCongregations.filter(
+        (congregation) =>
+          congregation.district_id ===
+          parseInt(personnelData.district_first_registered)
+      );
+      setFilteredFirstLocalCongregations(filtered);
+    } else {
+      setFilteredFirstLocalCongregations([]);
+    }
+  }, [personnelData.district_first_registered, localCongregations]);
+
   // Validation Functions
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); // Basic email regex
 
@@ -169,6 +220,45 @@ const Step1 = ({
     }
 
     return errors;
+  };
+
+  const handleAddDuty = () => {
+    if (duties.length >= 5) {
+      return; // Stop if already 5 duties
+    }
+
+    setDuties([
+      ...duties,
+      { personnel_id: "", duty: "", start_year: "", end_year: "" },
+    ]);
+  };
+
+  const handleDutyChange = (index, field, value) => {
+    const updatedDuties = [...duties];
+    updatedDuties[index][field] = value;
+    setDuties(updatedDuties);
+
+    // Optional: also update personnelData immediately if needed
+    setPersonnelData((prevData) => ({
+      ...prevData,
+      church_duties: updatedDuties,
+    }));
+  };
+
+  const handleDeleteDuty = (index) => {
+    const updatedDuties = duties.filter((_, i) => i !== index);
+    const deletedDuty = duties[index];
+
+    setDuties(updatedDuties);
+
+    setPersonnelData((prevData) => ({
+      ...prevData,
+      church_duties: updatedDuties,
+    }));
+
+    if (deletedDuty && deletedDuty.id) {
+      setDutiesToDelete((prev) => [...prev, deletedDuty.id]);
+    }
   };
 
   return (
@@ -1328,6 +1418,245 @@ const Step1 = ({
             </Box>
           </Flex>
 
+          <Flex
+            alignItems="center"
+            mb="5"
+            width="100%"
+            wrap="wrap"
+            justify="space-between"
+          >
+            {/* Classification Radio Buttons */}
+            <Box
+              width={{ base: "100%", md: "30%" }}
+              mb={{ base: "3", md: "0" }}
+            >
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Classification:
+              </Text>
+              <RadioGroup
+                name="is_offered"
+                onChange={(value) =>
+                  handleChange({
+                    target: { name: "is_offered", value },
+                  })
+                }
+                value={
+                  personnelData.is_offered !== undefined &&
+                  personnelData.is_offered !== null &&
+                  personnelData.is_offered !== ""
+                    ? personnelData.is_offered
+                    : "1" // Default to "Offered"
+                }
+                isDisabled={!isEditing}
+              >
+                <Stack direction="row">
+                  <Radio value="1">Offered</Radio>
+                  <Radio value="0">Convert</Radio>
+                </Stack>
+              </RadioGroup>
+            </Box>
+
+            {/* Date Baptized Input Date */}
+            <Box width={{ base: "100%", md: "30%" }}>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Date Baptized:
+              </Text>
+              <Input
+                type="date"
+                name="date_baptized"
+                value={personnelData.date_baptized || ""}
+                onChange={(e) =>
+                  handleChange({
+                    target: {
+                      name: "date_baptized",
+                      value: e.target.value,
+                    },
+                  })
+                }
+                isDisabled={!isEditing}
+              />
+            </Box>
+
+            {/* Place of Baptism Input Text */}
+            <Box
+              width={{ base: "100%", md: "30%" }}
+              mb={{ base: "3", md: "0" }}
+            >
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Place of Baptism:
+              </Text>
+              <Input
+                type="text"
+                name="minister_officiated"
+                value={personnelData.place_of_baptism || ""}
+                onChange={(e) =>
+                  handleChange({
+                    target: {
+                      name: "place_of_baptism",
+                      value: e.target.value,
+                    },
+                  })
+                }
+                isDisabled={!isEditing}
+              />
+            </Box>
+          </Flex>
+
+          <Flex
+            alignItems="center"
+            mb="5"
+            width="100%"
+            wrap="wrap"
+            justify="space-between"
+          >
+            {/* Minister Officiated Input Text */}
+            <Box
+              width={{ base: "100%", md: "30%" }}
+              mb={{ base: "3", md: "0" }}
+            >
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Minister Officiated:
+              </Text>
+              <Input
+                type="text"
+                name="minister_officiated"
+                value={personnelData.minister_officiated || ""}
+                onChange={(e) =>
+                  handleChange({
+                    target: {
+                      name: "minister_officiated",
+                      value: e.target.value,
+                    },
+                  })
+                }
+                isDisabled={!isEditing}
+              />
+            </Box>
+
+            {/* District First Registered */}
+            <Box
+              width={{ base: "100%", md: "30%" }}
+              mb={{ base: "3", md: "0" }}
+            >
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                District First Registered:
+              </Text>
+              <Select
+                placeholder="Select District"
+                name="district_first_registered"
+                value={districts
+                  .map((district) => ({
+                    value: district.id,
+                    label: district.name,
+                  }))
+                  .find(
+                    (option) =>
+                      option.value === personnelData.district_first_registered
+                  )}
+                onChange={(selectedOption) =>
+                  handleChange({
+                    target: {
+                      name: "district_first_registered",
+                      value: selectedOption?.value || "",
+                    },
+                  })
+                }
+                options={districts.map((district) => ({
+                  value: district.id,
+                  label: district.name,
+                }))}
+                isClearable
+                styles={{
+                  container: (base) => ({
+                    ...base,
+                    width: "100%",
+                  }),
+                }}
+                isDisabled={!isEditing} // Fields disabled if not editing
+              />
+            </Box>
+
+            {/* Local Congregation First Registered */}
+            <Box width={{ base: "100%", md: "30%" }}>
+              <Text
+                fontWeight="bold"
+                mb="2"
+                minWidth="120px"
+                whiteSpace="nowrap"
+                color="#0a5856"
+              >
+                Local First Registered:
+              </Text>
+              <Select
+                placeholder="Select Local Congregation"
+                name="local_first_registered"
+                value={filteredFirstLocalCongregations
+                  .map((congregation) => ({
+                    value: congregation.id,
+                    label: congregation.name,
+                  }))
+                  .find(
+                    (option) =>
+                      option.value === personnelData.local_first_registered
+                  )}
+                onChange={(selectedOption) =>
+                  handleChange({
+                    target: {
+                      name: "local_first_registered",
+                      value: selectedOption?.value || "",
+                    },
+                  })
+                }
+                options={filteredFirstLocalCongregations.map(
+                  (congregation) => ({
+                    value: congregation.id,
+                    label: congregation.name,
+                  })
+                )}
+                isDisabled={
+                  !isEditing || !personnelData.district_first_registered
+                } // Disable if no district is selected
+                isClearable
+                styles={{
+                  container: (base) => ({
+                    ...base,
+                    width: "100%",
+                  }),
+                }}
+              />
+            </Box>
+          </Flex>
+
           <Flex direction="column" mb="4" width="100%">
             <Text fontSize="md" fontWeight="bold" mb="1" color="#0a5856">
               Personnel Type:
@@ -1360,6 +1689,142 @@ const Step1 = ({
               </Stack>
             </RadioGroup>
           </Flex>
+
+          {/* Conditional Fields Based on Personnel Type */}
+          {["Lay Member"].includes(personnelData.personnel_type) && (
+            <>
+              <Flex align="center" mb="3" width="100%">
+                <Text
+                  fontWeight="bold"
+                  mr="4"
+                  minWidth="120px"
+                  whiteSpace="nowrap"
+                  color="#0a5856"
+                >
+                  Church Duty:
+                </Text>
+                <Button
+                  onClick={handleAddDuty}
+                  isDisabled={!isEditing || duties.length >= 5}
+                >
+                  Add New
+                </Button>
+              </Flex>
+
+              {duties.length > 0 ? (
+                <Box bg="white" p={6} rounded="xl" shadow="xl" overflowX="auto">
+                  <Table variant="simple" size="sm">
+                    <Thead>
+                      <Tr bg="gray.50">
+                        <Th textAlign="center" fontSize="sm" color="gray.600">
+                          #
+                        </Th>
+                        <Th textAlign="center" fontSize="sm" color="gray.600">
+                          Duty
+                        </Th>
+                        <Th textAlign="center" fontSize="sm" color="gray.600">
+                          Start Year
+                        </Th>
+                        <Th textAlign="center" fontSize="sm" color="gray.600">
+                          End Year
+                        </Th>
+                        <Th textAlign="center" fontSize="sm" color="gray.600">
+                          Action
+                        </Th>
+                      </Tr>
+                    </Thead>
+                    <Tbody>
+                      {duties.map((duty, index) => (
+                        <Tr
+                          key={index}
+                          _hover={{ bg: "gray.100" }}
+                          transition="background 0.2s"
+                        >
+                          <Td textAlign="center" fontWeight="semibold">
+                            {index + 1}
+                          </Td>
+                          <Td>
+                            <Input
+                              value={duty.duty}
+                              onChange={(e) =>
+                                handleDutyChange(index, "duty", e.target.value)
+                              }
+                              placeholder="Duty"
+                              variant="unstyled"
+                              borderBottom="1px solid"
+                              borderColor="gray.200"
+                              borderRadius="none"
+                              _focus={{ borderColor: "blue.400", bg: "white" }}
+                              isDisabled={!isEditing}
+                              textAlign="center"
+                            />
+                          </Td>
+                          <Td>
+                            <Input
+                              type="number"
+                              value={duty.start_year}
+                              onChange={(e) =>
+                                handleDutyChange(
+                                  index,
+                                  "start_year",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Start"
+                              variant="unstyled"
+                              borderBottom="1px solid"
+                              borderColor="gray.200"
+                              borderRadius="none"
+                              _focus={{ borderColor: "blue.400", bg: "white" }}
+                              isDisabled={!isEditing}
+                              textAlign="center"
+                            />
+                          </Td>
+                          <Td>
+                            <Input
+                              type="number"
+                              value={duty.end_year}
+                              onChange={(e) =>
+                                handleDutyChange(
+                                  index,
+                                  "end_year",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="End"
+                              variant="unstyled"
+                              borderBottom="1px solid"
+                              borderColor="gray.200"
+                              borderRadius="none"
+                              _focus={{ borderColor: "blue.400", bg: "white" }}
+                              isDisabled={!isEditing}
+                              textAlign="center"
+                            />
+                          </Td>
+                          <Td textAlign="center">
+                            <IconButton
+                              aria-label="Delete Duty"
+                              icon={<DeleteIcon />}
+                              colorScheme="red"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteDuty(index)}
+                              isDisabled={!isEditing}
+                              _hover={{ bg: "red.100" }}
+                            />
+                          </Td>
+                        </Tr>
+                      ))}
+                    </Tbody>
+                  </Table>
+                </Box>
+              ) : (
+                <Box textAlign="center" py={5} fontSize="lg" color="gray.500">
+                  No duties available.
+                </Box>
+              )}
+            </>
+          )}
 
           {/* Conditional Fields Based on Personnel Type */}
           {personnelData.gender === "Male" &&
@@ -1415,118 +1880,120 @@ const Step1 = ({
                     </Stack>
                   </RadioGroup>
                 </Flex>
+
+                {/* Conditional Rendering for District and Local Assignments */}
+                {personnelData.m_status === "May Destino" && (
+                  <Flex
+                    align="center"
+                    mb="3"
+                    width="100%"
+                    wrap="wrap"
+                    justify="space-between"
+                  >
+                    {/* District Assignment*/}
+                    <Box
+                      width={{ base: "100%", md: "48%" }}
+                      mb={{ base: "3", md: "0" }}
+                    >
+                      <Text
+                        fontWeight="bold"
+                        mb="2"
+                        minWidth="120px"
+                        whiteSpace="nowrap"
+                        color="#0a5856"
+                      >
+                        District Assignment:
+                      </Text>
+                      <Select
+                        placeholder="Select District"
+                        name="district_assignment_id"
+                        value={districts
+                          .map((district) => ({
+                            value: district.id,
+                            label: district.name,
+                          }))
+                          .find(
+                            (option) =>
+                              option.value ===
+                              personnelData.district_assignment_id
+                          )}
+                        onChange={(selectedOption) =>
+                          handleChange({
+                            target: {
+                              name: "district_assignment_id",
+                              value: selectedOption?.value || "",
+                            },
+                          })
+                        }
+                        options={districts.map((district) => ({
+                          value: district.id,
+                          label: district.name,
+                        }))}
+                        isClearable
+                        styles={{
+                          container: (base) => ({
+                            ...base,
+                            width: "100%",
+                          }),
+                        }}
+                        isDisabled={!isEditing} // Fields disabled if not editing
+                      />
+                    </Box>
+
+                    {/* Local Congregation Assignment Dropdown */}
+                    <Box width={{ base: "100%", md: "48%" }}>
+                      <Text
+                        fontWeight="bold"
+                        mb="2"
+                        minWidth="120px"
+                        whiteSpace="nowrap"
+                        color="#0a5856"
+                      >
+                        Local Congregation Assignment:
+                      </Text>
+                      <Select
+                        placeholder="Select Local Congregation"
+                        name="local_congregation_assignment"
+                        value={filteredLocalCongregationsAssignment
+                          .map((congregation) => ({
+                            value: congregation.id,
+                            label: congregation.name,
+                          }))
+                          .find(
+                            (option) =>
+                              option.value ===
+                              personnelData.local_congregation_assignment
+                          )}
+                        onChange={(selectedOption) =>
+                          handleChange({
+                            target: {
+                              name: "local_congregation_assignment",
+                              value: selectedOption?.value || "",
+                            },
+                          })
+                        }
+                        options={filteredLocalCongregationsAssignment.map(
+                          (congregation) => ({
+                            value: congregation.id,
+                            label: congregation.name,
+                          })
+                        )}
+                        isDisabled={
+                          !isEditing || !personnelData.district_assignment_id
+                        } // Disable if no district is selected
+                        isClearable
+                        styles={{
+                          container: (base) => ({
+                            ...base,
+                            width: "100%",
+                          }),
+                        }}
+                      />
+                    </Box>
+                  </Flex>
+                )}
               </>
             )}
-          {/* Conditional Rendering for District and Local Assignments */}
-          {personnelData.m_status === "May Destino" && (
-            <Flex
-              align="center"
-              mb="3"
-              width="100%"
-              wrap="wrap"
-              justify="space-between"
-            >
-              {/* District Assignment*/}
-              <Box
-                width={{ base: "100%", md: "48%" }}
-                mb={{ base: "3", md: "0" }}
-              >
-                <Text
-                  fontWeight="bold"
-                  mb="2"
-                  minWidth="120px"
-                  whiteSpace="nowrap"
-                  color="#0a5856"
-                >
-                  District Assignment:
-                </Text>
-                <Select
-                  placeholder="Select District"
-                  name="district_assignment_id"
-                  value={districts
-                    .map((district) => ({
-                      value: district.id,
-                      label: district.name,
-                    }))
-                    .find(
-                      (option) =>
-                        option.value === personnelData.district_assignment_id
-                    )}
-                  onChange={(selectedOption) =>
-                    handleChange({
-                      target: {
-                        name: "district_assignment_id",
-                        value: selectedOption?.value || "",
-                      },
-                    })
-                  }
-                  options={districts.map((district) => ({
-                    value: district.id,
-                    label: district.name,
-                  }))}
-                  isClearable
-                  styles={{
-                    container: (base) => ({
-                      ...base,
-                      width: "100%",
-                    }),
-                  }}
-                  isDisabled={!isEditing} // Fields disabled if not editing
-                />
-              </Box>
-
-              {/* Local Congregation Assignment Dropdown */}
-              <Box width={{ base: "100%", md: "48%" }}>
-                <Text
-                  fontWeight="bold"
-                  mb="2"
-                  minWidth="120px"
-                  whiteSpace="nowrap"
-                  color="#0a5856"
-                >
-                  Local Congregation Assignment:
-                </Text>
-                <Select
-                  placeholder="Select Local Congregation"
-                  name="local_congregation_assignment"
-                  value={filteredLocalCongregationsAssignment
-                    .map((congregation) => ({
-                      value: congregation.id,
-                      label: congregation.name,
-                    }))
-                    .find(
-                      (option) =>
-                        option.value ===
-                        personnelData.local_congregation_assignment
-                    )}
-                  onChange={(selectedOption) =>
-                    handleChange({
-                      target: {
-                        name: "local_congregation_assignment",
-                        value: selectedOption?.value || "",
-                      },
-                    })
-                  }
-                  options={filteredLocalCongregationsAssignment.map(
-                    (congregation) => ({
-                      value: congregation.id,
-                      label: congregation.name,
-                    })
-                  )}
-                  isDisabled={
-                    !isEditing || !personnelData.district_assignment_id
-                  } // Disable if no district is selected
-                  isClearable
-                  styles={{
-                    container: (base) => ({
-                      ...base,
-                      width: "100%",
-                    }),
-                  }}
-                />
-              </Box>
-            </Flex>
-          )}
 
           {/* Panunumpa Date */}
           {personnelData.gender === "Male" &&

@@ -5,6 +5,12 @@ const personnelsController = require("../controllers/personnelsController");
 // Route to get all personnels
 router.get("/api/personnels", personnelsController.getAllPersonnels);
 
+// Route to get church duties by personnel ID
+router.get(
+  "/api/church-duties/:personnelId",
+  personnelsController.getPersonnelDutiesByPersonnelId
+);
+
 // Route to get all new personnel
 router.get("/api/personnels/new", personnelsController.getAllNewPersonnels);
 
@@ -49,5 +55,23 @@ router.put("/api/personnels/:id", personnelsController.updatePersonnel);
 
 // Route to delete a personnel by ID
 router.delete("/api/personnels/:id", personnelsController.deletePersonnel);
+
+// Create a new church duty
+router.post(
+  "/api/personnel_church_duties",
+  personnelsController.createPersonnelChurchDuty
+);
+
+// Update an existing church duty
+router.put(
+  "/api/personnel_church_duties/:id",
+  personnelsController.updatePersonnelChurchDuty
+);
+
+// Delete a church duty
+router.delete(
+  "/api/personnel_church_duties/:id",
+  personnelsController.deletePersonnelChurchDuty
+);
 
 module.exports = router;

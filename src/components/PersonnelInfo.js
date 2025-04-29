@@ -11,6 +11,7 @@ const PersonnelInfo = ({
   lookupData,
   personnelAddress,
   personnelImage,
+  personnelDuties,
 }) => {
   if (!personnel) return <div>No personnel data found.</div>;
 
@@ -32,6 +33,12 @@ const PersonnelInfo = ({
     place_of_birth,
     civil_status,
     datejoined,
+    is_offered,
+    minister_officiated,
+    date_baptized,
+    place_of_baptism,
+    local_first_registered,
+    district_first_registered,
   } = personnel;
 
   const getNamesByIds = (idsInput, array, nameField = "name") => {
@@ -257,7 +264,6 @@ const PersonnelInfo = ({
           {
             label: "Place of Birth",
             value: capitalizeFullName(place_of_birth),
-            colSpan: 2,
           },
           { label: "Blood Type", value: capitalizeFullName(bloodtype) },
           {
@@ -267,6 +273,7 @@ const PersonnelInfo = ({
                 getNamesByIds(personnel.language_id, lookupData.languages)
               ) ?? "N/A",
           },
+          { label: "Office Start Date", value: datejoined },
           {
             label: "Home Address",
             value: capitalizeFullName(home?.name) || "N/A",
@@ -304,7 +311,7 @@ const PersonnelInfo = ({
         ))}
       </div>
 
-      {personnel?.personnel_type !== "Lay Member" && (
+      {personnel && (
         <>
           <h4
             style={{
@@ -332,97 +339,272 @@ const PersonnelInfo = ({
             }}
           ></div>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(5, 1fr)", // ✅ Fixed to 5 columns
-              gap: "6px",
-            }}
-          >
-            {[
-              {
-                label: "Personnel Type",
-                value: capitalizeFullName(personnel_type),
-              },
-              { label: "Assigned Number", value: assigned_number },
-              {
-                label: "Oath-taking as Worker",
-                value: panunumpa_date,
-              },
-              {
-                label: "Date of Ordination",
-                value: ordination_date,
-              },
-              {
-                label: "Office Start Date",
-                value: datejoined,
-              },
-              {
-                label: "District Origin",
-                value:
-                  capitalizeFullName(
-                    getNamesByIds(personnel.district_id, lookupData.districts)
-                  ) || "N/A",
-              },
-              {
-                label: "Local Origin",
-                value:
-                  capitalizeFullName(
-                    getNamesByIds(
-                      personnel.local_congregation,
-                      lookupData.localCongregations
-                    )
-                  ) || "N/A",
-              },
-              {
-                label: "District Assignment",
-                value:
-                  capitalizeFullName(
-                    getNamesByIds(
-                      personnel.district_assignment_id,
-                      lookupData.districts
-                    )
-                  ) || "N/A",
-              },
-              {
-                label: "Local Assignment",
-                value:
-                  capitalizeFullName(
-                    getNamesByIds(
-                      personnel.local_congregation_assignment,
-                      lookupData.localCongregations
-                    )
-                  ) || "N/A",
-              },
-            ].map((item, index) => (
-              <div
-                key={index}
-                style={{
-                  border: "1px solid #ccc",
-                  borderRadius: "5px",
-                  padding: "0.4rem 0.5rem",
-                  textAlign: "center",
-                  fontWeight: "bold",
-                  fontSize: "0.85rem",
-                  lineHeight: "1.2",
-                }}
-              >
-                {item.value || "N/A"}
+          {personnel.personnel_type !== "Lay Member" ? (
+            // --- Non-Lay Member view ---
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(5, 1fr)",
+                gap: "6px",
+              }}
+            >
+              {[
+                {
+                  label: "Personnel Type",
+                  value: capitalizeFullName(personnel_type),
+                },
+                { label: "Assigned Number", value: assigned_number },
+                { label: "Oath-taking as Worker", value: panunumpa_date },
+                { label: "Date of Ordination", value: ordination_date },
+                {
+                  label: "Classification",
+                  value:
+                    is_offered === "1" || is_offered === 1
+                      ? "Offered"
+                      : is_offered === "0" || is_offered === 0
+                      ? "Convert"
+                      : "N/A",
+                },
+                {
+                  label: "Date of Baptism",
+                  value: date_baptized,
+                },
+                {
+                  label: "Place of Baptism",
+                  value: place_of_baptism,
+                },
+                {
+                  label: "Evangelist (Nagdoktrina)",
+                  value: minister_officiated,
+                },
+                {
+                  label: "District First Registered",
+                  value:
+                    capitalizeFullName(
+                      getNamesByIds(
+                        personnel.district_first_registered,
+                        lookupData.districts
+                      )
+                    ) || "N/A",
+                },
+                {
+                  label: "Local First Registered",
+                  value:
+                    capitalizeFullName(
+                      getNamesByIds(
+                        personnel.local_first_registered,
+                        lookupData.localCongregations
+                      )
+                    ) || "N/A",
+                },
+                {
+                  label: "District Origin",
+                  value:
+                    capitalizeFullName(
+                      getNamesByIds(personnel.district_id, lookupData.districts)
+                    ) || "N/A",
+                  colSpan: 2,
+                },
+                {
+                  label: "Local Origin",
+                  value:
+                    capitalizeFullName(
+                      getNamesByIds(
+                        personnel.local_congregation,
+                        lookupData.localCongregations
+                      )
+                    ) || "N/A",
+                },
+                {
+                  label: "District Assignment",
+                  value:
+                    capitalizeFullName(
+                      getNamesByIds(
+                        personnel.district_assignment_id,
+                        lookupData.districts
+                      )
+                    ) || "N/A",
+                },
+                {
+                  label: "Local Assignment",
+                  value:
+                    capitalizeFullName(
+                      getNamesByIds(
+                        personnel.local_congregation_assignment,
+                        lookupData.localCongregations
+                      )
+                    ) || "N/A",
+                },
+              ].map((item, index) => (
                 <div
+                  key={index}
                   style={{
-                    fontWeight: "normal",
-                    fontSize: "0.7rem",
-                    color: "#555",
-                    marginTop: "2px",
+                    border: "1px solid #ccc",
+                    borderRadius: "5px",
+                    padding: "0.4rem 0.5rem",
+                    textAlign: "center",
+                    fontWeight: "bold",
+                    fontSize: "0.85rem",
+                    lineHeight: "1.2",
+                    gridColumn: item.colSpan
+                      ? `span ${item.colSpan}`
+                      : undefined,
                   }}
                 >
-                  {item.label}
+                  {item.value || "N/A"}
+                  <div
+                    style={{
+                      fontWeight: "normal",
+                      fontSize: "0.7rem",
+                      color: "#555",
+                      marginTop: "2px",
+                    }}
+                  >
+                    {item.label}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            // --- Lay Member view ---
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, 1fr)",
+                gap: "6px",
+              }}
+            >
+              {/* First Row: Office Start Date, Minister Officiated, Date Baptized */}
+              {[
+                {
+                  label: "Classification",
+                  value:
+                    is_offered === "1" || is_offered === 1
+                      ? "Offered"
+                      : is_offered === "0" || is_offered === 0
+                      ? "Convert"
+                      : "N/A",
+                },
+                { label: "Date of Baptism", value: date_baptized },
+                { label: "Place of Baptism", value: place_of_baptism },
+                {
+                  label: "Evangelist (Nagdoktrina)",
+                  value: minister_officiated,
+                },
+                {
+                  label: "District First Registered",
+                  value:
+                    capitalizeFullName(
+                      getNamesByIds(
+                        personnel.district_first_registered,
+                        lookupData.districts
+                      )
+                    ) || "N/A",
+                },
+                {
+                  label: "Local First Registered",
+                  value:
+                    capitalizeFullName(
+                      getNamesByIds(
+                        personnel.local_first_registered,
+                        lookupData.localCongregations
+                      )
+                    ) || "N/A",
+                },
+              ].map((item, index) => (
+                <div
+                  key={index}
+                  style={{
+                    border: "1px solid #ccc",
+                    borderRadius: "5px",
+                    padding: "0.4rem 0.5rem",
+                    textAlign: "center",
+                    fontWeight: "bold",
+                    fontSize: "0.85rem",
+                    lineHeight: "1.2",
+                  }}
+                >
+                  {item.value || "N/A"}
+                  <div
+                    style={{
+                      fontWeight: "normal",
+                      fontSize: "0.7rem",
+                      color: "#555",
+                      marginTop: "2px",
+                    }}
+                  >
+                    {item.label}
+                  </div>
+                </div>
+              ))}
+
+              {/* Second Row: Duties */}
+              {Array.isArray(personnelDuties) && personnelDuties.length > 0 ? (
+                <>
+                  {/* Header Row */}
+                  <div
+                    style={{
+                      gridColumn: "span 3",
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      backgroundColor: "#f5f5f5",
+                      padding: "0.5rem",
+                      fontWeight: "bold",
+                      borderTopLeftRadius: "5px",
+                      borderTopRightRadius: "5px",
+                      border: "1px solid #ccc",
+                      borderBottom: "none",
+                      fontSize: "0.9rem",
+                    }}
+                  >
+                    <div>Duty</div>
+                    <div style={{ textAlign: "center" }}>Years</div>
+                  </div>
+
+                  {/* Duties Rows */}
+                  {personnelDuties.map((duty, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        gridColumn: "span 3",
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        border: "1px solid #ccc",
+                        borderTop: "none",
+                        padding: "0.5rem",
+                        fontSize: "0.85rem",
+                        alignItems: "center",
+                      }}
+                    >
+                      <div>{duty.duty}</div>
+                      <div style={{ textAlign: "center" }}>
+                        {duty.start_year} to{" "}
+                        {duty.end_year === new Date().getFullYear() ||
+                        !duty.end_year
+                          ? "Present"
+                          : duty.end_year}
+                      </div>
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <div
+                  style={{
+                    gridColumn: "span 3",
+                    textAlign: "center",
+                    color: "#999",
+                    padding: "0.5rem",
+                    fontSize: "0.8rem",
+                  }}
+                >
+                  No duties recorded.
+                </div>
+              )}
+            </div>
+          )}
         </>
       )}
+
       <h4
         style={{
           backgroundColor: "#FFD600", // yellow background
@@ -796,105 +978,114 @@ const PersonnelInfo = ({
           </div>
         </div>
       )}
-      <div
-        style={{
-          breakInside: "avoid", // Prevent breaking across pages
-          pageBreakInside: "avoid", // Fallback for older browsers
-        }}
-      >
-        {children.length > 0 ? (
-          <>
-            <h4
-              style={{
-                backgroundColor: "#FFD600", // yellow background
-                padding: "0.15rem 1rem",
-                fontSize: "1.2rem",
-                fontWeight: "bold",
-                letterSpacing: "5px",
-                textTransform: "uppercase",
-                color: "black",
-                width: "fit-content",
-                marginBottom: "0",
-                marginTop: "1rem",
-                position: "relative",
-              }}
-            >
-              CHILDREN
-            </h4>
-            <div
-              style={{
-                height: "2px",
-                backgroundColor: "#F57C00", // dark orange underline
-                width: "100%",
-                marginBottom: "0.50rem",
-              }}
-            ></div>
-            {children.map((child, idx) => (
-              <div
-                key={idx}
+
+      {!(
+        ["Minister", "Regular"].includes(personnel?.personnel_type) &&
+        personnel?.civil_status === "Single"
+      ) && (
+        <div
+          style={{
+            breakInside: "avoid", // Prevent breaking across pages
+            pageBreakInside: "avoid", // Fallback for older browsers
+          }}
+        >
+          {children.length > 0 ? (
+            <>
+              <h4
                 style={{
-                  border: "1px solid #ccc",
-                  borderRadius: "6px",
-                  padding: "0.6rem",
-                  marginBottom: "0.5rem",
-                  display: "grid",
-                  gridTemplateColumns: "repeat(4, 1fr)", // 4 columns for 4 fields
-                  gap: "8px",
-                  alignItems: "center",
+                  backgroundColor: "#FFD600", // yellow background
+                  padding: "0.15rem 1rem",
+                  fontSize: "1.2rem",
+                  fontWeight: "bold",
+                  letterSpacing: "5px",
+                  textTransform: "uppercase",
+                  color: "black",
+                  width: "fit-content",
+                  marginBottom: "0",
+                  marginTop: "1rem",
+                  position: "relative",
                 }}
               >
-                {[
-                  {
-                    label: "Name",
-                    value: child
-                      ? capitalizeFullName(
-                          `${child.givenname} ${child.middlename || ""} ${
-                            child.lastname || ""
-                          }  ${
-                            child.suffix !== "No Suffix" ? child.suffix : ""
-                          }`
-                        )
-                      : "N/A",
-                  },
-                  { label: "Gender", value: capitalizeFullName(child.gender) },
-                  { label: "Age", value: calculateAge(child.date_of_birth) },
-                  {
-                    label: "Occupation",
-                    value: capitalizeFullName(child.position),
-                  },
-                ].map((item, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      border: "1px solid #ccc",
-                      borderRadius: "5px",
-                      padding: "0.4rem 0.5rem",
-                      textAlign: "center",
-                      fontWeight: "bold",
-                      fontSize: "0.85rem",
-                      lineHeight: "1.2",
-                    }}
-                  >
-                    {item.value || "N/A"}
+                CHILDREN
+              </h4>
+              <div
+                style={{
+                  height: "2px",
+                  backgroundColor: "#F57C00", // dark orange underline
+                  width: "100%",
+                  marginBottom: "0.50rem",
+                }}
+              ></div>
+              {children.map((child, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    border: "1px solid #ccc",
+                    borderRadius: "6px",
+                    padding: "0.6rem",
+                    marginBottom: "0.5rem",
+                    display: "grid",
+                    gridTemplateColumns: "repeat(4, 1fr)", // 4 columns for 4 fields
+                    gap: "8px",
+                    alignItems: "center",
+                  }}
+                >
+                  {[
+                    {
+                      label: "Name",
+                      value: child
+                        ? capitalizeFullName(
+                            `${child.givenname} ${child.middlename || ""} ${
+                              child.lastname || ""
+                            }  ${
+                              child.suffix !== "No Suffix" ? child.suffix : ""
+                            }`
+                          )
+                        : "N/A",
+                    },
+                    {
+                      label: "Gender",
+                      value: capitalizeFullName(child.gender),
+                    },
+                    { label: "Age", value: calculateAge(child.date_of_birth) },
+                    {
+                      label: "Occupation",
+                      value: capitalizeFullName(child.position),
+                    },
+                  ].map((item, index) => (
                     <div
+                      key={index}
                       style={{
-                        fontWeight: "normal",
-                        fontSize: "0.7rem",
-                        color: "#555",
-                        marginTop: "2px",
+                        border: "1px solid #ccc",
+                        borderRadius: "5px",
+                        padding: "0.4rem 0.5rem",
+                        textAlign: "center",
+                        fontWeight: "bold",
+                        fontSize: "0.85rem",
+                        lineHeight: "1.2",
                       }}
                     >
-                      {item.label}
+                      {item.value || "N/A"}
+                      <div
+                        style={{
+                          fontWeight: "normal",
+                          fontSize: "0.7rem",
+                          color: "#555",
+                          marginTop: "2px",
+                        }}
+                      >
+                        {item.label}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </>
-        ) : (
-          spouse?.civil_status === "Married" && <p>No children listed.</p>
-        )}
-      </div>
+                  ))}
+                </div>
+              ))}
+            </>
+          ) : (
+            personnel?.civil_status === "Married" && <p>No children listed.</p>
+          )}
+        </div>
+      )}
 
       {/* === FORCE PAGE BREAK AFTER CHILDREN === */}
       <div className={styles.pageBreak}></div>

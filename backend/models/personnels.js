@@ -154,6 +154,30 @@ const Personnel = sequelize.define(
       type: DataTypes.STRING(50),
       allowNull: true,
     },
+    is_offered: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    minister_officiated: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    date_baptized: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    place_of_baptism: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    local_first_registered: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    district_first_registered: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     personnel_type: {
       type: DataTypes.STRING(50),
       allowNull: true,

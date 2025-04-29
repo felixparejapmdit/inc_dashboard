@@ -56,6 +56,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
   //const [searchParams] = useSearchParams();
   //const personnelId = searchParams.get("personnel_id");
   const [isEditing, setIsEditing] = useState(!personnelId); // Enabled if personnel_id exists
+  const [dutiesToDelete, setDutiesToDelete] = useState([]);
 
   const toggleEdit = () => {
     setIsEditing((prev) => !prev);
@@ -120,6 +121,37 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
     fetchPersonnelDetails();
   }, []);
+
+  // Put fetchChurchDuties outside useEffect so you can call it manually
+  const fetchChurchDuties = async () => {
+    if (!personnelId) return;
+
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/church-duties/${personnelId}`
+      );
+      const churchDuties = response.data;
+
+      setPersonnelData((prevState) => ({
+        ...prevState,
+        church_duties: churchDuties || [],
+      }));
+    } catch (error) {
+      console.error("Error fetching church duties:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch church duties.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  // useEffect will still use it once at mount
+  useEffect(() => {
+    fetchChurchDuties();
+  }, [personnelId]);
 
   useEffect(() => {
     // Get personnel_progress from the URL
@@ -197,6 +229,12 @@ const EnrollmentForm = ({ referenceNumber }) => {
     designation_id: "",
     district_id: "",
     local_congregation: "",
+    is_offered: "",
+    minister_officiated: "",
+    date_baptized: "",
+    place_of_baptism: "",
+    local_first_registered: "",
+    date_first_registered: "",
     personnel_type: "",
     district_assignment_id: "",
     local_congregation_assignment: "",
@@ -204,6 +242,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
     m_type: "",
     panunumpa_date: "",
     ordination_date: "",
+    church_duties: [], // <<-- ADD THIS
   });
 
   const [emailError, setEmailError] = useState("");
@@ -837,6 +876,59 @@ const EnrollmentForm = ({ referenceNumber }) => {
           position: "bottom-left", // Position the toast on the bottom-left
         });
 
+        //updating personnel church duties
+
+        // Delete the duties first
+        if (dutiesToDelete.length > 0) {
+          for (const dutyId of dutiesToDelete) {
+            await axios.delete(
+              `${API_URL}/api/personnel_church_duties/${dutyId}`
+            );
+          }
+          setDutiesToDelete([]); // Clear after deletion
+        }
+
+        // Assuming you can send updated duties via PUT or PATCH request
+        if (
+          personnelData.church_duties &&
+          personnelData.church_duties.length > 0
+        ) {
+          for (const duty of personnelData.church_duties) {
+            try {
+              if (duty.id) {
+                // Existing duty: update it
+                await axios.put(
+                  `${API_URL}/api/personnel_church_duties/${duty.id}`,
+                  {
+                    duty: duty.duty || null,
+                    start_year: duty.start_year || null,
+                    end_year: duty.end_year || null,
+                  }
+                );
+              } else {
+                // New duty: create it
+                await axios.post(`${API_URL}/api/personnel_church_duties`, {
+                  personnel_id: personnelId, // Must know the personnel_id
+                  duty: duty.duty || null,
+                  start_year: duty.start_year || null,
+                  end_year: duty.end_year || null,
+                });
+              }
+            } catch (error) {
+              console.error("Error handling next step:", error);
+              toast({
+                title: "Error",
+                description: error.message || "Failed to save the duty.",
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+              });
+            }
+          }
+        }
+
+        // 🔥 After saving duties, refresh the duties list
+        await fetchChurchDuties(); // <-- ADD THIS
         // ✅ After saving, switch icon to `EditIcon`
         setIsEditing(false);
       }
@@ -1062,6 +1154,21 @@ const EnrollmentForm = ({ referenceNumber }) => {
         panunumpa_date: panunumpa_date || null,
         ordination_date: ordination_date || null,
       });
+
+      // After saving personnel and getting personnel_id
+      if (
+        personnelData.church_duties &&
+        personnelData.church_duties.length > 0
+      ) {
+        for (const duty of personnelData.church_duties) {
+          await axios.post(`${API_URL}/api/personnel_church_duties`, {
+            personnel_id: personnel_id,
+            duty: duty.duty || null,
+            start_year: duty.start_year || null,
+            end_year: duty.end_year || null,
+          });
+        }
+      }
 
       // Extract the personnel_id from the response
       const { personnel } = response.data;
@@ -1376,6 +1483,8 @@ const EnrollmentForm = ({ referenceNumber }) => {
           bloodtypes={bloodtypes}
           isEditing={isEditing} // ✅ Pass isEditing as a prop
           toggleEdit={toggleEdit} // ✅ Pass toggleEdit function
+          dutiesToDelete={dutiesToDelete} // 🔥 ADD THIS
+          setDutiesToDelete={setDutiesToDelete} // 🔥 ADD THIS
         />
       )}
 

@@ -26,6 +26,7 @@ const PersonnelPreview = () => {
 
   const wholeBodyRef = useRef(null);
   const [hideSidebarOnPrint, setHideSidebarOnPrint] = useState(false);
+  const [personnelDuties, setPersonnelDuties] = useState(null); // Duties storage
 
   useEffect(() => {
     const checkWholeBodyPageSize = () => {
@@ -145,10 +146,27 @@ const PersonnelPreview = () => {
     // Function to fetch personnel address
     const fetchPersonnelAddress = async () => {
       try {
+        if (!personnelId) {
+          console.warn("Personnel ID is not set.");
+          return;
+        }
+
         const response = await axios.get(
           `${API_URL}/api/personnel-addresses/pid/${personnelId}`
         );
-        setPersonnelAddress(response.data); // Set personnel address data
+
+        // Validate response
+        if (
+          !response ||
+          !response.data ||
+          (Array.isArray(response.data) && response.data.length === 0)
+        ) {
+          console.warn("No personnel address data found.");
+          return;
+        }
+
+        // All validations passed, set the data
+        setPersonnelAddress(response.data);
       } catch (error) {
         console.error("Error fetching personnel address:", error);
       }
@@ -165,15 +183,21 @@ const PersonnelPreview = () => {
           `${API_URL}/api/personnel_images/${personnelId}`
         );
 
-        const imageData = response.data?.data || [];
+        const imageData = Array.isArray(response.data?.data)
+          ? response.data.data
+          : [];
 
-        // Extract specific image types
-        const twoByTwo = imageData.find((img) => img.type === "2x2 Picture");
+        if (imageData.length === 0) {
+          console.warn("No personnel images found.");
+        }
+
+        // Extract specific image types safely
+        const twoByTwo = imageData.find((img) => img?.type === "2x2 Picture");
         const halfBody = imageData.find(
-          (img) => img.type === "Half Body Picture"
+          (img) => img?.type === "Half Body Picture"
         );
         const wholeBody = imageData.find(
-          (img) => img.type === "Whole Body Picture"
+          (img) => img?.type === "Full Body Picture"
         );
 
         setPersonnelImage({
@@ -199,6 +223,16 @@ const PersonnelPreview = () => {
         const response = await axios.get(
           `${API_URL}/api/personnel-contacts/pid/${personnelId}`
         );
+
+        if (
+          !response ||
+          !response.data ||
+          (Array.isArray(response.data) && response.data.length === 0)
+        ) {
+          console.warn("No personnel contact data found.");
+          return;
+        }
+
         setPersonnelContact(response.data);
       } catch (error) {
         console.error(
@@ -218,6 +252,16 @@ const PersonnelPreview = () => {
         const response = await axios.get(
           `${API_URL}/api/educational-background/pid/${personnelId}`
         );
+
+        if (
+          !response ||
+          !response.data ||
+          (Array.isArray(response.data) && response.data.length === 0)
+        ) {
+          console.warn("No educational background data found.");
+          return;
+        }
+
         setPersonnelEducationalBackground(response.data);
       } catch (error) {
         console.error(
@@ -237,12 +281,51 @@ const PersonnelPreview = () => {
         const response = await axios.get(
           `${API_URL}/api/work-experience/pid/${personnelId}`
         );
+
+        if (
+          !response ||
+          !response.data ||
+          (Array.isArray(response.data) && response.data.length === 0)
+        ) {
+          console.warn("No work experience data found.");
+          return;
+        }
+
         setPersonnelWorkExperience(response.data);
       } catch (error) {
         console.error(
           "Error fetching personnel work experience:",
           error.response?.data || error.message
         );
+      }
+    };
+
+    // Function to fetch personnel duties
+    const fetchPersonnelDuties = async () => {
+      try {
+        if (!personnelId) {
+          console.warn("Personnel ID is not set.");
+          return;
+        }
+
+        const response = await axios.get(
+          `${API_URL}/api/church-duties/${personnelId}`
+        );
+
+        // Validate response
+        if (
+          !response ||
+          !response.data ||
+          (Array.isArray(response.data) && response.data.length === 0)
+        ) {
+          console.warn("No personnel duty data found.");
+          return;
+        }
+
+        // All validations passed, set the data
+        setPersonnelDuties(response.data);
+      } catch (error) {
+        console.error("Error fetching personnel duties:", error);
       }
     };
 
@@ -255,6 +338,7 @@ const PersonnelPreview = () => {
     fetchPersonnelEducational();
     fetchPersonnelWorkExperience();
     fetchPersonnelImages();
+    fetchPersonnelDuties();
     fetch2x2Image().then(() => setLoading(false));
   }, [personnelId]); // Dependency on personnelId, triggers fetch when changed
 
@@ -281,6 +365,7 @@ const PersonnelPreview = () => {
         lookupData={lookupData}
         personnelAddress={personnelAddress}
         personnelImage={personnelImage}
+        personnelDuties={personnelDuties}
       />
     </div>
   );
