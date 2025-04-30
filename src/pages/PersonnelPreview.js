@@ -1,9 +1,10 @@
+import "pagedjs";
 import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom"; // To access the URL parameter
 import axios from "axios"; // Axios for API calls
 import ProfileSidebar from "../components/ProfileSidebar"; // ✅ default import
 import PersonnelInfo from "../components/PersonnelInfo"; // ✅ default import
-import "./PersonnelPreview.css";
+import styles from "../components/PersonnelImage.module.css";
 
 // Configuration for API URLs
 const API_URL = process.env.REACT_APP_API_URL; // API URL
@@ -27,6 +28,25 @@ const PersonnelPreview = () => {
   const wholeBodyRef = useRef(null);
   const [hideSidebarOnPrint, setHideSidebarOnPrint] = useState(false);
   const [personnelDuties, setPersonnelDuties] = useState(null); // Duties storage
+
+  const [currentDate, setCurrentDate] = useState("");
+
+  useEffect(() => {
+    const now = new Date();
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    const dd = String(now.getDate()).padStart(2, "0");
+    const yyyy = now.getFullYear();
+    const formattedDate = `${mm}-${dd}-${yyyy}`;
+    setCurrentDate(formattedDate);
+
+    // Set date on the <body> tag for CSS attr() to work in @page
+    document.body.setAttribute("data-date", formattedDate);
+
+    // Trigger Paged.js
+    if (window.PagedPolyfill) {
+      window.PagedPolyfill.preview();
+    }
+  }, []);
 
   useEffect(() => {
     const checkWholeBodyPageSize = () => {
@@ -348,25 +368,47 @@ const PersonnelPreview = () => {
   }
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
-      {/* Passing the correct props to ProfileSidebar and PersonnelInfo */}
+    <div
+      style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
+    >
+      <div style={{ display: "flex", minHeight: "100vh" }}>
+        {/* Passing the correct props to ProfileSidebar and PersonnelInfo */}
+        <div className={hideSidebarOnPrint ? "no-print" : ""}></div>
+        <ProfileSidebar
+          personnel={personnel}
+          personnelImage={personnelImage}
+          personnelContact={personnelContact}
+          personnelEducationalBackground={personnelEducationalBackground}
+          personnelWorkExperience={personnelWorkExperience}
+        />
+        <PersonnelInfo
+          personnel={personnel}
+          familyMembers={familyMembers}
+          lookupData={lookupData}
+          personnelAddress={personnelAddress}
+          personnelImage={personnelImage}
+          personnelDuties={personnelDuties}
+        />
+      </div>
 
-      <div className={hideSidebarOnPrint ? "no-print" : ""}></div>
-      <ProfileSidebar
-        personnel={personnel}
-        personnelImage={personnelImage}
-        personnelContact={personnelContact}
-        personnelEducationalBackground={personnelEducationalBackground}
-        personnelWorkExperience={personnelWorkExperience}
-      />
-      <PersonnelInfo
-        personnel={personnel}
-        familyMembers={familyMembers}
-        lookupData={lookupData}
-        personnelAddress={personnelAddress}
-        personnelImage={personnelImage}
-        personnelDuties={personnelDuties}
-      />
+      <style>
+        {`
+          @media print {
+        @page {
+    margin: 20mm;
+
+    @bottom-right {
+      content: "Page " counter(page) " of " counter(pages) "\\A This document was generated on: " attr(data-date);
+      white-space: pre-wrap;
+      font-size: 12px;
+      border-top: 1px solid #ccc;
+      padding-top: 5px;
+    }
+  }
+
+          }
+        `}
+      </style>
     </div>
   );
 };

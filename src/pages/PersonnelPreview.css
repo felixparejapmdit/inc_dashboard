@@ -16,9 +16,8 @@
   .printOnly {
     display: block !important;
   }
-}
 
-/* For screen */
-.printOnly {
-  display: none;
+  /* body {
+    counter-reset: page;
+  } */
 }

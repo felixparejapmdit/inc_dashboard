@@ -63,6 +63,7 @@
     "mysql": "^2.18.1",
     "mysql2": "^3.11.3",
     "openssl": "^2.0.0",
+    "pagedjs": "^0.4.3",
     "path-browserify": "^1.0.1",
     "postcss": "^8.4.4",
     "postcss-flexbugs-fixes": "^5.0.2",

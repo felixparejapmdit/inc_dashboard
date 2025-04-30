@@ -1,7 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaBriefcase, FaUserTie, FaUserCheck } from "react-icons/fa"; // Icons used in image layout
 import styles from "./PersonnelImage.module.css";
-
 // Configuration for API URLs
 const API_URL = process.env.REACT_APP_API_URL; // API URL
 
@@ -260,29 +259,33 @@ const PersonnelInfo = ({
               ) || "N/A",
           },
           { label: "Age", value: calculateAge(date_of_birth) },
-          { label: "Date of Birth", value: date_of_birth },
+          { label: "Date of Birth", value: date_of_birth, colSpan: 2 },
+
+          { label: "Blood Type", value: capitalizeFullName(bloodtype) },
+          { label: "Office Start Date", value: datejoined, colSpan: 2 },
+
           {
             label: "Place of Birth",
             value: capitalizeFullName(place_of_birth),
+            colSpan: 3,
           },
-          { label: "Blood Type", value: capitalizeFullName(bloodtype) },
           {
             label: "Language",
             value:
               capitalizeFullName(
                 getNamesByIds(personnel.language_id, lookupData.languages)
               ) ?? "N/A",
+            colSpan: 2,
           },
-          { label: "Office Start Date", value: datejoined },
           {
             label: "Home Address",
             value: capitalizeFullName(home?.name) || "N/A",
-            colSpan: 3,
+            colSpan: 5,
           },
           {
             label: "Provincial Address",
             value: capitalizeFullName(provincial?.name) || "N/A",
-            colSpan: 2,
+            colSpan: 5,
           },
         ].map((item, index) => (
           <div
@@ -1193,5 +1196,4 @@ const PersonnelInfo = ({
     </div>
   );
 };
-
 export default PersonnelInfo;

@@ -16,4 +16,29 @@
   .pageBreak {
     page-break-after: always;
   }
+
+  /* .printFooter {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    font-style: italic;
+    color: #555;
+    width: 100%;
+    text-align: right;
+  }
+
+  .printFooter::before {
+    content: "Page " counter(page) " | " counter(pages);
+  }
+
+  .printFooter::after {
+    content: "This document was generated dated: " attr(data-date);
+    display: block;
+  } */
+
+  .printOnly {
+    display: block !important;
+  }
 }
