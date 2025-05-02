@@ -39,10 +39,10 @@ const PersonnelPreview = () => {
     const formattedDate = `${mm}-${dd}-${yyyy}`;
     setCurrentDate(formattedDate);
 
-    // Set date on the <body> tag for CSS attr() to work in @page
-    document.body.setAttribute("data-date", formattedDate);
+    // Optionally set the data-date attribute for CSS purposes
+    document.documentElement.setAttribute("data-date", formattedDate);
 
-    // Trigger Paged.js
+    // Trigger print-specific adjustments, if needed for Paged.js
     if (window.PagedPolyfill) {
       window.PagedPolyfill.preview();
     }
@@ -394,18 +394,17 @@ const PersonnelPreview = () => {
       <style>
         {`
           @media print {
-        @page {
-    margin: 20mm;
+            @page {
+              margin: 20mm;
 
-    @bottom-right {
-      content: "Page " counter(page) " of " counter(pages) "\\A This document was generated on: " attr(data-date);
-      white-space: pre-wrap;
-      font-size: 12px;
-      border-top: 1px solid #ccc;
-      padding-top: 5px;
-    }
-  }
-
+              @bottom-right {
+                content: "Page " counter(page) " | " counter(pages) "\\AThis document was generated dated  " attr(data-date);
+                white-space: pre-wrap;
+                font-size: 12px;
+                border-top: 1px solid #ccc;
+                padding-top: 5px;
+              }
+            }
           }
         `}
       </style>

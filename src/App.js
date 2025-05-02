@@ -1,5 +1,5 @@
 import { ChakraProvider } from "@chakra-ui/react";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -95,6 +95,22 @@ function App() {
 function MainApp() {
   const location = useLocation(); // Get current route
   const isUnderMaintenance = true; // Change to `true` to enable maintenance mode
+
+  const [apiUrl, setApiUrl] = useState("");
+
+  useEffect(() => {
+    // Check if the page is loaded over https or http
+    const isHTTPS = window.location.protocol === "https:";
+
+    // Dynamically update API URL based on protocol
+    const apiUrl = isHTTPS
+      ? process.env.REACT_APP_API_URL.replace("http://", "https://")
+      : process.env.REACT_APP_API_URL;
+
+    setApiUrl(apiUrl);
+    console.log("API URL: ", apiUrl);
+  }, []);
+
   return (
     <>
       <Routes>
