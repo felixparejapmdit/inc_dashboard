@@ -1,3 +1,4 @@
+const https = require("https");
 const express = require("express");
 const router = express.Router();
 const db = require("../db");
@@ -13,6 +14,10 @@ const UserController = require("../controllers/userController");
 
 //const db1 = require("../config/database");
 const axios = require("axios");
+
+const agent = new https.Agent({
+  rejectUnauthorized: false, // ⚠️ This disables SSL validation - use only in development
+});
 
 //const ldap = require("ldapjs");
 //const LDAP_URL = process.env.LDAP_URL;
@@ -396,9 +401,18 @@ router.get("/api/users/logged-in", async (req, res) => {
       if (user.auth_type === "LDAP") {
         try {
           // Fetch user details from the LDAP API
-          const ldapResponse = await axios.get(
-            `${process.env.REACT_APP_API_URL}/ldap/user/${user.username}`
+          console.log(
+            "TEST",
+            `${process.env.API_URL}/ldap/user/${user.username}`
           );
+
+          const ldapResponse = await axios.get(
+            `${process.env.API_URL}/ldap/user/${user.username}`,
+            {
+              httpsAgent: new https.Agent({ rejectUnauthorized: false }),
+            }
+          );
+
           const ldapUser = ldapResponse.data;
 
           // Update user object with LDAP details

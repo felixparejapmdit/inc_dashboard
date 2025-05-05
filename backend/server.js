@@ -1,4 +1,7 @@
 require("dotenv").config();
+const https = require("https");
+
+const fs = require("fs");
 
 const express = require("express");
 
@@ -21,11 +24,18 @@ const localCongregationRoutes = require("./routes/localCongregationRoutes");
 
 const chatRoutes = require("./routes/chatRoutes");
 
-const IP_Address = process.env.REACT_IP_ADDRESS || "0.0.0.0"; // Default to listening on all interfaces
+const IP_Address = process.env.REACT_APP_API_URL || "0.0.0.0"; // Default to listening on all interfaces
 
 const app = express();
+
+const IP_BIND = "0.0.0.0";
 const PORT = process.env.REACT_PORT || 80;
 const API_URL = "http://172.18.125.54:11434/api/generate"; // Ollama local API
+
+const sslOptions = {
+  key: fs.readFileSync("./key.pem"),
+  cert: fs.readFileSync("./cert.pem"),
+};
 
 const groupRoutes = require("./routes/groupRoutes");
 const permissionRoutes = require("./routes/permissionRoutes");
@@ -302,6 +312,13 @@ app.use(bodyParser.json());
 // }
 
 // --- Start server ---
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server is running on ${IP_Address}:${PORT}`);
+// app.listen(PORT, "0.0.0.0", () => {
+//   console.log(`Server is running on ${IP_Address}:${PORT}`);
+// });
+
+// Start HTTPS server
+https.createServer(sslOptions, app).listen(PORT, IP_BIND, () => {
+  // For logging, use the API URL to show the full public access URL
+  const publicURL = process.env.REACT_APP_API_URL || `https://localhost`;
+  console.log(`✅ HTTPS Server running at ${publicURL}:${PORT}`);
 });
