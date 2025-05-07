@@ -503,6 +503,91 @@ const Login = () => {
     }
   };
 
+  const handleSubmit2 = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+
+    if (!username || !password) {
+      setError("Username and password are required.");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      // 🔐 Call unified login endpoint that handles LDAP & local
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/auth/login`,
+        { username, password }
+      );
+
+      if (response.data.success) {
+        const { token, user } = response.data;
+
+        // ✅ Store token for protected API calls
+        localStorage.setItem("token", token);
+
+        // ✅ Save essential user info
+        localStorage.setItem("username", user.username);
+        localStorage.setItem("userFullName", user.fullName || user.username);
+
+        // Fetch userId via /users_access endpoint
+        const userResponse = await axios.get(
+          `${process.env.REACT_APP_API_URL}/api/users_access/${user.username}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        const userId = userResponse.data.id;
+        localStorage.setItem("userId", userId);
+
+        // Fetch groupId via /groups/user endpoint
+        const groupResponse = await axios.get(
+          `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        const groupId = groupResponse.data.groupId;
+
+        if (!groupId) {
+          setError(
+            "User does not belong to any group. Please contact the administrator."
+          );
+          setIsLoading(false);
+          return;
+        }
+
+        localStorage.setItem("groupId", groupId);
+
+        // 🔄 Fetch and store permissions
+        fetchPermissions(groupId);
+
+        // ➡ Navigate to dashboard
+        navigate("/dashboard");
+
+        // ✅ Update login status in DB
+        await axios.put(
+          `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
+          {
+            ID: user.username, // or user.id depending on structure
+            isLoggedIn: true,
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+      } else {
+        setError("Invalid username or password.");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Failed to connect or authenticate. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -665,41 +750,6 @@ const Login = () => {
       bgGradient="linear(to-r, #FFD559, #F3C847)" // Gradient background
       p={4}
     >
-      {/* Add Background Music */}
-      <audio id="background-audio" autoPlay loop muted>
-        <source src="/music/wedding-music.mp3" type="audio/mpeg" />
-      </audio>
-      {/* Start Music Overlay */}
-      {isPlaying && (
-        <div className="music-overlay fade-out" onClick={startMusic}>
-          <div className="start-button">
-            <span className="play-icon">▶</span>
-          </div>
-        </div>
-      )}
-
-      {/* Anniversary Ribbon */}
-      <div className="effects-container">
-        {/* Ribbon */}
-        <div className="ribbon-container">
-          <div className="ribbon">
-            <span className="anniversary-text">
-              Happy <strong>15th Wedding</strong> Anniversary po!
-            </span>
-          </div>
-        </div>
-
-        <div class="heart heart-1"></div>
-        <div class="heart heart-2"></div>
-        <div class="heart heart-3"></div>
-
-        {/* Falling Confetti */}
-        <div className="confetti"></div>
-        <div className="confetti"></div>
-        <div className="confetti"></div>
-        <div className="confetti"></div>
-        <div className="confetti"></div>
-      </div>
       <Flex
         direction="column"
         bg="yellow.100"

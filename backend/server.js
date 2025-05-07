@@ -24,7 +24,7 @@ const localCongregationRoutes = require("./routes/localCongregationRoutes");
 
 const chatRoutes = require("./routes/chatRoutes");
 
-const IP_Address = process.env.REACT_APP_API_URL || "0.0.0.0"; // Default to listening on all interfaces
+const IP_Address = "0.0.0.0"; // Always listen on all IPs
 
 const app = express();
 
@@ -33,8 +33,8 @@ const PORT = process.env.REACT_PORT || 80;
 const API_URL = "http://172.18.125.54:11434/api/generate"; // Ollama local API
 
 const sslOptions = {
-  key: fs.readFileSync("./key.pem"),
-  cert: fs.readFileSync("./cert.pem"),
+  key: fs.readFileSync("./nginx/certs/key.pem"),
+  cert: fs.readFileSync("./nginx/certs/cert.pem"),
 };
 
 const groupRoutes = require("./routes/groupRoutes");

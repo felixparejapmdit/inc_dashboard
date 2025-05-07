@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const axios = require("axios"); // Added axios for API requests
 const User = require("../models/User"); // Your local user model
 require("dotenv").config();
+const { generateToken } = require("../utils/jwt"); // Import the generateToken function
 
 // ✅ Load environment variables
 const LDAP_URL = process.env.LDAP_URL;
@@ -15,13 +16,13 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1d";
 
 const API_URL = process.env.REACT_APP_API_URL; // Backend API URL
 // ✅ Generate JWT Token
-const generateToken = (user) => {
-  return jwt.sign(
-    { id: user.id, username: user.username, groupId: user.groupId },
-    JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN }
-  );
-};
+// const generateToken = (user) => {
+//   return jwt.sign(
+//     { id: user.id, username: user.username, groupId: user.groupId },
+//     JWT_SECRET,
+//     { expiresIn: JWT_EXPIRES_IN }
+//   );
+// };
 
 // ✅ LDAP Authentication Function
 const authenticateLDAP = (username, password) => {
@@ -150,6 +151,57 @@ const getUserGroupId = async (username) => {
 };
 
 // ✅ Login Controller
+exports.Login1 = async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res
+      .status(400)
+      .json({ message: "Username and password are required." });
+  }
+
+  try {
+    let user;
+    let groupId;
+
+    // 🔍 Attempt LDAP Authentication First
+    try {
+      const ldapUser = await authenticateLDAP(username, password);
+      groupId = (await getUserGroupId(username)) || "LDAP_GROUP"; // Get groupId from DB or fallback
+
+      console.log("Group ID: ", groupId);
+      user = {
+        id: ldapUser.username,
+        username: ldapUser.username,
+        groupId: groupId,
+        fullName: ldapUser.username,
+      };
+
+      // ✅ Generate JWT token for LDAP user
+      const token = generateToken(user);
+      return res.json({ success: true, token, user });
+    } catch (ldapErr) {
+      console.log(`LDAP authentication failed: ${ldapErr}`);
+    }
+
+    // 🔍 Fall back to Local Authentication
+    try {
+      user = await authenticateLocal(username, password);
+      groupId = (await getUserGroupId(username)) || "LOCAL_GROUP"; // Use stored groupId from API
+
+      // ✅ Generate JWT token for Local user
+      const token = generateToken({ ...user, groupId });
+      return res.json({ success: true, token, user });
+    } catch (localErr) {
+      return res.status(401).json({ message: "Invalid username or password." });
+    }
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Server error during authentication.", error });
+  }
+};
+
 exports.Login = async (req, res) => {
   const { username, password } = req.body;
 

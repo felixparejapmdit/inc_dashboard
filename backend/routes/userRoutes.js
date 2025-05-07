@@ -401,13 +401,12 @@ router.get("/api/users/logged-in", async (req, res) => {
       if (user.auth_type === "LDAP") {
         try {
           // Fetch user details from the LDAP API
-          console.log(
-            "TEST",
-            `${process.env.API_URL}/ldap/user/${user.username}`
-          );
+
+          // Construct the API URL using the environment variables
+          const apiUrl = `${process.env.REACT_APP_API_URL}:${process.env.REACT_PORT}`;
 
           const ldapResponse = await axios.get(
-            `${process.env.API_URL}/ldap/user/${user.username}`,
+            `${apiUrl}/ldap/user/${user.username}`,
             {
               httpsAgent: new https.Agent({ rejectUnauthorized: false }),
             }
