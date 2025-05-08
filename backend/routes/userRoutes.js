@@ -402,13 +402,33 @@ router.get("/api/users/logged-in", async (req, res) => {
         try {
           // Fetch user details from the LDAP API
 
-          // Construct the API URL using the environment variables
-          const apiUrl = `${process.env.REACT_APP_API_URL}:${process.env.REACT_PORT}`;
+          const https = require("https");
 
+          // Determine if HTTPS is enabled
+          const isHttps = process.env.HTTPS === "true";
+
+          // Choose protocol and port
+          const protocol = isHttps ? "https" : "http";
+          const port = isHttps
+            ? process.env.REACT_PORT_HTTPS
+            : process.env.REACT_PORT_HTTP;
+
+          // Normalize the API base address (strip protocol if included)
+          const baseAddress = process.env.REACT_APP_API_URL.replace(
+            /^https?:\/\//,
+            ""
+          );
+
+          // Final API URL
+          const apiUrl = `${protocol}://${baseAddress}:${port}`;
+
+          // Axios request with conditional httpsAgent
           const ldapResponse = await axios.get(
             `${apiUrl}/ldap/user/${user.username}`,
             {
-              httpsAgent: new https.Agent({ rejectUnauthorized: false }),
+              ...(isHttps && {
+                httpsAgent: new https.Agent({ rejectUnauthorized: false }),
+              }),
             }
           );
 

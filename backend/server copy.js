@@ -1,31 +1,29 @@
 require("dotenv").config();
+const https = require("https");
 
 const fs = require("fs");
-const https = require("https");
-const http = require("http");
+
 const express = require("express");
+
 const path = require("path");
+
+const { Op } = require("sequelize");
+
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const mysql = require("mysql2"); // ✅ MySQL for querying personnel/family data
+const axios = require("axios"); // ✅ Axios to communicate with Ollama API
 
 const app = express();
 
-const { Op } = require("sequelize");
-const axios = require("axios"); // ✅ Axios to communicate with Ollama API
-
 const IP_BIND = "0.0.0.0";
-const PORT_HTTP = 80;
-const PORT_HTTPS = 443;
+const PORT = process.env.REACT_PORT || 80;
 
-// SSL config
-let sslOptions = null;
-if (process.env.HTTPS === "true") {
-  sslOptions = {
-    key: fs.readFileSync(process.env.SSL_KEY_FILE),
-    cert: fs.readFileSync(process.env.SSL_CRT_FILE),
-  };
-}
+const sslOptions = {
+  key: fs.readFileSync("./nginx/certs/key.pem"),
+  cert: fs.readFileSync("./nginx/certs/cert.pem"),
+};
+
 app.use(
   cors({
     origin: "*", // Allow all origins (update for production)
@@ -316,20 +314,8 @@ const FamilyMember = require("./models/FamilyMember");
 // });
 
 // Start HTTPS server
-// https.createServer(sslOptions, app).listen(PORT, IP_BIND, () => {
-//   // For logging, use the API URL to show the full public access URL
-//   const publicURL = process.env.REACT_APP_API_URL || `https://localhost`;
-//   console.log(`✅ HTTPS Server running at ${publicURL}:${PORT}`);
-// });
-
-// Start HTTP server
-http.createServer(app).listen(PORT_HTTP, IP_BIND, () => {
-  console.log(`✅ HTTP Server running at http://localhost:${PORT_HTTP}`);
+https.createServer(sslOptions, app).listen(PORT, IP_BIND, () => {
+  // For logging, use the API URL to show the full public access URL
+  const publicURL = process.env.REACT_APP_API_URL || `https://localhost`;
+  console.log(`✅ HTTPS Server running at ${publicURL}:${PORT}`);
 });
-
-// Start HTTPS server
-if (sslOptions) {
-  https.createServer(sslOptions, app).listen(PORT_HTTPS, IP_BIND, () => {
-    console.log(`✅ HTTPS Server running at https://localhost:${PORT_HTTPS}`);
-  });
-}
