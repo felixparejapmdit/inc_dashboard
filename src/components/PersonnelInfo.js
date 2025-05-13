@@ -314,6 +314,12 @@ const PersonnelInfo = ({
         ))}
       </div>
 
+    <div
+          style={{
+            breakInside: "avoid", // Prevent breaking across pages
+            pageBreakInside: "avoid", // Fallback for older browsers
+          }}
+        >
       {personnel && (
         <>
           <h4
@@ -607,7 +613,7 @@ const PersonnelInfo = ({
           )}
         </>
       )}
-
+</div>
     <div
           style={{
             breakInside: "avoid", // Prevent breaking across pages
