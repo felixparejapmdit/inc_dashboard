@@ -1370,15 +1370,16 @@ const EnrollmentForm = ({ referenceNumber }) => {
             </Button>
           )}
 
-          <Heading
-            as="h2"
-            size="lg"
-            color="teal.600"
-            textAlign="center"
-            flex="1"
-          >
-            Personnel Enrollment
-          </Heading>
+        <Heading
+  as="h2"
+  size="lg"
+  color="teal.600"
+  textAlign="center"
+  flex="1"
+>
+  {typeParam === "new" ? "Personnel Enrollment" : "Personnel Information"}
+</Heading>
+
         </Flex>
         {/* Progress Indicator */}
         <Flex justify="center" align="center" my={6} px={4} bg="#FEF3C7" py={2}>

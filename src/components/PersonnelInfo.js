@@ -608,6 +608,12 @@ const PersonnelInfo = ({
         </>
       )}
 
+    <div
+          style={{
+            breakInside: "avoid", // Prevent breaking across pages
+            pageBreakInside: "avoid", // Fallback for older browsers
+          }}
+        >
       <h4
         style={{
           backgroundColor: "#FFD600", // yellow background
@@ -653,16 +659,16 @@ const PersonnelInfo = ({
               }}
             >
               {[
-                {
-                  label: `${type}'s Name`,
-                  value: parent
-                    ? capitalizeFullName(
-                        `${parent.givenname} ${parent.middlename || ""} ${
-                          parent.lastname
-                        } ${parent.suffix !== "No Suffix" ? parent.suffix : ""}`
-                      )
-                    : "N/A",
-                },
+             {
+  label: `${type}'s Name`,
+  value: parent
+    ? capitalizeFullName(
+        `${parent.givenname || ""} ${parent.middlename || ""} ${parent.lastname || ""} ${
+          parent.suffix && parent.suffix !== "No Suffix" ? parent.suffix : ""
+        }`
+      ).replace(/\s+/g, " ").trim() // to clean up extra spaces
+    : "N/A",
+},
                 {
                   label: `${type}'s District`,
                   value: parent
@@ -769,6 +775,7 @@ const PersonnelInfo = ({
             </div>
           );
         })}
+      </div>
       </div>
 
       {personnel?.civil_status === "Married" && (

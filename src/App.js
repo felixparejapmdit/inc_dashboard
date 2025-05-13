@@ -108,7 +108,7 @@ function MainApp() {
       : process.env.REACT_APP_API_URL;
 
     setApiUrl(apiUrl);
-    console.log("API URL: ", apiUrl);
+    //console.log("API URL: ", apiUrl);
   }, []);
 
   return (
