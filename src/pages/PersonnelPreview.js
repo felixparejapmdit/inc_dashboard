@@ -210,25 +210,29 @@ const PersonnelPreview = () => {
         if (imageData.length === 0) {
           console.warn("No personnel images found.");
         }
- if (Array.isArray(imageData)) {
-    const twoByTwo = imageData.find((img) => img?.type === "2x2 Picture");
-    const halfBody = imageData.find((img) => img?.type === "Half Body Picture");
-    const wholeBody = imageData.find((img) => img?.type === "Full Body Picture");
+        if (Array.isArray(imageData)) {
+          const twoByTwo = imageData.find((img) => img?.type === "2x2 Picture");
+          const halfBody = imageData.find(
+            (img) => img?.type === "Half Body Picture"
+          );
+          const wholeBody = imageData.find(
+            (img) => img?.type === "Full Body Picture"
+          );
 
-    setPersonnelImage({
-      twoByTwo: twoByTwo?.image_url || "",
-      halfBody: halfBody?.image_url || "",
-      wholeBody: wholeBody?.image_url || "",
-    });
-  } else {
-    // Fallback: set empty images if imageData is not an array
-    setPersonnelImage({
-      twoByTwo: "",
-      halfBody: "",
-      wholeBody: "",
-    });
-    console.warn("imageData is not an array:", imageData);
-  }
+          setPersonnelImage({
+            twoByTwo: twoByTwo?.image_url || "",
+            halfBody: halfBody?.image_url || "",
+            wholeBody: wholeBody?.image_url || "",
+          });
+        } else {
+          // Fallback: set empty images if imageData is not an array
+          setPersonnelImage({
+            twoByTwo: "",
+            halfBody: "",
+            wholeBody: "",
+          });
+          console.warn("imageData is not an array:", imageData);
+        }
       } catch (error) {
         console.error(
           "Error fetching personnel images:",
