@@ -534,7 +534,6 @@ const Step5 = () => {
       )}
 
       {/* Photoshoot Modal */}
-      {/* Photoshoot Modal */}
       <Modal
         isOpen={isPhotoModalOpen}
         onClose={() => {

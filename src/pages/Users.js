@@ -52,11 +52,12 @@ import {
   DownloadIcon,
 } from "@chakra-ui/icons";
 import axios from "axios";
-
+import { FaCamera } from "react-icons/fa"; // ✅ Icon for Photoshoot
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 import { usePermissionContext } from "../contexts/PermissionContext";
+import Photoshoot from "./progress/Photoshoot"; // Import Photoshoot component
 
 const API_URL = process.env.REACT_APP_API_URL;
 const ITEMS_PER_PAGE = 5;
@@ -94,6 +95,9 @@ const Users = ({ personnelId }) => {
 
   // To control menu open/close
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
+  const [personnelImages, setPersonnelImages] = useState([]);
 
   // For select all
   const allKeys =
@@ -363,6 +367,33 @@ const Users = ({ personnelId }) => {
         setStatus("User deleted successfully.");
       })
       .catch(() => setStatus("Error deleting user."));
+  };
+
+  const fetchPersonnelImages = async (personnelId) => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/personnel_images/${personnelId}`
+      );
+
+      if (response.data.success) {
+        const imagesByType = {};
+
+        // Debugging: Log the API response
+        console.log("Fetched Personnel Images:", response.data.data);
+
+        // Store images based on type
+        response.data.data.forEach((img) => {
+          imagesByType[img.type.trim()] = `${API_URL}${img.image_url}`;
+        });
+
+        setPersonnelImages(imagesByType); // Store images in state
+
+        // Debugging: Log the mapped images
+        console.log("Mapped Personnel Images:", imagesByType);
+      }
+    } catch (error) {
+      console.error("Error fetching personnel images:", error);
+    }
   };
 
   const handleEditUser = (item) => {
@@ -867,6 +898,16 @@ const Users = ({ personnelId }) => {
                             onClick={() => handleEditUser(item)}
                           />
                         )}
+                        {hasPermission("personnels.photo") && ( // ✅ Optional: add a permission check
+                          <IconButton
+                            icon={<FaCamera />}
+                            colorScheme="teal"
+                            onClick={() => {
+                              setSelectedUser(item); // ✅ Set selected user
+                              setIsPhotoModalOpen(true); // ✅ Open modal
+                            }}
+                          />
+                        )}
                         {hasPermission("personnels.view") && (
                           <Tooltip
                             label={
@@ -1243,6 +1284,48 @@ const Users = ({ personnelId }) => {
               {editingUser ? "Save Changes" : "Add User"}
             </Button>
             <Button onClick={closeModal}>Cancel</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Photoshoot Modal */}
+      <Modal
+        isOpen={isPhotoModalOpen}
+        onClose={() => {
+          setIsPhotoModalOpen(false);
+          if (selectedUser) {
+            fetchPersonnelImages(selectedUser.personnel_id); // ✅ Fetch latest images after closing modal
+          }
+        }}
+        size="xl"
+        isCentered
+      >
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Photoshoot and Upload</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            {selectedUser && (
+              <Photoshoot
+                personnel={selectedUser}
+                onClose={() => {
+                  setIsPhotoModalOpen(false);
+                  fetchPersonnelImages(selectedUser.personnel_id); // ✅ Ensure images are refreshed
+                }}
+              />
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              colorScheme="blue"
+              mr={3}
+              onClick={() => {
+                setIsPhotoModalOpen(false);
+                fetchPersonnelImages(selectedUser.personnel_id); // ✅ Fetch latest images on Close button click
+              }}
+            >
+              Close
+            </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
