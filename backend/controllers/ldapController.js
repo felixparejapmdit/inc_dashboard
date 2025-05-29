@@ -434,6 +434,27 @@ exports.authenticateUserFromJson = (req, res) => {
   });
 };
 
+// GET /api/login-audits/recent
+exports.getRecentLoginAudits = async (req, res) => {
+  try {
+    const audits = await LoginAudit.findAll({
+      order: [["login_time", "DESC"]],
+      include: [
+        {
+          model: User,
+          as: "user", // ✅ important
+          attributes: ["id", "username", "personnel_id", "avatar"], // Add any user fields you need
+        },
+      ],
+    });
+
+    res.json(audits);
+  } catch (error) {
+    console.error("Failed to fetch recent login audits:", error);
+    res.status(500).json({ error: "Failed to fetch recent login audits" });
+  }
+};
+
 // Login using PMD LDAP credentials by username
 exports.getUserByUsername = async (req, res) => {
   const username = req.params.username;
@@ -501,21 +522,33 @@ exports.getUserByUsername = async (req, res) => {
             const device = deviceData.device?.type || "desktop";
             const os = `${deviceData.os?.name || "Unknown OS"} ${
               deviceData.os?.version || ""
-            }`;
+            }`.trim();
             const browser = `${deviceData.browser?.name || "Unknown Browser"} ${
               deviceData.browser?.version || ""
-            }`;
+            }`.trim();
+
+            // ✅ Skip if OS or Browser is unknown
+            if (
+              os.startsWith("Unknown OS") ||
+              browser.startsWith("Unknown Browser")
+            ) {
+              console.warn(
+                "⛔ Skipping login audit due to unknown OS or browser."
+              );
+              return resolve(user); // resolve anyway, login is still valid
+            }
 
             try {
               const localUser = await User.findOne({ where: { username } });
 
               if (localUser) {
                 const now = new Date();
-                // Check for existing login_audit record today
+
+                // You might want to compare only the date, not exact timestamp
                 const existingAudit = await LoginAudit.findOne({
                   where: {
                     user_id: localUser.id,
-                    login_time: now, // exact timestamp
+                    login_time: now, // Consider refining this check for just same day
                   },
                 });
 

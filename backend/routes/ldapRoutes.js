@@ -7,6 +7,8 @@ const ldapController = require("../controllers/ldapController");
 
 router.get("/ldap/user/:username", ldapController.getUserByUsername);
 
+router.get("/api/login-audits/recent", ldapController.getRecentLoginAudits);
+
 router.get("/api/test_ldap_connection", ldapController.testLdapConnection);
 
 router.get("/api/ldap/users_json", ldapController.getUsersFromJson);
