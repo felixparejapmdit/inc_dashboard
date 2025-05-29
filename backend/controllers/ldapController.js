@@ -12,6 +12,10 @@ const { Attribute } = require("ldapjs"); // ✅ Ensure Attribute is imported
 const Personnel = require("../models/personnels");
 const LdapUser = require("../models/LDAP_Users");
 const User = require("../models/User");
+const { UAParser } = require("ua-parser-js");
+const LoginAudit = require("../models/LoginAudit");
+
+const { Op } = require("sequelize");
 
 // Load environment variables
 const LDAP_URL = process.env.LDAP_URL;
@@ -477,14 +481,14 @@ exports.getUserByUsername = async (req, res) => {
         result.on("searchEntry", (entry) => {
           entry.attributes.forEach((attribute) => {
             if (attribute.type === "userPassword") {
-              user[attribute.type] = attribute.vals[0];
+              user[attribute.type] = attribute.values[0];
             } else {
-              user[attribute.type] = attribute.vals;
+              user[attribute.type] = attribute.values;
             }
           });
         });
 
-        result.on("end", () => {
+        result.on("end", async () => {
           client.unbind((unbindErr) => {
             if (unbindErr) {
               console.error("LDAP unbind error:", unbindErr);
@@ -492,6 +496,53 @@ exports.getUserByUsername = async (req, res) => {
           });
 
           if (Object.keys(user).length > 0) {
+            const parser = new UAParser(req.headers["user-agent"]);
+            const deviceData = parser.getResult();
+            const device = deviceData.device?.type || "desktop";
+            const os = `${deviceData.os?.name || "Unknown OS"} ${
+              deviceData.os?.version || ""
+            }`;
+            const browser = `${deviceData.browser?.name || "Unknown Browser"} ${
+              deviceData.browser?.version || ""
+            }`;
+
+            try {
+              const localUser = await User.findOne({ where: { username } });
+
+              if (localUser) {
+                const now = new Date();
+                // Check for existing login_audit record today
+                const existingAudit = await LoginAudit.findOne({
+                  where: {
+                    user_id: localUser.id,
+                    login_time: now, // exact timestamp
+                  },
+                });
+
+                if (!existingAudit) {
+                  await LoginAudit.create({
+                    user_id: localUser.id,
+                    device,
+                    os,
+                    browser,
+                  });
+                  console.log(
+                    `✅ Login audit recorded for user_id ${localUser.id}`
+                  );
+                } else {
+                  console.log(
+                    `🔁 Login audit already exists today for user_id ${localUser.id}`
+                  );
+                }
+              } else {
+                console.warn(
+                  `⚠️ No local user found for username: ${username}, skipping login audit`
+                );
+              }
+            } catch (auditErr) {
+              console.error("❌ Failed to log login audit:", auditErr);
+            }
+
             resolve(user);
           } else {
             reject(new Error("User not found"));

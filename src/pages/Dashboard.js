@@ -566,6 +566,44 @@ export default function Dashboard() {
                 Have a nice day.
               </Text>
             </Box>
+
+            {/* Recent Login Logs Section */}
+            <Box mt={4} width="100%">
+              <Heading as="h3" size="md" mb={2} color="gray.700">
+                Recent Login Activity
+              </Heading>
+              <Box
+                bg="white"
+                borderRadius="md"
+                boxShadow="md"
+                overflowX="auto"
+                p={4}
+                maxH="250px"
+              >
+                <Table variant="simple" size="sm">
+                  <Thead>
+                    <Tr>
+                      <Th>User</Th>
+                      <Th>Device</Th>
+                      <Th>OS</Th>
+                      <Th>Browser</Th>
+                      <Th>Date</Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {loginAudits.map((log) => (
+                      <Tr key={log.id}>
+                        <Td>{log.username || "—"}</Td>
+                        <Td>{log.device}</Td>
+                        <Td>{log.os}</Td>
+                        <Td>{log.browser}</Td>
+                        <Td>{new Date(log.login_time).toLocaleString()}</Td>
+                      </Tr>
+                    ))}
+                  </Tbody>
+                </Table>
+              </Box>
+            </Box>
           </VStack>
 
           {/* Color mode toggle button */}
@@ -869,67 +907,6 @@ export default function Dashboard() {
     </Box>
   );
 }
-
-// Card component for Apps
-// const AppCard = ({ app, colors, handleAppClick, small }) => (
-//   <VStack
-//     as="div" // Change from <a> to <div> to prevent conflicts with onClick
-//     bg={colors.appBg}
-//     borderRadius="xl"
-//     border={`3px solid ${colors.cardBorder}`}
-//     p={small ? 2 : 6}
-//     spacing={2}
-//     boxShadow="md"
-//     _hover={{ transform: "scale(1.03)", transition: "all 0.2s ease-in-out" }}
-//     align="center"
-//     textAlign="center"
-//     width={small ? "120px" : "100%"}
-//     minHeight={small ? "80px" : "200px"}
-//     onClick={(e) => {
-//       e.preventDefault(); // Prevent default behavior
-//       if (handleAppClick) {
-//         handleAppClick(app);
-//       }
-//       window.open(app.url, "_blank"); // Open in a new tab
-//     }}
-//     cursor="pointer"
-//   >
-//     {/* App Icon */}
-//     <Box>
-//       {app.icon ? (
-//         <Image
-//           src={app.icon}
-//           alt={`${app.name} Icon`}
-//           boxSize={small ? "40px" : "70px"} // Larger icon for emphasis
-//           borderRadius="full" // Circular icon
-//           mb={4}
-//           boxShadow="md"
-//           border="2px solid"
-//           borderColor={colors.cardBorder}
-//         />
-//       ) : (
-//         <Icon as={FiFile} boxSize={12} color={colors.cardHeader} mb={4} />
-//       )}
-//     </Box>
-
-//     {/* App Name and Description */}
-//     <Box>
-//       <Text
-//         fontSize={small ? "10px" : "xl"}
-//         fontWeight="bold"
-//         color={colors.cardHeader}
-//       >
-//         {app.name}
-//       </Text>
-//       {/* Only show description if it's **not** a recently opened app */}
-//       {!small && (
-//         <Text fontSize="sm" color={colors.cardText}>
-//           {app.description}
-//         </Text>
-//       )}
-//     </Box>
-//   </VStack>
-// );
 const AppCard = ({ app, colors, handleAppClick, small }) => {
   const isFileData = app.generated_code && app.filename;
   const isPhoneDirectory = app.name && app.extension;

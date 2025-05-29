@@ -69,7 +69,8 @@ const EnrollmentForm = ({ referenceNumber }) => {
     { label: "Building Admin", progressValue: 1 },
     { label: "Security Section", progressValue: 2 },
     { label: "PMD-IT", progressValue: 3 },
-    { label: "ATG Office", progressValue: [4, 5] }, // ✅ This is correct
+    { label: "ATG Office 1", progressValue: 4 }, // ✅ This is correct
+    { label: "ATG Office 2", progressValue: 5 }, // ✅ This is correct
     { label: "ATG Office Approval", progressValue: 6 },
     { label: "Personnel Office", progressValue: 7 },
   ];
@@ -1370,16 +1371,17 @@ const EnrollmentForm = ({ referenceNumber }) => {
             </Button>
           )}
 
-        <Heading
-  as="h2"
-  size="lg"
-  color="teal.600"
-  textAlign="center"
-  flex="1"
->
-  {typeParam === "new" ? "Personnel Enrollment" : "Personnel Information"}
-</Heading>
-
+          <Heading
+            as="h2"
+            size="lg"
+            color="teal.600"
+            textAlign="center"
+            flex="1"
+          >
+            {typeParam === "new"
+              ? "Personnel Enrollment"
+              : "Personnel Information"}
+          </Heading>
         </Flex>
         {/* Progress Indicator */}
         <Flex justify="center" align="center" my={6} px={4} bg="#FEF3C7" py={2}>
@@ -1852,9 +1854,17 @@ const EnrollmentForm = ({ referenceNumber }) => {
               {/* Progress Bar */}
               <Flex justifyContent="space-between" alignItems="center" mt={6}>
                 {steps.map((step, index) => {
+                  const progressNumber = Number(progress);
+
                   const isCompleted = Array.isArray(step.progressValue)
-                    ? step.progressValue.includes(Number(progress))
-                    : Number(progress) >= step.progressValue;
+                    ? step.progressValue.includes(progressNumber)
+                    : progressNumber >= step.progressValue;
+
+                  const isNextCompleted =
+                    index < steps.length - 1 &&
+                    (Array.isArray(steps[index + 1].progressValue)
+                      ? steps[index + 1].progressValue.includes(progressNumber)
+                      : progressNumber >= steps[index + 1].progressValue);
 
                   return (
                     <Flex
@@ -1864,6 +1874,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
                       flex="1"
                       position="relative"
                     >
+                      {/* Line to next step */}
                       {index !== steps.length - 1 && (
                         <Box
                           position="absolute"
@@ -1871,11 +1882,12 @@ const EnrollmentForm = ({ referenceNumber }) => {
                           left="50%"
                           width="100%"
                           height="4px"
-                          bg={isCompleted ? "blue.500" : "gray.300"}
+                          bg={isNextCompleted ? "blue.500" : "gray.300"} // ✅ Fixes the line
                           zIndex={0}
                           transform="translateX(-50%)"
                         />
                       )}
+                      {/* Step circle */}
                       <Box
                         bg={isCompleted ? "blue.500" : "gray.300"}
                         borderRadius="full"
@@ -1891,6 +1903,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
                           {isCompleted ? "✔" : ""}
                         </Text>
                       </Box>
+                      {/* Step label */}
                       <Text
                         fontSize="sm"
                         fontWeight="medium"
