@@ -217,8 +217,8 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
         boxShadow="lg"
         zIndex="100"
         p={4}
-        overflowX="visible" // allows horizontal overflow (for toggle)
-        overflowY="auto" // enables vertical scrolling
+        overflowX="visible" // ✅ fine
+        overflowY="auto" // ✅ fine
         css={{
           "::-webkit-scrollbar": {
             width: "4px",
@@ -230,9 +230,9 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
           "::-webkit-scrollbar-track": {
             backgroundColor: "transparent",
           },
-          "-ms-overflow-style": "auto",
-          "scrollbar-width": "thin",
-          "scrollbar-color": "rgba(0, 0, 0, 0.1) transparent",
+          msOverflowStyle: "auto", // ✅ camelCase version of '-ms-overflow-style'
+          scrollbarWidth: "thin", // ✅ camelCase
+          scrollbarColor: "rgba(0, 0, 0, 0.1) transparent", // ✅ camelCase
         }}
       >
         {/* Logo Box */}
