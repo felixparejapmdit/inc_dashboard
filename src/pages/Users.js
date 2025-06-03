@@ -50,6 +50,7 @@ import {
   InfoIcon,
   ViewIcon,
   DownloadIcon,
+  Search2Icon,
 } from "@chakra-ui/icons";
 import axios from "axios";
 import { FaCamera } from "react-icons/fa"; // ✅ Icon for Photoshoot
@@ -59,10 +60,31 @@ import autoTable from "jspdf-autotable";
 import { usePermissionContext } from "../contexts/PermissionContext";
 import Photoshoot from "./progress/Photoshoot"; // Import Photoshoot component
 
+import {
+  useUserFormData,
+  suffixOptions,
+  civilStatusOptions,
+  educationalLevelOptions,
+  bloodtypes,
+} from "../hooks/userFormOptions";
+
 const API_URL = process.env.REACT_APP_API_URL;
 const ITEMS_PER_PAGE = 5;
 
 const Users = ({ personnelId }) => {
+  const {
+    districts,
+    localCongregations,
+    languages,
+    citizenships,
+    nationalities,
+    departments,
+    sections,
+    subsections,
+    designations,
+    incHousingAddresses,
+  } = useUserFormData();
+
   const [users, setUsers] = useState([]);
 
   const { hasPermission } = usePermissionContext(); // Correct usage
@@ -109,6 +131,59 @@ const Users = ({ personnelId }) => {
   const avatarBaseUrl = `${API_URL}/uploads/`;
 
   const navigate = useNavigate(); // Initialize navigation
+
+  const {
+    isOpen: isOpenAdvance,
+    onOpen: onOpenAdvance,
+    onClose: onCloseAdvance,
+  } = useDisclosure();
+
+  const [advancedFilters, setAdvancedFilters] = useState({
+    ministero: false,
+    manggagawa: false,
+    kawani: false,
+    ministersWife: false,
+    ministerialStudent: false,
+    incHousing: false,
+    district: "",
+    local: "",
+    section: "",
+    team: "",
+    role: "",
+    birthdayMonth: "",
+    bloodtype: "",
+    language: "",
+    citizenship: "",
+    civil_status: "",
+  });
+
+  const [checkboxes, setCheckboxes] = useState({
+    ministero: false,
+    manggagawa: false,
+    kawani: false,
+    ministersWife: false,
+    ministerialStudent: false,
+    incHousing: false,
+  });
+
+  const handleAdvancedFilterChange = (key, value) => {
+    setCheckboxes((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  const handleAdvanceSelectAll = (e) => {
+    const isChecked = e.target.checked;
+    const updated = {};
+    Object.keys(checkboxes).forEach((key) => {
+      updated[key] = isChecked;
+    });
+    setCheckboxes(updated);
+  };
+
+  // All are selected if every value is true
+  const allSelected = Object.values(checkboxes).every((val) => val);
 
   useEffect(() => {
     fetchUsers();
@@ -175,12 +250,12 @@ const Users = ({ personnelId }) => {
       user.personnel_local_congregation || "",
       user.personnel_type || "",
       user.personnel_assigned_number || "",
-      user.personnel_department_name || "", // Updated to use resolved department name
-      user.personnel_section_name || "", // Updated to use resolved section name
-      user.personnel_subsection_name || "", // Updated to use resolved subsection name
-      user.personnel_designation_name || "", // Updated to use resolved designation name
-      user.personnel_district_name || "", // Updated to use resolved district name
-      user.personnel_language_name || "", // Updated to use resolved language name
+      user.personnel_department_name || "",
+      user.personnel_section_name || "",
+      user.personnel_subsection_name || "",
+      user.personnel_designation_name || "",
+      user.personnel_district_name || "",
+      user.personnel_language_name || "",
     ];
 
     const combinedFields = [
@@ -192,7 +267,50 @@ const Users = ({ personnelId }) => {
       .join(" ")
       .toLowerCase();
 
-    return combinedFields.includes(searchPersonnelList.toLowerCase());
+    const {
+      ministero,
+      manggagawa,
+      kawani,
+      ministersWife,
+      ministerialStudent,
+      incHousing,
+      district,
+      local,
+      section,
+      team,
+      role,
+      birthdayMonth,
+      bloodtype,
+      language,
+      citizenship,
+      civil_status,
+    } = advancedFilters;
+
+    const matchesAdvancedFilters =
+      (!ministero || user.personnel_type === "Ministero") &&
+      (!manggagawa || user.personnel_type === "Manggagawa") &&
+      (!kawani || user.personnel_type === "Kawani") &&
+      (!ministersWife || user.personnel_type === "Minister's Wife") &&
+      (!ministerialStudent || user.personnel_type === "Ministerial Student") &&
+      (!incHousing || user.personnel_housing === "Yes") &&
+      (!district || user.personnel_district_name === district) &&
+      (!local || user.personnel_local_congregation === local) &&
+      (!section || user.personnel_section_name === section) &&
+      (!team || user.personnel_team === team) &&
+      (!role || user.personnel_role === role) &&
+      (!birthdayMonth ||
+        new Date(user.date_of_birth).toLocaleString("default", {
+          month: "long",
+        }) === birthdayMonth) &&
+      (!bloodtype || user.bloodtype === bloodtype) &&
+      (!language || user.personnel_language_name === language) &&
+      (!citizenship || user.citizenship?.includes(citizenship)) &&
+      (!civil_status || user.civil_status === civil_status);
+
+    return (
+      combinedFields.includes(searchPersonnelList.toLowerCase()) &&
+      matchesAdvancedFilters
+    );
   });
 
   // Independent search for Newly Enrolled Personnel (Filters from newPersonnels)
@@ -760,6 +878,15 @@ const Users = ({ personnelId }) => {
           maxW="300px"
         />
 
+        {/* Advanced Search Button */}
+        <IconButton
+          icon={<Search2Icon />}
+          aria-label="Advanced Search"
+          onClick={onOpenAdvance}
+          variant="outline"
+          colorScheme="blue"
+        />
+
         {/* Columns Menu */}
         <Menu
           isOpen={isMenuOpen}
@@ -1325,6 +1452,266 @@ const Users = ({ personnelId }) => {
               }}
             >
               Close
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      <Modal isOpen={isOpenAdvance} onClose={onCloseAdvance} size="xl">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Advanced Personnel Search</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <VStack spacing={3} align="stretch">
+              {/* Select All Checkbox */}
+              <Checkbox
+                isChecked={allSelected}
+                onChange={handleAdvanceSelectAll}
+              >
+                Select All
+              </Checkbox>
+
+              {/* Individual Checkboxes */}
+              <Checkbox
+                isChecked={checkboxes.ministero}
+                onChange={(e) =>
+                  handleAdvancedFilterChange("ministero", e.target.checked)
+                }
+              >
+                Ministero
+              </Checkbox>
+              <Checkbox
+                isChecked={checkboxes.manggagawa}
+                onChange={(e) =>
+                  handleAdvancedFilterChange("manggagawa", e.target.checked)
+                }
+              >
+                Manggagawa
+              </Checkbox>
+              <Checkbox
+                isChecked={checkboxes.kawani}
+                onChange={(e) =>
+                  handleAdvancedFilterChange("kawani", e.target.checked)
+                }
+              >
+                Kawani
+              </Checkbox>
+              <Checkbox
+                isChecked={checkboxes.ministersWife}
+                onChange={(e) =>
+                  handleAdvancedFilterChange("ministersWife", e.target.checked)
+                }
+              >
+                Minister's Wife
+              </Checkbox>
+              <Checkbox
+                isChecked={checkboxes.ministerialStudent}
+                onChange={(e) =>
+                  handleAdvancedFilterChange(
+                    "ministerialStudent",
+                    e.target.checked
+                  )
+                }
+              >
+                Ministerial Student
+              </Checkbox>
+
+              <HStack spacing={4}>
+                <Select
+                  placeholder="District"
+                  onChange={(e) =>
+                    handleAdvancedFilterChange("district", e.target.value)
+                  }
+                >
+                  {districts.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name}
+                    </option>
+                  ))}
+                </Select>
+
+                <Select
+                  placeholder="Local"
+                  onChange={(e) =>
+                    handleAdvancedFilterChange("local", e.target.value)
+                  }
+                >
+                  {localCongregations.map((l) => (
+                    <option key={l.id} value={l.id}>
+                      {l.name}
+                    </option>
+                  ))}
+                </Select>
+              </HStack>
+
+              <HStack spacing={4}>
+                <Select
+                  placeholder="Section"
+                  onChange={(e) =>
+                    handleAdvancedFilterChange("section", e.target.value)
+                  }
+                >
+                  {sections.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </Select>
+
+                <Select
+                  placeholder="Team"
+                  onChange={(e) =>
+                    handleAdvancedFilterChange("team", e.target.value)
+                  }
+                >
+                  {subsections.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </Select>
+              </HStack>
+
+              <HStack spacing={4}>
+                <Select
+                  placeholder="Role"
+                  onChange={(e) =>
+                    handleAdvancedFilterChange("role", e.target.value)
+                  }
+                >
+                  {designations.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.name}
+                    </option>
+                  ))}
+                </Select>
+
+                <Select
+                  placeholder="Birthday Month"
+                  onChange={(e) =>
+                    handleAdvancedFilterChange("birthdayMonth", e.target.value)
+                  }
+                >
+                  {[
+                    "January",
+                    "February",
+                    "March",
+                    "April",
+                    "May",
+                    "June",
+                    "July",
+                    "August",
+                    "September",
+                    "October",
+                    "November",
+                    "December",
+                  ].map((month) => (
+                    <option key={month} value={month}>
+                      {month}
+                    </option>
+                  ))}
+                </Select>
+              </HStack>
+
+              <HStack spacing={4}>
+                <Select
+                  placeholder="Blood Type"
+                  onChange={(e) =>
+                    handleAdvancedFilterChange("bloodtype", e.target.value)
+                  }
+                >
+                  {bloodtypes.map((bt) => (
+                    <option key={bt} value={bt}>
+                      {bt}
+                    </option>
+                  ))}
+                </Select>
+
+                <Select
+                  placeholder="Language"
+                  onChange={(e) =>
+                    handleAdvancedFilterChange("language", e.target.value)
+                  }
+                >
+                  {languages.map((lang) => (
+                    <option key={lang.id} value={lang.id}>
+                      {lang.name}
+                    </option>
+                  ))}
+                </Select>
+              </HStack>
+
+              <HStack spacing={4}>
+                <Select
+                  placeholder="Citizenship"
+                  onChange={(e) =>
+                    handleAdvancedFilterChange("citizenship", e.target.value)
+                  }
+                >
+                  {citizenships.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.citizenship}
+                    </option>
+                  ))}
+                </Select>
+
+                <Select
+                  placeholder="Civil Status"
+                  onChange={(e) =>
+                    handleAdvancedFilterChange("civil_status", e.target.value)
+                  }
+                >
+                  {civilStatusOptions.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </Select>
+              </HStack>
+
+              {/* New HStack for Educational Level and INC Housing Address */}
+              <HStack spacing={4} mt={4}>
+                <Select
+                  placeholder="Educational Attainment"
+                  onChange={(e) =>
+                    handleAdvancedFilterChange(
+                      "educational_attainment",
+                      e.target.value
+                    )
+                  }
+                >
+                  {educationalLevelOptions.map((level) => (
+                    <option key={level} value={level}>
+                      {level}
+                    </option>
+                  ))}
+                </Select>
+
+                <Select
+                  placeholder="INC Housing Address"
+                  onChange={(e) =>
+                    handleAdvancedFilterChange(
+                      "inc_housing_address_id",
+                      e.target.value
+                    )
+                  }
+                >
+                  {incHousingAddresses.map((address) => (
+                    <option key={address.id} value={address.id}>
+                      {address.name}
+                    </option>
+                  ))}
+                </Select>
+              </HStack>
+            </VStack>
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" mr={3} onClick={onCloseAdvance}>
+              Apply Filters
+            </Button>
+            <Button variant="ghost" onClick={onCloseAdvance}>
+              Cancel
             </Button>
           </ModalFooter>
         </ModalContent>

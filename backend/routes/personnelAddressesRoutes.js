@@ -9,6 +9,12 @@ router.get(
   PersonnelAddressController.getAllAddresses
 );
 
+// Get all addresses with address_type = 'INC Housing'
+router.get(
+  "/api/personnel-addresses/inc-housing",
+  PersonnelAddressController.getIncHousingAddresses
+);
+
 // Get a specific personnel address by ID
 router.get(
   "/api/personnel-addresses/:id",

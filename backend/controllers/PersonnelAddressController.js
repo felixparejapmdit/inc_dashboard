@@ -12,6 +12,19 @@ exports.getAllAddresses = async (req, res) => {
   }
 };
 
+// Get personnel addresses where address_type = 'INC Housing'
+exports.getIncHousingAddresses = async (req, res) => {
+  try {
+    const addresses = await PersonnelAddress.findAll({
+      where: { address_type: "INC Housing" },
+    });
+    res.status(200).json(addresses);
+  } catch (error) {
+    console.error("Error fetching INC Housing addresses:", error);
+    res.status(500).json({ error: "Failed to fetch INC Housing addresses." });
+  }
+};
+
 exports.getAddressById = async (req, res) => {
   try {
     const address = await PersonnelAddress.findByPk(req.params.id);
