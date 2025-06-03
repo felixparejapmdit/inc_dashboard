@@ -147,7 +147,8 @@ const ProgressTracking = () => {
           </Thead>
           <Tbody>
             {filteredUsers.map((user, index) => (
-              <Tr key={user.id}>
+              // <Tr key={user.id}>
+              <Tr key={`${user.id}-${index}`}>
                 <Td>{index + 1}</Td>
                 <Td>{user.fullname || "N/A"}</Td>
                 <Td>{user.email_address || "No Email"}</Td>

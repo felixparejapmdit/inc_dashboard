@@ -316,7 +316,8 @@ const Step5 = () => {
             </Thead>
             <Tbody>
               {filteredPersonnel.map((personnel, index) => (
-                <Tr key={personnel.id}>
+                // <Tr key={personnel.id}>
+                <Tr key={`${personnel.id}-${index}`}>
                   <Td>{index + 1}</Td>
                   <Td>{personnel.fullname || "N/A"}</Td>
                   <Td>{personnel.email_address || "N/A"}</Td>
