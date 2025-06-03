@@ -829,7 +829,8 @@ const GroupManagement = () => {
                   </Thead>
                   <Tbody>
                     {groupUsers.map((user, index) => (
-                      <Tr key={user.id}>
+                      // <Tr key={user.id}>
+                      <Tr key={`${user.id}-${index}`}>
                         <Td>{index + 1}</Td> {/* Row number */}
                         <Td>{user.fullname || "N/A"}</Td>
                         <Td>{user.username}</Td>

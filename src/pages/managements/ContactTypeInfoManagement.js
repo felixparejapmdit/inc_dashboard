@@ -233,7 +233,8 @@ const ContactTypeInfoManagement = () => {
             </Tr>
           )}
           {filteredContactTypes.map((type, index) => (
-            <Tr key={type.id}>
+            // <Tr key={type.id}>
+            <Tr key={`${type.id}-${index}`}>
               <Td>{index + 1}</Td>
               <Td>
                 {editingContactType?.id === type.id ? (

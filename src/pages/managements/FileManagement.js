@@ -662,7 +662,8 @@ const FileManagement = (qrcode) => {
               <Tbody>
                 {filteredFiles.length > 0 ? (
                   filteredFiles.map((file, index) => (
-                    <Tr key={file.id}>
+                    // <Tr key={file.id}>
+                    <Tr key={`${file.id}-${index}`}>
                       <Td>{index + 1}</Td>
                       <Td>
                         {file.filename

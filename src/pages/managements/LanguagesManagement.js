@@ -296,7 +296,8 @@ const LanguagesManagement = () => {
               </Tr>
             )}
             {currentItems.map((language, index) => (
-              <Tr key={language.id}>
+              // <Tr key={language.id}>
+              <Tr key={`${language.id}-${index}`}>
                 <Td>{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</Td>
                 {editingLanguage && editingLanguage.id === language.id ? (
                   <>

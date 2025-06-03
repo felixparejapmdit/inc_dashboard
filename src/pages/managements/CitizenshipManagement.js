@@ -281,7 +281,8 @@ const CitizenshipManagement = () => {
               </Tr>
             )}
             {currentItems.map((citizen, index) => (
-              <Tr key={citizen.id}>
+              // <Tr key={citizen.id}>
+              <Tr key={`${citizen.id}-${index}`}>
                 <Td>{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</Td>
                 <Td>{citizen.country_name}</Td>
                 <Td>{citizen.citizenship}</Td>

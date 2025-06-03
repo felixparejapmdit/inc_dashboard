@@ -190,7 +190,8 @@ const ApplicationTypeManagement = () => {
           <Tbody>
             {filteredAppTypes.length > 0 ? (
               filteredAppTypes.map((type, index) => (
-                <Tr key={type.id}>
+                // <Tr key={type.id}>
+                <Tr key={`${type.id}-${index}`}>
                   <Td>{index + 1}</Td> {/* Row Number */}
                   <Td>{type.name}</Td>
                   <Td textAlign="right">

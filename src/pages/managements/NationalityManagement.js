@@ -281,7 +281,7 @@ const NationalityManagement = () => {
               </Tr>
             )}
             {currentItems.map((nation, index) => (
-              <Tr key={nation.id}>
+              <Tr key={`${nation.id}-${index}`}>
                 <Td>{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</Td>
                 <Td>{nation.country_name}</Td>
                 <Td>{nation.nationality}</Td>

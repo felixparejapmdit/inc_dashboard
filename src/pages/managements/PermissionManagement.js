@@ -274,7 +274,8 @@ const PermissionManagement = () => {
               {permissions
                 .filter((permission) => permission.categoryId === category.id)
                 .map((permission, index) => (
-                  <Tr key={permission.id}>
+                  // <Tr key={permission.id}>
+                  <Tr key={`${permission.id}-${index}`}>
                     <Td>{index + 1}</Td>
                     <Td>
                       {editingPermission &&

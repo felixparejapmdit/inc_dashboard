@@ -224,7 +224,8 @@ const GovernmentIssuedIDManagement = () => {
             </Tr>
           )}
           {filteredGovernmentIDs.map((id, index) => (
-            <Tr key={id.id}>
+            // <Tr key={id.id}>
+            <Tr key={`${id.id}-${index}`}>
               <Td>{index + 1}</Td>
               <Td>
                 {editingGovernmentID?.id === id.id ? (

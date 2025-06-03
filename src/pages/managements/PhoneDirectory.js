@@ -436,7 +436,8 @@ const PhoneDirectory = () => {
             <Tbody>
               {currentItems.length > 0 ? (
                 currentItems.map((entry, index) => (
-                  <Tr key={entry.id}>
+                  // <Tr key={entry.id}>
+                  <Tr key={`${entry.id}-${index}`}>
                     <Td whiteSpace="nowrap">{startIndex + index + 1}</Td>
                     <Td
                       whiteSpace="nowrap"
