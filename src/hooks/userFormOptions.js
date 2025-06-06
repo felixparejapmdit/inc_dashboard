@@ -66,6 +66,9 @@ export function useUserFormData() {
     subsections,
     designations,
     incHousingAddresses, // 👈 NEW
+    civilStatusOptions,
+    educationalLevelOptions,
+    bloodtypes,
   };
 }
 

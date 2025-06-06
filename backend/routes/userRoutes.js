@@ -561,6 +561,7 @@ router.get("/api/users", async (req, res) => {
   p.surname_maiden AS personnel_surname_maiden,
   p.suffix AS personnel_suffix,
   p.nickname AS personnel_nickname,
+  p.registered_district_id As personnel_registered_district_id,
   p.registered_local_congregation AS personnel_registered_local_congregation,
   p.date_of_birth AS personnel_date_of_birth,
   p.place_of_birth AS personnel_place_of_birth,
@@ -579,11 +580,18 @@ router.get("/api/users", async (req, res) => {
   p.ordination_date AS personnel_ordination_date,
   d.name AS personnel_department_name,
   s.name AS personnel_section_name,
+  s.id AS personnel_section_id,
   ss.name AS personnel_subsection_name,
+  ss.id AS personnel_subsection_id,
   dg.name AS personnel_designation_name,
   dt.name AS personnel_district_name,
   l.name AS personnel_language_name,
-  u.id as user_id
+  u.id as user_id,
+  p.citizenship,
+  p.designation_id,
+  p.language_id,
+  edu.educational_levels AS personnel_educational_level,
+  addr.address_types AS personnel_address_type
 FROM users u 
 LEFT JOIN user_group_mappings ugm ON ugm.user_id = u.ID 
 LEFT JOIN user_groups ug ON ug.id = ugm.group_id 
@@ -596,40 +604,28 @@ LEFT JOIN subsections ss ON p.subsection_id = ss.id
 LEFT JOIN designations dg ON p.designation_id = dg.id
 LEFT JOIN districts dt ON p.district_assignment_id = dt.id
 LEFT JOIN languages l ON p.language_id = l.id
+
+LEFT JOIN (
+    SELECT personnel_id, GROUP_CONCAT(level SEPARATOR '; ') AS educational_levels
+    FROM educational_background
+    GROUP BY personnel_id
+) AS edu ON edu.personnel_id = p.personnel_id
+
+LEFT JOIN (
+    SELECT personnel_id, GROUP_CONCAT(name SEPARATOR '; ') AS address_types
+    FROM personnel_address
+    GROUP BY personnel_id
+) AS addr ON addr.personnel_id = p.personnel_id
+
 GROUP BY 
-  u.ID, 
-  u.personnel_id, 
-  u.username, 
-  u.password, 
-  u.avatar, 
-  p.givenname, 
-  p.middlename, 
-  p.surname_husband, 
-  p.surname_maiden, 
-  p.suffix, 
-  p.nickname, 
-  p.registered_local_congregation,
-  p.date_of_birth, 
-  p.place_of_birth, 
-  p.datejoined, 
-  p.gender, 
-  p.civil_status, 
-  p.wedding_anniversary, 
-  p.email_address, 
-  p.bloodtype, 
-  p.local_congregation, 
-  p.personnel_type, 
-  p.local_congregation_assignment,
-  p.assigned_number, 
-  p.panunumpa_date, 
-  p.ordination_date, 
-  d.name, 
-  s.name, 
-  ss.name, 
-  dg.name, 
-  dt.name, 
-  l.name,
-  u.id;
+  u.ID, u.personnel_id, u.username, u.password, u.avatar, 
+  p.givenname, p.middlename, p.surname_husband, p.surname_maiden, p.suffix, p.nickname, 
+  p.registered_district_id, p.registered_local_congregation, p.date_of_birth, 
+  p.place_of_birth, p.datejoined, p.gender, p.civil_status, p.wedding_anniversary, 
+  p.email_address, p.bloodtype, p.local_congregation, p.personnel_type, 
+  p.local_congregation_assignment, p.assigned_number, p.panunumpa_date, p.ordination_date, 
+  d.name, s.name, s.id, ss.name, ss.id, dg.name, dt.name, l.name, 
+  u.id, p.citizenship, p.designation_id, p.language_id;
 `;
 
   // Function to fetch users from LDAP

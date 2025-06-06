@@ -60,13 +60,7 @@ import autoTable from "jspdf-autotable";
 import { usePermissionContext } from "../contexts/PermissionContext";
 import Photoshoot from "./progress/Photoshoot"; // Import Photoshoot component
 
-import {
-  useUserFormData,
-  suffixOptions,
-  civilStatusOptions,
-  educationalLevelOptions,
-  bloodtypes,
-} from "../hooks/userFormOptions";
+import { useUserFormData, suffixOptions } from "../hooks/userFormOptions";
 
 const API_URL = process.env.REACT_APP_API_URL;
 const ITEMS_PER_PAGE = 5;
@@ -77,19 +71,23 @@ const Users = ({ personnelId }) => {
     localCongregations,
     languages,
     citizenships,
-    nationalities,
-    departments,
     sections,
     subsections,
     designations,
     incHousingAddresses,
+    civilStatusOptions,
+    educationalLevelOptions,
+    bloodtypes,
   } = useUserFormData();
 
+  const [filteredLocals, setFilteredLocals] = useState(localCongregations);
+
+  const [allAdvanceSelected, setAllAdvanceSelected] = useState(false);
+  const [SelectedPersonnelTypes, setSelectedPersonnelTypes] = useState([]); // For advanced filters
   const [users, setUsers] = useState([]);
 
   const { hasPermission } = usePermissionContext(); // Correct usage
 
-  const [setFilteredUsers] = useState([]);
   const [groups, setGroups] = useState([]);
   const [avatarFile, setAvatarFile] = useState(null);
   const [selectedGroup, setSelectedGroup] = useState(""); // For group assignment
@@ -139,12 +137,11 @@ const Users = ({ personnelId }) => {
   } = useDisclosure();
 
   const [advancedFilters, setAdvancedFilters] = useState({
-    ministero: false,
-    manggagawa: false,
-    kawani: false,
-    ministersWife: false,
-    ministerialStudent: false,
-    incHousing: false,
+    Minister: false,
+    Regular: false,
+    "Lay Member": false,
+    "Minister's Wife": false,
+    "Ministerial Student": false,
     district: "",
     local: "",
     section: "",
@@ -155,15 +152,17 @@ const Users = ({ personnelId }) => {
     language: "",
     citizenship: "",
     civil_status: "",
+    educational_attainment: "",
+    inc_housing_address_id: "",
+    incHousing: false,
   });
 
   const [checkboxes, setCheckboxes] = useState({
-    ministero: false,
-    manggagawa: false,
-    kawani: false,
-    ministersWife: false,
-    ministerialStudent: false,
-    incHousing: false,
+    Minister: false,
+    Regular: false,
+    "Lay Member": false,
+    "Minister's Wife": false,
+    "Ministerial Student": false,
   });
 
   const handleAdvancedFilterChange = (key, value) => {
@@ -173,17 +172,83 @@ const Users = ({ personnelId }) => {
     }));
   };
 
-  const handleAdvanceSelectAll = (e) => {
-    const isChecked = e.target.checked;
-    const updated = {};
-    Object.keys(checkboxes).forEach((key) => {
-      updated[key] = isChecked;
-    });
-    setCheckboxes(updated);
+  const handleDropdownFilterChange = (key, value) => {
+    if (key === "district") {
+      // Filter locals based on selected district
+      const filtered = localCongregations.filter(
+        (local) => local.district_id === parseInt(value)
+      );
+      setFilteredLocals(filtered);
+    }
+
+    // ✅ Update advancedFilters instead of checkboxes
+    setAdvancedFilters((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
   };
 
   // All are selected if every value is true
   const allSelected = Object.values(checkboxes).every((val) => val);
+
+  const personnelTypeMap = {
+    ministero: "Minister",
+    manggagawa: "Worker",
+    kawani: "Staff",
+    ministersWife: "Minister's Wife",
+    ministerialStudent: "Ministerial Student",
+  };
+
+  const handleAdvanceSelectAll = (e) => {
+    const checked = e.target.checked;
+
+    const newCheckboxes = {
+      Minister: checked,
+      Regular: checked,
+      "Lay Member": checked,
+      "Minister's Wife": checked,
+      "Ministerial Student": checked,
+    };
+
+    setCheckboxes(newCheckboxes);
+    setAllAdvanceSelected(checked);
+
+    const selectedTypes = checked ? Object.keys(newCheckboxes) : [];
+
+    setSelectedPersonnelTypes(selectedTypes);
+
+    setAdvancedFilters((prev) => ({
+      ...prev,
+      ...newCheckboxes, // this updates all personnel type keys like Minister, Regular...
+      personnel_types: selectedTypes, // optional: if you're using this array
+    }));
+  };
+
+  const handleCheckboxChange = (key, isChecked) => {
+    const updatedCheckboxes = {
+      ...checkboxes,
+      [key]: isChecked,
+    };
+    setCheckboxes(updatedCheckboxes);
+
+    const mapKey = {
+      minister: "Minister",
+      regular: "Regular",
+      layMember: "Lay Member",
+      ministersWife: "Minister's Wife",
+      ministerialStudent: "Ministerial Student",
+    };
+
+    setAdvancedFilters((prev) => ({
+      ...prev,
+      [mapKey[key]]: isChecked,
+    }));
+  };
+
+  const applyAdvancedFilters = () => {
+    fetchUsers(); // Or however you fetch filtered results
+    onCloseAdvance();
+  };
 
   useEffect(() => {
     fetchUsers();
@@ -218,6 +283,7 @@ const Users = ({ personnelId }) => {
   useEffect(() => {
     fetchApps();
   }, []);
+
   const fetchUsers = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/users`);
@@ -268,11 +334,6 @@ const Users = ({ personnelId }) => {
       .toLowerCase();
 
     const {
-      ministero,
-      manggagawa,
-      kawani,
-      ministersWife,
-      ministerialStudent,
       incHousing,
       district,
       local,
@@ -284,28 +345,50 @@ const Users = ({ personnelId }) => {
       language,
       citizenship,
       civil_status,
+      educational_attainment, // ✅ add this
+      inc_housing_address_id, // ✅ and this
     } = advancedFilters;
 
+    // Filter for personnel types: allow all if none selected, else match any selected
+    const selectedTypes = [];
+    if (advancedFilters.Minister) selectedTypes.push("Minister");
+    if (advancedFilters.Regular) selectedTypes.push("Regular");
+    if (advancedFilters["Lay Member"]) selectedTypes.push("Lay Member");
+    if (advancedFilters["Minister's Wife"])
+      selectedTypes.push("Minister's Wife");
+    if (advancedFilters["Ministerial Student"])
+      selectedTypes.push("Ministerial Student");
+
+    const personnelTypeMatch =
+      selectedTypes.length === 0 || selectedTypes.includes(user.personnel_type);
+
     const matchesAdvancedFilters =
-      (!ministero || user.personnel_type === "Ministero") &&
-      (!manggagawa || user.personnel_type === "Manggagawa") &&
-      (!kawani || user.personnel_type === "Kawani") &&
-      (!ministersWife || user.personnel_type === "Minister's Wife") &&
-      (!ministerialStudent || user.personnel_type === "Ministerial Student") &&
+      personnelTypeMatch &&
       (!incHousing || user.personnel_housing === "Yes") &&
-      (!district || user.personnel_district_name === district) &&
-      (!local || user.personnel_local_congregation === local) &&
-      (!section || user.personnel_section_name === section) &&
-      (!team || user.personnel_team === team) &&
-      (!role || user.personnel_role === role) &&
+      (!district ||
+        user.personnel_registered_district_id?.toString() === district) &&
+      (!local ||
+        user.personnel_registered_local_congregation?.toString() === local) &&
+      (!section || user.personnel_section_id?.toString() === section) &&
+      (!team || user.personnel_subsection_id?.toString() === team) &&
+      (!role || user.designation_id?.toString() === role) &&
       (!birthdayMonth ||
         new Date(user.date_of_birth).toLocaleString("default", {
           month: "long",
         }) === birthdayMonth) &&
-      (!bloodtype || user.bloodtype === bloodtype) &&
-      (!language || user.personnel_language_name === language) &&
-      (!citizenship || user.citizenship?.includes(citizenship)) &&
-      (!civil_status || user.civil_status === civil_status);
+      (!bloodtype ||
+        user.personnel_bloodtype?.toLowerCase() === bloodtype.toLowerCase()) &&
+      (!language || user.p.language_id?.toString() === language) &&
+      (!citizenship ||
+        user.citizenship?.toLowerCase() === citizenship.toLowerCase()) &&
+      (!civil_status ||
+        user.personnel_civil_status?.toLowerCase() ===
+          civil_status.toLowerCase()) &&
+      (!educational_attainment ||
+        user.personnel_educational_level?.toLowerCase() ===
+          educational_attainment.toLowerCase()) &&
+      (!inc_housing_address_id ||
+        user.personnel_address_type?.toString() === inc_housing_address_id);
 
     return (
       combinedFields.includes(searchPersonnelList.toLowerCase()) &&
@@ -540,11 +623,6 @@ const Users = ({ personnelId }) => {
     onOpen();
   };
 
-  // const handleAppChange = (selectedValues) => {
-  //   setSelectedApps(selectedValues);
-  //   setSelectAll(selectedValues.length === apps.length);
-  // };
-
   const [forceRender, setForceRender] = useState(false);
 
   const handleAppChange = (updatedSelection, categoryApps) => {
@@ -731,17 +809,6 @@ const Users = ({ personnelId }) => {
     });
   };
 
-  // useEffect(() => {
-  //   if (existingPersonnel.length > 0) {
-  //     const sample = existingPersonnel[0];
-  //     const defaultVisibility = Object.keys(sample).reduce((acc, key) => {
-  //       acc[key] = true; // all columns visible by default
-  //       return acc;
-  //     }, {});
-  //     setColumnVisibility(defaultVisibility);
-  //   }
-  // }, [existingPersonnel]);
-
   useEffect(() => {
     console.log("existingPersonnel:", existingPersonnel); // ✅ Debug log
 
@@ -750,7 +817,7 @@ const Users = ({ personnelId }) => {
 
       // Define your default selected columns here
       const defaultColumns = [
-        "ID",
+        "username",
         "avatar",
         "personnel_givenname",
         "personnel_surname_husband",
@@ -1303,25 +1370,6 @@ const Users = ({ personnelId }) => {
                 </Select>
               </FormControl>
 
-              {/* <FormControl>
-                <FormLabel>Available Apps</FormLabel>
-                <Checkbox
-                  isChecked={selectAll}
-                  onChange={(e) => handleSelectAll(e.target.checked)}
-                >
-                  Select All
-                </Checkbox>
-                <CheckboxGroup value={selectedApps} onChange={handleAppChange}>
-                  <Stack spacing={2}>
-                    {apps.map((app) => (
-                      <Checkbox key={app.id} value={app.name}>
-                        {app.name}
-                      </Checkbox>
-                    ))}
-                  </Stack>
-                </CheckboxGroup>
-              </FormControl> */}
-
               <FormControl>
                 <FormLabel fontSize="lg" fontWeight="bold" mb={3}>
                   Available Apps
@@ -1464,43 +1512,43 @@ const Users = ({ personnelId }) => {
           <ModalCloseButton />
           <ModalBody>
             <VStack spacing={3} align="stretch">
-              {/* Select All Checkbox */}
+              {/* Select All */}
               <Checkbox
-                isChecked={allSelected}
+                isChecked={allAdvanceSelected}
                 onChange={handleAdvanceSelectAll}
               >
                 Select All
               </Checkbox>
 
-              {/* Individual Checkboxes */}
+              {/* Role Checkboxes */}
               <Checkbox
-                isChecked={checkboxes.ministero}
+                isChecked={checkboxes.minister}
                 onChange={(e) =>
-                  handleAdvancedFilterChange("ministero", e.target.checked)
+                  handleCheckboxChange("minister", e.target.checked)
                 }
               >
-                Ministero
+                Minister
               </Checkbox>
               <Checkbox
-                isChecked={checkboxes.manggagawa}
+                isChecked={checkboxes.regular}
                 onChange={(e) =>
-                  handleAdvancedFilterChange("manggagawa", e.target.checked)
+                  handleCheckboxChange("regular", e.target.checked)
                 }
               >
-                Manggagawa
+                Regular
               </Checkbox>
               <Checkbox
-                isChecked={checkboxes.kawani}
+                isChecked={checkboxes.layMember}
                 onChange={(e) =>
-                  handleAdvancedFilterChange("kawani", e.target.checked)
+                  handleCheckboxChange("layMember", e.target.checked)
                 }
               >
-                Kawani
+                Lay Member
               </Checkbox>
               <Checkbox
                 isChecked={checkboxes.ministersWife}
                 onChange={(e) =>
-                  handleAdvancedFilterChange("ministersWife", e.target.checked)
+                  handleCheckboxChange("ministersWife", e.target.checked)
                 }
               >
                 Minister's Wife
@@ -1508,20 +1556,18 @@ const Users = ({ personnelId }) => {
               <Checkbox
                 isChecked={checkboxes.ministerialStudent}
                 onChange={(e) =>
-                  handleAdvancedFilterChange(
-                    "ministerialStudent",
-                    e.target.checked
-                  )
+                  handleCheckboxChange("ministerialStudent", e.target.checked)
                 }
               >
                 Ministerial Student
               </Checkbox>
 
+              {/* District and Local */}
               <HStack spacing={4}>
                 <Select
                   placeholder="District"
                   onChange={(e) =>
-                    handleAdvancedFilterChange("district", e.target.value)
+                    handleDropdownFilterChange("district", e.target.value)
                   }
                 >
                   {districts.map((d) => (
@@ -1534,10 +1580,10 @@ const Users = ({ personnelId }) => {
                 <Select
                   placeholder="Local"
                   onChange={(e) =>
-                    handleAdvancedFilterChange("local", e.target.value)
+                    handleDropdownFilterChange("local", e.target.value)
                   }
                 >
-                  {localCongregations.map((l) => (
+                  {filteredLocals.map((l) => (
                     <option key={l.id} value={l.id}>
                       {l.name}
                     </option>
@@ -1545,11 +1591,12 @@ const Users = ({ personnelId }) => {
                 </Select>
               </HStack>
 
+              {/* Section and Team */}
               <HStack spacing={4}>
                 <Select
                   placeholder="Section"
                   onChange={(e) =>
-                    handleAdvancedFilterChange("section", e.target.value)
+                    handleDropdownFilterChange("section", e.target.value)
                   }
                 >
                   {sections.map((s) => (
@@ -1562,7 +1609,7 @@ const Users = ({ personnelId }) => {
                 <Select
                   placeholder="Team"
                   onChange={(e) =>
-                    handleAdvancedFilterChange("team", e.target.value)
+                    handleDropdownFilterChange("team", e.target.value)
                   }
                 >
                   {subsections.map((t) => (
@@ -1573,11 +1620,12 @@ const Users = ({ personnelId }) => {
                 </Select>
               </HStack>
 
+              {/* Role and Birthday Month */}
               <HStack spacing={4}>
                 <Select
                   placeholder="Role"
                   onChange={(e) =>
-                    handleAdvancedFilterChange("role", e.target.value)
+                    handleDropdownFilterChange("role", e.target.value)
                   }
                 >
                   {designations.map((r) => (
@@ -1590,7 +1638,7 @@ const Users = ({ personnelId }) => {
                 <Select
                   placeholder="Birthday Month"
                   onChange={(e) =>
-                    handleAdvancedFilterChange("birthdayMonth", e.target.value)
+                    handleDropdownFilterChange("birthdayMonth", e.target.value)
                   }
                 >
                   {[
@@ -1614,24 +1662,29 @@ const Users = ({ personnelId }) => {
                 </Select>
               </HStack>
 
+              {/* Blood Type and Language */}
               <HStack spacing={4}>
                 <Select
-                  placeholder="Blood Type"
+                  placeholder="Select Blood Type"
+                  value={advancedFilters.bloodtype}
                   onChange={(e) =>
-                    handleAdvancedFilterChange("bloodtype", e.target.value)
+                    handleDropdownFilterChange("bloodtype", e.target.value)
                   }
                 >
-                  {bloodtypes.map((bt) => (
-                    <option key={bt} value={bt}>
-                      {bt}
-                    </option>
-                  ))}
+                  <option value="">All Blood Types</option>
+                  {bloodtypes
+                    .filter((bt) => bt && bt.trim() !== "") // removes null, undefined, empty strings
+                    .map((bt) => (
+                      <option key={bt} value={bt}>
+                        {bt}
+                      </option>
+                    ))}
                 </Select>
 
                 <Select
                   placeholder="Language"
                   onChange={(e) =>
-                    handleAdvancedFilterChange("language", e.target.value)
+                    handleDropdownFilterChange("language", e.target.value)
                   }
                 >
                   {languages.map((lang) => (
@@ -1642,11 +1695,12 @@ const Users = ({ personnelId }) => {
                 </Select>
               </HStack>
 
+              {/* Citizenship and Civil Status */}
               <HStack spacing={4}>
                 <Select
                   placeholder="Citizenship"
                   onChange={(e) =>
-                    handleAdvancedFilterChange("citizenship", e.target.value)
+                    handleDropdownFilterChange("citizenship", e.target.value)
                   }
                 >
                   {citizenships.map((c) => (
@@ -1659,7 +1713,7 @@ const Users = ({ personnelId }) => {
                 <Select
                   placeholder="Civil Status"
                   onChange={(e) =>
-                    handleAdvancedFilterChange("civil_status", e.target.value)
+                    handleDropdownFilterChange("civil_status", e.target.value)
                   }
                 >
                   {civilStatusOptions.map((status) => (
@@ -1670,17 +1724,19 @@ const Users = ({ personnelId }) => {
                 </Select>
               </HStack>
 
-              {/* New HStack for Educational Level and INC Housing Address */}
+              {/* Educational Level and INC Housing Address */}
               <HStack spacing={4} mt={4}>
                 <Select
                   placeholder="Educational Attainment"
+                  value={advancedFilters.educational_attainment}
                   onChange={(e) =>
-                    handleAdvancedFilterChange(
+                    handleDropdownFilterChange(
                       "educational_attainment",
                       e.target.value
                     )
                   }
                 >
+                  <option value="">All Levels</option>
                   {educationalLevelOptions.map((level) => (
                     <option key={level} value={level}>
                       {level}
@@ -1691,7 +1747,7 @@ const Users = ({ personnelId }) => {
                 <Select
                   placeholder="INC Housing Address"
                   onChange={(e) =>
-                    handleAdvancedFilterChange(
+                    handleDropdownFilterChange(
                       "inc_housing_address_id",
                       e.target.value
                     )
@@ -1707,7 +1763,7 @@ const Users = ({ personnelId }) => {
             </VStack>
           </ModalBody>
           <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={onCloseAdvance}>
+            <Button colorScheme="blue" mr={3} onClick={applyAdvancedFilters}>
               Apply Filters
             </Button>
             <Button variant="ghost" onClick={onCloseAdvance}>
