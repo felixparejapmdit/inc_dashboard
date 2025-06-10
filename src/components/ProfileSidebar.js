@@ -11,7 +11,8 @@ const ProfileSidebar = ({
   personnelEducationalBackground = [],
   personnelWorkExperience = [],
 }) => {
-  const { twoByTwo = "", halfBody = "", wholeBody = "" } = personnelImage;
+  // Destructure safely with default values
+  const { twoByTwo = "", halfBody = "", wholeBody = "" } = personnelImage || {};
   if (!personnel) return <div>Loading personnel data...</div>;
 
   const { username } = personnel;

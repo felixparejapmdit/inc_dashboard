@@ -55,7 +55,8 @@ import Chatbot from "../components/Chatbot"; // Import chatbot
 
 import { SearchIcon } from "@chakra-ui/icons";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+//import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 import axios from "axios";
 import { usePermissionContext } from "../contexts/PermissionContext";

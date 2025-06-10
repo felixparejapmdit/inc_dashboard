@@ -22,6 +22,7 @@ import {
   Divider,
 } from "@chakra-ui/react";
 import axios from "axios";
+import useGetNamesByIds from "../../hooks/useGetNamesByIds";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -38,6 +39,8 @@ const Step3 = () => {
     healthProtocols: false,
     emergencyProtocols: false,
   });
+
+  const { getNamesByIds } = useGetNamesByIds();
 
   const [isVerified, setIsVerified] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -317,7 +320,11 @@ const Step3 = () => {
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
-                  <b>Department:</b> {personnelInfo.department_id || "N/A"}
+                  <b>Department:</b>
+                  {getNamesByIds(
+                    personnelInfo.department_id,
+                    personnelInfo.name
+                  )}
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
