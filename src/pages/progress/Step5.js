@@ -31,6 +31,8 @@ import {
 } from "@chakra-ui/react";
 import axios from "axios";
 
+import { usePermissionContext } from "../../contexts/PermissionContext";
+
 import Photoshoot from "./Photoshoot"; // Import Photoshoot component
 
 const API_URL = process.env.REACT_APP_API_URL;
@@ -53,6 +55,8 @@ const Step5 = () => {
 
   const [personnelImages, setPersonnelImages] = useState([]);
   const [currentStep, setCurrentStep] = useState(1); // Step 1: 2x2, Step 2: Half Body, Step 3: Full Body
+
+  const { hasPermission } = usePermissionContext(); // Correct usage
 
   const toast = useToast();
 
@@ -171,7 +175,7 @@ const Step5 = () => {
 
     const allChecked = Object.values(photos).every((photo) => photo);
 
-    if (!allChecked) {
+    if (!allChecked && !hasPermission("progress.photoshoot_access")) {
       toast({
         title: "Verification Failed",
         description: "All required photos must be uploaded.",
@@ -523,7 +527,8 @@ const Step5 = () => {
                 w="100%"
                 onClick={handleVerify}
                 isDisabled={
-                  !Object.values(photos).every((photo) => photo) ||
+                  (!Object.values(photos).every((photo) => photo) &&
+                    !hasPermission("progress.photoshoot_access")) ||
                   !selectedUser?.personnel_id
                 }
               >

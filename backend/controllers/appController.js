@@ -323,7 +323,7 @@ GROUP BY
     // Send the dynamically categorized response
     res.json(categorizedApps);
 
-    console.log("Categorized Apps and Files:", categorizedApps);
+    //console.log("Categorized Apps and Files:", categorizedApps);
   } catch (error) {
     console.error("Error fetching available apps for user:", error);
     res.status(500).json({ message: "Database error" });
