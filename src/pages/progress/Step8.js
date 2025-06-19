@@ -22,11 +22,17 @@ import {
   Flex,
 } from "@chakra-ui/react";
 import axios from "axios";
+import useGetNamesByIds from "../../hooks/useGetNamesByIds";
+import useLookupData from "../../hooks/useLookupData";
+
 import ScanRFIDQRBarcode from "./ScanRFIDQRBarcode"; // Import the scan component
 
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Step8 = ({ onScanComplete }) => {
+  const { getNamesByIds } = useGetNamesByIds();
+
+  const lookupData = useLookupData();
   const [isVerified, setIsVerified] = useState(false);
   const [loading, setLoading] = useState(false);
   const [personnelList, setPersonnelList] = useState([]);
@@ -247,6 +253,51 @@ const Step8 = ({ onScanComplete }) => {
                 <Text fontSize="lg" mt={2}>
                   <b>Email Address:</b> {personnelInfo?.email_address || "N/A"}
                 </Text>
+
+                <Divider />
+                {personnelInfo && (
+                  <Text fontSize="lg" mt={2}>
+                    <b>Civil Status:</b> {personnelInfo.civil_status || "N/A"}
+                  </Text>
+                )}
+
+                <Divider />
+                <Text fontSize="lg" mt={2}>
+                  <b>Department:</b>{" "}
+                  {getNamesByIds(
+                    personnelInfo?.department_id,
+                    lookupData.departments
+                  )}
+                </Text>
+                <Divider />
+
+                <Text fontSize="lg" mt={2}>
+                  <b>Designation:</b>{" "}
+                  {getNamesByIds(
+                    personnelInfo?.designation_id,
+                    lookupData.designations
+                  )}
+                </Text>
+                <Divider />
+
+                <Text fontSize="lg" mt={2}>
+                  <b>District:</b>{" "}
+                  {getNamesByIds(
+                    personnelInfo?.district_id,
+                    lookupData.districts
+                  )}
+                </Text>
+                <Divider />
+
+                <Text fontSize="lg" mt={2}>
+                  <b>Local Congregation:</b>{" "}
+                  {getNamesByIds(
+                    personnelInfo?.local_congregation,
+                    lookupData.localCongregations
+                  )}
+                </Text>
+
+                <Divider />
               </Box>
               {/* Checklist */}
               <Flex

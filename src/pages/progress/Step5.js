@@ -30,6 +30,8 @@ import {
   Image, // ✅ Add Image here
 } from "@chakra-ui/react";
 import axios from "axios";
+import useGetNamesByIds from "../../hooks/useGetNamesByIds";
+import useLookupData from "../../hooks/useLookupData";
 
 import { usePermissionContext } from "../../contexts/PermissionContext";
 
@@ -43,6 +45,11 @@ const Step5 = () => {
     halfBody: false,
     fullBody: false,
   });
+
+  const { getNamesByIds } = useGetNamesByIds();
+
+  const lookupData = useLookupData();
+
   const [isVerified, setIsVerified] = useState(false);
   const [loading, setLoading] = useState(false);
   const [personnelList, setPersonnelList] = useState([]);

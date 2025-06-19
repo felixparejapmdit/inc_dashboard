@@ -1,0 +1,67 @@
+// src/hooks/useLookupData.js
+import { useState, useEffect } from "react";
+import axios from "axios";
+
+const API_URL = process.env.REACT_APP_API_URL;
+const DISTRICT_API_URL = process.env.REACT_APP_DISTRICT_API_URL;
+const LOCAL_CONGREGATION_API_URL =
+  process.env.REACT_APP_LOCAL_CONGREGATION_API_URL;
+
+const useLookupData = () => {
+  const [lookupData, setLookupData] = useState({
+    languages: [],
+    citizenships: [],
+    nationalities: [],
+    departments: [],
+    sections: [],
+    subsections: [],
+    designations: [],
+    districts: [],
+    localCongregations: [],
+  });
+
+  useEffect(() => {
+    const fetchAllData = async () => {
+      try {
+        const endpoints = [
+          "languages",
+          "citizenships",
+          "nationalities",
+          "departments",
+          "sections",
+          "subsections",
+          "designations",
+        ];
+
+        const generalResponses = await Promise.all(
+          endpoints.map((endpoint) => axios.get(`${API_URL}/api/${endpoint}`))
+        );
+
+        const districtResponse = await axios.get(
+          `${DISTRICT_API_URL}/api/districts`
+        );
+        const localCongregationResponse = await axios.get(
+          `${LOCAL_CONGREGATION_API_URL}/api/all-congregations`
+        );
+
+        const lookupResults = {};
+        endpoints.forEach((endpoint, index) => {
+          lookupResults[endpoint] = generalResponses[index].data;
+        });
+
+        lookupResults["districts"] = districtResponse.data;
+        lookupResults["localCongregations"] = localCongregationResponse.data;
+
+        setLookupData(lookupResults);
+      } catch (error) {
+        console.error("Error fetching lookup data:", error);
+      }
+    };
+
+    fetchAllData();
+  }, []);
+
+  return lookupData;
+};
+
+export default useLookupData;

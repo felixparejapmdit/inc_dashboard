@@ -22,6 +22,8 @@ import {
   Flex,
 } from "@chakra-ui/react";
 import axios from "axios";
+import useGetNamesByIds from "../../hooks/useGetNamesByIds";
+import useLookupData from "../../hooks/useLookupData";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -30,6 +32,11 @@ const Step6 = () => {
     confidentiality: false,
     informationSheet: false,
   });
+
+  const { getNamesByIds } = useGetNamesByIds();
+
+  const lookupData = useLookupData();
+
   const [isVerified, setIsVerified] = useState(false);
   const [loading, setLoading] = useState(false);
   const [personnelList, setPersonnelList] = useState([]);
@@ -295,21 +302,40 @@ const Step6 = () => {
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
-                  <b>Department:</b> {personnelInfo.department_id || "N/A"}
+                  <b>Department:</b>{" "}
+                  {getNamesByIds(
+                    personnelInfo?.department_id,
+                    lookupData.departments
+                  )}
                 </Text>
                 <Divider />
+
                 <Text fontSize="lg" mt={2}>
-                  <b>Designation:</b> {personnelInfo.designation_id || "N/A"}
+                  <b>Designation:</b>{" "}
+                  {getNamesByIds(
+                    personnelInfo?.designation_id,
+                    lookupData.designations
+                  )}
                 </Text>
                 <Divider />
+
                 <Text fontSize="lg" mt={2}>
-                  <b>District:</b> {personnelInfo.district_id || "N/A"}
+                  <b>District:</b>{" "}
+                  {getNamesByIds(
+                    personnelInfo?.district_id,
+                    lookupData.districts
+                  )}
                 </Text>
                 <Divider />
+
                 <Text fontSize="lg" mt={2}>
                   <b>Local Congregation:</b>{" "}
-                  {personnelInfo.local_congregation || "N/A"}
+                  {getNamesByIds(
+                    personnelInfo?.local_congregation,
+                    lookupData.localCongregations
+                  )}
                 </Text>
+
                 <Divider />
                 <Text fontSize="lg" mt={2}>
                   <b>Personnel Type:</b> {personnelInfo.personnel_type}
