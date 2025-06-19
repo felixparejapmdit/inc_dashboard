@@ -348,7 +348,8 @@ const PersonnelInfo = ({
               }}
             ></div>
 
-            {personnel.personnel_type !== "Lay Member" ? (
+            {personnel.personnel_type !== "Lay Member" &&
+            personnel.personnel_type !== "Minister's Wife" ? (
               // --- Non-Lay Member view ---
               <div
                 style={{
