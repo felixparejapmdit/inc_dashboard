@@ -575,163 +575,6 @@ export default function Dashboard() {
                 Have a nice day.
               </Text>
             </Box>
-            {/* Recent Login Logs Section */}
-            {hasPermission("home.recent_activity") && (
-              <Box
-                mt={6}
-                mx="auto"
-                px={{ base: 4, md: 8 }}
-                width="100%"
-                maxW="100%"
-              >
-                <Heading
-                  as="h4"
-                  size={{ base: "md", md: "lg" }}
-                  mb={4}
-                  bgGradient="linear(to-r, orange.400, yellow.300)"
-                  bgClip="text"
-                  fontWeight="extrabold"
-                  userSelect="none"
-                >
-                  Recent Login Activity
-                </Heading>
-
-                {/* Search bar */}
-                <InputGroup mb={6} maxW={{ base: "100%", sm: "320px" }}>
-                  <InputLeftElement pointerEvents="none">
-                    <SearchIcon color="gray.400" />
-                  </InputLeftElement>
-                  <Input
-                    type="text"
-                    placeholder="Search by username..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    _focus={{
-                      borderColor: "orange.400",
-                      boxShadow: "0 0 0 2px #ED8936",
-                    }}
-                    bg="white"
-                    borderRadius="md"
-                    boxShadow="sm"
-                    fontSize={{ base: "sm", md: "md" }}
-                    width="100%"
-                  />
-                </InputGroup>
-
-                <Box
-                  bg="white"
-                  borderRadius="xl"
-                  boxShadow="xl"
-                  overflowX="auto"
-                  p={{ base: 4, md: 6 }}
-                  maxH="300px"
-                >
-                  {filteredAudits.length === 0 ? (
-                    <Text
-                      color="gray.500"
-                      textAlign="center"
-                      py={10}
-                      fontSize={{ base: "sm", md: "md" }}
-                    >
-                      No login records found.
-                    </Text>
-                  ) : (
-                    <Table
-                      variant="unstyled"
-                      size="sm"
-                      minWidth="700px" // ensure table can scroll horizontally if needed
-                      sx={{
-                        "thead tr": {
-                          // remove this if you're setting background on each <th> instead
-                          // otherwise, you can keep it for fallback
-                          backgroundColor: "orange.400",
-                        },
-                        "thead th": {
-                          color: "white",
-                          fontWeight: "bold",
-                          borderBottom: "none",
-                          userSelect: "none",
-                          position: "sticky",
-                          top: -7,
-                          zIndex: 10, // ensure it's above rows
-                          px: { base: 3, md: 6 },
-                          py: { base: 2, md: 3 },
-                          fontSize: { base: "xs", md: "sm" },
-                          whiteSpace: "nowrap",
-                          backgroundColor: "orange.400", // key fix
-                          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.06)", // optional visual separation
-                        },
-                        "tbody tr": {
-                          bg: "white",
-                          transition: "background-color 0.3s ease",
-                        },
-                        "tbody tr:hover": {
-                          bg: "gray.50",
-                          cursor: "pointer",
-                        },
-                        "tbody td": {
-                          px: { base: 3, md: 6 },
-                          py: { base: 2, md: 3 },
-                          borderBottom: "1px solid #E2E8F0",
-                          color: "gray.700",
-                          fontSize: { base: "xs", md: "sm" },
-                          whiteSpace: "nowrap",
-                        },
-                      }}
-                    >
-                      <Thead>
-                        <Tr>
-                          <Th>#</Th>
-                          <Th>User</Th>
-                          <Th>Device</Th>
-                          <Th>OS</Th>
-                          <Th>Browser</Th>
-                          <Th>Date</Th>
-                        </Tr>
-                      </Thead>
-                      <Tbody>
-                        {filteredAudits.map((log, idx) => (
-                          <Tr key={log.id || idx}>
-                            <Td
-                              fontWeight="semibold"
-                              color="gray.600"
-                              whiteSpace="nowrap"
-                              fontSize={{ base: "xs", md: "sm" }}
-                            >
-                              {idx + 1}
-                            </Td>
-                            <Td>{log.user?.username || "—"}</Td>
-                            <Td>{log.device || "—"}</Td>
-                            <Td>{log.os || "—"}</Td>
-                            <Td>{log.browser || "—"}</Td>
-                            <Td>
-                              {log.login_time
-                                ? new Date(log.login_time).toLocaleDateString(
-                                    "en-US",
-                                    {
-                                      year: "numeric",
-                                      month: "short",
-                                      day: "numeric",
-                                    }
-                                  ) +
-                                  " " +
-                                  new Date(log.login_time)
-                                    .toLocaleTimeString("en-US", {
-                                      hour: "numeric",
-                                      minute: "2-digit",
-                                      hour12: true,
-                                    })
-                                    .toLowerCase()
-                                : "—"}
-                            </Td>
-                          </Tr>
-                        ))}
-                      </Tbody>
-                    </Table>
-                  )}
-                </Box>
-              </Box>
-            )}
           </VStack>
 
           {/* Color mode toggle button */}
@@ -960,6 +803,157 @@ export default function Dashboard() {
         )}
       </>
 
+      {/* Recent Login Logs Section */}
+      {hasPermission("home.recent_activity") && (
+        <Box mt={6} mx="auto" px={{ base: 4, md: 8 }} width="100%" maxW="100%">
+          <Heading
+            as="h4"
+            size={{ base: "md", md: "lg" }}
+            mb={4}
+            bgGradient="linear(to-r, orange.400, yellow.300)"
+            bgClip="text"
+            fontWeight="extrabold"
+            userSelect="none"
+          >
+            Recent Login Activity
+          </Heading>
+
+          {/* Search bar */}
+          <InputGroup mb={6} maxW={{ base: "100%", sm: "320px" }}>
+            <InputLeftElement pointerEvents="none">
+              <SearchIcon color="gray.400" />
+            </InputLeftElement>
+            <Input
+              type="text"
+              placeholder="Search by username..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              _focus={{
+                borderColor: "orange.400",
+                boxShadow: "0 0 0 2px #ED8936",
+              }}
+              bg="white"
+              borderRadius="md"
+              boxShadow="sm"
+              fontSize={{ base: "sm", md: "md" }}
+              width="100%"
+            />
+          </InputGroup>
+
+          <Box
+            bg="white"
+            borderRadius="xl"
+            boxShadow="xl"
+            overflowX="auto"
+            p={{ base: 4, md: 6 }}
+            maxH="300px"
+          >
+            {filteredAudits.length === 0 ? (
+              <Text
+                color="gray.500"
+                textAlign="center"
+                py={10}
+                fontSize={{ base: "sm", md: "md" }}
+              >
+                No login records found.
+              </Text>
+            ) : (
+              <Table
+                variant="unstyled"
+                size="sm"
+                minWidth="700px" // ensure table can scroll horizontally if needed
+                sx={{
+                  "thead tr": {
+                    // remove this if you're setting background on each <th> instead
+                    // otherwise, you can keep it for fallback
+                    backgroundColor: "orange.400",
+                  },
+                  "thead th": {
+                    color: "white",
+                    fontWeight: "bold",
+                    borderBottom: "none",
+                    userSelect: "none",
+                    position: "sticky",
+                    top: -7,
+                    zIndex: 10, // ensure it's above rows
+                    px: { base: 3, md: 6 },
+                    py: { base: 2, md: 3 },
+                    fontSize: { base: "xs", md: "sm" },
+                    whiteSpace: "nowrap",
+                    backgroundColor: "orange.400", // key fix
+                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.06)", // optional visual separation
+                  },
+                  "tbody tr": {
+                    bg: "white",
+                    transition: "background-color 0.3s ease",
+                  },
+                  "tbody tr:hover": {
+                    bg: "gray.50",
+                    cursor: "pointer",
+                  },
+                  "tbody td": {
+                    px: { base: 3, md: 6 },
+                    py: { base: 2, md: 3 },
+                    borderBottom: "1px solid #E2E8F0",
+                    color: "gray.700",
+                    fontSize: { base: "xs", md: "sm" },
+                    whiteSpace: "nowrap",
+                  },
+                }}
+              >
+                <Thead>
+                  <Tr>
+                    <Th>#</Th>
+                    <Th>User</Th>
+                    <Th>Device</Th>
+                    <Th>OS</Th>
+                    <Th>Browser</Th>
+                    <Th>Date</Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {filteredAudits.map((log, idx) => (
+                    <Tr key={log.id || idx}>
+                      <Td
+                        fontWeight="semibold"
+                        color="gray.600"
+                        whiteSpace="nowrap"
+                        fontSize={{ base: "xs", md: "sm" }}
+                      >
+                        {idx + 1}
+                      </Td>
+                      <Td>{log.user?.username || "—"}</Td>
+                      <Td>{log.device || "—"}</Td>
+                      <Td>{log.os || "—"}</Td>
+                      <Td>{log.browser || "—"}</Td>
+                      <Td>
+                        {log.login_time
+                          ? new Date(log.login_time).toLocaleDateString(
+                              "en-US",
+                              {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              }
+                            ) +
+                            " " +
+                            new Date(log.login_time)
+                              .toLocaleTimeString("en-US", {
+                                hour: "numeric",
+                                minute: "2-digit",
+                                hour12: true,
+                              })
+                              .toLowerCase()
+                          : "—"}
+                      </Td>
+                    </Tr>
+                  ))}
+                </Tbody>
+              </Table>
+            )}
+          </Box>
+        </Box>
+      )}
       {/* Modal for App Info */}
       {selectedApp && (
         <Modal isOpen={isOpen} onClose={onClose}>
