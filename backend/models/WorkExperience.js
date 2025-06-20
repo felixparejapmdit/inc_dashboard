@@ -26,11 +26,11 @@ const WorkExperience = sequelize.define(
       allowNull: true,
     },
     position: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.STRING(150),
       allowNull: true,
     },
     department: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.STRING(150),
       allowNull: true,
     },
     section: {
@@ -46,7 +46,7 @@ const WorkExperience = sequelize.define(
       allowNull: true,
     },
     reason_for_leaving: {
-      type: DataTypes.STRING(150),
+      type: DataTypes.STRING(250),
       allowNull: true,
     },
   },

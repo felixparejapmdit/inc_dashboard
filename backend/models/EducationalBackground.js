@@ -14,7 +14,7 @@ const EducationalBackground = sequelize.define(
       allowNull: false,
     },
     level: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.STRING(150),
       allowNull: false,
     },
     startfrom: {
@@ -26,25 +26,25 @@ const EducationalBackground = sequelize.define(
       allowNull: true,
     },
     school: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.STRING(150),
       allowNull: true,
     },
     field_of_study: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.STRING(150),
       allowNull: true,
     },
     degree: {
-      type: DataTypes.STRING(30),
+      type: DataTypes.STRING(150),
       allowNull: true,
     },
     institution: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.STRING(150),
       allowNull: true,
     },
     professional_licensure_examination: {
       type: DataTypes.STRING(150),
       allowNull: true,
-    },   
+    },
     certificate_files: {
       type: DataTypes.JSON, // JSON to store multiple file paths
       allowNull: true,
