@@ -145,6 +145,7 @@ exports.getUserByUsername = async (req, res) => {
       id: user.id,
       username: user.username,
       email: user.email || null,
+      isLoggedIn: user.isLoggedIn,
     });
   } catch (error) {
     console.error("Error fetching user by username:", error);

@@ -103,7 +103,7 @@ const FamilyMember = db.define(
       allowNull: true,
     },
     address: {
-      type: DataTypes.STRING(150),
+      type: DataTypes.STRING(250),
       allowNull: true,
     },
     position: {
@@ -127,7 +127,7 @@ const FamilyMember = db.define(
       allowNull: true,
     },
     reason_for_leaving: {
-      type: DataTypes.STRING(150),
+      type: DataTypes.STRING(250),
       allowNull: true,
     },
     education_level: {
@@ -148,23 +148,23 @@ const FamilyMember = db.define(
       allowNull: true,
     },
     school: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.STRING(250),
       allowNull: true,
     },
     field_of_study: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.STRING(250),
       allowNull: true,
     },
     degree: {
-      type: DataTypes.STRING(30),
+      type: DataTypes.STRING(250),
       allowNull: true,
     },
     institution: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.STRING(250),
       allowNull: true,
     },
     professional_licensure_examination: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.STRING(250),
       allowNull: true,
     },
     created_at: {

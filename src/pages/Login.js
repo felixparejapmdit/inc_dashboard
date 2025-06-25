@@ -625,7 +625,7 @@ const Login = () => {
         if (isPasswordValid) {
           // Proceed with login
 
-          // Fetch the user ID for the local login
+          // Fetch the user ID for the local login and login status
           const userResponse = await axios.get(
             `${process.env.REACT_APP_API_URL}/api/users_access/${username}`
           );

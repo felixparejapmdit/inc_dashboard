@@ -48,6 +48,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "./Sidebar"; // Import your Sidebar component
+import axios from "axios";
 import { usePermissionContext } from "../contexts/PermissionContext"; // Import Permission Context
 import {
   useDisclosure,
@@ -75,19 +76,68 @@ const Layout = ({ children, currentUser }) => {
   // Reset the inactivity timer and define logout behavior
   const resetInactivityTimer = useCallback(() => {
     clearTimeout(inactivityTimer);
-    inactivityTimer = setTimeout(() => {
+
+    inactivityTimer = setTimeout(async () => {
       onOpen(); // Show alert modal first
 
+      try {
+        const userId = localStorage.getItem("username"); // Make sure this is set on login
+
+        if (userId) {
+          await axios.put(
+            `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
+            {
+              ID: userId,
+              isLoggedIn: false,
+            }
+          );
+          console.log("User status set to logged out due to inactivity.");
+        }
+      } catch (error) {
+        console.error(
+          "Error updating login status on inactivity:",
+          error.response?.data || error.message
+        );
+      }
+
+      // Redirect to login after a short delay
       setTimeout(() => {
         navigate("/login");
-      }, 5000); // Give the user time to see the message
+      }, 5000);
     }, INACTIVITY_LIMIT);
-  }, [navigate]);
+  }, [navigate, onOpen]);
 
   useEffect(() => {
     const groupId = localStorage.getItem("groupId");
+
+    const username = localStorage.getItem("username"); // adjust if stored differently
+
     fetchPermissions(groupId); // Fetch permissions for the group
-  }, [fetchPermissions]);
+
+    const checkLoginStatus = async () => {
+      try {
+        if (!username) {
+          navigate("/login");
+          return;
+        }
+
+        const userResponse = await axios.get(
+          `${process.env.REACT_APP_API_URL}/api/users_access/${username}`
+        );
+
+        const user = userResponse.data;
+
+        if (!user || user.isLoggedIn === false || user.isLoggedIn === 0) {
+          navigate("/login");
+        }
+      } catch (error) {
+        console.error("Login status check failed:", error);
+        navigate("/login"); // fallback redirect on error
+      }
+    };
+
+    checkLoginStatus(); // Call the check on mount
+  }, [fetchPermissions, navigate]);
 
   useEffect(() => {
     const events = ["mousemove", "keydown", "mousedown", "touchstart"];

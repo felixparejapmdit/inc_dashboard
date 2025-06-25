@@ -195,6 +195,19 @@ const Step2 = () => {
 
   const handleSaveOrUpdateContact = async (idx) => {
     const contact = contacts[idx];
+
+    // ✅ Validate that contact_info is not empty or whitespace
+    if (!contact.contact_info || contact.contact_info.trim() === "") {
+      toast({
+        title: "Validation Error",
+        description: "Contact information is required.",
+        status: "error",
+        duration: 3000,
+        position: "bottom-left",
+      });
+      return;
+    }
+
     const payload = {
       personnel_id: personnelId,
       contactype_id: contact.contactype_id,
@@ -700,10 +713,10 @@ const Step2 = () => {
                             selectedType?.name.toLowerCase() === "telephone"
                               ? "-"
                               : selectedType?.name.toLowerCase() === "telegram"
-                              ? "Enter Telegram username (@username)"
+                              ? "Enter (@username)"
                               : "Enter Contact Info"
                           }
-                          value={contact.contact_info || "-"}
+                          value={contact.contact_info}
                           isReadOnly={
                             !contact.isEditing ||
                             selectedType?.name.toLowerCase() === "telephone"
