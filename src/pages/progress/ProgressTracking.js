@@ -21,7 +21,13 @@ import {
   Slide,
   useDisclosure,
 } from "@chakra-ui/react";
-import { CheckIcon, Search2Icon, CloseIcon, ViewIcon } from "@chakra-ui/icons";
+import {
+  CheckIcon,
+  Search2Icon,
+  ExternalLinkIcon,
+  CloseIcon,
+  ViewIcon,
+} from "@chakra-ui/icons";
 import axios from "axios";
 import { MdTrackChanges } from "react-icons/md"; // Import Track Icon
 
@@ -168,12 +174,29 @@ const ProgressTracking = () => {
                     aria-label="Print"
                     colorScheme="yellow"
                     size="sm"
+                    mr={2}
                     onClick={() =>
                       window.open(
                         `/personnel-preview/${user.personnel_id}`,
                         "_blank"
                       )
                     }
+                  />
+
+                  <IconButton
+                    icon={<ExternalLinkIcon />}
+                    colorScheme="teal"
+                    variant="solid"
+                    size="sm"
+                    aria-label="Update Info"
+                    onClick={() => {
+                      const personnelId = user.personnel_id;
+                      if (personnelId) {
+                        window.location.href = `/enroll?personnel_id=${personnelId}&type=editprogress`;
+                      } else {
+                        window.location.href = `/enroll?not_enrolled=${user.username}&type=editprogress`;
+                      }
+                    }}
                   />
                 </Td>
               </Tr>

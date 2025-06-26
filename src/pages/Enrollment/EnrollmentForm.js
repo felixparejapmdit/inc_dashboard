@@ -578,6 +578,8 @@ const EnrollmentForm = ({ referenceNumber }) => {
       navigate("/login");
     } else if (typeParam === "editprofile") {
       navigate("/profile");
+    } else if (typeParam === "editprogress") {
+      navigate("/progresstracking");
     } else if (typeParam === "editpersonnel") {
       navigate("/user");
     } else if (typeParam === "evaluation") {
@@ -1349,6 +1351,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
           {[
             "editprofile",
             "editpersonnel",
+            "editprogress",
             "evaluation",
             "track",
             "new",
