@@ -196,16 +196,18 @@ const Step2 = () => {
   const handleSaveOrUpdateContact = async (idx) => {
     const contact = contacts[idx];
 
-    // ✅ Validate that contact_info is not empty or whitespace
-    if (!contact.contact_info || contact.contact_info.trim() === "") {
-      toast({
-        title: "Validation Error",
-        description: "Contact information is required.",
-        status: "error",
-        duration: 3000,
-        position: "bottom-left",
-      });
-      return;
+    if (!contact.contactype_id == 5) {
+      if (!contact.contact_info || contact.contact_info.trim() === "") {
+        // ✅ Validate that contact_info is not empty or whitespace
+        toast({
+          title: "Validation Error",
+          description: "Contact information is required.",
+          status: "error",
+          duration: 3000,
+          position: "bottom-left",
+        });
+        return;
+      }
     }
 
     const payload = {

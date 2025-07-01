@@ -847,12 +847,11 @@ const Users = ({ personnelId }) => {
   };
 
   const exportAsCSV = () => {
-    if (!existingPersonnel || existingPersonnel.length === 0) {
+    if (!filteredUsers || filteredUsers.length === 0) {
       alert("No data to export.");
       return;
     }
 
-    // Filter visible columns
     const visibleColumns = Object.keys(columnVisibility).filter(
       (key) => columnVisibility[key]
     );
@@ -866,7 +865,7 @@ const Users = ({ personnelId }) => {
 
     const csvRows = [
       headers.join(","), // Header row
-      ...existingPersonnel.map((user) =>
+      ...filteredUsers.map((user) =>
         visibleColumns.map((key) => `"${user[key] || ""}"`).join(",")
       ),
     ];
@@ -884,7 +883,7 @@ const Users = ({ personnelId }) => {
   };
 
   const exportAsPDF = () => {
-    if (!existingPersonnel || existingPersonnel.length === 0) {
+    if (!filteredUsers || filteredUsers.length === 0) {
       alert("No data to export.");
       return;
     }
@@ -904,7 +903,7 @@ const Users = ({ personnelId }) => {
         .replace(/\b\w/g, (c) => c.toUpperCase())
     );
 
-    const data = existingPersonnel.map((user) =>
+    const data = filteredUsers.map((user) =>
       visibleColumns.map((key) => user[key] || "")
     );
 
