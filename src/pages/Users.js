@@ -1724,7 +1724,7 @@ const Users = ({ personnelId }) => {
               </HStack>
 
               {/* Educational Level and INC Housing Address */}
-              <HStack spacing={4} mt={4}>
+              {/* <HStack spacing={4} mt={4}>
                 <Select
                   placeholder="Educational Attainment"
                   value={advancedFilters.educational_attainment}
@@ -1758,7 +1758,7 @@ const Users = ({ personnelId }) => {
                     </option>
                   ))}
                 </Select>
-              </HStack>
+              </HStack> */}
             </VStack>
           </ModalBody>
           <ModalFooter>
