@@ -25,6 +25,8 @@ import axios from "axios";
 import useGetNamesByIds from "../../hooks/useGetNamesByIds";
 import useLookupData from "../../hooks/useLookupData";
 
+import { usePermissionContext } from "../../contexts/PermissionContext";
+
 import ScanRFIDQRBarcode from "./ScanRFIDQRBarcode"; // Import the scan component
 
 const API_URL = process.env.REACT_APP_API_URL;
@@ -43,6 +45,7 @@ const Step8 = ({ onScanComplete }) => {
   const toast = useToast();
   const [isCheckboxChecked, setIsCheckboxChecked] = useState(false);
   const [rfidInput, setRfidInput] = useState("");
+  const { hasPermission } = usePermissionContext(); // Correct usage
 
   // Fetch personnel list
   const fetchPersonnel = async () => {
