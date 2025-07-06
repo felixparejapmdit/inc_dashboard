@@ -52,6 +52,7 @@ import {
 import { useDisclosure } from "@chakra-ui/react";
 import { PopoverHeader, List } from "@chakra-ui/react";
 import Chatbot from "../components/Chatbot"; // Import chatbot
+import Tutorial from "../components/Tutorial";
 
 import { SearchIcon } from "@chakra-ui/icons";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
@@ -1170,7 +1171,6 @@ const AppCard = ({ app, colors, handleAppClick, small }) => {
           <Icon as={FiFile} boxSize={12} color={colors.cardHeader} mb={4} />
         )}
       </Box>
-
       {/* App Name and Description */}
       <Box>
         <Text
@@ -1205,6 +1205,8 @@ const AppCard = ({ app, colors, handleAppClick, small }) => {
             {app.description}
           </Text>
         )}
+        {/* ✅ Tutorial overlay always rendered once (if not seen yet) */}
+        <Tutorial />
       </Box>
     </VStack>
   );

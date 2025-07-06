@@ -252,6 +252,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
           {/* Adjusted the spacing */}
 
           <SidebarItem
+            data-tour="dashboard"
             icon={FiHome}
             label="Home"
             isExpanded={isExpanded}
