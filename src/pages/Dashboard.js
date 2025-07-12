@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import {
   Box,
   Heading,
@@ -105,6 +105,23 @@ export default function Dashboard() {
 
   // ✅ Detect if the screen is mobile-sized
   const [isMobileDragEnabled, setIsMobileDragEnabled] = useState(false);
+
+  const [isScrolledDown, setIsScrolledDown] = useState(false);
+  
+  const [compactGreeting, setCompactGreeting] = useState(false);
+  const lastScrollTop = useRef(0);
+const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      setIsScrolled(scrollY > 10);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
 
   useEffect(() => {
     fetch(`${API_URL}/api/settings/drag-drop`)
@@ -526,70 +543,81 @@ export default function Dashboard() {
   return (
     <Box bg={useColorModeValue("white.50", "white.500")} minH="100vh" p={6}>
       {/* Sticky Header Section */}
-      <Box
-        position="sticky"
-        top="0"
-        zIndex="1000"
-        boxShadow={"sm"}
-        bg="white" // Background to prevent transparency
-        px={4}
-        py={2}
-      >
-        <HStack justify="space-between" mb={0}>
-          {/* Search Input Section */}
+   <Box
+      position="sticky"
+      top="0"
+      zIndex="1000"
+      boxShadow="sm"
+      bg="white"
+      px={4}
+      py={2}
+    >
+      <HStack justify="space-between" align="center" spacing={4} flexWrap="wrap">
+        {/* Search Input */}
+        <Input
+          placeholder="Search"
+          size="md"
+          borderRadius="full"
+          bg="white"
+          maxW="300px"
+          value={searchQuery}
+          onChange={handleSearch}
+          boxShadow="md"
+          transition="all 0.3s ease"
+        />
 
-          <VStack spacing={4} align="start" width="100%">
-            {/* Search Input Section */}
-            <Input
-              placeholder="Search"
-              size="md"
-              borderRadius="full"
-              bg="white"
-              maxW="300px"
-              value={searchQuery}
-              onChange={handleSearch}
-              boxShadow="md"
-            />
-            {/* Greeting Section */}
-            <Box
-              bgGradient="linear(to-r, orange.400, yellow.300)"
-              borderRadius="xl"
-              p={6}
-              textAlign="left"
-              boxShadow="xl"
-              width="100%"
-            >
-              <Text fontSize="sm" color="whiteAlpha.900">
-                {currentDate.toLocaleDateString("en-US", {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </Text>
+        {/* Greeting (static height to prevent shrinking) */}
+        <Box
+          h="80px" // fixed height to avoid layout jump
+          overflow="hidden"
+          transition="all 0.3s ease"
+          display="flex"
+          alignItems="center"
+        >
+          <Box
+            bgGradient="linear(to-r, orange.400, yellow.300)"
+            borderRadius="xl"
+            px={6}
+            py={4}
+            boxShadow="xl"
+            transition="all 0.4s ease"
+            minW="250px"
+            opacity={isScrolled ? 0.85 : 1}
+            transform={isScrolled ? "scale(0.95)" : "scale(1)"}
+            pointerEvents="none"
+          >
+            <Text fontSize="sm" color="whiteAlpha.900" display={isScrolled ? "none" : "block"}>
+              {currentDate.toLocaleDateString("en-US", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </Text>
 
-              <Heading as="h1" size="lg" color="white">
-                {getTimeBasedGreeting()}
-              </Heading>
+            <Heading as="h1" size={isScrolled ? "md" : "lg"} color="white">
+              {getTimeBasedGreeting()}
+            </Heading>
 
+            {!isScrolled && (
               <Text fontSize="md" color="whiteAlpha.800">
                 Have a nice day.
               </Text>
-            </Box>
-          </VStack>
+            )}
+          </Box>
+        </Box>
 
-          {/* Color mode toggle button */}
+        {/* Toggle and Notifications (optional visibility) */}
+        <HStack spacing={2}>
           <IconButton
             icon={colorMode === "light" ? <FiMoon /> : <FiSun />}
             onClick={toggleColorMode}
             isRound
-            display="none"
             size="lg"
             aria-label="Toggle color mode"
-            mr={0} // Remove margin between icons
+            display="none"
           />
 
-          {/* Notification Bell */}
           <Popover>
             <PopoverTrigger>
               <IconButton
@@ -598,7 +626,6 @@ export default function Dashboard() {
                 size="lg"
                 aria-label="Notifications"
                 display="none"
-                mr={0} // Remove margin to bring it closer to the color mode icon
               />
             </PopoverTrigger>
             <PopoverContent>
@@ -619,7 +646,9 @@ export default function Dashboard() {
             </PopoverContent>
           </Popover>
         </HStack>
-      </Box>
+      </HStack>
+    </Box>
+
 
       {/* Recently Opened Apps Section */}
       {recentApps.length > 0 && (

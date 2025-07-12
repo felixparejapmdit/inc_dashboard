@@ -3,9 +3,10 @@ import {
   Box,
   SimpleGrid,
   Text,
-  VStack,
+  Flex,
   Icon,
   Heading,
+  Progress,
   useColorModeValue,
 } from "@chakra-ui/react";
 import {
@@ -26,6 +27,15 @@ import { useNavigate } from "react-router-dom";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
+const gradientMap = {
+  All: "linear(to-r, teal.500, blue.500)",
+  Minister: "linear(to-r, green.400, green.600)",
+  Regular: "linear(to-r, blue.400, blue.600)",
+  "Minister's Wife": "linear(to-r, pink.400, pink.600)",
+  "Ministerial Student": "linear(to-r, orange.400, red.500)",
+  "Lay Member": "linear(to-r, cyan.400, teal.500)",
+};
+
 const PersonnelStatistics = () => {
   const [stats, setStats] = useState({
     All: 0,
@@ -40,9 +50,6 @@ const PersonnelStatistics = () => {
   const [totalProgress, setTotalProgress] = useState(0);
 
   const navigate = useNavigate();
-  const cardBg = useColorModeValue("white", "gray.700");
-  const cardHoverBg = useColorModeValue("gray.100", "gray.600");
-  const cardTextColor = useColorModeValue("gray.700", "white");
 
   const typeIcons = {
     All: FiUsers,
@@ -51,15 +58,6 @@ const PersonnelStatistics = () => {
     "Minister's Wife": FaFemale,
     "Ministerial Student": FiUserX,
     "Lay Member": FiUserPlus,
-  };
-
-  const typeColors = {
-    All: "gray.500",
-    Minister: "green.500",
-    Regular: "blue.500",
-    "Minister's Wife": "pink.500",
-    "Ministerial Student": "orange.500",
-    "Lay Member": "teal.500",
   };
 
   const trackingSteps = [
@@ -97,7 +95,6 @@ const PersonnelStatistics = () => {
   };
 
   useEffect(() => {
-    // Fetch Personnel Type statistics
     fetch(`${API_URL}/api/personnels`)
       .then((res) => res.json())
       .then((data) => {
@@ -117,7 +114,6 @@ const PersonnelStatistics = () => {
         setStats(count);
       });
 
-    // Fetch Tracking Stats for each step
     Promise.all(
       trackingSteps.map((_, i) =>
         fetch(`${API_URL}/api/personnels/progress/${i}`).then((res) =>
@@ -138,92 +134,100 @@ const PersonnelStatistics = () => {
       .catch((err) => console.error("Error fetching tracking stats:", err));
   }, []);
 
+  const renderCard = (label, value, icon, gradient, onClick, progressPercent) => (
+    <Box
+      key={label}
+      bgGradient={gradient}
+      borderRadius="lg"
+      p={5}
+      color="white"
+      boxShadow="lg"
+      cursor={onClick ? "pointer" : "default"}
+      transition="all 0.3s ease"
+      _hover={{ transform: onClick ? "scale(1.03)" : "none" }}
+      onClick={onClick}
+      position="relative"
+    >
+      <Flex justify="space-between" align="center" mb={3}>
+        <Box zIndex={2} w="100%">
+          <Text fontSize="sm" fontWeight="bold">
+            {label === "All" ? "TOTAL PERSONNEL" : label.toUpperCase()}
+          </Text>
+          <Text fontSize="2xl" fontWeight="extrabold" mt={1}>
+            {value}
+          </Text>
+        </Box>
+
+        <Icon
+          as={icon}
+          boxSize={14}
+          opacity={0.15}
+          position="absolute"
+          right="4"
+          top="4"
+          zIndex={0}
+        />
+      </Flex>
+
+      {/* Progress bar at bottom */}
+      <Progress
+        value={progressPercent}
+        size="sm"
+        colorScheme="whiteAlpha"
+        borderRadius="md"
+        mt={6}
+        background="rgba(255,255,255,0.2)"
+      />
+    </Box>
+  );
+
+  const totalPersonnel = stats.All || 1;
+
   return (
     <Box p={8}>
-      <Heading size="lg" mb={6} color={cardTextColor} textAlign="center">
+      <Heading size="lg" mb={6} textAlign="center">
         Personnel Statistics
       </Heading>
 
-      <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 6 }} spacing={6} mb={10}>
-        {Object.entries(stats).map(([label, value]) => (
-          <Box
-            key={label}
-            bg={cardBg}
-            p={6}
-            borderRadius="lg"
-            boxShadow="md"
-            borderLeft="6px solid"
-            borderColor={typeColors[label]}
-            transition="background-color 0.3s ease"
-            _hover={{ bg: cardHoverBg }}
-          >
-            <VStack spacing={2} textAlign="center">
-              <Icon as={typeIcons[label]} w={8} h={8} color={typeColors[label]} />
-              <Text fontSize="md" fontWeight="medium" color={cardTextColor}>
-                {label === "All" ? "Total Personnel" : label}
-              </Text>
-              <Text fontSize="2xl" fontWeight="bold" color={typeColors[label]}>
-                {value}
-              </Text>
-            </VStack>
-          </Box>
-        ))}
+      <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 3 }} spacing={6} mb={10}>
+        {Object.entries(stats).map(([label, value]) => {
+          const percent = (value / totalPersonnel) * 100;
+          return renderCard(
+            label,
+            value,
+            typeIcons[label],
+            gradientMap[label],
+            null,
+            percent
+          );
+        })}
       </SimpleGrid>
 
-      <Heading size="lg" mb={6} color={cardTextColor} textAlign="center">
+      <Heading size="lg" mb={6} textAlign="center">
         Personnel Tracking
       </Heading>
 
       <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing={6}>
-        {/* ✅ Total On Progress Box */}
-  <Box
-  bg={cardBg}
-  p={6}
-  borderRadius="lg"
-  boxShadow="md"
-  borderLeft="6px solid"
-  borderColor="purple.400"
-  transition="background-color 0.3s ease"
-  _hover={{ bg: cardHoverBg, cursor: "pointer" }}
-  onClick={() => navigate("/progresstracking")}
->
-  <VStack spacing={2} textAlign="center">
-    <Icon as={FiLoader} w={8} h={8} color="purple.400" />
-    <Text fontSize="md" fontWeight="medium" color={cardTextColor}>
-      Total On Progress
-    </Text>
-    <Text fontSize="2xl" fontWeight="bold" color="purple.400">
-      {totalProgress}
-    </Text>
-  </VStack>
-</Box>
+        {renderCard(
+          "Total On Progress",
+          totalProgress,
+          FiLoader,
+          "linear(to-r, purple.400, purple.600)",
+          () => navigate("/progresstracking"),
+          100
+        )}
 
-
-        {/* ✅ Individual Steps */}
-        {Object.entries(trackingStats).map(([label, value]) => (
-          <Box
-            key={label}
-            bg={cardBg}
-            p={6}
-            borderRadius="lg"
-            boxShadow="md"
-            borderLeft="6px solid"
-            borderColor="blue.400"
-            transition="background-color 0.3s ease"
-            _hover={{ bg: cardHoverBg, cursor: "pointer" }}
-            onClick={() => navigate(trackingRoutes[label])}
-          >
-            <VStack spacing={2} textAlign="center">
-              <Icon as={trackingIcons[label]} w={8} h={8} color="blue.400" />
-              <Text fontSize="md" fontWeight="medium" color={cardTextColor}>
-                {label}
-              </Text>
-              <Text fontSize="2xl" fontWeight="bold" color="blue.400">
-                {value}
-              </Text>
-            </VStack>
-          </Box>
-        ))}
+        {Object.entries(trackingStats).map(([label, value]) => {
+          const percent = (value / totalProgress) * 100;
+          return renderCard(
+            label,
+            value,
+            trackingIcons[label],
+            "linear(to-r, blue.400, blue.600)",
+            () => navigate(trackingRoutes[label]),
+            percent
+          );
+        })}
       </SimpleGrid>
     </Box>
   );
