@@ -79,6 +79,7 @@ import "./App.css"; // ✅ Import your global CSS
 import DragDropSettings from "./pages/settings/DragDropSettings";
 
 import Maintenance from "./pages/Maintenance";
+import PersonnelStatistics from "./components/PersonnelStatistics";
 
 function App() {
   return (
@@ -154,6 +155,21 @@ function MainApp() {
             </Layout>
           }
         />
+
+        <Route
+          path="/personnel-statistics"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <PersonnelStatistics />
+            </Layout>
+          }
+        />
+        
         <Route
           path="/application"
           element={
@@ -689,6 +705,8 @@ function MainApp() {
         />
 
         <Route path="/ollama-api" element={<OllamaAPI />} />
+
+
       </Routes>
 
       {/* Render Chatbot only if NOT on /login AND hide it when printing */}

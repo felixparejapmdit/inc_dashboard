@@ -141,13 +141,16 @@ exports.getPersonnelsByProgress = async (req, res) => {
 // Get all personnels
 exports.getAllPersonnels = async (req, res) => {
   try {
-    const personnels = await Personnel.findAll();
-    res.status(200).json(personnels); // Send the response directly here
-  } catch (error) {
-    console.error("Error retrieving personnels:", error);
-    res.status(500).json({ message: "Error retrieving personnels", error });
+    const personnels = await Personnel.findAll({
+      attributes: ["personnel_type"],
+    });
+    res.json(personnels);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch personnels" });
   }
 };
+
 
 // Retrieve a single personnel record by ID
 exports.getPersonnelById = async (req, res) => {

@@ -661,6 +661,8 @@ export default function Dashboard() {
         </Box>
       ))} */}
       <>
+
+
         {/* ✅ Show Search Results If Search Query Exists */}
         {searchQuery && filteredApps.length > 0 ? (
           <Box mt={6}>

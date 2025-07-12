@@ -44,8 +44,8 @@ import {
   FiUserCheck,
   FiSliders,
   FiArrowLeft,
+  FiBarChart2,
 } from "react-icons/fi";
-
 import { FaDownload, FaShareAlt } from "react-icons/fa"; // Font Awesome download icon
 import { useNavigate } from "react-router-dom";
 
@@ -259,6 +259,15 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
             onClick={() => navigate("/dashboard")}
           />
 
+          {hasPermission("statistics.view") && (
+            <SidebarItem
+              data-tour="statistics"
+              icon={FiBarChart2} // ✅ Better suited icon for statistics
+              label="Statistics"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/personnel-statistics")} // ✅ Match this to your Route
+            />
+          )}
           <SidebarItem
             icon={FiUser}
             label="Profile"
