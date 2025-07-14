@@ -106,32 +106,24 @@ export default function Dashboard() {
   // ✅ Detect if the screen is mobile-sized
   const [isMobileDragEnabled, setIsMobileDragEnabled] = useState(false);
 
-  const [isScrolledDown, setIsScrolledDown] = useState(false);
-  
-  const [compactGreeting, setCompactGreeting] = useState(false);
+const [compactGreeting, setCompactGreeting] = useState(false);
   const lastScrollTop = useRef(0);
-const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollY = window.scrollY;
-      setIsScrolled(scrollY > 10);
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      if (scrollTop > lastScrollTop.current && scrollTop > 10) {
+        // Scrolling down
+        setCompactGreeting(true);
+      } else if (scrollTop < lastScrollTop.current && scrollTop <= 10) {
+        // Scrolling up to top
+        setCompactGreeting(false);
+      }
+      lastScrollTop.current = scrollTop <= 0 ? 0 : scrollTop;
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-
-  useEffect(() => {
-    fetch(`${API_URL}/api/settings/drag-drop`)
-      .then((res) => res.json())
-      .then((data) => {
-        setIsMobileDragEnabled(data.enableDragDropMobile);
-      })
-      .catch((error) =>
-        console.error("Error fetching Drag & Drop setting:", error)
-      );
   }, []);
 
   const isMobile = useBreakpointValue({
@@ -543,7 +535,7 @@ const [isScrolled, setIsScrolled] = useState(false);
   return (
     <Box bg={useColorModeValue("white.50", "white.500")} minH="100vh" p={6}>
       {/* Sticky Header Section */}
-   <Box
+  <Box
       position="sticky"
       top="0"
       zIndex="1000"
@@ -552,100 +544,132 @@ const [isScrolled, setIsScrolled] = useState(false);
       px={4}
       py={2}
     >
-      <HStack justify="space-between" align="center" spacing={4} flexWrap="wrap">
-        {/* Search Input */}
-        <Input
-          placeholder="Search"
-          size="md"
-          borderRadius="full"
-          bg="white"
-          maxW="300px"
-          value={searchQuery}
-          onChange={handleSearch}
-          boxShadow="md"
-          transition="all 0.3s ease"
-        />
+      <HStack
+        justify="space-between"
+        align="start"
+        spacing={4}
+        transition="all 0.4s ease"
+        flexWrap="wrap"
+      >
+        {compactGreeting ? (
+          // 👉 Compact greeting beside search input
+          <>
+            <Input
+              placeholder="Search"
+              size="md"
+              borderRadius="full"
+              bg="white"
+              maxW="300px"
+              value={searchQuery}
+              onChange={handleSearch}
+              boxShadow="md"
+              transition="all 0.4s ease"
+            />
 
-        {/* Greeting (static height to prevent shrinking) */}
-        <Box
-          h="80px" // fixed height to avoid layout jump
-          overflow="hidden"
-          transition="all 0.3s ease"
-          display="flex"
-          alignItems="center"
-        >
-          <Box
-            bgGradient="linear(to-r, orange.400, yellow.300)"
-            borderRadius="xl"
-            px={6}
-            py={4}
-            boxShadow="xl"
+            <Box
+              bgGradient="linear(to-r, orange.400, yellow.300)"
+              borderRadius="xl"
+              px={4}
+              py={2}
+              textAlign="left"
+              boxShadow="xl"
+              transition="all 0.4s ease"
+              display="flex"
+              alignItems="center"
+              minW="250px"
+              h="100%"
+            >
+              <Heading as="h1" size="md" color="white">
+                {getTimeBasedGreeting()}
+              </Heading>
+            </Box>
+          </>
+        ) : (
+          // 👉 Full greeting below search input
+          <VStack
+            spacing={4}
+            align="start"
+            width="100%"
             transition="all 0.4s ease"
-            minW="250px"
-            opacity={isScrolled ? 0.85 : 1}
-            transform={isScrolled ? "scale(0.95)" : "scale(1)"}
-            pointerEvents="none"
           >
-            <Text fontSize="sm" color="whiteAlpha.900" display={isScrolled ? "none" : "block"}>
-              {currentDate.toLocaleDateString("en-US", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </Text>
+            <Input
+              placeholder="Search"
+              size="md"
+              borderRadius="full"
+              bg="white"
+              maxW="300px"
+              value={searchQuery}
+              onChange={handleSearch}
+              boxShadow="md"
+              transition="all 0.4s ease"
+            />
 
-            <Heading as="h1" size={isScrolled ? "md" : "lg"} color="white">
-              {getTimeBasedGreeting()}
-            </Heading>
+            <Box
+              bgGradient="linear(to-r, orange.400, yellow.300)"
+              borderRadius="xl"
+              p={6}
+              textAlign="left"
+              boxShadow="xl"
+              width="100%"
+              transition="all 0.4s ease"
+            >
+              <Text fontSize="sm" color="whiteAlpha.900">
+                {currentDate.toLocaleDateString("en-US", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </Text>
 
-            {!isScrolled && (
+              <Heading as="h1" size="lg" color="white">
+                {getTimeBasedGreeting()}
+              </Heading>
+
               <Text fontSize="md" color="whiteAlpha.800">
                 Have a nice day.
               </Text>
-            )}
-          </Box>
-        </Box>
+            </Box>
+          </VStack>
+        )}
 
-        {/* Toggle and Notifications (optional visibility) */}
-        <HStack spacing={2}>
-          <IconButton
-            icon={colorMode === "light" ? <FiMoon /> : <FiSun />}
-            onClick={toggleColorMode}
-            isRound
-            size="lg"
-            aria-label="Toggle color mode"
-            display="none"
-          />
+        {/* Mode toggle & bell */}
+        <IconButton
+          icon={colorMode === "light" ? <FiMoon /> : <FiSun />}
+          onClick={toggleColorMode}
+          isRound
+          display="none"
+          size="lg"
+          aria-label="Toggle color mode"
+        />
 
-          <Popover>
-            <PopoverTrigger>
-              <IconButton
-                icon={<FiBell />}
-                isRound
-                size="lg"
-                aria-label="Notifications"
-                display="none"
-              />
-            </PopoverTrigger>
-            <PopoverContent>
-              <PopoverArrow />
-              <PopoverCloseButton />
-              <PopoverBody>
-                {notifications.length > 0 ? (
-                  notifications.map((notif) => (
-                    <Box key={notif.id} p={2}>
-                      <Text fontWeight="bold">{notif.title}</Text>
-                      <Text fontSize="sm">{notif.description}</Text>
-                    </Box>
-                  ))
-                ) : (
-                  <Text>No new notifications</Text>
-                )}
-              </PopoverBody>
-            </PopoverContent>
-          </Popover>
-        </HStack>
+        <Popover>
+          <PopoverTrigger>
+            <IconButton
+              icon={<FiBell />}
+              isRound
+              size="lg"
+              aria-label="Notifications"
+              display="none"
+            />
+          </PopoverTrigger>
+          <PopoverContent>
+            <PopoverArrow />
+            <PopoverCloseButton />
+            <PopoverBody>
+              {notifications.length > 0 ? (
+                notifications.map((notif) => (
+                  <Box key={notif.id} p={2}>
+                    <Text fontWeight="bold">{notif.title}</Text>
+                    <Text fontSize="sm">{notif.description}</Text>
+                  </Box>
+                ))
+              ) : (
+                <Text>No new notifications</Text>
+              )}
+            </PopoverBody>
+          </PopoverContent>
+        </Popover>
       </HStack>
     </Box>
 
