@@ -51,6 +51,8 @@ import { useNavigate } from "react-router-dom";
 
 import { usePermissionContext } from "../contexts/PermissionContext";
 
+import Tutorial from "../components/Tutorial";
+
 // Map labels to icons
 const getIconForLabel = (label) => {
   switch (label) {
@@ -177,6 +179,23 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
 
   return (
     <Box position="fixed" zIndex="100">
+
+      {/* <Button to="/dashboard" data-tour="dashboard">
+  Dashboard
+</Button>
+<Button to="/profile" data-tour="profile-settings">
+  Profile Settings
+</Button>
+      
+
+
+
+<Button to="/schedule" data-tour="share-link">
+  Schedule
+</Button> */}
+
+
+
       {/* Toggle Button */}
       <Button
         position="absolute"
@@ -252,37 +271,41 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
           {/* Adjusted the spacing */}
 
           <SidebarItem
-            data-tour="dashboard"
-            icon={FiHome}
-            label="Home"
-            isExpanded={isExpanded}
-            onClick={() => navigate("/dashboard")}
-          />
+  data-tour="dashboard"
+  icon={FiHome}
+  label="Home"
+  isExpanded={isExpanded}
+  onClick={() => navigate("/dashboard")}
+/>
 
-          {hasPermission("statistics.view") && (
-            <SidebarItem
-              data-tour="statistics"
-              icon={FiBarChart2} // ✅ Better suited icon for statistics
-              label="Statistics"
-              isExpanded={isExpanded}
-              onClick={() => navigate("/personnel-statistics")} // ✅ Match this to your Route
-            />
-          )}
-          <SidebarItem
-            icon={FiUser}
-            label="Profile"
-            isExpanded={isExpanded}
-            onClick={() => navigate("/profile")}
-          />
+{hasPermission("statistics.view") && (
+  <SidebarItem
+    data-tour="statistics"
+    icon={FiBarChart2}
+    label="Statistics"
+    isExpanded={isExpanded}
+    onClick={() => navigate("/personnel-statistics")}
+  />
+)}
 
-          {hasPermission("links.view") && (
-            <SidebarItem
-              label="Share a link"
-              isExpanded={isExpanded}
-              onClick={() => navigate("/managements/filemanagement")}
-              icon={FaShareAlt}
-            />
-          )}
+<SidebarItem
+  data-tour="profile-settings"
+  icon={FiUser}
+  label="Profile"
+  isExpanded={isExpanded}
+  onClick={() => navigate("/profile")}
+/>
+
+{hasPermission("links.view") && (
+  <SidebarItem
+    data-tour="schedule-button" // ✅ must match the tutorial step
+    label="Share a link"
+    isExpanded={isExpanded}
+    onClick={() => navigate("/managements/filemanagement")}
+    icon={FaShareAlt}
+/>
+)}
+
 
           {/* Settings with submenu */}
           {hasPermission("*settings.view") && (
@@ -656,6 +679,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
           <Box
             position="relative"
             textAlign="center"
+            data-tour="logout"
             onClick={openLogoutDialog} // Handle logout when clicked
             cursor="pointer"
             bg="transparent" // No background, since the icon itself provides the design
@@ -724,7 +748,11 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
         </AlertDialog>
       </Flex>
     </Box>
+
+    
   );
+     {/* ✅ Tutorial overlay always rendered once (if not seen yet) */}
+          <Tutorial />
 };
 
 // Sidebar Item Component

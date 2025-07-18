@@ -533,6 +533,8 @@ const [compactGreeting, setCompactGreeting] = useState(false);
   };
 
   return (
+
+      
     <Box bg={useColorModeValue("white.50", "white.500")} minH="100vh" p={6}>
       {/* Sticky Header Section */}
   <Box
@@ -551,6 +553,12 @@ const [compactGreeting, setCompactGreeting] = useState(false);
         transition="all 0.4s ease"
         flexWrap="wrap"
       >
+<Button onClick={() => {
+  localStorage.removeItem("hasSeenTutorial");
+  window.location.reload();
+}}>Reset Tutorial</Button>
+        {/* ✅ Tutorial overlay always rendered once (if not seen yet) */}
+        <Tutorial />
         {compactGreeting ? (
           // 👉 Compact greeting beside search input
           <>
@@ -1260,9 +1268,9 @@ const AppCard = ({ app, colors, handleAppClick, small }) => {
             {app.description}
           </Text>
         )}
-        {/* ✅ Tutorial overlay always rendered once (if not seen yet) */}
-        <Tutorial />
+      
       </Box>
     </VStack>
+    
   );
 };
