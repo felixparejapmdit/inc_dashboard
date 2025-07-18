@@ -27,6 +27,7 @@ import {
   ExternalLinkIcon,
   CloseIcon,
   ViewIcon,
+  DeleteIcon,
 } from "@chakra-ui/icons";
 import axios from "axios";
 import { MdTrackChanges } from "react-icons/md"; // Import Track Icon
@@ -83,6 +84,39 @@ const ProgressTracking = () => {
 
     fetchUsers();
   }, [toast]);
+
+
+  const handleDelete = async (personnelId) => {
+  const confirmDelete = window.confirm("Are you sure you want to delete this personnel?");
+  if (!confirmDelete) return;
+
+  try {
+    await axios.delete(`${API_URL}/api/personnels/${personnelId}`);
+    toast({
+      title: "Deleted",
+      description: "Personnel record deleted successfully.",
+      status: "success",
+      duration: 3000,
+      isClosable: true,
+    });
+
+    // Remove from local state
+    const updatedUsers = users.filter(user => user.personnel_id !== personnelId);
+    setUsers(updatedUsers);
+    setFilteredUsers(updatedUsers);
+  } catch (error) {
+    toast({
+      title: "Error",
+      description: "Failed to delete personnel.",
+      status: "error",
+      duration: 3000,
+      isClosable: true,
+    });
+    console.error("Delete error:", error);
+  }
+};
+
+
 
   const handleUserSelect = async (user) => {
     setLoading(true);
@@ -198,6 +232,16 @@ const ProgressTracking = () => {
                       }
                     }}
                   />
+
+<IconButton
+  icon={<DeleteIcon />}
+  colorScheme="red"
+  size="sm"
+  aria-label="Delete Personnel"
+  ml={2}
+  onClick={() => handleDelete(user.personnel_id)}
+/>
+
                 </Td>
               </Tr>
             ))}
