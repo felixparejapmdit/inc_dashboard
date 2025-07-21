@@ -53,13 +53,13 @@ import {
   Search2Icon,
 } from "@chakra-ui/icons";
 import axios from "axios";
-import { FaCamera } from "react-icons/fa"; // ✅ Icon for Photoshoot
+import { FaCamera, FaIdCard } from "react-icons/fa"; // ✅ Icon for Photoshoot
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 import { usePermissionContext } from "../contexts/PermissionContext";
 import Photoshoot from "./progress/Photoshoot"; // Import Photoshoot component
-
+import { getAuthHeaders } from "../utils/apiHeaders"; // adjust path as needed
 import { useUserFormData, suffixOptions } from "../hooks/userFormOptions";
 
 const API_URL = process.env.REACT_APP_API_URL;
@@ -257,8 +257,10 @@ const Users = ({ personnelId }) => {
 
   const fetchApps = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/apps`);
-      console.log("Fetched Apps Data:", response.data); // Debug API response
+      const response = await axios.get(`${API_URL}/api/apps`, {
+        headers: getAuthHeaders(),
+      });
+      //console.log("Fetched Apps Data:", response.data); // Debug API response
       if (!response.data || !Array.isArray(response.data)) {
         throw new Error("Invalid API response structure");
       }
@@ -421,26 +423,33 @@ const Users = ({ personnelId }) => {
   );
 
   useEffect(() => {
-    fetch(`${API_URL}/api/users`)
-      .then((res) => res.json())
-      .then((data) => setUsers(Array.isArray(data) ? data : []))
-      .catch(() => setStatus("Failed to load users."));
+    const fetchData = async (endpoint, setter, errorMsg) => {
+      try {
+        const response = await axios.get(`${API_URL}/api/${endpoint}`, {
+          headers: getAuthHeaders(),
+        });
 
-    fetch(`${API_URL}/api/apps`)
-      .then((res) => res.json())
-      .then((data) => setApps(Array.isArray(data) ? data : []))
-      .catch(() => setStatus("Failed to load apps."));
-    // Fetch groups
-    fetch(`${API_URL}/api/groups`)
-      .then((res) => res.json())
-      .then((data) => setGroups(Array.isArray(data) ? data : []))
-      .catch(() => setStatus("Failed to load groups."));
+        const data = response.data;
+        if (Array.isArray(data)) {
+          setter(data);
+        } else {
+          setter([]);
+          console.warn(`Unexpected response for ${endpoint}:`, data);
+        }
+      } catch (error) {
+        console.error(`Error fetching ${endpoint}:`, error);
+        setStatus(errorMsg);
+      }
+    };
 
-    // Fetch new personnels
-    fetch(`${API_URL}/api/personnels/new`)
-      .then((res) => res.json())
-      .then((data) => setNewPersonnels(Array.isArray(data) ? data : []))
-      .catch(() => setStatus("Failed to load new personnels."));
+    fetchData("users", setUsers, "Failed to load users.");
+    fetchData("apps", setApps, "Failed to load apps.");
+    fetchData("groups", setGroups, "Failed to load groups.");
+    fetchData(
+      "personnels/new",
+      setNewPersonnels,
+      "Failed to load new personnels."
+    );
   }, []);
 
   const handleAddUser = async (e) => {
@@ -810,7 +819,7 @@ const Users = ({ personnelId }) => {
   };
 
   useEffect(() => {
-    console.log("existingPersonnel:", existingPersonnel); // ✅ Debug log
+    //console.log("existingPersonnel:", existingPersonnel); // ✅ Debug log
 
     if (existingPersonnel.length > 0) {
       const sample = existingPersonnel[0];
@@ -918,6 +927,81 @@ const Users = ({ personnelId }) => {
 
     doc.save("personnel_list.pdf");
   };
+
+  // Add this ref
+  const rfidInputRef = useRef();
+
+  const {
+    isOpen: isRfidModalOpen,
+    onOpen: onRfidModalOpen,
+    onClose: onRfidModalClose,
+  } = useDisclosure();
+
+  const [selectedUserForRfid, setSelectedUserForRfid] = useState(null);
+  const [rfidCode, setRfidCode] = useState("");
+
+  useEffect(() => {
+    if (isRfidModalOpen && rfidInputRef.current) {
+      // Auto-focus input when modal opens
+      setTimeout(() => rfidInputRef.current.focus(), 100); // slight delay to ensure DOM is ready
+    }
+  }, [isRfidModalOpen]);
+
+  const handleRfidSave = async () => {
+    console.log("Updating RFID:", {
+      personnel_id: selectedUserForRfid, // <-- just use the ID directly
+      rfid_code: rfidCode,
+    });
+
+    try {
+      await axios.put(`${API_URL}/api/users/update-progress`, {
+        personnel_id: selectedUserForRfid,
+        rfid_code: rfidCode,
+      });
+
+      toast({
+        title: "RFID updated successfully.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+
+      onRfidModalClose();
+      setRfidCode("");
+      setSelectedUserForRfid(null);
+    } catch (error) {
+      console.error("RFID Update Error:", error);
+
+      toast({
+        title: "Failed to update RFID.",
+        description:
+          error?.response?.data?.message ||
+          error?.response?.data?.errors?.[0] ||
+          "Unknown error occurred",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
+    }
+  };
+
+useEffect(() => {
+  if (isRfidModalOpen) {
+    setTimeout(() => {
+      if (rfidInputRef.current) {
+        rfidInputRef.current.focus();
+        rfidInputRef.current.select();
+      }
+    }, 100);
+  }
+}, [isRfidModalOpen]);
+const handleKeyDown = (e) => {
+  // Allow only Enter key or scanner input, block others
+  if (!e.key.match(/[0-9a-zA-Z]/)) {
+    e.preventDefault();
+  }
+};
+
 
   return (
     <Box p={6}>
@@ -1039,16 +1123,15 @@ const Users = ({ personnelId }) => {
             <Thead>
               <Tr>
                 {existingPersonnel.length > 0 &&
-                  Object.keys(existingPersonnel[0]).map(
-                    (key) =>
-                      columnVisibility[key] && (
-                        <Th key={key}>
-                          {key
-                            .replace("personnel_", "")
-                            .replace(/_/g, " ")
-                            .replace(/\b\w/g, (c) => c.toUpperCase())}
-                        </Th>
-                      )
+                  Object.keys(existingPersonnel[0]).map((key) =>
+                    columnVisibility[key] ? (
+                      <Th key={key}>
+                        {key
+                          .replace("personnel_", "")
+                          .replace(/_/g, " ")
+                          .replace(/\b\w/g, (c) => c.toUpperCase())}
+                      </Th>
+                    ) : null
                   )}
                 <Th>Actions</Th>
               </Tr>
@@ -1101,6 +1184,24 @@ const Users = ({ personnelId }) => {
                             }}
                           />
                         )}
+                        {hasPermission("personnels.edit_rfid_code") && (
+                          <IconButton
+                            icon={<FaIdCard />}
+                            colorScheme="blue"
+                            onClick={() => {
+                              // ✅ Set personnel_id (not the whole item object)
+                              setSelectedUserForRfid(item.personnel_id);
+
+                              // ✅ Prefill RFID code if exists
+                              setRfidCode(item.rfid_code || "");
+
+                              // ✅ Open the RFID modal
+                              onRfidModalOpen();
+                            }}
+                            aria-label="Update RFID"
+                          />
+                        )}
+
                         {hasPermission("personnels.view") && (
                           <Tooltip
                             label={
@@ -1211,8 +1312,8 @@ const Users = ({ personnelId }) => {
           <Table variant="simple">
             <Thead>
               <Tr>
-                <Th>#</Th> {/* Row number column */}
-                <Th>Personnel ID</Th> {/* Add Personnel ID column */}
+                <Th>#</Th>
+                <Th>Personnel ID</Th>
                 <Th>Section</Th>
                 <Th>First Name</Th>
                 <Th>Last Name</Th>
@@ -1226,14 +1327,15 @@ const Users = ({ personnelId }) => {
                 return (
                   <Tr key={personnel.personnel_id}>
                     <Td>{index + 1}</Td> {/* Display the row number */}
-                    <Td>{personnel.personnel_id}</Td>{" "}
+                    <Td>{personnel.personnel_id}</Td>
                     {/* Display Personnel ID */}
-                    <Td>{personnel.section || "No Section"}</Td>{" "}
+                    <Td>{personnel.section || "No Section"}</Td>
                     {/* Display the section name */}
-                    <Td>{personnel.givenname}</Td> {/* Display first name */}
-                    <Td>{personnel.surname_husband}</Td>{" "}
+                    <Td>{personnel.givenname}</Td>
+                    {/* Display first name */}
+                    <Td>{personnel.surname_husband}</Td>
                     {/* Display last name */}
-                    <Td>{personnel.email_address}</Td>{" "}
+                    <Td>{personnel.email_address}</Td>
                     {/* Display email address */}
                     {hasPermission("personnels.sync_to_users") && (
                       <Td>
@@ -1276,6 +1378,40 @@ const Users = ({ personnelId }) => {
           </Table>
         )}
       </VStack>
+
+      <Modal isOpen={isRfidModalOpen} onClose={onRfidModalClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Update RFID Code</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <FormControl>
+              <FormLabel>RFID Code</FormLabel>
+              <Input
+                ref={rfidInputRef}
+                placeholder="Scan or enter RFID"
+                value={rfidCode}
+                onChange={(e) => setRfidCode(e.target.value)}
+                onFocus={(e) => e.target.select()}
+                onKeyDown={handleKeyDown}
+                style={{
+                  caretColor: "transparent", // hide blinking cursor
+                  pointerEvents: "auto", // allow focus
+                }}
+                autoComplete="off"
+              />
+            </FormControl>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" onClick={onRfidModalClose}>
+              Close
+            </Button>
+            <Button colorScheme="blue" onClick={handleRfidSave} ml={3}>
+              Save
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
 
       <Modal isOpen={isOpen} onClose={closeModal}>
         <ModalOverlay />

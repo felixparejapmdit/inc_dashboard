@@ -1,9 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const personnelsController = require("../controllers/personnelsController");
+const verifyToken = require("../middlewares/authMiddleware");
 
 // Route to get all personnels
-router.get("/api/personnels", personnelsController.getAllPersonnels);
+router.get("/api/personnels", verifyToken, personnelsController.getAllPersonnels);
 
 // Route to get church duties by personnel ID
 router.get(

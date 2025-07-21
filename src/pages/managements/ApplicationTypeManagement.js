@@ -183,7 +183,7 @@ const ApplicationTypeManagement = () => {
               <Th>Name</Th>
               <Th width="20%" textAlign="right">
                 Actions
-              </Th>{" "}
+              </Th>
               {/* Actions Column - Aligned Right */}
             </Tr>
           </Thead>
@@ -195,7 +195,7 @@ const ApplicationTypeManagement = () => {
                   <Td>{index + 1}</Td> {/* Row Number */}
                   <Td>{type.name}</Td>
                   <Td textAlign="right">
-                    {" "}
+                    
                     {/* Align Actions to the Right */}
                     <IconButton
                       icon={<EditIcon />}

@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const loginController = require("../controllers/authController");
 
-const authMiddleware = require("../middlewares/auth"); // Import the authMiddleware
+const authMiddleware = require("../middlewares/authMiddleware"); // Import the authMiddleware
 
 router.post("/api/auth/login", loginController.Login); // ✅ Login route
 

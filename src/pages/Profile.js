@@ -358,7 +358,7 @@ const Profile = () => {
               {user.name}
             </Heading>
             <Text fontSize="lg" color="gray.600">
-              {user.email ? user.email : "Email not available"}{" "}
+              {user.email ? user.email : "Email not available"}
               {/* Fallback if email is missing */}
             </Text>
 

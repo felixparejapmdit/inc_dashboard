@@ -752,6 +752,11 @@ GROUP BY
 
 // User login
 // Login Endpoint
+
+const jwt = require("jsonwebtoken");
+require("dotenv").config(); // make sure this is called at the top of your entry file (e.g., index.js or server.js)
+
+
 router.post("/api/users/login", async (req, res) => {
   const { username, password } = req.body;
 
@@ -799,9 +804,25 @@ router.post("/api/users/login", async (req, res) => {
           .json({ success: false, message: "Invalid username or password" });
       }
 
+        // ✅ Generate JWT Token
+      const token = jwt.sign(
+        { id: user.id, username: user.username },
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRES_IN || "1d" }
+      );
+      
       // If password matches, return success and user data
       console.log("User authenticated:", username);
-      res.json({ success: true, user });
+           // ✅ Return token and user info
+      return res.status(200).json({
+        success: true,
+        token,
+        user: {
+          id: user.id,
+          username: user.username,
+          // optionally return other fields like email, role, etc.
+        },
+      });
     });
   } catch (error) {
     console.error("Error during login:", error);

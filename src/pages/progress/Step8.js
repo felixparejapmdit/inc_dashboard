@@ -20,6 +20,14 @@ import {
   Td,
   Divider,
   Flex,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
 } from "@chakra-ui/react";
 import axios from "axios";
 import useGetNamesByIds from "../../hooks/useGetNamesByIds";
@@ -32,6 +40,10 @@ import ScanRFIDQRBarcode from "./ScanRFIDQRBarcode"; // Import the scan componen
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Step8 = ({ onScanComplete }) => {
+  const [checklist, setChecklist] = useState({
+    id_issued: false,
+  });
+
   const { getNamesByIds } = useGetNamesByIds();
 
   const lookupData = useLookupData();
@@ -47,6 +59,7 @@ const Step8 = ({ onScanComplete }) => {
   const [rfidInput, setRfidInput] = useState("");
   const { hasPermission } = usePermissionContext(); // Correct usage
 
+  const { isOpen, onOpen, onClose } = useDisclosure();
   // Fetch personnel list
   const fetchPersonnel = async () => {
     setLoading(true);
@@ -101,6 +114,7 @@ const Step8 = ({ onScanComplete }) => {
       await axios.put(`${API_URL}/api/users/update-progress`, {
         personnel_id: selectedUser.personnel_id,
         personnel_progress: 8, // Update to Step 8
+        rfid_code: rfidInput, // <-- include scanned RFID
       });
 
       setIsVerified(true);
@@ -119,6 +133,7 @@ const Step8 = ({ onScanComplete }) => {
       setSelectedUser(null);
       setPersonnelInfo(null);
       setIsVerified(true);
+      onClose(); // Close the modal after verification
     } catch (error) {
       console.error("Error during verification:", error);
       toast({
@@ -135,6 +150,8 @@ const Step8 = ({ onScanComplete }) => {
 
   const handleUserSelect = async (user) => {
     setSelectedUser(user);
+
+    onOpen(); // Open the modal to show personnel info
     try {
       const response = await axios.get(
         `${API_URL}/api/personnels/${user.personnel_id}`
@@ -214,128 +231,144 @@ const Step8 = ({ onScanComplete }) => {
               ))}
             </Tbody>
           </Table>
-          {/* Personnel Information and Verification */}
-          {selectedUser && (
-            <VStack
-              align="start"
-              spacing={6}
-              w="100%"
-              maxWidth="600px"
-              mx="auto"
-            >
-              <Text
-                fontSize="xl"
-                fontWeight="bold"
-                color="teal.500"
-                textAlign="center"
-                w="100%"
-              >
-                Personnel Information
-              </Text>
-              <Box
-                p={6}
-                bg="white"
-                borderRadius="lg"
-                boxShadow="lg"
-                border="1px solid"
-                borderColor="gray.200"
-                w="100%"
-              >
-                <Text>
-                  <b>Reference Number:</b>{" "}
-                  {personnelInfo?.reference_number || "N/A"}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Name:</b>{" "}
-                  {`${personnelInfo?.givenname || ""} ${
-                    personnelInfo?.middlename || ""
-                  } ${personnelInfo?.surname_husband || ""}`}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Email Address:</b> {personnelInfo?.email_address || "N/A"}
-                </Text>
+          <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            size="xl"
+            scrollBehavior="inside"
+          >
+            <ModalOverlay />
+            <ModalContent>
+              <ModalHeader>Personnel Checklist</ModalHeader>
+              <ModalCloseButton />
 
-                <Divider />
-                {personnelInfo && (
-                  <Text fontSize="lg" mt={2}>
-                    <b>Civil Status:</b> {personnelInfo.civil_status || "N/A"}
-                  </Text>
-                )}
-
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Department:</b>{" "}
-                  {getNamesByIds(
-                    personnelInfo?.department_id,
-                    lookupData.departments
-                  )}
-                </Text>
-                <Divider />
-
-                <Text fontSize="lg" mt={2}>
-                  <b>Designation:</b>{" "}
-                  {getNamesByIds(
-                    personnelInfo?.designation_id,
-                    lookupData.designations
-                  )}
-                </Text>
-                <Divider />
-
-                <Text fontSize="lg" mt={2}>
-                  <b>District:</b>{" "}
-                  {getNamesByIds(
-                    personnelInfo?.district_id,
-                    lookupData.districts
-                  )}
-                </Text>
-                <Divider />
-
-                <Text fontSize="lg" mt={2}>
-                  <b>Local Congregation:</b>{" "}
-                  {getNamesByIds(
-                    personnelInfo?.local_congregation,
-                    lookupData.localCongregations
-                  )}
-                </Text>
-
-                <Divider />
-              </Box>
-              {/* Checklist */}
-              <Flex
-                direction="column"
-                align="center"
-                justify="center"
-                w="100%"
-                bg="white"
-                p={6}
-                borderRadius="lg"
-                boxShadow="md"
-                maxWidth="500px"
-                mx="auto"
-              >
-                <Text fontSize="xl" fontWeight="bold" mb={4}>
-                  Checklist
-                </Text>
-
-                {/* ID Issued Checkbox */}
-                <Checkbox
-                  isChecked={isCheckboxChecked}
-                  onChange={handleCheckboxChange}
-                  colorScheme="teal"
-                  size="lg"
+              <ModalBody>
+                <VStack
+                  align="start"
+                  spacing={6}
+                  w="100%"
+                  maxWidth="600px"
+                  mx="auto"
                 >
-                  ID Issued
-                </Checkbox>
+                  <Text
+                    fontSize="xl"
+                    fontWeight="bold"
+                    color="teal.500"
+                    textAlign="center"
+                    w="100%"
+                  >
+                    Personnel Information
+                  </Text>
+                  <Box
+                    p={6}
+                    bg="white"
+                    borderRadius="lg"
+                    boxShadow="lg"
+                    border="1px solid"
+                    borderColor="gray.200"
+                    w="100%"
+                  >
+                    <Text>
+                      <b>Reference Number:</b>{" "}
+                      {personnelInfo?.reference_number || "N/A"}
+                    </Text>
+                    <Divider />
+                    <Text fontSize="lg" mt={2}>
+                      <b>Name:</b>{" "}
+                      {`${personnelInfo?.givenname || ""} ${
+                        personnelInfo?.middlename || ""
+                      } ${personnelInfo?.surname_husband || ""}`}
+                    </Text>
+                    <Divider />
+                    <Text fontSize="lg" mt={2}>
+                      <b>Email Address:</b>{" "}
+                      {personnelInfo?.email_address || "N/A"}
+                    </Text>
 
-                {/* Show Scan Component if checkbox is checked */}
-                {isCheckboxChecked && (
-                  <ScanRFIDQRBarcode
-                    onScanComplete={(code) => setRfidInput(code)}
-                  />
-                )}
+                    <Divider />
+                    {personnelInfo && (
+                      <Text fontSize="lg" mt={2}>
+                        <b>Civil Status:</b>{" "}
+                        {personnelInfo?.civil_status || "N/A"}
+                      </Text>
+                    )}
 
+                    <Divider />
+                    <Text fontSize="lg" mt={2}>
+                      <b>Department:</b>{" "}
+                      {getNamesByIds(
+                        personnelInfo?.department_id,
+                        lookupData.departments
+                      )}
+                    </Text>
+                    <Divider />
+
+                    <Text fontSize="lg" mt={2}>
+                      <b>Designation:</b>{" "}
+                      {getNamesByIds(
+                        personnelInfo?.designation_id,
+                        lookupData.designations
+                      )}
+                    </Text>
+                    <Divider />
+
+                    <Text fontSize="lg" mt={2}>
+                      <b>District:</b>{" "}
+                      {getNamesByIds(
+                        personnelInfo?.district_id,
+                        lookupData.districts
+                      )}
+                    </Text>
+                    <Divider />
+
+                    <Text fontSize="lg" mt={2}>
+                      <b>Local Congregation:</b>{" "}
+                      {getNamesByIds(
+                        personnelInfo?.local_congregation,
+                        lookupData.localCongregations
+                      )}
+                    </Text>
+
+                    <Divider />
+                  </Box>
+                  {/* Checklist */}
+                  <Flex
+                    direction="column"
+                    align="center"
+                    justify="center"
+                    w="100%"
+                    bg="white"
+                    p={6}
+                    borderRadius="lg"
+                    boxShadow="md"
+                    maxWidth="500px"
+                    mx="auto"
+                  >
+                    <Text fontSize="xl" fontWeight="bold" mb={4}>
+                      Checklist
+                    </Text>
+
+                    {/* ID Issued Checkbox */}
+                    <Checkbox
+                      isChecked={isCheckboxChecked}
+                      onChange={handleCheckboxChange}
+                      colorScheme="teal"
+                      size="lg"
+                    >
+                      ID Issued
+                    </Checkbox>
+
+                    {/* Show Scan Component if checkbox is checked */}
+                    {isCheckboxChecked && (
+                      <ScanRFIDQRBarcode
+                        onScanComplete={(code) => setRfidInput(code)}
+                      />
+                    )}
+                  </Flex>
+                </VStack>
+              </ModalBody>
+
+              <ModalFooter>
                 {/* Submit Button */}
                 <Button
                   colorScheme="orange"
@@ -347,9 +380,18 @@ const Step8 = ({ onScanComplete }) => {
                 >
                   Issue ID and Complete Process
                 </Button>
-              </Flex>
-            </VStack>
-          )}
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setSelectedUser(null); // Clear selected user
+                    onClose(); // Close the modal
+                  }}
+                >
+                  Close
+                </Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
         </>
       )}
     </Box>

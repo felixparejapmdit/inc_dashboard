@@ -6,6 +6,7 @@ import ProfileSidebar from "../components/ProfileSidebar"; // ✅ default import
 import PersonnelInfo from "../components/PersonnelInfo"; // ✅ default import
 import styles from "../components/PersonnelImage.module.css";
 
+import { getAuthHeaders } from "../utils/apiHeaders"; // adjust path as needed
 // Configuration for API URLs
 const API_URL = process.env.REACT_APP_API_URL; // API URL
 const DISTRICT_API_URL = process.env.REACT_APP_DISTRICT_API_URL; // District API URL
@@ -98,15 +99,21 @@ const PersonnelPreview = () => {
 
         // Fetch all lookup data in parallel using Promise.all
         const generalResponses = await Promise.all(
-          endpoints.map((endpoint) => axios.get(`${API_URL}/api/${endpoint}`))
+          endpoints.map((endpoint) =>
+            axios.get(`${API_URL}/api/${endpoint}`, {
+              headers: getAuthHeaders(),
+            })
+          )
         );
 
         // Fetch district and local congregations data
         const districtResponse = await axios.get(
-          `${DISTRICT_API_URL}/api/districts`
+          `${DISTRICT_API_URL}/api/districts`,
+          { headers: getAuthHeaders() }
         );
         const localCongregationResponse = await axios.get(
-          `${LOCAL_CONGREGATION_API_URL}/api/all-congregations`
+          `${LOCAL_CONGREGATION_API_URL}/api/all-congregations`,
+          { headers: getAuthHeaders() }
         );
 
         // Map fetched data to the corresponding keys in lookupData
@@ -129,7 +136,8 @@ const PersonnelPreview = () => {
     const fetchPersonnel = async () => {
       try {
         const response = await axios.get(
-          `${API_URL}/api/personnels/${personnelId}`
+          `${API_URL}/api/personnels/${personnelId}`,
+          { headers: getAuthHeaders() }
         );
         setPersonnel(response.data); // Set personnel data
       } catch (error) {
@@ -141,7 +149,8 @@ const PersonnelPreview = () => {
     const fetchFamilyMembers = async () => {
       try {
         const response = await axios.get(
-          `${FAMILY_MEMBERS_API_URL}?personnel_id=${personnelId}`
+          `${FAMILY_MEMBERS_API_URL}?personnel_id=${personnelId}`,
+          { headers: getAuthHeaders() }
         );
         setFamilyMembers(response.data); // Set family members data
       } catch (error) {
@@ -153,7 +162,8 @@ const PersonnelPreview = () => {
     const fetch2x2Image = async () => {
       try {
         const response = await axios.get(
-          `${API_URL}/api/personnel_images/2x2/${personnelId}`
+          `${API_URL}/api/personnel_images/2x2/${personnelId}`,
+          { headers: getAuthHeaders() }
         );
         if (response.data.success && response.data.data) {
           //setPersonnelImage(response.data.data.image_url); // Store the image data
@@ -172,7 +182,8 @@ const PersonnelPreview = () => {
         }
 
         const response = await axios.get(
-          `${API_URL}/api/personnel-addresses/pid/${personnelId}`
+          `${API_URL}/api/personnel-addresses/pid/${personnelId}`,
+          { headers: getAuthHeaders() }
         );
 
         // Validate response
@@ -200,7 +211,8 @@ const PersonnelPreview = () => {
         }
 
         const response = await axios.get(
-          `${API_URL}/api/personnel_images/${personnelId}`
+          `${API_URL}/api/personnel_images/${personnelId}`,
+          { headers: getAuthHeaders() }
         );
 
         const imageData = Array.isArray(response.data?.data)
@@ -249,7 +261,8 @@ const PersonnelPreview = () => {
         }
 
         const response = await axios.get(
-          `${API_URL}/api/personnel-contacts/pid/${personnelId}`
+          `${API_URL}/api/personnel-contacts/pid/${personnelId}`,
+          { headers: getAuthHeaders() }
         );
 
         if (
@@ -278,7 +291,8 @@ const PersonnelPreview = () => {
         }
 
         const response = await axios.get(
-          `${API_URL}/api/educational-background/pid/${personnelId}`
+          `${API_URL}/api/educational-background/pid/${personnelId}`,
+          { headers: getAuthHeaders() }
         );
 
         if (
@@ -307,7 +321,8 @@ const PersonnelPreview = () => {
         }
 
         const response = await axios.get(
-          `${API_URL}/api/work-experience/pid/${personnelId}`
+          `${API_URL}/api/work-experience/pid/${personnelId}`,
+          { headers: getAuthHeaders() }
         );
 
         if (
@@ -337,7 +352,8 @@ const PersonnelPreview = () => {
         }
 
         const response = await axios.get(
-          `${API_URL}/api/church-duties/${personnelId}`
+          `${API_URL}/api/church-duties/${personnelId}`,
+          { headers: getAuthHeaders() }
         );
 
         // Validate response

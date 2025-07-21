@@ -20,6 +20,14 @@ import {
   Th,
   Td,
   Divider,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
 } from "@chakra-ui/react";
 import axios from "axios";
 import useLookupData from "../../hooks/useLookupData";
@@ -46,6 +54,7 @@ const Step2 = () => {
   const [search, setSearch] = useState("");
   const [personnelInfo, setPersonnelInfo] = useState(null);
   const toast = useToast();
+const { isOpen, onOpen, onClose } = useDisclosure();
 
   const fetchPersonnel = async () => {
     setLoading(true);
@@ -134,6 +143,7 @@ const Step2 = () => {
 
       // ✅ Refresh the personnel table
       fetchPersonnel();
+      onClose(); // Close the modal after verification
     } catch (error) {
       console.error("Error during verification:", error);
       toast({
@@ -174,6 +184,8 @@ const Step2 = () => {
   const handleUserSelect = async (user) => {
     setSelectedUser(user);
 
+  onOpen(); // 👈 open modal immediately
+  
     fetchPersonnelDetails(user.personnel_id);
     setChecklist({
       workArea: false,
@@ -251,8 +263,13 @@ const Step2 = () => {
               ))}
             </Tbody>
           </Table>
-          {/* Checklist */}
-          {selectedUser && (
+          <Modal isOpen={isOpen} onClose={onClose} size="xl" scrollBehavior="inside">
+  <ModalOverlay />
+  <ModalContent>
+    <ModalHeader>Personnel Checklist</ModalHeader>
+    <ModalCloseButton />
+
+    <ModalBody>
             <VStack
               align="start"
               spacing={6}
@@ -282,31 +299,31 @@ const Step2 = () => {
               >
                 <Text>
                   <b>Reference Number:</b>{" "}
-                  {personnelInfo.reference_number || "N/A"}
+                  {personnelInfo?.reference_number || "N/A"}
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
                   <b>Name:</b>{" "}
-                  {`${personnelInfo.givenname} ${
-                    personnelInfo.middlename || ""
-                  } ${personnelInfo.surname_husband}`}
+                  {`${personnelInfo?.givenname} ${
+                    personnelInfo?.middlename || ""
+                  } ${personnelInfo?.surname_husband}`}
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
-                  <b>Gender:</b> {personnelInfo.gender}
+                  <b>Gender:</b> {personnelInfo?.gender}
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
                   <b>Date of Birth:</b>{" "}
-                  {new Date(personnelInfo.date_of_birth).toLocaleDateString()}
+                  {new Date(personnelInfo?.date_of_birth).toLocaleDateString()}
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
-                  <b>Email Address:</b> {personnelInfo.email_address}
+                  <b>Email Address:</b> {personnelInfo?.email_address}
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
-                  <b>Civil Status:</b> {personnelInfo.civil_status}
+                  <b>Civil Status:</b> {personnelInfo?.civil_status}
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
@@ -344,11 +361,11 @@ const Step2 = () => {
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
-                  <b>Personnel Type:</b> {personnelInfo.personnel_type}
+                  <b>Personnel Type:</b> {personnelInfo?.personnel_type}
                 </Text>
               </Box>
-              {personnelInfo.personnel_type !== "Minister's Wife" &&
-                personnelInfo.personnel_type !== "Lay Member" && (
+              {personnelInfo?.personnel_type !== "Minister's Wife" &&
+                personnelInfo?.personnel_type !== "Lay Member" && (
                   <Box
                     p={6}
                     bg="white"
@@ -373,7 +390,7 @@ const Step2 = () => {
                         </Text>
                         <Input
                           placeholder="Enter Assigned Number"
-                          value={personnelInfo.assigned_number || ""}
+                          value={personnelInfo?.assigned_number || ""}
                           readOnly
                           flex="1"
                         />
@@ -384,20 +401,20 @@ const Step2 = () => {
                       </Text>
                       <HStack spacing={4}>
                         <Checkbox
-                          isChecked={personnelInfo.m_status === "May Destino"}
+                          isChecked={personnelInfo?.m_status === "May Destino"}
                           isReadOnly
                         >
                           May Destino
                         </Checkbox>
                         <Checkbox
-                          isChecked={personnelInfo.m_status === "Fulltime"}
+                          isChecked={personnelInfo?.m_status === "Fulltime"}
                           isReadOnly
                         >
                           Fulltime
                         </Checkbox>
                       </HStack>
-                      {(personnelInfo.personnel_type === "Minister" ||
-                        personnelInfo.personnel_type === "Regular") && (
+                      {(personnelInfo?.personnel_type === "Minister" ||
+                        personnelInfo?.personnel_type === "Regular") && (
                         <>
                           <Flex align="center" w="100%" mb={4}>
                             <Text fontWeight="bold" minWidth="150px" mr={2}>
@@ -405,9 +422,9 @@ const Step2 = () => {
                             </Text>
                             <Input
                               value={
-                                personnelInfo.panunumpa_date
+                                personnelInfo?.panunumpa_date
                                   ? new Date(
-                                      personnelInfo.panunumpa_date
+                                      personnelInfo?.panunumpa_date
                                     ).toLocaleDateString("en-US", {
                                       year: "numeric",
                                       month: "long",
@@ -422,7 +439,7 @@ const Step2 = () => {
                             />
                           </Flex>
 
-                          {personnelInfo.personnel_type === "Minister" && (
+                          {personnelInfo?.personnel_type === "Minister" && (
                             <>
                               <Text>
                                 <b>Ordination Date:</b>
@@ -430,8 +447,8 @@ const Step2 = () => {
                               <Input
                                 type="date"
                                 value={
-                                  personnelInfo.ordination_date
-                                    ? new Date(personnelInfo.ordination_date)
+                                  personnelInfo?.ordination_date
+                                    ? new Date(personnelInfo?.ordination_date)
                                         .toISOString()
                                         .split("T")[0]
                                     : ""
@@ -500,20 +517,28 @@ const Step2 = () => {
                   ))}
                 </VStack>
 
-                {/* Verify and Proceed Button */}
-                <Button
-                  colorScheme="orange"
-                  mt={6}
-                  size="lg"
-                  w="100%"
-                  onClick={handleVerify}
-                  isDisabled={!Object.values(checklist).every((item) => item)}
-                >
-                  Verify and Proceed
-                </Button>
               </Flex>
             </VStack>
-          )}
+              </ModalBody>
+
+    <ModalFooter>
+      <Button
+        colorScheme="orange"
+        mr={3}
+        onClick={handleVerify}
+        isDisabled={!Object.values(checklist).every((item) => item)}
+      >
+        Verify and Proceed
+      </Button>
+      <Button variant="ghost" onClick={() => {
+      setSelectedUser(null);  // Clear selected user
+      onClose();              // Close the modal
+    }}>
+        Close
+      </Button>
+    </ModalFooter>
+  </ModalContent>
+</Modal>
         </>
       )}
     </Box>

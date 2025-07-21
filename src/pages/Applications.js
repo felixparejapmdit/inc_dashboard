@@ -66,22 +66,51 @@ const Applications = () => {
   const cancelRef = React.useRef();
 
   // Fetch apps from the backend
-  useEffect(() => {
-    fetch(`${API_URL}/api/apps`)
-      .then((res) => res.json())
-      .then((data) => {
-        setApps(data);
-        setFilteredApps(data);
-      })
-      .catch((err) => console.error(err));
+useEffect(() => {
+  const authToken = localStorage.getItem("authToken");
 
-    fetch(`${API_URL}/api/application-types`) // Fetch application types
-      .then((res) => res.json())
-      .then((data) => {
-        setAppTypes(data);
-      })
-      .catch((err) => console.error("Error fetching application types:", err));
-  }, []);
+  // If no token, optionally redirect or handle unauthorized
+  if (!authToken) {
+    console.error("No auth token found. User may not be logged in.");
+    return;
+  }
+
+  // Fetch apps with Authorization header
+  fetch(`${API_URL}/api/apps`, {
+    headers: {
+      Authorization: `Bearer ${authToken}`,
+    },
+  })
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error("Failed to fetch apps");
+      }
+      return res.json();
+    })
+    .then((data) => {
+      setApps(data);
+      setFilteredApps(data);
+    })
+    .catch((err) => {
+      console.error("Error fetching apps:", err);
+    });
+
+  // Fetch application types (no auth needed if public)
+  fetch(`${API_URL}/api/application-types`)
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error("Failed to fetch application types");
+      }
+      return res.json();
+    })
+    .then((data) => {
+      setAppTypes(data);
+    })
+    .catch((err) => {
+      console.error("Error fetching application types:", err);
+    });
+}, []);
+
 
   // Search filter logic (filter first, then paginate)
   useEffect(() => {

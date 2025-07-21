@@ -20,6 +20,14 @@ import {
   Th,
   Td,
   Divider,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
 } from "@chakra-ui/react";
 import axios from "axios";
 import useGetNamesByIds from "../../hooks/useGetNamesByIds";
@@ -53,6 +61,8 @@ const Step3 = () => {
   const [search, setSearch] = useState("");
   const [personnelInfo, setPersonnelInfo] = useState(null);
   const toast = useToast();
+
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   // Fetch new personnel list
   const fetchPersonnel = async () => {
@@ -144,6 +154,7 @@ const Step3 = () => {
 
       // ✅ Refresh the personnel table
       fetchPersonnel();
+       onClose(); 
     } catch (error) {
       console.error("Error during verification:", error);
       toast({
@@ -185,6 +196,8 @@ const Step3 = () => {
     setSelectedUser(user);
 
     fetchPersonnelDetails(user.personnel_id);
+
+    onOpen(); // 👈 open modal immediately
 
     setChecklist({
       workArea: false,
@@ -265,8 +278,13 @@ const Step3 = () => {
               ))}
             </Tbody>
           </Table>
-          {/* Checklist */}
-          {selectedUser && (
+             <Modal isOpen={isOpen} onClose={onClose} size="xl" scrollBehavior="inside">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Personnel Checklist</ModalHeader>
+          <ModalCloseButton />
+      
+          <ModalBody>
             <VStack
               align="start"
               spacing={6}
@@ -295,31 +313,31 @@ const Step3 = () => {
               >
                 <Text>
                   <b>Reference Number:</b>{" "}
-                  {personnelInfo.reference_number || "N/A"}
+                  {personnelInfo?.reference_number || "N/A"}
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
                   <b>Name:</b>{" "}
-                  {`${personnelInfo.givenname} ${
-                    personnelInfo.middlename || ""
-                  } ${personnelInfo.surname_husband}`}
+                  {`${personnelInfo?.givenname} ${
+                    personnelInfo?.middlename || ""
+                  } ${personnelInfo?.surname_husband}`}
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
-                  <b>Gender:</b> {personnelInfo.gender}
+                  <b>Gender:</b> {personnelInfo?.gender}
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
                   <b>Date of Birth:</b>{" "}
-                  {new Date(personnelInfo.date_of_birth).toLocaleDateString()}
+                  {new Date(personnelInfo?.date_of_birth).toLocaleDateString()}
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
-                  <b>Email Address:</b> {personnelInfo.email_address}
+                  <b>Email Address:</b> {personnelInfo?.email_address}
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
-                  <b>Civil Status:</b> {personnelInfo.civil_status}
+                  <b>Civil Status:</b> {personnelInfo?.civil_status}
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
@@ -359,7 +377,7 @@ const Step3 = () => {
 
                 <Divider />
                 <Text fontSize="lg" mt={2}>
-                  <b>Personnel Type:</b> {personnelInfo.personnel_type}
+                  <b>Personnel Type:</b> {personnelInfo?.personnel_type}
                 </Text>
               </Box>
               <Flex
@@ -417,20 +435,32 @@ const Step3 = () => {
                   ))}
                 </VStack>
 
-                {/* Verify and Proceed Button */}
+              </Flex>
+            </VStack>
+                </ModalBody>
+          
+              <ModalFooter>
                 <Button
                   colorScheme="orange"
-                  mt={6}
-                  size="lg"
-                  w="100%"
+                  mr={3}
                   onClick={handleVerify}
                   isDisabled={!Object.values(checklist).every((item) => item)}
                 >
                   Verify and Proceed
                 </Button>
-              </Flex>
-            </VStack>
-          )}
+          <Button
+  variant="ghost"
+  onClick={() => {
+    setSelectedUser(null); // Clear selected user
+    onClose();             // Close the modal
+  }}
+>
+  Close
+</Button>
+
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
         </>
       )}
     </Box>

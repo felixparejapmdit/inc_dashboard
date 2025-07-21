@@ -2,6 +2,8 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
+import { getAuthHeaders } from "../utils/apiHeaders"; // adjust path as needed
+
 // Environment variables
 const API_URL = process.env.REACT_APP_API_URL;
 const DISTRICT_API_URL = process.env.REACT_APP_DISTRICT_API_URL;
@@ -36,7 +38,9 @@ export function useUserFormData() {
     const fetchData = async (endpoint, setter) => {
       try {
         const url = `${getApiUrl(endpoint)}/api/${endpoint}`;
-        const response = await axios.get(url);
+        const response = await axios.get(url, {
+          headers: getAuthHeaders(),
+        });
         setter(response.data);
       } catch (error) {
         console.error(`Error fetching ${endpoint}:`, error);

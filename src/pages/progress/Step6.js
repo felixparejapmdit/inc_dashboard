@@ -20,6 +20,14 @@ import {
   Td,
   Divider,
   Flex,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
 } from "@chakra-ui/react";
 import axios from "axios";
 import useGetNamesByIds from "../../hooks/useGetNamesByIds";
@@ -45,6 +53,8 @@ const Step6 = () => {
   const [search, setSearch] = useState("");
   const [personnelInfo, setPersonnelInfo] = useState(null);
   const toast = useToast();
+
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const fetchPersonnel = async () => {
     setLoading(true);
@@ -133,6 +143,8 @@ const Step6 = () => {
 
       // ✅ Refresh the personnel list
       fetchPersonnel();
+
+      onClose(); // Close the modal after verification
     } catch (error) {
       console.error("Error during verification:", error);
       toast({
@@ -173,6 +185,8 @@ const Step6 = () => {
     setSelectedUser(user);
 
     fetchPersonnelDetails(user.personnel_id);
+
+    onOpen(); // Open the modal to show personnel details
     try {
       const response = await axios.get(
         `${API_URL}/api/personnels/${user.personnel_id}`
@@ -243,173 +257,202 @@ const Step6 = () => {
               ))}
             </Tbody>
           </Table>
-          {/* Checklist */}
-          {selectedUser && (
-            <VStack
-              align="start"
-              spacing={6}
-              w="100%"
-              maxWidth="600px"
-              mx="auto"
-            >
-              {/* Display Selected Personnel Info */}
+          <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            size="xl"
+            scrollBehavior="inside"
+          >
+            <ModalOverlay />
+            <ModalContent>
+              <ModalHeader>Personnel Checklist</ModalHeader>
+              <ModalCloseButton />
 
-              <Text
-                fontSize="xl"
-                fontWeight="bold"
-                color="teal.500"
-                textAlign="center"
-                w="100%"
-              >
-                Personnel Information
-              </Text>
-              <Box
-                p={6}
-                bg="white"
-                borderRadius="lg"
-                boxShadow="lg"
-                border="1px solid"
-                borderColor="gray.200"
-                w="100%"
-              >
-                <Text>
-                  <b>Reference Number:</b>{" "}
-                  {personnelInfo.reference_number || "N/A"}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Name:</b>{" "}
-                  {`${personnelInfo.givenname} ${
-                    personnelInfo.middlename || ""
-                  } ${personnelInfo.surname_husband}`}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Gender:</b> {personnelInfo.gender}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Date of Birth:</b>{" "}
-                  {new Date(personnelInfo.date_of_birth).toLocaleDateString()}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Email Address:</b> {personnelInfo.email_address}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Civil Status:</b> {personnelInfo.civil_status}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Department:</b>{" "}
-                  {getNamesByIds(
-                    personnelInfo?.department_id,
-                    lookupData.departments
-                  )}
-                </Text>
-                <Divider />
-
-                <Text fontSize="lg" mt={2}>
-                  <b>Designation:</b>{" "}
-                  {getNamesByIds(
-                    personnelInfo?.designation_id,
-                    lookupData.designations
-                  )}
-                </Text>
-                <Divider />
-
-                <Text fontSize="lg" mt={2}>
-                  <b>District:</b>{" "}
-                  {getNamesByIds(
-                    personnelInfo?.district_id,
-                    lookupData.districts
-                  )}
-                </Text>
-                <Divider />
-
-                <Text fontSize="lg" mt={2}>
-                  <b>Local Congregation:</b>{" "}
-                  {getNamesByIds(
-                    personnelInfo?.local_congregation,
-                    lookupData.localCongregations
-                  )}
-                </Text>
-
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Personnel Type:</b> {personnelInfo.personnel_type}
-                </Text>
-              </Box>
-              <Flex
-                direction="column"
-                align="center"
-                justify="center"
-                w="100%"
-                bg="white"
-                p={6}
-                borderRadius="lg"
-                boxShadow="md"
-                maxWidth="500px"
-                mx="auto"
-              >
-                <Text fontSize="xl" fontWeight="bold" mb={4}>
-                  Checklist
-                </Text>
-
-                {/* Select All Checkbox */}
-                <Checkbox
-                  isChecked={Object.values(checklist).every((item) => item)}
-                  onChange={(e) => {
-                    const isChecked = e.target.checked;
-                    const updatedChecklist = {};
-                    Object.keys(checklist).forEach((key) => {
-                      updatedChecklist[key] = isChecked;
-                    });
-                    setChecklist(updatedChecklist);
-                  }}
-                  colorScheme="teal"
-                  size="lg"
+              <ModalBody>
+                <VStack
+                  align="start"
+                  spacing={6}
                   w="100%"
-                  fontWeight="bold"
-                  mb={2}
+                  maxWidth="600px"
+                  mx="auto"
                 >
-                  Select All
-                </Checkbox>
+                  {/* Display Selected Personnel Info */}
 
-                <VStack align="start" spacing={3} w="100%">
-                  <Checkbox
-                    isChecked={checklist.confidentiality}
-                    onChange={() => handleChecklistChange("confidentiality")}
-                    colorScheme="teal"
-                    size="lg"
+                  <Text
+                    fontSize="xl"
+                    fontWeight="bold"
+                    color="teal.500"
+                    textAlign="center"
+                    w="100%"
                   >
-                    Instructions on confidentiality, correspondences, and
-                    personnel office
-                  </Checkbox>
-                  <Checkbox
-                    isChecked={checklist.informationSheet}
-                    onChange={() => handleChecklistChange("informationSheet")}
-                    colorScheme="teal"
-                    size="lg"
+                    Personnel Information
+                  </Text>
+                  <Box
+                    p={6}
+                    bg="white"
+                    borderRadius="lg"
+                    boxShadow="lg"
+                    border="1px solid"
+                    borderColor="gray.200"
+                    w="100%"
                   >
-                    Final checking of information sheet
-                  </Checkbox>
+                    <Text>
+                      <b>Reference Number:</b>{" "}
+                      {personnelInfo?.reference_number || "N/A"}
+                    </Text>
+                    <Divider />
+                    <Text fontSize="lg" mt={2}>
+                      <b>Name:</b>{" "}
+                      {`${personnelInfo?.givenname} ${
+                        personnelInfo?.middlename || ""
+                      } ${personnelInfo?.surname_husband}`}
+                    </Text>
+                    <Divider />
+                    <Text fontSize="lg" mt={2}>
+                      <b>Gender:</b> {personnelInfo?.gender}
+                    </Text>
+                    <Divider />
+                    <Text fontSize="lg" mt={2}>
+                      <b>Date of Birth:</b>{" "}
+                      {new Date(
+                        personnelInfo?.date_of_birth
+                      ).toLocaleDateString()}
+                    </Text>
+                    <Divider />
+                    <Text fontSize="lg" mt={2}>
+                      <b>Email Address:</b> {personnelInfo?.email_address}
+                    </Text>
+                    <Divider />
+                    <Text fontSize="lg" mt={2}>
+                      <b>Civil Status:</b> {personnelInfo?.civil_status}
+                    </Text>
+                    <Divider />
+                    <Text fontSize="lg" mt={2}>
+                      <b>Department:</b>{" "}
+                      {getNamesByIds(
+                        personnelInfo?.department_id,
+                        lookupData.departments
+                      )}
+                    </Text>
+                    <Divider />
+
+                    <Text fontSize="lg" mt={2}>
+                      <b>Designation:</b>{" "}
+                      {getNamesByIds(
+                        personnelInfo?.designation_id,
+                        lookupData.designations
+                      )}
+                    </Text>
+                    <Divider />
+
+                    <Text fontSize="lg" mt={2}>
+                      <b>District:</b>{" "}
+                      {getNamesByIds(
+                        personnelInfo?.district_id,
+                        lookupData.districts
+                      )}
+                    </Text>
+                    <Divider />
+
+                    <Text fontSize="lg" mt={2}>
+                      <b>Local Congregation:</b>{" "}
+                      {getNamesByIds(
+                        personnelInfo?.local_congregation,
+                        lookupData.localCongregations
+                      )}
+                    </Text>
+
+                    <Divider />
+                    <Text fontSize="lg" mt={2}>
+                      <b>Personnel Type:</b> {personnelInfo?.personnel_type}
+                    </Text>
+                  </Box>
+                  <Flex
+                    direction="column"
+                    align="center"
+                    justify="center"
+                    w="100%"
+                    bg="white"
+                    p={6}
+                    borderRadius="lg"
+                    boxShadow="md"
+                    maxWidth="500px"
+                    mx="auto"
+                  >
+                    <Text fontSize="xl" fontWeight="bold" mb={4}>
+                      Checklist
+                    </Text>
+
+                    {/* Select All Checkbox */}
+                    <Checkbox
+                      isChecked={Object.values(checklist).every((item) => item)}
+                      onChange={(e) => {
+                        const isChecked = e.target.checked;
+                        const updatedChecklist = {};
+                        Object.keys(checklist).forEach((key) => {
+                          updatedChecklist[key] = isChecked;
+                        });
+                        setChecklist(updatedChecklist);
+                      }}
+                      colorScheme="teal"
+                      size="lg"
+                      w="100%"
+                      fontWeight="bold"
+                      mb={2}
+                    >
+                      Select All
+                    </Checkbox>
+
+                    <VStack align="start" spacing={3} w="100%">
+                      <Checkbox
+                        isChecked={checklist.confidentiality}
+                        onChange={() =>
+                          handleChecklistChange("confidentiality")
+                        }
+                        colorScheme="teal"
+                        size="lg"
+                      >
+                        Instructions on confidentiality, correspondences, and
+                        personnel office
+                      </Checkbox>
+                      <Checkbox
+                        isChecked={checklist.informationSheet}
+                        onChange={() =>
+                          handleChecklistChange("informationSheet")
+                        }
+                        colorScheme="teal"
+                        size="lg"
+                      >
+                        Final checking of information sheet
+                      </Checkbox>
+                    </VStack>
+
+                    
+                  </Flex>
                 </VStack>
+              </ModalBody>
 
+              <ModalFooter>
                 <Button
                   colorScheme="orange"
-                  mt={6}
-                  size="lg"
-                  w="100%"
+                  mr={3}
                   onClick={handleVerify}
                   isDisabled={!Object.values(checklist).every((item) => item)}
                 >
                   Verify and Proceed
                 </Button>
-              </Flex>
-            </VStack>
-          )}
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setSelectedUser(null); // Clear selected user
+                    onClose(); // Close the modal
+                  }}
+                >
+                  Close
+                </Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
         </>
       )}
     </Box>

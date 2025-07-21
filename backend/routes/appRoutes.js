@@ -3,8 +3,10 @@ const express = require("express");
 const router = express.Router();
 const appController = require("../controllers/appController");
 
+const verifyToken = require("../middlewares/authMiddleware");
+
 // Get all apps
-router.get("/api/apps", appController.getAllApps);
+router.get("/api/apps", verifyToken, appController.getAllApps);
 
 // Get available apps for the logged-in user
 router.get("/api/apps/available", appController.getAvailableApps);

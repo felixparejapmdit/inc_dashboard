@@ -24,6 +24,8 @@ import {
 import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
 import axios from "axios";
 
+import { getAuthHeaders } from "../../utils/apiHeaders";
+
 const ITEMS_PER_PAGE = 15;
 
 const CitizenshipManagement = () => {
@@ -48,7 +50,8 @@ const CitizenshipManagement = () => {
   const fetchCitizenships = async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/citizenships`
+        `${process.env.REACT_APP_API_URL}/api/citizenships`,
+        { headers: getAuthHeaders() }
       );
       setCitizenships(response.data);
       setFilteredCitizenships(response.data);

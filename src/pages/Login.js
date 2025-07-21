@@ -203,7 +203,7 @@ const Login = () => {
 
     // Assume the first part is the given name and the last part is the surname
     const givenname = nameParts[0]; // First name
-    const surname_husband = nameParts[nameParts.length - 1]; // Last name
+    const surname_husband = nameParts.slice(1).join(" "); // Everything after first word = surname
 
     console.log("Given Name:", givenname);
     console.log("Surname:", surname_husband);
@@ -599,9 +599,8 @@ const Login = () => {
       return;
     }
 
-    const ldapTimeout = 5000; // Set LDAP timeout to 5 seconds
+    const ldapTimeout = 5000;
 
-    // Attempt LDAP Authentication first
     const ldapPromise = axios
       .get(`${process.env.REACT_APP_API_URL}/ldap/user/${username}`, {
         timeout: ldapTimeout,
@@ -623,21 +622,27 @@ const Login = () => {
         );
 
         if (isPasswordValid) {
-          // Proceed with login
+          // ✅ Authenticate via local login to get JWT token
+          const loginResponse = await axios.post(
+            `${process.env.REACT_APP_API_URL}/api/users/login`,
+            { username, password }
+          );
 
-          // Fetch the user ID for the local login and login status
+          const token = loginResponse.data.token;
+          localStorage.setItem("authToken", token);
+
           const userResponse = await axios.get(
-            `${process.env.REACT_APP_API_URL}/api/users_access/${username}`
+            `${process.env.REACT_APP_API_URL}/api/users_access/${username}`,
+            { headers: { Authorization: `Bearer ${token}` } }
           );
           const userId = userResponse.data.id;
 
-          // Fetch the group ID using the user ID
           const groupResponse = await axios.get(
-            `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`
+            `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`,
+            { headers: { Authorization: `Bearer ${token}` } }
           );
           const groupId = groupResponse.data.groupId;
 
-          // Check if the group ID exists
           if (!groupId) {
             setError(
               "User does not belong to any group. Please contact the administrator to Assign."
@@ -646,30 +651,28 @@ const Login = () => {
             return;
           }
 
-          // Store user data and navigate to dashboard
-          const fullName = ldapUser.cn?.[0] || "User"; // Adjust to the LDAP format
+          const fullName = ldapUser.cn?.[0] || "User";
           localStorage.setItem("userFullName", fullName);
-          localStorage.setItem("username", ldapUser.uid); // or response.data.user.username for local login
+          localStorage.setItem("username", ldapUser.uid);
           localStorage.setItem("userId", userId);
-          // Store the group ID in localStorage
           localStorage.setItem("groupId", groupId);
-          fetchPermissions(groupId);
 
+          fetchPermissions(groupId);
           navigate("/dashboard");
 
-          // Update isLoggedIn status in the database
           await axios.put(
             `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
             {
-              ID: ldapUser.uid?.[0], // Ensure this matches the expected ID format
+              ID: ldapUser.uid?.[0],
               isLoggedIn: true,
-            }
+            },
+            { headers: { Authorization: `Bearer ${token}` } }
           );
         } else {
           throw new Error("Invalid LDAP username or password");
         }
       });
-    // Fall back to local login if LDAP fails
+
     try {
       await ldapPromise;
     } catch (err) {
@@ -678,7 +681,6 @@ const Login = () => {
         err
       );
 
-      // Attempt local login if LDAP fails
       try {
         const response = await axios.post(
           `${process.env.REACT_APP_API_URL}/api/users/login`,
@@ -686,23 +688,23 @@ const Login = () => {
         );
 
         if (response.data.success) {
-          // Set the username for local login as well
-          //const userName = response.data.user.username || "User";
-
+          const token = response.data.token;
           const user = response.data.user;
 
+          localStorage.setItem("authToken", token);
+
           const userResponse = await axios.get(
-            `${process.env.REACT_APP_API_URL}/api/users_access/${user.username}`
+            `${process.env.REACT_APP_API_URL}/api/users_access/${user.username}`,
+            { headers: { Authorization: `Bearer ${token}` } }
           );
           const userId = userResponse.data.id;
 
-          // Fetch the group ID using the user ID
           const groupResponse = await axios.get(
-            `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`
+            `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`,
+            { headers: { Authorization: `Bearer ${token}` } }
           );
           const groupId = groupResponse.data.groupId;
 
-          // Check if the group ID exists
           if (!groupId) {
             setError(
               "User does not belong to any group. Please contact the administrator to Assign."
@@ -712,22 +714,20 @@ const Login = () => {
           }
 
           localStorage.setItem("userFullName", user.username);
-          localStorage.setItem("username", user.username); // or response.data.user.username for local login
+          localStorage.setItem("username", user.username);
           localStorage.setItem("userId", userId);
-
-          // Store the group ID in localStorage
           localStorage.setItem("groupId", groupId);
-          fetchPermissions(groupId);
 
+          fetchPermissions(groupId);
           navigate("/dashboard");
 
-          // Update isLoggedIn status in the database
           await axios.put(
             `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
             {
               ID: user.ID,
               isLoggedIn: true,
-            }
+            },
+            { headers: { Authorization: `Bearer ${token}` } }
           );
         } else {
           setError("Invalid username or password");

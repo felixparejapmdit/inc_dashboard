@@ -158,14 +158,13 @@ exports.getUserByUsername = async (req, res) => {
 };
 
 exports.updateProgress = async (req, res) => {
-  const { personnel_id, personnel_progress } = req.body;
+  const { personnel_id, personnel_progress, rfid_code } = req.body;
 
-  if (!personnel_id || !personnel_progress) {
+  if (!personnel_id || (!personnel_progress && !rfid_code)) {
     return res.status(400).json({
-      message: "Personnel ID and progress stage are required.",
+      message: "Personnel ID and at least one of progress stage or RFID code is required.",
     });
   }
-
   try {
     console.log("Checking if User model is defined:", User !== undefined); // Debugging
     console.log("Searching for user with ID:", personnel_id);
@@ -176,7 +175,10 @@ exports.updateProgress = async (req, res) => {
       return res.status(404).json({ message: "Personnel not found." });
     }
 
-    await user.update({ personnel_progress });
+    await user.update({
+      personnel_progress,
+      ...(rfid_code && { rfid_code }), // only update if rfid_code is provided
+    });
 
     res.status(200).json({
       message: "Personnel's progress updated successfully.",

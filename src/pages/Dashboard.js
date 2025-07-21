@@ -250,7 +250,7 @@ const [compactGreeting, setCompactGreeting] = useState(false);
 
   useEffect(() => {
     const username = localStorage.getItem("username"); // Retrieve username
-    console.log("Username retrieved from localStorage:", username);
+    //console.log("Username retrieved from localStorage:", username);
 
     if (!username) {
       console.error("Username not found in localStorage");
@@ -283,7 +283,7 @@ const [compactGreeting, setCompactGreeting] = useState(false);
     const url = `${API_URL}/api/users/logged-in?username=${encodeURIComponent(
       username
     )}`;
-    console.log("Constructed Fetch URL:", url);
+    //console.log("Constructed Fetch URL:", url);
 
     fetch(url)
       .then((response) => {
@@ -293,7 +293,7 @@ const [compactGreeting, setCompactGreeting] = useState(false);
         return response.json();
       })
       .then((user) => {
-        console.log("Fetched User Data:", user); // Log entire user data
+        //console.log("Fetched User Data:", user); // Log entire user data
 
         if (user && (user.ID || user.id)) {
           // Set user data in state
@@ -407,7 +407,7 @@ const [compactGreeting, setCompactGreeting] = useState(false);
         throw new Error(`Failed to fetch apps: ${response.statusText}`);
 
       const data = await response.json();
-      console.log("Fetched Apps Data:", data); // Log the data to ensure it's coming through
+      //console.log("Fetched Apps Data:", data); // Log the data to ensure it's coming through
 
       // Initialize an empty object for categorized apps
       let categorizedApps = {};
@@ -1188,7 +1188,7 @@ const AppCard = ({ app, colors, handleAppClick, small }) => {
         )}
 
         <Text fontSize="sm" color={colors.cardText}>
-          <strong>DECT:</strong>{" "}
+          <strong>DECT:</strong>
           {app.dect_number && app.dect_number.trim() !== ""
             ? app.dect_number
             : "N/A"}

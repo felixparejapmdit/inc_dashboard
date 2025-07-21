@@ -94,45 +94,66 @@ const PersonnelStatistics = () => {
     "Personnel Office": "/progress/step8",
   };
 
+  
   useEffect(() => {
-    fetch(`${API_URL}/api/personnels`)
-      .then((res) => res.json())
-      .then((data) => {
-        const count = {
-          All: data.length,
-          Minister: 0,
-          Regular: 0,
-          "Minister's Wife": 0,
-          "Ministerial Student": 0,
-          "Lay Member": 0,
-        };
-        data.forEach((p) => {
-          if (count[p.personnel_type] !== undefined) {
-            count[p.personnel_type]++;
-          }
-        });
-        setStats(count);
-      });
+  const authToken = localStorage.getItem("authToken");
 
-    Promise.all(
-      trackingSteps.map((_, i) =>
-        fetch(`${API_URL}/api/personnels/progress/${i}`).then((res) =>
-          res.json()
-        )
-      )
+  if (!authToken) {
+    console.error("No auth token found. User may not be logged in.");
+    return;
+  }
+
+  const headers = {
+    Authorization: `Bearer ${authToken}`,
+  };
+
+  // Fetch personnels
+  fetch(`${API_URL}/api/personnels`, { headers })
+    .then((res) => {
+      if (!res.ok) throw new Error("Failed to fetch personnels");
+      return res.json();
+    })
+    .then((data) => {
+      const count = {
+        All: data.length,
+        Minister: 0,
+        Regular: 0,
+        "Minister's Wife": 0,
+        "Ministerial Student": 0,
+        "Lay Member": 0,
+      };
+      data.forEach((p) => {
+        if (count[p.personnel_type] !== undefined) {
+          count[p.personnel_type]++;
+        }
+      });
+      setStats(count);
+    })
+    .catch((err) => console.error("Error fetching personnels:", err));
+
+  // Fetch progress tracking per step
+  Promise.all(
+    trackingSteps.map((_, i) =>
+      fetch(`${API_URL}/api/personnels/progress/${i}`, { headers })
+        .then((res) => {
+          if (!res.ok) throw new Error(`Failed to fetch progress for step ${i}`);
+          return res.json();
+        })
     )
-      .then((responses) => {
-        const result = {};
-        let total = 0;
-        responses.forEach((data, i) => {
-          result[trackingSteps[i]] = data.length;
-          total += data.length;
-        });
-        setTrackingStats(result);
-        setTotalProgress(total);
-      })
-      .catch((err) => console.error("Error fetching tracking stats:", err));
-  }, []);
+  )
+    .then((responses) => {
+      const result = {};
+      let total = 0;
+      responses.forEach((data, i) => {
+        result[trackingSteps[i]] = data.length;
+        total += data.length;
+      });
+      setTrackingStats(result);
+      setTotalProgress(total);
+    })
+    .catch((err) => console.error("Error fetching tracking stats:", err));
+}, []);
+
 
   const renderCard = (label, value, icon, gradient, onClick, progressPercent) => (
     <Box
