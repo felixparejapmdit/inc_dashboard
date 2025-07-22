@@ -12,6 +12,8 @@ const User = require("../models/User");
 const Personnel = require("../models/personnels");
 const UserController = require("../controllers/userController");
 
+const verifyToken = require("../middlewares/authMiddleware");
+
 //const db1 = require("../config/database");
 const axios = require("axios");
 
@@ -79,7 +81,7 @@ function verifyMD5(password, hash) {
 
 router.put("/api/users/:userId/assign-group", UserController.assignGroup);
 
-router.get("/api/users_access/:username", UserController.getUserByUsername);
+router.get("/api/users_access/:username", verifyToken, UserController.getUserByUsername);
 
 // Update user's progress stage
 router.put("/api/users/update-progress", UserController.updateProgress);
@@ -372,7 +374,7 @@ router.post("/api/users/change-password", (req, res) => {
 });
 
 // Logged-In User Endpoint
-router.get("/api/users/logged-in", async (req, res) => {
+router.get("/api/users/logged-in", verifyToken, async (req, res) => {
   const { username } = req.query; // Extract username from query parameters
   console.log("Received username in query1:", username); // Debug log
 
@@ -458,7 +460,7 @@ router.get("/api/users/logged-in", async (req, res) => {
   });
 });
 
-router.get("/api/nextcloud-login", async (req, res) => {
+router.get("/api/nextcloud-login", verifyToken,async (req, res) => {
   const { username } = req.query;
 
   if (!username) {
@@ -540,7 +542,7 @@ const fetchApiData = async (url) => {
 };
 
 // Get all users with their available apps and LDAP attributes
-router.get("/api/users", async (req, res) => {
+router.get("/api/users", verifyToken, async (req, res) => {
   // Fetch external API data
   const districts = await fetchApiData(DISTRICT_API_URL);
   const localCongregations = await fetchApiData(LOCAL_CONGREGATION_API_URL);

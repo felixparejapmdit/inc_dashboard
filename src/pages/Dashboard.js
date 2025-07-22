@@ -58,7 +58,7 @@ import { SearchIcon } from "@chakra-ui/icons";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 //import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-
+import { getAuthHeaders } from "../utils/apiHeaders"; // adjust path as needed
 import axios from "axios";
 import { usePermissionContext } from "../contexts/PermissionContext";
 // Use environment variable
@@ -106,7 +106,7 @@ export default function Dashboard() {
   // ✅ Detect if the screen is mobile-sized
   const [isMobileDragEnabled, setIsMobileDragEnabled] = useState(false);
 
-const [compactGreeting, setCompactGreeting] = useState(false);
+  const [compactGreeting, setCompactGreeting] = useState(false);
   const lastScrollTop = useRef(0);
 
   useEffect(() => {
@@ -285,7 +285,9 @@ const [compactGreeting, setCompactGreeting] = useState(false);
     )}`;
     //console.log("Constructed Fetch URL:", url);
 
-    fetch(url)
+    fetch(url, {
+      headers:  getAuthHeaders(),
+    })
       .then((response) => {
         if (!response.ok) {
           throw new Error("Failed to fetch logged-in user");
@@ -533,154 +535,155 @@ const [compactGreeting, setCompactGreeting] = useState(false);
   };
 
   return (
-
-      
     <Box bg={useColorModeValue("white.50", "white.500")} minH="100vh" p={6}>
       {/* Sticky Header Section */}
-  <Box
-      position="sticky"
-      top="0"
-      zIndex="1000"
-      boxShadow="sm"
-      bg="white"
-      px={4}
-      py={2}
-    >
-      <HStack
-        justify="space-between"
-        align="start"
-        spacing={4}
-        transition="all 0.4s ease"
-        flexWrap="wrap"
+      <Box
+        position="sticky"
+        top="0"
+        zIndex="1000"
+        boxShadow="sm"
+        bg="white"
+        px={4}
+        py={2}
       >
-<Button onClick={() => {
-  localStorage.removeItem("hasSeenTutorial");
-  window.location.reload();
-}}>Reset Tutorial</Button>
-        {/* ✅ Tutorial overlay always rendered once (if not seen yet) */}
-        <Tutorial />
-        {compactGreeting ? (
-          // 👉 Compact greeting beside search input
-          <>
-            <Input
-              placeholder="Search"
-              size="md"
-              borderRadius="full"
-              bg="white"
-              maxW="300px"
-              value={searchQuery}
-              onChange={handleSearch}
-              boxShadow="md"
-              transition="all 0.4s ease"
-            />
-
-            <Box
-              bgGradient="linear(to-r, orange.400, yellow.300)"
-              borderRadius="xl"
-              px={4}
-              py={2}
-              textAlign="left"
-              boxShadow="xl"
-              transition="all 0.4s ease"
-              display="flex"
-              alignItems="center"
-              minW="250px"
-              h="100%"
-            >
-              <Heading as="h1" size="md" color="white">
-                {getTimeBasedGreeting()}
-              </Heading>
-            </Box>
-          </>
-        ) : (
-          // 👉 Full greeting below search input
-          <VStack
-            spacing={4}
-            align="start"
-            width="100%"
-            transition="all 0.4s ease"
+        <HStack
+          justify="space-between"
+          align="start"
+          spacing={4}
+          transition="all 0.4s ease"
+          flexWrap="wrap"
+        >
+          {/* <Button
+            onClick={() => {
+              localStorage.removeItem("hasSeenTutorial");
+              window.location.reload();
+            }}
           >
-            <Input
-              placeholder="Search"
-              size="md"
-              borderRadius="full"
-              bg="white"
-              maxW="300px"
-              value={searchQuery}
-              onChange={handleSearch}
-              boxShadow="md"
-              transition="all 0.4s ease"
-            />
+            Reset Tutorial
+          </Button> */}
+          {/* ✅ Tutorial overlay always rendered once (if not seen yet) */}
+          <Tutorial />
+          {compactGreeting ? (
+            // 👉 Compact greeting beside search input
+            <>
+              <Input
+                placeholder="Search"
+                size="md"
+                borderRadius="full"
+                bg="white"
+                maxW="300px"
+                value={searchQuery}
+                onChange={handleSearch}
+                boxShadow="md"
+                transition="all 0.4s ease"
+              />
 
-            <Box
-              bgGradient="linear(to-r, orange.400, yellow.300)"
-              borderRadius="xl"
-              p={6}
-              textAlign="left"
-              boxShadow="xl"
+              <Box
+                bgGradient="linear(to-r, orange.400, yellow.300)"
+                borderRadius="xl"
+                px={4}
+                py={2}
+                textAlign="left"
+                boxShadow="xl"
+                transition="all 0.4s ease"
+                display="flex"
+                alignItems="center"
+                minW="250px"
+                h="100%"
+              >
+                <Heading as="h1" size="md" color="white">
+                  {getTimeBasedGreeting()}
+                </Heading>
+              </Box>
+            </>
+          ) : (
+            // 👉 Full greeting below search input
+            <VStack
+              spacing={4}
+              align="start"
               width="100%"
               transition="all 0.4s ease"
             >
-              <Text fontSize="sm" color="whiteAlpha.900">
-                {currentDate.toLocaleDateString("en-US", {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </Text>
+              <Input
+                placeholder="Search"
+                size="md"
+                borderRadius="full"
+                bg="white"
+                maxW="300px"
+                value={searchQuery}
+                onChange={handleSearch}
+                boxShadow="md"
+                transition="all 0.4s ease"
+              />
 
-              <Heading as="h1" size="lg" color="white">
-                {getTimeBasedGreeting()}
-              </Heading>
+              <Box
+                bgGradient="linear(to-r, orange.400, yellow.300)"
+                borderRadius="xl"
+                p={6}
+                textAlign="left"
+                boxShadow="xl"
+                width="100%"
+                transition="all 0.4s ease"
+              >
+                <Text fontSize="sm" color="whiteAlpha.900">
+                  {currentDate.toLocaleDateString("en-US", {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </Text>
 
-              <Text fontSize="md" color="whiteAlpha.800">
-                Have a nice day.
-              </Text>
-            </Box>
-          </VStack>
-        )}
+                <Heading as="h1" size="lg" color="white">
+                  {getTimeBasedGreeting()}
+                </Heading>
 
-        {/* Mode toggle & bell */}
-        <IconButton
-          icon={colorMode === "light" ? <FiMoon /> : <FiSun />}
-          onClick={toggleColorMode}
-          isRound
-          display="none"
-          size="lg"
-          aria-label="Toggle color mode"
-        />
+                <Text fontSize="md" color="whiteAlpha.800">
+                  Have a nice day.
+                </Text>
+              </Box>
+            </VStack>
+          )}
 
-        <Popover>
-          <PopoverTrigger>
-            <IconButton
-              icon={<FiBell />}
-              isRound
-              size="lg"
-              aria-label="Notifications"
-              display="none"
-            />
-          </PopoverTrigger>
-          <PopoverContent>
-            <PopoverArrow />
-            <PopoverCloseButton />
-            <PopoverBody>
-              {notifications.length > 0 ? (
-                notifications.map((notif) => (
-                  <Box key={notif.id} p={2}>
-                    <Text fontWeight="bold">{notif.title}</Text>
-                    <Text fontSize="sm">{notif.description}</Text>
-                  </Box>
-                ))
-              ) : (
-                <Text>No new notifications</Text>
-              )}
-            </PopoverBody>
-          </PopoverContent>
-        </Popover>
-      </HStack>
-    </Box>
+          {/* Mode toggle & bell */}
+          <IconButton
+            icon={colorMode === "light" ? <FiMoon /> : <FiSun />}
+            onClick={toggleColorMode}
+            isRound
+            display="none"
+            size="lg"
+            aria-label="Toggle color mode"
+          />
 
+          <Popover>
+            <PopoverTrigger>
+              <IconButton
+                icon={<FiBell />}
+                isRound
+                size="lg"
+                aria-label="Notifications"
+                display="none"
+              />
+            </PopoverTrigger>
+            <PopoverContent>
+              <PopoverArrow />
+              <PopoverCloseButton />
+              <PopoverBody>
+                {notifications.length > 0 ? (
+                  notifications.map((notif) => (
+                    <Box key={notif.id} p={2}>
+                      <Text fontWeight="bold">{notif.title}</Text>
+                      <Text fontSize="sm">{notif.description}</Text>
+                    </Box>
+                  ))
+                ) : (
+                  <Text>No new notifications</Text>
+                )}
+              </PopoverBody>
+            </PopoverContent>
+          </Popover>
+        </HStack>
+      </Box>
 
       {/* Recently Opened Apps Section */}
       {recentApps.length > 0 && (
@@ -722,8 +725,6 @@ const [compactGreeting, setCompactGreeting] = useState(false);
         </Box>
       ))} */}
       <>
-
-
         {/* ✅ Show Search Results If Search Query Exists */}
         {searchQuery && filteredApps.length > 0 ? (
           <Box mt={6}>
@@ -1268,9 +1269,7 @@ const AppCard = ({ app, colors, handleAppClick, small }) => {
             {app.description}
           </Text>
         )}
-      
       </Box>
     </VStack>
-    
   );
 };

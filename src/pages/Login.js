@@ -695,14 +695,24 @@ const Login = () => {
 
           const userResponse = await axios.get(
             `${process.env.REACT_APP_API_URL}/api/users_access/${user.username}`,
-            { headers: { Authorization: `Bearer ${token}` } }
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
           );
+
           const userId = userResponse.data.id;
 
           const groupResponse = await axios.get(
             `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`,
-            { headers: { Authorization: `Bearer ${token}` } }
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
           );
+
           const groupId = groupResponse.data.groupId;
 
           if (!groupId) {

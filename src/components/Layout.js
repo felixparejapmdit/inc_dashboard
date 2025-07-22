@@ -60,6 +60,7 @@ import {
   AlertDialogFooter,
   Button,
 } from "@chakra-ui/react";
+import { getAuthHeaders } from "../utils/apiHeaders"; // adjust path as needed
 const Layout = ({ children, currentUser }) => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const { fetchPermissions } = usePermissionContext();
@@ -121,9 +122,14 @@ const Layout = ({ children, currentUser }) => {
           return;
         }
 
-        const userResponse = await axios.get(
-          `${process.env.REACT_APP_API_URL}/api/users_access/${username}`
-        );
+      const token = localStorage.getItem("token"); // or wherever your token is stored
+
+      const userResponse = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/users_access/${username}`,
+        {
+          headers: getAuthHeaders(),
+        }
+      );
 
         const user = userResponse.data;
 
