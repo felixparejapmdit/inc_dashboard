@@ -149,7 +149,7 @@ const Login = () => {
             `${process.env.REACT_APP_API_URL}/api/import-local-congregations`,
             { data: batch }
           );
-          console.log(`Imported ${i + batchSize} rows`);
+          //console.log(`Imported ${i + batchSize} rows`);
         } catch (error) {
           console.error("Error importing batch:", error);
           toast({
@@ -205,8 +205,8 @@ const Login = () => {
     const givenname = nameParts[0]; // First name
     const surname_husband = nameParts.slice(1).join(" "); // Everything after first word = surname
 
-    console.log("Given Name:", givenname);
-    console.log("Surname:", surname_husband);
+    //console.log("Given Name:", givenname);
+    //console.log("Surname:", surname_husband);
 
     setIsLoading(true);
     try {
@@ -275,7 +275,7 @@ const Login = () => {
         `${API_URL}/api/getreference?reference_number=${trackingNumber}`
       );
 
-      console.log(response.data);
+      //(response.data);
 
       if (response.data && response.data.personnel_id) {
         const { personnel_id, enrollment_progress, personnel_progress } =
@@ -426,8 +426,8 @@ const Login = () => {
       const sha1Hash = decoded.slice(0, 20); // First 20 bytes
       const salt = decoded.slice(20); // Remaining bytes are the salt
 
-      console.log("Decoded Hash (Hex):", sha1Hash.toString("hex"));
-      console.log("Salt (Hex):", salt.toString("hex"));
+      //console.log("Decoded Hash (Hex):", sha1Hash.toString("hex"));
+      //console.log("Salt (Hex):", salt.toString("hex"));
 
       // Recompute the SHA-1 hash using the password and the extracted salt
       const recomputedHash = crypto
@@ -436,7 +436,7 @@ const Login = () => {
         .update(salt) // Add the salt
         .digest();
 
-      console.log("Recomputed Hash (Hex):", recomputedHash.toString("hex"));
+      //console.log("Recomputed Hash (Hex):", recomputedHash.toString("hex"));
 
       // Compare the recomputed hash with the original hash
       return Buffer.compare(sha1Hash, recomputedHash) === 0;

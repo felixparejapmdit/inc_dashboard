@@ -499,7 +499,7 @@ export default function Dashboard() {
   };
 
   const handleAppClick = (app) => {
-    console.log("App Clicked:", app.name);
+    //console.log("App Clicked:", app.name);
 
     // Retrieve stored recently opened apps
     const storedRecentApps =
