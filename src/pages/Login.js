@@ -678,7 +678,7 @@ const Login = () => {
       await ldapPromise;
     } catch (err) {
       console.error(
-        "LDAPsss connection failed, falling back to local login1:",
+        "LDAP connection failed, falling back to local login:",
         err
       );
 
@@ -773,7 +773,7 @@ const Login = () => {
           <Image src="/apps_logo.png" alt="Logo" boxSize="100px" />
         </Flex>
         <Heading as="h2" size="lg" textAlign="center" color="gray.850" mb={6}>
-          PMD Portal123
+          PMD Portal
         </Heading>
         {/* Form */}
         <VStack as="form" onSubmit={handleSubmit} spacing={4}>
