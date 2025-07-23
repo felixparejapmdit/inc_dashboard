@@ -590,7 +590,7 @@ const Login = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit3 = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
@@ -733,6 +733,163 @@ const Login = () => {
               ID: user.ID,
               isLoggedIn: true,
             },
+          );
+        } else {
+          setError("Invalid username or password");
+        }
+      } catch (error) {
+        console.error("Error during local login:", error);
+        setError("Error connecting to the server. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+
+    if (!username || !password) {
+      setError("Username and password are required.");
+      setIsLoading(false);
+      return;
+    }
+
+    const ldapTimeout = 5000; // Set LDAP timeout to 5 seconds
+
+    // Attempt LDAP Authentication first
+    const ldapPromise = axios
+      .get(`${process.env.REACT_APP_API_URL}/ldap/user/${username}`, {
+        timeout: ldapTimeout,
+      })
+      .then(async (ldapResponse) => {
+        const ldapUser = ldapResponse.data;
+
+        const encryptionType = ldapUser.userPassword.match(/^\{(\w+)\}/)?.[1];
+        if (!encryptionType) {
+          setError("Unsupported or unknown encryption type.");
+          setIsLoading(false);
+          return;
+        }
+
+        const isPasswordValid = hashPassword(
+          password,
+          encryptionType,
+          ldapUser.userPassword
+        );
+
+        if (isPasswordValid) {
+          // Proceed with login
+
+          // Fetch the user ID for the local login and login status
+         const userResponse = await axios.get(
+            `${process.env.REACT_APP_API_URL}/api/users_access/${username}`,
+            { headers: getAuthHeaders() }
+          );
+          const userId = userResponse.data.id;
+
+          // Fetch the group ID using the user ID
+          const groupResponse = await axios.get(
+            `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`
+          );
+          const groupId = groupResponse.data.groupId;
+
+          // Check if the group ID exists
+          if (!groupId) {
+            setError(
+              "User does not belong to any group. Please contact the administrator to Assign."
+            );
+            setIsLoading(false);
+            return;
+          }
+
+          // Store user data and navigate to dashboard
+          const fullName = ldapUser.cn?.[0] || "User"; // Adjust to the LDAP format
+          localStorage.setItem("userFullName", fullName);
+          localStorage.setItem("username", ldapUser.uid); // or response.data.user.username for local login
+          localStorage.setItem("userId", userId);
+          // Store the group ID in localStorage
+          localStorage.setItem("groupId", groupId);
+          fetchPermissions(groupId);
+
+          navigate("/dashboard");
+
+          // Update isLoggedIn status in the database
+          await axios.put(
+            `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
+            {
+              ID: ldapUser.uid?.[0], // Ensure this matches the expected ID format
+              isLoggedIn: true,
+            }
+          );
+        } else {
+          throw new Error("Invalid LDAP username or password");
+        }
+      });
+    // Fall back to local login if LDAP fails
+    try {
+      await ldapPromise;
+    } catch (err) {
+      console.error(
+        "LDAP connection failed, falling back to local login:",
+        err
+      );
+
+      // Attempt local login if LDAP fails
+      try {
+        const response = await axios.post(
+          `${process.env.REACT_APP_API_URL}/api/users/login`,
+          { username, password }
+        );
+
+        if (response.data.success) {
+          // Set the username for local login as well
+          //const userName = response.data.user.username || "User";
+
+          const user = response.data.user;
+
+        const userResponse = await axios.get(
+            `${process.env.REACT_APP_API_URL}/api/users_access/${user.username}`,
+            {
+              headers: getAuthHeaders() ,
+            }
+          );
+          const userId = userResponse.data.id;
+
+          // Fetch the group ID using the user ID
+          const groupResponse = await axios.get(
+            `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`
+          );
+          const groupId = groupResponse.data.groupId;
+
+          // Check if the group ID exists
+          if (!groupId) {
+            setError(
+              "User does not belong to any group. Please contact the administrator to Assign."
+            );
+            setIsLoading(false);
+            return;
+          }
+
+          localStorage.setItem("userFullName", user.username);
+          localStorage.setItem("username", user.username); // or response.data.user.username for local login
+          localStorage.setItem("userId", userId);
+
+          // Store the group ID in localStorage
+          localStorage.setItem("groupId", groupId);
+          fetchPermissions(groupId);
+
+          navigate("/dashboard");
+
+          // Update isLoggedIn status in the database
+          await axios.put(
+            `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
+            {
+              ID: user.ID,
+              isLoggedIn: true,
+            }
           );
         } else {
           setError("Invalid username or password");
