@@ -678,7 +678,7 @@ const Login = () => {
       await ldapPromise;
     } catch (err) {
       console.error(
-        "LDAP connection failed, falling back to local login:",
+        "LDAP connection failed, falling back to local login1:",
         err
       );
 
