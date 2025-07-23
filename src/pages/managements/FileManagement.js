@@ -38,6 +38,8 @@ import { QRCodeCanvas } from "qrcode.react";
 import { FaDownload, FaShareAlt } from "react-icons/fa"; // Font Awesome download icon
 import { usePermissionContext } from "../../contexts/PermissionContext";
 
+import { getAuthHeaders } from "../../utils/apiHeaders"; // adjust path as needed
+
 const FileManagement = (qrcode) => {
   const [files, setFiles] = useState([]);
   const [filteredFiles, setFilteredFiles] = useState([]);
@@ -183,7 +185,10 @@ const FileManagement = (qrcode) => {
     const username = localStorage.getItem("username");
 
     if (username) {
-      fetch(`${process.env.REACT_APP_API_URL}/api/users_access/${username}`) // update this if needed
+      fetch(`${process.env.REACT_APP_API_URL}/api/users_access/${username}`, {
+        method: "GET",
+        headers: getAuthHeaders(),
+      }) // update this if needed
         .then(async (res) => {
           const contentType = res.headers.get("content-type");
           const text = await res.text();
@@ -475,7 +480,10 @@ const FileManagement = (qrcode) => {
   const fetchUsers = async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/users`
+        `${process.env.REACT_APP_API_URL}/api/users`,
+        {
+          headers: getAuthHeaders(),
+        }
       );
       setUsers(response.data);
     } catch (error) {
