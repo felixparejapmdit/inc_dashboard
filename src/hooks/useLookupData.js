@@ -2,20 +2,14 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
+
+import { getAuthHeaders } from "../utils/apiHeaders"; // adjust path as needed
+
 // Load API URLs from .env
 const API_URL = process.env.REACT_APP_API_URL;
 const DISTRICT_API_URL = process.env.REACT_APP_DISTRICT_API_URL;
 const LOCAL_CONGREGATION_API_URL =
   process.env.REACT_APP_LOCAL_CONGREGATION_API_URL;
-
-// Helper to get auth headers
-const getAuthHeaders = () => {
-  const token = localStorage.getItem("token");
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
-};
 
 const useLookupData = () => {
   const [lookupData, setLookupData] = useState({
