@@ -71,12 +71,25 @@ function verifySSHA(password, hash) {
 }
 
 // Function to verify MD5 hash
-function verifyMD5(password, hash) {
-  const derivedHash = `{MD5}${crypto
-    .createHash("md5")
-    .update(password)
-    .digest("base64")}`;
-  return derivedHash === hash;
+// function verifyMD5(password, hash) {
+//   const derivedHash = `{MD5}${crypto
+//     .createHash("md5")
+//     .update(password)
+//     .digest("base64")}`;
+//   return derivedHash === hash;
+// }
+
+function verifyMD5(password, storedHash) {
+  if (!storedHash.startsWith("{MD5}")) return false;
+
+  const base64Hash = storedHash.slice(5); // Remove "{MD5}"
+  const decodedStored = Buffer.from(base64Hash, "base64"); // Get raw digest
+
+  const md5 = crypto.createHash("md5");
+  md5.update(password);
+  const digest = md5.digest(); // Raw MD5 digest
+
+  return digest.equals(decodedStored); // Byte-by-byte comparison
 }
 
 router.put("/api/users/:userId/assign-group", UserController.assignGroup);
@@ -768,7 +781,7 @@ router.post("/api/users/login", async (req, res) => {
       .status(400)
       .json({ message: "Username and password are required" });
   }
-  console.error("Usernmame: ", username);
+  console.error("Usernmame123: ", password);
   try {
     // Check if the user exists and retrieve hashed password
     const query = "SELECT * FROM users WHERE username = ?";
@@ -800,6 +813,8 @@ router.post("/api/users/login", async (req, res) => {
         // MD5 hash
         isMatch = verifyMD5(password, storedHash);
       }
+ 
+      
 
       if (!isMatch) {
         return res
@@ -832,6 +847,7 @@ router.post("/api/users/login", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
 
 // Add new user with selected apps
 router.post("/api/users", (req, res) => {

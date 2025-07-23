@@ -286,14 +286,17 @@ const Users = ({ personnelId }) => {
     fetchApps();
   }, []);
 
-  const fetchUsers = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/api/users`);
-      setExistingPersonnel(Array.isArray(response.data) ? response.data : []);
-    } catch (error) {
-      console.error("Failed to load personnel list:", error);
-    }
-  };
+const fetchUsers = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/api/users`, {
+      headers: getAuthHeaders(), // ✅ Apply authorization headers here
+    });
+    setExistingPersonnel(Array.isArray(response.data) ? response.data : []);
+  } catch (error) {
+    console.error("Failed to load personnel list:", error);
+  }
+};
+
 
   const fetchNewPersonnels = async () => {
     try {

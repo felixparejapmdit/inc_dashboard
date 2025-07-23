@@ -343,21 +343,16 @@ const Login = () => {
         }
       }
       case "md5": {
-        // Do NOT trim or modify the password
-        const rawPassword = password; // assume it's passed as-is
-
-        // Compute MD5 hash and encode to base64
-        const md5sum = CryptoJS.MD5(CryptoJS.enc.Latin1.parse(rawPassword));
-        const base64 = CryptoJS.enc.Base64.stringify(md5sum);
-        const computedHash = `{MD5}${base64}`;
-
+        
         if (existingHash) {
-          return computedHash === existingHash;
+          const md5sum = CryptoJS.MD5(password);
+          const computedHash = `{MD5}` + CryptoJS.enc.Base64.stringify(md5sum);
+          return computedHash === existingHash; // Compare generated hash with existing hash
         } else {
-          return computedHash;
+          const md5sum = CryptoJS.MD5(password);
+          return `{MD5}` + CryptoJS.enc.Base64.stringify(md5sum); // Return generated hash
         }
       }
-
       case "sha": {
         if (existingHash) {
           const sha1sum = CryptoJS.SHA1(password);
@@ -632,7 +627,7 @@ const Login = () => {
           // ✅ Authenticate via local login to get JWT token
           const loginResponse = await axios.post(
             `${process.env.REACT_APP_API_URL}/api/users/login`,
-            { username, password }
+            { username, password },
           );
 
           const token = loginResponse.data.token;
@@ -672,7 +667,7 @@ const Login = () => {
             {
               ID: ldapUser.uid?.[0],
               isLoggedIn: true,
-            }
+            },
           );
         } else {
           throw new Error("Invalid LDAP username or password");
@@ -702,7 +697,7 @@ const Login = () => {
           const userResponse = await axios.get(
             `${process.env.REACT_APP_API_URL}/api/users_access/${user.username}`,
             {
-              headers: getAuthHeaders(),
+              headers: getAuthHeaders() ,
             }
           );
 
@@ -711,7 +706,7 @@ const Login = () => {
           const groupResponse = await axios.get(
             `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`,
             {
-              headers: getAuthHeaders(),
+              headers: getAuthHeaders() ,
             }
           );
 
@@ -738,7 +733,7 @@ const Login = () => {
             {
               ID: user.ID,
               isLoggedIn: true,
-            }
+            },
           );
         } else {
           setError("Invalid username or password");
@@ -773,7 +768,7 @@ const Login = () => {
           <Image src="/apps_logo.png" alt="Logo" boxSize="100px" />
         </Flex>
         <Heading as="h2" size="lg" textAlign="center" color="gray.850" mb={6}>
-          PMD Portal12
+          PMD Portal
         </Heading>
         {/* Form */}
         <VStack as="form" onSubmit={handleSubmit} spacing={4}>
