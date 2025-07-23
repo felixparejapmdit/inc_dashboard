@@ -627,11 +627,6 @@ const Login = () => {
           const loginResponse = await axios.post(
             `${process.env.REACT_APP_API_URL}/api/users/login`,
             { username, password },
-            {
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
           );
 
           const token = loginResponse.data.token;
@@ -672,7 +667,6 @@ const Login = () => {
               ID: ldapUser.uid?.[0],
               isLoggedIn: true,
             },
-            { headers: getAuthHeaders() }
           );
         } else {
           throw new Error("Invalid LDAP username or password");
@@ -683,7 +677,7 @@ const Login = () => {
       await ldapPromise;
     } catch (err) {
       console.error(
-        "LDAP connection failed, falling back to local login:",
+        "LDAP123 connection failed, falling back to local login:",
         err
       );
 
@@ -702,9 +696,7 @@ const Login = () => {
           const userResponse = await axios.get(
             `${process.env.REACT_APP_API_URL}/api/users_access/${user.username}`,
             {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
+              headers: getAuthHeaders() ,
             }
           );
 
@@ -713,9 +705,7 @@ const Login = () => {
           const groupResponse = await axios.get(
             `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`,
             {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
+              headers: getAuthHeaders() ,
             }
           );
 
@@ -743,7 +733,6 @@ const Login = () => {
               ID: user.ID,
               isLoggedIn: true,
             },
-            { headers: getAuthHeaders() }
           );
         } else {
           setError("Invalid username or password");

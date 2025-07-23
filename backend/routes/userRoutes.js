@@ -744,6 +744,7 @@ GROUP BY
       };
     });
 
+    
     // Send combined users data as JSON response
     res.json(combinedUsers);
   } catch (err) {
