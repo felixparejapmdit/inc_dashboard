@@ -626,7 +626,12 @@ const Login = () => {
           // ✅ Authenticate via local login to get JWT token
           const loginResponse = await axios.post(
             `${process.env.REACT_APP_API_URL}/api/users/login`,
-            { username, password }
+            { username, password },
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
           );
 
           const token = loginResponse.data.token;
