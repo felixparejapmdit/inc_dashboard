@@ -95,7 +95,10 @@ const Profile = () => {
 
     // Fetch the user data using the username query parameter
     fetch(
-      `${process.env.REACT_APP_API_URL}/api/users/logged-in?username=${username}`
+      `${process.env.REACT_APP_API_URL}/api/users/logged-in?username=${username}`,
+       {
+          headers: getAuthHeaders(),
+        }
     )
       .then((response) => {
         if (!response.ok) {
