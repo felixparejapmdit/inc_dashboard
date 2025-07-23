@@ -283,17 +283,21 @@ export default function Dashboard() {
     const url = `${API_URL}/api/users/logged-in?username=${encodeURIComponent(
       username
     )}`;
-    //console.log("Constructed Fetch URL:", url);
+    console.log("Constructed Fetch URL:", url);
 
     fetch(url, {
-      headers:  getAuthHeaders(),
+      headers: getAuthHeaders(),
     })
       .then((response) => {
         if (!response.ok) {
-          throw new Error("Failed to fetch logged-in user");
+          return response.text().then((text) => {
+            console.error("Backend returned error text:", text);
+            throw new Error("Failed to fetch logged-in user");
+          });
         }
         return response.json();
       })
+
       .then((user) => {
         //console.log("Fetched User Data:", user); // Log entire user data
 

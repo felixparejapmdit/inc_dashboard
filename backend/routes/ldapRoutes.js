@@ -2,10 +2,14 @@ const express = require("express");
 const router = express.Router();
 
 const ldapController = require("../controllers/ldapController");
+const verifyToken = require("../middlewares/authMiddleware");
 
 // Define routes and associate them with controller functions
 
-router.get("/ldap/user/:username", ldapController.getUserByUsername);
+router.get(
+  "/ldap/user/:username",
+  ldapController.getUserByUsername
+);
 
 router.get("/api/login-audits/recent", ldapController.getRecentLoginAudits);
 
