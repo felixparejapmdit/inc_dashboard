@@ -40,7 +40,7 @@ import {
   ViewOffIcon,
   LockIcon,
 } from "@chakra-ui/icons";
-
+import { getAuthHeaders } from "../utils/apiHeaders"; // adjust path as needed
 import { usePermissionContext } from "../contexts/PermissionContext";
 
 const Profile = () => {
