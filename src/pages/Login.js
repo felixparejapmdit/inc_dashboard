@@ -37,6 +37,7 @@ import "./Login.css"; // Custom CSS for animated input effect
 
 import { FiUser, FiLock } from "react-icons/fi"; // Import icons
 import { usePermissionContext } from "../contexts/PermissionContext";
+import { getAuthHeaders } from "../utils/apiHeaders"; // adjust path as needed
 
 const API_URL = process.env.REACT_APP_API_URL;
 const Login = () => {
@@ -535,7 +536,7 @@ const Login = () => {
         const userResponse = await axios.get(
           `${process.env.REACT_APP_API_URL}/api/users_access/${user.username}`,
           {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: getAuthHeaders(),
           }
         );
         const userId = userResponse.data.id;
@@ -545,7 +546,7 @@ const Login = () => {
         const groupResponse = await axios.get(
           `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`,
           {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: getAuthHeaders(),
           }
         );
         const groupId = groupResponse.data.groupId;
@@ -574,7 +575,7 @@ const Login = () => {
             isLoggedIn: true,
           },
           {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: getAuthHeaders(),
           }
         );
       } else {
@@ -633,13 +634,13 @@ const Login = () => {
 
           const userResponse = await axios.get(
             `${process.env.REACT_APP_API_URL}/api/users_access/${username}`,
-            { headers: { Authorization: `Bearer ${token}` } }
+            { headers: getAuthHeaders() }
           );
           const userId = userResponse.data.id;
 
           const groupResponse = await axios.get(
             `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`,
-            { headers: { Authorization: `Bearer ${token}` } }
+            { headers: getAuthHeaders() }
           );
           const groupId = groupResponse.data.groupId;
 
@@ -666,7 +667,7 @@ const Login = () => {
               ID: ldapUser.uid?.[0],
               isLoggedIn: true,
             },
-            { headers: { Authorization: `Bearer ${token}` } }
+            { headers: getAuthHeaders() }
           );
         } else {
           throw new Error("Invalid LDAP username or password");
@@ -737,7 +738,7 @@ const Login = () => {
               ID: user.ID,
               isLoggedIn: true,
             },
-            { headers: { Authorization: `Bearer ${token}` } }
+            { headers: getAuthHeaders() }
           );
         } else {
           setError("Invalid username or password");
