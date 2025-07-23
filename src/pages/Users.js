@@ -776,7 +776,11 @@ const fetchUsers = async () => {
   const handleSyncUsers = async () => {
     setLoadingSyncUsers(true);
     try {
-      await axios.post(`${API_URL}/api/migrateLdapToPmdLoginUsers`);
+        await axios.post(
+      `${API_URL}/api/migrateLdapToPmdLoginUsers`,
+      {},
+      { headers: getAuthHeaders() }
+    );
       toast({
         title: "Sync Successful",
         description: "Users have been successfully synchronized from LDAP.",

@@ -16,7 +16,9 @@ exports.migrateLdapToPmdLoginUsers = async (req, res) => {
     // Fetch LDAP users
     const fetchLdapUsers = async () => {
       try {
+        
         const response = await axios.get(`${API_URL}/api/ldap/users`);
+        console.log("Fetched LDAP users:", response.data);
         return response.data; // Assuming the API response is an array of LDAP user objects
       } catch (error) {
         console.error("Error fetching LDAP users:", error);

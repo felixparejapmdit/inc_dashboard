@@ -640,8 +640,7 @@ const Login = () => {
           const userId = userResponse.data.id;
 
           const groupResponse = await axios.get(
-            `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`,
-            { headers: getAuthHeaders() }
+            `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`
           );
           const groupId = groupResponse.data.groupId;
 
