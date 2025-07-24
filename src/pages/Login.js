@@ -343,7 +343,6 @@ const Login = () => {
         }
       }
       case "md5": {
-        
         if (existingHash) {
           const md5sum = CryptoJS.MD5(password);
           const computedHash = `{MD5}` + CryptoJS.enc.Base64.stringify(md5sum);
@@ -627,7 +626,7 @@ const Login = () => {
           // ✅ Authenticate via local login to get JWT token
           const loginResponse = await axios.post(
             `${process.env.REACT_APP_API_URL}/api/users/login`,
-            { username, password },
+            { username, password }
           );
 
           const token = loginResponse.data.token;
@@ -666,7 +665,7 @@ const Login = () => {
             {
               ID: ldapUser.uid?.[0],
               isLoggedIn: true,
-            },
+            }
           );
         } else {
           throw new Error("Invalid LDAP username or password");
@@ -696,7 +695,7 @@ const Login = () => {
           const userResponse = await axios.get(
             `${process.env.REACT_APP_API_URL}/api/users_access/${user.username}`,
             {
-              headers: getAuthHeaders() ,
+              headers: getAuthHeaders(),
             }
           );
 
@@ -705,7 +704,7 @@ const Login = () => {
           const groupResponse = await axios.get(
             `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`,
             {
-              headers: getAuthHeaders() ,
+              headers: getAuthHeaders(),
             }
           );
 
@@ -732,7 +731,7 @@ const Login = () => {
             {
               ID: user.ID,
               isLoggedIn: true,
-            },
+            }
           );
         } else {
           setError("Invalid username or password");
@@ -746,7 +745,7 @@ const Login = () => {
     }
   };
 
-const handleSubmit = async (e) => {
+  const handleSubmit4 = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
@@ -783,8 +782,16 @@ const handleSubmit = async (e) => {
         if (isPasswordValid) {
           // Proceed with login
 
+          const loginResponse = await axios.post(
+            `${process.env.REACT_APP_API_URL}/api/users/login`,
+            { username, password }
+          );
+
+          const token = loginResponse.data.token;
+          localStorage.setItem("authToken", token);
+
           // Fetch the user ID for the local login and login status
-         const userResponse = await axios.get(
+          const userResponse = await axios.get(
             `${process.env.REACT_APP_API_URL}/api/users_access/${username}`,
             { headers: getAuthHeaders() }
           );
@@ -850,10 +857,10 @@ const handleSubmit = async (e) => {
 
           const user = response.data.user;
 
-        const userResponse = await axios.get(
+          const userResponse = await axios.get(
             `${process.env.REACT_APP_API_URL}/api/users_access/${user.username}`,
             {
-              headers: getAuthHeaders() ,
+              headers: getAuthHeaders(),
             }
           );
           const userId = userResponse.data.id;
@@ -897,6 +904,82 @@ const handleSubmit = async (e) => {
       } catch (error) {
         console.error("Error during local login:", error);
         setError("Error connecting to the server. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+
+    if (!username || !password) {
+      setError("Username and password are required.");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      // 🔐 Attempt to login using the new /api/auth/login (LDAP or local is handled server-side)
+      const loginResponse = await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/auth/login`,
+        { username, password }
+      );
+
+      const { token, user } = loginResponse.data;
+      const authToken = token;
+
+      // 🧠 Save token to localStorage
+      localStorage.setItem("authToken", authToken);
+
+      // 🔍 Fetch user access info using the token
+      const userResponse = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/users_access/${username}`,
+        { headers: getAuthHeaders() }
+      );
+      const userId = userResponse.data.id;
+
+      // 🔍 Fetch user's group
+      const groupResponse = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`
+      );
+      const groupId = groupResponse.data.groupId;
+
+      if (!groupId) {
+        setError(
+          "User does not belong to any group. Please contact the administrator."
+        );
+        setIsLoading(false);
+        return;
+      }
+
+      // ✅ Save data to localStorage
+      localStorage.setItem("userFullName", user.fullName || user.username);
+      localStorage.setItem("username", user.username);
+      localStorage.setItem("userId", userId);
+      localStorage.setItem("groupId", groupId);
+
+      fetchPermissions(groupId);
+
+      // 🧭 Navigate to dashboard
+      navigate("/dashboard");
+
+      // ✅ Update login status in DB
+      await axios.put(
+        `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
+        {
+          ID: user.id || userId,
+          isLoggedIn: true,
+        }
+      );
+    } catch (err) {
+      console.error("Login error:", err);
+      if (err?.response?.status === 401) {
+        setError("Invalid username or password.");
+      } else {
+        setError("Login failed. Please try again.");
       }
     } finally {
       setIsLoading(false);
