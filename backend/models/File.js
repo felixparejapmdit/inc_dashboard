@@ -26,6 +26,10 @@ const File = sequelize.define(
       type: DataTypes.STRING(50), // Adjust the length as needed
       allowNull: false,
     },
+    thumbnail: {
+      type: DataTypes.STRING(255),
+      allowNull: true, // stores image path or URL
+    },
     user_id: {
       type: DataTypes.INTEGER, // Assuming user_id is an integer
       allowNull: false,

@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const fileController = require("../controllers/fileController"); // Ensure the correct import
 const { shareFile } = require("../services/fileShareService"); // Import shareFile function from the appropriate service
+const upload = require("../middlewares/upload"); // path to your upload config
 
 // CRUD routes for files
 router.get("/api/files", fileController.getAllFiles);
@@ -11,9 +12,15 @@ router.get("/api/files/user/:userId", fileController.getFileByUserID);
 
 router.get("/api/files/:id/shared-users", fileController.getSharedUsers);
 
-router.post("/api/add-file", fileController.createFile);
-router.put("/api/file-management/:id", fileController.updateFile);
+// router.post("/api/add-file", fileController.createFile);
+// router.put("/api/file-management/:id", fileController.updateFile);
 router.delete("/api/file-management/:id", fileController.deleteFile);
+
+// POST: Add File (with thumbnail)
+router.post("/api/add-file", upload.single("thumbnail"), fileController.createFile);
+
+// PUT: Update File
+router.put("/file-management/:id", upload.single("thumbnail"), fileController.updateFile);
 
 // Share file with multiple users
 router.post("/api/files/share", async (req, res) => {

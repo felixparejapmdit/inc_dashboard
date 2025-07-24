@@ -162,11 +162,27 @@ exports.getAvailableApps = async (req, res) => {
       }
     );
 
+    const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000';
     // Fetch files data (filename and generated_code)
-    const filesData = await sequelize.query(
-      `SELECT filename, url, generated_code FROM files`,
-      { type: sequelize.QueryTypes.SELECT }
-    );
+// Fetch files data (filename, url, generated_code, thumbnail)
+let filesData = await sequelize.query(
+  `
+    SELECT filename, url, generated_code, thumbnail AS thumbnail_url 
+    FROM files
+  `,
+  {
+    type: sequelize.QueryTypes.SELECT,
+  }
+);
+
+// Normalize thumbnail path
+filesData = filesData.map((file) => ({
+  ...file,
+  thumbnail_url: file.thumbnail_url
+    ? `${baseUrl}/${file.thumbnail_url.replace(/\\/g, '/')}`
+    : null,
+  type: "file", // tag it now so you don't repeat below
+}));
 
     // Base query
     // let query = `

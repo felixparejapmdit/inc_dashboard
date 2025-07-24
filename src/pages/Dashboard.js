@@ -1223,22 +1223,42 @@ const AppCard = ({ app, colors, handleAppClick, small }) => {
       cursor={isClickable ? "pointer" : "not-allowed"}
     >
       {/* App Icon */}
-      <Box>
-        {app.icon ? (
+      {app.thumbnail_url ? (
+        <Box
+          minW={small ? "40px" : "70px"}
+          maxW={small ? "40px" : "70px"}
+          h={small ? "40px" : "70px"}
+          overflow="hidden"
+          borderRadius="full"
+          boxShadow="md"
+          border="2px solid"
+          borderColor={colors.cardBorder}
+          mb={4}
+        >
           <Image
-            src={app.icon}
-            alt={`${app.name} Icon`}
-            boxSize={small ? "40px" : "70px"}
+            src={app.thumbnail_url}
+            alt="File Thumbnail"
+            objectFit="cover"
+            w="100%"
+            h="100%"
             borderRadius="full"
-            mb={4}
-            boxShadow="md"
-            border="2px solid"
-            borderColor={colors.cardBorder}
           />
-        ) : (
-          <Icon as={FiFile} boxSize={12} color={colors.cardHeader} mb={4} />
-        )}
-      </Box>
+        </Box>
+      ) : app.icon ? (
+        <Image
+          src={app.icon}
+          alt={`${app.name} Icon`}
+          boxSize={small ? "40px" : "70px"}
+          borderRadius="full"
+          mb={4}
+          boxShadow="md"
+          border="2px solid"
+          borderColor={colors.cardBorder}
+        />
+      ) : (
+        <Icon as={FiFile} boxSize={12} color={colors.cardHeader} mb={4} />
+      )}
+
       {/* App Name and Description */}
       <Box>
         <Text
@@ -1249,16 +1269,27 @@ const AppCard = ({ app, colors, handleAppClick, small }) => {
           {app.name}
         </Text>
 
-        {/* File info */}
         {isFileData ? (
           hasPermission("atgfile.view") ? (
-            <Box mt={2}>
-              <Text fontSize="sm" color={colors.cardText}>
-                <strong>Filename:</strong> {app.filename}
-              </Text>
-              <Text fontSize="sm" color={colors.cardText}>
-                <strong>Generated Code:</strong> {app.generated_code}
-              </Text>
+            <Box
+              mt={4}
+              p={4}
+              borderRadius="lg"
+              boxShadow="md"
+              bg="white"
+              display="flex"
+              alignItems="center"
+              gap={4}
+            >
+              {/* File info */}
+              <Box>
+                <Text fontSize="md" fontWeight="bold" color={colors.cardText}>
+                  {app.filename}
+                </Text>
+                <Text fontSize="sm" color="gray.600">
+                  <strong>Generated Code:</strong> {app.generated_code}
+                </Text>
+              </Box>
             </Box>
           ) : (
             <Text fontSize="sm" color={colors.cardText}>

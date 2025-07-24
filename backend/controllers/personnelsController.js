@@ -7,6 +7,32 @@ const sequelize = require("../config/database"); // Ensure Sequelize instance is
 const PersonnelChurchDuties = require("../models/PersonnelChurchDuties");
 
 const moment = require("moment");
+// Controller: Get soft-deleted personnels
+exports.getDeletedPersonnels = async (req, res) => {
+  try {
+    const users = await Personnel.findAll({
+      where: {
+        deleted_at: {
+          [Op.ne]: null,
+        },
+      },
+      paranoid: false, // Include soft-deleted
+    });
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: "Server error." });
+  }
+};
+
+// Controller: Restore soft-deleted personnel by ID
+exports.restorePersonnel = async (req, res) => {
+  try {
+    await Personnel.restore({ where: { personnel_id: req.params.id } });
+    res.json({ message: "User restored successfully." });
+  } catch (err) {
+    res.status(500).json({ message: "Restore failed." });
+  }
+};
 
 // Get all new personnels
 exports.getAllNewPersonnels = async (req, res) => {
@@ -33,6 +59,7 @@ exports.getAllNewPersonnels = async (req, res) => {
         },
       ],
       where: {
+        deleted_at: null, // Only include non-deleted personnels
         "$user.id$": null, // Only include personnels without an associated user
       },
     });
@@ -574,12 +601,13 @@ exports.deletePersonnel = async (req, res) => {
   try {
     const personnel = await Personnel.findByPk(req.params.id);
     if (!personnel) {
-      return res.status(404).json({ message: "Personnel not found3" });
+      return res.status(404).json({ message: "Personnel not found" });
     }
 
-    // Delete personnel record
-    await personnel.destroy();
-    res.status(200).json({ message: "Personnel record deleted successfully" });
+    // Perform soft delete by setting deleted_at
+    await personnel.update({ deleted_at: new Date() });
+
+    res.status(200).json({ message: "Personnel record marked as deleted" });
   } catch (error) {
     res.status(500).json({
       message: "Error deleting personnel record",
@@ -587,6 +615,7 @@ exports.deletePersonnel = async (req, res) => {
     });
   }
 };
+
 
 // Check if personnel exists
 exports.checkPersonnelExistence = async (req, res) => {
@@ -718,3 +747,4 @@ exports.deletePersonnelChurchDuty = async (req, res) => {
     });
   }
 };
+

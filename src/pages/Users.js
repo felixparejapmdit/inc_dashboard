@@ -286,17 +286,16 @@ const Users = ({ personnelId }) => {
     fetchApps();
   }, []);
 
-const fetchUsers = async () => {
-  try {
-    const response = await axios.get(`${API_URL}/api/users`, {
-      headers: getAuthHeaders(), // ✅ Apply authorization headers here
-    });
-    setExistingPersonnel(Array.isArray(response.data) ? response.data : []);
-  } catch (error) {
-    console.error("Failed to load personnel list:", error);
-  }
-};
-
+  const fetchUsers = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/users`, {
+        headers: getAuthHeaders(), // ✅ Apply authorization headers here
+      });
+      setExistingPersonnel(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      console.error("Failed to load personnel list:", error);
+    }
+  };
 
   const fetchNewPersonnels = async () => {
     try {
@@ -393,7 +392,8 @@ const fetchUsers = async () => {
         user.personnel_educational_level?.toLowerCase() ===
           educational_attainment.toLowerCase()) &&
       (!inc_housing_address_id ||
-        user.personnel_address_type?.toString() === inc_housing_address_id);
+        user.INC_Housing?.toLowerCase() ===
+          inc_housing_address_id.toLowerCase());
 
     return (
       combinedFields.includes(searchPersonnelList.toLowerCase()) &&
@@ -401,6 +401,11 @@ const fetchUsers = async () => {
     );
   });
 
+  const uniqueIncHousingAddresses = Array.from(
+  new Set(incHousingAddresses.map((address) => address.name))
+);
+
+  
   // Independent search for Newly Enrolled Personnel (Filters from newPersonnels)
   const filteredNewPersonnels = newPersonnels.filter((personnel) =>
     `${personnel.givenname || ""} ${personnel.surname_husband || ""} ${
@@ -572,12 +577,15 @@ const fetchUsers = async () => {
   };
 
   const handleDeleteUser = (id) => {
-    if (!window.confirm("Are you sure you want to delete this user?")) return;
+    if (!window.confirm("Are you sure you want to delete this user?"))
+      return;
 
     fetch(`${API_URL}/api/users/${id}`, { method: "DELETE" })
       .then(() => {
+        fetchUsers();
         setUsers((prevUsers) => prevUsers.filter((item) => item.ID !== id));
         setStatus("User deleted successfully.");
+        
       })
       .catch(() => setStatus("Error deleting user."));
   };
@@ -776,11 +784,11 @@ const fetchUsers = async () => {
   const handleSyncUsers = async () => {
     setLoadingSyncUsers(true);
     try {
-        await axios.post(
-      `${API_URL}/api/migrateLdapToPmdLoginUsers`,
-      {},
-      { headers: getAuthHeaders() }
-    );
+      await axios.post(
+        `${API_URL}/api/migrateLdapToPmdLoginUsers`,
+        {},
+        { headers: getAuthHeaders() }
+      );
       toast({
         title: "Sync Successful",
         description: "Users have been successfully synchronized from LDAP.",
@@ -992,23 +1000,22 @@ const fetchUsers = async () => {
     }
   };
 
-useEffect(() => {
-  if (isRfidModalOpen) {
-    setTimeout(() => {
-      if (rfidInputRef.current) {
-        rfidInputRef.current.focus();
-        rfidInputRef.current.select();
-      }
-    }, 100);
-  }
-}, [isRfidModalOpen]);
-const handleKeyDown = (e) => {
-  // Allow only Enter key or scanner input, block others
-  if (!e.key.match(/[0-9a-zA-Z]/)) {
-    e.preventDefault();
-  }
-};
-
+  useEffect(() => {
+    if (isRfidModalOpen) {
+      setTimeout(() => {
+        if (rfidInputRef.current) {
+          rfidInputRef.current.focus();
+          rfidInputRef.current.select();
+        }
+      }, 100);
+    }
+  }, [isRfidModalOpen]);
+  const handleKeyDown = (e) => {
+    // Allow only Enter key or scanner input, block others
+    if (!e.key.match(/[0-9a-zA-Z]/)) {
+      e.preventDefault();
+    }
+  };
 
   return (
     <Box p={6}>
@@ -1243,7 +1250,7 @@ const handleKeyDown = (e) => {
                           <IconButton
                             icon={<DeleteIcon />}
                             colorScheme="red"
-                            onClick={() => handleDeleteUser(item.ID)}
+                            onClick={() => handleDeleteUser(item.personnel_id)}
                           />
                         )}
                       </HStack>
@@ -1867,9 +1874,9 @@ const handleKeyDown = (e) => {
               </HStack>
 
               {/* Educational Level and INC Housing Address */}
-              {/* <HStack spacing={4} mt={4}>
+              <HStack spacing={4} mt={4}>
                 <Select
-                  placeholder="Educational Attainment"
+                  placeholder="Select All"
                   value={advancedFilters.educational_attainment}
                   onChange={(e) =>
                     handleDropdownFilterChange(
@@ -1878,7 +1885,7 @@ const handleKeyDown = (e) => {
                     )
                   }
                 >
-                  <option value="">All Levels</option>
+                  
                   {educationalLevelOptions.map((level) => (
                     <option key={level} value={level}>
                       {level}
@@ -1887,7 +1894,8 @@ const handleKeyDown = (e) => {
                 </Select>
 
                 <Select
-                  placeholder="INC Housing Address"
+                  placeholder="Select All"
+                  value={advancedFilters.inc_housing_address_id}
                   onChange={(e) =>
                     handleDropdownFilterChange(
                       "inc_housing_address_id",
@@ -1895,13 +1903,13 @@ const handleKeyDown = (e) => {
                     )
                   }
                 >
-                  {incHousingAddresses.map((address) => (
-                    <option key={address.id} value={address.id}>
-                      {address.name}
+                  {uniqueIncHousingAddresses.map((name, index) => (
+                    <option key={index} value={name}>
+                      {name}
                     </option>
                   ))}
                 </Select>
-              </HStack> */}
+              </HStack>
             </VStack>
           </ModalBody>
           <ModalFooter>

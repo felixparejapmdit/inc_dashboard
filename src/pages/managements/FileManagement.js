@@ -30,6 +30,7 @@ import {
   FormControl,
   Select,
   Checkbox,
+  FormLabel,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import axios from "axios";
@@ -352,55 +353,70 @@ const FileManagement = (qrcode) => {
   };
 
   const handleAddFile = async () => {
-    const code = generateCode();
-    // Ensure user_id is present from state or fallback to currentUserId
-    const updatedNewFile = {
-      ...newFile,
-      user_id: newFile.user_id || currentUserId, // Add fallback if needed
-      generated_code: code,
-      qrcode: code,
-    };
-    const { filename, url, generated_code, qrcode, user_id } = updatedNewFile;
+  const code = generateCode();
 
-    const isValidUrl = /^(https?|chrome):\/\/[^\s$.?#].[^\s]*$/gm.test(url);
-
-    if (!filename || !url || !qrcode || !user_id) {
-      toast({
-        title: "All fields including user must be filled",
-        status: "warning",
-        duration: 3000,
-      });
-      return;
-    }
-
-    if (!isValidUrl) {
-      toast({
-        title: "Please enter a valid URL",
-        status: "warning",
-        duration: 3000,
-      });
-      return;
-    }
-
-    try {
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/add-file`,
-        updatedNewFile
-      );
-      fetchFilesByUserId(user_id);
-      setNewFile({
-        filename: "",
-        url: "",
-        generated_code: "",
-        qrcode: "",
-        user_id,
-      });
-      setIsModalOpen(false);
-      toast({ title: "File added", status: "success", duration: 3000 });
-    } catch (error) {
-      toast({ title: "Error adding file", status: "error", duration: 3000 });
-    }
+  const updatedNewFile = {
+    ...newFile,
+    user_id: newFile.user_id || currentUserId,
+    generated_code: code,
+    qrcode: code,
   };
+
+  const { filename, url, generated_code, qrcode, user_id, thumbnailFile } = updatedNewFile;
+
+  const isValidUrl = /^(https?|chrome):\/\/[^\s$.?#].[^\s]*$/gm.test(url);
+
+  if (!filename || !url || !qrcode || !user_id) {
+    toast({
+      title: "All fields including user must be filled",
+      status: "warning",
+      duration: 3000,
+    });
+    return;
+  }
+
+  if (!isValidUrl) {
+    toast({
+      title: "Please enter a valid URL",
+      status: "warning",
+      duration: 3000,
+    });
+    return;
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append("filename", filename);
+    formData.append("url", url);
+    formData.append("generated_code", generated_code);
+    formData.append("qrcode", qrcode);
+    formData.append("user_id", user_id);
+    if (thumbnailFile) {
+      formData.append("thumbnail", thumbnailFile); // ✅ KEY MUST BE "thumbnail"
+    }
+
+    await axios.post(`${process.env.REACT_APP_API_URL}/api/add-file`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    fetchFilesByUserId(user_id);
+    setNewFile({
+      filename: "",
+      url: "",
+      generated_code: "",
+      qrcode: "",
+      user_id,
+      thumbnailFile: null,
+    });
+    setIsModalOpen(false);
+    toast({ title: "File added", status: "success", duration: 3000 });
+  } catch (error) {
+    toast({ title: "Error adding file", status: "error", duration: 3000 });
+  }
+};
+
 
   const handleUpdateFile = async () => {
     //const code = generateCode();
@@ -930,7 +946,7 @@ const FileManagement = (qrcode) => {
                                       )
                                       .map((user) => (
                                         <Checkbox
-                                          key={user.id}
+                                          key={user.user_id}
                                           isChecked={
                                             selectedUserIds.includes(
                                               user.user_id
@@ -1073,6 +1089,26 @@ const FileManagement = (qrcode) => {
                     ? setEditingFile({ ...editingFile, url: e.target.value })
                     : setNewFile({ ...newFile, url: e.target.value })
                 }
+              />
+            </FormControl>
+            <FormControl>
+              <FormLabel>Thumbnail Image</FormLabel>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+
+                  if (!editingFile) {
+                    setNewFile((prev) => ({ ...prev, thumbnailFile: file }));
+                  } else {
+                    setEditingFile((prev) => ({
+                      ...prev,
+                      thumbnailFile: file,
+                    }));
+                  }
+                }}
               />
             </FormControl>
 

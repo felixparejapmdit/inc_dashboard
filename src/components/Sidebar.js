@@ -402,6 +402,14 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   onClick={() => navigate("/user")} // Redirect to users.js
                 />
               )}
+                 {hasPermission("personnels.tempdeleted") && (
+                <SidebarItem
+                  icon={FiUsers}
+                  label="Deleted Users"
+                  isExpanded={isExpanded}
+                  onClick={() => navigate("/tempdeleted-users")} // Redirect to users.js
+                />
+              )}
               {hasPermission("phonelocations.view") && (
                 <SidebarItem
                   label="Phone Locations"

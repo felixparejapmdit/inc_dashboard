@@ -4,6 +4,7 @@ const User = require("../models/User"); // Import the User model
 const Personnel = require("../models/personnels"); // Import the User model
 const UserGroupMapping = require("../models/UserGroupMapping");
 const { Op } = require("sequelize");
+const path = require("path");
 
 // Get all files
 const getAllFiles = async (req, res) => {
@@ -150,16 +151,31 @@ const getFileByUserID = async (req, res) => {
 // Create a new file
 const createFile = async (req, res) => {
   try {
-    const newFile = await File.create(req.body);
-    res.status(201).json({
-      message: "File created successfully",
-      file: newFile,
+    const { filename, url, generated_code, qrcode, user_id } = req.body;
+
+    console.log("File upload received:", req.file);
+
+    // Ensure the file was uploaded
+      const thumbnailPath = req.file
+      ? path.join("uploads", "share", req.file.filename) // Save inside uploads/share
+      : null;
+
+    const newFile = await File.create({
+      filename,
+      url,
+      generated_code,
+      qrcode,
+      user_id,
+      thumbnail: thumbnailPath,
     });
+
+    res.status(201).json(newFile);
   } catch (error) {
     console.error("Error creating file:", error);
-    res.status(500).json({ message: "Error creating file", error });
+    res.status(500).json({ error: "Error creating file", details: error.message });
   }
 };
+
 
 // Update a file by ID
 const updateFile = async (req, res) => {

@@ -14,6 +14,7 @@ import Profile from "./pages/Profile"; // Import Profile Page
 import Layout from "./components/Layout"; // Import Layout to wrap around pages
 import Applications from "./pages/Applications"; // Import AddApps Page
 import Users from "./pages/Users"; // Import User Page
+import TemporarilyDeletedUsers from "./pages/TemporarilyDeletedUsers"; // Import User Page
 import ProgressTracking from "./pages/progress/ProgressTracking"; // Import User Page
 
 import PersonnelPreview from "./pages/PersonnelPreview";
@@ -197,6 +198,20 @@ function MainApp() {
           }
         />
 
+
+     <Route
+          path="/tempdeleted-users"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <TemporarilyDeletedUsers />
+            </Layout>
+          }
+        />
         <Route
           path="/personnel-preview/:personnelId"
           element={<PersonnelPreview />}

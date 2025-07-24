@@ -576,8 +576,8 @@ router.get("/api/users", verifyToken, async (req, res) => {
   p.surname_maiden AS personnel_surname_maiden,
   p.suffix AS personnel_suffix,
   p.nickname AS personnel_nickname,
-  p.registered_district_id As personnel_registered_district_id,
-  p.registered_local_congregation AS personnel_registered_local_congregation,
+  dreg.name As personnel_registered_district_id,
+  lc.name AS personnel_registered_local_congregation,
   p.date_of_birth AS personnel_date_of_birth,
   p.place_of_birth AS personnel_place_of_birth,
   p.datejoined AS personnel_datejoined,
@@ -606,7 +606,7 @@ router.get("/api/users", verifyToken, async (req, res) => {
   p.designation_id,
   p.language_id,
   edu.educational_levels AS personnel_educational_level,
-  addr.address_types AS personnel_address_type
+  addr.address_types AS INC_Housing
 FROM users u 
 LEFT JOIN user_group_mappings ugm ON ugm.user_id = u.ID 
 LEFT JOIN user_groups ug ON ug.id = ugm.group_id 
@@ -617,6 +617,8 @@ LEFT JOIN departments d ON p.department_id = d.id
 LEFT JOIN sections s ON p.section_id = s.id
 LEFT JOIN subsections ss ON p.subsection_id = ss.id
 LEFT JOIN designations dg ON p.designation_id = dg.id
+LEFT JOIN districts dreg ON p.registered_district_id = dreg.id
+LEFT JOIN local_congregation lc ON p.registered_local_congregation = lc.id
 LEFT JOIN districts dt ON p.district_assignment_id = dt.id
 LEFT JOIN languages l ON p.language_id = l.id
 
@@ -627,11 +629,17 @@ LEFT JOIN (
 ) AS edu ON edu.personnel_id = p.personnel_id
 
 LEFT JOIN (
-    SELECT personnel_id, GROUP_CONCAT(name SEPARATOR '; ') AS address_types
-    FROM personnel_address
-    GROUP BY personnel_id
-) AS addr ON addr.personnel_id = p.personnel_id
-
+    SELECT pa.personnel_id, pa.name AS address_types
+    FROM personnel_address pa
+    JOIN (
+        SELECT personnel_id, MAX(id) AS max_id
+        FROM personnel_address
+        WHERE address_type = 'INC Housing'
+        GROUP BY personnel_id
+    ) latest ON pa.personnel_id = latest.personnel_id AND pa.id = latest.max_id
+    WHERE pa.address_type = 'INC Housing'
+) AS addr ON addr.personnel_id = u.personnel_id
+WHERE u.personnel_id IS NOT NULL AND u.uid IS NOT NULL
 GROUP BY 
   u.ID, u.personnel_id, u.username, u.password, u.avatar, 
   p.givenname, p.middlename, p.surname_husband, p.surname_maiden, p.suffix, p.nickname, 
@@ -951,28 +959,37 @@ router.put("/api/users/:id", (req, res) => {
   });
 });
 
+const moment = require("moment"); // Or use new Date() if you don't want to install moment
+
 // Delete user and associated apps
 router.delete("/api/users/:id", (req, res) => {
-  const userId = parseInt(req.params.id, 10); // Ensure userId is an integer
-  if (isNaN(userId)) {
-    return res.status(400).json({ message: "Invalid user ID" });
+  const personnelId = parseInt(req.params.id, 10); // Ensure personnelId is an integer
+
+  if (isNaN(personnelId)) {
+    return res.status(400).json({ message: "Invalid personnel ID" });
   }
 
-  db.query("DELETE FROM available_apps WHERE user_id = ?", [userId], (err) => {
+  // Delete associated apps (optional)
+  db.query("DELETE FROM available_apps WHERE user_id = ?", [personnelId], (err) => {
     if (err) {
-      console.error("Error deleting user apps:", err);
+      console.error("Error deleting personnel apps:", err);
       return res.status(500).json({ message: "Database error on apps" });
     }
 
-    db.query("DELETE FROM users WHERE id = ?", [userId], (err, results) => {
+    // Soft delete personnel by setting deleted_at to current timestamp
+    const deletedAt = moment().format("YYYY-MM-DD HH:mm:ss");
+
+    db.query("UPDATE personnels SET deleted_at = ? WHERE personnel_id = ?", [deletedAt, personnelId], (err, results) => {
       if (err) {
-        console.error("Error deleting user:", err);
+        console.error("Error soft deleting personnel:", err);
         return res.status(500).json({ message: "Database error" });
       }
+
       if (results.affectedRows === 0) {
-        return res.status(404).json({ message: "User not found" });
+        return res.status(404).json({ message: "Personnel not found" });
       }
-      res.status(200).json({ message: "User deleted successfully." });
+
+      res.status(200).json({ message: "Personnel soft-deleted successfully." });
     });
   });
 });

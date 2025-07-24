@@ -218,12 +218,18 @@ const Personnel = sequelize.define(
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
     },
+    deleted_at: {
+  type: DataTypes.DATE,
+  allowNull: true,
+},
   },
   {
     tableName: "personnels", // Ensure this matches your actual table name
     timestamps: true, // Disable automatic timestamps
     createdAt: "created_at",
     updatedAt: "updated_at",
+    paranoid: true, // 👈 Enables soft delete using deleted_at
+    deletedAt: "deleted_at",
   }
 );
 
