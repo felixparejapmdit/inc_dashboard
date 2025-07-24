@@ -7,16 +7,16 @@ const verifyToken = require("../middlewares/authMiddleware");
 router.get("/api/personnels", verifyToken, personnelsController.getAllPersonnels);
 
 // Route to get soft-deleted personnel
-router.get("/api/personnels/deleted", personnelsController.getDeletedPersonnels);
+router.get("/api/personnels/deleted",verifyToken, personnelsController.getDeletedPersonnels);
 
 // Route to get church duties by personnel ID
 router.get(
   "/api/church-duties/:personnelId",
   personnelsController.getPersonnelDutiesByPersonnelId
 );
-
+  
 // Route to get all new personnel
-router.get("/api/personnels/new", personnelsController.getAllNewPersonnels);
+router.get("/api/personnels/new", verifyToken,personnelsController.getAllNewPersonnels);
 
 // Route to get personnels by progress
 router.get(

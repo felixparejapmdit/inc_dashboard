@@ -62,6 +62,9 @@ import Photoshoot from "./progress/Photoshoot"; // Import Photoshoot component
 import { getAuthHeaders } from "../utils/apiHeaders"; // adjust path as needed
 import { useUserFormData, suffixOptions } from "../hooks/userFormOptions";
 
+
+import { fetchData } from "../utils/fetchData";
+
 const API_URL = process.env.REACT_APP_API_URL;
 const ITEMS_PER_PAGE = 5;
 
@@ -299,7 +302,9 @@ const Users = ({ personnelId }) => {
 
   const fetchNewPersonnels = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/personnels/new`);
+      const response = await axios.get(`${API_URL}/api/personnels/new`, {
+        headers: getAuthHeaders(), // ✅ Apply authorization headers here
+      });
       setNewPersonnels(response.data || []);
     } catch (error) {
       console.error("Failed to load new personnels:", error);
@@ -402,10 +407,9 @@ const Users = ({ personnelId }) => {
   });
 
   const uniqueIncHousingAddresses = Array.from(
-  new Set(incHousingAddresses.map((address) => address.name))
-);
+    new Set(incHousingAddresses.map((address) => address.name))
+  );
 
-  
   // Independent search for Newly Enrolled Personnel (Filters from newPersonnels)
   const filteredNewPersonnels = newPersonnels.filter((personnel) =>
     `${personnel.givenname || ""} ${personnel.surname_husband || ""} ${
@@ -431,33 +435,9 @@ const Users = ({ personnelId }) => {
   );
 
   useEffect(() => {
-    const fetchData = async (endpoint, setter, errorMsg) => {
-      try {
-        const response = await axios.get(`${API_URL}/api/${endpoint}`, {
-          headers: getAuthHeaders(),
-        });
-
-        const data = response.data;
-        if (Array.isArray(data)) {
-          setter(data);
-        } else {
-          setter([]);
-          console.warn(`Unexpected response for ${endpoint}:`, data);
-        }
-      } catch (error) {
-        console.error(`Error fetching ${endpoint}:`, error);
-        setStatus(errorMsg);
-      }
-    };
-
-    fetchData("users", setUsers, "Failed to load users.");
-    fetchData("apps", setApps, "Failed to load apps.");
-    fetchData("groups", setGroups, "Failed to load groups.");
-    fetchData(
-      "personnels/new",
-      setNewPersonnels,
-      "Failed to load new personnels."
-    );
+    fetchData("users", setUsers, setStatus, "Failed to load users.");
+    fetchData("apps", setApps, setStatus, "Failed to load apps.");
+    fetchData("groups", setGroups, setStatus, "Failed to load groups.");
   }, []);
 
   const handleAddUser = async (e) => {
@@ -577,15 +557,13 @@ const Users = ({ personnelId }) => {
   };
 
   const handleDeleteUser = (id) => {
-    if (!window.confirm("Are you sure you want to delete this user?"))
-      return;
+    if (!window.confirm("Are you sure you want to delete this user?")) return;
 
     fetch(`${API_URL}/api/users/${id}`, { method: "DELETE" })
       .then(() => {
         fetchUsers();
         setUsers((prevUsers) => prevUsers.filter((item) => item.ID !== id));
         setStatus("User deleted successfully.");
-        
       })
       .catch(() => setStatus("Error deleting user."));
   };
@@ -1885,7 +1863,6 @@ const Users = ({ personnelId }) => {
                     )
                   }
                 >
-                  
                   {educationalLevelOptions.map((level) => (
                     <option key={level} value={level}>
                       {level}
