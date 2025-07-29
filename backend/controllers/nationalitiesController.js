@@ -27,15 +27,18 @@ exports.getNationalityById = async (req, res) => {
 // Create a new nationality
 exports.createNationality = async (req, res) => {
   try {
+    console.log("Received req.body:", req.body);  // <-- Add this
     const newNationality = await Nationality.create(req.body);
     res.status(201).json({
       message: "Nationality created successfully",
       nationality: newNationality,
     });
   } catch (error) {
+    console.error("Error creating nationality:", error);  // <-- Add this
     res.status(500).json({ message: "Error creating nationality", error });
   }
 };
+
 
 // Update a nationality by ID
 exports.updateNationality = async (req, res) => {

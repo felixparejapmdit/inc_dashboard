@@ -37,6 +37,13 @@ import { usePermissionContext } from "../../contexts/PermissionContext";
 
 import ScanRFIDQRBarcode from "./ScanRFIDQRBarcode"; // Import the scan component
 
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
+
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Step8 = ({ onScanComplete }) => {
@@ -61,25 +68,28 @@ const Step8 = ({ onScanComplete }) => {
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   // Fetch personnel list
-  const fetchPersonnel = async () => {
+  const fetchPersonnel = () => {
     setLoading(true);
-    try {
-      //const response = await axios.get(`${API_URL}/api/personnels/new`);
-      const response = await axios.get(`${API_URL}/api/personnels/progress/7`);
-      setPersonnelList(response.data);
-      setFilteredPersonnel(response.data);
-    } catch (error) {
-      console.error("Error fetching personnel list:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch personnel list.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
+    fetchData(
+      "personnels/progress",
+      (data) => {
+        setPersonnelList(data);
+        setFilteredPersonnel(data);
+      },
+      (errorMsg) => {
+        toast({
+          title: "Error",
+          description: "Failed to fetch personnel list.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      },
+      "Failed to fetch personnel list",
+      7 // 👉 progress param
+    ).finally(() => {
       setLoading(false);
-    }
+    });
   };
   useEffect(() => {
     fetchPersonnel();
@@ -111,11 +121,15 @@ const Step8 = ({ onScanComplete }) => {
 
     setLoading(true);
     try {
-      await axios.put(`${API_URL}/api/users/update-progress`, {
-        personnel_id: selectedUser.personnel_id,
-        personnel_progress: 8, // Update to Step 8
-        rfid_code: rfidInput, // <-- include scanned RFID
-      });
+      await putData(
+        "users/update-progress",
+        {
+          personnel_id: selectedUser.personnel_id,
+          personnel_progress: 8, // Step 8
+          rfid_code: rfidInput, // <-- include scanned RFID
+        },
+        "Failed to verify personnel"
+      );
 
       setIsVerified(true);
       toast({
@@ -152,22 +166,22 @@ const Step8 = ({ onScanComplete }) => {
     setSelectedUser(user);
 
     onOpen(); // Open the modal to show personnel info
-    try {
-      const response = await axios.get(
-        `${API_URL}/api/personnels/${user.personnel_id}`
-      );
-      setPersonnelInfo(response.data);
-    } catch (error) {
-      console.error("Error fetching personnel information:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch personnel information.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      setPersonnelInfo(null);
-    }
+    fetchData(
+      "personnels",
+      (data) => {
+        setPersonnelInfo(data);
+      },
+      () =>
+        toast({
+          title: "Error",
+          description: "Failed to fetch personnel information.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        }),
+      "Failed to fetch personnel information",
+      user.personnel_id
+    );
   };
 
   // Handle checkbox change

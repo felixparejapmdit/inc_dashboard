@@ -39,6 +39,8 @@ import { FiUser, FiLock } from "react-icons/fi"; // Import icons
 import { usePermissionContext } from "../contexts/PermissionContext";
 import { getAuthHeaders } from "../utils/apiHeaders"; // adjust path as needed
 
+import { fetchData, postData, putData, deleteData } from "../utils/fetchData";
+
 const API_URL = process.env.REACT_APP_API_URL;
 const Login = () => {
   const [username, setUsername] = useState("");

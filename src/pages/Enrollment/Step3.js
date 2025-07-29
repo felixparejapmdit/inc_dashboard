@@ -24,6 +24,13 @@ import {
 import { EditIcon, DeleteIcon, CheckIcon, ViewIcon } from "@chakra-ui/icons";
 import axios from "axios";
 
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
+
 const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
   const [education, setEducation] = useState([]);
   const [certificateUploads, setCertificateUploads] = useState({});
@@ -35,7 +42,6 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
 
   const [loading, setLoading] = useState(true);
 
-  // Fetch educational and work experience data
   useEffect(() => {
     if (!personnelId) {
       toast({
@@ -44,40 +50,33 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
         status: "error",
         duration: 3000,
         isClosable: true,
-        position: "bottom-left", // Position the toast on the bottom-left
+        position: "bottom-left",
       });
       return;
     }
 
-    const fetchData = async () => {
+    const fetchEducationAndWorkData = async () => {
       try {
         const [educationRes, workExperienceRes] = await Promise.all([
-          axios.get(
-            `${process.env.REACT_APP_API_URL}/api/educational-backgrounds`,
-            {
-              params: { personnel_id: personnelId },
-            }
-          ),
-          axios.get(`${process.env.REACT_APP_API_URL}/api/work-experiences`, {
-            params: { personnel_id: personnelId },
+          fetchData("educational-backgrounds", null, null, null, {
+            personnel_id: personnelId,
+          }),
+          fetchData("work-experiences", null, null, null, {
+            personnel_id: personnelId,
           }),
         ]);
 
-        // Safely handle education data
         const parsedEducation =
-          educationRes?.data?.map((edu) => ({
+          educationRes?.map((edu) => ({
             ...edu,
             certificate_files:
               edu.certificate_files && typeof edu.certificate_files === "string"
                 ? JSON.parse(edu.certificate_files)
-                : [], // Default to empty array
+                : [],
           })) || [];
 
-        // Safely handle work experience data
-        const workExperienceData = workExperienceRes?.data || [];
-
         setEducation(parsedEducation);
-        setWorkExperience(workExperienceData);
+        setWorkExperience(workExperienceRes || []);
       } catch (error) {
         console.error("Error fetching data:", error);
         toast({
@@ -87,7 +86,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
           status: "error",
           duration: 3000,
           isClosable: true,
-          position: "bottom-left", // Position the toast on the bottom-left
+          position: "bottom-left",
         });
       } finally {
         setLoading(false);
@@ -95,7 +94,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
     };
 
     setLoading(true);
-    fetchData();
+    fetchEducationAndWorkData();
   }, [personnelId, toast]);
 
   // Handle changes for educational background fields
@@ -117,7 +116,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
     const edu = education[index];
     const payload = {
       personnel_id: personnelId,
-      level: edu.level, // Ensure `level` is included in the payload
+      level: edu.level,
       startfrom: edu.startfrom,
       completion_year: edu.completion_year,
       school: edu.school,
@@ -126,34 +125,35 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
       institution: edu.institution,
       professional_licensure_examination:
         edu.professional_licensure_examination,
-      certificate_files: edu.certificate_files || [], // Ensure this is an array of file paths
+      certificate_files: edu.certificate_files || [],
     };
 
     try {
       if (edu.id) {
+        // Update existing record
         console.log("Updating education:", edu.id, payload);
-        const response = await axios.put(
-          `${process.env.REACT_APP_API_URL}/api/educational-backgrounds/${edu.id}`,
+        const response = await putData(
+          "educational-backgrounds",
+          edu.id,
           payload
         );
+
         toast({
           title: "Educational background updated successfully.",
           status: "success",
           duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
+          position: "bottom-left",
         });
 
-        // Update the local state to reflect the saved data
         const updatedEducation = [...education];
-        updatedEducation[index] = { ...edu, ...response.data };
+        updatedEducation[index] = { ...edu, ...response };
         setEducation(updatedEducation);
       } else {
+        // Create new record
         console.log("Saving new education:", payload);
-        const response = await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/educational-backgrounds`,
-          payload
-        );
-        const newEducation = { ...edu, id: response.data.id };
+        const response = await postData("educational-backgrounds", payload);
+
+        const newEducation = { ...edu, id: response.id };
         const updatedEducation = [...education];
         updatedEducation[index] = newEducation;
         setEducation(updatedEducation);
@@ -162,7 +162,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
           title: "Educational background saved successfully.",
           status: "success",
           duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
+          position: "bottom-left",
         });
       }
 
@@ -171,12 +171,10 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
       console.error("Error saving/updating education:", error);
       toast({
         title: "Error",
-        description:
-          error.response?.data?.message ||
-          "Failed to save or update education.",
+        description: error.message || "Failed to save or update education.",
         status: "error",
         duration: 3000,
-        position: "bottom-left", // Position the toast on the bottom-left
+        position: "bottom-left",
       });
     }
   };
@@ -186,29 +184,37 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
     Array.from(files).forEach((file) => formData.append("certificates", file));
 
     try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/upload-certificates`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      const response = await postData("upload-certificates", formData, true); // `true` means it's a FormData request
 
-      // Update the state with filenames instead of full paths
-      const updatedEducation = [...education];
-      const uploadedFilenames = response.data.filenames; // Array of filenames
-      updatedEducation[index].certificate_files = [
-        ...(updatedEducation[index].certificate_files || []),
-        ...uploadedFilenames,
-      ];
-      setEducation(updatedEducation);
+      const uploadedFilenames = response.data?.filenames || [];
+
+      setEducation((prevEducation) => {
+        const updatedEducation = [...prevEducation];
+        const currentFiles = Array.isArray(
+          updatedEducation[index]?.certificate_files
+        )
+          ? updatedEducation[index].certificate_files
+          : [];
+
+        // Avoid duplicates
+        const mergedFiles = [
+          ...new Set([...currentFiles, ...uploadedFilenames]),
+        ];
+
+        updatedEducation[index] = {
+          ...updatedEducation[index],
+          certificate_files: mergedFiles,
+        };
+
+        return updatedEducation;
+      });
 
       toast({
         title: "Certificates uploaded successfully.",
         status: "success",
         duration: 3000,
         isClosable: true,
-        position: "bottom-left", // Position the toast on the bottom-left
+        position: "bottom-left",
       });
     } catch (error) {
       console.error("Error uploading certificates:", error.message);
@@ -218,7 +224,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
         status: "error",
         duration: 3000,
         isClosable: true,
-        position: "bottom-left", // Position the toast on the bottom-left
+        position: "bottom-left",
       });
     }
   };
@@ -228,12 +234,10 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
       const updatedEducation = [...education];
       const edu = updatedEducation[eduIndex];
 
-      // Ensure certificate_files is initialized as an array
       if (!Array.isArray(edu.certificate_files)) {
         edu.certificate_files = [];
       }
 
-      // Get the file to remove
       const certToRemove = edu.certificate_files[certIndex];
 
       if (!certToRemove) {
@@ -243,22 +247,17 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
           status: "error",
           duration: 3000,
           isClosable: true,
-          position: "bottom-left", // Position the toast on the bottom-left
+          position: "bottom-left",
         });
         return;
       }
 
-      // Make a PUT request to the backend to remove the file from the server and database
-      const response = await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/remove-certificate`,
-        {
-          filePath: certToRemove, // Send only the filename
-          educationId: edu.id, // Include the education ID
-        }
-      );
+      const response = await putData("remove-certificate", {
+        filePath: certToRemove,
+        educationId: edu.id,
+      });
 
-      // Update the local state with the updated certificate files from the backend
-      edu.certificate_files = response.data.certificate_files; // Use the updated array from the backend
+      edu.certificate_files = response.data?.certificate_files || [];
       setEducation(updatedEducation);
 
       toast({
@@ -266,7 +265,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
         status: "success",
         duration: 3000,
         isClosable: true,
-        position: "bottom-left", // Position the toast on the bottom-left
+        position: "bottom-left",
       });
     } catch (error) {
       console.error("Error removing certificate:", error.message);
@@ -276,7 +275,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
         status: "error",
         duration: 3000,
         isClosable: true,
-        position: "bottom-left", // Position the toast on the bottom-left
+        position: "bottom-left",
       });
     }
   };
@@ -298,7 +297,6 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
     return allowedLevels.includes(level);
   };
 
-  // Save or update work experience
   const handleSaveOrUpdateWorkExperience = async (index) => {
     const work = workExperience[index];
     const payload = {
@@ -317,30 +315,30 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
     try {
       if (work.id) {
         console.log("Updating work experience:", work.id, payload);
-        await axios.put(
-          `${process.env.REACT_APP_API_URL}/api/work-experiences/${work.id}`,
-          payload
-        );
+        await putData("work-experiences", work.id, payload);
+
         toast({
           title: "Work experience updated successfully.",
           status: "success",
           duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
+          position: "bottom-left",
         });
       } else {
         console.log("Saving new work experience:", payload);
-        const response = await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/work-experiences`,
-          payload
-        );
-        work.id = response.data.id; // Assign new ID to the record
+        const response = await postData("work-experiences", payload);
+
+        if (response?.data?.id) {
+          work.id = response.data.id; // assign new ID only if exists
+        }
+
         toast({
           title: "Work experience saved successfully.",
           status: "success",
           duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
+          position: "bottom-left",
         });
       }
+
       toggleEditWorkExperience(index);
     } catch (error) {
       console.error("Error saving/updating work experience:", error);
@@ -351,7 +349,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
           "Failed to save or update work experience.",
         status: "error",
         duration: 3000,
-        position: "bottom-left", // Position the toast on the bottom-left
+        position: "bottom-left",
       });
     }
   };
@@ -420,16 +418,14 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
       if (!confirmed) return;
 
       try {
-        // Delete the record from the database
-        await axios.delete(
-          `${process.env.REACT_APP_API_URL}/api/educational-backgrounds/${educationEntry.id}`
-        );
+        // ✅ Use reusable deleteData utility function
+        await deleteData("educational-backgrounds", educationEntry.id);
 
         toast({
           title: "Educational background deleted successfully.",
           status: "success",
           duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
+          position: "bottom-left",
         });
       } catch (error) {
         console.error("Error deleting educational background:", error);
@@ -440,7 +436,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
             "Failed to delete the educational background.",
           status: "error",
           duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
+          position: "bottom-left",
         });
       }
     }
@@ -460,10 +456,8 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
       if (!confirmed) return;
 
       try {
-        // Delete the record from the database
-        await axios.delete(
-          `${process.env.REACT_APP_API_URL}/api/work-experiences/${workEntry.id}`
-        );
+        // ✅ Use the reusable deleteData utility function
+        await deleteData("work-experiences", workEntry.id);
 
         toast({
           title: "Work experience deleted successfully.",

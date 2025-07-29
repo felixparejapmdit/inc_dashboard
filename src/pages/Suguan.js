@@ -27,6 +27,8 @@ import { ArrowLeftIcon, ArrowRightIcon } from "@chakra-ui/icons";
 import { useDisclosure } from "@chakra-ui/react";
 import moment from "moment";
 
+import { fetchData, postData, putData, deleteData } from "../utils/fetchData";
+
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Suguan = () => {

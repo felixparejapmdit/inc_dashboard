@@ -24,12 +24,17 @@ import {
   AlertDialogFooter,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
-import axios from "axios";
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
 
 const SectionManagement = () => {
   const [sections, setSections] = useState([]);
-  const [filteredSections, setFilteredSections] = useState([]); // Filtered list
-  const [searchQuery, setSearchQuery] = useState(""); // Search state
+  const [filteredSections, setFilteredSections] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [departments, setDepartments] = useState([]);
   const [newSection, setNewSection] = useState({ name: "", department_id: "" });
   const [isAdding, setIsAdding] = useState(false);
@@ -38,50 +43,54 @@ const SectionManagement = () => {
   const toast = useToast();
   const cancelRef = useRef();
 
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const fetchSections = () => {
+    fetchData(
+      "sections",
+      (data) => {
+        setSections(data);
+        setFilteredSections(data);
+      },
+      (err) =>
+        toast({
+          title: "Error loading sections",
+          description: err,
+          status: "error",
+          duration: 3000,
+        }),
+      "Failed to fetch sections"
+    );
+  };
+
+  const fetchDepartments = () => {
+    fetchData(
+      "departments",
+      (data) => setDepartments(data),
+      (err) =>
+        toast({
+          title: "Error loading departments",
+          description: err,
+          status: "error",
+          duration: 3000,
+        }),
+      "Failed to fetch departments"
+    );
+  };
+
   useEffect(() => {
     fetchSections();
     fetchDepartments();
   }, []);
 
-  const fetchSections = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/sections`
-      );
-      setSections(response.data);
-      setFilteredSections(response.data); // Initialize filtered list
-    } catch (error) {
-      toast({
-        title: "Error loading sections",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
-    }
-  };
-
-  const fetchDepartments = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/departments`
-      );
-      setDepartments(response.data);
-    } catch (error) {
-      toast({
-        title: "Error loading departments",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
-    }
-  };
-
-  // 🔍 Search Filter Logic
   useEffect(() => {
     const filtered = sections.filter((section) =>
       section.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
     setFilteredSections(filtered);
+    setCurrentPage(1); // Reset to first page on search
   }, [searchQuery, sections]);
 
   const handleAddSection = async () => {
@@ -95,18 +104,11 @@ const SectionManagement = () => {
     }
 
     try {
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/sections`,
-        newSection
-      );
+      await postData("sections", newSection);
       fetchSections();
       setNewSection({ name: "", department_id: "" });
       setIsAdding(false);
-      toast({
-        title: "Section added",
-        status: "success",
-        duration: 3000,
-      });
+      toast({ title: "Section added", status: "success", duration: 3000 });
     } catch (error) {
       toast({
         title: "Error adding section",
@@ -119,10 +121,7 @@ const SectionManagement = () => {
 
   const handleUpdateSection = async () => {
     try {
-      await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/sections/${editingSection.id}`,
-        editingSection
-      );
+      await putData("sections", editingSection.id, editingSection);
       fetchSections();
       setEditingSection(null);
       toast({
@@ -143,9 +142,7 @@ const SectionManagement = () => {
   const handleDeleteSection = async () => {
     if (!deletingSection) return;
     try {
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/sections/${deletingSection.id}`
-      );
+      await deleteData("sections", deletingSection.id);
       fetchSections();
       toast({
         title: "Section deleted",
@@ -160,9 +157,16 @@ const SectionManagement = () => {
         duration: 3000,
       });
     } finally {
-      setDeletingSection(null); // Close alert after delete
+      setDeletingSection(null);
     }
   };
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredSections.length / itemsPerPage);
+  const paginatedSections = filteredSections.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
     <Box p={5}>
@@ -171,8 +175,6 @@ const SectionManagement = () => {
           <Text fontSize="28px" fontWeight="bold">
             Section List
           </Text>
-
-          {/* 🔍 Search Bar */}
           <Input
             placeholder="Search Sections..."
             value={searchQuery}
@@ -180,6 +182,7 @@ const SectionManagement = () => {
             width="250px"
           />
         </Flex>
+
         <Table variant="striped">
           <Thead>
             <Tr>
@@ -252,12 +255,13 @@ const SectionManagement = () => {
                 </Td>
               </Tr>
             )}
-            {filteredSections.map((section) => (
+
+            {paginatedSections.map((section) => (
               <Tr key={section.id}>
                 <Td>
                   <Flex align="center">
                     <Avatar name={section.name} size="sm" mr={3} />
-                    {editingSection && editingSection.id === section.id ? (
+                    {editingSection?.id === section.id ? (
                       <Input
                         value={editingSection.name}
                         onChange={(e) =>
@@ -276,7 +280,7 @@ const SectionManagement = () => {
                 </Td>
                 <Td>
                   <Flex align="center" justify="space-between">
-                    {editingSection && editingSection.id === section.id ? (
+                    {editingSection?.id === section.id ? (
                       <Select
                         value={editingSection.department_id}
                         onChange={(e) =>
@@ -297,7 +301,7 @@ const SectionManagement = () => {
                         ?.name || "N/A"
                     )}
                     <Flex ml="auto">
-                      {editingSection && editingSection.id === section.id ? (
+                      {editingSection?.id === section.id ? (
                         <>
                           <Button
                             onClick={handleUpdateSection}
@@ -345,9 +349,38 @@ const SectionManagement = () => {
             ))}
           </Tbody>
         </Table>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <Flex justify="center" align="center" mt={4}>
+            <Button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              isDisabled={currentPage === 1}
+              size="sm"
+              mr={2}
+            >
+              Previous
+            </Button>
+
+            <Text mx={2} fontSize="sm">
+              Page {currentPage} of {totalPages}
+            </Text>
+
+            <Button
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+              isDisabled={currentPage === totalPages}
+              size="sm"
+              ml={2}
+            >
+              Next
+            </Button>
+          </Flex>
+        )}
       </Stack>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Dialog */}
       <AlertDialog
         isOpen={!!deletingSection}
         leastDestructiveRef={cancelRef}
@@ -358,12 +391,10 @@ const SectionManagement = () => {
             <AlertDialogHeader fontSize="lg" fontWeight="bold">
               Delete Section
             </AlertDialogHeader>
-
             <AlertDialogBody>
               Are you sure you want to delete the section "
               {deletingSection?.name}"? This action cannot be undone.
             </AlertDialogBody>
-
             <AlertDialogFooter>
               <Button ref={cancelRef} onClick={() => setDeletingSection(null)}>
                 Cancel

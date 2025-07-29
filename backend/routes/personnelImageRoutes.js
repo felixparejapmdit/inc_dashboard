@@ -3,6 +3,8 @@ const router = express.Router();
 const upload = require("../middlewares/multer"); // Import multer middleware
 const personnelImageController = require("../controllers/personnelImageController");
 
+const verifyToken = require("../middlewares/authMiddleware");
+
 // POST route for uploading personnel images
 router.post(
   "/api/personnel_images",
@@ -12,7 +14,7 @@ router.post(
 
 // GET route for fetching personnel images by personnel_id
 router.get(
-  "/api/personnel_images/:personnel_id",
+  "/api/personnel_images/:personnel_id",verifyToken,
   personnelImageController.getImagesByPersonnelId
 );
 

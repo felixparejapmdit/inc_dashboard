@@ -33,6 +33,13 @@ import axios from "axios";
 import useLookupData from "../../hooks/useLookupData";
 import getNamesByIds from "../../utils/getNamesByIds";
 
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
+
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Step2 = () => {
@@ -54,28 +61,30 @@ const Step2 = () => {
   const [search, setSearch] = useState("");
   const [personnelInfo, setPersonnelInfo] = useState(null);
   const toast = useToast();
-const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const fetchPersonnel = async () => {
+  const fetchPersonnel = () => {
     setLoading(true);
-    try {
-      //const response = await axios.get(`${API_URL}/api/personnels/new`);
-      const response = await axios.get(`${API_URL}/api/personnels/progress/1`);
-
-      setPersonnelList(response.data);
-      setFilteredPersonnel(response.data);
-    } catch (error) {
-      console.error("Error fetching personnel list:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch personnel list.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
+    fetchData(
+      "personnels/progress",
+      (data) => {
+        setPersonnelList(data);
+        setFilteredPersonnel(data);
+      },
+      (errorMsg) => {
+        toast({
+          title: "Error",
+          description: "Failed to fetch personnel list.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      },
+      "Failed to fetch personnel list",
+      1 // 👉 progress param
+    ).finally(() => {
       setLoading(false);
-    }
+    });
   };
 
   // Call fetchUsers() inside useEffect()
@@ -126,10 +135,16 @@ const { isOpen, onOpen, onClose } = useDisclosure();
 
     setLoading(true);
     try {
-      await axios.put(`${API_URL}/api/users/update-progress`, {
-        personnel_id: selectedUser.personnel_id,
-        personnel_progress: 2, // Update to Step 2
-      });
+      // ✅ Use the updated putData with full payload
+      await putData(
+        "users/update-progress",
+        {
+          personnel_id: selectedUser.personnel_id,
+          personnel_progress: 2, // Step 2
+        },
+        "Failed to verify personnel"
+      );
+
       toast({
         title: "Step Verified",
         description: "Building Admin Office verification complete.",
@@ -137,13 +152,33 @@ const { isOpen, onOpen, onClose } = useDisclosure();
         duration: 3000,
         isClosable: true,
       });
+
       // ✅ Hide Personnel Info and Checklist After Verification
       setSelectedUser(null);
       setPersonnelInfo(null);
 
-      // ✅ Refresh the personnel table
-      fetchPersonnel();
-      onClose(); // Close the modal after verification
+      // ✅ Refresh the personnel table using same pattern
+      fetchData(
+        "personnels/progress", // endpoint
+        (data) => {
+          setPersonnelList(data);
+          setFilteredPersonnel(data);
+        },
+        () =>
+          toast({
+            title: "Error",
+            description: "Failed to refresh personnel list.",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          }),
+        "Failed to fetch personnel list", // custom error message
+        1, // param (appended like /personnels/progress/1)
+        () => setLoading(false) // optional finally block if needed
+      );
+
+      // ✅ Close modal
+      onClose();
     } catch (error) {
       console.error("Error during verification:", error);
       toast({
@@ -159,34 +194,37 @@ const { isOpen, onOpen, onClose } = useDisclosure();
   };
 
   // Fetch personnel details
-  const fetchPersonnelDetails = async (personnelId) => {
+  const fetchPersonnelDetails = (personnelId) => {
     setLoading(true);
-    try {
-      const response = await axios.get(
-        `${API_URL}/api/personnels/${personnelId}`
-      );
-      setPersonnelInfo(response.data);
-      setIsVerified(response.data.isVerified || false);
-    } catch (error) {
-      console.error("Error fetching personnel details:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch personnel details.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
-      setLoading(false);
-    }
+    fetchData(
+      `personnels`, // endpoint
+      (data) => {
+        setPersonnelInfo(data);
+        setIsVerified(data.isVerified || false);
+        setLoading(false);
+      },
+      () => {
+        toast({
+          title: "Error",
+          description: "Failed to fetch personnel details.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        setLoading(false);
+      },
+      "Failed to fetch personnel details",
+      personnelId // parameter appended to the endpoint
+    );
   };
 
-  const handleUserSelect = async (user) => {
+  const handleUserSelect = (user) => {
     setSelectedUser(user);
 
-  onOpen(); // 👈 open modal immediately
-  
+    onOpen(); // 👈 open modal immediately
+
     fetchPersonnelDetails(user.personnel_id);
+
     setChecklist({
       workArea: false,
       officeDesignation: false,
@@ -197,22 +235,24 @@ const { isOpen, onOpen, onClose } = useDisclosure();
       appliances: false,
     });
 
-    try {
-      const response = await axios.get(
-        `${API_URL}/api/personnels/${user.personnel_id}`
-      );
-      setPersonnelInfo(response.data);
-    } catch (error) {
-      console.error("Error fetching personnel information:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch personnel information.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      setPersonnelInfo(null); // Reset personnelInfo if the fetch fails
-    }
+    fetchData(
+      "personnels",
+      (data) => {
+        setPersonnelInfo(data);
+      },
+      () => {
+        toast({
+          title: "Error",
+          description: "Failed to fetch personnel information.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        setPersonnelInfo(null);
+      },
+      "Failed to fetch personnel information",
+      user.personnel_id
+    );
   };
 
   return (
@@ -263,109 +303,36 @@ const { isOpen, onOpen, onClose } = useDisclosure();
               ))}
             </Tbody>
           </Table>
-          <Modal isOpen={isOpen} onClose={onClose} size="xl" scrollBehavior="inside">
-  <ModalOverlay />
-  <ModalContent>
-    <ModalHeader>Personnel Checklist</ModalHeader>
-    <ModalCloseButton />
+          <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            size="xl"
+            scrollBehavior="inside"
+          >
+            <ModalOverlay />
+            <ModalContent>
+              <ModalHeader>Personnel Checklist</ModalHeader>
+              <ModalCloseButton />
 
-    <ModalBody>
-            <VStack
-              align="start"
-              spacing={6}
-              w="100%"
-              maxWidth="600px"
-              mx="auto"
-            >
-              {/* Display Selected Personnel Info */}
+              <ModalBody>
+                <VStack
+                  align="start"
+                  spacing={6}
+                  w="100%"
+                  maxWidth="600px"
+                  mx="auto"
+                >
+                  {/* Display Selected Personnel Info */}
 
-              <Text
-                fontSize="xl"
-                fontWeight="bold"
-                color="teal.500"
-                textAlign="center"
-                w="100%"
-              >
-                Personnel Information
-              </Text>
-              <Box
-                p={6}
-                bg="white"
-                borderRadius="lg"
-                boxShadow="lg"
-                border="1px solid"
-                borderColor="gray.200"
-                w="100%"
-              >
-                <Text>
-                  <b>Reference Number:</b>{" "}
-                  {personnelInfo?.reference_number || "N/A"}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Name:</b>{" "}
-                  {`${personnelInfo?.givenname} ${
-                    personnelInfo?.middlename || ""
-                  } ${personnelInfo?.surname_husband}`}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Gender:</b> {personnelInfo?.gender}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Date of Birth:</b>{" "}
-                  {new Date(personnelInfo?.date_of_birth).toLocaleDateString()}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Email Address:</b> {personnelInfo?.email_address}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Civil Status:</b> {personnelInfo?.civil_status}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Department: </b>
-                  {getNamesByIds(
-                    personnelInfo?.department_id,
-                    lookupData.departments
-                  )}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Designation: </b>
-                  {getNamesByIds(
-                    personnelInfo?.designation_id,
-                    lookupData.designations
-                  )}
-                </Text>
-                <Divider />
-
-                <Text fontSize="lg" mt={2}>
-                  <b>District: </b>
-                  {getNamesByIds(
-                    personnelInfo?.district_id,
-                    lookupData.districts
-                  )}
-                </Text>
-                <Divider />
-
-                <Text fontSize="lg" mt={2}>
-                  <b>Local Congregation: </b>
-                  {getNamesByIds(
-                    personnelInfo?.local_congregation,
-                    lookupData.localCongregations
-                  )}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Personnel Type:</b> {personnelInfo?.personnel_type}
-                </Text>
-              </Box>
-              {personnelInfo?.personnel_type !== "Minister's Wife" &&
-                personnelInfo?.personnel_type !== "Lay Member" && (
+                  <Text
+                    fontSize="xl"
+                    fontWeight="bold"
+                    color="teal.500"
+                    textAlign="center"
+                    w="100%"
+                  >
+                    Personnel Information
+                  </Text>
                   <Box
                     p={6}
                     bg="white"
@@ -375,170 +342,256 @@ const { isOpen, onOpen, onClose } = useDisclosure();
                     borderColor="gray.200"
                     w="100%"
                   >
-                    <Text
-                      fontSize="lg"
-                      fontWeight="bold"
-                      color="teal.500"
-                      mb={4}
-                    >
-                      Additional Information
+                    <Text>
+                      <b>Reference Number:</b>{" "}
+                      {personnelInfo?.reference_number || "N/A"}
                     </Text>
-                    <VStack align="start" spacing={4}>
-                      <Flex align="center" w="100%" mb={4}>
-                        <Text fontWeight="bold" minWidth="150px">
-                          Assigned Number:
-                        </Text>
-                        <Input
-                          placeholder="Enter Assigned Number"
-                          value={personnelInfo?.assigned_number || ""}
-                          readOnly
-                          flex="1"
-                        />
-                      </Flex>
+                    <Divider />
+                    <Text fontSize="lg" mt={2}>
+                      <b>Name:</b>{" "}
+                      {`${personnelInfo?.givenname} ${
+                        personnelInfo?.middlename || ""
+                      } ${personnelInfo?.surname_husband}`}
+                    </Text>
+                    <Divider />
+                    <Text fontSize="lg" mt={2}>
+                      <b>Gender:</b> {personnelInfo?.gender}
+                    </Text>
+                    <Divider />
+                    <Text fontSize="lg" mt={2}>
+                      <b>Date of Birth:</b>{" "}
+                      {new Date(
+                        personnelInfo?.date_of_birth
+                      ).toLocaleDateString()}
+                    </Text>
+                    <Divider />
+                    <Text fontSize="lg" mt={2}>
+                      <b>Email Address:</b> {personnelInfo?.email_address}
+                    </Text>
+                    <Divider />
+                    <Text fontSize="lg" mt={2}>
+                      <b>Civil Status:</b> {personnelInfo?.civil_status}
+                    </Text>
+                    <Divider />
+                    <Text fontSize="lg" mt={2}>
+                      <b>Department: </b>
+                      {getNamesByIds(
+                        personnelInfo?.department_id,
+                        lookupData.departments
+                      )}
+                    </Text>
+                    <Divider />
+                    <Text fontSize="lg" mt={2}>
+                      <b>Designation: </b>
+                      {getNamesByIds(
+                        personnelInfo?.designation_id,
+                        lookupData.designations
+                      )}
+                    </Text>
+                    <Divider />
 
-                      <Text>
-                        <b>Ministerial Status:</b>
-                      </Text>
-                      <HStack spacing={4}>
-                        <Checkbox
-                          isChecked={personnelInfo?.m_status === "May Destino"}
-                          isReadOnly
+                    <Text fontSize="lg" mt={2}>
+                      <b>District: </b>
+                      {getNamesByIds(
+                        personnelInfo?.district_id,
+                        lookupData.districts
+                      )}
+                    </Text>
+                    <Divider />
+
+                    <Text fontSize="lg" mt={2}>
+                      <b>Local Congregation: </b>
+                      {getNamesByIds(
+                        personnelInfo?.local_congregation,
+                        lookupData.localCongregations
+                      )}
+                    </Text>
+                    <Divider />
+                    <Text fontSize="lg" mt={2}>
+                      <b>Personnel Type:</b> {personnelInfo?.personnel_type}
+                    </Text>
+                  </Box>
+                  {personnelInfo?.personnel_type !== "Minister's Wife" &&
+                    personnelInfo?.personnel_type !== "Lay Member" && (
+                      <Box
+                        p={6}
+                        bg="white"
+                        borderRadius="lg"
+                        boxShadow="lg"
+                        border="1px solid"
+                        borderColor="gray.200"
+                        w="100%"
+                      >
+                        <Text
+                          fontSize="lg"
+                          fontWeight="bold"
+                          color="teal.500"
+                          mb={4}
                         >
-                          May Destino
-                        </Checkbox>
-                        <Checkbox
-                          isChecked={personnelInfo?.m_status === "Fulltime"}
-                          isReadOnly
-                        >
-                          Fulltime
-                        </Checkbox>
-                      </HStack>
-                      {(personnelInfo?.personnel_type === "Minister" ||
-                        personnelInfo?.personnel_type === "Regular") && (
-                        <>
+                          Additional Information
+                        </Text>
+                        <VStack align="start" spacing={4}>
                           <Flex align="center" w="100%" mb={4}>
-                            <Text fontWeight="bold" minWidth="150px" mr={2}>
-                              Panunumpa Date:
+                            <Text fontWeight="bold" minWidth="150px">
+                              Assigned Number:
                             </Text>
                             <Input
-                              value={
-                                personnelInfo?.panunumpa_date
-                                  ? new Date(
-                                      personnelInfo?.panunumpa_date
-                                    ).toLocaleDateString("en-US", {
-                                      year: "numeric",
-                                      month: "long",
-                                      day: "numeric",
-                                    })
-                                  : ""
-                              }
+                              placeholder="Enter Assigned Number"
+                              value={personnelInfo?.assigned_number || ""}
                               readOnly
                               flex="1"
-                              textOverflow="ellipsis"
-                              placeholder="N/A"
                             />
                           </Flex>
 
-                          {personnelInfo?.personnel_type === "Minister" && (
+                          <Text>
+                            <b>Ministerial Status:</b>
+                          </Text>
+                          <HStack spacing={4}>
+                            <Checkbox
+                              isChecked={
+                                personnelInfo?.m_status === "May Destino"
+                              }
+                              isReadOnly
+                            >
+                              May Destino
+                            </Checkbox>
+                            <Checkbox
+                              isChecked={personnelInfo?.m_status === "Fulltime"}
+                              isReadOnly
+                            >
+                              Fulltime
+                            </Checkbox>
+                          </HStack>
+                          {(personnelInfo?.personnel_type === "Minister" ||
+                            personnelInfo?.personnel_type === "Regular") && (
                             <>
-                              <Text>
-                                <b>Ordination Date:</b>
-                              </Text>
-                              <Input
-                                type="date"
-                                value={
-                                  personnelInfo?.ordination_date
-                                    ? new Date(personnelInfo?.ordination_date)
-                                        .toISOString()
-                                        .split("T")[0]
-                                    : ""
-                                }
-                                readOnly
-                              />
+                              <Flex align="center" w="100%" mb={4}>
+                                <Text fontWeight="bold" minWidth="150px" mr={2}>
+                                  Panunumpa Date:
+                                </Text>
+                                <Input
+                                  value={
+                                    personnelInfo?.panunumpa_date
+                                      ? new Date(
+                                          personnelInfo?.panunumpa_date
+                                        ).toLocaleDateString("en-US", {
+                                          year: "numeric",
+                                          month: "long",
+                                          day: "numeric",
+                                        })
+                                      : ""
+                                  }
+                                  readOnly
+                                  flex="1"
+                                  textOverflow="ellipsis"
+                                  placeholder="N/A"
+                                />
+                              </Flex>
+
+                              {personnelInfo?.personnel_type === "Minister" && (
+                                <>
+                                  <Text>
+                                    <b>Ordination Date:</b>
+                                  </Text>
+                                  <Input
+                                    type="date"
+                                    value={
+                                      personnelInfo?.ordination_date
+                                        ? new Date(
+                                            personnelInfo?.ordination_date
+                                          )
+                                            .toISOString()
+                                            .split("T")[0]
+                                        : ""
+                                    }
+                                    readOnly
+                                  />
+                                </>
+                              )}
                             </>
                           )}
-                        </>
-                      )}
-                    </VStack>
-                  </Box>
-                )}
-              <Flex
-                direction="column"
-                align="center"
-                justify="center"
-                w="100%"
-                bg="white"
-                p={6}
-                borderRadius="lg"
-                boxShadow="md"
-                maxWidth="500px"
-                mx="auto"
-              >
-                {/* Checklist Title */}
-                <Text fontSize="xl" fontWeight="bold" mb={4}>
-                  Checklist
-                </Text>
+                        </VStack>
+                      </Box>
+                    )}
+                  <Flex
+                    direction="column"
+                    align="center"
+                    justify="center"
+                    w="100%"
+                    bg="white"
+                    p={6}
+                    borderRadius="lg"
+                    boxShadow="md"
+                    maxWidth="500px"
+                    mx="auto"
+                  >
+                    {/* Checklist Title */}
+                    <Text fontSize="xl" fontWeight="bold" mb={4}>
+                      Checklist
+                    </Text>
 
-                {/* Select All Checkbox */}
-                <Checkbox
-                  isChecked={Object.values(checklist).every((item) => item)}
-                  onChange={(e) => {
-                    const isChecked = e.target.checked;
-                    const updatedChecklist = {};
-                    Object.keys(checklist).forEach((key) => {
-                      updatedChecklist[key] = isChecked;
-                    });
-                    setChecklist(updatedChecklist);
-                  }}
-                  colorScheme="teal"
-                  size="lg"
-                  w="100%"
-                  fontWeight="bold"
-                  mb={2}
-                >
-                  Select All
-                </Checkbox>
-
-                {/* Individual Checkboxes */}
-                <VStack align="start" spacing={3} w="100%">
-                  {Object.keys(checklist).map((key) => (
+                    {/* Select All Checkbox */}
                     <Checkbox
-                      key={key}
-                      isChecked={checklist[key]}
-                      onChange={() => handleChecklistChange(key)}
+                      isChecked={Object.values(checklist).every((item) => item)}
+                      onChange={(e) => {
+                        const isChecked = e.target.checked;
+                        const updatedChecklist = {};
+                        Object.keys(checklist).forEach((key) => {
+                          updatedChecklist[key] = isChecked;
+                        });
+                        setChecklist(updatedChecklist);
+                      }}
                       colorScheme="teal"
                       size="lg"
                       w="100%"
+                      fontWeight="bold"
+                      mb={2}
                     >
-                      {key
-                        .replace(/([A-Z])/g, " $1")
-                        .replace(/^./, (str) => str.toUpperCase())}
+                      Select All
                     </Checkbox>
-                  ))}
-                </VStack>
 
-              </Flex>
-            </VStack>
+                    {/* Individual Checkboxes */}
+                    <VStack align="start" spacing={3} w="100%">
+                      {Object.keys(checklist).map((key) => (
+                        <Checkbox
+                          key={key}
+                          isChecked={checklist[key]}
+                          onChange={() => handleChecklistChange(key)}
+                          colorScheme="teal"
+                          size="lg"
+                          w="100%"
+                        >
+                          {key
+                            .replace(/([A-Z])/g, " $1")
+                            .replace(/^./, (str) => str.toUpperCase())}
+                        </Checkbox>
+                      ))}
+                    </VStack>
+                  </Flex>
+                </VStack>
               </ModalBody>
 
-    <ModalFooter>
-      <Button
-        colorScheme="orange"
-        mr={3}
-        onClick={handleVerify}
-        isDisabled={!Object.values(checklist).every((item) => item)}
-      >
-        Verify and Proceed
-      </Button>
-      <Button variant="ghost" onClick={() => {
-      setSelectedUser(null);  // Clear selected user
-      onClose();              // Close the modal
-    }}>
-        Close
-      </Button>
-    </ModalFooter>
-  </ModalContent>
-</Modal>
+              <ModalFooter>
+                <Button
+                  colorScheme="orange"
+                  mr={3}
+                  onClick={handleVerify}
+                  isDisabled={!Object.values(checklist).every((item) => item)}
+                >
+                  Verify and Proceed
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setSelectedUser(null); // Clear selected user
+                    onClose(); // Close the modal
+                  }}
+                >
+                  Close
+                </Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
         </>
       )}
     </Box>

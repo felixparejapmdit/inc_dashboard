@@ -60,6 +60,8 @@ import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { getAuthHeaders } from "../utils/apiHeaders"; // adjust path as needed
 import axios from "axios";
+
+import { fetchData, postData, putData, deleteData } from "../utils/fetchData";
 import { usePermissionContext } from "../contexts/PermissionContext";
 // Use environment variable
 const API_URL = process.env.REACT_APP_API_URL;
@@ -373,7 +375,11 @@ export default function Dashboard() {
 
   const fetchApplicationTypes = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/application-types`);
+      const response = await fetch(`${API_URL}/api/application-types`,
+        {
+          headers: getAuthHeaders()
+        }
+      );
       if (!response.ok) throw new Error("Failed to fetch application types");
       const data = await response.json();
       setAppTypes(data); // Store fetched app types dynamically
@@ -381,24 +387,6 @@ export default function Dashboard() {
       console.error("Error fetching application types:", error);
     }
   };
-
-  // const fetchApplications = async () => {
-  //   try {
-  //     const response = await fetch(`${API_URL}/api/apps/available`, {
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         "x-user-id": currentUser.id,
-  //       },
-  //     });
-
-  //     if (!response.ok)
-  //       throw new Error(`Failed to fetch apps: ${response.statusText}`);
-  //     const data = await response.json();
-  //     setCategorizedApps(data);
-  //   } catch (error) {
-  //     console.error("Error fetching apps:", error);
-  //   }
-  // };
 
   const fetchApplications = async () => {
     try {

@@ -26,6 +26,8 @@ import axios from "axios";
 
 import { Search2Icon, SearchIcon, CheckIcon } from "@chakra-ui/icons";
 
+import { fetchData, postData, putData, deleteData } from "../../utils/fetchData";
+
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Step7 = () => {
@@ -40,29 +42,33 @@ const Step7 = () => {
 
   // Fetch personnel list
 
-  const fetchPersonnel = async () => {
+  const fetchPersonnel = () => {
     setLoading(true);
-    try {
-      //const response = await axios.get(`${API_URL}/api/personnels/new`);
-      const response = await axios.get(`${API_URL}/api/personnels/progress/6`);
-      setPersonnelList(response.data);
-      setFilteredPersonnel(response.data);
-    } catch (error) {
-      console.error("Error fetching personnel list:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch personnel list.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
+    fetchData(
+      "personnels/progress",
+      (data) => {
+        setPersonnelList(data);
+        setFilteredPersonnel(data);
+      },
+      (errorMsg) => {
+        toast({
+          title: "Error",
+          description: "Failed to fetch personnel list.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      },
+      "Failed to fetch personnel list",
+      6 // 👉 progress param
+    ).finally(() => {
       setLoading(false);
-    }
+    });
   };
-  useEffect(() => {
-    fetchPersonnel();
-  }, [toast]);
+
+    useEffect(() => {
+      fetchPersonnel();
+    }, [toast]);
 
   const handleSearch = (e) => {
     const query = e.target.value.toLowerCase();
@@ -90,10 +96,14 @@ const Step7 = () => {
 
     setLoading(true);
     try {
-      await axios.put(`${API_URL}/api/users/update-progress`, {
-        personnel_id: selectedUser.personnel_id,
-        personnel_progress: 7, // Update to Step 7
-      });
+       await putData(
+              "users/update-progress",
+              {
+                personnel_id: selectedUser.personnel_id,
+                personnel_progress: 7, // Step 7
+              },
+              "Failed to verify personnel"
+            );
 
       setIsVerified(true);
       toast({
@@ -143,28 +153,6 @@ const Step7 = () => {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleUserSelect = async (user) => {
-    setSelectedUser(user);
-
-    fetchPersonnelDetails(user.personnel_id);
-    try {
-      const response = await axios.get(
-        `${API_URL}/api/personnels/${user.personnel_id}`
-      );
-      setPersonnelInfo(response.data);
-    } catch (error) {
-      console.error("Error fetching personnel information:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch personnel information.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      setPersonnelInfo(null);
     }
   };
 

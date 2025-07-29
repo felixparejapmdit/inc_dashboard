@@ -37,6 +37,8 @@ import {
 } from "@chakra-ui/react";
 import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
 
+import { fetchData, postData, putData, deleteData } from "../utils/fetchData";
+
 const API_URL = process.env.REACT_APP_API_URL;
 const ITEMS_PER_PAGE = 10;
 
@@ -65,52 +67,32 @@ const Applications = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const cancelRef = React.useRef();
 
-  // Fetch apps from the backend
-useEffect(() => {
-  const authToken = localStorage.getItem("authToken");
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      console.error("No auth token found. User may not be logged in.");
+      return;
+    }
 
-  // If no token, optionally redirect or handle unauthorized
-  if (!authToken) {
-    console.error("No auth token found. User may not be logged in.");
-    return;
-  }
+    // Fetch all apps
+    fetchData(
+      "apps",
+      (data) => {
+        setApps(data);
+        setFilteredApps(data); // also set filteredApps initially
+      },
+      null,
+      "Failed to fetch apps"
+    );
 
-  // Fetch apps with Authorization header
-  fetch(`${API_URL}/api/apps`, {
-    headers: {
-      Authorization: `Bearer ${authToken}`,
-    },
-  })
-    .then((res) => {
-      if (!res.ok) {
-        throw new Error("Failed to fetch apps");
-      }
-      return res.json();
-    })
-    .then((data) => {
-      setApps(data);
-      setFilteredApps(data);
-    })
-    .catch((err) => {
-      console.error("Error fetching apps:", err);
-    });
-
-  // Fetch application types (no auth needed if public)
-  fetch(`${API_URL}/api/application-types`)
-    .then((res) => {
-      if (!res.ok) {
-        throw new Error("Failed to fetch application types");
-      }
-      return res.json();
-    })
-    .then((data) => {
-      setAppTypes(data);
-    })
-    .catch((err) => {
-      console.error("Error fetching application types:", err);
-    });
-}, []);
-
+    // Fetch application types
+    fetchData(
+      "application-types",
+      setAppTypes,
+      null,
+      "Failed to fetch application types"
+    );
+  }, []);
 
   // Search filter logic (filter first, then paginate)
   useEffect(() => {

@@ -12,6 +12,8 @@ import {
 import { FaCheckCircle, FaIdCard } from "react-icons/fa";
 import { MdCancel } from "react-icons/md";
 
+import { fetchData, postData, putData, deleteData } from "../../utils/fetchData";
+
 const ScanRFIDQRBarcode = ({ onScanComplete }) => {
   const [scanValue, setScanValue] = useState("");
   const [isValid, setIsValid] = useState(null);

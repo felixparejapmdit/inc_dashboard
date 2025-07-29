@@ -22,6 +22,7 @@ import {
 import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import axios from "axios";
 
+import { fetchData, postData, putData, deleteData } from "../../utils/fetchData";
 const PermissionCategoriesManagement = () => {
   const [categories, setCategories] = useState([]);
   const [newCategory, setNewCategory] = useState({ name: "", description: "" });

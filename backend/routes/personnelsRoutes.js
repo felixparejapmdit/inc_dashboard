@@ -20,12 +20,12 @@ router.get("/api/personnels/new", verifyToken,personnelsController.getAllNewPers
 
 // Route to get personnels by progress
 router.get(
-  "/api/personnels/progress/:step",
+  "/api/personnels/progress/:step", verifyToken,
   personnelsController.getPersonnelsByProgress
 );
 
 // Route to get a specific personnel by ID
-router.get("/api/personnels/:id", personnelsController.getPersonnelById);
+router.get("/api/personnels/:id", verifyToken,personnelsController.getPersonnelById);
 
 // Route to create a new personnel
 router.post("/api/personnels", personnelsController.createPersonnel);

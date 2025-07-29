@@ -43,6 +43,8 @@ import {
 import { getAuthHeaders } from "../utils/apiHeaders"; // adjust path as needed
 import { usePermissionContext } from "../contexts/PermissionContext";
 
+import { fetchData, postData, putData, deleteData } from "../utils/fetchData";
+
 const Profile = () => {
   const { hasPermission } = usePermissionContext(); // Correct usage
   const [user, setUser] = useState({ name: "", email: "", avatar: "" });

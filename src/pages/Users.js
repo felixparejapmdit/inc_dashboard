@@ -62,8 +62,7 @@ import Photoshoot from "./progress/Photoshoot"; // Import Photoshoot component
 import { getAuthHeaders } from "../utils/apiHeaders"; // adjust path as needed
 import { useUserFormData, suffixOptions } from "../hooks/userFormOptions";
 
-
-import { fetchData } from "../utils/fetchData";
+import { fetchData, postData, putData, deleteData } from "../utils/fetchData";
 
 const API_URL = process.env.REACT_APP_API_URL;
 const ITEMS_PER_PAGE = 5;

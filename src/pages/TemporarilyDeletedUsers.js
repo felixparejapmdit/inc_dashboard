@@ -23,7 +23,7 @@ import {
   AlertDialogFooter,
 } from "@chakra-ui/react";
 import { RepeatIcon } from "@chakra-ui/icons";
-import { fetchData, putData } from "../utils/fetchData";
+import { fetchData, postData, putData, deleteData } from "../utils/fetchData";
 
 const ITEMS_PER_PAGE = 5;
 

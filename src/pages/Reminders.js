@@ -27,6 +27,7 @@ import {
 } from "@chakra-ui/react";
 import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
 
+import { fetchData, postData, putData, deleteData } from "../utils/fetchData";
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Reminders = () => {

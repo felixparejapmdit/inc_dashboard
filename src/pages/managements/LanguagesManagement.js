@@ -6,14 +6,14 @@ import {
   Input,
   Stack,
   Table,
-  Tbody,
-  Td,
-  Th,
   Thead,
+  Tbody,
   Tr,
-  useToast,
-  IconButton,
+  Th,
+  Td,
   Text,
+  IconButton,
+  useToast,
   AlertDialog,
   AlertDialogOverlay,
   AlertDialogContent,
@@ -22,156 +22,108 @@ import {
   AlertDialogFooter,
 } from "@chakra-ui/react";
 import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
-import axios from "axios";
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
 
-const ITEMS_PER_PAGE = 15;
+const ITEMS_PER_PAGE = 10;
 
 const LanguagesManagement = () => {
   const [languages, setLanguages] = useState([]);
   const [filteredLanguages, setFilteredLanguages] = useState([]);
-  const [newLanguage, setNewLanguage] = useState({
-    country_name: "",
-    name: "", // ✅ Match database field name
-  });
-
-  const [isAdding, setIsAdding] = useState(false);
-  const [editingLanguage, setEditingLanguage] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [deletingLanguage, setDeletingLanguage] = useState(null);
+  const [newLanguage, setNewLanguage] = useState({ country_name: "", name: "" });
+  const [isAdding, setIsAdding] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [formData, setFormData] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
+  const [deleteId, setDeleteId] = useState(null);
+
   const toast = useToast();
   const cancelRef = useRef();
-
-  const countryNameInputRef = useRef(null);
-
-  useEffect(() => {
-    if (editingLanguage && countryNameInputRef.current) {
-      countryNameInputRef.current.focus();
-    }
-  }, [editingLanguage]);
+  const countryInputRef = useRef(null);
 
   useEffect(() => {
     fetchLanguages();
   }, []);
 
-  const fetchLanguages = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/languages`
-      );
-      setLanguages(response.data);
-      setFilteredLanguages(response.data);
-    } catch (error) {
-      toast({
-        title: "Error loading languages",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
-    }
-  };
-
-  const handleAddOrEditLanguage = async () => {
-    if (!newLanguage.country_name || !newLanguage.name) {
-      toast({
-        title: "Fields Required",
-        description: "Both Country Name and Language are required.",
-        status: "warning",
-        duration: 3000,
-      });
-      return;
-    }
-
-    // Prevent duplicates
-    const duplicate = languages.find(
-      (lang) =>
-        lang.country_name?.toLowerCase() ===
-          newLanguage.country_name?.toLowerCase() &&
-        lang.name?.toLowerCase() === newLanguage.name?.toLowerCase()
-    );
-
-    if (
-      duplicate &&
-      (!editingLanguage || editingLanguage.id !== duplicate.id)
-    ) {
-      toast({
-        title: "Duplicate Entry",
-        description: "This language already exists.",
-        status: "error",
-        duration: 3000,
-      });
-      return;
-    }
-
-    try {
-      if (editingLanguage) {
-        await axios.put(
-          `${process.env.REACT_APP_API_URL}/api/languages/${editingLanguage.id}`,
-          newLanguage
-        );
-        toast({ title: "Language updated", status: "success", duration: 3000 });
-      } else {
-        await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/add_languages`,
-          newLanguage
-        );
-        toast({ title: "Language added", status: "success", duration: 3000 });
-      }
-
-      fetchLanguages();
-      setNewLanguage({ country_name: "", name: "" }); // ✅ Fix field reference
-      setIsAdding(false);
-      setEditingLanguage(null);
-    } catch (error) {
-      toast({
-        title: `Error ${editingLanguage ? "updating" : "adding"} language`,
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
-    }
-  };
-
-  const handleEditLanguage = (language) => {
-    setNewLanguage({
-      country_name: language.country_name || "", // ✅ Default empty string
-      name: language.name || "", // ✅ Ensure it’s always defined
-    });
-    setEditingLanguage(language);
-  };
-
-  const handleDeleteLanguage = async () => {
-    if (!deletingLanguage) return;
-    try {
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/languages/${deletingLanguage.id}`
-      );
-      fetchLanguages();
-      toast({
-        title: "Language deleted",
-        status: "success",
-        duration: 3000,
-      });
-      setDeletingLanguage(null);
-    } catch (error) {
-      toast({
-        title: "Error deleting language",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
-    }
-  };
-
-  const handleSearch = (event) => {
-    setSearchTerm(event.target.value);
+  useEffect(() => {
     const filtered = languages.filter((lang) =>
-      `${lang.country_name} ${lang.name}`
-        .toLowerCase()
-        .includes(event.target.value.toLowerCase())
+      `${lang.country_name} ${lang.name}`.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredLanguages(filtered);
     setCurrentPage(1);
+  }, [searchTerm, languages]);
+
+  useEffect(() => {
+    if (editingId && countryInputRef.current) {
+      countryInputRef.current.focus();
+    }
+  }, [editingId]);
+
+  const fetchLanguages = () => {
+    fetchData(
+      "languages",
+      (data) => {
+        setLanguages(data);
+        setFilteredLanguages(data);
+      },
+      (err) =>
+        toast({
+          title: "Error loading languages",
+          description: err,
+          status: "error",
+          duration: 3000,
+        }),
+      "Failed to fetch languages"
+    );
+  };
+
+  const handleAdd = async () => {
+    if (!newLanguage.country_name || !newLanguage.name) {
+      toast({ title: "All fields are required", status: "warning", duration: 3000 });
+      return;
+    }
+
+    try {
+      await postData("add_languages", newLanguage, "Failed to add language");
+      fetchLanguages();
+      setNewLanguage({ country_name: "", name: "" });
+      setIsAdding(false);
+      toast({ title: "Language added", status: "success", duration: 3000 });
+    } catch (err) {
+      toast({ title: "Error adding", description: err.message, status: "error", duration: 3000 });
+    }
+  };
+
+  const handleEdit = (lang) => {
+    setEditingId(lang.id);
+    setFormData({ ...lang });
+  };
+
+  const handleUpdate = async () => {
+    try {
+      await putData("languages", editingId, formData, "Failed to update language");
+      fetchLanguages();
+      setEditingId(null);
+      toast({ title: "Language updated", status: "success", duration: 3000 });
+    } catch (err) {
+      toast({ title: "Error updating", description: err.message, status: "error", duration: 3000 });
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await deleteData("languages",deleteId, () => {}, "Failed to delete language");
+      fetchLanguages();
+      setDeleteId(null);
+      toast({ title: "Language deleted", status: "success", duration: 3000 });
+    } catch (err) {
+      toast({ title: "Error deleting", description: err.message, status: "error", duration: 3000 });
+    }
   };
 
   const totalPages = Math.ceil(filteredLanguages.length / ITEMS_PER_PAGE);
@@ -180,67 +132,34 @@ const LanguagesManagement = () => {
     currentPage * ITEMS_PER_PAGE
   );
 
-  const handlePageChange = (direction) => {
-    setCurrentPage((prev) =>
-      direction === "next"
-        ? Math.min(prev + 1, totalPages)
-        : Math.max(prev - 1, 1)
-    );
-  };
-
   return (
     <Box p={5}>
       <Stack spacing={4}>
-        <Text fontSize="28px" fontWeight="bold">
-          Language List
-        </Text>
+        <Text fontSize="28px" fontWeight="bold">Language List</Text>
 
         <Input
           placeholder="Search by Country Name or Language"
           value={searchTerm}
-          onChange={handleSearch}
-          mb={4}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
-
-        {filteredLanguages.length > ITEMS_PER_PAGE && (
-          <Flex justify="space-between" align="center" mb={4}>
-            <Button
-              onClick={() => handlePageChange("previous")}
-              disabled={currentPage === 1}
-            >
-              Previous
-            </Button>
-            <Text>
-              Page {currentPage} of {totalPages}
-            </Text>
-            <Button
-              onClick={() => handlePageChange("next")}
-              disabled={currentPage === totalPages}
-            >
-              Next
-            </Button>
-          </Flex>
-        )}
 
         <Table variant="striped">
           <Thead>
             <Tr>
               <Th>#</Th>
-              <Th>Country Name</Th>
+              <Th>Country</Th>
               <Th>Language</Th>
               <Th>
                 <Flex justify="space-between" align="center">
-                  <span>Actions</span>
-                  {!isAdding && !editingLanguage && (
+                  Actions
+                  {!isAdding && (
                     <IconButton
-                      icon={<AddIcon boxSize={5} />} // ⬅️ Increased size
+                      icon={<AddIcon />}
+                      size="sm"
+                      variant="ghost"
+                      colorScheme="green"
                       onClick={() => setIsAdding(true)}
-                      size="md" // ⬅️ Bigger button
                       aria-label="Add language"
-                      variant="solid" // ⬅️ More prominent button
-                      colorScheme="green" // ⬅️ Green for visibility
-                      _hover={{ bg: "green.500", color: "white" }} // ⬅️ Better hover effect
-                      borderRadius="full" // ⬅️ Rounded button
                     />
                   )}
                 </Flex>
@@ -253,13 +172,10 @@ const LanguagesManagement = () => {
                 <Td>—</Td>
                 <Td>
                   <Input
-                    placeholder="Country Name"
+                    placeholder="Country"
                     value={newLanguage.country_name}
                     onChange={(e) =>
-                      setNewLanguage({
-                        ...newLanguage,
-                        country_name: e.target.value,
-                      })
+                      setNewLanguage({ ...newLanguage, country_name: e.target.value })
                     }
                     autoFocus
                   />
@@ -267,79 +183,48 @@ const LanguagesManagement = () => {
                 <Td>
                   <Input
                     placeholder="Language"
-                    value={newLanguage.name} // ✅ Ensure this is correct
-                    onChange={
-                      (e) =>
-                        setNewLanguage({ ...newLanguage, name: e.target.value }) // ✅ Proper state update
-                    }
+                    value={newLanguage.name}
+                    onChange={(e) => setNewLanguage({ ...newLanguage, name: e.target.value })}
                   />
                 </Td>
                 <Td>
                   <Flex justify="flex-end">
-                    <Button
-                      onClick={handleAddOrEditLanguage}
-                      colorScheme="green"
-                      size="sm"
-                      mr={2}
-                    >
-                      Add
-                    </Button>
-                    <Button
-                      onClick={() => setIsAdding(false)}
-                      colorScheme="red"
-                      size="sm"
-                    >
-                      Cancel
-                    </Button>
+                    <Button onClick={handleAdd} colorScheme="green" size="sm" mr={2}>Save</Button>
+                    <Button onClick={() => setIsAdding(false)} colorScheme="red" size="sm">Cancel</Button>
                   </Flex>
                 </Td>
               </Tr>
             )}
-            {currentItems.map((language, index) => (
-              // <Tr key={language.id}>
-              <Tr key={`${language.id}-${index}`}>
+            {currentItems.map((lang, index) => (
+              <Tr key={lang.id}>
                 <Td>{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</Td>
-                {editingLanguage && editingLanguage.id === language.id ? (
+
+                {editingId === lang.id ? (
                   <>
                     <Td>
                       <Input
-                        ref={countryNameInputRef}
-                        value={newLanguage.country_name}
+                        ref={countryInputRef}
+                        value={formData.country_name}
                         onChange={(e) =>
-                          setNewLanguage({
-                            ...newLanguage,
-                            country_name: e.target.value,
-                          })
+                          setFormData({ ...formData, country_name: e.target.value })
                         }
                       />
                     </Td>
                     <Td>
                       <Input
-                        placeholder="Language"
-                        value={newLanguage.name}
+                        value={formData.name}
                         onChange={(e) =>
-                          setNewLanguage({
-                            ...newLanguage,
-                            name: e.target.value,
-                          })
+                          setFormData({ ...formData, name: e.target.value })
                         }
                       />
                     </Td>
                     <Td>
                       <Flex justify="flex-end">
-                        <Button
-                          onClick={handleAddOrEditLanguage}
-                          colorScheme="green"
-                          size="sm"
-                          mr={2}
-                        >
+                        <Button onClick={handleUpdate} colorScheme="blue" size="sm" mr={2}>
                           Save
                         </Button>
                         <Button
-                          onClick={() => {
-                            setEditingLanguage(null);
-                            setNewLanguage({ country_name: "", name: "" });
-                          }}
+                          onClick={() => setEditingId(null)}
                           colorScheme="red"
                           size="sm"
                         >
@@ -350,22 +235,22 @@ const LanguagesManagement = () => {
                   </>
                 ) : (
                   <>
-                    <Td>{language.country_name}</Td>
-                    <Td>{language.name}</Td>
+                    <Td>{lang.country_name}</Td>
+                    <Td>{lang.name}</Td>
                     <Td>
-                      <Flex justify="flex-center">
+                      <Flex justify="flex-end">
                         <IconButton
                           icon={<EditIcon />}
-                          onClick={() => handleEditLanguage(language)}
+                          onClick={() => handleEdit(lang)}
                           size="sm"
-                          mr={2}
                           variant="ghost"
                           colorScheme="yellow"
                           aria-label="Edit language"
+                          mr={2}
                         />
                         <IconButton
                           icon={<DeleteIcon />}
-                          onClick={() => setDeletingLanguage(language)}
+                          onClick={() => setDeleteId(lang.id)}
                           size="sm"
                           variant="ghost"
                           colorScheme="red"
@@ -380,59 +265,50 @@ const LanguagesManagement = () => {
           </Tbody>
         </Table>
 
-        {filteredLanguages.length > ITEMS_PER_PAGE && (
-          <Flex justify="space-between" align="center" mt={4}>
+        {totalPages > 1 && (
+          <Flex justify="center" mt={4}>
             <Button
-              onClick={() => handlePageChange("previous")}
-              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              isDisabled={currentPage === 1}
+              size="sm"
             >
               Previous
             </Button>
-            <Text>
-              Page {currentPage} of {totalPages}
-            </Text>
+            <Text mx={4}>Page {currentPage} of {totalPages}</Text>
             <Button
-              onClick={() => handlePageChange("next")}
-              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              isDisabled={currentPage === totalPages}
+              size="sm"
             >
               Next
             </Button>
           </Flex>
         )}
-
-        <AlertDialog
-          isOpen={!!deletingLanguage}
-          leastDestructiveRef={cancelRef}
-          onClose={() => setDeletingLanguage(null)}
-        >
-          <AlertDialogOverlay>
-            <AlertDialogContent>
-              <AlertDialogHeader fontSize="lg" fontWeight="bold">
-                Delete Language
-              </AlertDialogHeader>
-              <AlertDialogBody>
-                Are you sure you want to delete the language:{" "}
-                <strong>
-                  {deletingLanguage?.country_name} - {deletingLanguage?.name}
-                </strong>
-                ? This action cannot be undone.
-              </AlertDialogBody>
-
-              <AlertDialogFooter>
-                <Button
-                  ref={cancelRef}
-                  onClick={() => setDeletingLanguage(null)}
-                >
-                  Cancel
-                </Button>
-                <Button colorScheme="red" onClick={handleDeleteLanguage} ml={3}>
-                  Delete
-                </Button>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialogOverlay>
-        </AlertDialog>
       </Stack>
+
+      {/* Delete Dialog */}
+      <AlertDialog
+        isOpen={deleteId !== null}
+        leastDestructiveRef={cancelRef}
+        onClose={() => setDeleteId(null)}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader>Delete Language</AlertDialogHeader>
+            <AlertDialogBody>
+              Are you sure you want to delete this language? This action cannot be undone.
+            </AlertDialogBody>
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={() => setDeleteId(null)}>
+                Cancel
+              </Button>
+              <Button colorScheme="red" onClick={handleDelete} ml={3}>
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </Box>
   );
 };

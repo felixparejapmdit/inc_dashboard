@@ -171,7 +171,7 @@ app.use(settingRoutes);
 app.use(authRoutes);
 
 app.use(lokalProfileRoutes);
-//app.use(housingRoutes);
+app.use(housingRoutes);
 app.use(fileRoutes);
 app.use(phoneDirectoryRoutes);
 

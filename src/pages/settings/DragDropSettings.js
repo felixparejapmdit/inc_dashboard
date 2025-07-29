@@ -9,35 +9,52 @@ import {
   useToast,
 } from "@chakra-ui/react";
 
-const API_URL = process.env.REACT_APP_API_URL;
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+  putSetting,
+  fetchSetting,
+} from "../../utils/fetchData";
 
 const DragDropSettings = () => {
   const [isDragDropEnabled, setIsDragDropEnabled] = useState(false);
   const toast = useToast();
 
-  // Fetch setting from API
-  useEffect(() => {
-    fetch(`${API_URL}/api/settings/drag-drop`)
-      .then((res) => res.json())
-      .then((data) => {
-        setIsDragDropEnabled(data.enableDragDropMobile);
-      })
-      .catch((error) => console.error("Error fetching setting:", error));
-  }, []);
+  const fetchSetting = () => {
+    fetchData(
+      "settings/drag-drop",
+      (data) => {
+        if (typeof data.enableDragDropMobile === "boolean") {
+          setIsDragDropEnabled(data.enableDragDropMobile);
+        }
+      },
+      (err) =>
+        toast({
+          title: "Error fetching setting",
+          description: err,
+          status: "error",
+          duration: 3000,
+        }),
+      "Failed to fetch drag & drop setting"
+    );
+  };
 
-  // Update setting in API
+  // ✅ Fetch current setting
+  useEffect(() => {
+    fetchSetting();
+  }, [toast]);
+
+  // ✅ Update setting using putSetting
   const handleToggle = async () => {
     const newValue = !isDragDropEnabled;
     setIsDragDropEnabled(newValue);
 
     try {
-      const response = await fetch(`${API_URL}/api/settings/drag-drop`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enableDragDropMobile: newValue }),
+      await putSetting("settings/drag-drop", {
+        enableDragDropMobile: newValue,
       });
-
-      if (!response.ok) throw new Error("Failed to update setting");
 
       toast({
         title: "Updated!",
@@ -46,14 +63,17 @@ const DragDropSettings = () => {
         } on Mobile.`,
         status: "success",
         duration: 3000,
+        isClosable: true,
       });
     } catch (error) {
-      console.error("Error updating setting:", error);
+      console.error("Error updating setting:", error.message);
+
       toast({
         title: "Error",
-        description: "Failed to update setting.",
+        description: "Failed to update Drag & Drop setting.",
         status: "error",
         duration: 3000,
+        isClosable: true,
       });
     }
   };

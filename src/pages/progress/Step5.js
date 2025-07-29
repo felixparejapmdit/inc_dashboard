@@ -37,6 +37,13 @@ import { usePermissionContext } from "../../contexts/PermissionContext";
 
 import Photoshoot from "./Photoshoot"; // Import Photoshoot component
 
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
+
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Step5 = () => {
@@ -67,89 +74,62 @@ const Step5 = () => {
 
   const toast = useToast();
 
-  const fetchPersonnel = async () => {
+  // Fetch new personnel list
+  const fetchPersonnel = (onComplete = () => {}) => {
     setLoading(true);
-    try {
-      //const response = await axios.get(`${API_URL}/api/personnels/new`);
-      const response = await axios.get(`${API_URL}/api/personnels/progress/4`);
 
-      setPersonnelList(response.data);
-      setFilteredPersonnel(response.data);
-    } catch (error) {
-      console.error("Error fetching personnel list:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch personnel list.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
-      setLoading(false);
-    }
+    fetchData(
+      "personnels/progress",
+      (data) => {
+        setPersonnelList(data);
+        setFilteredPersonnel(data);
+        setLoading(false); // ✅ stops loading
+        onComplete(); // ✅ run after everything else
+      },
+      (errorMsg) => {
+        toast({
+          title: "Error",
+          description: "Failed to fetch personnel list.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        setLoading(false);
+        onComplete(); // ✅ even on error
+      },
+      "Failed to fetch personnel list",
+      4
+    );
   };
-
-  // const fetchPersonnelImages = async (personnelId) => {
-  //   try {
-  //     const response = await axios.get(
-  //       `${API_URL}/api/personnel_images/${personnelId}`
-  //     );
-  //     if (response.data.success) {
-  //       setPersonnelImages(response.data.data);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching personnel images:", error);
-  //   }
-  // };
 
   const fetchPersonnelImages = async (personnelId) => {
-    try {
-      const response = await axios.get(
-        `${API_URL}/api/personnel_images/${personnelId}`
-      );
+    fetchData(
+      "personnel_images", // endpoint
+      (response) => {
+        if (response.success) {
+          const imagesByType = {};
 
-      if (response.data.success) {
-        const imagesByType = {};
+          // Debugging: Log the API response
+          console.log("Fetched Personnel Images:", response.data);
 
-        // Debugging: Log the API response
-        console.log("Fetched Personnel Images:", response.data.data);
+          // Map images by their type
+          response.data.forEach((img) => {
+            imagesByType[img.type.trim()] = `${API_URL}${img.image_url}`;
+          });
 
-        // Store images based on type
-        response.data.data.forEach((img) => {
-          imagesByType[img.type.trim()] = `${API_URL}${img.image_url}`;
-        });
+          setPersonnelImages(imagesByType); // Store images in state
 
-        setPersonnelImages(imagesByType); // Store images in state
-
-        // Debugging: Log the mapped images
-        console.log("Mapped Personnel Images:", imagesByType);
-      }
-    } catch (error) {
-      console.error("Error fetching personnel images:", error);
-    }
+          // Debugging: Log the mapped images
+          console.log("Mapped Personnel Images:", imagesByType);
+        }
+      },
+      (error) => {
+        console.error("Error fetching personnel images:", error);
+      },
+      "Failed to fetch personnel images",
+      personnelId
+    );
   };
-
-  // Open Photoshoot Modal and Fetch Images
-  const openPhotoshootModal = (user) => {
-    setSelectedUser(user);
-    setIsPhotoModalOpen(true);
-    fetchPersonnelImages(user.personnel_id); // Fetch images on modal open
-  };
-
-  // Determine Image URL based on Step
-  // const getCurrentImage = () => {
-  //   const imageTypes = [
-  //     "2x2 Picture",
-  //     "Half Body Picture",
-  //     "Full Body Picture",
-  //   ];
-  //   const selectedType = imageTypes[currentStep - 1];
-
-  //   const foundImage = personnelImages.find((img) => img.type === selectedType);
-  //   return foundImage
-  //     ? `${API_URL}${foundImage.image_url}`
-  //     : `${API_URL}/uploads/avatar/default.png`;
-  // };
 
   // Fetch new personnel list when component mounts
   useEffect(() => {
@@ -167,7 +147,6 @@ const Step5 = () => {
     );
     setFilteredPersonnel(filtered);
   };
-
   const handleVerify = async () => {
     if (!selectedUser || !selectedUser.personnel_id) {
       toast({
@@ -193,23 +172,14 @@ const Step5 = () => {
       return;
     }
 
-    if (!selectedUser?.personnel_id) {
-      toast({
-        title: "Verification Failed",
-        description: "No personnel selected for verification.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
     setLoading(true);
+
     try {
-      await axios.put(`${API_URL}/api/users/update-progress`, {
+      await putData("users/update-progress", {
         personnel_id: selectedUser.personnel_id,
-        personnel_progress: 5, // Update to Step 5
+        personnel_progress: 5,
       });
+
       toast({
         title: "Step Verified",
         description: "Photoshoot and interview verification complete.",
@@ -218,14 +188,11 @@ const Step5 = () => {
         isClosable: true,
       });
 
-      // Refresh table after verification
-      fetchPersonnel();
-
-      // ✅ Hide Personnel Info and Checklist After Verification
       setSelectedUser(null);
       setPersonnelInfo(null);
-      // ✅ Hide the checklist panel after verification
       setShowChecklist(false);
+
+      await fetchPersonnel(); // Make sure this uses async version
     } catch (error) {
       console.error("Error during verification:", error);
       toast({
@@ -236,49 +203,33 @@ const Step5 = () => {
         isClosable: true,
       });
     } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchPersonnelDetails = async (personnelId) => {
-    setLoading(true);
-    try {
-      const response = await axios.get(
-        `${API_URL}/api/personnels/${personnelId}`
-      );
-      setPersonnelInfo(response.data);
-      setIsVerified(response.data.isVerified || false);
-    } catch (error) {
-      console.error("Error fetching personnel details:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch personnel details.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
-      setLoading(false);
+      setLoading(false); // ✅ Always stop loading
     }
   };
 
   const handleUserSelect = async (user) => {
-    try {
-      const response = await axios.get(
-        `${API_URL}/api/personnels/${user.personnel_id}`
-      );
-      setPersonnelInfo(response.data);
-    } catch (error) {
-      console.error("Error fetching personnel information:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch personnel information.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      setPersonnelInfo(null);
-    }
+    setLoading(true);
+
+    fetchData(
+      "personnels", // endpoint
+      (data) => {
+        setPersonnelInfo(data);
+      },
+      (err) => {
+        console.error("Error fetching personnel information:", err);
+        toast({
+          title: "Error",
+          description: "Failed to fetch personnel information.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        setPersonnelInfo(null);
+      },
+      "Failed to fetch personnel information",
+      user.personnel_id, // param like /personnels/59
+      () => setLoading(false)
+    );
 
     setSelectedUser(user);
     setShowChecklist(true);

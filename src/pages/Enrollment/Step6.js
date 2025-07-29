@@ -20,6 +20,13 @@ import { EditIcon, DeleteIcon, CheckIcon } from "@chakra-ui/icons";
 import axios from "axios";
 import Select from "react-select";
 
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
+
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Step6 = ({
@@ -69,79 +76,55 @@ const Step6 = ({
   const toast = useToast();
 
   useEffect(() => {
-    if (personnelId) {
-      // Fetch spouses related to the personnelId and relationship_type
-      axios
-        .get(`${API_URL}/api/get-family-members`, {
-          params: {
-            personnel_id: personnelId,
-            relationship_type: "Spouse", // Specify relationship_type for spouses
-          },
-        })
-        .then((res) => {
-          // Ensure at least one spouse row is present
-          const defaultSpouse = {
-            relationship_type: "Spouse",
-            givenname: "",
-            lastname: "",
-            middlename: "",
-            date_of_marriage: "",
-            place_of_marriage: "",
-            contact_number: "",
-            isEditing: true, // Ensure editing is enabled
-          };
+    const defaultSpouse = {
+      relationship_type: "Spouse",
+      givenname: "",
+      lastname: "",
+      middlename: "",
+      date_of_marriage: "",
+      place_of_marriage: "",
+      contact_number: "",
+      isEditing: true,
+    };
 
-          if (Array.isArray(res.data) && res.data.length === 0) {
-            setData([defaultSpouse]); // Default empty spouse row
+    if (personnelId) {
+      const params = {
+        personnel_id: personnelId,
+        relationship_type: "Spouse",
+      };
+
+      fetchData(
+        "get-family-members",
+        (res) => {
+          if (Array.isArray(res) && res.length === 0) {
+            setData([defaultSpouse]);
           } else {
-            setData(res.data || [defaultSpouse]); // Use fetched data or default row
+            setData(res || [defaultSpouse]);
           }
-        })
-        .catch((err) => {
-          console.error("Error fetching spouses:", err);
-          // Show a default spouse row in case of an error
-          setData([
-            {
-              relationship_type: "Spouse",
-              givenname: "",
-              lastname: "",
-              middlename: "",
-              date_of_marriage: "",
-              place_of_marriage: "",
-              contact_number: "",
-              isEditing: true, // Ensure editing is enabled
-            },
-          ]);
+        },
+        () => {
+          setData([defaultSpouse]);
           toast({
             title: "Error",
             description: "Failed to fetch spouse data.",
             status: "error",
             duration: 3000,
             isClosable: true,
-            position: "bottom-left", // Position the toast on the bottom-left
+            position: "bottom-left",
           });
-        });
-    } else {
-      // Default empty spouse row if no personnelId
-      setData([
-        {
-          relationship_type: "Spouse",
-          givenname: "",
-          lastname: "",
-          middlename: "",
-          date_of_marriage: "",
-          place_of_marriage: "",
-          contact_number: "",
-          isEditing: true, // Ensure editing is enabled
         },
-      ]);
+        "Failed to fetch spouse data.",
+        params
+      );
+    } else {
+      setData([defaultSpouse]);
       toast({
         title: "Missing Personnel ID",
         description: "Personnel ID is required to proceed.",
         status: "error",
         duration: 3000,
         isClosable: true,
-        position: "bottom-left", // Position the toast on the bottom-left
+        position: "bottom-left",
       });
     }
   }, [personnelId]);
@@ -201,22 +184,15 @@ const Step6 = ({
 
     try {
       let updatedSpouse;
+
       if (id) {
         // Update existing spouse record
-        const response = await axios.put(
-          `${API_URL}/api/family-members/${id}`,
-          formattedData
-        );
-        // updatedSpouse = response.data;
-        updatedSpouse = response.data.family_member;
+        const response = await putData("family-members", id, formattedData);
+        updatedSpouse = response?.family_member;
       } else {
         // Save new spouse record
-        const response = await axios.post(
-          `${API_URL}/api/family-members`,
-          formattedData
-        );
-        //updatedSpouse = response.data;
-        updatedSpouse = response.data.family_member;
+        const response = await postData("family-members", formattedData);
+        updatedSpouse = response?.family_member;
       }
 
       // Update spouse in state

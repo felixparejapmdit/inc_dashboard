@@ -25,6 +25,13 @@ import {
 import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import axios from "axios";
 
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
+
 const DepartmentManagement = () => {
   const [departments, setDepartments] = useState([]);
   const [filteredDepartments, setFilteredDepartments] = useState([]); // Filtered list
@@ -40,23 +47,6 @@ const DepartmentManagement = () => {
     fetchDepartments();
   }, []);
 
-  const fetchDepartments = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/departments`
-      );
-      setDepartments(response.data);
-      setFilteredDepartments(response.data); // Initialize filtered list
-    } catch (error) {
-      toast({
-        title: "Error loading departments",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
-    }
-  };
-
   // 🔍 Search Filter Logic
   useEffect(() => {
     const filtered = departments.filter((department) =>
@@ -65,20 +55,36 @@ const DepartmentManagement = () => {
     setFilteredDepartments(filtered);
   }, [searchQuery, departments]);
 
-  const handleAddDepartment = async () => {
-    try {
-      if (!newDepartment.name) {
+  const fetchDepartments = () => {
+    fetchData(
+      "departments",
+      (data) => {
+        setDepartments(data);
+        setFilteredDepartments(data);
+      },
+      (errorMsg) =>
         toast({
-          title: "Name is required",
-          status: "warning",
+          title: "Error loading departments",
+          description: errorMsg,
+          status: "error",
           duration: 3000,
-        });
-        return;
-      }
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/departments`,
-        newDepartment
-      );
+        }),
+      "Failed to fetch departments."
+    );
+  };
+
+  const handleAddDepartment = async () => {
+    if (!newDepartment.name) {
+      toast({
+        title: "Name is required",
+        status: "warning",
+        duration: 3000,
+      });
+      return;
+    }
+
+    try {
+      await postData("departments", newDepartment, "Failed to add department");
       fetchDepartments();
       setNewDepartment({ name: "" });
       setIsAdding(false);
@@ -90,7 +96,7 @@ const DepartmentManagement = () => {
     } catch (error) {
       toast({
         title: "Error adding department",
-        description: error.response?.data?.message || error.message,
+        description: error.message,
         status: "error",
         duration: 3000,
       });
@@ -99,10 +105,13 @@ const DepartmentManagement = () => {
 
   const handleUpdateDepartment = async () => {
     try {
-      await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/departments/${editingDepartment.id}`,
-        editingDepartment
+      await putData(
+        "departments",
+        editingDepartment.id,
+        editingDepartment,
+        "Failed to update department"
       );
+
       fetchDepartments();
       setEditingDepartment(null);
       toast({
@@ -122,9 +131,12 @@ const DepartmentManagement = () => {
 
   const handleDeleteDepartment = async () => {
     if (!deletingDepartment) return;
+
     try {
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/departments/${deletingDepartment.id}`
+      await deleteData(
+        "departments",
+        deletingDepartment.id,
+        "Failed to delete department"
       );
       fetchDepartments();
       toast({

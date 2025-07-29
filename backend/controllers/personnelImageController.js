@@ -46,15 +46,23 @@ exports.createImage = async (req, res) => {
     });
 
     if (existingImage) {
-      // Delete the old image file from the uploads folder
+      // Delete the old image file from the uploads/avatar folder safely
       const oldFilePath = path.join(
         __dirname,
         "../../uploads/avatar",
         path.basename(existingImage.image_url)
       );
 
-      if (fs.existsSync(oldFilePath)) {
-        fs.unlinkSync(oldFilePath);
+      try {
+        if (fs.existsSync(oldFilePath)) {
+          const stat = fs.statSync(oldFilePath);
+          if (stat.isFile()) {
+            fs.unlinkSync(oldFilePath);
+          }
+        }
+      } catch (unlinkError) {
+        console.error("Failed to delete old image:", unlinkError.message);
+        // Continue execution even if delete fails
       }
 
       // Update the existing record with new file path and timestamp

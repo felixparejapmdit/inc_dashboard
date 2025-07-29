@@ -25,6 +25,13 @@ import {
 import { CheckIcon, EditIcon } from "@chakra-ui/icons";
 import axios from "axios";
 
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
+
 const API_URL = process.env.REACT_APP_API_URL;
 const Step4 = ({
   data = [], // Ensure data defaults to an empty array
@@ -105,71 +112,70 @@ const Step4 = ({
     ];
 
     if (personnelId) {
-      // Fetch parents (Father and Mother) related to the personnelId
-      axios
-        .get(`${API_URL}/api/get-family-members`, {
-          params: {
-            personnel_id: personnelId,
-            relationship_type: ["Father", "Mother"], // Specify relationship types for parents
-          },
-        })
-        .then((res) => {
-          // Check if data exists and ensure "Father" and "Mother" rows are always present
-          const parents = [
+      const params = {
+        personnel_id: personnelId,
+        relationship_type: ["Father", "Mother"], // Ensure both are fetched
+      };
+
+      fetchData(
+        "get-family-members",
+        (res) => {
+          const defaultParents = [
             {
               relationship_type: "Father",
               givenname: "",
               lastname: "",
-              isEditing: true, // Ensure editing is enabled
+              isEditing: true,
             },
             {
               relationship_type: "Mother",
               givenname: "",
               lastname: "",
-              isEditing: true, // Ensure editing is enabled
+              isEditing: true,
             },
           ];
 
-          if (Array.isArray(res.data) && res.data.length === 0) {
-            setData(parents); // Default empty fields for Father and Mother
+          if (Array.isArray(res) && res.length === 0) {
+            setData(defaultParents);
           } else {
-            // Merge returned data with defaults to ensure Father and Mother rows
-            const mergedParents = parents.map(
+            const mergedParents = defaultParents.map(
               (defaultParent) =>
-                res.data.find(
+                res.find(
                   (item) =>
                     item.relationship_type === defaultParent.relationship_type
-                ) || { ...defaultParent, isEditing: true } // Ensure isEditing is true
+                ) || { ...defaultParent, isEditing: true }
             );
             setData(mergedParents);
           }
-        })
-        .catch((err) => {
-          console.error("Error fetching parents:", err);
-          // Default empty fields for Father and Mother in case of an error
+        },
+        () => {
           setData([
             {
               relationship_type: "Father",
               givenname: "",
               lastname: "",
-              isEditing: true, // Ensure editing is enabled
+              isEditing: true,
             },
             {
               relationship_type: "Mother",
               givenname: "",
               lastname: "",
-              isEditing: true, // Ensure editing is enabled
+              isEditing: true,
             },
           ]);
+
           toast({
             title: "Error",
             description: "Failed to fetch parent data.",
             status: "error",
             duration: 3000,
             isClosable: true,
-            position: "bottom-left", // Position the toast on the bottom-left
+            position: "bottom-left",
           });
-        });
+        },
+        "Failed to fetch parent data.",
+        params // ✅ Correct placement for custom query parameters
+      );
     } else {
       // Default empty fields for Father and Mother if no personnelId
       setData([
@@ -200,14 +206,14 @@ const Step4 = ({
   const fetchParents = () => {
     if (!personnelId) return;
 
-    axios
-      .get(`${API_URL}/api/get-family-members`, {
-        params: {
-          personnel_id: personnelId,
-          relationship_type: ["Father", "Mother"],
-        },
-      })
-      .then((res) => {
+    const params = {
+      personnel_id: personnelId,
+      relationship_type: ["Father", "Mother"],
+    };
+
+    fetchData(
+      "get-family-members",
+      (res) => {
         const parents = [
           {
             relationship_type: "Father",
@@ -225,17 +231,20 @@ const Step4 = ({
 
         const mergedParents = parents.map(
           (defaultParent) =>
-            res.data.find(
+            res.find(
               (item) =>
                 item.relationship_type === defaultParent.relationship_type
             ) || { ...defaultParent, isEditing: true }
         );
 
         setData(mergedParents);
-      })
-      .catch((err) => {
+      },
+      (err) => {
         console.error("Error fetching parents:", err);
-      });
+      },
+      "Failed to fetch parent data.",
+      params
+    );
   };
 
   useEffect(() => {
@@ -245,20 +254,18 @@ const Step4 = ({
   const handleSaveOrUpdate = async (index) => {
     setLoading(true);
 
-    // Fetch the latest parent data from the state
     const updatedParent = data[index];
 
     const {
       id,
       isEditing,
-      relationship_type = updatedParent.relationship_type, // Fallback to the existing key if relationship_type is undefined,
+      relationship_type = updatedParent.relationship_type,
       gender,
       givenName,
       lastName,
       ...parentData
     } = updatedParent;
 
-    // Prepare the data to send
     const formattedData = {
       ...parentData,
       gender: updatedParent.gender,
@@ -267,7 +274,6 @@ const Step4 = ({
       date_of_birth: updatedParent.date_of_birth,
       relationship_type: relationship_type,
       personnel_id: personnelId,
-      // New fields
       suffix: updatedParent.suffix,
       civil_status: updatedParent.civil_status,
       bloodtype: updatedParent.bloodtype,
@@ -279,7 +285,6 @@ const Step4 = ({
 
     console.log("🛠️ Debug - Formatted Data:", formattedData);
 
-    // Validate required fields
     const requiredFields = [
       "personnel_id",
       "relationship_type",
@@ -310,32 +315,31 @@ const Step4 = ({
     try {
       let response;
       if (updatedParent.id) {
-        response = await axios.put(
-          `${API_URL}/api/family-members/${updatedParent.id}`,
+        // Use custom helper for PUT
+        response = await putData(
+          "family-members",
+          updatedParent.id,
           formattedData
         );
       } else {
-        response = await axios.post(
-          `${API_URL}/api/family-members`,
-          formattedData
-        );
+        // Use custom helper for POST
+        response = await postData("family-members", formattedData);
       }
 
-      const savedParent = response.data.family_member;
+      const savedParent = response.family_member || response;
 
       setData((prevData) => {
         const newData = [...prevData];
-
         newData[index] = {
-          ...prevData[index], // preserve frontend-only fields
-          ...savedParent, // merge backend fields (e.g. updated names)
-          isEditing: false, // turn off editing
+          ...prevData[index],
+          ...savedParent,
+          isEditing: false, // 🔁 Important: turn off edit mode
         };
-
         return newData;
       });
 
       fetchParents();
+
       console.log("Saved parent from response:", savedParent);
 
       toast({
@@ -349,7 +353,7 @@ const Step4 = ({
     } catch (error) {
       console.error(
         "❌ Error saving/updating parent information:",
-        error.response
+        error.response || error
       );
       toast({
         title: "Error",
@@ -367,124 +371,6 @@ const Step4 = ({
       setLoading(false);
     }
   };
-
-  // const handleSaveOrUpdate = async (index) => {
-  //   setLoading(true);
-  //   const parent = data[index];
-
-  //   // Ensure default values for required fields
-  //   const id = parent?.id || null;
-  //   const relationship_type = parent?.relationship_type || "";
-  //   const givenname = parent?.givenname?.trim() || "";
-  //   const lastname = parent?.lastname?.trim() || "";
-
-  //   console.log("🔍 Debug - Parent Data Before Formatting:", parent);
-
-  //   // Prepare the data to send
-  //   const formattedData = {
-  //     ...parent,
-  //     givenname: givenname,
-  //     lastname: lastname,
-  //     gender: relationship_type === "Father" ? "Male" : "Female",
-  //     relationship_type: relationship_type,
-  //     personnel_id: personnelId,
-  //     date_of_birth: parent?.date_of_birth || null, // Ensure empty date is set to null
-  //   };
-
-  //   console.log("🛠️ Debug - Formatted Data:", formattedData);
-
-  //   // Validate required fields
-  //   const requiredFields = [
-  //     "personnel_id",
-  //     "relationship_type",
-  //     "givenname",
-  //     "lastname",
-  //     "gender",
-  //     "date_of_birth",
-  //   ];
-  //   const missingField = requiredFields.find(
-  //     (field) =>
-  //       !formattedData[field] ||
-  //       (typeof formattedData[field] === "string" &&
-  //         formattedData[field].trim() === "")
-  //   );
-
-  //   console.log("⚠️ Debug - Missing Field:", missingField);
-
-  //   if (missingField) {
-  //     toast({
-  //       title: "Validation Error",
-  //       description: `The field "${missingField}" is required for ${parent.relationship_type}.`,
-  //       status: "error",
-  //       duration: 3000,
-  //       isClosable: true,
-  //       position: "bottom-left",
-  //     });
-  //     setLoading(false);
-  //     return;
-  //   }
-
-  //   alert("5");
-  //   try {
-  //     let updatedParent;
-  //     if (parent.id) {
-  //       // Update existing parent record
-  //       const response = await axios.put(
-  //         `${API_URL}/api/family-members/${id}`,
-  //         formattedData
-  //       );
-  //       //updatedParent = response.data;
-  //       updatedParent = response.data.family_member;
-  //     } else {
-  //       // Save new parent record
-  //       const response = await axios.post(
-  //         `${API_URL}/api/family-members`,
-  //         formattedData
-  //       );
-  //       //updatedParent = response.data;
-  //       updatedParent = response.data.family_member;
-  //     }
-
-  //     // Update parent in state
-  //     onToggleEdit(index); // Disable editing mode for the updated parent
-  //     onChange(index, "id", updatedParent.id); // Update the `id` field if it was a new record
-
-  //     // Update state with new parent data
-  //     const updatedData = [...data];
-  //     updatedData[index] = { ...updatedParent, isEditing: false }; // Ensure editing is disabled after save
-  //     setData(updatedData);
-
-  //     toast({
-  //       title: id ? "Parent Updated" : "Parent Added",
-  //       description: `${relationship_type} information has been ${
-  //         id ? "updated" : "added"
-  //       } successfully.`,
-  //       status: "success",
-  //       duration: 3000,
-  //       isClosable: true,
-  //       position: "bottom-left", // Position the toast on the bottom-left
-  //     });
-  //   } catch (error) {
-  //     console.error(
-  //       "Error saving/updating parent information:",
-  //       error.response
-  //     );
-  //     toast({
-  //       title: "Error",
-  //       description: `Failed to ${
-  //         id ? "update" : "add"
-  //       } ${relationship_type} information. ${
-  //         error.response?.data?.message || "Please try again later."
-  //       }`,
-  //       status: "error",
-  //       duration: 3000,
-  //       isClosable: true,
-  //       position: "bottom-left", // Position the toast on the bottom-left
-  //     });
-  //   } finally {
-  //     setLoading(false); // Reset loading state
-  //   }
-  // };
 
   return (
     <Box width="100%" bg="white" boxShadow="sm" my={85} p={5}>

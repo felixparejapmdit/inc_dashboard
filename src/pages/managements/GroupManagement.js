@@ -42,7 +42,7 @@ import {
   FaRegIdBadge,
 } from "react-icons/fa"; // Import icons
 import axios from "axios";
-
+import { fetchData, postData, putData, deleteData } from "../../utils/fetchData";
 const GroupManagement = () => {
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);

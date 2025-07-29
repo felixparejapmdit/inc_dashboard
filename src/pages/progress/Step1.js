@@ -35,6 +35,13 @@ import {
 import axios from "axios";
 
 import { useNavigate } from "react-router-dom";
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
+
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Step1 = () => {
@@ -51,21 +58,23 @@ const Step1 = () => {
   const navigate = useNavigate();
 
   // Fetch all users
-  const fetchUsers = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/api/personnels/progress/0`);
-      setUsers(response.data);
-      setFilteredUsers(response.data);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch users.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    }
+  const fetchUsers = () => {
+    fetchData(
+      "personnels/progress/0",
+      (data) => {
+        setUsers(data);
+        setFilteredUsers(data);
+      },
+      (error) => {
+        toast({
+          title: "Error",
+          description: error,
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    );
   };
 
   // Call fetchUsers() inside useEffect()
@@ -74,26 +83,27 @@ const Step1 = () => {
   }, []);
 
   // Fetch personnel details
-  const fetchPersonnelDetails = async (personnelId) => {
+  const fetchPersonnelDetails = (personnelId) => {
     setLoading(true);
-    try {
-      const response = await axios.get(
-        `${API_URL}/api/personnels/${personnelId}`
-      );
-      setPersonnelInfo(response.data);
-      setIsVerified(response.data.isVerified || false);
-    } catch (error) {
-      console.error("Error fetching personnel details:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch personnel details.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
-      setLoading(false);
-    }
+
+    fetchData(
+      `personnels/${personnelId}`,
+      (data) => {
+        setPersonnelInfo(data);
+        setIsVerified(data.isVerified || false);
+      },
+      (error) => {
+        toast({
+          title: "Error",
+          description: error,
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      },
+      "Failed to fetch personnel details",
+      () => setLoading(false)
+    );
   };
 
   const handleSearch = (e) => {
@@ -122,7 +132,7 @@ const Step1 = () => {
     window.open(url, "_blank"); // "_blank" opens the URL in a new tab
   };
 
-  const handleVerify = async (user) => {
+  const handleVerify = (user) => {
     if (!user.personnel_id) {
       toast({
         title: "Verification Failed",
@@ -134,39 +144,42 @@ const Step1 = () => {
       return;
     }
 
-    setSelectedUser(user); // Ensure selectedUser is set before verifying
+    setSelectedUser(user);
     setLoading(true);
 
-    try {
-      // Update progress using your provided endpoint
-      await axios.put(`${API_URL}/api/users/update-progress`, {
+    putData(
+      "users/update-progress",
+      {
         personnel_id: user.personnel_id,
-        personnel_progress: 1, // Update to the next stage or as required
-      });
-
-      setIsVerified(true);
-      toast({
-        title: "Step Verified",
-        description: "Section Chief has verified the personnel.",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-
-      // ✅ Call fetchUsers() to refresh the table after verification
-      fetchUsers();
-    } catch (error) {
-      console.error("Error during verification:", error);
-      toast({
-        title: "Verification Failed",
-        description: "An error occurred while verifying the personnel.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
-      setLoading(false);
-    }
+        personnel_progress: 1,
+      },
+      (successMsg) => {
+        setIsVerified(true);
+        toast({
+          title: "Step Verified",
+          description:
+            successMsg || "Section Chief has verified the personnel.",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+        fetchUsers(); // ✅ Refresh after update
+        setLoading(false);
+      },
+      (errorMsg) => {
+        toast({
+          title: "Verification Failed",
+          description:
+            errorMsg || "An error occurred while verifying the personnel.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        setLoading(false);
+      },
+      "Section Chief has verified the personnel.",
+      "An error occurred while verifying the personnel."
+    );
   };
 
   return (

@@ -33,6 +33,8 @@ import axios from "axios";
 import useGetNamesByIds from "../../hooks/useGetNamesByIds";
 import useLookupData from "../../hooks/useLookupData";
 
+import { fetchData, postData, putData, deleteData } from "../../utils/fetchData";
+
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Step6 = () => {
@@ -56,24 +58,29 @@ const Step6 = () => {
 
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const fetchPersonnel = async () => {
+  // Fetch new personnel list
+  const fetchPersonnel = () => {
     setLoading(true);
-    try {
-      const response = await axios.get(`${API_URL}/api/personnels/progress/5`);
-      setPersonnelList(response.data);
-      setFilteredPersonnel(response.data);
-    } catch (error) {
-      console.error("Error fetching personnel list:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch personnel list.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
+    fetchData(
+      "personnels/progress",
+      (data) => {
+        setPersonnelList(data);
+        setFilteredPersonnel(data);
+      },
+      (errorMsg) => {
+        toast({
+          title: "Error",
+          description: "Failed to fetch personnel list.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      },
+      "Failed to fetch personnel list",
+      5 // 👉 progress param
+    ).finally(() => {
       setLoading(false);
-    }
+    });
   };
 
   // Fetch new personnel list when component mounts
@@ -120,10 +127,14 @@ const Step6 = () => {
 
     setLoading(true);
     try {
-      await axios.put(`${API_URL}/api/users/update-progress`, {
-        personnel_id: selectedUser.personnel_id,
-        personnel_progress: 6, // Update to Step 6
-      });
+       await putData(
+           "users/update-progress",
+           {
+             personnel_id: selectedUser.personnel_id,
+             personnel_progress: 6, // Step 6
+           },
+           "Failed to verify personnel"
+         );
       toast({
         title: "Step Verified",
         description:
@@ -161,24 +172,25 @@ const Step6 = () => {
 
   const fetchPersonnelDetails = async (personnelId) => {
     setLoading(true);
-    try {
-      const response = await axios.get(
-        `${API_URL}/api/personnels/${personnelId}`
-      );
-      setPersonnelInfo(response.data);
-      setIsVerified(response.data.isVerified || false);
-    } catch (error) {
-      console.error("Error fetching personnel details:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch personnel details.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
-      setLoading(false);
-    }
+
+    fetchData(
+      "personnels", // endpoint
+      (data) => {
+        setPersonnelInfo(data);
+        setIsVerified(data.isVerified || false);
+      },
+      () =>
+        toast({
+          title: "Error",
+          description: "Failed to fetch personnel details.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        }),
+      "Failed to fetch personnel details",
+      personnelId, // param
+      () => setLoading(false) // finally
+    );
   };
 
   const handleUserSelect = async (user) => {
@@ -187,22 +199,22 @@ const Step6 = () => {
     fetchPersonnelDetails(user.personnel_id);
 
     onOpen(); // Open the modal to show personnel details
-    try {
-      const response = await axios.get(
-        `${API_URL}/api/personnels/${user.personnel_id}`
-      );
-      setPersonnelInfo(response.data);
-    } catch (error) {
-      console.error("Error fetching personnel information:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch personnel information.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      setPersonnelInfo(null);
-    }
+    fetchData(
+      "personnels",
+      (data) => {
+        setPersonnelInfo(data);
+      },
+      () =>
+        toast({
+          title: "Error",
+          description: "Failed to fetch personnel information.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        }),
+      "Failed to fetch personnel information",
+      user.personnel_id
+    );
   };
 
   const handleChecklistChange = (field) => {

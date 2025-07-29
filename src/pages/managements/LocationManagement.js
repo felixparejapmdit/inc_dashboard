@@ -20,16 +20,28 @@ import {
   AlertDialogBody,
   AlertDialogFooter,
   Flex,
+  Select,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
-import axios from "axios";
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
+
+const ITEMS_PER_PAGE_OPTIONS = [5, 10, 25];
 
 const LocationManagement = () => {
   const [locations, setLocations] = useState([]);
+  const [filteredLocations, setFilteredLocations] = useState([]);
   const [newLocation, setNewLocation] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [editingLocation, setEditingLocation] = useState(null);
   const [deletingLocation, setDeletingLocation] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const toast = useToast();
   const cancelRef = useRef();
 
@@ -37,26 +49,34 @@ const LocationManagement = () => {
     fetchLocations();
   }, []);
 
-  // Fetch all locations
-  const fetchLocations = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/locations`
-      );
-      setLocations(response.data);
-    } catch (error) {
-      toast({
-        title: "Error loading locations",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
-    }
+  useEffect(() => {
+    const filtered = locations.filter((loc) =>
+      loc.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredLocations(filtered);
+    setCurrentPage(1);
+  }, [searchQuery, locations]);
+
+  const fetchLocations = () => {
+    fetchData(
+      "locations",
+      (data) => {
+        setLocations(data);
+        setFilteredLocations(data);
+      },
+      (err) =>
+        toast({
+          title: "Error loading locations",
+          description: err,
+          status: "error",
+          duration: 3000,
+        }),
+      "Failed to fetch locations"
+    );
   };
 
-  // Add a new location
   const handleAddLocation = async () => {
-    if (!newLocation) {
+    if (!newLocation.trim()) {
       toast({
         title: "Location name is required",
         status: "warning",
@@ -66,9 +86,7 @@ const LocationManagement = () => {
     }
 
     try {
-      await axios.post(`${process.env.REACT_APP_API_URL}/api/locations`, {
-        name: newLocation,
-      });
+      await postData("locations", { name: newLocation });
       fetchLocations();
       setNewLocation("");
       setIsAdding(false);
@@ -87,9 +105,8 @@ const LocationManagement = () => {
     }
   };
 
-  // Update an existing location
   const handleUpdateLocation = async () => {
-    if (!editingLocation?.name) {
+    if (!editingLocation?.name.trim()) {
       toast({
         title: "Location name is required",
         status: "warning",
@@ -99,10 +116,9 @@ const LocationManagement = () => {
     }
 
     try {
-      await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/locations/${editingLocation.id}`,
-        { name: editingLocation.name }
-      );
+      await putData("locations", editingLocation.id, {
+        name: editingLocation.name,
+      });
       fetchLocations();
       setEditingLocation(null);
       toast({
@@ -120,14 +136,11 @@ const LocationManagement = () => {
     }
   };
 
-  // Delete a location
   const handleDeleteLocation = async () => {
     if (!deletingLocation) return;
 
     try {
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/locations/${deletingLocation.id}`
-      );
+      await deleteData("locations", deletingLocation.id);
       fetchLocations();
       toast({
         title: "Location deleted",
@@ -146,6 +159,14 @@ const LocationManagement = () => {
     }
   };
 
+  // Pagination Logic
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedLocations = filteredLocations.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
+  const totalPages = Math.ceil(filteredLocations.length / itemsPerPage);
+
   return (
     <Box p={5}>
       <Stack spacing={4}>
@@ -153,15 +174,36 @@ const LocationManagement = () => {
           <Text fontSize="2xl" fontWeight="bold">
             Event Locations
           </Text>
+          <Flex gap={3}>
+            <Input
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              size="sm"
+              width="200px"
+            />
+            <Select
+              value={itemsPerPage}
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+              size="sm"
+              width="100px"
+            >
+              {ITEMS_PER_PAGE_OPTIONS.map((num) => (
+                <option key={num} value={num}>
+                  {num} / page
+                </option>
+              ))}
+            </Select>
+          </Flex>
         </Flex>
 
         <Table variant="striped">
           <Thead>
             <Tr>
               <Th>Name</Th>
-              <Th>
-                <Flex justify="space-between" align="center">
-                  <span>Actions</span>
+              <Th textAlign="right">
+                <Flex justify="flex-end" align="center">
+                  <Text mr={2}>Actions</Text>
                   {!isAdding && (
                     <IconButton
                       icon={<AddIcon />}
@@ -169,7 +211,6 @@ const LocationManagement = () => {
                       size="sm"
                       aria-label="Add location"
                       variant="ghost"
-                      _hover={{ bg: "gray.100" }}
                     />
                   )}
                 </Flex>
@@ -208,10 +249,10 @@ const LocationManagement = () => {
                 </Td>
               </Tr>
             )}
-            {locations.map((location) => (
+            {paginatedLocations.map((location) => (
               <Tr key={location.id}>
                 <Td>
-                  {editingLocation && editingLocation.id === location.id ? (
+                  {editingLocation?.id === location.id ? (
                     <Input
                       value={editingLocation.name}
                       onChange={(e) =>
@@ -228,7 +269,7 @@ const LocationManagement = () => {
                 </Td>
                 <Td>
                   <Flex justify="flex-end">
-                    {editingLocation && editingLocation.id === location.id ? (
+                    {editingLocation?.id === location.id ? (
                       <>
                         <Button
                           onClick={handleUpdateLocation}
@@ -273,6 +314,29 @@ const LocationManagement = () => {
             ))}
           </Tbody>
         </Table>
+
+        {/* Pagination Controls */}
+        <Flex justify="center" mt={2} gap={2} align="center">
+          <Button
+            size="sm"
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            isDisabled={currentPage === 1}
+          >
+            Prev
+          </Button>
+          <Text fontSize="sm">
+            Page {currentPage} of {totalPages}
+          </Text>
+          <Button
+            size="sm"
+            onClick={() =>
+              setCurrentPage((prev) => (prev < totalPages ? prev + 1 : prev))
+            }
+            isDisabled={currentPage === totalPages}
+          >
+            Next
+          </Button>
+        </Flex>
       </Stack>
 
       {/* Delete Confirmation Dialog */}

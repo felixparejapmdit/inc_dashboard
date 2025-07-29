@@ -41,6 +41,8 @@ import { usePermissionContext } from "../../contexts/PermissionContext";
 
 import { getAuthHeaders } from "../../utils/apiHeaders"; // adjust path as needed
 
+import { fetchData, postData, putData, deleteData } from "../../utils/fetchData";
+
 const FileManagement = (qrcode) => {
   const [files, setFiles] = useState([]);
   const [filteredFiles, setFilteredFiles] = useState([]);

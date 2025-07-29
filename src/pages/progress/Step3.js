@@ -34,6 +34,13 @@ import useGetNamesByIds from "../../hooks/useGetNamesByIds";
 import useLookupData from "../../hooks/useLookupData";
 import getNamesByIds from "../../utils/getNamesByIds";
 
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
+
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Step3 = () => {
@@ -65,27 +72,28 @@ const Step3 = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   // Fetch new personnel list
-  const fetchPersonnel = async () => {
+  const fetchPersonnel = () => {
     setLoading(true);
-    try {
-      //const response = await axios.get(`${API_URL}/api/personnels/new`);
-
-      const response = await axios.get(`${API_URL}/api/personnels/progress/2`);
-
-      setPersonnelList(response.data);
-      setFilteredPersonnel(response.data);
-    } catch (error) {
-      console.error("Error fetching personnel list:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch personnel list.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
+    fetchData(
+      "personnels/progress",
+      (data) => {
+        setPersonnelList(data);
+        setFilteredPersonnel(data);
+      },
+      (errorMsg) => {
+        toast({
+          title: "Error",
+          description: "Failed to fetch personnel list.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      },
+      "Failed to fetch personnel list",
+      2 // 👉 progress param
+    ).finally(() => {
       setLoading(false);
-    }
+    });
   };
 
   // Call fetchUsers() inside useEffect()
@@ -135,11 +143,18 @@ const Step3 = () => {
     }
 
     setLoading(true);
+
     try {
-      await axios.put(`${API_URL}/api/users/update-progress`, {
-        personnel_id: selectedUser.personnel_id,
-        personnel_progress: 3, // Update to Step 3
-      });
+      // ✅ Use putData helper for clean API update
+      await putData(
+        "users/update-progress",
+        {
+          personnel_id: selectedUser.personnel_id,
+          personnel_progress: 3, // Step 3 for Building Security Overseer
+        },
+        "Failed to verify personnel"
+      );
+
       toast({
         title: "Step Verified",
         description: "Building Security Overseer verification complete.",
@@ -148,13 +163,15 @@ const Step3 = () => {
         isClosable: true,
       });
 
-      // ✅ Hide Personnel Info and Checklist After Verification
+      // ✅ Reset view state
       setSelectedUser(null);
       setPersonnelInfo(null);
 
-      // ✅ Refresh the personnel table
+      // ✅ Refetch updated personnel list using fetchData pattern
       fetchPersonnel();
-       onClose(); 
+
+      // ✅ Close modal
+      onClose();
     } catch (error) {
       console.error("Error during verification:", error);
       toast({
@@ -164,41 +181,43 @@ const Step3 = () => {
         duration: 3000,
         isClosable: true,
       });
-    } finally {
-      setLoading(false);
+      setLoading(false); // In case fetchData is skipped
     }
   };
 
-  // Fetch personnel details
+  // ✅ Fetch personnel details using fetchData utility
   const fetchPersonnelDetails = async (personnelId) => {
     setLoading(true);
-    try {
-      const response = await axios.get(
-        `${API_URL}/api/personnels/${personnelId}`
-      );
-      setPersonnelInfo(response.data);
-      setIsVerified(response.data.isVerified || false);
-    } catch (error) {
-      console.error("Error fetching personnel details:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch personnel details.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
-      setLoading(false);
-    }
+
+    fetchData(
+      "personnels", // endpoint
+      (data) => {
+        setPersonnelInfo(data);
+        setIsVerified(data.isVerified || false);
+      },
+      () =>
+        toast({
+          title: "Error",
+          description: "Failed to fetch personnel details.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        }),
+      "Failed to fetch personnel details",
+      personnelId, // param
+      () => setLoading(false) // finally
+    );
   };
 
   const handleUserSelect = async (user) => {
     setSelectedUser(user);
 
+    // ✅ Fetch and display personnel details using the reusable function
     fetchPersonnelDetails(user.personnel_id);
 
     onOpen(); // 👈 open modal immediately
 
+    // Reset checklist
     setChecklist({
       workArea: false,
       officeDesignation: false,
@@ -212,22 +231,23 @@ const Step3 = () => {
       emergencyProtocols: false,
     });
 
-    try {
-      const response = await axios.get(
-        `${API_URL}/api/personnels/${user.personnel_id}`
-      );
-      setPersonnelInfo(response.data);
-    } catch (error) {
-      console.error("Error fetching personnel information:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch personnel information.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      setPersonnelInfo(null); // Reset personnelInfo if the fetch fails
-    }
+    // ✅ Fetch again to ensure most recent info (optional)
+    fetchData(
+      "personnels",
+      (data) => {
+        setPersonnelInfo(data);
+      },
+      () =>
+        toast({
+          title: "Error",
+          description: "Failed to fetch personnel information.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        }),
+      "Failed to fetch personnel information",
+      user.personnel_id
+    );
   };
 
   return (
@@ -278,167 +298,173 @@ const Step3 = () => {
               ))}
             </Tbody>
           </Table>
-             <Modal isOpen={isOpen} onClose={onClose} size="xl" scrollBehavior="inside">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Personnel Checklist</ModalHeader>
-          <ModalCloseButton />
-      
-          <ModalBody>
-            <VStack
-              align="start"
-              spacing={6}
-              w="100%"
-              maxWidth="600px"
-              mx="auto"
-            >
-              {/* Display Selected Personnel Info */}
-              <Text
-                fontSize="xl"
-                fontWeight="bold"
-                color="teal.500"
-                textAlign="center"
-                w="100%"
-              >
-                Personnel Information
-              </Text>
-              <Box
-                p={6}
-                bg="white"
-                borderRadius="lg"
-                boxShadow="lg"
-                border="1px solid"
-                borderColor="gray.200"
-                w="100%"
-              >
-                <Text>
-                  <b>Reference Number:</b>{" "}
-                  {personnelInfo?.reference_number || "N/A"}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Name:</b>{" "}
-                  {`${personnelInfo?.givenname} ${
-                    personnelInfo?.middlename || ""
-                  } ${personnelInfo?.surname_husband}`}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Gender:</b> {personnelInfo?.gender}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Date of Birth:</b>{" "}
-                  {new Date(personnelInfo?.date_of_birth).toLocaleDateString()}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Email Address:</b> {personnelInfo?.email_address}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Civil Status:</b> {personnelInfo?.civil_status}
-                </Text>
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Department: </b>
-                  {getNamesByIds(
-                    personnelInfo?.department_id,
-                    lookupData.departments
-                  )}
-                </Text>
-                <Divider />
+          <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            size="xl"
+            scrollBehavior="inside"
+          >
+            <ModalOverlay />
+            <ModalContent>
+              <ModalHeader>Personnel Checklist</ModalHeader>
+              <ModalCloseButton />
 
-                <Text fontSize="lg" mt={2}>
-                  <b>Designation: </b>
-                  {getNamesByIds(
-                    personnelInfo?.designation_id,
-                    lookupData.designations
-                  )}
-                </Text>
-                <Divider />
-
-                <Text fontSize="lg" mt={2}>
-                  <b>District: </b>
-                  {getNamesByIds(
-                    personnelInfo?.district_id,
-                    lookupData.districts
-                  )}
-                </Text>
-                <Divider />
-
-                <Text fontSize="lg" mt={2}>
-                  <b>Local Congregation: </b>
-                  {getNamesByIds(
-                    personnelInfo?.local_congregation,
-                    lookupData.localCongregations
-                  )}
-                </Text>
-
-                <Divider />
-                <Text fontSize="lg" mt={2}>
-                  <b>Personnel Type:</b> {personnelInfo?.personnel_type}
-                </Text>
-              </Box>
-              <Flex
-                direction="column"
-                align="center"
-                justify="center"
-                w="100%"
-                bg="white"
-                p={6}
-                borderRadius="lg"
-                boxShadow="md"
-                maxWidth="500px"
-                mx="auto"
-              >
-                {/* Checklist Title */}
-                <Text fontSize="xl" fontWeight="bold" mb={4}>
-                  Checklist
-                </Text>
-
-                {/* Select All Checkbox */}
-                <Checkbox
-                  isChecked={Object.values(checklist).every((item) => item)}
-                  onChange={(e) => {
-                    const isChecked = e.target.checked;
-                    const updatedChecklist = {};
-                    Object.keys(checklist).forEach((key) => {
-                      updatedChecklist[key] = isChecked;
-                    });
-                    setChecklist(updatedChecklist);
-                  }}
-                  colorScheme="teal"
-                  size="lg"
+              <ModalBody>
+                <VStack
+                  align="start"
+                  spacing={6}
                   w="100%"
-                  fontWeight="bold"
-                  mb={2}
+                  maxWidth="600px"
+                  mx="auto"
                 >
-                  Select All
-                </Checkbox>
+                  {/* Display Selected Personnel Info */}
+                  <Text
+                    fontSize="xl"
+                    fontWeight="bold"
+                    color="teal.500"
+                    textAlign="center"
+                    w="100%"
+                  >
+                    Personnel Information
+                  </Text>
+                  <Box
+                    p={6}
+                    bg="white"
+                    borderRadius="lg"
+                    boxShadow="lg"
+                    border="1px solid"
+                    borderColor="gray.200"
+                    w="100%"
+                  >
+                    <Text>
+                      <b>Reference Number:</b>{" "}
+                      {personnelInfo?.reference_number || "N/A"}
+                    </Text>
+                    <Divider />
+                    <Text fontSize="lg" mt={2}>
+                      <b>Name:</b>{" "}
+                      {`${personnelInfo?.givenname} ${
+                        personnelInfo?.middlename || ""
+                      } ${personnelInfo?.surname_husband}`}
+                    </Text>
+                    <Divider />
+                    <Text fontSize="lg" mt={2}>
+                      <b>Gender:</b> {personnelInfo?.gender}
+                    </Text>
+                    <Divider />
+                    <Text fontSize="lg" mt={2}>
+                      <b>Date of Birth:</b>{" "}
+                      {new Date(
+                        personnelInfo?.date_of_birth
+                      ).toLocaleDateString()}
+                    </Text>
+                    <Divider />
+                    <Text fontSize="lg" mt={2}>
+                      <b>Email Address:</b> {personnelInfo?.email_address}
+                    </Text>
+                    <Divider />
+                    <Text fontSize="lg" mt={2}>
+                      <b>Civil Status:</b> {personnelInfo?.civil_status}
+                    </Text>
+                    <Divider />
+                    <Text fontSize="lg" mt={2}>
+                      <b>Department: </b>
+                      {getNamesByIds(
+                        personnelInfo?.department_id,
+                        lookupData.departments
+                      )}
+                    </Text>
+                    <Divider />
 
-                {/* Individual Checkboxes */}
-                <VStack align="start" spacing={3} w="100%">
-                  {Object.keys(checklist).map((key) => (
+                    <Text fontSize="lg" mt={2}>
+                      <b>Designation: </b>
+                      {getNamesByIds(
+                        personnelInfo?.designation_id,
+                        lookupData.designations
+                      )}
+                    </Text>
+                    <Divider />
+
+                    <Text fontSize="lg" mt={2}>
+                      <b>District: </b>
+                      {getNamesByIds(
+                        personnelInfo?.district_id,
+                        lookupData.districts
+                      )}
+                    </Text>
+                    <Divider />
+
+                    <Text fontSize="lg" mt={2}>
+                      <b>Local Congregation: </b>
+                      {getNamesByIds(
+                        personnelInfo?.local_congregation,
+                        lookupData.localCongregations
+                      )}
+                    </Text>
+
+                    <Divider />
+                    <Text fontSize="lg" mt={2}>
+                      <b>Personnel Type:</b> {personnelInfo?.personnel_type}
+                    </Text>
+                  </Box>
+                  <Flex
+                    direction="column"
+                    align="center"
+                    justify="center"
+                    w="100%"
+                    bg="white"
+                    p={6}
+                    borderRadius="lg"
+                    boxShadow="md"
+                    maxWidth="500px"
+                    mx="auto"
+                  >
+                    {/* Checklist Title */}
+                    <Text fontSize="xl" fontWeight="bold" mb={4}>
+                      Checklist
+                    </Text>
+
+                    {/* Select All Checkbox */}
                     <Checkbox
-                      key={key}
-                      isChecked={checklist[key]}
-                      onChange={() => handleChecklistChange(key)}
+                      isChecked={Object.values(checklist).every((item) => item)}
+                      onChange={(e) => {
+                        const isChecked = e.target.checked;
+                        const updatedChecklist = {};
+                        Object.keys(checklist).forEach((key) => {
+                          updatedChecklist[key] = isChecked;
+                        });
+                        setChecklist(updatedChecklist);
+                      }}
                       colorScheme="teal"
                       size="lg"
                       w="100%"
+                      fontWeight="bold"
+                      mb={2}
                     >
-                      {key
-                        .replace(/([A-Z])/g, " $1")
-                        .replace(/^./, (str) => str.toUpperCase())}
+                      Select All
                     </Checkbox>
-                  ))}
-                </VStack>
 
-              </Flex>
-            </VStack>
-                </ModalBody>
-          
+                    {/* Individual Checkboxes */}
+                    <VStack align="start" spacing={3} w="100%">
+                      {Object.keys(checklist).map((key) => (
+                        <Checkbox
+                          key={key}
+                          isChecked={checklist[key]}
+                          onChange={() => handleChecklistChange(key)}
+                          colorScheme="teal"
+                          size="lg"
+                          w="100%"
+                        >
+                          {key
+                            .replace(/([A-Z])/g, " $1")
+                            .replace(/^./, (str) => str.toUpperCase())}
+                        </Checkbox>
+                      ))}
+                    </VStack>
+                  </Flex>
+                </VStack>
+              </ModalBody>
+
               <ModalFooter>
                 <Button
                   colorScheme="orange"
@@ -448,16 +474,15 @@ const Step3 = () => {
                 >
                   Verify and Proceed
                 </Button>
-          <Button
-  variant="ghost"
-  onClick={() => {
-    setSelectedUser(null); // Clear selected user
-    onClose();             // Close the modal
-  }}
->
-  Close
-</Button>
-
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setSelectedUser(null); // Clear selected user
+                    onClose(); // Close the modal
+                  }}
+                >
+                  Close
+                </Button>
               </ModalFooter>
             </ModalContent>
           </Modal>

@@ -21,6 +21,13 @@ import { EditIcon, DeleteIcon, CheckIcon } from "@chakra-ui/icons";
 import axios from "axios";
 import Select from "react-select";
 
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
+
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Step7 = ({
@@ -70,33 +77,34 @@ const Step7 = ({
 
   useEffect(() => {
     if (personnelId) {
-      // Fetch children related to the personnelId and relationship_type
-      axios
-        .get(`${API_URL}/api/get-family-members`, {
-          params: {
-            personnel_id: personnelId,
-            relationship_type: "Child", // Specify relationship_type for children
-          },
-        })
-        .then((res) => {
-          if (Array.isArray(res.data) && res.data.length === 0) {
+      const params = {
+        personnel_id: personnelId,
+        relationship_type: "Child",
+      };
+
+      fetchData(
+        "get-family-members",
+        (res) => {
+          if (Array.isArray(res) && res.length === 0) {
             setData([]); // Clear the children table if no data
           } else {
-            setData(res.data || []); // Set children if data exists
+            setData(res || []); // Set children if data exists
           }
-        })
-        .catch((err) => {
-          console.error("Error fetching children:", err);
-          setData([]); // Clear the table on error
+        },
+        () => {
           toast({
             title: "Error",
-            description: "Failed to fetch spouse data.",
+            description: "Failed to fetch child data.",
             status: "error",
             duration: 3000,
             isClosable: true,
-            position: "bottom-left", // Position the toast on the bottom-left
+            position: "bottom-left",
           });
-        });
+          setData([]);
+        },
+        "Failed to fetch child data.",
+        params
+      );
     } else {
       setData([]); // Clear children if no personnelId
       toast({
@@ -105,7 +113,7 @@ const Step7 = ({
         status: "error",
         duration: 3000,
         isClosable: true,
-        position: "bottom-left", // Position the toast on the bottom-left
+        position: "bottom-left",
       });
     }
   }, [personnelId]);
@@ -169,22 +177,12 @@ const Step7 = ({
 
       if (id) {
         // Update existing children record
-        const response = await axios.put(
-          `${API_URL}/api/family-members/${id}`,
-          formattedData
-        );
-        // updateChildren = response.data;
-
-        updateChildren = response.data.family_member;
+        const response = await putData("family-members",id, formattedData);
+        updateChildren = response?.family_member;
       } else {
         // Save new children record
-        const response = await axios.post(
-          `${API_URL}/api/family-members`,
-          formattedData
-        );
-        //updateChildren = response.data;
-
-        updateChildren = response.data.family_member; // ✅ Ensure we get the new ID
+        const response = await postData("family-members", formattedData);
+        updateChildren = response?.family_member; // ✅ Ensure we get the new ID
       }
 
       // Update children in state
@@ -223,7 +221,7 @@ const Step7 = ({
     }
   };
 
-  // Function to remove an education entry
+  // Function to remove a child entry
   const handleRemoveChild = async (index) => {
     const child = data[index];
 
@@ -234,7 +232,7 @@ const Step7 = ({
       if (!confirmed) return;
 
       try {
-        await axios.delete(`${API_URL}/api/family-members/${child.id}`);
+        await deleteData("family-members",child.id); // Use reusable function
         toast({
           title: "Child Deleted",
           description: "Child information has been successfully deleted.",

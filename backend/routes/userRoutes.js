@@ -97,7 +97,7 @@ router.put("/api/users/:userId/assign-group", UserController.assignGroup);
 router.get("/api/users_access/:username", verifyToken, UserController.getUserByUsername);
 
 // Update user's progress stage
-router.put("/api/users/update-progress", UserController.updateProgress);
+router.put("/api/users/update-progress", verifyToken, UserController.updateProgress);
 
 // Route to trigger the migration of LDAP users
 router.post(

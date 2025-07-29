@@ -15,7 +15,7 @@ router.get("/api/apps/available", appController.getAvailableApps);
 router.post("/api/apps", appController.addApp);
 
 // Update an existing app
-router.put("/api/apps/:id", appController.updateApp);
+router.put("/api/apps/:id", verifyToken, appController.updateApp);
 
 // Delete an app
 router.delete("/api/apps/:id", appController.deleteApp);

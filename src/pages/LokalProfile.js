@@ -35,6 +35,8 @@ import { useReactToPrint } from "react-to-print";
 import PrintableLokalProfile from "./PrintableLokalProfile"; // Make sure this path is correct
 import { FiPrinter } from "react-icons/fi";
 
+import { fetchData, postData, putData, deleteData } from "../utils/fetchData";
+
 const API_URL = process.env.REACT_APP_API_URL;
 const DISTRICT_API_URL = process.env.REACT_APP_DISTRICT_API_URL;
 const LOCAL_CONGREGATION_API_URL =

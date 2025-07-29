@@ -2,7 +2,7 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
 const Housing = sequelize.define(
-  "housing",
+  "Housing",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -27,8 +27,10 @@ const Housing = sequelize.define(
     },
   },
   {
+    tableName: "housings",
     timestamps: true,
   }
 );
+
 
 module.exports = Housing;

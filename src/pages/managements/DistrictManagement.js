@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Button,
@@ -15,39 +15,69 @@ import {
   IconButton,
   Text,
   Avatar,
+  HStack,
+  useDisclosure,
+  AlertDialog,
+  AlertDialogOverlay,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogBody,
+  AlertDialogFooter,
 } from "@chakra-ui/react";
 import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
-import axios from "axios";
+
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
 
 const DistrictManagement = () => {
   const [districts, setDistricts] = useState([]);
+  const [filteredDistricts, setFilteredDistricts] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [newDistrict, setNewDistrict] = useState({ name: "" });
   const [isAdding, setIsAdding] = useState(false);
   const [editingDistrict, setEditingDistrict] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const toast = useToast();
+
+  // Delete modal states
+  const [selectedDistrictId, setSelectedDistrictId] = useState(null);
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const cancelRef = useRef();
 
   useEffect(() => {
     fetchDistricts();
   }, []);
 
-  const fetchDistricts = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/districts`
-      );
-      setDistricts(response.data);
-    } catch (error) {
-      toast({
-        title: "Error loading districts",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
-    }
+  useEffect(() => {
+    const filtered = districts.filter((d) =>
+      d.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredDistricts(filtered);
+    setCurrentPage(1); // reset page when filtering
+  }, [searchQuery, districts]);
+
+  const fetchDistricts = () => {
+    fetchData(
+      "districts",
+      setDistricts,
+      (errorMsg) =>
+        toast({
+          title: "Error loading districts",
+          description: errorMsg,
+          status: "error",
+          duration: 3000,
+        }),
+      "Failed to load districts"
+    );
   };
 
   const handleAddDistrict = async () => {
-    if (!newDistrict.name) {
+    if (!newDistrict.name.trim()) {
       toast({
         title: "District name is required",
         status: "warning",
@@ -55,11 +85,9 @@ const DistrictManagement = () => {
       });
       return;
     }
+
     try {
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/districts`,
-        newDistrict
-      );
+      await postData("districts", newDistrict, "Failed to add district");
       fetchDistricts();
       setNewDistrict({ name: "" });
       setIsAdding(false);
@@ -80,9 +108,11 @@ const DistrictManagement = () => {
 
   const handleUpdateDistrict = async () => {
     try {
-      await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/districts/${editingDistrict.id}`,
-        editingDistrict
+      await putData(
+        "districts",
+        editingDistrict.id,
+        editingDistrict,
+        "Failed to update district"
       );
       fetchDistricts();
       setEditingDistrict(null);
@@ -101,12 +131,16 @@ const DistrictManagement = () => {
     }
   };
 
-  const handleDeleteDistrict = async (id) => {
+  const openDeleteDialog = (id) => {
+    setSelectedDistrictId(id);
+    onOpen();
+  };
+
+  const handleConfirmDelete = async () => {
     try {
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/districts/${id}`
-      );
+      await deleteData("districts", selectedDistrictId, "Failed to delete district");
       fetchDistricts();
+      onClose();
       toast({
         title: "District deleted",
         status: "success",
@@ -122,6 +156,13 @@ const DistrictManagement = () => {
     }
   };
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredDistricts.length / itemsPerPage);
+  const paginatedDistricts = filteredDistricts.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
     <Box p={5}>
       <Stack spacing={4}>
@@ -129,11 +170,17 @@ const DistrictManagement = () => {
           District List
         </Text>
 
+        <Input
+          placeholder="Search district..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+
         <Table variant="striped">
           <Thead>
             <Tr>
               <Th>District Name</Th>
-              <Th>
+              <Th textAlign="center">
                 <Flex justify="space-between" align="center">
                   <span>Actions</span>
                   {!isAdding && (
@@ -187,7 +234,8 @@ const DistrictManagement = () => {
                 </Td>
               </Tr>
             )}
-            {districts.map((district) => (
+
+            {paginatedDistricts.map((district) => (
               <Tr key={district.id}>
                 <Td>
                   {editingDistrict && editingDistrict.id === district.id ? (
@@ -209,14 +257,13 @@ const DistrictManagement = () => {
                   )}
                 </Td>
                 <Td>
-                  <Flex justify="flex-end">
+                  <HStack spacing={2} justify="flex-end">
                     {editingDistrict && editingDistrict.id === district.id ? (
                       <>
                         <Button
                           onClick={handleUpdateDistrict}
                           colorScheme="green"
                           size="sm"
-                          mr={2}
                         >
                           Save
                         </Button>
@@ -234,14 +281,13 @@ const DistrictManagement = () => {
                           icon={<EditIcon />}
                           onClick={() => setEditingDistrict(district)}
                           size="sm"
-                          mr={2}
                           variant="ghost"
                           colorScheme="yellow"
                           aria-label="Edit district"
                         />
                         <IconButton
                           icon={<DeleteIcon />}
-                          onClick={() => handleDeleteDistrict(district.id)}
+                          onClick={() => openDeleteDialog(district.id)}
                           size="sm"
                           variant="ghost"
                           colorScheme="red"
@@ -249,13 +295,66 @@ const DistrictManagement = () => {
                         />
                       </>
                     )}
-                  </Flex>
+                  </HStack>
                 </Td>
               </Tr>
             ))}
           </Tbody>
         </Table>
+
+        {totalPages > 1 && (
+          <HStack justify="center" mt={4}>
+            <Button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              isDisabled={currentPage === 1}
+              size="sm"
+            >
+              Previous
+            </Button>
+            <Text>
+              Page {currentPage} of {totalPages}
+            </Text>
+            <Button
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+              isDisabled={currentPage === totalPages}
+              size="sm"
+            >
+              Next
+            </Button>
+          </HStack>
+        )}
       </Stack>
+
+      {/* AlertDialog for delete confirmation */}
+      <AlertDialog
+        isOpen={isOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={onClose}
+        isCentered
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Delete District
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              Are you sure you want to delete this district? This action cannot be undone.
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onClose}>
+                Cancel
+              </Button>
+              <Button colorScheme="red" onClick={handleConfirmDelete} ml={3}>
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </Box>
   );
 };

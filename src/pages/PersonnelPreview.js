@@ -7,6 +7,9 @@ import PersonnelInfo from "../components/PersonnelInfo"; // ✅ default import
 import styles from "../components/PersonnelImage.module.css";
 
 import { getAuthHeaders } from "../utils/apiHeaders"; // adjust path as needed
+
+import { fetchData, postData, putData, deleteData } from "../utils/fetchData";
+
 // Configuration for API URLs
 const API_URL = process.env.REACT_APP_API_URL; // API URL
 const DISTRICT_API_URL = process.env.REACT_APP_DISTRICT_API_URL; // District API URL

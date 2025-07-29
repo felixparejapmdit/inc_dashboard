@@ -21,6 +21,12 @@ import {
 import { EditIcon, DeleteIcon, CheckIcon } from "@chakra-ui/icons";
 import axios from "axios";
 
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Step5 = ({
@@ -70,33 +76,34 @@ const Step5 = ({
 
   useEffect(() => {
     if (personnelId) {
-      // Fetch siblings related to the personnelId and relationship_type
-      axios
-        .get(`${API_URL}/api/get-family-members`, {
-          params: {
-            personnel_id: personnelId,
-            relationship_type: "Sibling", // Specify relationship_type for siblings
-          },
-        })
-        .then((res) => {
-          if (Array.isArray(res.data) && res.data.length === 0) {
+      const params = {
+        personnel_id: personnelId,
+        relationship_type: "Sibling",
+      };
+
+      fetchData(
+        "get-family-members",
+        (res) => {
+          if (Array.isArray(res) && res.length === 0) {
             setData([]); // Clear the siblings table if no data
           } else {
-            setData(res.data || []); // Set siblings if data exists
+            setData(res || []); // Set siblings if data exists
           }
-        })
-        .catch((err) => {
-          console.error("Error fetching siblings:", err);
-          setData([]); // Clear the table on error
+        },
+        () => {
           toast({
             title: "Error",
-            description: "Failed to fetch sibling data1.",
+            description: "Failed to fetch sibling data.",
             status: "error",
             duration: 3000,
             isClosable: true,
-            position: "bottom-left", // Position the toast on the bottom-left
+            position: "bottom-left",
           });
-        });
+          setData([]);
+        },
+        "Failed to fetch sibling data.",
+        params // ✅ This goes directly into the fetchData as the 5th argument
+      );
     } else {
       setData([]); // Clear siblings if no personnelId
       toast({
@@ -105,7 +112,7 @@ const Step5 = ({
         status: "error",
         duration: 3000,
         isClosable: true,
-        position: "bottom-left", // Position the toast on the bottom-left
+        position: "bottom-left",
       });
     }
   }, [personnelId]);
@@ -169,22 +176,15 @@ const Step5 = ({
 
     try {
       let updatedSibling;
+
       if (id) {
         // Update existing sibling record
-        const response = await axios.put(
-          `${API_URL}/api/family-members/${id}`,
-          formattedData
-        );
-        //updatedSibling = response.data;
-        updatedSibling = response.data.family_member;
+        const response = await putData("family-members", id, formattedData);
+        updatedSibling = response?.family_member;
       } else {
         // Save new sibling record
-        const response = await axios.post(
-          `${API_URL}/api/family-members`,
-          formattedData
-        );
-        // updatedSibling = response.data;
-        updatedSibling = response.data.family_member;
+        const response = await postData("family-members", formattedData);
+        updatedSibling = response?.family_member;
       }
 
       // Update sibling in state
@@ -223,7 +223,7 @@ const Step5 = ({
     }
   };
 
-  // Function to remove an education entry
+  // Function to remove a sibling entry
   const handleRemoveSibling = async (index) => {
     const sibling = data[index];
 
@@ -234,7 +234,7 @@ const Step5 = ({
       if (!confirmed) return;
 
       try {
-        await axios.delete(`${API_URL}/api/family-members/${sibling.id}`);
+        await deleteData("family-members", sibling.id);
         toast({
           title: "Sibling Deleted",
           description: "Sibling information has been successfully deleted.",

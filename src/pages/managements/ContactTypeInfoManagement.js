@@ -29,7 +29,13 @@ import {
   CheckIcon,
   CloseIcon,
 } from "@chakra-ui/icons";
-import axios from "axios";
+
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
 
 const ContactTypeInfoManagement = () => {
   const [contactTypes, setContactTypes] = useState([]);
@@ -39,6 +45,10 @@ const ContactTypeInfoManagement = () => {
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [deletingContactType, setDeletingContactType] = useState(null);
 
+  const filteredContactTypes = contactTypes.filter((type) =>
+    type.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const toast = useToast();
   const cancelRef = React.useRef();
 
@@ -46,20 +56,19 @@ const ContactTypeInfoManagement = () => {
     fetchContactTypes();
   }, []);
 
-  const fetchContactTypes = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/contact-type-info`
-      );
-      setContactTypes(response.data);
-    } catch (error) {
-      toast({
-        title: "Error fetching contact types.",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
-    }
+  const fetchContactTypes = () => {
+    fetchData(
+      "contact-type-info",
+      (data) => setContactTypes(data),
+      (errorMsg) =>
+        toast({
+          title: "Error fetching contact types",
+          description: errorMsg,
+          status: "error",
+          duration: 3000,
+        }),
+      "Failed to fetch contact types."
+    );
   };
 
   const handleAddContactType = async () => {
@@ -74,11 +83,13 @@ const ContactTypeInfoManagement = () => {
     }
 
     try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/contact-type-info`,
-        newContactType
+      const response = await postData(
+        "contact-type-info",
+        newContactType,
+        "Failed to add contact type."
       );
-      setContactTypes((prev) => [...prev, response.data]);
+
+      setContactTypes((prev) => [...prev, response]);
       toast({
         title: "Contact type added successfully.",
         status: "success",
@@ -108,10 +119,12 @@ const ContactTypeInfoManagement = () => {
     }
 
     try {
-      await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/contact-type-info/${editingContactType.id}`,
-        { name: editingContactType.name }
+      await putData(
+        `contact-type-info/${editingContactType.id}`,
+        { name: editingContactType.name },
+        "Failed to update contact type."
       );
+
       setContactTypes((prev) =>
         prev.map((type) =>
           type.id === editingContactType.id ? editingContactType : type
@@ -137,9 +150,12 @@ const ContactTypeInfoManagement = () => {
     if (!deletingContactType) return;
 
     try {
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/contact-type-info/${deletingContactType.id}`
+       await deleteData(
+        "contact-type-info",
+        deletingContactType.id,
+        "Failed to delete contact type."
       );
+
       setContactTypes((prev) =>
         prev.filter((type) => type.id !== deletingContactType.id)
       );
@@ -158,10 +174,6 @@ const ContactTypeInfoManagement = () => {
       });
     }
   };
-
-  const filteredContactTypes = contactTypes.filter((type) =>
-    type.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
     <Box p={6}>
@@ -203,7 +215,7 @@ const ContactTypeInfoManagement = () => {
               <Td>
                 <Input
                   placeholder="Contact Type Name"
-                  value={newContactType.name}
+                  value={newContactType?.name || ""}
                   onChange={(e) =>
                     setNewContactType({
                       ...newContactType,
@@ -233,7 +245,6 @@ const ContactTypeInfoManagement = () => {
             </Tr>
           )}
           {filteredContactTypes.map((type, index) => (
-            // <Tr key={type.id}>
             <Tr key={`${type.id}-${index}`}>
               <Td>{index + 1}</Td>
               <Td>
@@ -291,7 +302,6 @@ const ContactTypeInfoManagement = () => {
         </Tbody>
       </Table>
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog
         isOpen={!!deletingContactType}
         leastDestructiveRef={cancelRef}
@@ -310,17 +320,10 @@ const ContactTypeInfoManagement = () => {
               ? This action cannot be undone.
             </AlertDialogBody>
             <AlertDialogFooter>
-              <Button
-                ref={cancelRef}
-                onClick={() => setDeletingContactType(null)}
-              >
+              <Button ref={cancelRef} onClick={() => setDeletingContactType(null)}>
                 Cancel
               </Button>
-              <Button
-                colorScheme="red"
-                onClick={handleDeleteContactType}
-                ml={3}
-              >
+              <Button colorScheme="red" onClick={handleDeleteContactType} ml={3}>
                 Delete
               </Button>
             </AlertDialogFooter>

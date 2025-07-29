@@ -29,7 +29,13 @@ import {
   Flex,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
-import axios from "axios";
+
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
 
 const ApplicationTypeManagement = () => {
   const [appTypes, setAppTypes] = useState([]);
@@ -43,16 +49,23 @@ const ApplicationTypeManagement = () => {
   const cancelRef = useRef();
 
   useEffect(() => {
+    const filtered = appTypes.filter((type) =>
+      type.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredAppTypes(filtered);
+  }, [searchQuery, appTypes]);
+
+  useEffect(() => {
     fetchApplicationTypes();
   }, []);
 
+  // Fetch all application types
   const fetchApplicationTypes = async () => {
     try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/application-types`
-      );
-      setAppTypes(response.data);
-      setFilteredAppTypes(response.data);
+      await fetchData("application-types", (data) => {
+        setAppTypes(data);
+        setFilteredAppTypes(data);
+      });
     } catch (error) {
       toast({
         title: "Error loading application types",
@@ -63,13 +76,7 @@ const ApplicationTypeManagement = () => {
     }
   };
 
-  useEffect(() => {
-    const filtered = appTypes.filter((type) =>
-      type.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    setFilteredAppTypes(filtered);
-  }, [searchQuery, appTypes]);
-
+  // Add new application type
   const handleAddApplicationType = async () => {
     if (!newAppType.name) {
       toast({ title: "Name is required", status: "warning", duration: 3000 });
@@ -77,10 +84,7 @@ const ApplicationTypeManagement = () => {
     }
 
     try {
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/add_application-types`,
-        newAppType
-      );
+      await postData("add_application-types", newAppType);
       fetchApplicationTypes();
       setNewAppType({ name: "" });
       setIsModalOpen(false);
@@ -98,6 +102,7 @@ const ApplicationTypeManagement = () => {
     }
   };
 
+  // Update existing application type
   const handleUpdateApplicationType = async () => {
     if (!editingAppType.name) {
       toast({ title: "Name is required", status: "warning", duration: 3000 });
@@ -105,10 +110,7 @@ const ApplicationTypeManagement = () => {
     }
 
     try {
-      await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/application-types/${editingAppType.id}`,
-        editingAppType
-      );
+      await putData(`application-types/${editingAppType.id}`, editingAppType);
       fetchApplicationTypes();
       setEditingAppType(null);
       setIsModalOpen(false);
@@ -126,11 +128,10 @@ const ApplicationTypeManagement = () => {
     }
   };
 
+  // Delete application type
   const handleDeleteApplicationType = async () => {
     try {
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/application-types/${deletingAppType.id}`
-      );
+      await deleteData(`application-types/${deletingAppType.id}`);
       fetchApplicationTypes();
       toast({
         title: "Application type deleted",
@@ -195,7 +196,6 @@ const ApplicationTypeManagement = () => {
                   <Td>{index + 1}</Td> {/* Row Number */}
                   <Td>{type.name}</Td>
                   <Td textAlign="right">
-                    
                     {/* Align Actions to the Right */}
                     <IconButton
                       icon={<EditIcon />}

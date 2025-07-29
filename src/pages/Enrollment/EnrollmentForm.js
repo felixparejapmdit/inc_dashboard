@@ -30,6 +30,13 @@ import Step7 from "./Step7";
 import { AiFillHome } from "react-icons/ai"; // Add this at the top of your component
 import { FiArrowLeft } from "react-icons/fi"; // Add this
 
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
+
 const API_URL = process.env.REACT_APP_API_URL;
 const DISTRICT_API_URL = process.env.REACT_APP_DISTRICT_API_URL;
 const LOCAL_CONGREGATION_API_URL =
@@ -97,56 +104,54 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
   useEffect(() => {
     const fetchPersonnelDetails = async () => {
-      if (!personnelId) return; // Prevent API call if personnelId is null or undefined
+      if (!personnelId) return;
 
-      try {
-        const response = await axios.get(
-          `${API_URL}/api/personnels/${personnelId}`
-        );
-        const personnel = response.data;
-
-        //setSelectedUser(personnel); // Set the personnel data
-        //(personnel.personnel_progress || 0); // Set the progress
-        setProgress(Number(personnel.personnel_progress) || 0);
-      } catch (error) {
-        console.error("Error fetching personnel details:", error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch personnel details.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      }
+      fetchData(
+        "personnels", // endpoint
+        (data) => {
+          // If your API returns { success: true, data: { personnel_progress: ... } }
+          setProgress(Number(data.personnel_progress) || 0);
+        },
+        (errorMsg) => {
+          toast({
+            title: "Error",
+            description: errorMsg || "Failed to fetch personnel details.",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+        },
+        "Failed to fetch personnel details",
+        personnelId // params
+      );
     };
 
     fetchPersonnelDetails();
   }, []);
 
   // Put fetchChurchDuties outside useEffect so you can call it manually
-  const fetchChurchDuties = async () => {
+  const fetchChurchDuties = () => {
     if (!personnelId) return;
 
-    try {
-      const response = await axios.get(
-        `${API_URL}/api/church-duties/${personnelId}`
-      );
-      const churchDuties = response.data;
-
-      setPersonnelData((prevState) => ({
-        ...prevState,
-        church_duties: churchDuties || [],
-      }));
-    } catch (error) {
-      console.error("Error fetching church duties:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch church duties.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    }
+    fetchData(
+      "church-duties", // API endpoint
+      (data) => {
+        setPersonnelData((prevState) => ({
+          ...prevState,
+          church_duties: data || [],
+        }));
+      },
+      (errorMsg) =>
+        toast({
+          title: "Error",
+          description: errorMsg || "Failed to fetch church duties.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        }),
+      "Failed to fetch church duties",
+      personnelId // passed as param to format endpoint like /api/church-duties/:id
+    );
   };
 
   // useEffect will still use it once at mount
@@ -281,32 +286,53 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
   const [localCongregations, setLocalCongregations] = useState([]);
 
-  // ✅ Fetch districts on component mount
-  useEffect(() => {
-    const fetchDistricts = async () => {
-      try {
-        const response = await axios.get(`${DISTRICT_API_URL}/api/districts`);
+  const fetchDistricts = () => {
+    fetchData(
+      "districts",
+      (data) => setDistricts(data),
+      (errorMsg) => {
+        console.error("Error fetching districts:", errorMsg);
+        toast({
+          title: "Error",
+          description: errorMsg || "Failed to fetch districts.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      },
+      "Failed to fetch districts",
+      null,
+      null,
+      DISTRICT_API_URL // Custom base URL override
+    );
+  };
 
-        setDistricts(response.data);
-      } catch (error) {
-        console.error("Error fetching districts:", error);
-      }
-    };
+  const fetchLocalCongregations = () => {
+    fetchData(
+      "all-congregations",
+      (data) => setLocalCongregations(data),
+      (errorMsg) => {
+        console.error("Error fetching local congregations:", errorMsg);
+        toast({
+          title: "Error",
+          description: errorMsg || "Failed to fetch local congregations.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      },
+      "Failed to fetch local congregations",
+      null,
+      null,
+      LOCAL_CONGREGATION_API_URL // Custom base URL override
+    );
+  };
+
+  useEffect(() => {
     fetchDistricts();
   }, []);
 
-  // ✅ Fetch all local congregations (no filtering here)
   useEffect(() => {
-    const fetchLocalCongregations = async () => {
-      try {
-        const response = await axios.get(
-          `${LOCAL_CONGREGATION_API_URL}/api/all-congregations`
-        );
-        setLocalCongregations(response.data); // ✅ Store the full list of local congregations
-      } catch (error) {
-        console.error("Error fetching local congregations:", error);
-      }
-    };
     fetchLocalCongregations();
   }, []);
 
@@ -367,39 +393,52 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
   const bloodtypes = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
 
-  // Fetch data on component load
   useEffect(() => {
-    // Helper function to determine the correct API URL based on endpoint
-    const getApiUrl = (endpoint) => {
+    const getBaseUrl = (endpoint) => {
       if (endpoint === "districts") {
         return DISTRICT_API_URL;
-      } else if (endpoint === "all-congregations") {
+      } else if (
+        endpoint === "all-congregations"
+      ) {
         return LOCAL_CONGREGATION_API_URL;
       } else {
         return API_URL;
       }
     };
 
-    // Helper function to fetch and set data
-    const fetchData = async (endpoint, setter) => {
-      try {
-        const url = `${getApiUrl(endpoint)}/api/${endpoint}`; // Use correct base URL
-        const response = await axios.get(url);
-        setter(response.data);
-      } catch (error) {
-        console.error(`Error fetching ${endpoint}:`, error);
-      }
+    const fetchAll = (endpoint, setter, label) => {
+      fetchData(
+        endpoint,
+        setter,
+        (errorMsg) =>
+          toast({
+            title: `Error loading ${label || endpoint}`,
+            description: errorMsg || `Failed to load ${label || endpoint}.`,
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          }),
+        `Failed to load ${label || endpoint}`,
+        null,
+        null,
+        getBaseUrl(endpoint)
+      );
     };
 
-    fetchData("languages", setLanguages); // Add this line for languages
-    fetchData("citizenships", setCitizenships);
-    fetchData("nationalities", setNationalities);
-    fetchData("departments", setDepartments);
-    fetchData("sections", setSections);
-    fetchData("subsections", setSubsections);
-    fetchData("designations", setDesignations);
-    fetchData("districts", setDistricts);
-    fetchData("local-congregations", setLocalCongregations);
+    // 🔁 Call for each endpoint
+    fetchAll("languages", setLanguages, "Languages");
+    fetchAll("citizenships", setCitizenships, "Citizenships");
+    fetchAll("nationalities", setNationalities, "Nationalities");
+    fetchAll("departments", setDepartments, "Departments");
+    fetchAll("sections", setSections, "Sections");
+    fetchAll("subsections", setSubsections, "Subsections");
+    fetchAll("designations", setDesignations, "Designations");
+    fetchAll("districts", setDistricts, "Districts");
+    fetchAll(
+      "local-congregations",
+      setLocalCongregations,
+      "Local Congregations"
+    );
   }, []);
 
   const [contacts, setContacts] = useState([]);
@@ -1234,19 +1273,28 @@ const EnrollmentForm = ({ referenceNumber }) => {
     }
   };
 
-  // Fetch personnel and family member data and determine the current step based on enrollment_progress
   useEffect(() => {
     const fetchEnrollmentData = async () => {
-      try {
-        // Fetch personnel data
-        const personnelResponse = await axios.get(
-          `${API_URL}/api/personnels/${personnelId}`
-        );
+      if (!personnelId) return;
 
-        if (personnelResponse.data) {
-          const personnel = personnelResponse.data;
+      // ✅ 1. Fetch personnel
+      await fetchData(
+        "personnels",
+        (personnel) => {
+          if (!personnel) {
+            toast({
+              title: "Not Found",
+              description: "Personnel data not found.",
+              status: "error",
+              duration: 3000,
+              isClosable: true,
+              position: "bottom-left",
+            });
+            navigate("/");
+            return;
+          }
 
-          // Adjust date fields to the correct format
+          // Adjust date formats
           setPersonnelData({
             ...personnel,
             panunumpa_date: personnel.panunumpa_date
@@ -1262,69 +1310,58 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
           // Set step based on enrollment_progress
           if (!stepParam) {
-            const enrollmentProgress = parseInt(
-              personnel.enrollment_progress,
-              10
-            );
-            setStep(enrollmentProgress || 1);
+            const progress = parseInt(personnel.enrollment_progress, 10);
+            setStep(progress || 1);
           }
-        } else {
+        },
+        (errorMsg) => {
           toast({
-            title: "Not Found",
-            description: "Personnel data not found.",
+            title: "Error",
+            description: errorMsg || "Failed to retrieve personnel data.",
             status: "error",
             duration: 3000,
             isClosable: true,
-            position: "bottom-left", // Position the toast on the bottom-left
+            position: "bottom-left",
           });
-          navigate("/"); // Redirect to home or login page
-          return;
-        }
+          navigate("/");
+        },
+        "Failed to fetch personnel data",
+        personnelId
+      );
 
-        // Fetch family members for the personnel
-        const familyMembersResponse = await axios.get(
-          `${API_URL}/api/get-family-members?personnel_id=${personnelId}`
-        );
-        if (familyMembersResponse.data) {
-          const members = familyMembersResponse.data;
-
-          // Organize family members by relationship type
+      // ✅ 2. Fetch family members
+      await fetchData(
+        "get-family-members",
+        (members) => {
           const organizedFamily = {
             parents: members.filter(
-              (member) =>
-                member.relationship_type === "Father" ||
-                member.relationship_type === "Mother"
+              (m) =>
+                m.relationship_type === "Father" ||
+                m.relationship_type === "Mother"
             ),
-            siblings: members.filter(
-              (member) => member.relationship_type === "Sibling"
-            ),
-            spouses: members.filter(
-              (member) => member.relationship_type === "Spouse"
-            ),
-            children: members.filter(
-              (member) => member.relationship_type === "Child"
-            ),
+            siblings: members.filter((m) => m.relationship_type === "Sibling"),
+            spouses: members.filter((m) => m.relationship_type === "Spouse"),
+            children: members.filter((m) => m.relationship_type === "Child"),
           };
-
           setFamily(organizedFamily);
-        }
-      } catch (error) {
-        console.error("Error fetching enrollment data:", error);
-        toast({
-          title: "Error",
-          description: "Failed to retrieve enrollment data.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-          position: "bottom-left", // Position the toast on the bottom-left
-        });
-        navigate("/"); // Redirect to home or login page
-      }
+        },
+        (errorMsg) => {
+          toast({
+            title: "Error",
+            description: errorMsg || "Failed to retrieve family members.",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+            position: "bottom-left",
+          });
+          navigate("/");
+        },
+        "Failed to fetch family members",
+        { personnel_id: personnelId }
+      );
     };
 
-    if (personnelId) {
-      fetchEnrollmentData();
-    }
+    fetchEnrollmentData();
   }, [personnelId, navigate, toast, stepParam]);
 
   return (

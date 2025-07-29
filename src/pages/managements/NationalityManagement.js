@@ -6,14 +6,14 @@ import {
   Input,
   Stack,
   Table,
-  Tbody,
-  Td,
-  Th,
   Thead,
+  Tbody,
   Tr,
-  useToast,
-  IconButton,
+  Th,
+  Td,
   Text,
+  IconButton,
+  useToast,
   AlertDialog,
   AlertDialogOverlay,
   AlertDialogContent,
@@ -22,135 +22,120 @@ import {
   AlertDialogFooter,
 } from "@chakra-ui/react";
 import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
-import axios from "axios";
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
 
-const ITEMS_PER_PAGE = 15;
+const ITEMS_PER_PAGE = 10;
 
 const NationalityManagement = () => {
   const [nationalities, setNationalities] = useState([]);
   const [filteredNationalities, setFilteredNationalities] = useState([]);
-  const [newNationality, setNewNationality] = useState({
-    country_name: "",
-    nationality: "",
-  });
-  const [isAdding, setIsAdding] = useState(false);
-  const [editingNationality, setEditingNationality] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [deletingNationality, setDeletingNationality] = useState(null);
+  const [newNationality, setNewNationality] = useState({ nationality: "", country_name: "" });
+  const [isAdding, setIsAdding] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [formData, setFormData] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
+  const [deleteId, setDeleteId] = useState(null);
+
   const toast = useToast();
   const cancelRef = useRef();
+  const inputRef = useRef(null);
 
   useEffect(() => {
     fetchNationalities();
   }, []);
 
-  const fetchNationalities = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/nationalities`
-      );
-      setNationalities(response.data);
-      setFilteredNationalities(response.data);
-    } catch (error) {
-      toast({
-        title: "Error loading nationalities",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
+  useEffect(() => {
+    const filtered = nationalities.filter((item) =>
+      item.nationality.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredNationalities(filtered);
+    setCurrentPage(1);
+  }, [searchTerm, nationalities]);
+
+  useEffect(() => {
+    if (editingId && inputRef.current) {
+      inputRef.current.focus();
     }
+  }, [editingId]);
+
+  const fetchNationalities = () => {
+    fetchData(
+      "nationalities",
+      (data) => {
+        setNationalities(data);
+        setFilteredNationalities(data);
+      },
+      (err) =>
+        toast({
+          title: "Error loading nationalities",
+          description: err,
+          status: "error",
+          duration: 3000,
+        }),
+      "Failed to fetch nationalities"
+    );
   };
 
-  const handleAddOrEditNationality = async () => {
-    if (!newNationality.country_name || !newNationality.nationality) {
+  const handleAdd = async () => {
+    if (!newNationality.nationality.trim()) {
       toast({
-        title: "Fields Required",
-        description: "Both Country Name and Nationality are required.",
+        title: "Nationality name is required",
         status: "warning",
         duration: 3000,
       });
       return;
     }
+
     try {
-      if (editingNationality) {
-        await axios.put(
-          `${process.env.REACT_APP_API_URL}/api/nationalities/${editingNationality.id}`,
-          newNationality
-        );
-        toast({
-          title: "Nationality updated",
-          status: "success",
-          duration: 3000,
-        });
-      } else {
-        await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/nationalities`,
-          newNationality
-        );
-        toast({
-          title: "Nationality added",
-          status: "success",
-          duration: 3000,
-        });
-      }
+      await postData("nationalities", newNationality, "Failed to add nationality");
       fetchNationalities();
-      setNewNationality({ country_name: "", nationality: "" });
+      setNewNationality({ nationality: "" });
       setIsAdding(false);
-      setEditingNationality(null);
-    } catch (error) {
+      toast({ title: "Nationality added", status: "success", duration: 3000 });
+    } catch (err) {
       toast({
-        title: `Error ${
-          editingNationality ? "updating" : "adding"
-        } nationality`,
-        description: error.message,
+        title: "Error adding",
+        description: err.message,
         status: "error",
         duration: 3000,
       });
     }
   };
 
-  const handleEditNationality = (nation) => {
-    setNewNationality({
-      country_name: nation.country_name,
-      nationality: nation.nationality,
-    });
-    setEditingNationality(nation);
-    setIsAdding(true);
-  };
+const handleEdit = (nat) => {
+  setEditingId(nat.id);
+  setFormData({
+    nationality: nat.nationality,
+    country_name: nat.country_name || "",
+  });
+};
 
-  const handleDeleteNationality = async () => {
-    if (!deletingNationality) return;
+  const handleUpdate = async () => {
     try {
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/nationalities/${deletingNationality.id}`
-      );
+      await putData("nationalities", editingId, formData, "Failed to update nationality");
       fetchNationalities();
-      toast({
-        title: "Nationality deleted",
-        status: "success",
-        duration: 3000,
-      });
-      setDeletingNationality(null);
-    } catch (error) {
-      toast({
-        title: "Error deleting nationality",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
+      setEditingId(null);
+      toast({ title: "Nationality updated", status: "success", duration: 3000 });
+    } catch (err) {
+      toast({ title: "Error updating", description: err.message, status: "error", duration: 3000 });
     }
   };
 
-  const handleSearch = (event) => {
-    setSearchTerm(event.target.value);
-    const filtered = nationalities.filter((nation) =>
-      `${nation.country_name} ${nation.nationality}`
-        .toLowerCase()
-        .includes(event.target.value.toLowerCase())
-    );
-    setFilteredNationalities(filtered);
-    setCurrentPage(1);
+  const handleDelete = async () => {
+    try {
+      await deleteData("nationalities", deleteId, () => {}, "Failed to delete nationality");
+      fetchNationalities();
+      setDeleteId(null);
+      toast({ title: "Nationality deleted", status: "success", duration: 3000 });
+    } catch (err) {
+      toast({ title: "Error deleting", description: err.message, status: "error", duration: 3000 });
+    }
   };
 
   const totalPages = Math.ceil(filteredNationalities.length / ITEMS_PER_PAGE);
@@ -159,206 +144,185 @@ const NationalityManagement = () => {
     currentPage * ITEMS_PER_PAGE
   );
 
-  const handlePageChange = (direction) => {
-    setCurrentPage((prev) =>
-      direction === "next"
-        ? Math.min(prev + 1, totalPages)
-        : Math.max(prev - 1, 1)
-    );
-  };
-
   return (
     <Box p={5}>
       <Stack spacing={4}>
-        <Text fontSize="28px" fontWeight="bold">
-          Nationality List
-        </Text>
+        <Text fontSize="28px" fontWeight="bold">Nationality List</Text>
 
         <Input
-          placeholder="Search by Country or Nationality"
+          placeholder="Search Nationality"
           value={searchTerm}
-          onChange={handleSearch}
-          mb={4}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
-
-        {/* Pagination Controls - Top */}
-        <Flex justify="space-between" align="center" mb={4}>
-          <Button
-            onClick={() => handlePageChange("previous")}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </Button>
-          <Text>
-            Page {currentPage} of {totalPages}
-          </Text>
-          <Button
-            onClick={() => handlePageChange("next")}
-            disabled={currentPage === totalPages}
-          >
-            Next
-          </Button>
+<Table variant="striped" size="sm">
+  <Thead>
+    <Tr>
+      <Th>#</Th>
+      <Th>Nationality</Th>
+      <Th>Country Name</Th>
+      <Th>
+        <Flex justify="space-between" align="center">
+          Actions
+          {!isAdding && (
+            <IconButton
+              icon={<AddIcon />}
+              size="sm"
+              variant="ghost"
+              colorScheme="green"
+              onClick={() => setIsAdding(true)}
+              aria-label="Add nationality"
+            />
+          )}
         </Flex>
+      </Th>
+    </Tr>
+  </Thead>
+  <Tbody>
+    {isAdding && (
+      <Tr>
+        <Td>—</Td>
+        <Td>
+          <Input
+            placeholder="Nationality"
+            value={newNationality.nationality}
+            onChange={(e) =>
+              setNewNationality({ ...newNationality, nationality: e.target.value })
+            }
+            autoFocus
+          />
+        </Td>
+        <Td>
+          <Input
+            placeholder="Country Name"
+            value={newNationality.country_name || ""}
+            onChange={(e) =>
+              setNewNationality({ ...newNationality, country_name: e.target.value })
+            }
+          />
+        </Td>
+        <Td>
+          <Flex justify="flex-end">
+            <Button onClick={handleAdd} colorScheme="green" size="sm" mr={2}>
+              Save
+            </Button>
+            <Button onClick={() => setIsAdding(false)} colorScheme="red" size="sm">
+              Cancel
+            </Button>
+          </Flex>
+        </Td>
+      </Tr>
+    )}
 
-        <Table variant="striped">
-          <Thead>
-            <Tr>
-              <Th>#</Th>
-              <Th>Country Name</Th>
-              <Th>Nationality</Th>
-              <Th>
-                <Flex justify="space-between" align="center">
-                  <span>Actions</span>
-                  {!isAdding && (
-                    <IconButton
-                      icon={<AddIcon />}
-                      onClick={() => setIsAdding(true)}
-                      size="sm"
-                      aria-label="Add nationality"
-                      variant="ghost"
-                      _hover={{ bg: "gray.100" }}
-                    />
-                  )}
-                </Flex>
-              </Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {isAdding && (
-              <Tr>
-                <Td>—</Td>
-                <Td>
-                  <Input
-                    placeholder="Country Name"
-                    value={newNationality.country_name}
-                    onChange={(e) =>
-                      setNewNationality({
-                        ...newNationality,
-                        country_name: e.target.value,
-                      })
-                    }
-                    autoFocus
-                  />
-                </Td>
-                <Td>
-                  <Input
-                    placeholder="Nationality"
-                    value={newNationality.nationality}
-                    onChange={(e) =>
-                      setNewNationality({
-                        ...newNationality,
-                        nationality: e.target.value,
-                      })
-                    }
-                  />
-                </Td>
-                <Td>
-                  <Flex justify="flex-end">
-                    <Button
-                      onClick={handleAddOrEditNationality}
-                      colorScheme="green"
-                      size="sm"
-                      mr={2}
-                    >
-                      {editingNationality ? "Save" : "Add"}
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setIsAdding(false);
-                        setEditingNationality(null);
-                        setNewNationality({
-                          country_name: "",
-                          nationality: "",
-                        });
-                      }}
-                      colorScheme="red"
-                      size="sm"
-                    >
-                      Cancel
-                    </Button>
-                  </Flex>
-                </Td>
-              </Tr>
-            )}
-            {currentItems.map((nation, index) => (
-              <Tr key={`${nation.id}-${index}`}>
-                <Td>{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</Td>
-                <Td>{nation.country_name}</Td>
-                <Td>{nation.nationality}</Td>
-                <Td>
-                  <Flex justify="flex-end">
-                    <IconButton
-                      icon={<EditIcon />}
-                      onClick={() => handleEditNationality(nation)}
-                      size="sm"
-                      mr={2}
-                      variant="ghost"
-                      colorScheme="yellow"
-                      aria-label="Edit nationality"
-                    />
-                    <IconButton
-                      icon={<DeleteIcon />}
-                      onClick={() => setDeletingNationality(nation)}
-                      size="sm"
-                      variant="ghost"
-                      colorScheme="red"
-                      aria-label="Delete nationality"
-                    />
-                  </Flex>
-                </Td>
-              </Tr>
-            ))}
-          </Tbody>
-        </Table>
+    {currentItems.map((nat, index) => (
+      <Tr key={nat.id}>
+        <Td>{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</Td>
 
-        {/* Pagination Controls - Bottom */}
-        <Flex justify="space-between" align="center" mt={4}>
-          <Button
-            onClick={() => handlePageChange("previous")}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </Button>
-          <Text>
-            Page {currentPage} of {totalPages}
-          </Text>
-          <Button
-            onClick={() => handlePageChange("next")}
-            disabled={currentPage === totalPages}
-          >
-            Next
-          </Button>
-        </Flex>
+        {editingId === nat.id ? (
+          <>
+            <Td>
+              <Input
+                ref={inputRef}
+                value={formData.nationality}
+                onChange={(e) =>
+                  setFormData({ ...formData, nationality: e.target.value })
+                }
+              />
+            </Td>
+            <Td>
+              <Input
+                value={formData.country_name}
+                onChange={(e) =>
+                  setFormData({ ...formData, country_name: e.target.value })
+                }
+              />
+            </Td>
+            <Td>
+              <Flex justify="flex-end">
+                <Button onClick={handleUpdate} colorScheme="blue" size="sm" mr={2}>
+                  Save
+                </Button>
+                <Button
+                  onClick={() => setEditingId(null)}
+                  colorScheme="red"
+                  size="sm"
+                >
+                  Cancel
+                </Button>
+              </Flex>
+            </Td>
+          </>
+        ) : (
+          <>
+            <Td>{nat.nationality}</Td>
+            <Td>{nat.country_name}</Td>
+            <Td>
+              <Flex justify="flex-end">
+                <IconButton
+                  icon={<EditIcon />}
+                  onClick={() => handleEdit(nat)}
+                  size="sm"
+                  variant="ghost"
+                  colorScheme="yellow"
+                  aria-label="Edit nationality"
+                  mr={2}
+                />
+                <IconButton
+                  icon={<DeleteIcon />}
+                  onClick={() => setDeleteId(nat.id)}
+                  size="sm"
+                  variant="ghost"
+                  colorScheme="red"
+                  aria-label="Delete nationality"
+                />
+              </Flex>
+            </Td>
+          </>
+        )}
+      </Tr>
+    ))}
+  </Tbody>
+</Table>
+
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <Flex justify="center" mt={4}>
+            <Button
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              isDisabled={currentPage === 1}
+              size="sm"
+            >
+              Previous
+            </Button>
+            <Text mx={4}>Page {currentPage} of {totalPages}</Text>
+            <Button
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              isDisabled={currentPage === totalPages}
+              size="sm"
+            >
+              Next
+            </Button>
+          </Flex>
+        )}
       </Stack>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Dialog */}
       <AlertDialog
-        isOpen={!!deletingNationality}
+        isOpen={deleteId !== null}
         leastDestructiveRef={cancelRef}
-        onClose={() => setDeletingNationality(null)}
+        onClose={() => setDeleteId(null)}
       >
         <AlertDialogOverlay>
           <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Delete Nationality
-            </AlertDialogHeader>
+            <AlertDialogHeader>Delete Nationality</AlertDialogHeader>
             <AlertDialogBody>
-              Are you sure you want to delete "
-              {deletingNationality?.country_name}"? This action cannot be
-              undone.
+              Are you sure you want to delete this nationality? This action cannot be undone.
             </AlertDialogBody>
             <AlertDialogFooter>
-              <Button
-                ref={cancelRef}
-                onClick={() => setDeletingNationality(null)}
-              >
+              <Button ref={cancelRef} onClick={() => setDeleteId(null)}>
                 Cancel
               </Button>
-              <Button
-                colorScheme="red"
-                onClick={handleDeleteNationality}
-                ml={3}
-              >
+              <Button colorScheme="red" onClick={handleDelete} ml={3}>
                 Delete
               </Button>
             </AlertDialogFooter>

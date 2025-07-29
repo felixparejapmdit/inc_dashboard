@@ -26,6 +26,13 @@ import axios from "axios";
 
 import { getAuthHeaders } from "../../utils/apiHeaders";
 
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
+
 const ITEMS_PER_PAGE = 15;
 
 const CitizenshipManagement = () => {
@@ -47,22 +54,22 @@ const CitizenshipManagement = () => {
     fetchCitizenships();
   }, []);
 
-  const fetchCitizenships = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/citizenships`,
-        { headers: getAuthHeaders() }
-      );
-      setCitizenships(response.data);
-      setFilteredCitizenships(response.data);
-    } catch (error) {
-      toast({
-        title: "Error loading citizenships",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
-    }
+  const fetchCitizenships = () => {
+    fetchData(
+      "citizenships", // endpoint
+      (data) => {
+        setCitizenships(data);
+        setFilteredCitizenships(data);
+      },
+      (errorMsg) =>
+        toast({
+          title: "Error loading citizenships",
+          description: errorMsg,
+          status: "error",
+          duration: 3000,
+        }),
+      "Failed to load citizenships."
+    );
   };
 
   const handleAddOrEditCitizenship = async () => {
@@ -77,9 +84,10 @@ const CitizenshipManagement = () => {
     }
     try {
       if (editingCitizenship) {
-        await axios.put(
-          `${process.env.REACT_APP_API_URL}/api/citizenships/${editingCitizenship.id}`,
-          newCitizenship
+        await putData(
+          `citizenships/${editingCitizenship.id}`,
+          newCitizenship,
+          "Failed to update citizenship."
         );
         toast({
           title: "Citizenship updated",
@@ -87,9 +95,10 @@ const CitizenshipManagement = () => {
           duration: 3000,
         });
       } else {
-        await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/citizenships`,
-          newCitizenship
+        await postData(
+          "citizenships",
+          newCitizenship,
+          "Failed to add citizenship."
         );
         toast({
           title: "Citizenship added",
@@ -113,21 +122,10 @@ const CitizenshipManagement = () => {
     }
   };
 
-  const handleEditCitizenship = (citizen) => {
-    setNewCitizenship({
-      country_name: citizen.country_name,
-      citizenship: citizen.citizenship,
-    });
-    setEditingCitizenship(citizen);
-    setIsAdding(true);
-  };
-
   const handleDeleteCitizenship = async () => {
     if (!deletingCitizenship) return;
     try {
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/citizenships/${deletingCitizenship.id}`
-      );
+      await deleteData("citizenships", deletingCitizenship.id);
       fetchCitizenships();
       toast({
         title: "Citizenship deleted",
@@ -143,6 +141,15 @@ const CitizenshipManagement = () => {
         duration: 3000,
       });
     }
+  };
+
+  const handleEditCitizenship = (citizen) => {
+    setNewCitizenship({
+      country_name: citizen.country_name,
+      citizenship: citizen.citizenship,
+    });
+    setEditingCitizenship(citizen);
+    setIsAdding(true);
   };
 
   const handleSearch = (event) => {

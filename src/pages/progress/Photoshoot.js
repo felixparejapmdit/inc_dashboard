@@ -35,6 +35,13 @@ import {
 import { BsUpload } from "react-icons/bs";
 import { MdPhotoCamera, MdDelete } from "react-icons/md";
 import Select from "react-select";
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
+
 const Photoshoot = ({ personnel, onSaveImage }) => {
   const [image, setImage] = useState(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
@@ -69,17 +76,12 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
   useEffect(() => {
     if (!personnelId) return;
 
-    const fetchImages = async () => {
-      try {
-        const response = await fetch(
-          `${process.env.REACT_APP_API_URL}/api/personnel_images/${personnelId}`
-        );
-        const data = await response.json();
-
-        if (data.success) {
+    fetchData(
+      "personnel_images",
+      (data) => {
+        if (data.success && Array.isArray(data.data)) {
           const imagesByType = {};
 
-          // Store images in the correct type slot
           data.data.forEach((img) => {
             imagesByType[
               img.type
@@ -92,12 +94,19 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
             "Full Body Picture": imagesByType["Full Body Picture"] || null,
           });
         }
-      } catch (error) {
-        console.error("Error fetching images:", error);
-      }
-    };
-
-    fetchImages();
+      },
+      (err) => {
+        console.error("Error fetching images:", err);
+        toast({
+          title: "Error loading images",
+          description: err,
+          status: "error",
+          duration: 3000,
+        });
+      },
+      "Failed to fetch personnel images",
+      personnelId // ✅ pass as optional route param
+    );
   }, [personnelId]);
 
   // Move to next step only if image is uploaded
@@ -168,34 +177,28 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
   };
 
   // Button to trigger the delete alert
-  const handleDeleteImage = async (id) => {
-    if (!id) return;
+  const handleDeleteImage = async () => {
+    if (!imageToDelete) return;
 
     try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/personnel_images/${imageToDelete}`,
-        {
-          method: "DELETE",
-        }
+      await deleteData("personnel_images", imageToDelete);
+      setImageList((prevList) =>
+        prevList.filter((img) => img.id !== imageToDelete)
       );
 
-      if (response.ok) {
-        setImageList(imageList.filter((img) => img.id !== imageToDelete));
-        toast({
-          title: "Image deleted successfully",
-          status: "info",
-          duration: 3000,
-          isClosable: true,
-        });
-      } else {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to delete the image.");
-      }
-    } catch (error) {
-      console.error("Error deleting image:", error);
       toast({
-        title: "Error",
-        description: error.message || "Something went wrong. Please try again.",
+        title: "Image deleted successfully",
+        status: "info",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: "Error deleting image",
+        description:
+          error.response?.data?.message ||
+          error.message ||
+          "Something went wrong. Please try again.",
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -252,73 +255,6 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
       closeCamera();
     }
   };
-
-  // const handleSaveImage = async () => {
-  //   if (!image) {
-  //     toast({
-  //       title: "No image to save",
-  //       description: "Please upload or capture an image before saving.",
-  //       status: "warning",
-  //       duration: 3000,
-  //       isClosable: true,
-  //     });
-  //     return;
-  //   }
-
-  //   const formData = new FormData();
-  //   formData.append("personnel_id", personnelId);
-  //   formData.append("type", getStepLabel(step));
-  //   const fileData = dataURLtoFile(image, `${Date.now()}.png`);
-  //   if (!fileData) {
-  //     toast({
-  //       title: "Image conversion failed",
-  //       description: "Please try again.",
-  //       status: "error",
-  //       duration: 3000,
-  //       isClosable: true,
-  //     });
-  //     return;
-  //   }
-
-  //   formData.append("image", fileData);
-
-  //   try {
-  //     const response = await fetch(
-  //       `${process.env.REACT_APP_API_URL}/api/personnel_images`,
-  //       {
-  //         method: "POST",
-  //         body: formData,
-  //       }
-  //     );
-
-  //     if (response.ok) {
-  //       toast({
-  //         title: "Image saved successfully",
-  //         status: "success",
-  //         duration: 3000,
-  //         isClosable: true,
-  //       });
-
-  //       // Update the stored images and move to next step
-  //       setImages((prev) => ({
-  //         ...prev,
-  //         [getStepLabel(step).toLowerCase().replace(/\s/g, "")]: image,
-  //       }));
-  //       setImage(null);
-  //       if (step < 2) nextStep();
-  //     } else {
-  //       throw new Error("Failed to save the image.");
-  //     }
-  //   } catch (err) {
-  //     toast({
-  //       title: "Error saving image",
-  //       description: "Something went wrong. Please try again.",
-  //       status: "error",
-  //       duration: 3000,
-  //       isClosable: true,
-  //     });
-  //   }
-  // };
 
   const handleSaveImage = async () => {
     if (!image) {

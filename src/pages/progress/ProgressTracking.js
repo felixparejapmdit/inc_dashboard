@@ -32,6 +32,12 @@ import {
 import axios from "axios";
 import { MdTrackChanges } from "react-icons/md"; // Import Track Icon
 
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
 const API_URL = process.env.REACT_APP_API_URL;
 
 const stages = [
@@ -57,11 +63,11 @@ const ProgressTracking = () => {
   // Chakra UI Hook for Slide Panel Control
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await axios.get(`${API_URL}/api/personnels/new`);
-        const formattedUsers = response.data.map((user) => ({
+  const fetchUsers = () => {
+    fetchData(
+      "personnels/new",
+      (data) => {
+        const formattedUsers = data.map((user) => ({
           ...user,
           fullname: `${user.givenname || ""} ${
             user.surname_husband || ""
@@ -70,78 +76,84 @@ const ProgressTracking = () => {
 
         setUsers(formattedUsers);
         setFilteredUsers(formattedUsers);
-      } catch (error) {
-        console.error("Error fetching users:", error);
+      },
+      (err) =>
         toast({
           title: "Error",
-          description: "Failed to fetch users.",
+          description: err,
           status: "error",
           duration: 3000,
           isClosable: true,
-        });
-      }
-    };
+        }),
+      "Failed to fetch users"
+    );
+  };
 
+  useEffect(() => {
     fetchUsers();
   }, [toast]);
 
-  const handleDelete = async (personnelId) => {
+  const handleDelete = (personnelId) => {
     const confirmDelete = window.confirm(
       "Are you sure you want to delete this personnel?"
     );
     if (!confirmDelete) return;
 
-    try {
-      await axios.delete(`${API_URL}/api/personnels/${personnelId}`);
-      toast({
-        title: "Deleted",
-        description: "Personnel record deleted successfully.",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+    deleteData(
+      "personnels",
+      personnelId,
+      () => {
+        toast({
+          title: "Deleted",
+          description: "Personnel record deleted successfully.",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
 
-      // Remove from local state
-      const updatedUsers = users.filter(
-        (user) => user.personnel_id !== personnelId
-      );
-      setUsers(updatedUsers);
-      setFilteredUsers(updatedUsers);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete personnel.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      console.error("Delete error:", error);
-    }
+        const updatedUsers = users.filter(
+          (user) => user.personnel_id !== personnelId
+        );
+        setUsers(updatedUsers);
+        setFilteredUsers(updatedUsers);
+      },
+      (err) => {
+        toast({
+          title: "Error",
+          description: err,
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        console.error("Delete error:", err);
+      },
+      "Failed to delete personnel"
+    );
   };
 
-  const handleUserSelect = async (user) => {
+  const handleUserSelect = (user) => {
     setLoading(true);
-    try {
-      const response = await axios.get(
-        `${API_URL}/api/personnels/${user.personnel_id}`
-      );
-      const updatedUser = response.data;
 
-      setSelectedUser(updatedUser);
-      setProgress(updatedUser.personnel_progress || 0);
-      onOpen(); // Open the sidebar when selecting a user
-    } catch (error) {
-      console.error("Error fetching selected user progress:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load user progress.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
-      setLoading(false);
-    }
+    fetchData(
+      "personnels", // endpoint
+      (updatedUser) => {
+        setSelectedUser(updatedUser);
+        setProgress(updatedUser.personnel_progress || 0);
+        onOpen(); // open sidebar
+      },
+      (err) => {
+        toast({
+          title: "Error",
+          description: err,
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      },
+      "Failed to load user progress", // error message
+      user.personnel_id, // the param (like /personnels/59)
+      () => setLoading(false) // finally
+    );
   };
 
   const handleSearch = (e) => {
@@ -161,7 +173,7 @@ const ProgressTracking = () => {
   return (
     <Flex p={6} bg="gray.50" minHeight="100vh">
       {/* Left: Personnel Table */}
-      <Box flex="2" pr={6}>
+      <Box flex="2" pr={6} zIndex={0}>
         <Heading as="h1" size="lg" textAlign="center" mb={6}>
           Personnel Progress Tracking
         </Heading>
@@ -338,19 +350,19 @@ const ProgressTracking = () => {
         </Box>
       </Slide>
 
-      {/* Background Overlay (Click Outside to Close) */}
-      {isOpen && (
-        <Box
-          position="fixed"
-          top="0"
-          left="0"
-          w="100%"
-          h="100vh"
-          bg="blackAlpha.500"
-          zIndex="10"
-          onClick={onClose}
-        />
-      )}
+ {/* Background Overlay (Click Outside to Close) */}
+  {isOpen && (
+    <Box
+      position="fixed"
+      top="0"
+      left="0"
+      w="100%"
+      h="100vh"
+      bg="blackAlpha.500"
+      zIndex={40} // Less than Slide (50)
+      onClick={onClose}
+    />
+  )}
     </Flex>
   );
 };

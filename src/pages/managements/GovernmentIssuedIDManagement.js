@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Button,
@@ -11,9 +11,16 @@ import {
   Thead,
   Tr,
   IconButton,
-  VStack,
   HStack,
   useToast,
+  useDisclosure,
+  AlertDialog,
+  AlertDialogOverlay,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogBody,
+  AlertDialogFooter,
+  Text,
 } from "@chakra-ui/react";
 import {
   AddIcon,
@@ -22,39 +29,62 @@ import {
   CheckIcon,
   CloseIcon,
 } from "@chakra-ui/icons";
-import axios from "axios";
+
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
 
 const GovernmentIssuedIDManagement = () => {
   const [governmentIDs, setGovernmentIDs] = useState([]);
+  const [filteredGovernmentIDs, setFilteredGovernmentIDs] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [newGovernmentID, setNewGovernmentID] = useState({ name: "" });
   const [editingGovernmentID, setEditingGovernmentID] = useState(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const [selectedDeleteId, setSelectedDeleteId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(filteredGovernmentIDs.length / itemsPerPage);
+  const paginatedIDs = filteredGovernmentIDs.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const cancelRef = useRef();
   const toast = useToast();
 
   useEffect(() => {
     fetchGovernmentIDs();
   }, []);
 
-  // Fetch Government IDs
-  const fetchGovernmentIDs = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/government-issued-ids`
-      );
-      setGovernmentIDs(response.data);
-    } catch (error) {
-      toast({
-        title: "Error fetching government-issued IDs.",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
-    }
+  useEffect(() => {
+    const filtered = governmentIDs.filter((id) =>
+      id.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredGovernmentIDs(filtered);
+    setCurrentPage(1); // reset page on search
+  }, [searchTerm, governmentIDs]);
+
+  const fetchGovernmentIDs = () => {
+    fetchData(
+      "government-issued-ids",
+      setGovernmentIDs,
+      (errorMsg) =>
+        toast({
+          title: "Error fetching government-issued IDs.",
+          description: errorMsg,
+          status: "error",
+          duration: 3000,
+        }),
+      "Failed to load government-issued IDs"
+    );
   };
 
-  // Add a New Government ID
   const handleAddGovernmentID = async () => {
     if (!newGovernmentID.name.trim()) {
       toast({
@@ -67,11 +97,12 @@ const GovernmentIssuedIDManagement = () => {
     }
 
     try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/government-issued-ids`,
-        newGovernmentID
+      const createdID = await postData(
+        "government-issued-ids",
+        newGovernmentID,
+        "Failed to add government-issued ID"
       );
-      setGovernmentIDs((prev) => [...prev, response.data]);
+      setGovernmentIDs((prev) => [...prev, createdID]);
       toast({
         title: "Government-issued ID added successfully.",
         status: "success",
@@ -89,7 +120,6 @@ const GovernmentIssuedIDManagement = () => {
     }
   };
 
-  // Edit an Existing Government ID
   const handleEditGovernmentID = async () => {
     if (!editingGovernmentID.name.trim()) {
       toast({
@@ -102,9 +132,11 @@ const GovernmentIssuedIDManagement = () => {
     }
 
     try {
-      await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/government-issued-ids/${editingGovernmentID.id}`,
-        { name: editingGovernmentID.name }
+      await putData(
+        "government-issued-ids",
+        editingGovernmentID.id,
+        { name: editingGovernmentID.name },
+        "Failed to update government-issued ID"
       );
       setGovernmentIDs((prev) =>
         prev.map((id) =>
@@ -127,18 +159,27 @@ const GovernmentIssuedIDManagement = () => {
     }
   };
 
-  // Delete a Government ID
-  const handleDeleteGovernmentID = async (id) => {
+  const handleDeleteGovernmentID = (id) => {
+    setSelectedDeleteId(id);
+    onOpen();
+  };
+
+  const confirmDeleteGovernmentID = async () => {
     try {
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/government-issued-ids/${id}`
+      await deleteData(
+        "government-issued-ids",
+        selectedDeleteId,
+        "Failed to delete government-issued ID"
       );
-      setGovernmentIDs((prev) => prev.filter((idData) => idData.id !== id));
+      setGovernmentIDs((prev) =>
+        prev.filter((idData) => idData.id !== selectedDeleteId)
+      );
       toast({
         title: "Government-issued ID deleted successfully.",
         status: "success",
         duration: 3000,
       });
+      onClose();
     } catch (error) {
       toast({
         title: "Error deleting government-issued ID.",
@@ -149,21 +190,14 @@ const GovernmentIssuedIDManagement = () => {
     }
   };
 
-  // Filtered Results for Search
-  const filteredGovernmentIDs = governmentIDs.filter((id) =>
-    id.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   return (
     <Box p={6}>
-      <Flex justifyContent="space-between" alignItems="center" mb={4}>
-        <Input
-          placeholder="Search by Government-issued ID"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          mb={4}
-        />
-      </Flex>
+      <Input
+        placeholder="Search by Government-issued ID"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        mb={4}
+      />
 
       <Table variant="simple" size="lg">
         <Thead>
@@ -180,7 +214,6 @@ const GovernmentIssuedIDManagement = () => {
                     size="sm"
                     aria-label="Add Government ID"
                     variant="ghost"
-                    _hover={{ bg: "gray.100" }}
                   />
                 )}
               </Flex>
@@ -204,7 +237,7 @@ const GovernmentIssuedIDManagement = () => {
                 />
               </Td>
               <Td>
-                <HStack>
+                <HStack justify="flex-end">
                   <Button
                     colorScheme="green"
                     size="sm"
@@ -223,10 +256,9 @@ const GovernmentIssuedIDManagement = () => {
               </Td>
             </Tr>
           )}
-          {filteredGovernmentIDs.map((id, index) => (
-            // <Tr key={id.id}>
+          {paginatedIDs.map((id, index) => (
             <Tr key={`${id.id}-${index}`}>
-              <Td>{index + 1}</Td>
+              <Td>{(currentPage - 1) * itemsPerPage + index + 1}</Td>
               <Td>
                 {editingGovernmentID?.id === id.id ? (
                   <Input
@@ -243,7 +275,7 @@ const GovernmentIssuedIDManagement = () => {
                 )}
               </Td>
               <Td>
-                <HStack>
+                <HStack justify="flex-end">
                   {editingGovernmentID?.id === id.id ? (
                     <>
                       <IconButton
@@ -281,6 +313,65 @@ const GovernmentIssuedIDManagement = () => {
           ))}
         </Tbody>
       </Table>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <HStack justify="center" mt={4}>
+          <Button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            isDisabled={currentPage === 1}
+            size="sm"
+          >
+            Previous
+          </Button>
+          <Text>
+            Page {currentPage} of {totalPages}
+          </Text>
+          <Button
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
+            isDisabled={currentPage === totalPages}
+            size="sm"
+          >
+            Next
+          </Button>
+        </HStack>
+      )}
+
+      {/* AlertDialog for delete confirmation */}
+      <AlertDialog
+        isOpen={isOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={onClose}
+        isCentered
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Delete Government-issued ID
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              Are you sure you want to delete this ID? This action cannot be
+              undone.
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onClose}>
+                Cancel
+              </Button>
+              <Button
+                colorScheme="red"
+                onClick={confirmDeleteGovernmentID}
+                ml={3}
+              >
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </Box>
   );
 };

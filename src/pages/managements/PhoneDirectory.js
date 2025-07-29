@@ -43,6 +43,12 @@ import {
 import * as XLSX from "xlsx";
 import axios from "axios";
 
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
 const ITEMS_PER_PAGE = 10;
 
 const PhoneDirectory = () => {
@@ -157,10 +163,7 @@ const PhoneDirectory = () => {
         });
 
         if (newEntries.length > 0) {
-          await axios.post(
-            `${process.env.REACT_APP_API_URL}/api/import-phone-directory`,
-            { data: newEntries }
-          );
+          await postData("import-phone-directory", { data: newEntries });
 
           alert("Data imported successfully!");
         } else {
@@ -178,36 +181,45 @@ const PhoneDirectory = () => {
     onClose(); // Close modal after import
   };
 
+  // ✅ Fetch names using fetchData
   useEffect(() => {
-    const fetchNames = async () => {
-      try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_API_URL}/api/phone-directory/names`
-        );
-        console.log(response.data); // Log the response to check data format
-        setNameList(response.data);
-      } catch (error) {
-        console.error("Failed to fetch names", error);
-      }
-    };
-
-    fetchNames();
+    fetchData(
+      "phone-directory/names",
+      (data) => {
+        console.log(data); // optional: log data to verify format
+        setNameList(data);
+      },
+      (err) =>
+        toast({
+          title: "Failed to fetch names",
+          description: err,
+          status: "error",
+          duration: 3000,
+        }),
+      "Failed to fetch names"
+    );
   }, []);
 
   useEffect(() => {
     fetchDirectory();
   }, []);
 
-  const fetchDirectory = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/phone-directory`
-      );
-      setDirectory(response.data);
-      setFiltered(response.data);
-    } catch (error) {
-      toast({ title: "Error loading data", status: "error", duration: 3000 });
-    }
+  const fetchDirectory = () => {
+    fetchData(
+      "phone-directory",
+      (data) => {
+        setDirectory(data);
+        setFiltered(data);
+      },
+      (err) =>
+        toast({
+          title: "Error loading data",
+          description: err,
+          status: "error",
+          duration: 3000,
+        }),
+      "Failed to fetch phone directory"
+    );
   };
 
   // 1️⃣ Search logic (always applies to full directory)
@@ -255,16 +267,10 @@ const PhoneDirectory = () => {
 
     try {
       if (editingEntry) {
-        await axios.put(
-          `${process.env.REACT_APP_API_URL}/api/phone-directory/${editingEntry.id}`,
-          entry
-        );
+        await putData("phone-directory", editingEntry.id, entry);
         toast({ title: "Entry updated", status: "success", duration: 3000 });
       } else {
-        await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/add_phone-directory`,
-          entry
-        );
+        await postData(`add_phone-directory`, entry);
         toast({ title: "Entry added", status: "success", duration: 3000 });
       }
 
@@ -288,9 +294,7 @@ const PhoneDirectory = () => {
 
   const handleDelete = async () => {
     try {
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/phone-directory/${deletingEntry.id}`
-      );
+      await deleteData("phone-directory", deletingEntry.id);
       toast({ title: "Entry deleted", status: "success", duration: 3000 });
       fetchDirectory();
     } catch (error) {
