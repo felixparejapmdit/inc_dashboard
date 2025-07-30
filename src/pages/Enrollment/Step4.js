@@ -204,48 +204,76 @@ const Step4 = ({
   }, [personnelId]);
 
   const fetchParents = () => {
-    if (!personnelId) return;
+  if (!personnelId) return;
 
-    const params = {
-      personnel_id: personnelId,
-      relationship_type: ["Father", "Mother"],
-    };
-
-    fetchData(
-      "get-family-members",
-      (res) => {
-        const parents = [
-          {
-            relationship_type: "Father",
-            givenname: "",
-            lastname: "",
-            isEditing: true,
-          },
-          {
-            relationship_type: "Mother",
-            givenname: "",
-            lastname: "",
-            isEditing: true,
-          },
-        ];
-
-        const mergedParents = parents.map(
-          (defaultParent) =>
-            res.find(
-              (item) =>
-                item.relationship_type === defaultParent.relationship_type
-            ) || { ...defaultParent, isEditing: true }
-        );
-
-        setData(mergedParents);
-      },
-      (err) => {
-        console.error("Error fetching parents:", err);
-      },
-      "Failed to fetch parent data.",
-      params
-    );
+  const params = {
+    personnel_id: personnelId,
+    relationship_type: ["Father", "Mother"],
   };
+
+  fetchData(
+    "get-family-members",
+    (res) => {
+      const parents = [
+        {
+          relationship_type: "Father",
+          givenname: "",
+          lastname: "",
+          bloodtype: "",
+          birthplace: "",
+          birthdate: "",
+          nationality: "",
+          religion: "",
+          occupation: "",
+          employer: "",
+          is_alive: true,
+          isEditing: true,
+        },
+        {
+          relationship_type: "Mother",
+          givenname: "",
+          lastname: "",
+          bloodtype: "",
+          birthplace: "",
+          birthdate: "",
+          nationality: "",
+          religion: "",
+          occupation: "",
+          employer: "",
+          is_alive: true,
+          isEditing: true,
+        },
+      ];
+
+      setData((prevData) => {
+        const mergedParents = parents.map((defaultParent) => {
+          const found = res.find(
+            (item) =>
+              item.relationship_type === defaultParent.relationship_type
+          );
+
+          const prevParent = prevData.find(
+            (p) => p.relationship_type === defaultParent.relationship_type
+          );
+
+          return {
+            ...defaultParent,
+            ...found,
+            isEditing: prevParent?.isEditing ?? true,
+          };
+        });
+
+        return mergedParents;
+      });
+    },
+    (err) => {
+      console.error("Error fetching parents:", err);
+    },
+    "Failed to fetch parent data.",
+    params
+  );
+};
+
 
   useEffect(() => {
     fetchParents();
@@ -326,19 +354,19 @@ const Step4 = ({
         response = await postData("family-members", formattedData);
       }
 
-      const savedParent = response.family_member || response;
+      const savedParent = response.family_member;
 
-      setData((prevData) => {
-        const newData = [...prevData];
-        newData[index] = {
-          ...prevData[index],
-          ...savedParent,
-          isEditing: false, // 🔁 Important: turn off edit mode
-        };
-        return newData;
-      });
+      // setData((prevData) => {
+      //   const newData = [...prevData];
+      //   newData[index] = {
+      //     ...prevData[index],
+      //     ...savedParent,
+      //     isEditing: false, // 🔁 Important: turn off edit mode
+      //   };
+      //   return newData;
+      // });
 
-      fetchParents();
+      await fetchParents();
 
       console.log("Saved parent from response:", savedParent);
 
