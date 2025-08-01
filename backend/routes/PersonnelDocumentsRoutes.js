@@ -4,6 +4,8 @@ const path = require("path");
 const router = express.Router();
 const personnelDocumentsController = require("../controllers/PersonnelDocumentsController");
 
+const verifyToken = require("../middlewares/authMiddleware");
+
 // Ensure the uploads directory exists
 const fs = require("fs");
 const uploadsDir = path.join(__dirname, "../uploads");
@@ -52,6 +54,7 @@ const upload = multer({
 // Route to upload a document
 router.post(
   "/api/personnel-documents/upload",
+  verifyToken,
   upload.single("file"), // Accept a single file
   personnelDocumentsController.uploadDocument
 );
@@ -59,6 +62,7 @@ router.post(
 // Route to get documents by personnel ID
 router.get(
   "/api/personnel-documents/:personnel_id",
+  verifyToken,
   personnelDocumentsController.getDocumentsByPersonnelId
 );
 

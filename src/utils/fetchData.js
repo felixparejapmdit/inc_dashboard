@@ -294,6 +294,36 @@ export const putSetting = async (
  * Reusable PUT request with ID in URL
  */
 
+// export const putData = async (
+//   endpoint,
+//   idOrPayload,
+//   maybePayload,
+//   errorMsg = "Failed to update data."
+// ) => {
+//   try {
+//     let url = `${API_URL}/api/${endpoint}`;
+//     let payload = {};
+
+//     if (typeof idOrPayload === "object") {
+//       // Case: called with (endpoint, payload, errorMsg)
+//       payload = idOrPayload;
+//     } else {
+//       // Case: called with (endpoint, id, payload, errorMsg)
+//       url += `/${idOrPayload}`;
+//       payload = maybePayload;
+//     }
+
+//     const response = await axios.put(url, payload, {
+//       headers: getAuthHeaders(),
+//     });
+
+//     return response.data;
+//   } catch (error) {
+//     console.error(`PUT error on ${endpoint}:`, error);
+//     throw new Error(errorMsg);
+//   }
+// };
+
 export const putData = async (
   endpoint,
   idOrPayload,
@@ -302,27 +332,51 @@ export const putData = async (
 ) => {
   try {
     let url = `${API_URL}/api/${endpoint}`;
+    
     let payload = {};
+    let isMultipart = false;
 
+    // Handle flexible parameter structure
     if (typeof idOrPayload === "object") {
-      // Case: called with (endpoint, payload, errorMsg)
       payload = idOrPayload;
     } else {
-      // Case: called with (endpoint, id, payload, errorMsg)
       url += `/${idOrPayload}`;
       payload = maybePayload;
     }
 
+    // Check for multipart data (e.g., file uploads)
+    if (payload && Object.values(payload).some((val) => val instanceof File)) {
+      isMultipart = true;
+      const formData = new FormData();
+
+      for (const key in payload) {
+        if (Array.isArray(payload[key])) {
+          // Handle arrays (e.g., tags[])
+          payload[key].forEach((item) =>
+            formData.append(`${key}[]`, item)
+          );
+        } else {
+          formData.append(key, payload[key]);
+        }
+      }
+
+      payload = formData;
+    }
+
     const response = await axios.put(url, payload, {
-      headers: getAuthHeaders(),
+      headers: {
+        ...getAuthHeaders(),
+        ...(isMultipart ? { "Content-Type": "multipart/form-data" } : {}),
+      },
     });
 
     return response.data;
   } catch (error) {
-    console.error(`PUT error on ${endpoint}:`, error);
+    console.error(`PUT error on ${endpoint}:`, error?.response || error);
     throw new Error(errorMsg);
   }
 };
+
 
 /**
  * Reusable DELETE request

@@ -747,7 +747,7 @@ const Login = () => {
     }
   };
 
-  const handleSubmit4 = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
@@ -774,7 +774,7 @@ const Login = () => {
           setIsLoading(false);
           return;
         }
-
+alert(username);
         const isPasswordValid = hashPassword(
           password,
           encryptionType,
@@ -788,10 +788,10 @@ const Login = () => {
             `${process.env.REACT_APP_API_URL}/api/users/login`,
             { username, password }
           );
-
+alert(isPasswordValid)
           const token = loginResponse.data.token;
           localStorage.setItem("authToken", token);
-
+alert(username)
           // Fetch the user ID for the local login and login status
           const userResponse = await axios.get(
             `${process.env.REACT_APP_API_URL}/api/users_access/${username}`,
@@ -912,7 +912,7 @@ const Login = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit4 = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
@@ -986,6 +986,7 @@ const Login = () => {
     } finally {
       setIsLoading(false);
     }
+    
   };
 
   return (

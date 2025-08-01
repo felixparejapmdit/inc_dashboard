@@ -397,9 +397,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
     const getBaseUrl = (endpoint) => {
       if (endpoint === "districts") {
         return DISTRICT_API_URL;
-      } else if (
-        endpoint === "all-congregations"
-      ) {
+      } else if (endpoint === "all-congregations") {
         return LOCAL_CONGREGATION_API_URL;
       } else {
         return API_URL;
@@ -904,28 +902,42 @@ const EnrollmentForm = ({ referenceNumber }) => {
           return;
         }
 
-        await axios.put(`${API_URL}/api/personnels/${personnelId}`, {
-          ...personnelData,
-          enrollment_progress: currentStep.toString(), // Update enrollment_progress
-        });
+        try {
+          await putData("personnels", personnelId, {
+            ...personnelData,
+            enrollment_progress: currentStep.toString(),
+          });
 
-        toast({
-          title: "Enrollment Updated",
-          description: "Your enrollment data has been updated successfully.",
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-          position: "bottom-left", // Position the toast on the bottom-left
-        });
+          toast({
+            title: "Enrollment Updated",
+            description: "Your enrollment data has been updated successfully.",
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+            position: "bottom-left",
+          });
+        } catch (error) {
+          toast({
+            title: "Update Failed",
+            description:
+              error.message ||
+              "Something went wrong while updating enrollment.",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+            position: "bottom-left",
+          });
+        }
 
         //updating personnel church duties
 
         // Delete the duties first
         if (dutiesToDelete.length > 0) {
           for (const dutyId of dutiesToDelete) {
-            await axios.delete(
-              `${API_URL}/api/personnel_church_duties/${dutyId}`
-            );
+            // await axios.delete(
+            //   `${API_URL}/api/personnel_church_duties/${dutyId}`
+            // );
+            await deleteData("personnel_church_duties", dutyId);
           }
           setDutiesToDelete([]); // Clear after deletion
         }
@@ -936,28 +948,23 @@ const EnrollmentForm = ({ referenceNumber }) => {
           personnelData.church_duties.length > 0
         ) {
           for (const duty of personnelData.church_duties) {
+            const payload = {
+              duty: duty.duty || null,
+              start_year: duty.start_year || null,
+              end_year: duty.end_year || null,
+            };
+
             try {
               if (duty.id) {
-                // Existing duty: update it
-                await axios.put(
-                  `${API_URL}/api/personnel_church_duties/${duty.id}`,
-                  {
-                    duty: duty.duty || null,
-                    start_year: duty.start_year || null,
-                    end_year: duty.end_year || null,
-                  }
-                );
+                await putData("personnel_church_duties", duty.id, payload);
               } else {
-                // New duty: create it
-                await axios.post(`${API_URL}/api/personnel_church_duties`, {
-                  personnel_id: personnelId, // Must know the personnel_id
-                  duty: duty.duty || null,
-                  start_year: duty.start_year || null,
-                  end_year: duty.end_year || null,
+                await postData("personnel_church_duties", {
+                  ...payload,
+                  personnel_id: personnelId,
                 });
               }
             } catch (error) {
-              console.error("Error handling next step:", error);
+              console.error("Error saving duty:", error);
               toast({
                 title: "Error",
                 description: error.message || "Failed to save the duty.",
@@ -1043,7 +1050,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
         });
       }
 
-      await axios.put(`${API_URL}/api/personnels/${personnelId}`, {
+      await putData("personnels", personnelId, {
         ...personnelData,
         enrollment_progress: currentStep.toString(), // Update enrollment_progress
       });
@@ -1133,14 +1140,15 @@ const EnrollmentForm = ({ referenceNumber }) => {
       } = personnelData;
 
       // Check for existing givenname and surname_husband combination
-      const existingCheckResponse = await axios.get(
-        `${API_URL}/api/personnels_check`, // Adjust the API endpoint if needed
+      const existingCheckResponse = await fetchData(
+        "personnels_check", // endpoint
+        null, // no state setter
+        null, // no custom error handler
+        null, // no custom error message
         {
-          params: {
-            givenname,
-            surname_husband,
-          },
-        }
+          givenname,
+          surname_husband,
+        } // passed as params object
       );
 
       if (existingCheckResponse.data.exists) {
@@ -1160,7 +1168,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
       }
 
       // Prepare the API payload dynamically
-      const response = await axios.post(`${API_URL}/api/personnels`, {
+      const response = await postData("personnels", {
         reference_number: null, // Can be generated later
         enrollment_progress: "1", // Required value
         personnel_progress: "0", // Required value
@@ -1203,12 +1211,14 @@ const EnrollmentForm = ({ referenceNumber }) => {
         personnelData.church_duties.length > 0
       ) {
         for (const duty of personnelData.church_duties) {
-          await axios.post(`${API_URL}/api/personnel_church_duties`, {
+          const payload = {
             personnel_id: personnel_id,
             duty: duty.duty || null,
             start_year: duty.start_year || null,
             end_year: duty.end_year || null,
-          });
+          };
+
+          await postData("personnel_church_duties", payload);
         }
       }
 
@@ -1236,18 +1246,21 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
       // Step 2: If `not_enrolled` exists, update the users table
       if (notEnrolledId) {
-        const userResponse = await axios.get(
-          `${API_URL}/api/users_access/${notEnrolledId}`
+        const userResponse = await fetchData(
+          `users_access`,
+          null,
+          null,
+          null,
+          notEnrolledId
         );
 
-        if (!userResponse.data) {
+        if (!userResponse) {
           throw new Error("User not found in the database.");
         }
-        //alert(notEnrolledId);
-        // Update the personnel_id in the users table
-        await axios.put(`${API_URL}/api/users/update`, {
+
+        await putData("users/update", {
           username: notEnrolledId,
-          personnel_id: personnel_id, // Use the newly created personnel_id
+          personnel_id: personnel_id,
         });
       }
 
@@ -1829,7 +1842,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
               onClick={async () => {
                 try {
                   // Update progress before redirecting
-                  await axios.put(`${API_URL}/api/users/update-progress`, {
+                  await putData("users/update-progress", {
                     personnel_id: personnelId,
                     personnel_progress: "1", // or any other progress level
                   });
@@ -1965,7 +1978,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
               <Button
                 colorScheme="blue"
                 width="full"
-                onClick={() => {
+                onClick={async () => {
                   toast({
                     title: "Enrollment Process Completed",
                     description:
@@ -1977,7 +1990,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
                   });
 
                   // Update progress
-                  axios.put(`${API_URL}/api/users/update-progress`, {
+                  await putData("users/update-progress", {
                     personnel_id: personnelId,
                     personnel_progress: "0",
                   });
@@ -2002,10 +2015,12 @@ const EnrollmentForm = ({ referenceNumber }) => {
                     onClick={async () => {
                       setIsDownloading(true);
                       try {
-                        const response = await axios.get(
-                          `${API_URL}/api/get-user-credentials`,
+                        const response = await fetchData(
+                          "get-user-credentials",
+                          null,
+                          null,
                           {
-                            params: { personnel_id: personnelId },
+                            personnel_id: personnelId,
                           }
                         );
 

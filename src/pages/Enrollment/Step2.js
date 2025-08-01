@@ -26,7 +26,12 @@ import {
 } from "@chakra-ui/icons";
 import axios from "axios";
 
-import { fetchData, postData, putData, deleteData } from "../../utils/fetchData";
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
 
 const Step2 = () => {
   const [contacts, setContacts] = useState([]);
@@ -63,21 +68,28 @@ const Step2 = () => {
     const fetchDropdownData = async () => {
       try {
         const [
-          contactTypeRes,
-          governmentIDRes,
-          phoneLocationsRes,
+          contactTypeData,
+          governmentIDData,
+          phoneLocationsData,
           phoneDirectoriesRes,
         ] = await Promise.all([
-          axios.get(`${process.env.REACT_APP_API_URL}/api/contact-type-info`),
-          axios.get(
-            `${process.env.REACT_APP_API_URL}/api/government-issued-ids`
+          new Promise((resolve, reject) =>
+            fetchData("contact-type-info", resolve, reject)
           ),
-          axios.get(`${process.env.REACT_APP_API_URL}/api/phonelocations`), // 📍 Contact Location
-          axios.get(`${process.env.REACT_APP_API_URL}/api/phone-directory`), // ☎️ Phone Nam
+          new Promise((resolve, reject) =>
+            fetchData("government-issued-ids", resolve, reject)
+          ),
+          new Promise((resolve, reject) =>
+            fetchData("phonelocations", resolve, reject)
+          ),
+          new Promise((resolve, reject) =>
+            fetchData("phone-directory", resolve, reject)
+          ),
         ]);
-        setContactTypes(contactTypeRes.data || []);
-        setGovernmentIDs(governmentIDRes.data || []);
-        setPhoneLocations(phoneLocationsRes.data || []);
+
+        setContactTypes(contactTypeData || []);
+        setGovernmentIDs(governmentIDData || []);
+        setPhoneLocations(phoneLocationsData || []);
         setPhoneDirectories(phoneDirectoriesRes.data || []);
       } catch (error) {
         console.error("Error fetching dropdown data:", error);
@@ -87,45 +99,52 @@ const Step2 = () => {
           status: "error",
           duration: 3000,
           isClosable: true,
-          position: "bottom-left", // Position the toast on the bottom-left
+          position: "bottom-left",
         });
       }
     };
 
     const fetchTableData = async () => {
+      setLoading(true);
       try {
-        const [contactsRes, addressesRes, govIDsRes] = await Promise.all([
-          axios.get(
-            `${process.env.REACT_APP_API_URL}/api/get-personnel-contacts`,
-            {
-              params: { personnel_id: personnelId },
-            }
+        const params = { personnel_id: personnelId };
+
+        await Promise.all([
+          fetchData(
+            "get-personnel-contacts",
+            (res) => {
+              setContacts(Array.isArray(res) ? res : []);
+            },
+            null,
+            null,
+            params
           ),
-          axios.get(
-            `${process.env.REACT_APP_API_URL}/api/personnel-addresses`,
-            {
-              params: { personnel_id: personnelId },
-            }
+          fetchData(
+            "personnel-addresses",
+            (res) => {
+              setAddresses(Array.isArray(res) ? res : []);
+            },
+            null,
+            null,
+            params
           ),
-          axios.get(`${process.env.REACT_APP_API_URL}/api/personnel-gov-ids`, {
-            params: { personnel_id: personnelId },
-          }),
+          fetchData(
+            "personnel-gov-ids",
+            (res) => {
+              setGovIDs(Array.isArray(res) ? res : []);
+            },
+            null,
+            null,
+            params
+          ),
         ]);
-
-        // Update state based on fetched data or set empty if no data
-        setContacts(Array.isArray(contactsRes.data) ? contactsRes.data : []);
-        setAddresses(Array.isArray(addressesRes.data) ? addressesRes.data : []);
-        setGovIDs(Array.isArray(govIDsRes.data) ? govIDsRes.data : []);
       } catch (error) {
-        // Log error to the console but do not show toast
         console.error("Error fetching table data:", error);
-
-        // Clear fields in case of error
         setContacts([]);
         setAddresses([]);
         setGovIDs([]);
       } finally {
-        setLoading(false); // Ensure loading state is reset
+        setLoading(false);
       }
     };
 
@@ -223,7 +242,6 @@ const Step2 = () => {
 
     try {
       if (contact.id) {
-        // **Force update even if the data is unchanged**
         console.log(
           "Updating contact with ID:",
           contact.id,
@@ -231,33 +249,47 @@ const Step2 = () => {
           payload
         );
 
-        await axios.put(
-          `${process.env.REACT_APP_API_URL}/api/personnel-contacts/${contact.id}`,
-          payload
-        );
-
-        toast({
-          title: "Contact updated successfully.",
-          status: "success",
-          duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
-        });
+        try {
+          await putData("personnel-contacts", contact.id, payload);
+          toast({
+            title: "Contact updated successfully.",
+            status: "success",
+            duration: 3000,
+            position: "bottom-left",
+          });
+        } catch (error) {
+          console.error("Error updating contact:", error);
+          toast({
+            title: "Failed to update contact.",
+            description: error.message || "Something went wrong.",
+            status: "error",
+            duration: 3000,
+            position: "bottom-left",
+          });
+        }
       } else {
-        // Save new record
         console.log("Saving new contact with payload:", payload);
-        const response = await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/personnel-contacts`,
-          payload
-        );
-        // Assign the new ID to the record
-        contact.id = response.data.id;
 
-        toast({
-          title: "Contact saved successfully.",
-          status: "success",
-          duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
-        });
+        try {
+          const response = await postData("personnel-contacts", payload);
+          contact.id = response.id;
+
+          toast({
+            title: "Contact saved successfully.",
+            status: "success",
+            duration: 3000,
+            position: "bottom-left",
+          });
+        } catch (error) {
+          console.error("Error saving contact:", error);
+          toast({
+            title: "Failed to save contact.",
+            description: error.message || "Something went wrong.",
+            status: "error",
+            duration: 3000,
+            position: "bottom-left",
+          });
+        }
       }
 
       // Disable editing after save
@@ -297,14 +329,12 @@ const Step2 = () => {
       if (!confirmed) return;
 
       try {
-        await axios.delete(
-          `${process.env.REACT_APP_API_URL}/api/personnel-contacts/${contact.id}`
-        );
+        await deleteData("personnel-contacts", contact.id);
         toast({
           title: "Contact deleted successfully.",
           status: "success",
           duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
+          position: "bottom-left",
         });
       } catch (error) {
         console.error("Error deleting contact:", error);
@@ -314,10 +344,11 @@ const Step2 = () => {
             error.response?.data?.error || "Failed to delete contact.",
           status: "error",
           duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
+          position: "bottom-left",
         });
       }
     }
+
     // Remove contact from the state
     setContacts(contacts.filter((_, i) => i !== idx));
   };
@@ -339,34 +370,48 @@ const Step2 = () => {
           "Payload:",
           payload
         );
-        await axios.put(
-          `${process.env.REACT_APP_API_URL}/api/personnel-addresses/${address.id}`,
-          payload
-        );
 
-        toast({
-          title: "Address updated successfully.",
-          status: "success",
-          duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
-        });
+        try {
+          await putData("personnel-addresses", address.id, payload);
+
+          toast({
+            title: "Address updated successfully.",
+            status: "success",
+            duration: 3000,
+            position: "bottom-left",
+          });
+        } catch (error) {
+          console.error("Error updating address:", error);
+          toast({
+            title: "Failed to update address.",
+            status: "error",
+            duration: 3000,
+            position: "bottom-left",
+          });
+        }
       } else {
         // Save new record
         console.log("Saving new record with payload:", payload);
-        const response = await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/personnel-addresses`,
-          payload
-        );
 
-        // Assign the new ID to the record
-        address.id = response.data.id;
+        try {
+          const response = await postData("personnel-addresses", payload);
+          address.id = response.id;
 
-        toast({
-          title: "Address saved successfully.",
-          status: "success",
-          duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
-        });
+          toast({
+            title: "Address saved successfully.",
+            status: "success",
+            duration: 3000,
+            position: "bottom-left",
+          });
+        } catch (error) {
+          console.error("Error saving address:", error);
+          toast({
+            title: "Failed to save address.",
+            status: "error",
+            duration: 3000,
+            position: "bottom-left",
+          });
+        }
       }
 
       // Disable editing after save
@@ -414,38 +459,36 @@ const Step2 = () => {
     });
   };
 
-  const handleRemoveAddress = (idx) => {
+  const handleRemoveAddress = async (idx) => {
     const address = addresses[idx];
+
     if (address.id) {
       // Confirm before deleting existing record
       if (window.confirm("Are you sure you want to delete this address?")) {
-        axios
-          .delete(
-            `${process.env.REACT_APP_API_URL}/api/personnel-addresses/${address.id}`
-          )
-          .then(() => {
-            toast({
-              title: "Address deleted successfully.",
-              status: "success",
-              duration: 3000,
-              position: "bottom-left", // Position the toast on the bottom-left
-            });
+        try {
+          await deleteData("personnel-addresses", address.id);
 
-            // Remove from state
-            const updatedAddresses = addresses.filter((_, i) => i !== idx);
-            setAddresses(updatedAddresses);
-          })
-          .catch((error) => {
-            console.error("Error deleting address:", error);
-            toast({
-              title: "Error deleting address.",
-              description:
-                error.response?.data?.error || "Failed to delete address.",
-              status: "error",
-              duration: 3000,
-              position: "bottom-left", // Position the toast on the bottom-left
-            });
+          toast({
+            title: "Address deleted successfully.",
+            status: "success",
+            duration: 3000,
+            position: "bottom-left",
           });
+
+          // Remove from state
+          const updatedAddresses = addresses.filter((_, i) => i !== idx);
+          setAddresses(updatedAddresses);
+        } catch (error) {
+          console.error("Error deleting address:", error);
+          toast({
+            title: "Error deleting address.",
+            description:
+              error.response?.data?.error || "Failed to delete address.",
+            status: "error",
+            duration: 3000,
+            position: "bottom-left",
+          });
+        }
       }
     } else {
       // Remove unsaved row
@@ -467,33 +510,56 @@ const Step2 = () => {
         // **Force update even if the data is unchanged**
         console.log("Updating record with ID:", govID.id, "Payload:", payload);
 
-        await axios.put(
-          `${process.env.REACT_APP_API_URL}/api/personnel-gov-ids/${govID.id}`,
-          payload
+        await putData(
+          "personnel-gov-ids",
+          govID.id,
+          payload,
+          () => {
+            toast({
+              title: "Government ID updated successfully.",
+              status: "success",
+              duration: 3000,
+              position: "bottom-left",
+            });
+          },
+          (error) => {
+            toast({
+              title: "Failed to update Government ID.",
+              description:
+                error?.response?.data?.message || "Something went wrong.",
+              status: "error",
+              duration: 3000,
+              position: "bottom-left",
+            });
+          }
         );
-
-        toast({
-          title: "Government ID updated successfully.",
-          status: "success",
-          duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
-        });
       } else {
-        // Save new record
         console.log("Saving new record with payload:", payload);
-        const response = await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/personnel-gov-ids`,
-          payload
-        );
-        // Assign the new ID to the record
-        govID.id = response.data.id;
 
-        toast({
-          title: "Government ID saved successfully.",
-          status: "success",
-          duration: 3000,
-          position: "bottom-left", // Position the toast on the bottom-left
-        });
+        const response = await postData(
+          "personnel-gov-ids",
+          payload,
+          (res) => {
+            toast({
+              title: "Government ID saved successfully.",
+              status: "success",
+              duration: 3000,
+              position: "bottom-left",
+            });
+          },
+          (error) => {
+            toast({
+              title: "Failed to save Government ID.",
+              description:
+                error?.response?.data?.message || "Something went wrong.",
+              status: "error",
+              duration: 3000,
+              position: "bottom-left",
+            });
+          }
+        );
+
+        govID.id = response.data?.id;
       }
 
       // Disable editing after save
@@ -565,10 +631,20 @@ const Step2 = () => {
 
       console.log("Uploading document:", file.name, "Size:", file.size);
 
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/personnel-documents/upload`,
+      const response = await postData(
+        "personnel-documents/upload",
         formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        (data) => {
+          // Success handler
+          console.log("Upload successful:", data);
+        },
+        (error) => {
+          // Error handler
+          console.error("Upload failed:", error);
+        },
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
       );
 
       console.log("Upload response:", response.data);
@@ -613,27 +689,41 @@ const Step2 = () => {
     if (!confirmed) return;
 
     try {
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/personnel-gov-ids/${govID.id}`,
-        { params: { personnel_id: personnelId } } // Send personnel_id as a parameter
+      await deleteData(
+        "personnel-gov-ids",
+        govID.id,
+        () => {
+          setGovIDs((prevGovIDs) =>
+            prevGovIDs.filter((_, idx) => idx !== index)
+          );
+          toast({
+            title: "Government-issued ID deleted successfully.",
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+            position: "bottom-left",
+          });
+        },
+        (error) => {
+          console.error("Error deleting government-issued ID:", error);
+          toast({
+            title: "Error deleting government-issued ID",
+            description:
+              error?.response?.data?.message ||
+              "Failed to delete the government-issued ID.",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+            position: "bottom-left",
+          });
+        },
+        { personnel_id: personnelId } // params
       );
-
-      setGovIDs((prevGovIDs) => prevGovIDs.filter((_, idx) => idx !== index));
-
-      toast({
-        title: "Government-issued ID deleted successfully.",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-        position: "bottom-left",
-      });
     } catch (error) {
-      console.error("Error deleting government-issued ID:", error);
+      // fallback just in case the utility function doesn't catch this
+      console.error("Unexpected error:", error);
       toast({
-        title: "Error deleting government-issued ID",
-        description:
-          error.response?.data?.message ||
-          "Failed to delete the government-issued ID.",
+        title: "Unexpected error",
         status: "error",
         duration: 3000,
         isClosable: true,

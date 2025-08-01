@@ -822,8 +822,6 @@ router.post("/api/users/login", async (req, res) => {
         isMatch = verifyMD5(password, storedHash);
       }
  
-      
-
       if (!isMatch) {
         return res
           .status(401)

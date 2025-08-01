@@ -4,26 +4,50 @@ const fileController = require("../controllers/fileController"); // Ensure the c
 const { shareFile } = require("../services/fileShareService"); // Import shareFile function from the appropriate service
 const upload = require("../middlewares/upload"); // path to your upload config
 
-// CRUD routes for files
-router.get("/api/files", fileController.getAllFiles);
-router.get("/api/files/:id", fileController.getFileById);
-// Get files by user ID
-router.get("/api/files/user/:userId", fileController.getFileByUserID);
+const verifyToken = require("../middlewares/authMiddleware");
 
-router.get("/api/files/:id/shared-users", fileController.getSharedUsers);
+// CRUD routes for files
+router.get("/api/files", verifyToken, fileController.getAllFiles);
+router.get("/api/files/:id", verifyToken, fileController.getFileById);
+// Get files by user ID
+router.get(
+  "/api/files/user/:userId",
+  verifyToken,
+  fileController.getFileByUserID
+);
+
+router.get(
+  "/api/files/:id/shared-users",
+  verifyToken,
+  fileController.getSharedUsers
+);
 
 // router.post("/api/add-file", fileController.createFile);
 // router.put("/api/file-management/:id", fileController.updateFile);
-router.delete("/api/file-management/:id", fileController.deleteFile);
+router.delete(
+  "/api/file-management/:id",
+  verifyToken,
+  fileController.deleteFile
+);
 
 // POST: Add File (with thumbnail)
-router.post("/api/add-file", upload.single("thumbnail"), fileController.createFile);
+router.post(
+  "/api/add-file",
+  upload.single("thumbnail"),
+  verifyToken,
+  fileController.createFile
+);
 
 // PUT: Update File
-router.put("/file-management/:id", upload.single("thumbnail"), fileController.updateFile);
+router.put(
+  "/:id",
+  upload.single("thumbnail"),
+  verifyToken,
+  fileController.updateFile
+);
 
 // Share file with multiple users
-router.post("/api/files/share", async (req, res) => {
+router.post("/api/files/share", verifyToken, async (req, res) => {
   const { file_id, user_ids } = req.body;
 
   if (!file_id || !Array.isArray(user_ids) || user_ids.length === 0) {
