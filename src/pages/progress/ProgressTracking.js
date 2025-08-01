@@ -34,6 +34,8 @@ import { MdTrackChanges } from "react-icons/md"; // Import Track Icon
 
 import {
   fetchData,
+  fetchProgressData,  
+  fetchEnrollData,
   postData,
   putData,
   deleteData,
@@ -64,7 +66,7 @@ const ProgressTracking = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const fetchUsers = () => {
-    fetchData(
+    fetchEnrollData(
       "personnels/new",
       (data) => {
         const formattedUsers = data.map((user) => ({
@@ -134,7 +136,7 @@ const ProgressTracking = () => {
   const handleUserSelect = (user) => {
     setLoading(true);
 
-    fetchData(
+    fetchProgressData(
       "personnels", // endpoint
       (updatedUser) => {
         setSelectedUser(updatedUser);

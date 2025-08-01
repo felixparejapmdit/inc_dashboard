@@ -26,7 +26,13 @@ import axios from "axios";
 
 import { Search2Icon, SearchIcon, CheckIcon } from "@chakra-ui/icons";
 
-import { fetchData, postData, putData, deleteData } from "../../utils/fetchData";
+import {
+  fetchData,
+  fetchEnrollData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -44,7 +50,7 @@ const Step7 = () => {
 
   const fetchPersonnel = () => {
     setLoading(true);
-    fetchData(
+    fetchEnrollData(
       "personnels/progress",
       (data) => {
         setPersonnelList(data);
@@ -66,9 +72,9 @@ const Step7 = () => {
     });
   };
 
-    useEffect(() => {
-      fetchPersonnel();
-    }, [toast]);
+  useEffect(() => {
+    fetchPersonnel();
+  }, [toast]);
 
   const handleSearch = (e) => {
     const query = e.target.value.toLowerCase();
@@ -96,14 +102,14 @@ const Step7 = () => {
 
     setLoading(true);
     try {
-       await putData(
-              "users/update-progress",
-              {
-                personnel_id: selectedUser.personnel_id,
-                personnel_progress: 7, // Step 7
-              },
-              "Failed to verify personnel"
-            );
+      await putData(
+        "users/update-progress",
+        {
+          personnel_id: selectedUser.personnel_id,
+          personnel_progress: 7, // Step 7
+        },
+        "Failed to verify personnel"
+      );
 
       setIsVerified(true);
       toast({

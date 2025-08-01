@@ -825,7 +825,7 @@ router.post("/api/users/login", async (req, res) => {
       if (!isMatch) {
         return res
           .status(401)
-          .json({ success: false, message: "Invalid username or password" });
+          .json({ success: false, message: "Invalid username or password111" + storedHash });
       }
 
         // ✅ Generate JWT Token

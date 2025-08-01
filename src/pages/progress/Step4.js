@@ -36,6 +36,7 @@ import { on } from "process";
 
 import {
   fetchData,
+  fetchEnrollData,
   postData,
   putData,
   deleteData,
@@ -71,7 +72,7 @@ const Step4 = () => {
   // Fetch new personnel list
   const fetchPersonnel = () => {
     setLoading(true);
-    fetchData(
+    fetchEnrollData(
       "personnels/progress",
       (data) => {
         setPersonnelList(data);
@@ -183,7 +184,7 @@ const Step4 = () => {
   const fetchPersonnelDetails = async (personnelId) => {
     setLoading(true);
 
-    fetchData(
+    fetchEnrollData(
       "personnels", // endpoint
       (data) => {
         setPersonnelInfo(data);
@@ -217,7 +218,7 @@ const Step4 = () => {
       internetGuidelines: false,
     });
 
-    fetchData(
+    fetchEnrollData(
       "personnels",
       (data) => {
         setPersonnelInfo(data);

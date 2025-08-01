@@ -10,6 +10,7 @@ import {
   Heading,
   VStack,
   IconButton,
+  useToast,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -44,7 +45,7 @@ const Reminders = () => {
     onClose: onEditClose,
   } = useDisclosure();
   const [editingReminder, setEditingReminder] = useState(null);
-
+const toast = useToast();
   // State for delete confirmation dialog
   const {
     isOpen: isDeleteOpen,
@@ -55,16 +56,25 @@ const Reminders = () => {
   const cancelRef = useRef();
 
   const userId = localStorage.getItem("userId");
-
+  // Fetch all reminders
   useEffect(() => {
-    fetch(`${API_URL}/api/reminders`)
-      .then((res) => res.json())
-      .then((data) => setReminders(data))
-      .catch((err) => console.error(err));
+    fetchData(
+      "reminders",
+      setReminders,
+      (err) =>
+        toast({
+          title: "Error loading reminders",
+          description: err,
+          status: "error",
+          duration: 3000,
+        }),
+      "Failed to fetch reminders"
+    );
   }, []);
 
-  const handleAddReminder = (e) => {
+  const handleAddReminder = async (e) => {
     e.preventDefault();
+
     const newReminder = {
       title,
       description,
@@ -74,53 +84,63 @@ const Reminders = () => {
       created_by: userId,
     };
 
-    if (editingReminder) {
-      fetch(`${API_URL}/api/reminders/${editingReminder.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newReminder),
-      })
-        .then(() => {
-          setReminders((prevReminders) =>
-            prevReminders.map((item) =>
-              item.id === editingReminder.id ? newReminder : item
-            )
-          );
-          onEditClose();
-        })
-        .catch(() => alert("Error updating reminder. Please try again."));
-    } else {
-      fetch(`${API_URL}/api/reminders`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newReminder),
-      })
-        .then(() => {
-          setReminders((prevReminders) => [...prevReminders, newReminder]);
-          onClose();
-        })
-        .catch(() => alert("Error adding reminder. Please try again."));
+    try {
+      if (editingReminder) {
+        await putData("reminders", editingReminder.id, newReminder);
+        setReminders((prev) =>
+          prev.map((r) =>
+            r.id === editingReminder.id ? { ...newReminder, id: r.id } : r
+          )
+        );
+        setEditingReminder(null);
+        toast({
+          title: "Reminder updated",
+          status: "success",
+          duration: 3000,
+        });
+      } else {
+        const addedReminder = await postData("reminders", newReminder);
+        setReminders((prev) => [...prev, addedReminder]);
+        toast({
+          title: "Reminder added",
+          status: "success",
+          duration: 3000,
+        });
+      }
+      onClose?.();
+      onEditClose?.();
+    } catch (error) {
+      toast({
+        title: "Error saving reminder",
+        description: error.message,
+        status: "error",
+        duration: 3000,
+      });
     }
   };
 
-  const handleDeleteReminder = () => {
-    fetch(`${API_URL}/api/reminders/${deletingReminderId}`, {
-      method: "DELETE",
-    })
-      .then(() => {
-        setReminders(
-          reminders.filter((item) => item.id !== deletingReminderId)
-        );
-        onDeleteClose();
-      })
-      .catch((err) => {
-        console.error("Error deleting reminder:", err);
-        onDeleteClose();
+  const handleDeleteReminder = async () => {
+    if (!deletingReminderId) return;
+    try {
+      await deleteData("reminders", deletingReminderId);
+      setReminders((prev) =>
+        prev.filter((reminder) => reminder.id !== deletingReminderId)
+      );
+      toast({
+        title: "Reminder deleted",
+        status: "success",
+        duration: 3000,
       });
+    } catch (error) {
+      toast({
+        title: "Error deleting reminder",
+        description: error.message,
+        status: "error",
+        duration: 3000,
+      });
+    } finally {
+      onDeleteClose?.();
+    }
   };
 
   const openDeleteDialog = (id) => {

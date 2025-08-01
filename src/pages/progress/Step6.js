@@ -33,7 +33,13 @@ import axios from "axios";
 import useGetNamesByIds from "../../hooks/useGetNamesByIds";
 import useLookupData from "../../hooks/useLookupData";
 
-import { fetchData, postData, putData, deleteData } from "../../utils/fetchData";
+import {
+  fetchData,
+  fetchEnrollData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -61,7 +67,7 @@ const Step6 = () => {
   // Fetch new personnel list
   const fetchPersonnel = () => {
     setLoading(true);
-    fetchData(
+    fetchEnrollData(
       "personnels/progress",
       (data) => {
         setPersonnelList(data);
@@ -127,14 +133,14 @@ const Step6 = () => {
 
     setLoading(true);
     try {
-       await putData(
-           "users/update-progress",
-           {
-             personnel_id: selectedUser.personnel_id,
-             personnel_progress: 6, // Step 6
-           },
-           "Failed to verify personnel"
-         );
+      await putData(
+        "users/update-progress",
+        {
+          personnel_id: selectedUser.personnel_id,
+          personnel_progress: 6, // Step 6
+        },
+        "Failed to verify personnel"
+      );
       toast({
         title: "Step Verified",
         description:
@@ -173,7 +179,7 @@ const Step6 = () => {
   const fetchPersonnelDetails = async (personnelId) => {
     setLoading(true);
 
-    fetchData(
+    fetchEnrollData(
       "personnels", // endpoint
       (data) => {
         setPersonnelInfo(data);
@@ -199,7 +205,7 @@ const Step6 = () => {
     fetchPersonnelDetails(user.personnel_id);
 
     onOpen(); // Open the modal to show personnel details
-    fetchData(
+    fetchEnrollData(
       "personnels",
       (data) => {
         setPersonnelInfo(data);
@@ -438,8 +444,6 @@ const Step6 = () => {
                         Final checking of information sheet
                       </Checkbox>
                     </VStack>
-
-                    
                   </Flex>
                 </VStack>
               </ModalBody>

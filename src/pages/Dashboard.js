@@ -149,33 +149,38 @@ export default function Dashboard() {
   };
 
   const handleNextcloudLogin = () => {
-    const username = localStorage.getItem("username"); // Get logged-in username
+    const username = localStorage.getItem("username");
 
-    fetch(`${API_URL}/api/nextcloud-login?username=${username}`)
-      .then((response) => response.json())
-      .then((data) => {
+    if (!username) {
+      console.error("Username not found in local storage.");
+      return;
+    }
+
+    fetchData(
+      `nextcloud-login?username=${username}`,
+      (data) => {
         if (data.nextcloudUrl) {
-          window.location.href = data.nextcloudUrl; // Redirect to Nextcloud
+          window.location.href = data.nextcloudUrl;
         } else {
-          console.error("Failed to retrieve Nextcloud login URL");
+          console.error("Nextcloud login URL not found in response.");
         }
-      })
-      .catch((error) => {
+      },
+      (error) => {
         console.error("Error logging in to Nextcloud:", error);
-      });
+      }
+    );
   };
 
   const [loginAudits, setLoginAudits] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    fetch(`${API_URL}/api/login-audits/recent`)
-      .then((res) => res.json())
-      .then((data) => {
-        setLoginAudits(data);
-      })
-      .catch((err) => console.error("Failed to fetch login audits:", err));
-  }, [API_URL]);
+    fetchData(
+      "login-audits/recent",
+      (data) => setLoginAudits(data),
+      (error) => console.error("Failed to fetch login audits:", error)
+    );
+  }, []);
 
   // Filter audits by username based on search term (case-insensitive)
   const filteredAudits = useMemo(() => {
@@ -260,26 +265,13 @@ export default function Dashboard() {
       return;
     }
 
-    // Fetch events and reminders
-    fetch(`${API_URL}/api/events`)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to fetch events");
-        }
-        return response.json();
-      })
-      .then((data) => setEvents(data))
-      .catch((error) => console.error("Error fetching events:", error));
+    fetchData("events", setEvents, (err) =>
+      console.error("Error fetching events:", err)
+    );
 
-    fetch(`${API_URL}/api/reminders`)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to fetch reminders");
-        }
-        return response.json();
-      })
-      .then((data) => setReminders(data))
-      .catch((error) => console.error("Error fetching reminders:", error));
+    fetchData("reminders", setReminders, (err) =>
+      console.error("Error fetching reminders:", err)
+    );
 
     // Fetch logged-in user and available apps using username
     const url = `${API_URL}/api/users/logged-in?username=${encodeURIComponent(
@@ -326,37 +318,6 @@ export default function Dashboard() {
       });
   }, []); // Empty dependency array to run once on component mount
 
-  // useEffect(() => {
-  //   if (currentUser && currentUser.id) {
-  //     console.log("Fetching categorized apps for user ID:", currentUser.id);
-
-  //     fetch(`${API_URL}/api/apps/available`, {
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         "x-user-id": currentUser.id,
-  //       },
-  //     })
-  //       .then((response) => {
-  //         if (!response.ok) {
-  //           throw new Error(`Failed to fetch apps: ${response.statusText}`);
-  //         }
-  //         return response.json();
-  //       })
-  //       .then((data) => {
-  //         if (data.pmdApplications && data.otherApplications) {
-  //           setApps(data); // Set apps if data is an array
-  //           setPmdApplications(data.pmdApplications);
-  //           setOtherApplications(data.otherApplications);
-  //         } else {
-  //           console.error("Unexpected response format for apps:", data);
-  //         }
-  //       })
-  //       .catch((error) => {
-  //         console.error("Error fetching apps:", error);
-  //       });
-  //   }
-  // }, [currentUser]); // Run when `currentUser` updates
-
   useEffect(() => {
     fetchApplicationTypes();
   }, []);
@@ -375,11 +336,9 @@ export default function Dashboard() {
 
   const fetchApplicationTypes = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/application-types`,
-        {
-          headers: getAuthHeaders()
-        }
-      );
+      const response = await fetch(`${API_URL}/api/application-types`, {
+        headers: getAuthHeaders(),
+      });
       if (!response.ok) throw new Error("Failed to fetch application types");
       const data = await response.json();
       setAppTypes(data); // Store fetched app types dynamically

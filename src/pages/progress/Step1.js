@@ -37,6 +37,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import {
   fetchData,
+  fetchEnrollData,
   postData,
   putData,
   deleteData,
@@ -59,7 +60,7 @@ const Step1 = () => {
 
   // Fetch all users
   const fetchUsers = () => {
-    fetchData(
+    fetchEnrollData(
       "personnels/progress/0",
       (data) => {
         setUsers(data);
@@ -86,7 +87,7 @@ const Step1 = () => {
   const fetchPersonnelDetails = (personnelId) => {
     setLoading(true);
 
-    fetchData(
+    fetchEnrollData(
       `personnels/${personnelId}`,
       (data) => {
         setPersonnelInfo(data);

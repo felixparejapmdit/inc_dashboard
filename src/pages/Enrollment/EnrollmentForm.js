@@ -286,46 +286,54 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
   const [localCongregations, setLocalCongregations] = useState([]);
 
-  const fetchDistricts = () => {
-    fetchData(
-      "districts",
-      (data) => setDistricts(data),
-      (errorMsg) => {
-        console.error("Error fetching districts:", errorMsg);
-        toast({
-          title: "Error",
-          description: errorMsg || "Failed to fetch districts.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      },
-      "Failed to fetch districts",
-      null,
-      null,
-      DISTRICT_API_URL // Custom base URL override
-    );
+  const fetchDistricts = async () => {
+    try {
+      await fetchData(
+        "districts",
+        setDistricts, // ✅ Direct setter
+        (errorMsg) => {
+          console.error("Error fetching districts:", errorMsg);
+          toast({
+            title: "Error",
+            description: errorMsg || "Failed to fetch districts.",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+        },
+        "Failed to fetch districts",
+        null, // No params
+        null, // No finally callback
+        DISTRICT_API_URL // ✅ Custom base URL
+      );
+    } catch (err) {
+      console.error("❌ fetchDistricts error:", err);
+    }
   };
 
-  const fetchLocalCongregations = () => {
-    fetchData(
-      "all-congregations",
-      (data) => setLocalCongregations(data),
-      (errorMsg) => {
-        console.error("Error fetching local congregations:", errorMsg);
-        toast({
-          title: "Error",
-          description: errorMsg || "Failed to fetch local congregations.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      },
-      "Failed to fetch local congregations",
-      null,
-      null,
-      LOCAL_CONGREGATION_API_URL // Custom base URL override
-    );
+  const fetchLocalCongregations = async () => {
+    try {
+      await fetchData(
+        "all-congregations",
+        setLocalCongregations, // ✅ Direct setter
+        (errorMsg) => {
+          console.error("Error fetching local congregations:", errorMsg);
+          toast({
+            title: "Error",
+            description: errorMsg || "Failed to fetch local congregations.",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+        },
+        "Failed to fetch local congregations",
+        null, // No params
+        null, // No finally callback
+        LOCAL_CONGREGATION_API_URL // ✅ Custom base URL
+      );
+    } catch (err) {
+      console.error("❌ fetchLocalCongregations error:", err);
+    }
   };
 
   useEffect(() => {

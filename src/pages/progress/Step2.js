@@ -35,6 +35,7 @@ import getNamesByIds from "../../utils/getNamesByIds";
 
 import {
   fetchData,
+  fetchEnrollData,
   postData,
   putData,
   deleteData,
@@ -65,7 +66,7 @@ const Step2 = () => {
 
   const fetchPersonnel = () => {
     setLoading(true);
-    fetchData(
+    fetchEnrollData(
       "personnels/progress",
       (data) => {
         setPersonnelList(data);
@@ -158,7 +159,7 @@ const Step2 = () => {
       setPersonnelInfo(null);
 
       // ✅ Refresh the personnel table using same pattern
-      fetchData(
+      fetchEnrollData(
         "personnels/progress", // endpoint
         (data) => {
           setPersonnelList(data);
@@ -196,7 +197,7 @@ const Step2 = () => {
   // Fetch personnel details
   const fetchPersonnelDetails = (personnelId) => {
     setLoading(true);
-    fetchData(
+    fetchEnrollData(
       `personnels`, // endpoint
       (data) => {
         setPersonnelInfo(data);
@@ -235,7 +236,7 @@ const Step2 = () => {
       appliances: false,
     });
 
-    fetchData(
+    fetchEnrollData(
       "personnels",
       (data) => {
         setPersonnelInfo(data);

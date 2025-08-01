@@ -22,7 +22,12 @@ import {
 import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import axios from "axios";
 
-import { fetchData, postData, putData, deleteData } from "../../utils/fetchData";
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
 const PermissionCategoriesManagement = () => {
   const [categories, setCategories] = useState([]);
   const [newCategory, setNewCategory] = useState({ name: "", description: "" });
@@ -31,84 +36,110 @@ const PermissionCategoriesManagement = () => {
   const [deletingCategory, setDeletingCategory] = useState(null);
   const toast = useToast();
   const cancelRef = useRef();
+  const [error, setError] = useState("");
 
   useEffect(() => {
     fetchCategories();
   }, []);
-
-  const fetchCategories = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/permission-categories`
-      );
-      setCategories(response.data);
-    } catch (error) {
-      toast({
-        title: "Error loading categories",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
-    }
+  // Fetch Categories
+  const fetchCategories = () => {
+    fetchData(
+      "permission-categories",
+      (data) => setCategories(data),
+      null, // No toast or error handler
+      "Failed to fetch categories"
+    );
   };
 
+  // Add Category
   const handleAddCategory = async () => {
     if (!newCategory.name) {
-      toast({ title: "Name is required", status: "warning", duration: 3000 });
+      toast({
+        title: "Category name required",
+        description: "Please enter a category name.",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
       return;
     }
+
     try {
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/permission-categories`,
-        newCategory
-      );
+      await postData("permission-categories", newCategory);
       fetchCategories();
       setNewCategory({ name: "", description: "" });
       setIsAdding(false);
-      toast({ title: "Category added", status: "success", duration: 3000 });
+      toast({
+        title: "Category added",
+        description: "The category was successfully added.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
     } catch (error) {
       toast({
-        title: "Error adding category",
-        description: error.message,
+        title: "Failed to add category",
+        description: error.message || "An error occurred.",
         status: "error",
         duration: 3000,
+        isClosable: true,
       });
     }
   };
 
+  // Update Category
   const handleUpdateCategory = async () => {
     try {
-      await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/permission-categories/${editingCategory.id}`,
-        editingCategory
+      await putData(
+        "permission-categories",
+        editingCategory.id,
+        editingCategory,
+        "Error updating category"
       );
       fetchCategories();
       setEditingCategory(null);
-      toast({ title: "Category updated", status: "success", duration: 3000 });
+      toast({
+        title: "Category updated",
+        description: "The category was successfully updated.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
     } catch (error) {
       toast({
-        title: "Error updating category",
-        description: error.message,
+        title: "Failed to update category",
+        description: error.message || "An error occurred.",
         status: "error",
         duration: 3000,
+        isClosable: true,
       });
     }
   };
 
+  // Delete Category
   const handleDeleteCategory = async () => {
     try {
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/permission-categories/${deletingCategory.id}`
+      await deleteData(
+        "permission-categories",
+        deletingCategory.id,
+        "Error deleting category"
       );
       fetchCategories();
       setDeletingCategory(null);
-      toast({ title: "Category deleted", status: "success", duration: 3000 });
+      toast({
+        title: "Category deleted",
+        description: "The category was successfully deleted.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
     } catch (error) {
       toast({
-        title: "Error deleting category",
-        description: error.message,
+        title: "Failed to delete category",
+        description: error.message || "An error occurred.",
         status: "error",
         duration: 3000,
+        isClosable: true,
       });
     }
   };

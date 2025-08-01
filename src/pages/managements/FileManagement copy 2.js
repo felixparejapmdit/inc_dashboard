@@ -41,13 +41,7 @@ import { usePermissionContext } from "../../contexts/PermissionContext";
 
 import { getAuthHeaders } from "../../utils/apiHeaders"; // adjust path as needed
 
-import {
-  fetchData,
-  postData,
-  putData,
-  deleteData,
-  putFileData,
-} from "../../utils/fetchData";
+import { fetchData, postData, putData, deleteData } from "../../utils/fetchData";
 
 const FileManagement = (qrcode) => {
   const [files, setFiles] = useState([]);
@@ -194,21 +188,32 @@ const FileManagement = (qrcode) => {
     const username = localStorage.getItem("username");
 
     if (username) {
-      fetchData(
-        "users_access", // endpoint
-        (data) => {
+      fetch(`${process.env.REACT_APP_API_URL}/api/users_access/${username}`, {
+        method: "GET",
+        headers: getAuthHeaders(),
+      }) // update this if needed
+        .then(async (res) => {
+          const contentType = res.headers.get("content-type");
+          const text = await res.text();
+
+          console.log("Content-Type:", contentType);
+          console.log("Raw response text:", text);
+
+          if (!contentType || !contentType.includes("application/json")) {
+            throw new Error(`Expected JSON but received:\n${text}`);
+          }
+
+          const data = JSON.parse(text);
+
           setCurrentUserId(data.id);
           setNewFile((prev) => ({
             ...prev,
             user_id: data.id,
           }));
-        },
-        (err) => {
+        })
+        .catch((err) => {
           console.error("Failed to fetch user:", err);
-        },
-        "Failed to fetch user data",
-        username // param passed to /users_access/:username
-      );
+        });
     }
   }, []);
 
@@ -221,37 +226,46 @@ const FileManagement = (qrcode) => {
 
   const fetchFilesByUserId = async (userId) => {
     try {
-      const data = await fetchData(
-        `files/user/${userId}`,
-        null,
-        (msg) => {
-          toast({
-            title: "Error loading files",
-            description: msg,
-            status: "error",
-            duration: 3000,
-            isClosable: true,
-          });
-        },
-        "Failed to load files"
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/files/user/${userId}`
       );
 
-      if (data) {
-        const { files, isVIP } = data;
-        setFiles(files);
-        setFilteredFiles(files);
-        setIsVIP(isVIP);
-      }
+      const { files, isVIP } = response.data;
+
+      setFiles(files);
+      setFilteredFiles(files);
+      setIsVIP(isVIP); // Add this line to set VIP status in state
     } catch (error) {
       toast({
-        title: "Request Failed",
+        title: "Error loading files",
         description: error.message,
         status: "error",
         duration: 3000,
-        isClosable: true,
       });
     }
   };
+
+  // useEffect(() => {
+  //   const filtered = files.filter((file) => {
+  //     return (
+  //       file?.filename
+  //         ?.toLowerCase()
+  //         .includes(searchQuery?.toLowerCase() || "") ||
+  //       file?.url?.toLowerCase().includes(searchQuery?.toLowerCase() || "") ||
+  //       file?.generated_code
+  //         ?.toLowerCase()
+  //         .includes(searchQuery?.toLowerCase() || "") ||
+  //       file?.qrcode?.toLowerCase().includes(searchQuery?.toLowerCase() || "")
+  //     );
+  //   });
+
+  //   // Calculate which files to display based on the current page
+  //   const indexOfLastFile = currentPage * filesPerPage;
+  //   const indexOfFirstFile = indexOfLastFile - filesPerPage;
+  //   const currentFiles = filtered.slice(indexOfFirstFile, indexOfLastFile);
+
+  //   setFilteredFiles(currentFiles);
+  // }, [searchQuery, files, currentPage]);
 
   useEffect(() => {
     if (!Array.isArray(files)) return;
@@ -341,69 +355,78 @@ const FileManagement = (qrcode) => {
   };
 
   const handleAddFile = async () => {
-    const code = generateCode();
+  const code = generateCode();
 
-    const updatedNewFile = {
-      ...newFile,
-      user_id: newFile.user_id || currentUserId,
-      generated_code: code,
-      qrcode: code,
-    };
-
-    const { filename, url, generated_code, qrcode, user_id, thumbnailFile } =
-      updatedNewFile;
-
-    const isValidUrl = /^(https?|chrome):\/\/[^\s$.?#].[^\s]*$/gm.test(url);
-
-    if (!filename || !url || !qrcode || !user_id) {
-      toast({
-        title: "All fields including user must be filled",
-        status: "warning",
-        duration: 3000,
-      });
-      return;
-    }
-
-    if (!isValidUrl) {
-      toast({
-        title: "Please enter a valid URL",
-        status: "warning",
-        duration: 3000,
-      });
-      return;
-    }
-
-    try {
-      const formData = new FormData();
-      formData.append("filename", filename);
-      formData.append("url", url);
-      formData.append("generated_code", generated_code);
-      formData.append("qrcode", qrcode);
-      formData.append("user_id", user_id);
-      if (thumbnailFile) {
-        formData.append("thumbnail", thumbnailFile); // ✅ KEY MUST BE "thumbnail"
-      }
-
-      await postData("add-file", formData, "Failed to upload file.");
-
-      fetchFilesByUserId(user_id);
-      setNewFile({
-        filename: "",
-        url: "",
-        generated_code: "",
-        qrcode: "",
-        user_id,
-        thumbnailFile: null,
-      });
-      setIsModalOpen(false);
-      toast({ title: "File added", status: "success", duration: 3000 });
-    } catch (error) {
-      toast({ title: "Error adding file", status: "error", duration: 3000 });
-    }
+  const updatedNewFile = {
+    ...newFile,
+    user_id: newFile.user_id || currentUserId,
+    generated_code: code,
+    qrcode: code,
   };
- 
+
+  const { filename, url, generated_code, qrcode, user_id, thumbnailFile } = updatedNewFile;
+
+  const isValidUrl = /^(https?|chrome):\/\/[^\s$.?#].[^\s]*$/gm.test(url);
+
+  if (!filename || !url || !qrcode || !user_id) {
+    toast({
+      title: "All fields including user must be filled",
+      status: "warning",
+      duration: 3000,
+    });
+    return;
+  }
+
+  if (!isValidUrl) {
+    toast({
+      title: "Please enter a valid URL",
+      status: "warning",
+      duration: 3000,
+    });
+    return;
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append("filename", filename);
+    formData.append("url", url);
+    formData.append("generated_code", generated_code);
+    formData.append("qrcode", qrcode);
+    formData.append("user_id", user_id);
+    if (thumbnailFile) {
+      formData.append("thumbnail", thumbnailFile); // ✅ KEY MUST BE "thumbnail"
+    }
+
+    await axios.post(`${process.env.REACT_APP_API_URL}/api/add-file`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    fetchFilesByUserId(user_id);
+    setNewFile({
+      filename: "",
+      url: "",
+      generated_code: "",
+      qrcode: "",
+      user_id,
+      thumbnailFile: null,
+    });
+    setIsModalOpen(false);
+    toast({ title: "File added", status: "success", duration: 3000 });
+  } catch (error) {
+    toast({ title: "Error adding file", status: "error", duration: 3000 });
+  }
+};
+
+
   const handleUpdateFile = async () => {
-    const updatedEditingFile = { ...editingFile };
+    //const code = generateCode();
+    const updatedEditingFile = {
+      ...editingFile,
+      // generated_code: code,
+      // qrcode: code,
+    };
 
     const { filename, url, generated_code, user_id, qrcode } =
       updatedEditingFile;
@@ -420,8 +443,10 @@ const FileManagement = (qrcode) => {
     }
 
     try {
-      await putFileData("file-management", editingFile.id, updatedEditingFile);
-
+      await axios.put(
+        `${process.env.REACT_APP_API_URL}/api/file-management/${editingFile.id}`,
+        updatedEditingFile
+      );
       fetchFilesByUserId(user_id);
       setEditingFile(null);
       setIsModalOpen(false);
@@ -429,7 +454,6 @@ const FileManagement = (qrcode) => {
     } catch (error) {
       toast({
         title: "Error updating file",
-        description: error.message,
         status: "error",
         duration: 3000,
       });
@@ -437,20 +461,15 @@ const FileManagement = (qrcode) => {
   };
 
   const handleDeleteFile = async () => {
-    if (!deletingFile) return;
-
     try {
-      await deleteData("file-management", deletingFile.id);
+      await axios.delete(
+        `${process.env.REACT_APP_API_URL}/api/file-management/${deletingFile.id}`
+      );
       fetchFilesByUserId(currentUserId);
-      toast({
-        title: "File deleted",
-        status: "success",
-        duration: 3000,
-      });
+      toast({ title: "File deleted", status: "success", duration: 3000 });
     } catch (error) {
       toast({
         title: "Error deleting file",
-        description: error.message,
         status: "error",
         duration: 3000,
       });
@@ -459,34 +478,35 @@ const FileManagement = (qrcode) => {
     }
   };
 
-  const fetchAlreadySharedUserIds = (fileId) => {
-    fetchData(
-      `files/${fileId.id}/shared-users`,
-      (data) => {
-        setAlreadySharedUserIds(data.sharedUserIds);
+  const fetchAlreadySharedUserIds = async (fileId) => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/files/${fileId.id}/shared-users`
+      );
+      setAlreadySharedUserIds(response.data.sharedUserIds);
 
-        // Match full user data from `users`
-        const sharedUsers = users.filter((user) =>
-          data.sharedUserIds.includes(user.user_id)
-        );
-        setAlreadySharedUsers(sharedUsers);
-      },
-      (err) => {
-        console.error("Failed to fetch already shared users:", err);
-      },
-      "Failed to fetch shared users"
-    );
+      // Match full user data from `users`
+      const sharedUsers = users.filter((user) =>
+        response.data.sharedUserIds.includes(user.user_id)
+      );
+      setAlreadySharedUsers(sharedUsers);
+    } catch (error) {
+      console.error("Failed to fetch already shared users:", error);
+    }
   };
 
-  const fetchUsers = () => {
-    fetchData(
-      "users",
-      (data) => setUsers(data),
-      (err) => {
-        console.error("Failed to load users:", err);
-      },
-      "Failed to load users"
-    );
+  const fetchUsers = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/users`,
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+      setUsers(response.data);
+    } catch (error) {
+      console.error("Failed to load users:", error);
+    }
   };
 
   useEffect(() => {
@@ -541,10 +561,15 @@ const FileManagement = (qrcode) => {
 
       console.log("Sharing file with payload:", payload); // Debugging
 
-      const response = await postData(
-        "files/share",
-        payload,
-        "Failed to share file."
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/files/share`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
       );
 
       const data = await response.json();

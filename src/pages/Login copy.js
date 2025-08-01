@@ -791,34 +791,17 @@ const Login = () => {
           localStorage.setItem("authToken", token);
 
           // Fetch the user ID for the local login and login status
-          let userId = null;
-
-          await fetchData(
-            `users_access/${username}`,
-            (data) => {
-              userId = data.id;
-            },
-            (error) => {
-              console.error("Error fetching user ID:", error);
-              setError("Failed to fetch user information.");
-              setIsLoading(false);
-            },
+          const userResponse = await axios.get(
+            `${process.env.REACT_APP_API_URL}/api/users_access/${username}`,
+            { headers: getAuthHeaders() }
           );
+          const userId = userResponse.data.id;
 
-          // Fetch the group ID using the user ID
-          let groupId = null;
-
-          await fetchData(
-            `groups/user/${userId}`,
-            (data) => {
-              groupId = data.groupId;
-            },
-            (error) => {
-              console.error("Error fetching group ID:", error);
-              setError("Failed to fetch group information. Please try again.");
-              setIsLoading(false);
-            }
+        // Fetch the group ID using the user ID
+            const groupResponse = await axios.get(
+            `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`
           );
+          const groupId = groupResponse.data.groupId;
 
           // Check if the group ID exists
           if (!groupId) {

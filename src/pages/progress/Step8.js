@@ -39,6 +39,7 @@ import ScanRFIDQRBarcode from "./ScanRFIDQRBarcode"; // Import the scan componen
 
 import {
   fetchData,
+  fetchEnrollData,
   postData,
   putData,
   deleteData,
@@ -70,7 +71,7 @@ const Step8 = ({ onScanComplete }) => {
   // Fetch personnel list
   const fetchPersonnel = () => {
     setLoading(true);
-    fetchData(
+    fetchEnrollData(
       "personnels/progress",
       (data) => {
         setPersonnelList(data);
@@ -166,7 +167,7 @@ const Step8 = ({ onScanComplete }) => {
     setSelectedUser(user);
 
     onOpen(); // Open the modal to show personnel info
-    fetchData(
+    fetchEnrollData(
       "personnels",
       (data) => {
         setPersonnelInfo(data);

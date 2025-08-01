@@ -18,7 +18,12 @@ import {
 import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import axios from "axios";
 
-import { fetchData, postData, putData, deleteData } from "../../utils/fetchData";
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
 const PermissionManagement = () => {
   const [permissions, setPermissions] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -37,36 +42,34 @@ const PermissionManagement = () => {
     fetchCategories();
   }, []);
 
-  const fetchPermissions = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/permissions`
-      );
-      setPermissions(response.data);
-    } catch (error) {
-      toast({
-        title: "Error loading permissions",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
-    }
+  const fetchPermissions = () => {
+    fetchData(
+      "permissions",
+      (data) => setPermissions(data),
+      (err) =>
+        toast({
+          title: "Error loading permissions",
+          description: err,
+          status: "error",
+          duration: 3000,
+        }),
+      "Failed to fetch permissions"
+    );
   };
 
-  const fetchCategories = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/permission-categories`
-      );
-      setCategories(response.data);
-    } catch (error) {
-      toast({
-        title: "Error loading categories",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
-    }
+  const fetchCategories = () => {
+    fetchData(
+      "permission-categories",
+      (data) => setCategories(data),
+      (err) =>
+        toast({
+          title: "Error loading categories",
+          description: err,
+          status: "error",
+          duration: 3000,
+        }),
+      "Failed to fetch categories"
+    );
   };
 
   const handleAddPermission = async () => {
@@ -80,10 +83,7 @@ const PermissionManagement = () => {
     }
 
     try {
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/permissions`,
-        newPermission
-      );
+      await postData("permissions", newPermission);
       fetchPermissions();
       setNewPermission({ name: "", description: "", categoryId: "" });
       setIsAdding(false);
@@ -104,10 +104,7 @@ const PermissionManagement = () => {
 
   const handleUpdatePermission = async () => {
     try {
-      await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/permissions/${editingPermission.id}`,
-        editingPermission
-      );
+      await putData("permissions", editingPermission.id, editingPermission);
       fetchPermissions();
       setEditingPermission(null);
       toast({
@@ -127,10 +124,9 @@ const PermissionManagement = () => {
 
   const handleDeletePermission = async () => {
     if (!deletingPermission) return;
+
     try {
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/permissions/${deletingPermission.id}`
-      );
+      await deleteData("permissions", deletingPermission.id);
       fetchPermissions();
       toast({
         title: "Permission deleted successfully",

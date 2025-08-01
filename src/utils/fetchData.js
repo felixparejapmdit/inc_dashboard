@@ -11,10 +11,9 @@ const API_URL = process.env.REACT_APP_API_URL;
  * @param {Function} [setStatus] - Optional error handler
  * @param {string} [errorMsg] - Error message to display or log
  */
-
 export const fetchData = async (
   endpoint,
-  setter = null, // Now optional
+  setter = null,
   onError = null,
   errorMsg = null,
   params = null,
@@ -23,6 +22,8 @@ export const fetchData = async (
 ) => {
   try {
     let url = `${baseUrl}/api/${endpoint}`;
+
+    // Handle parameters
     if (typeof params === "string") {
       url += `/${params}`;
     } else if (typeof params === "object" && params !== null) {
@@ -50,104 +51,106 @@ export const fetchData = async (
       }
     }
 
-    // If no setter provided, just return the result
+    // Return the data for optional use
     return data.success ? data.data : data;
   } catch (error) {
     console.error(`Error fetching ${endpoint}:`, error);
     if (onError && errorMsg) {
       onError(errorMsg);
     }
-    throw error; // So `await fetchData()` can catch this too
+    throw error;
+  } finally {
+    if (typeof onFinally === "function") {
+      onFinally();
+    }
+  }
+};
+
+export const fetchProgressData = async (
+  endpoint,
+  setter,
+  onError = null,
+  errorMsg = null,
+  params = null, // string or object
+  onFinally = null,
+  baseUrl = API_URL
+) => {
+  try {
+    let url = `${baseUrl}/api/${endpoint}`;
+    if (typeof params === "string") {
+      url += `/${params}`;
+    } else if (typeof params === "object" && params !== null) {
+      const queryString = new URLSearchParams(params).toString();
+      url += `?${queryString}`;
+    }
+
+    const response = await axios.get(url, {
+      headers: getAuthHeaders(),
+    });
+
+    const data = response.data;
+
+    if (data.success) {
+      setter(data.data);
+    } else if (Array.isArray(data)) {
+      setter(data);
+    } else if (typeof data === "object" && data !== null) {
+      setter(data);
+    } else {
+      console.warn(`Unexpected response format for ${endpoint}:`, data);
+      setter([]);
+      if (onError) onError("Unexpected response format.");
+    }
+  } catch (error) {
+    console.error(`Error fetching ${endpoint}:`, error);
+    if (onError && errorMsg) {
+      onError(errorMsg);
+    }
   } finally {
     if (onFinally) onFinally();
   }
 };
 
-// export const fetchData = async (
-//   endpoint,
-//   setter,
-//   onError = null,
-//   errorMsg = null,
-//   params = null, // string or object
-//   onFinally = null,
-//   baseUrl = API_URL
-// ) => {
-//   try {
-//     let url = `${baseUrl}/api/${endpoint}`;
-//     if (typeof params === "string") {
-//       url += `/${params}`;
-//     } else if (typeof params === "object" && params !== null) {
-//       const queryString = new URLSearchParams(params).toString();
-//       url += `?${queryString}`;
-//     }
+export const fetchEnrollData = async (
+  endpoint,
+  setter,
+  onError = null,
+  errorMsg = null,
+  params = null,
+  onFinally = null,
+  baseUrl = API_URL
+) => {
+  try {
+    const url = params
+      ? `${baseUrl}/api/${endpoint}/${params}`
+      : `${baseUrl}/api/${endpoint}`;
 
-//     const response = await axios.get(url, {
-//       headers: getAuthHeaders(),
-//     });
+    const response = await axios.get(url, {
+      headers: getAuthHeaders(),
+    });
 
-//     const data = response.data;
+    const data = response.data;
 
-//     if (data.success) {
-//       setter(data.data);
-//     } else if (Array.isArray(data)) {
-//       setter(data);
-//     } else if (typeof data === "object" && data !== null) {
-//       setter(data);
-//     } else {
-//       console.warn(`Unexpected response format for ${endpoint}:`, data);
-//       setter([]);
-//       if (onError) onError("Unexpected response format.");
-//     }
-//   } catch (error) {
-//     console.error(`Error fetching ${endpoint}:`, error);
-//     if (onError && errorMsg) {
-//       onError(errorMsg);
-//     }
-//   } finally {
-//     if (onFinally) onFinally();
-//   }
-// };
-
-// export const fetchData = async (
-//   endpoint,
-//   setter,
-//   onError = null,
-//   errorMsg = null,
-//   params = null,
-//   onFinally = null,
-//   baseUrl = API_URL
-// ) => {
-//   try {
-//     const url = params
-//       ? `${baseUrl}/api/${endpoint}/${params}`
-//       : `${baseUrl}/api/${endpoint}`;
-
-//     const response = await axios.get(url, {
-//       headers: getAuthHeaders(),
-//     });
-
-//     const data = response.data;
-
-//     if (data.success) {
-//       setter(data.data);
-//     } else if (Array.isArray(data)) {
-//       setter(data);
-//     } else if (typeof data === "object" && data !== null) {
-//       setter(data);
-//     } else {
-//       console.warn(`Unexpected response format for ${endpoint}:`, data);
-//       setter([]);
-//       if (onError) onError("Unexpected response format.");
-//     }
-//   } catch (error) {
-//     console.error(`Error fetching ${endpoint}:`, error);
-//     if (onError && errorMsg) {
-//       onError(errorMsg);
-//     }
-//   } finally {
-//     if (onFinally) onFinally();
-//   }
-// };
+    if (data.success) {
+      setter(data.data);
+    } else if (Array.isArray(data)) {
+      setter(data);
+    } else if (typeof data === "object" && data !== null) {
+      setter(data);
+    } else {
+      console.warn(`Unexpected response format for ${endpoint}:`, data);
+      setter([]);
+      if (onError) onError("Unexpected response format.");
+    }
+  } catch (error) {
+    console.error(`Error fetching ${endpoint}:`, error);
+    if (onError && errorMsg) {
+      onError(errorMsg);
+    }
+  } finally {
+    if (onFinally) onFinally();
+  }
+};
 
 // export const fetchData = async (
 //   endpoint,
@@ -324,6 +327,66 @@ export const putSetting = async (
 //   }
 // };
 
+export const putFileData = async (
+  endpoint,
+  idOrPayload,
+  maybePayload,
+  errorMsg = "Failed to update data."
+) => {
+  try {
+    let url = `${API_URL}/${endpoint}`;
+    let payload = {};
+    let isMultipart = false;
+
+    // Detect structure: putData('endpoint', payload) or putData('endpoint', id, payload)
+    if (typeof idOrPayload === "object") {
+      payload = idOrPayload;
+    } else {
+      url += `/${idOrPayload}`;
+      payload = maybePayload;
+    }
+
+    // Check if payload contains any File objects
+    isMultipart =
+      payload &&
+      Object.values(payload).some(
+        (val) =>
+          val instanceof File ||
+          (Array.isArray(val) && val.some((item) => item instanceof File))
+      );
+
+    let dataToSend = payload;
+
+    // Convert to FormData if multipart is needed
+    if (isMultipart) {
+      const formData = new FormData();
+      for (const key in payload) {
+        const value = payload[key];
+        if (Array.isArray(value)) {
+          value.forEach((item) => {
+            formData.append(`${key}[]`, item);
+          });
+        } else {
+          formData.append(key, value);
+        }
+      }
+      dataToSend = formData;
+    }
+
+    const response = await axios.put(url, dataToSend, {
+      headers: {
+        ...getAuthHeaders(),
+        ...(isMultipart ? { "Content-Type": "multipart/form-data" } : {}),
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error(`PUT error on ${endpoint}:`, error?.response || error);
+    throw new Error(errorMsg);
+  }
+};
+
 export const putData = async (
   endpoint,
   idOrPayload,
@@ -332,33 +395,29 @@ export const putData = async (
 ) => {
   try {
     let url = `${API_URL}/api/${endpoint}`;
-    
-    let payload = {};
+    let payload;
     let isMultipart = false;
 
-    // Handle flexible parameter structure
-    if (typeof idOrPayload === "object") {
+    // Determine if ID is provided (and adjust URL)
+    if (typeof idOrPayload === "object" && idOrPayload !== null) {
       payload = idOrPayload;
     } else {
       url += `/${idOrPayload}`;
       payload = maybePayload;
     }
 
-    // Check for multipart data (e.g., file uploads)
+    // Detect if any value is a File (for multipart upload)
     if (payload && Object.values(payload).some((val) => val instanceof File)) {
       isMultipart = true;
       const formData = new FormData();
 
-      for (const key in payload) {
-        if (Array.isArray(payload[key])) {
-          // Handle arrays (e.g., tags[])
-          payload[key].forEach((item) =>
-            formData.append(`${key}[]`, item)
-          );
+      Object.entries(payload).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          value.forEach((item) => formData.append(`${key}[]`, item));
         } else {
-          formData.append(key, payload[key]);
+          formData.append(key, value);
         }
-      }
+      });
 
       payload = formData;
     }
@@ -376,7 +435,6 @@ export const putData = async (
     throw new Error(errorMsg);
   }
 };
-
 
 /**
  * Reusable DELETE request

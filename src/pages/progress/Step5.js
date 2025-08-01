@@ -39,6 +39,7 @@ import Photoshoot from "./Photoshoot"; // Import Photoshoot component
 
 import {
   fetchData,
+  fetchEnrollData,
   postData,
   putData,
   deleteData,
@@ -78,7 +79,7 @@ const Step5 = () => {
   const fetchPersonnel = (onComplete = () => {}) => {
     setLoading(true);
 
-    fetchData(
+    fetchEnrollData(
       "personnels/progress",
       (data) => {
         setPersonnelList(data);
@@ -103,7 +104,7 @@ const Step5 = () => {
   };
 
   const fetchPersonnelImages = async (personnelId) => {
-    fetchData(
+    fetchEnrollData(
       "personnel_images", // endpoint
       (response) => {
         if (response.success) {
@@ -210,7 +211,7 @@ const Step5 = () => {
   const handleUserSelect = async (user) => {
     setLoading(true);
 
-    fetchData(
+    fetchEnrollData(
       "personnels", // endpoint
       (data) => {
         setPersonnelInfo(data);

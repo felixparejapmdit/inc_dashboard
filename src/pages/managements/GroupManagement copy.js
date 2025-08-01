@@ -42,12 +42,7 @@ import {
   FaRegIdBadge,
 } from "react-icons/fa"; // Import icons
 import axios from "axios";
-import {
-  fetchData,
-  postData,
-  putData,
-  deleteData,
-} from "../../utils/fetchData";
+import { fetchData, postData, putData, deleteData } from "../../utils/fetchData";
 const GroupManagement = () => {
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
@@ -68,66 +63,68 @@ const GroupManagement = () => {
     console.log("Permissions state updated:", permissions);
   }, [permissions]);
 
-  const fetchGroups = () => {
-    fetchData(
-      "groups",
-      (data) => setGroups(data),
-      (err) =>
-        toast({
-          title: "Error loading groups",
-          description: err,
-          status: "error",
-          duration: 3000,
-        }),
-      "Failed to load groups"
-    );
+  const fetchGroups = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/groups`
+      );
+      setGroups(response.data);
+    } catch (error) {
+      toast({
+        title: "Error loading groups",
+        description: error.message,
+        status: "error",
+        duration: 3000,
+      });
+    }
   };
 
-  const fetchPermissions = (groupId) => {
-    fetchData(
-      `groups/${groupId}/permissions`,
-      (data) => {
-        console.log("Fetched Permissions:", data);
+  const fetchPermissions = async (groupId) => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/groups/${groupId}/permissions`
+      );
+      console.log("Fetched Permissions:", response.data);
 
-        const groupedPermissions = data.map((category) => ({
-          categoryId: category.categoryId,
-          categoryName: category.categoryName,
-          permissions: category.permissions.map((permission) => ({
-            id: permission.id,
-            name: permission.name,
-            description: permission.description,
-            accessrights: permission.accessrights,
-          })),
-        }));
+      // Group permissions by category
+      const groupedPermissions = response.data.map((category) => ({
+        categoryId: category.categoryId,
+        categoryName: category.categoryName,
+        permissions: category.permissions.map((permission) => ({
+          id: permission.id,
+          name: permission.name,
+          description: permission.description,
+          accessrights: permission.accessrights,
+        })),
+      }));
 
-        setPermissions(groupedPermissions);
-      },
-      (err) => {
-        console.error("Error fetching permissions:", err);
-        toast({
-          title: "Error loading permissions",
-          description: err,
-          status: "error",
-          duration: 3000,
-        });
-      },
-      "Failed to load permissions"
-    );
+      setPermissions(groupedPermissions); // Set state with grouped permissions
+    } catch (error) {
+      console.error("Error fetching permissions:", error);
+      toast({
+        title: "Error loading permissions",
+        description: error.response?.data?.message || error.message,
+        status: "error",
+        duration: 3000,
+      });
+    }
   };
 
-  const fetchGroupUsers = (groupId) => {
-    fetchData(
-      `groups/${groupId}/users`,
-      (data) => setGroupUsers(data),
-      (err) =>
-        toast({
-          title: "Error loading users",
-          description: err,
-          status: "error",
-          duration: 3000,
-        }),
-      "Failed to load group users"
-    );
+  const fetchGroupUsers = async (groupId) => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/groups/${groupId}/users`
+      );
+      setGroupUsers(response.data); // Assuming setGroupUsers is a state setter
+    } catch (error) {
+      console.error("Error loading users:", error);
+      toast({
+        title: "Error loading users",
+        description: error.message || "Something went wrong",
+        status: "error",
+        duration: 3000,
+      });
+    }
   };
 
   const handleShowUsers = (group) => {
@@ -148,13 +145,10 @@ const GroupManagement = () => {
     accessrights
   ) => {
     try {
-      await putData(
-        `groups/${groupId}/permissions`,
-        { permissionId, categoryId, accessrights },
-        null,
-        "Failed to update permission"
+      await axios.put(
+        `${process.env.REACT_APP_API_URL}/api/groups/${groupId}/permissions`,
+        { permissionId, categoryId, accessrights }
       );
-
       toast({
         title: "Permission updated successfully",
         status: "success",
@@ -181,12 +175,10 @@ const GroupManagement = () => {
     }
 
     try {
-      await postData("groups", newGroup, "Failed to add group");
-
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/groups`, newGroup);
       fetchGroups();
       setNewGroup({ name: "", description: "" });
       setIsAdding(false);
-
       toast({
         title: "Group added successfully",
         status: "success",
@@ -205,12 +197,9 @@ const GroupManagement = () => {
   const handleGroupChange = async (userId, newGroupId) => {
     try {
       console.log("Updating user group:", { userId, newGroupId });
-
-      await putData(
-        "user-groups", // endpoint
-        userId, // userId becomes part of the URL like /user-groups/:id
-        { group_id: newGroupId },
-        "Failed to update group"
+      await axios.put(
+        `${process.env.REACT_APP_API_URL}/api/user-groups/${userId}`,
+        { group_id: newGroupId }
       );
 
       toast({
@@ -219,11 +208,12 @@ const GroupManagement = () => {
         duration: 3000,
       });
 
+      // Refresh the current group's user list
       if (selectedGroup) {
         fetchGroupUsers(selectedGroup.id);
       }
     } catch (error) {
-      console.error("Error updating group:", error.message || error);
+      console.error("Error updating group:", error.response?.data || error);
       toast({
         title: "Error updating group",
         description: error.message || "Something went wrong",
@@ -235,16 +225,12 @@ const GroupManagement = () => {
 
   const handleUpdateGroup = async () => {
     try {
-      await putData(
-        "groups",
-        editingGroup.id,
-        editingGroup,
-        "Failed to update group"
+      await axios.put(
+        `${process.env.REACT_APP_API_URL}/api/groups/${editingGroup.id}`,
+        editingGroup
       );
-
       fetchGroups();
       setEditingGroup(null);
-
       toast({
         title: "Group updated successfully",
         status: "success",
@@ -262,15 +248,18 @@ const GroupManagement = () => {
 
   const handleDeleteGroup = async (group) => {
     try {
+      // Confirm before deleting the group
       const confirmDelete = window.confirm(
         `Are you sure you want to delete the group "${group.name}"?`
       );
+
       if (!confirmDelete) return;
 
-      await deleteData("groups", group.id, "Failed to delete group");
+      await axios.delete(
+        `${process.env.REACT_APP_API_URL}/api/groups/${group.id}`
+      );
 
-      fetchGroups();
-
+      fetchGroups(); // Refresh the list of groups
       toast({
         title: "Group deleted successfully",
         status: "success",
@@ -279,7 +268,7 @@ const GroupManagement = () => {
     } catch (error) {
       toast({
         title: "Error deleting group",
-        description: error.message,
+        description: error.response?.data?.message || error.message,
         status: "error",
         duration: 3000,
       });
