@@ -179,7 +179,6 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
 
   return (
     <Box position="fixed" zIndex="100">
-
       {/* <Button to="/dashboard" data-tour="dashboard">
   Dashboard
 </Button>
@@ -193,8 +192,6 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
 <Button to="/schedule" data-tour="share-link">
   Schedule
 </Button> */}
-
-
 
       {/* Toggle Button */}
       <Button
@@ -271,41 +268,40 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
           {/* Adjusted the spacing */}
 
           <SidebarItem
-  data-tour="dashboard"
-  icon={FiHome}
-  label="Home"
-  isExpanded={isExpanded}
-  onClick={() => navigate("/dashboard")}
-/>
+            data-tour="dashboard"
+            icon={FiHome}
+            label="Home"
+            isExpanded={isExpanded}
+            onClick={() => navigate("/dashboard")}
+          />
 
-{hasPermission("statistics.view") && (
-  <SidebarItem
-    data-tour="statistics"
-    icon={FiBarChart2}
-    label="Statistics"
-    isExpanded={isExpanded}
-    onClick={() => navigate("/personnel-statistics")}
-  />
-)}
+          {hasPermission("statistics.view") && (
+            <SidebarItem
+              data-tour="statistics"
+              icon={FiBarChart2}
+              label="Statistics"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/personnel-statistics")}
+            />
+          )}
 
-<SidebarItem
-  data-tour="profile-settings"
-  icon={FiUser}
-  label="Profile"
-  isExpanded={isExpanded}
-  onClick={() => navigate("/profile")}
-/>
+          <SidebarItem
+            data-tour="profile-settings"
+            icon={FiUser}
+            label="Profile"
+            isExpanded={isExpanded}
+            onClick={() => navigate("/profile")}
+          />
 
-{hasPermission("links.view") && (
-  <SidebarItem
-    data-tour="schedule-button" // ✅ must match the tutorial step
-    label="Share a link"
-    isExpanded={isExpanded}
-    onClick={() => navigate("/managements/filemanagement")}
-    icon={FaShareAlt}
-/>
-)}
-
+          {hasPermission("links.view") && (
+            <SidebarItem
+              data-tour="schedule-button" // ✅ must match the tutorial step
+              label="Share a link"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/managements/filemanagement")}
+              icon={FaShareAlt}
+            />
+          )}
 
           {/* Settings with submenu */}
           {hasPermission("*settings.view") && (
@@ -402,7 +398,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   onClick={() => navigate("/user")} // Redirect to users.js
                 />
               )}
-                 {hasPermission("personnels.tempdeleted") && (
+              {hasPermission("personnels.tempdeleted") && (
                 <SidebarItem
                   icon={FiUsers}
                   label="Deleted Users"
@@ -669,6 +665,27 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
               )}
             </VStack>
           </Collapse>
+
+          <Collapse in={isPluginsExpanded} animateOpacity>
+            <VStack align="start" ml={isExpanded ? 4 : 0} spacing={3}>
+              <SidebarItem
+                icon={FiCalendar}
+                label="Shelves"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/shelvespage")} // Redirect to lokalprofile.js
+              />
+            </VStack>
+          </Collapse>
+          <Collapse in={isPluginsExpanded} animateOpacity>
+            <VStack align="start" ml={isExpanded ? 4 : 0} spacing={3}>
+              <SidebarItem
+                icon={FiCalendar}
+                label="Containers"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/containerspage")} // Redirect to lokalprofile.js
+              />
+            </VStack>
+          </Collapse>
         </VStack>
 
         <Flex flexGrow={1} />
@@ -756,11 +773,11 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
         </AlertDialog>
       </Flex>
     </Box>
-
-    
   );
-     {/* ✅ Tutorial overlay always rendered once (if not seen yet) */}
-          <Tutorial />
+  {
+    /* ✅ Tutorial overlay always rendered once (if not seen yet) */
+  }
+  <Tutorial />;
 };
 
 // Sidebar Item Component

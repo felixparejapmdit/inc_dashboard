@@ -53,7 +53,7 @@ import FileManagement from "./pages/managements/FileManagement.js";
 
 import PhoneDirectory from "./pages/managements/PhoneDirectory.js";
 
-import LokalProfile from "./pages/LokalProfile.js";
+
 
 import Enrollment from "./pages/Enrollment/EnrollmentForm.js"; // Import LdapUser page
 import Step1 from "./pages/Enrollment/Step1.js";
@@ -82,6 +82,11 @@ import DragDropSettings from "./pages/settings/DragDropSettings";
 import Maintenance from "./pages/Maintenance";
 import PersonnelStatistics from "./components/PersonnelStatistics";
 
+// Plugins
+import LokalProfile from "./pages/LokalProfile.js";
+
+import ShelvesPage from "./pages/FileOrganizer/ShelvesPage.js";
+import ContainersPage from "./pages/FileOrganizer/ContainersPage.js";
 function App() {
   return (
     <PermissionProvider>
@@ -420,6 +425,34 @@ function MainApp() {
           }
         />
 
+        
+        <Route
+          path="/shelvespage"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <ShelvesPage />
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/containerspage"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <ContainersPage />
+            </Layout>
+          }
+        />
         <Route
           path="/Mastodon"
           element={
