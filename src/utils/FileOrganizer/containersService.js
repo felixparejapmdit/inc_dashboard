@@ -31,7 +31,6 @@ export const getContainers = handleError(async (shelf_id = null) => {
   return res.data.data;
 });
 
-
 // ✅ GET single container by ID
 export const getContainerById = handleError(async (id) => {
   const res = await directus.get(`/items/Containers/${id}`, {
@@ -42,40 +41,35 @@ export const getContainerById = handleError(async (id) => {
   return res.data.data;
 });
 
-// ✅ Helper to generate next unique code
+// ✅ Helper to generate next unique container code (e.g., c_0004)
 export const getNextContainerCode = async () => {
   const res = await directus.get("/items/Containers", {
     params: {
-      limit: -1, // fetch all codes
+      limit: -1,
       fields: "generated_code",
     },
   });
 
   const codes = res.data.data
     .map((item) => item.generated_code)
-    .filter((code) => code && code.startsWith("c_"))
+    .filter((code) => code?.startsWith("c_"))
     .map((code) => parseInt(code.replace("c_", ""), 10))
     .filter((num) => !isNaN(num));
 
   const maxCode = codes.length > 0 ? Math.max(...codes) : 0;
   const nextCode = maxCode + 1;
 
-  const padded = String(nextCode).padStart(4, "0");
-  return `c_${padded}`;
+  return `c_${String(nextCode).padStart(4, "0")}`;
 };
 
-
-
-// ✅ CREATE new container
+// ✅ CREATE container with code and creator ID
 export const createContainer = handleError(async (container) => {
   let attempt = 0;
   let created = null;
 
   while (!created && attempt < 3) {
     const generated_code = await getNextContainerCode();
-
     const userId = localStorage.getItem("userId");
-
 
     const containerWithCode = {
       ...container,
@@ -87,12 +81,9 @@ export const createContainer = handleError(async (container) => {
       const res = await directus.post("/items/Containers", containerWithCode);
       created = res.data.data;
     } catch (err) {
-      if (
-        err.response &&
-        err.response.data.errors?.[0]?.message.includes("unique")
-      ) {
+      if (err.response?.data?.errors?.[0]?.message?.includes("unique")) {
         attempt++;
-        continue; // retry
+        continue;
       }
       throw err;
     }
@@ -100,9 +91,6 @@ export const createContainer = handleError(async (container) => {
 
   return created;
 });
-
-
-
 
 // ✅ UPDATE container
 export const updateContainer = handleError(async (id, updatedContainer) => {

@@ -4,6 +4,8 @@ const fs = require("fs");
 const https = require("https");
 const http = require("http");
 const express = require("express");
+//const fileUpload = require("express-fileupload");
+const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
 const bodyParser = require("body-parser");
@@ -99,6 +101,10 @@ const phoneDirectoryRoutes = require("./routes/phoneDirectoryRoutes");
 
 const authRoutes = require("./routes/authRoutes");
 
+
+const uploadLocalRoute = require('./routes/uploadLocal');
+
+
 app.use(express.json()); // Middleware to parse JSON request bodies
 
 app.use(cors({ origin: "*" }));
@@ -110,10 +116,23 @@ app.use(express.urlencoded({ limit: "100mb", extended: true }));
 app.use(bodyParser.json({ limit: "100mb" }));
 app.use(bodyParser.urlencoded({ limit: "100mb", extended: true }));
 
+
+app.get("/api/test-upload", (req, res) => {
+  res.send("✅ Upload route working!");
+});
+
+// ✅ Register the route
+app.use("/api",uploadLocalRoute);
+
+
+
+
 app.use(userRoutes);
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+
 
 app.use(ldapRoutes);
 app.use(appRoutes);
@@ -174,6 +193,8 @@ app.use(lokalProfileRoutes);
 app.use(housingRoutes);
 app.use(fileRoutes);
 app.use(phoneDirectoryRoutes);
+
+
 
 // ✅ Connect to MySQL database
 const db = mysql.createConnection({

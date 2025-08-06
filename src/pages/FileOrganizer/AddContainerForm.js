@@ -1,120 +1,84 @@
-import React, { useState } from "react";
+// src/pages/FileOrganizer/AddContainerForm.js
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
-  Input,
-  Textarea,
-  Select,
-  VStack,
-  useToast,
   FormControl,
   FormLabel,
+  Input,
+  Stack,
+  Textarea,
+  useColorModeValue,
 } from "@chakra-ui/react";
-import { createContainer } from "../../utils/FileOrganizer/containersService";
 
-const AddContainerForm = ({ shelves, onAdd }) => {
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    shelf_id: "",
-  });
+const AddContainerForm = ({ onSave, editData }) => {
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
 
-  const toast = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const formBg = useColorModeValue("white", "gray.800");
+  const border = useColorModeValue("1px solid #E2E8F0", "1px solid #4A5568");
+  const inputBg = useColorModeValue("orange.50", "orange.100");
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: name === "shelf_id" ? Number(value) : value, // convert shelf_id to number
-    }));
-  };
+  useEffect(() => {
+    if (editData) {
+      setName(editData.name || "");
+      setDescription(editData.description || "");
+    }
+  }, [editData]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
+    if (!name.trim()) return;
 
-    if (!form.name || !form.shelf_id || isNaN(form.shelf_id)) {
-      toast({
-        title: "Name and Shelf are required.",
-        status: "warning",
-        isClosable: true,
-      });
-      return;
-    }
+    const dataToSave = {
+      ...editData,
+      name,
+      description,
+    };
 
-    try {
-      setIsSubmitting(true);
-
-      const res = await createContainer({
-        ...form,
-        created_by: 1, // Replace with actual user ID in production
-      });
-
-      onAdd(res);
-      toast({
-        title: "Container added successfully.",
-        status: "success",
-        isClosable: true,
-      });
-
-      setForm({ name: "", description: "", shelf_id: "" });
-    } catch (error) {
-      toast({
-        title: "Error adding container.",
-        description: error.message,
-        status: "error",
-        isClosable: true,
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    onSave(dataToSave);
+    setName("");
+    setDescription("");
   };
 
   return (
-    <Box as="form" onSubmit={handleSubmit}>
-      <VStack spacing={4} align="start">
+    <Box
+      as="form"
+      onSubmit={handleSubmit}
+      mt={4}
+      p={6}
+      borderRadius="lg"
+      bg={formBg}
+      boxShadow="lg"
+      border={border}
+      maxW="400px"
+      mx="auto"
+    >
+      <Stack spacing={5}>
         <FormControl isRequired>
-          <FormLabel>Shelf</FormLabel>
-          <Select
-            name="shelf_id"
-            value={form.shelf_id}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, shelf_id: Number(e.target.value) }))
-            }
-            placeholder="Select Shelf"
-          >
-            {shelves.map((shelf) => (
-              <option key={shelf.id} value={shelf.id}>
-                {shelf.name}
-              </option>
-            ))}
-          </Select>
-        </FormControl>
-
-        <FormControl isRequired>
-          <FormLabel>Container Name</FormLabel>
+          <FormLabel fontWeight="semibold">Container Name</FormLabel>
           <Input
-            name="name"
-            value={form.name}
-            onChange={handleChange}
             placeholder="Enter container name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            bg={inputBg}
           />
         </FormControl>
 
         <FormControl>
-          <FormLabel>Description</FormLabel>
+          <FormLabel fontWeight="semibold">Description (optional)</FormLabel>
           <Textarea
-            name="description"
-            value={form.description}
-            onChange={handleChange}
-            placeholder="Enter description (optional)"
+            placeholder="Enter description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            bg={inputBg}
           />
         </FormControl>
 
-        <Button type="submit" colorScheme="teal" isLoading={isSubmitting}>
-          Add Container
+        <Button type="submit" colorScheme="teal" size="md" fontWeight="bold">
+          {editData ? "Update Container" : "Save Container"}
         </Button>
-      </VStack>
+      </Stack>
     </Box>
   );
 };

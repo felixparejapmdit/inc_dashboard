@@ -1,15 +1,19 @@
-// utils/uploadService.js
-import directus from "./directusClient";
+// utils/FileOrganizer/uploadService.js
 
-export const uploadFile = async (file) => {
+import axios from "axios";
+
+const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost";
+
+
+export const uploadFileToLocal = async (file) => {
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await directus.post("/files", formData, {
+  const res = await axios.post(`${BASE_URL}/api/upload-local`, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
   });
 
-  return res.data.data;
+  return res.data;
 };

@@ -7,24 +7,48 @@ const handleError = (fn) => async (...args) => {
   try {
     return await fn(...args);
   } catch (error) {
-    const err = error?.response?.data?.errors?.[0]?.message || error.message || "Unknown error";
+    const err =
+      error?.response?.data?.errors?.[0]?.message ||
+      error.message ||
+      "Unknown error";
     throw new Error(err);
   }
 };
 
-// GET all shelves
+// ✅ GET all shelves
 export const getShelves = handleError(async () => {
   const res = await directus.get("/items/Shelves");
   return res.data.data;
 });
 
-// GET single shelf
+// ✅ GET single shelf WITH container count
 export const getShelfById = handleError(async (id) => {
-  const res = await directus.get(`/items/Shelves/${id}`);
-  return res.data.data;
+  const shelfRes = await directus.get(`/items/Shelves/${id}`);
+  const shelf = shelfRes.data.data;
+
+  // Get container count for this shelf
+  const countRes = await directus.get("/items/Containers", {
+    params: {
+      aggregate: {
+        count: "*",
+      },
+      filter: {
+        shelf_id: {
+          _eq: id,
+        },
+      },
+    },
+  });
+
+  const containerCount = countRes.data.data[0]?.count || 0;
+
+  return {
+    ...shelf,
+    containerCount,
+  };
 });
 
-// Helper to fetch max shelf number
+// 🔢 Helper: Get next generated_code (e.g., s_0005)
 const getNextShelfCode = async () => {
   const res = await directus.get("/items/Shelves", {
     params: {
@@ -34,46 +58,37 @@ const getNextShelfCode = async () => {
     },
   });
 
-  const latestCode = res.data.data[0]?.generated_code || "";
-  const latestNum = parseInt(latestCode?.split("_")[1] || "0", 10);
+  const latestCode = res.data.data[0]?.generated_code || "s_0000";
+  const latestNum = parseInt(latestCode.split("_")[1] || "0", 10);
   const nextNum = latestNum + 1;
   return `s_${nextNum.toString().padStart(4, "0")}`;
 };
 
-// CREATE shelf with generated_code and QR code
-export const createShelf = async (shelf) => {
-  // Get existing shelves to count
-  const allShelves = await getShelves();
-  const nextNumber = allShelves.length + 1;
-  const padded = String(nextNumber).padStart(4, "0");
-  const generated_code = `s_${padded}`;
-
-  // Generate QR Code that contains the generated_code (e.g., s_0001)
+// ➕ CREATE shelf (with QR code)
+export const createShelf = handleError(async (shelf) => {
+  const generated_code = await getNextShelfCode();
   const qrDataUrl = await QRCode.toDataURL(generated_code);
 
-  // Get user ID from local storage
-  const userId = localStorage.getItem("userId");
+  const userId = localStorage.getItem("userId") || null;
 
-
-  const shelfWithCodeAndQR = {
+  const payload = {
     ...shelf,
     generated_code,
-    qrcode: qrDataUrl, // <-- stores the QR image (if schema supports)
+    qrcode: qrDataUrl,
     created_by: userId,
   };
 
-  const res = await directus.post("/items/Shelves", shelfWithCodeAndQR);
+  const res = await directus.post("/items/Shelves", payload);
   return res.data.data;
-};
+});
 
-
-// UPDATE shelf
+// ✏️ UPDATE shelf
 export const updateShelf = handleError(async (id, updatedShelf) => {
   const res = await directus.patch(`/items/Shelves/${id}`, updatedShelf);
   return res.data.data;
 });
 
-// DELETE shelf
+// ❌ DELETE shelf
 export const deleteShelf = handleError(async (id) => {
   const res = await directus.delete(`/items/Shelves/${id}`);
   return res.data.data;

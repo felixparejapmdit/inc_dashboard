@@ -1,62 +1,159 @@
 // src/pages/FileOrganizer/ContainerCard.js
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Text,
   VStack,
-  ScaleFade,
+  HStack,
+  IconButton,
   useColorModeValue,
   Tooltip,
-  Divider,
+  Flex,
+  Icon,
 } from "@chakra-ui/react";
+import { EditIcon, DeleteIcon } from "@chakra-ui/icons";
 import { QRCodeSVG } from "qrcode.react";
+import { FaBoxOpen, FaFolder } from "react-icons/fa";
 
-const ContainerCard = ({ container }) => {
+const ContainerCard = ({ container, onUpdate, onDelete, foldersCount = 0 }) => {
   const bg = useColorModeValue("white", "gray.800");
-  const border = useColorModeValue("gray.200", "gray.700");
+  const border = useColorModeValue("gray.200", "gray.600");
+  const labelBg = useColorModeValue("teal.100", "teal.700");
+  const navigate = useNavigate();
 
   return (
-    <ScaleFade in={true} initialScale={0.95}>
+    <Box
+      position="relative"
+      borderWidth="1px"
+      borderColor={border}
+      borderRadius="md"
+      bg={bg}
+      boxShadow="sm"
+      transition="all 0.2s"
+      _hover={{ boxShadow: "md" }}
+      w="full"
+      maxW="230px"
+      minH="260px"
+      mx="auto"
+      overflow="hidden"
+      role="group"
+    >
+      {/* Header */}
       <Box
-        borderWidth="1px"
+        bg={labelBg}
+        px={3}
+        py={2}
+        borderBottom="1px solid"
         borderColor={border}
-        borderRadius="xl"
-        p={6}
-        boxShadow="lg"
-        bg={bg}
-        _hover={{ transform: "scale(1.02)", transition: "0.3s" }}
-        textAlign="center"
-        minH="260px"
+        display="flex"
+        alignItems="center"
+        gap={2}
+        onClick={() => navigate(`/containers/${container.id}/folders`)}
+        cursor="pointer"
       >
-        <VStack spacing={3}>
-          <Text fontWeight="bold" fontSize="xl" color="teal.600">
-            {container.name}
+        <Icon as={FaBoxOpen} boxSize={4} color="teal.600" />
+        <Text
+          fontWeight="bold"
+          fontSize="sm"
+          color="teal.800"
+          noOfLines={1}
+          flex="1"
+        >
+          {container.name}
+        </Text>
+      </Box>
+
+      {/* Body */}
+      <VStack
+        spacing={3}
+        px={4}
+        pt={3}
+        pb={5}
+        align="center"
+        justify="center"
+        position="relative"
+      >
+        {/* Description */}
+        {container.description && (
+          <Text
+            fontSize="xs"
+            color="gray.500"
+            noOfLines={2}
+            textAlign="center"
+            px={1}
+          >
+            {container.description}
           </Text>
+        )}
 
-          {container.description && (
-            <>
-              <Divider />
-              <Text fontSize="sm" color="gray.500">
-                {container.description}
-              </Text>
-            </>
-          )}
 
+      </VStack>
+
+      {/* QR Code (Bottom Left) */}
+      {container.generated_code && (
+        <Box position="absolute" bottom={2} left={3}>
+                  {/* Folder Count */}
+        <HStack spacing={1}>
+          <Icon as={FaFolder} boxSize={3.5} color="gray.500" />
+          <Text fontSize="xs" color="gray.500">
+            {foldersCount} {foldersCount === 1 ? "folder" : "folders"}
+          </Text>
+        </HStack>
           <Tooltip label={`Code: ${container.generated_code}`} placement="top">
-            <Box border="1px solid #ddd" p={2} borderRadius="md" mt={4}>
+            <Flex
+              justify="center"
+              align="center"
+              border="1px solid"
+              borderColor={border}
+              borderRadius="md"
+              p={2}
+              bg="white"
+              boxShadow="sm"
+            >
               <QRCodeSVG
                 value={container.generated_code}
-                size={120}
+                size={48}
                 bgColor="#ffffff"
                 fgColor="#000000"
                 level="H"
-                includeMargin={true}
+                includeMargin={false}
               />
-            </Box>
+            </Flex>
           </Tooltip>
-        </VStack>
-      </Box>
-    </ScaleFade>
+        </Box>
+      )}
+
+      {/* Action Buttons – Bottom right */}
+      <HStack
+        spacing={2}
+        position="absolute"
+        bottom={2}
+        right={2}
+        opacity={0}
+        _groupHover={{ opacity: 1 }}
+        transition="opacity 0.2s"
+        zIndex={1}
+      >
+        <Tooltip label="Edit">
+          <IconButton
+            size="sm"
+            icon={<EditIcon />}
+            onClick={() => onUpdate(container.id, container)}
+            aria-label="Edit"
+          />
+        </Tooltip>
+        <Tooltip label="Delete">
+          <IconButton
+            size="sm"
+            icon={<DeleteIcon />}
+            onClick={() => onDelete(container.id)}
+            aria-label="Delete"
+            colorScheme="red"
+          />
+        </Tooltip>
+      </HStack>
+    </Box>
   );
 };
 

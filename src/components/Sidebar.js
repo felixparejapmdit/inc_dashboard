@@ -670,19 +670,9 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
             <VStack align="start" ml={isExpanded ? 4 : 0} spacing={3}>
               <SidebarItem
                 icon={FiCalendar}
-                label="Shelves"
+                label="File Organizer"
                 isExpanded={isExpanded}
                 onClick={() => navigate("/shelvespage")} // Redirect to lokalprofile.js
-              />
-            </VStack>
-          </Collapse>
-          <Collapse in={isPluginsExpanded} animateOpacity>
-            <VStack align="start" ml={isExpanded ? 4 : 0} spacing={3}>
-              <SidebarItem
-                icon={FiCalendar}
-                label="Containers"
-                isExpanded={isExpanded}
-                onClick={() => navigate("/containerspage")} // Redirect to lokalprofile.js
               />
             </VStack>
           </Collapse>

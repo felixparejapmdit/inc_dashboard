@@ -53,8 +53,6 @@ import FileManagement from "./pages/managements/FileManagement.js";
 
 import PhoneDirectory from "./pages/managements/PhoneDirectory.js";
 
-
-
 import Enrollment from "./pages/Enrollment/EnrollmentForm.js"; // Import LdapUser page
 import Step1 from "./pages/Enrollment/Step1.js";
 import Step2 from "./pages/Enrollment/Step2.js";
@@ -87,6 +85,9 @@ import LokalProfile from "./pages/LokalProfile.js";
 
 import ShelvesPage from "./pages/FileOrganizer/ShelvesPage.js";
 import ContainersPage from "./pages/FileOrganizer/ContainersPage.js";
+import FoldersPage from "./pages/FileOrganizer/FoldersPage.js";
+import DocumentsPage from "./pages/FileOrganizer/DocumentsPage.js";
+
 function App() {
   return (
     <PermissionProvider>
@@ -175,7 +176,7 @@ function MainApp() {
             </Layout>
           }
         />
-        
+
         <Route
           path="/application"
           element={
@@ -203,8 +204,7 @@ function MainApp() {
           }
         />
 
-
-     <Route
+        <Route
           path="/tempdeleted-users"
           element={
             <Layout
@@ -425,7 +425,6 @@ function MainApp() {
           }
         />
 
-        
         <Route
           path="/shelvespage"
           element={
@@ -441,7 +440,21 @@ function MainApp() {
         />
 
         <Route
-          path="/containerspage"
+          path="/file-organizer/shelves"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <ShelvesPage />
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/containers/:shelfId"
           element={
             <Layout
               currentUser={{
@@ -453,6 +466,50 @@ function MainApp() {
             </Layout>
           }
         />
+
+        <Route
+          path="/file-organizer/shelves/:shelfId/containers"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <ContainersPage />
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/containers/:containerId/folders"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <FoldersPage />
+            </Layout>
+          }
+        />
+
+
+        <Route
+          path="/shelves/:shelfId/containers/:containerId/folders/:folderId/documents"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <DocumentsPage />
+            </Layout>
+          }
+        />
+
         <Route
           path="/Mastodon"
           element={
@@ -753,8 +810,6 @@ function MainApp() {
         />
 
         <Route path="/ollama-api" element={<OllamaAPI />} />
-
-
       </Routes>
 
       {/* Render Chatbot only if NOT on /login AND hide it when printing */}
