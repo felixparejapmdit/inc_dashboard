@@ -34,10 +34,12 @@ const ContainerCard = ({ container, onUpdate, onDelete, foldersCount = 0 }) => {
       _hover={{ boxShadow: "md" }}
       w="full"
       maxW="230px"
-      minH="260px"
+      minH="140px"
       mx="auto"
       overflow="hidden"
       role="group"
+      onClick={() => navigate(`/containers/${container.id}/folders`)}
+      cursor="pointer"
     >
       {/* Header */}
       <Box
@@ -49,8 +51,6 @@ const ContainerCard = ({ container, onUpdate, onDelete, foldersCount = 0 }) => {
         display="flex"
         alignItems="center"
         gap={2}
-        onClick={() => navigate(`/containers/${container.id}/folders`)}
-        cursor="pointer"
       >
         <Icon as={FaBoxOpen} boxSize={4} color="teal.600" />
         <Text
@@ -64,42 +64,16 @@ const ContainerCard = ({ container, onUpdate, onDelete, foldersCount = 0 }) => {
         </Text>
       </Box>
 
-      {/* Body */}
-      <VStack
-        spacing={3}
-        px={4}
-        pt={3}
-        pb={5}
-        align="center"
-        justify="center"
-        position="relative"
-      >
-        {/* Description */}
-        {container.description && (
-          <Text
-            fontSize="xs"
-            color="gray.500"
-            noOfLines={2}
-            textAlign="center"
-            px={1}
-          >
-            {container.description}
-          </Text>
-        )}
-
-
-      </VStack>
-
       {/* QR Code (Bottom Left) */}
       {container.generated_code && (
         <Box position="absolute" bottom={2} left={3}>
-                  {/* Folder Count */}
-        <HStack spacing={1}>
-          <Icon as={FaFolder} boxSize={3.5} color="gray.500" />
-          <Text fontSize="xs" color="gray.500">
-            {foldersCount} {foldersCount === 1 ? "folder" : "folders"}
-          </Text>
-        </HStack>
+          {/* Folder Count */}
+          <HStack spacing={1}>
+            <Icon as={FaFolder} boxSize={3.5} color="gray.500" />
+            <Text fontSize="xs" color="gray.500">
+              {foldersCount} {foldersCount === 1 ? "folder" : "folders"}
+            </Text>
+          </HStack>
           <Tooltip label={`Code: ${container.generated_code}`} placement="top">
             <Flex
               justify="center"
@@ -139,7 +113,10 @@ const ContainerCard = ({ container, onUpdate, onDelete, foldersCount = 0 }) => {
           <IconButton
             size="sm"
             icon={<EditIcon />}
-            onClick={() => onUpdate(container.id, container)}
+              onClick={(e) => {
+              e.stopPropagation();
+              onUpdate(container.id, container);
+            }}
             aria-label="Edit"
           />
         </Tooltip>

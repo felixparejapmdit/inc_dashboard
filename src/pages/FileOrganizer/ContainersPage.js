@@ -228,7 +228,7 @@ const ContainersPage = () => {
             setEditingContainer(null);
           }}
         >
-          {showForm ? "Cancel" : "Add Container"}
+          {showForm ? "Cancel" : "Container"}
         </Button>
       </HStack>
 

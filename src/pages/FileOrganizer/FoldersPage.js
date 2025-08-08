@@ -119,8 +119,8 @@ const FoldersPage = () => {
     }
   };
 
-  const handleUpdateFolder = async (folderId, updatedData) => {
-    setEditingFolder({ id: folderId, ...updatedData });
+  const handleUpdateFolder = (folder) => {
+    setEditingFolder(folder); // ✅ directly use the folder object
     setShowForm(true);
 
     setTimeout(() => {
@@ -226,13 +226,13 @@ const FoldersPage = () => {
             setEditingFolder(null);
           }}
         >
-          {showForm ? "Cancel" : "Add Folder"}
+          {showForm ? "Cancel" : "Folder"}
         </Button>
       </HStack>
 
       {/* Form */}
       {showForm && (
-        <Box mb={6}>
+        <Box ref={formRef} mb={6}>
           <AddFolderForm
             onSave={editingFolder ? handleSaveUpdate : handleAddFolder}
             editData={editingFolder}
