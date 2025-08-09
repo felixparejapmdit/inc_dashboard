@@ -24,6 +24,7 @@ import AddShelfForm from "./AddShelfForm";
 import { handleError } from "../../utils/FileOrganizer/handleError";
 import { Link } from "react-router-dom";
 
+
 const ShelvesPage = () => {
   const [shelves, setShelves] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -33,36 +34,48 @@ const ShelvesPage = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [allData, setAllData] = useState([]);
   const toast = useToast();
-
-  useEffect(() => {
-    fetchShelves();
-    fetchGlobalData();
-  }, []);
-
-  const fetchShelves = async () => {
-    try {
-      setLoading(true);
-      const data = await getShelves();
-      setShelves(data);
-    } catch (error) {
-      handleError(error, toast, "Failed to fetch shelves");
-    } finally {
-      setLoading(false);
-    }
+useEffect(() => {
+  const init = async () => {
+    await fetchShelves();
+    await fetchGlobalData();
   };
 
-  const fetchGlobalData = async () => {
-    try {
-      const shelves = await getAllData("shelves");
-      const containers = await getAllData("containers");
-      const folders = await getAllData("folders");
-      const documents = await getAllData("documents");
+  init(); // Call the combined async function
+}, []);
 
-      setAllData([...shelves, ...containers, ...folders, ...documents]);
-    } catch (error) {
-      console.error("Failed to fetch global data:", error);
-    }
-  };
+const fetchShelves = async () => {
+  try {
+    setLoading(true);
+    const data = await getShelves(); // Your custom service
+    setShelves(data);
+  } catch (error) {
+    handleError(error, toast, "Failed to fetch shelves");
+  } finally {
+    setLoading(false);
+  }
+};
+
+const fetchGlobalData = async () => {
+  try {
+    const shelves = await getAllData("Shelves");
+    const containers = await getAllData("Containers");
+    const folders = await getAllData("Folders");
+    const documents = await getAllData("Documents");
+
+    // Optional: include a 'type' label for easier filtering later
+    const tagData = (items, type) => items.map(item => ({ ...item, type }));
+
+    setAllData([
+      ...tagData(shelves, "shelf"),
+      ...tagData(containers, "container"),
+      ...tagData(folders, "folder"),
+      ...tagData(documents, "document"),
+    ]);
+  } catch (error) {
+    console.error("Failed to fetch global data:", error);
+  }
+};
+
 
   const handleAddOrEditShelf = async (shelfData) => {
     try {
@@ -122,7 +135,7 @@ const ShelvesPage = () => {
 
   return (
     <Box p={[4, 6, 10]}>
-      <HStack justify="space-between" mb={6}>
+      <HStack justify="space-between" mt={12} mb={6}>
         <Heading>📚 File Organizer — Shelves</Heading>
         <Button
           leftIcon={<AddIcon />}
@@ -136,43 +149,6 @@ const ShelvesPage = () => {
         </Button>
       </HStack>
 
-      {/* 🔍 Global Search Input */}
-      <Box mb={8}>
-        <Input
-          placeholder="🔍 Search shelves, containers, folders, or documents..."
-          value={searchQuery}
-          onChange={handleSearch}
-          size="lg"
-          mb={3}
-        />
-        {searchQuery && (
-          <VStack align="start" spacing={2} maxH="300px" overflowY="auto">
-            {searchResults.length > 0 ? (
-              searchResults.map((item) => (
-                <ChakraLink
-                  key={item.id}
-                  as={Link}
-                  to={getPath(item)}
-                  _hover={{ textDecoration: "underline" }}
-                  fontSize="sm"
-                  bg={cardBg}
-                  px={3}
-                  py={2}
-                  borderRadius="md"
-                  w="100%"
-                  boxShadow="md"
-                >
-                  {item.name}
-                </ChakraLink>
-              ))
-            ) : (
-              <Text fontSize="sm" color="gray.500">
-                No matching results found.
-              </Text>
-            )}
-          </VStack>
-        )}
-      </Box>
 
       {showForm && (
         <Box mb={6}>

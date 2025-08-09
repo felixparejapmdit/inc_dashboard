@@ -21,6 +21,11 @@ const FolderCard = ({ folder, shelfId, containerId, onDelete, onUpdate }) => {
   const labelBg = useColorModeValue("blue.100", "blue.700");
   const codeColor = useColorModeValue("gray.600", "gray.400");
   const navigate = useNavigate();
+console.log("🟡 FolderCard received:", {
+  shelfId,
+  containerId,
+  folder,
+});
 
   return (
     <Box

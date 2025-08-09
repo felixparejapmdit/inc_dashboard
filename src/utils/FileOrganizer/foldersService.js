@@ -11,9 +11,21 @@ const handleError = (fn) => async (...args) => {
   }
 };
 
-// ✅ GET all folders
-export const getFolders = handleError(async (params = {}) => {
-  const res = await directus.get("/items/Folders", { params });
+// ✅ GET all folders (with optional search)
+export const getFolders = handleError(async (search = "") => {
+  const res = await directus.get("/items/Folders", {
+    params: {
+      filter: search
+        ? {
+            name: {
+              _contains: search, // 🔍 partial match on name
+            },
+          }
+        : {},
+      sort: ["name"],
+    },
+  });
+
   return res.data.data;
 });
 
@@ -32,6 +44,7 @@ export const getFoldersByContainerId = handleError(async (containerId) => {
 
   return res.data.data;
 });
+
 
 // ✅ GET folder by ID
 export const getFolderById = handleError(async (id) => {

@@ -177,7 +177,7 @@ const ContainersPage = () => {
   }, [search, containers]);
 
   return (
-    <Box p={[4, 6, 10]}>
+    <Box p={[4, 6, 10]} mt={12}>
       {/* Breadcrumb */}
       <Breadcrumb
         spacing="8px"

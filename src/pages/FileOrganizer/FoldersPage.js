@@ -172,7 +172,7 @@ const FoldersPage = () => {
   }, [search, folders]);
 
   return (
-    <Box p={[4, 6, 10]}>
+    <Box p={[4, 6, 10]} mt={12}>
       {/* Breadcrumb */}
       <Breadcrumb
         spacing="8px"
@@ -263,10 +263,10 @@ const FoldersPage = () => {
               <FolderCard
                 key={folder.id}
                 folder={folder}
+                shelfId={container.shelf_id} // ✅ Pass shelfId from container relationship
+                containerId={containerId} // ✅ Pass containerId
                 onDelete={confirmDeleteFolder}
                 onUpdate={handleUpdateFolder}
-                shelfId={container?.shelf_id} // ✅ Pass shelfId
-                containerId={containerId} // ✅ Pass containerId
               />
             ))}
           </SimpleGrid>

@@ -1,15 +1,24 @@
-// src/utils/FileOrganizer/globalSearchService.js
+// utils/FileOrganizer/globalSearchService.js
 import directus from "./directusClient";
 
-export const getAllData = async (endpoint) => {
-  try {
-    const response = await directus.items(endpoint).readByQuery({
-      limit: -1, // fetch all items
-    });
+const fieldMap = {
+  shelves: "id,name,generated_code",
+  containers: "id,name,shelf_id",
+  folders: "id,name,container_id,container.shelf_id", // 👈 Add container.shelf_id
+  documents: "id,title,folder_id",
+};
 
-    return response.data || [];
+export const getAllData = async (collection) => {
+  try {
+    const response = await directus.get(`/items/${collection}`, {
+      params: {
+        limit: -1,
+        fields: fieldMap[collection] || "*", // fallback to all fields
+      },
+    });
+    return response.data.data;
   } catch (error) {
-    console.error(`[GlobalSearchService] Error fetching ${endpoint}:`, error);
-    throw new Error(`Failed to fetch ${endpoint}`);
+    console.error(`[GlobalSearchService] Error fetching ${collection}:`, error);
+    throw new Error(`Failed to fetch ${collection}`);
   }
 };

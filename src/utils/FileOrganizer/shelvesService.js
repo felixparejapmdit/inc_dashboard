@@ -2,7 +2,6 @@
 import directus from "./directusClient";
 import QRCode from "qrcode";
 
-// Reusable error handler
 const handleError = (fn) => async (...args) => {
   try {
     return await fn(...args);
@@ -21,22 +20,15 @@ export const getShelves = handleError(async () => {
   return res.data.data;
 });
 
-// ✅ GET single shelf WITH container count
+// ✅ GET shelf by ID WITH container count
 export const getShelfById = handleError(async (id) => {
   const shelfRes = await directus.get(`/items/Shelves/${id}`);
   const shelf = shelfRes.data.data;
 
-  // Get container count for this shelf
   const countRes = await directus.get("/items/Containers", {
     params: {
-      aggregate: {
-        count: "*",
-      },
-      filter: {
-        shelf_id: {
-          _eq: id,
-        },
-      },
+      aggregate: { count: "*" },
+      filter: { shelf_id: { _eq: id } },
     },
   });
 
@@ -48,7 +40,7 @@ export const getShelfById = handleError(async (id) => {
   };
 });
 
-// 🔢 Helper: Get next generated_code (e.g., s_0005)
+// 🔢 Get next code (e.g., s_0005)
 const getNextShelfCode = async () => {
   const res = await directus.get("/items/Shelves", {
     params: {
@@ -64,7 +56,7 @@ const getNextShelfCode = async () => {
   return `s_${nextNum.toString().padStart(4, "0")}`;
 };
 
-// ➕ CREATE shelf (with QR code)
+// ➕ CREATE shelf with QR
 export const createShelf = handleError(async (shelf) => {
   const generated_code = await getNextShelfCode();
   const qrDataUrl = await QRCode.toDataURL(generated_code);
@@ -82,13 +74,13 @@ export const createShelf = handleError(async (shelf) => {
   return res.data.data;
 });
 
-// ✏️ UPDATE shelf
+// ✏️ UPDATE
 export const updateShelf = handleError(async (id, updatedShelf) => {
   const res = await directus.patch(`/items/Shelves/${id}`, updatedShelf);
   return res.data.data;
 });
 
-// ❌ DELETE shelf
+// ❌ DELETE
 export const deleteShelf = handleError(async (id) => {
   const res = await directus.delete(`/items/Shelves/${id}`);
   return res.data.data;

@@ -6,6 +6,7 @@ import {
   Route,
   Navigate,
   useLocation,
+  matchPath,
 } from "react-router-dom";
 
 import Login from "./pages/Login";
@@ -87,6 +88,11 @@ import ShelvesPage from "./pages/FileOrganizer/ShelvesPage.js";
 import ContainersPage from "./pages/FileOrganizer/ContainersPage.js";
 import FoldersPage from "./pages/FileOrganizer/FoldersPage.js";
 import DocumentsPage from "./pages/FileOrganizer/DocumentsPage.js";
+import GlobalSearchPage from "./pages/FileOrganizer/GlobalSearchPage.js";
+import GlobalSearchBar from "./components/FileOrganizer/GlobalSearchBar.js";
+import GenerateQRCode from "./pages/FileOrganizer/GenerateQRCode.js";
+// import ScanningQrCode from "./pages/FileOrganizer/ScanningQrCode.js";
+ 
 
 function App() {
   return (
@@ -103,6 +109,18 @@ function App() {
 function MainApp() {
   const location = useLocation(); // Get current route
   const isUnderMaintenance = true; // Change to `true` to enable maintenance mode
+
+  const showSearchBar = [
+    "/shelvespage",
+    "/file-organizer/shelves",
+    "/containers/:shelfId",
+    "/file-organizer/shelves/:shelfId/containers",
+    "/containers/:containerId/folders",
+    "/shelves/:shelfId/containers/:containerId/folders/:folderId/documents",
+    "/file-organizer/qrcode",
+  ].some((pattern) =>
+    matchPath({ path: pattern, end: false }, location.pathname)
+  );
 
   const [apiUrl, setApiUrl] = useState("");
 
@@ -121,6 +139,7 @@ function MainApp() {
 
   return (
     <>
+      {showSearchBar && <GlobalSearchBar />}
       <Routes>
         {isUnderMaintenance ? (
           <Route path="*" element={<Maintenance />} />
@@ -424,9 +443,34 @@ function MainApp() {
             </Layout>
           }
         />
+<Route path="/shelvespage" element={<ShelvesPage />} />
 
-        <Route
-          path="/shelvespage"
+<Route path="/file-organizer/shelves" element={<ShelvesPage />} />
+
+<Route path="/containers/:shelfId" element={<ContainersPage />} />
+
+<Route
+  path="/file-organizer/shelves/:shelfId/containers"
+  element={<ContainersPage />}
+/>
+
+<Route
+  path="/containers/:containerId/folders"
+  element={<FoldersPage />}
+/>
+
+<Route
+  path="/shelves/:shelfId/containers/:containerId/folders/:folderId/documents"
+  element={<DocumentsPage />}
+/>
+
+<Route path="/file-organizer/search" element={<GlobalSearchPage />} />
+
+<Route path="/file-organizer/qrcode" element={<GenerateQRCode />} />
+
+
+    {/* <Route
+          path="/file-organizer/scancode"
           element={
             <Layout
               currentUser={{
@@ -434,82 +478,10 @@ function MainApp() {
                 avatarUrl: "/path/to/avatar.jpg",
               }}
             >
-              <ShelvesPage />
+              <ScanningQrCode />
             </Layout>
           }
-        />
-
-        <Route
-          path="/file-organizer/shelves"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <ShelvesPage />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/containers/:shelfId"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <ContainersPage />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/file-organizer/shelves/:shelfId/containers"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <ContainersPage />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/containers/:containerId/folders"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <FoldersPage />
-            </Layout>
-          }
-        />
-
-
-        <Route
-          path="/shelves/:shelfId/containers/:containerId/folders/:folderId/documents"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <DocumentsPage />
-            </Layout>
-          }
-        />
-
+        /> */}
         <Route
           path="/Mastodon"
           element={

@@ -40,7 +40,7 @@ import { handleError } from "../../utils/FileOrganizer/handleError";
 const MotionBox = motion(Box);
 
 const DocumentsPage = () => {
-  const { shelfId, containerId, folderId } = useParams();
+  const { containerId, folderId } = useParams();
   const toast = useToast();
 
   const [documents, setDocuments] = useState([]);
@@ -64,11 +64,10 @@ const DocumentsPage = () => {
 
   const fetchNames = async () => {
     try {
-      const [folderRes, containerRes, shelfRes] = await Promise.all([
-        getFolderById(folderId),
-        getContainerById(containerId),
-        getShelfById(shelfId),
-      ]);
+      const folderRes = await getFolderById(folderId);
+      const containerRes = await getContainerById(folderRes.container_id);
+      const shelfRes = await getShelfById(containerRes.shelf_id);
+
       setFolder(folderRes);
       setContainer(containerRes);
       setShelf(shelfRes);
@@ -121,7 +120,7 @@ const DocumentsPage = () => {
   }, [search, documents]);
 
   return (
-    <Box p={[4, 6, 10]}>
+    <Box p={[4, 6, 10]} mt={12}>
       {/* Sticky container for breadcrumb and progress bar */}
       <Box
         position="sticky"
@@ -167,7 +166,7 @@ const DocumentsPage = () => {
               <Tooltip label="View containers in this shelf" hasArrow>
                 <BreadcrumbLink
                   as={RouterLink}
-                  to={`/file-organizer/shelves/${shelfId}/containers`}
+                  to={`/file-organizer/shelves/${shelf?.id}/containers`}
                 >
                   🗂 Containers
                 </BreadcrumbLink>

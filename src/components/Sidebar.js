@@ -672,7 +672,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 icon={FiCalendar}
                 label="File Organizer"
                 isExpanded={isExpanded}
-                onClick={() => navigate("/shelvespage")} // Redirect to lokalprofile.js
+                onClick={() => window.open("/shelvespage", "_blank")} // Open in new tab
               />
             </VStack>
           </Collapse>
