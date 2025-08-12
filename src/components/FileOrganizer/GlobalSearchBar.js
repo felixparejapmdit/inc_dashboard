@@ -72,7 +72,7 @@ const GlobalSearchBar = () => {
             />
             <IconButton
               icon={<FaQrcode size={20} />}
-              onClick={() => navigate("/file-organizer/scanqr")}
+              onClick={() => navigate("/file-organizer/scancode")}
               aria-label="Scan QR Code"
               {...buttonStyles}
             />

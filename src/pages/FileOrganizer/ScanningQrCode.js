@@ -1,162 +1,335 @@
-import React, { useState } from "react";
-import QrReader from "react-qr-reader";
-import globalSearchService from "../../utils/FileOrganizer/globalSearchService";
-import { moveItemToLocation } from "../../utils/FileOrganizer/locationService";
+// src/pages/FileOrganizer/ScanningQrCode.js
+import React, { useState, useEffect } from "react";
+import QrScanner from "react-qr-scanner";
+import {
+  Box,
+  Text,
+  Stack,
+  IconButton,
+  Flex,
+  Center,
+  VStack,
+  Collapse,
+  Divider,
+  useColorModeValue,
+  Spinner,
+} from "@chakra-ui/react";
+import { FiCamera } from "react-icons/fi";
+import { getAllData } from "../../utils/FileOrganizer/globalSearchService";
 
-const ScanQRCode = () => {
+const ScanningQrCode = () => {
   const [scanResult, setScanResult] = useState("");
-  const [itemData, setItemData] = useState(null);
-  const [newLocation, setNewLocation] = useState({
-    shelf: "",
-    container: "",
-    folder: "",
-  });
-
+  const [locationData, setLocationData] = useState(null);
+  const [error, setError] = useState("");
+  const [cameraFacing, setCameraFacing] = useState("environment");
+  const [loading, setLoading] = useState(false);
+// At the top of your component (inside the function body)
+const boxBackground = useColorModeValue("gray.50", "gray.600");
+  // On scan, find the location hierarchy of scanned QR code
   const handleScan = async (data) => {
-    if (data && data !== scanResult) {
-      setScanResult(data);
-      const item = await findItemByQRCode(data);
-      setItemData(item);
+    if (data?.text || data) {
+      const qrValue = (data.text || data).toLowerCase();
+      setScanResult(qrValue);
+      setLoading(true);
+      setError("");
+      setLocationData(null);
+
+      try {
+        // Fetch all relevant collections at once
+        const [documents, folders, containers, shelves] = await Promise.all([
+          getAllData("Documents"),
+          getAllData("Folders"),
+          getAllData("Containers"),
+          getAllData("Shelves"),
+        ]);
+
+        // Helper to find by QR or generated_code (assuming documents/folders/containers have 'qrCodeValue' or 'generated_code' field)
+        const findMatch = (arr) =>
+          arr.find(
+            (item) =>
+              (item.qrCodeValue || item.generated_code || "").toLowerCase() ===
+              qrValue
+          );
+
+        const document = findMatch(documents);
+        if (document) {
+          // Get folder of document
+          const folder = folders.find((f) => f.id === document.folder_id);
+          // Get container and shelf from folder
+          const container = containers.find((c) => c.id === folder?.container_id);
+          const shelf = shelves.find((s) => s.id === container?.shelf_id);
+
+          setLocationData({
+            type: "document",
+            document,
+            folder,
+            container,
+            shelf,
+          });
+          setLoading(false);
+          return;
+        }
+
+        const folder = findMatch(folders);
+        if (folder) {
+          const container = containers.find((c) => c.id === folder.container_id);
+          const shelf = shelves.find((s) => s.id === container?.shelf_id);
+          // Get documents under this folder
+          const docsUnderFolder = documents.filter(
+            (doc) => doc.folder_id === folder.id
+          );
+
+          setLocationData({
+            type: "folder",
+            folder,
+            container,
+            shelf,
+            documents: docsUnderFolder,
+          });
+          setLoading(false);
+          return;
+        }
+
+        const container = findMatch(containers);
+        if (container) {
+          const shelf = shelves.find((s) => s.id === container.shelf_id);
+          // Get folders under container
+          const foldersUnderContainer = folders.filter(
+            (f) => f.container_id === container.id
+          );
+          // Get documents under all these folders
+          const docsUnderContainer = documents.filter((doc) =>
+            foldersUnderContainer.some((f) => f.id === doc.folder_id)
+          );
+
+          setLocationData({
+            type: "container",
+            container,
+            shelf,
+            folders: foldersUnderContainer,
+            documents: docsUnderContainer,
+          });
+          setLoading(false);
+          return;
+        }
+
+        // If nothing matched
+        setError("No matching document, folder, or container found for this QR code.");
+        setLoading(false);
+      } catch (err) {
+        console.error(err);
+        setError("Error fetching data.");
+        setLoading(false);
+      }
     }
   };
 
   const handleError = (err) => {
-    console.error("QR Scan Error:", err);
+    setError("QR scanning failed.");
   };
 
-  const findItemByQRCode = async (code) => {
-    const collections = ["shelves", "containers", "folders", "documents"];
-    for (const collection of collections) {
-      const data = await globalSearchService.getAllData(collection);
-      const found = data.find((item) => {
-        return (
-          item.generated_code === code ||
-          item.qr_code === code || // Optional: if your items use this field
-          item.id === code
-        );
-      });
-      if (found) {
-        return { ...found, type: collection.slice(0, -1) }; // strip 's'
-      }
-    }
-    return null;
+  const toggleCamera = () => {
+    setCameraFacing((prev) => (prev === "environment" ? "user" : "environment"));
   };
 
-  const handleMove = async () => {
-    if (!itemData) return;
-    try {
-      await moveItemToLocation(itemData.id, itemData.type, newLocation);
-      alert("✅ Successfully moved!");
-      setItemData(null);
-      setNewLocation({ shelf: "", container: "", folder: "" });
-    } catch (err) {
-      console.error(err);
-      alert("❌ Failed to move item.");
-    }
+  const clearScan = () => {
+    setScanResult("");
+    setLocationData(null);
+    setError("");
   };
+
+  // Colors and styles for light/dark mode
+  const borderColor = useColorModeValue("gray.300", "gray.600");
+  const bgColor = useColorModeValue("white", "gray.700");
+  const boxShadow = useColorModeValue(
+    "0 4px 6px rgba(160, 174, 192, 0.6)",
+    "0 4px 6px rgba(9, 17, 28, 0.9)"
+  );
 
   return (
-    <div style={styles.container}>
-      <h2>📷 Scan QR Code</h2>
-      <div style={styles.qrBox}>
-        <QrReader
-          delay={300}
-          onError={handleError}
-          onScan={handleScan}
-          style={{ width: "300px" }}
-        />
-      </div>
+    <Center minH="100vh" p={6} bg={useColorModeValue("gray.50", "gray.800")}>
+      <VStack
+        spacing={6}
+        bg={bgColor}
+        p={6}
+        borderRadius="lg"
+        boxShadow={boxShadow}
+        maxW="lg"
+        w="100%"
+      >
+        <Text fontSize="2xl" fontWeight="extrabold" color="teal.600">
+          📷 Scan QR Code
+        </Text>
 
-      {itemData ? (
-        <div style={styles.detailsBox}>
-          <h3>Item Details</h3>
-          <p><strong>ID:</strong> {itemData.id}</p>
-          <p><strong>Type:</strong> {itemData.type}</p>
-          <p><strong>Shelf:</strong> {itemData.shelf_id || itemData.container?.shelf_id || "—"}</p>
-          <p><strong>Container:</strong> {itemData.container_id || "—"}</p>
-          <p><strong>Folder:</strong> {itemData.folder_id || "—"}</p>
+        <Box
+          position="relative"
+          borderWidth="2px"
+          borderColor={borderColor}
+          borderRadius="md"
+          w="300px"
+          h="300px"
+          overflow="hidden"
+          boxShadow="md"
+          bg="black"
+        >
+          <QrScanner
+            delay={300}
+            onError={handleError}
+            onScan={handleScan}
+            constraints={{ video: { facingMode: cameraFacing } }}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+          <IconButton
+            aria-label="Switch camera"
+            icon={<FiCamera />}
+            size="md"
+            position="absolute"
+            top="8px"
+            right="8px"
+            onClick={toggleCamera}
+            bg="whiteAlpha.800"
+            _hover={{ bg: "whiteAlpha.900" }}
+            zIndex={10}
+            boxShadow="md"
+          />
+        </Box>
 
-          <div style={styles.moveBox}>
-            <input
-              type="text"
-              placeholder="New Shelf ID"
-              value={newLocation.shelf}
-              onChange={(e) =>
-                setNewLocation({ ...newLocation, shelf: e.target.value })
-              }
-              style={styles.input}
-            />
-            <input
-              type="text"
-              placeholder="New Container ID"
-              value={newLocation.container}
-              onChange={(e) =>
-                setNewLocation({ ...newLocation, container: e.target.value })
-              }
-              style={styles.input}
-            />
-            <input
-              type="text"
-              placeholder="New Folder ID"
-              value={newLocation.folder}
-              onChange={(e) =>
-                setNewLocation({ ...newLocation, folder: e.target.value })
-              }
-              style={styles.input}
-            />
-            <button style={styles.button} onClick={handleMove}>
-              Move Item
-            </button>
-          </div>
-        </div>
-      ) : (
-        <p style={{ marginTop: "1rem" }}>Please scan a QR code...</p>
-      )}
-    </div>
+        <Stack direction="row" spacing={4}>
+          <IconButton
+            aria-label="Clear scan result"
+            icon={<Text fontSize="lg">✕</Text>}
+            onClick={clearScan}
+            colorScheme="red"
+            size="md"
+            boxShadow="md"
+          />
+        </Stack>
+
+        {loading && <Spinner color="teal.400" size="lg" />}
+
+        {!loading && scanResult && locationData && (
+    // Later in JSX
+<Box
+  p={4}
+  borderWidth="1px"
+  borderColor={borderColor}
+  borderRadius="md"
+  w="100%"
+  maxH="400px"
+  overflowY="auto"
+  bg={boxBackground}
+>
+            <Text fontSize="xl" fontWeight="bold" mb={3} color="teal.600">
+              Location Details
+            </Text>
+
+            {/* Document View */}
+            {locationData.type === "document" && (
+              <>
+                <Text>
+                  <b>Document:</b> {locationData.document.title}
+                </Text>
+                <Divider my={2} />
+                <Text>
+                  <b>Folder:</b> {locationData.folder?.name || "N/A"}
+                </Text>
+                <Text>
+                  <b>Container:</b> {locationData.container?.name || "N/A"}
+                </Text>
+                <Text>
+                  <b>Shelf:</b> {locationData.shelf?.name || "N/A"}
+                </Text>
+              </>
+            )}
+
+            {/* Folder View */}
+            {locationData.type === "folder" && (
+              <>
+                <Text>
+                  <b>Folder:</b> {locationData.folder.name}
+                </Text>
+                <Text>
+                  <b>Container:</b> {locationData.container?.name || "N/A"}
+                </Text>
+                <Text>
+                  <b>Shelf:</b> {locationData.shelf?.name || "N/A"}
+                </Text>
+                <Divider my={2} />
+                <Text fontWeight="semibold" mb={2}>
+                  Documents under this folder:
+                </Text>
+                {locationData.documents.length > 0 ? (
+                  <VStack spacing={1} pl={4} maxH="150px" overflowY="auto" align="start">
+                    {locationData.documents.map((doc) => (
+                      <Text key={doc.id} fontSize="sm" noOfLines={1}>
+                        - {doc.title}
+                      </Text>
+                    ))}
+                  </VStack>
+                ) : (
+                  <Text fontSize="sm" fontStyle="italic" color="gray.500">
+                    No documents found.
+                  </Text>
+                )}
+              </>
+            )}
+
+            {/* Container View */}
+            {locationData.type === "container" && (
+              <>
+                <Text>
+                  <b>Container:</b> {locationData.container.name}
+                </Text>
+                <Text>
+                  <b>Shelf:</b> {locationData.shelf?.name || "N/A"}
+                </Text>
+                <Divider my={2} />
+                <Text fontWeight="semibold" mb={2}>
+                  Folders under this container:
+                </Text>
+                {locationData.folders.length > 0 ? (
+                  <VStack spacing={1} pl={4} maxH="120px" overflowY="auto" align="start">
+                    {locationData.folders.map((folder) => (
+                      <Text key={folder.id} fontSize="sm" noOfLines={1}>
+                        - {folder.name}
+                      </Text>
+                    ))}
+                  </VStack>
+                ) : (
+                  <Text fontSize="sm" fontStyle="italic" color="gray.500">
+                    No folders found.
+                  </Text>
+                )}
+                <Divider my={2} />
+                <Text fontWeight="semibold" mb={2}>
+                  Documents under this container:
+                </Text>
+                {locationData.documents.length > 0 ? (
+                  <VStack spacing={1} pl={4} maxH="150px" overflowY="auto" align="start">
+                    {locationData.documents.map((doc) => (
+                      <Text key={doc.id} fontSize="sm" noOfLines={1}>
+                        - {doc.title}
+                      </Text>
+                    ))}
+                  </VStack>
+                ) : (
+                  <Text fontSize="sm" fontStyle="italic" color="gray.500">
+                    No documents found.
+                  </Text>
+                )}
+              </>
+            )}
+          </Box>
+        )}
+
+        {!loading && scanResult && !locationData && error && (
+          <Text color="red.500" fontWeight="semibold" fontSize="md" textAlign="center">
+            ❌ {error}
+          </Text>
+        )}
+      </VStack>
+    </Center>
   );
 };
 
-export default ScanQRCode;
-
-// Inline styles
-const styles = {
-  container: {
-    padding: "2rem",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    fontFamily: "Arial",
-  },
-  qrBox: {
-    border: "2px dashed #ccc",
-    padding: "1rem",
-    marginBottom: "1.5rem",
-  },
-  detailsBox: {
-    maxWidth: "400px",
-    padding: "1rem",
-    backgroundColor: "#f5f5f5",
-    borderRadius: "8px",
-    boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
-    marginTop: "1rem",
-  },
-  moveBox: {
-    marginTop: "1rem",
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.5rem",
-  },
-  input: {
-    padding: "0.5rem",
-    borderRadius: "4px",
-    border: "1px solid #ccc",
-  },
-  button: {
-    padding: "0.6rem",
-    backgroundColor: "#007BFF",
-    color: "#fff",
-    border: "none",
-    borderRadius: "4px",
-    cursor: "pointer",
-  },
-};
+export default ScanningQrCode;

@@ -91,7 +91,7 @@ import DocumentsPage from "./pages/FileOrganizer/DocumentsPage.js";
 import GlobalSearchPage from "./pages/FileOrganizer/GlobalSearchPage.js";
 import GlobalSearchBar from "./components/FileOrganizer/GlobalSearchBar.js";
 import GenerateQRCode from "./pages/FileOrganizer/GenerateQRCode.js";
-// import ScanningQrCode from "./pages/FileOrganizer/ScanningQrCode.js";
+ import ScanningQrCode from "./pages/FileOrganizer/ScanningQrCode.js";
  
 
 function App() {
@@ -118,6 +118,7 @@ function MainApp() {
     "/containers/:containerId/folders",
     "/shelves/:shelfId/containers/:containerId/folders/:folderId/documents",
     "/file-organizer/qrcode",
+    "/file-organizer/scancode",
   ].some((pattern) =>
     matchPath({ path: pattern, end: false }, location.pathname)
   );
@@ -467,21 +468,8 @@ function MainApp() {
 <Route path="/file-organizer/search" element={<GlobalSearchPage />} />
 
 <Route path="/file-organizer/qrcode" element={<GenerateQRCode />} />
+<Route path="/file-organizer/scancode" element={<ScanningQrCode />} />
 
-
-    {/* <Route
-          path="/file-organizer/scancode"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <ScanningQrCode />
-            </Layout>
-          }
-        /> */}
         <Route
           path="/Mastodon"
           element={
