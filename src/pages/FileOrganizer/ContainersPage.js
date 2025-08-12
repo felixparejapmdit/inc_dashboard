@@ -23,6 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogContent,
   AlertDialogOverlay,
+  Flex,
 } from "@chakra-ui/react";
 import { AddIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { useParams, Link as RouterLink } from "react-router-dom";
@@ -44,6 +45,8 @@ const ContainersPage = () => {
 
   const [shelf, setShelf] = useState(null);
   const [containers, setContainers] = useState([]);
+
+  const [folders, setFolders] = useState([]); // <-- store containers here
   const [filteredContainers, setFilteredContainers] = useState([]);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -59,6 +62,20 @@ const ContainersPage = () => {
     onClose: onDeleteClose,
   } = useDisclosure();
   const cancelRef = React.useRef();
+
+  // put this at the top of your component (before return)
+  const [columns, setColumns] = useState(3);
+
+  useEffect(() => {
+    const updateColumns = () => {
+      if (window.innerWidth < 640) setColumns(1);
+      else if (window.innerWidth < 768) setColumns(2);
+      else setColumns(3);
+    };
+    updateColumns(); // initial
+    window.addEventListener("resize", updateColumns);
+    return () => window.removeEventListener("resize", updateColumns);
+  }, []);
 
   useEffect(() => {
     fetchShelf();
@@ -82,9 +99,23 @@ const ContainersPage = () => {
     try {
       setLoading(true);
       const all = await getContainers();
+
+      console.log("📦 All containers from API:", all);
+
+      // Log folders for each container
+      all.forEach((container) => {
+        console.log(
+          `🗂 Container ${container.id} (${container.name}) has folders:`,
+          container.folders || []
+        );
+      });
+
       const shelfContainers = all.filter(
         (c) => c.shelf_id === parseInt(shelfId)
       );
+
+      console.log("📌 Shelf-specific containers:", shelfContainers);
+
       setContainers(shelfContainers);
       setFilteredContainers(filterBySearch(shelfContainers, search));
     } catch (error) {
@@ -204,22 +235,24 @@ const ContainersPage = () => {
         </BreadcrumbItem>
       </Breadcrumb>
 
-      {/* Heading */}
+      {/* Heading Row */}
       <HStack justifyContent="space-between" alignItems="center" mb={6}>
-        <Box>
-          <Heading size="lg" color="teal.700" mb={1}>
+        {/* Title + Total */}
+        <HStack spacing={2} alignItems="baseline">
+          <Heading size="lg" color="teal.700">
             📦 Containers in{" "}
             <Text as="span" fontWeight="bold" color="teal.800">
               {shelf ? shelf.name : "..."}
             </Text>
           </Heading>
           {filteredContainers.length > 0 && (
-            <Text fontSize="sm" color="gray.500" ml="2">
+            <Text fontSize="sm" color="gray.500">
               ({filteredContainers.length} total)
             </Text>
           )}
-        </Box>
+        </HStack>
 
+        {/* Add/Cancel Button */}
         <Button
           leftIcon={<AddIcon />}
           colorScheme={showForm ? "red" : "teal"}
@@ -251,24 +284,80 @@ const ContainersPage = () => {
         />
       </HStack>
 
-      {/* List */}
       <Box mt={6}>
         {loading ? (
           <Center>
             <Spinner size="xl" color="teal.500" />
           </Center>
         ) : filteredContainers.length > 0 ? (
-          <SimpleGrid columns={[1, 2, 3]} spacing={4} mt={4}>
-            {filteredContainers.map((container) => (
-              <ContainerCard
-                key={container.id}
-                container={container}
-                foldersCount={container.folders?.length || 0}
-                onUpdate={handleUpdateContainer}
-                onDelete={confirmDeleteContainer}
-              />
-            ))}
-          </SimpleGrid>
+          <>
+            {Array.from(
+              { length: Math.ceil(filteredContainers.length / columns) },
+              (_, rowIndex) => {
+                const start = rowIndex * columns;
+                const rowItems = filteredContainers.slice(
+                  start,
+                  start + columns
+                );
+
+                const cardWidth =
+                  columns === 1 ? 280 : columns === 2 ? 280 : 300;
+                const spacing = columns === 1 ? 12 : 16;
+                const shelfWidth =
+                  rowItems.length * cardWidth + (rowItems.length - 1) * spacing;
+
+                const shelfVisualWidth = shelfWidth + 80; // extra plank length
+
+                return (
+                  <Flex
+                    key={rowIndex}
+                    justify="center"
+                    mb={4}
+                    position="relative"
+                  >
+                    {/* Filtered background image */}
+                    <Box
+                      position="absolute"
+                      top={0}
+                      left={0}
+                      right={0}
+                      bottom={0}
+                      bgImage="url('https://images.vexels.com/media/users/3/161071/isolated/preview/522782b07ea4b4cfccaf296c313de9b9-shelf-wood-flat.png')"
+                      bgRepeat="no-repeat"
+                      bgSize="100% 100%"
+                      filter="brightness(0) saturate(100%) invert(90%) sepia(15%) saturate(150%) hue-rotate(40deg) brightness(95%) contrast(90%)"
+                      borderRadius="md"
+                      zIndex={0}
+                    />
+
+                    {/* Foreground container content */}
+                    <Flex
+                      p={6}
+                      alignItems="center"
+                      minH="260px"
+                      w={`${shelfVisualWidth}px`}
+                      borderRadius="md"
+                      justify="center"
+                      position="relative"
+                      zIndex={1}
+                    >
+                      <SimpleGrid columns={rowItems.length} spacing={4}>
+                        {rowItems.map((container) => (
+                          <ContainerCard
+                            key={container.id}
+                            container={container}
+                            folders={container.folders || []}
+                            onUpdate={handleUpdateContainer}
+                            onDelete={confirmDeleteContainer}
+                          />
+                        ))}
+                      </SimpleGrid>
+                    </Flex>
+                  </Flex>
+                );
+              }
+            )}
+          </>
         ) : (
           <Center>
             <Text color="gray.500">No containers found.</Text>

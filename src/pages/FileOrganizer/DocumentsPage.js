@@ -121,79 +121,52 @@ const DocumentsPage = () => {
 
   return (
     <Box p={[4, 6, 10]} mt={12}>
-      {/* Sticky container for breadcrumb and progress bar */}
-      <Box
-        position="sticky"
-        top="0"
-        zIndex="1000"
-        bg={bgColor}
-        boxShadow="sm"
-        px={{ base: 4, md: 8 }}
-        py={3}
+
+
+  {/* Simple Breadcrumb */}
+  <Breadcrumb
+    spacing="8px"
+    separator={<ChevronRightIcon color="gray.400" boxSize={4} />}
+    fontWeight="medium"
+    fontSize={{ base: "xs", sm: "sm", md: "sm" }}
+    color="gray.600"
+  >
+    <BreadcrumbItem>
+      <BreadcrumbLink as={RouterLink} to="/file-organizer/shelves">
+        📁 Shelves
+      </BreadcrumbLink>
+    </BreadcrumbItem>
+
+    <BreadcrumbItem>
+      <BreadcrumbLink
+        as={RouterLink}
+        to={`/file-organizer/shelves/${shelf?.id}/containers`}
+        color="teal.700"
+        fontWeight="semibold"
       >
-        {/* Progress bar */}
-        <Progress
-          size="xs"
-          isIndeterminate={loading}
-          colorScheme="blue"
-          borderRadius="full"
-          mb={1}
-        />
+        {shelf ? shelf.name : "Loading..."}
+      </BreadcrumbLink>
+    </BreadcrumbItem>
 
-        {/* Animated Breadcrumb */}
-        <MotionBox
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Breadcrumb
-            spacing="8px"
-            separator={<ChevronRightIcon color="gray.400" boxSize={4} />}
-            fontWeight="medium"
-            fontSize={{ base: "xs", sm: "sm", md: "md" }}
-            color="gray.600"
-            flexWrap="wrap"
-          >
-            <BreadcrumbItem>
-              <Tooltip label="View all shelves" hasArrow>
-                <BreadcrumbLink as={RouterLink} to="/file-organizer/shelves">
-                  📁 Shelves
-                </BreadcrumbLink>
-              </Tooltip>
-            </BreadcrumbItem>
+    <BreadcrumbItem>
+      <BreadcrumbLink
+        as={RouterLink}
+        to={`/containers/${containerId}/folders`}
+        color="gray.700"
+        fontWeight="semibold"
+      >
+        🗂 Containers
+      </BreadcrumbLink>
+    </BreadcrumbItem>
 
-            <BreadcrumbItem>
-              <Tooltip label="View containers in this shelf" hasArrow>
-                <BreadcrumbLink
-                  as={RouterLink}
-                  to={`/file-organizer/shelves/${shelf?.id}/containers`}
-                >
-                  🗂 Containers
-                </BreadcrumbLink>
-              </Tooltip>
-            </BreadcrumbItem>
+    <BreadcrumbItem isCurrentPage>
+      <BreadcrumbLink color="gray.700" fontWeight="semibold">
+        📄 Documents
+      </BreadcrumbLink>
+    </BreadcrumbItem>
+  </Breadcrumb>
 
-            <BreadcrumbItem>
-              <Tooltip label="Browse folders in this container" hasArrow>
-                <BreadcrumbLink
-                  as={RouterLink}
-                  to={`/containers/${containerId}/folders`}
-                >
-                  🗃 Folders
-                </BreadcrumbLink>
-              </Tooltip>
-            </BreadcrumbItem>
 
-            <BreadcrumbItem isCurrentPage>
-              <Tooltip label="You are viewing the documents" hasArrow>
-                <BreadcrumbLink color="gray.700" fontWeight="semibold">
-                  📄 Documents
-                </BreadcrumbLink>
-              </Tooltip>
-            </BreadcrumbItem>
-          </Breadcrumb>
-        </MotionBox>
-      </Box>
 
       {/* Heading */}
       <HStack

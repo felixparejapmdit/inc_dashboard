@@ -10,7 +10,6 @@ const handleError = (fn) => async (...args) => {
     throw new Error(err);
   }
 };
-
 // ✅ GET all folders (with optional search)
 export const getFolders = handleError(async (search = "") => {
   const res = await directus.get("/items/Folders", {
@@ -18,10 +17,19 @@ export const getFolders = handleError(async (search = "") => {
       filter: search
         ? {
             name: {
-              _contains: search, // 🔍 partial match on name
+              _contains: search,
             },
           }
         : {},
+      fields: [
+        "id",
+        "name",
+        "description",
+        "generated_code",
+        "documents.id",
+        "documents.name",          // <-- Added this
+        "documents.created_at"
+      ],
       sort: ["name"],
     },
   });
@@ -38,12 +46,23 @@ export const getFoldersByContainerId = handleError(async (containerId) => {
           _eq: containerId,
         },
       },
+      fields: [
+        "id",
+        "name",
+        "description",
+        "generated_code",
+        "documents.id",
+        "documents.name",          // <-- Added this
+        "documents.created_at"
+      ],
       sort: ["name"],
     },
   });
 
   return res.data.data;
 });
+
+
 
 
 // ✅ GET folder by ID
@@ -57,12 +76,12 @@ export const getNextFolderCode = async () => {
   const res = await directus.get("/items/Folders", {
     params: {
       limit: -1,
-      fields: "generated_code",
+      fields: "generated_code",  // Corrected field name
     },
   });
 
   const codes = res.data.data
-    .map((item) => item.code)
+    .map((item) => item.generated_code)  // Fixed from item.code
     .filter((code) => code?.startsWith("f_"))
     .map((code) => parseInt(code.replace("f_", ""), 10))
     .filter((num) => !isNaN(num));
@@ -112,5 +131,5 @@ export const updateFolder = handleError(async (id, data) => {
 // ✅ DELETE folder
 export const deleteFolder = handleError(async (id) => {
   const res = await directus.delete(`/items/Folders/${id}`);
-  return res.data;
+  return res.data.data;  // Changed from res.data for consistency
 });

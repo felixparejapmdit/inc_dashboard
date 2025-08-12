@@ -204,20 +204,22 @@ const FoldersPage = () => {
 
       {/* Heading */}
       <HStack justifyContent="space-between" alignItems="center" mb={6}>
-        <Box>
-          <Heading size="lg" color="teal.700" mb={1}>
+        {/* Left side: title + total */}
+        <HStack spacing={2} alignItems="baseline">
+          <Heading size="lg" color="teal.700">
             🗃 Folders in{" "}
             <Text as="span" fontWeight="bold" color="teal.800">
               {container ? container.name : "..."}
             </Text>
           </Heading>
           {filteredFolders.length > 0 && (
-            <Text fontSize="sm" color="gray.500" ml="2">
+            <Text fontSize="sm" color="gray.500">
               ({filteredFolders.length} total)
             </Text>
           )}
-        </Box>
+        </HStack>
 
+        {/* Right side: button */}
         <Button
           leftIcon={<AddIcon />}
           colorScheme={showForm ? "red" : "teal"}
@@ -265,6 +267,7 @@ const FoldersPage = () => {
                 folder={folder}
                 shelfId={container.shelf_id} // ✅ Pass shelfId from container relationship
                 containerId={containerId} // ✅ Pass containerId
+                documents={folder.documents || []} // pass documents array
                 onDelete={confirmDeleteFolder}
                 onUpdate={handleUpdateFolder}
               />

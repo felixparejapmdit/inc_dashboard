@@ -15,31 +15,81 @@ const handleError = (fn) => async (...args) => {
 // ✅ GET all containers (optionally filtered by shelf_id)
 export const getContainers = handleError(async (shelf_id = null) => {
   const params = {
-    fields: ["id", "name", "description", "generated_code", "shelf_id", "created_at"],
+    fields: [
+      "id",
+      "name",
+      "description",
+      "generated_code",
+      "shelf_id",
+      "created_at",
+      "folders.id",
+      "folders.name",
+      "folders.created_at"
+    ],
     sort: "-created_at",
   };
 
   if (shelf_id) {
-    params.filter = {
-      shelf_id: {
-        _eq: shelf_id,
-      },
-    };
+    params.filter = { shelf_id: { _eq: shelf_id } };
   }
 
   const res = await directus.get("/items/Containers", { params });
+  console.log("📦 Containers (with folders):", res.data.data); // 👀 Debug
   return res.data.data;
 });
 
-// ✅ GET single container by ID
+// ✅ GET single container by ID (with folders)
 export const getContainerById = handleError(async (id) => {
   const res = await directus.get(`/items/Containers/${id}`, {
     params: {
-      fields: ["id", "name", "description", "generated_code", "shelf_id", "created_at"],
+      fields: [
+        "id",
+        "name",
+        "description",
+        "generated_code",
+        "shelf_id",
+        "created_at",
+        "folders.id",
+        "folders.name",
+        "folders.created_at"
+      ],
     },
   });
   return res.data.data;
 });
+
+// ✅ GET container by ID WITH folder count
+export const getContainerByIdWithFolderCount = handleError(async (id) => {
+  const containerRes = await directus.get(`/items/Containers/${id}`, {
+    params: {
+      fields: [
+        "id",
+        "name",
+        "description",
+        "generated_code",
+        "shelf_id",
+        "created_at"
+      ],
+    },
+  });
+
+  const container = containerRes.data.data;
+
+  const countRes = await directus.get("/items/Folders", {
+    params: {
+      aggregate: { count: "*" },
+      filter: { container_id: { _eq: id } },
+    },
+  });
+
+  const folderCount = countRes.data.data[0]?.count || 0;
+
+  return {
+    ...container,
+    folderCount,
+  };
+});
+
 
 // ✅ Helper to generate next unique container code (e.g., c_0004)
 export const getNextContainerCode = async () => {

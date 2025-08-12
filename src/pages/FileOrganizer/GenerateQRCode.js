@@ -180,7 +180,7 @@ const handlePrintSelected = () => {
 
 
   return (
-    <Box p={8}>
+    <Box p={8} mt={12}>
       <Heading size="lg" mb={4}>
         Generate QR Codes
       </Heading>
