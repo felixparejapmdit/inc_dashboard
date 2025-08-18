@@ -10,32 +10,45 @@ const handleError = (fn) => async (...args) => {
     throw new Error(err);
   }
 };
-// ✅ GET all folders (with optional search)
-export const getFolders = handleError(async (search = "") => {
-  const res = await directus.get("/items/Folders", {
-    params: {
-      filter: search
-        ? {
-            name: {
-              _contains: search,
-            },
-          }
-        : {},
-      fields: [
-        "id",
-        "name",
-        "description",
-        "generated_code",
-        "documents.id",
-        "documents.name",          // <-- Added this
-        "documents.created_at"
-      ],
-      sort: ["name"],
-    },
-  });
 
+// ✅ GET all folders (optionally filtered by container_id or search)
+export const getFolders = handleError(async (options = {}) => {
+  const { container_id = null, search = "" } = options;
+
+  const params = {
+    fields: [
+      "id",
+      "name",
+      "description",
+      "generated_code",
+      "container_id",
+      "created_at",
+      "documents.id",
+      "documents.name",
+      "documents.generated_code",
+      "documents.folder_id",
+      "documents.container_id",
+      "documents.shelf_id",
+      "documents.created_at"
+    ],
+    sort: "-created_at",
+  };
+
+  if (container_id) {
+    params.filter = { container_id: { _eq: container_id } };
+  } else if (search) {
+    params.filter = { name: { _contains: search } };
+  }
+
+  const res = await directus.get("/items/Folders", { params });
+  console.log("📂 Folders (with documents):", res.data.data); // 👀 Debug
   return res.data.data;
 });
+
+
+
+
+
 
 // ✅ GET folders by container ID
 export const getFoldersByContainerId = handleError(async (containerId) => {

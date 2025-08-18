@@ -6,16 +6,17 @@ import {
   Text,
   Stack,
   IconButton,
-  Flex,
   Center,
   VStack,
-  Collapse,
   Divider,
   useColorModeValue,
   Spinner,
 } from "@chakra-ui/react";
 import { FiCamera } from "react-icons/fi";
-import { getAllData } from "../../utils/FileOrganizer/globalSearchService";
+import { getShelves } from "../../utils/FileOrganizer/shelvesService";
+import { getContainers } from "../../utils/FileOrganizer/containersService";
+import { getFolders } from "../../utils/FileOrganizer/foldersService";
+import { getDocuments } from "../../utils/FileOrganizer/documentsService";
 
 const ScanningQrCode = () => {
   const [scanResult, setScanResult] = useState("");
@@ -23,98 +24,222 @@ const ScanningQrCode = () => {
   const [error, setError] = useState("");
   const [cameraFacing, setCameraFacing] = useState("environment");
   const [loading, setLoading] = useState(false);
-// At the top of your component (inside the function body)
-const boxBackground = useColorModeValue("gray.50", "gray.600");
-  // On scan, find the location hierarchy of scanned QR code
+
+  const boxBackground = useColorModeValue("gray.50", "gray.600");
+  const borderColor = useColorModeValue("gray.300", "gray.600");
+  const bgColor = useColorModeValue("white", "gray.700");
+  const boxShadow = useColorModeValue(
+    "0 4px 6px rgba(160, 174, 192, 0.6)",
+    "0 4px 6px rgba(9, 17, 28, 0.9)"
+  );
+
+  const [cameraAvailable, setCameraAvailable] = useState(true);
+
+  useEffect(() => {
+    // Check if browser supports camera
+    if (
+      !navigator.mediaDevices ||
+      typeof navigator.mediaDevices.getUserMedia !== "function"
+    ) {
+      setCameraAvailable(false);
+    }
+  }, []);
+
   const handleScan = async (data) => {
     if (data?.text || data) {
-      const qrValue = (data.text || data).toLowerCase();
+      const qrValue = (data.text || data).trim().toLowerCase();
+
+      // Allow scanning multiple times: clear previous error and location
       setScanResult(qrValue);
       setLoading(true);
       setError("");
       setLocationData(null);
 
       try {
-        // Fetch all relevant collections at once
-        const [documents, folders, containers, shelves] = await Promise.all([
-          getAllData("Documents"),
-          getAllData("Folders"),
-          getAllData("Containers"),
-          getAllData("Shelves"),
+        // Fetch all data upfront
+        const [shelves, containers, folders, documents] = await Promise.all([
+          getShelves(),
+          getContainers(),
+          getFolders(),
+          getDocuments(),
         ]);
 
-        // Helper to find by QR or generated_code (assuming documents/folders/containers have 'qrCodeValue' or 'generated_code' field)
+        // Helper to find item by generated_code
         const findMatch = (arr) =>
           arr.find(
             (item) =>
-              (item.qrCodeValue || item.generated_code || "").toLowerCase() ===
-              qrValue
+              (item.generated_code || "").trim().toLowerCase() === qrValue
           );
 
-        const document = findMatch(documents);
-        if (document) {
-          // Get folder of document
-          const folder = folders.find((f) => f.id === document.folder_id);
-          // Get container and shelf from folder
-          const container = containers.find((c) => c.id === folder?.container_id);
-          const shelf = shelves.find((s) => s.id === container?.shelf_id);
+        /** ----------------
+         * SHELF MATCH
+         * ----------------*/
+        const shelf = findMatch(shelves);
+        if (shelf) {
+          const containersUnderShelf = containers.filter(
+            (c) => c.shelf_id === shelf.id
+          );
+
+          const foldersUnderShelf = folders.filter((f) =>
+            containersUnderShelf.some((c) => c.id === f.container_id)
+          );
+
+          // Docs inside folders
+          const docsFromFolders = documents.filter((doc) =>
+            foldersUnderShelf.some((f) => f.id === doc.folder_id)
+          );
+
+          // Docs directly inside containers under this shelf
+          const docsDirectInContainers = documents.filter(
+            (doc) =>
+              !doc.folder_id &&
+              containersUnderShelf.some((c) => c.id === doc.container_id)
+          );
+
+          const documentsUnderShelf = [
+            ...docsFromFolders,
+            ...docsDirectInContainers,
+          ];
+
+          console.log("Shelf match:", {
+            shelf,
+            containersUnderShelf,
+            foldersUnderShelf,
+            documentsUnderShelf,
+          });
 
           setLocationData({
-            type: "document",
-            document,
-            folder,
-            container,
+            type: "shelf",
             shelf,
+            containers: containersUnderShelf,
+            folders: foldersUnderShelf,
+            documents: documentsUnderShelf,
           });
           setLoading(false);
           return;
         }
 
+        /** ----------------
+         * CONTAINER MATCH
+         * ----------------*/
+        const container = findMatch(containers);
+        if (container) {
+          const shelfOfContainer = shelves.find(
+            (s) => s.id === container.shelf_id
+          );
+
+          const foldersUnderContainer = folders.filter(
+            (f) => f.container_id === container.id
+          );
+
+          const docsFromFolders = documents.filter((doc) =>
+            foldersUnderContainer.some((f) => f.id === doc.folder_id)
+          );
+
+          const docsDirectInContainer = documents.filter(
+            (doc) => !doc.folder_id && doc.container_id === container.id
+          );
+
+          const documentsUnderContainer = [
+            ...docsFromFolders,
+            ...docsDirectInContainer,
+          ];
+
+          console.log("Container match:", {
+            container,
+            shelfOfContainer,
+            foldersUnderContainer,
+            documentsUnderContainer,
+          });
+
+          setLocationData({
+            type: "container",
+            container,
+            shelf: shelfOfContainer,
+            folders: foldersUnderContainer,
+            documents: documentsUnderContainer,
+          });
+          setLoading(false);
+          return;
+        }
+        /** ----------------
+         * FOLDER MATCH
+         * ----------------*/
         const folder = findMatch(folders);
         if (folder) {
-          const container = containers.find((c) => c.id === folder.container_id);
-          const shelf = shelves.find((s) => s.id === container?.shelf_id);
-          // Get documents under this folder
-          const docsUnderFolder = documents.filter(
-            (doc) => doc.folder_id === folder.id
+          const containerOfFolder = containers.find(
+            (c) => String(c.id) === String(folder.container_id)
           );
+          const shelfOfFolder = shelves.find(
+            (s) => String(s.id) === String(containerOfFolder?.shelf_id)
+          );
+
+          // ✅ Prefer related docs from Directus, fallback to global array
+          const docsUnderFolder =
+            Array.isArray(folder.documents) && folder.documents.length > 0
+              ? folder.documents
+              : documents.filter(
+                  (doc) => String(doc.folder_id) === String(folder.id)
+                );
+
+          console.log("Folder match:", {
+            folder,
+            containerOfFolder,
+            shelfOfFolder,
+            docsUnderFolder,
+          });
 
           setLocationData({
             type: "folder",
             folder,
-            container,
-            shelf,
+            container: containerOfFolder,
+            shelf: shelfOfFolder,
             documents: docsUnderFolder,
           });
           setLoading(false);
           return;
         }
 
-        const container = findMatch(containers);
-        if (container) {
-          const shelf = shelves.find((s) => s.id === container.shelf_id);
-          // Get folders under container
-          const foldersUnderContainer = folders.filter(
-            (f) => f.container_id === container.id
+        /** ----------------
+         * DOCUMENT MATCH
+         * ----------------*/
+        const document = findMatch(documents);
+        if (document) {
+          const folderOfDoc = folders.find((f) => f.id === document.folder_id);
+          const containerOfFolder = containers.find(
+            (c) =>
+              c.id === folderOfDoc?.container_id ||
+              c.id === document.container_id
           );
-          // Get documents under all these folders
-          const docsUnderContainer = documents.filter((doc) =>
-            foldersUnderContainer.some((f) => f.id === doc.folder_id)
+          const shelfOfContainer = shelves.find(
+            (s) =>
+              s.id === containerOfFolder?.shelf_id || s.id === document.shelf_id
           );
 
+          console.log("Document match:", {
+            document,
+            folderOfDoc,
+            containerOfFolder,
+            shelfOfContainer,
+          });
+
           setLocationData({
-            type: "container",
-            container,
-            shelf,
-            folders: foldersUnderContainer,
-            documents: docsUnderContainer,
+            type: "document",
+            document,
+            folder: folderOfDoc,
+            container: containerOfFolder,
+            shelf: shelfOfContainer,
           });
           setLoading(false);
           return;
         }
 
-        // If nothing matched
-        setError("No matching document, folder, or container found for this QR code.");
+        /** ----------------
+         * NO MATCH
+         * ----------------*/
+        setError(
+          "No matching shelf, container, folder, or document found for this QR code."
+        );
         setLoading(false);
       } catch (err) {
         console.error(err);
@@ -129,7 +254,9 @@ const boxBackground = useColorModeValue("gray.50", "gray.600");
   };
 
   const toggleCamera = () => {
-    setCameraFacing((prev) => (prev === "environment" ? "user" : "environment"));
+    setCameraFacing((prev) =>
+      prev === "environment" ? "user" : "environment"
+    );
   };
 
   const clearScan = () => {
@@ -138,12 +265,25 @@ const boxBackground = useColorModeValue("gray.50", "gray.600");
     setError("");
   };
 
-  // Colors and styles for light/dark mode
-  const borderColor = useColorModeValue("gray.300", "gray.600");
-  const bgColor = useColorModeValue("white", "gray.700");
-  const boxShadow = useColorModeValue(
-    "0 4px 6px rgba(160, 174, 192, 0.6)",
-    "0 4px 6px rgba(9, 17, 28, 0.9)"
+  const Section = ({ title, items }) => (
+    <>
+      <Text fontWeight="semibold" mb={3} fontSize="md">
+        {title}:
+      </Text>
+      {items.length > 0 ? (
+        <VStack spacing={2} pl={4} maxH="150px" overflowY="auto" align="start">
+          {items.map((item) => (
+            <Text key={item.id} fontSize="sm" noOfLines={1}>
+              • {item.name}
+            </Text>
+          ))}
+        </VStack>
+      ) : (
+        <Text fontSize="sm" fontStyle="italic" color="gray.500">
+          No {title.toLowerCase()} found.
+        </Text>
+      )}
+    </>
   );
 
   return (
@@ -208,122 +348,132 @@ const boxBackground = useColorModeValue("gray.50", "gray.600");
         {loading && <Spinner color="teal.400" size="lg" />}
 
         {!loading && scanResult && locationData && (
-    // Later in JSX
-<Box
-  p={4}
-  borderWidth="1px"
-  borderColor={borderColor}
-  borderRadius="md"
-  w="100%"
-  maxH="400px"
-  overflowY="auto"
-  bg={boxBackground}
->
-            <Text fontSize="xl" fontWeight="bold" mb={3} color="teal.600">
+          <Box
+            p={6}
+            borderWidth="1px"
+            borderColor={borderColor}
+            borderRadius="lg"
+            w="100%"
+            maxH="500px"
+            overflowY="auto"
+            bg={boxBackground}
+          >
+            <Text fontSize="2xl" fontWeight="bold" mb={6} color="teal.600">
               Location Details
             </Text>
 
-            {/* Document View */}
-            {locationData.type === "document" && (
+            {/* Shelf View */}
+            {locationData.type === "shelf" && (
               <>
-                <Text>
-                  <b>Document:</b> {locationData.document.title}
+                <Text fontSize="lg" fontWeight="semibold" mb={1}>
+                  Shelf:{" "}
+                  <Box as="span" fontWeight="normal">
+                    {locationData.shelf.name}
+                  </Box>
                 </Text>
-                <Divider my={2} />
-                <Text>
-                  <b>Folder:</b> {locationData.folder?.name || "N/A"}
-                </Text>
-                <Text>
-                  <b>Container:</b> {locationData.container?.name || "N/A"}
-                </Text>
-                <Text>
-                  <b>Shelf:</b> {locationData.shelf?.name || "N/A"}
-                </Text>
-              </>
-            )}
 
-            {/* Folder View */}
-            {locationData.type === "folder" && (
-              <>
-                <Text>
-                  <b>Folder:</b> {locationData.folder.name}
-                </Text>
-                <Text>
-                  <b>Container:</b> {locationData.container?.name || "N/A"}
-                </Text>
-                <Text>
-                  <b>Shelf:</b> {locationData.shelf?.name || "N/A"}
-                </Text>
-                <Divider my={2} />
-                <Text fontWeight="semibold" mb={2}>
-                  Documents under this folder:
-                </Text>
-                {locationData.documents.length > 0 ? (
-                  <VStack spacing={1} pl={4} maxH="150px" overflowY="auto" align="start">
-                    {locationData.documents.map((doc) => (
-                      <Text key={doc.id} fontSize="sm" noOfLines={1}>
-                        - {doc.title}
-                      </Text>
-                    ))}
-                  </VStack>
-                ) : (
-                  <Text fontSize="sm" fontStyle="italic" color="gray.500">
-                    No documents found.
-                  </Text>
-                )}
+                <Divider my={4} />
+
+                <Section
+                  title="Containers under this shelf"
+                  items={locationData.containers}
+                />
+                <Divider my={4} />
+                <Section
+                  title="Folders under this shelf"
+                  items={locationData.folders}
+                />
+                <Divider my={4} />
+                <Section
+                  title="Documents under this shelf"
+                  items={locationData.documents}
+                />
               </>
             )}
 
             {/* Container View */}
             {locationData.type === "container" && (
               <>
-                <Text>
-                  <b>Container:</b> {locationData.container.name}
+                <Text fontSize="lg" fontWeight="semibold" mb={1}>
+                  Container:{" "}
+                  <Box as="span" fontWeight="normal">
+                    {locationData.container.name}
+                  </Box>
                 </Text>
-                <Text>
-                  <b>Shelf:</b> {locationData.shelf?.name || "N/A"}
+                <Text fontSize="md" mb={4}>
+                  Shelf: {locationData.shelf?.name || "N/A"}
                 </Text>
-                <Divider my={2} />
-                <Text fontWeight="semibold" mb={2}>
-                  Folders under this container:
+
+                <Divider my={4} />
+
+                <Section
+                  title="Folders under this container"
+                  items={locationData.folders}
+                />
+                <Divider my={4} />
+                <Section
+                  title="Documents under this container"
+                  items={locationData.documents}
+                />
+              </>
+            )}
+
+            {/* Folder View */}
+            {locationData.type === "folder" && (
+              <>
+                <Text fontSize="lg" fontWeight="semibold" mb={1}>
+                  Folder:{" "}
+                  <Box as="span" fontWeight="normal">
+                    {locationData.folder.name}
+                  </Box>
                 </Text>
-                {locationData.folders.length > 0 ? (
-                  <VStack spacing={1} pl={4} maxH="120px" overflowY="auto" align="start">
-                    {locationData.folders.map((folder) => (
-                      <Text key={folder.id} fontSize="sm" noOfLines={1}>
-                        - {folder.name}
-                      </Text>
-                    ))}
-                  </VStack>
-                ) : (
-                  <Text fontSize="sm" fontStyle="italic" color="gray.500">
-                    No folders found.
-                  </Text>
-                )}
-                <Divider my={2} />
-                <Text fontWeight="semibold" mb={2}>
-                  Documents under this container:
+                <Text fontSize="md">
+                  Container: {locationData.container?.name || "N/A"}
                 </Text>
-                {locationData.documents.length > 0 ? (
-                  <VStack spacing={1} pl={4} maxH="150px" overflowY="auto" align="start">
-                    {locationData.documents.map((doc) => (
-                      <Text key={doc.id} fontSize="sm" noOfLines={1}>
-                        - {doc.title}
-                      </Text>
-                    ))}
-                  </VStack>
-                ) : (
-                  <Text fontSize="sm" fontStyle="italic" color="gray.500">
-                    No documents found.
-                  </Text>
-                )}
+                <Text fontSize="md" mb={4}>
+                  Shelf: {locationData.shelf?.name || "N/A"}
+                </Text>
+
+                <Divider my={4} />
+
+                <Section
+                  title="Documents under this folder"
+                  items={locationData.documents}
+                />
+              </>
+            )}
+
+            {/* Document View */}
+            {locationData.type === "document" && (
+              <>
+                <Text fontSize="lg" fontWeight="semibold" mb={1}>
+                  Document:{" "}
+                  <Box as="span" fontWeight="normal">
+                    {locationData.document.name}
+                  </Box>
+                </Text>
+                <Divider my={4} />
+                <Text fontSize="md">
+                  Folder: {locationData.folder?.name || "N/A"}
+                </Text>
+                <Text fontSize="md">
+                  Container: {locationData.container?.name || "N/A"}
+                </Text>
+                <Text fontSize="md">
+                  Shelf: {locationData.shelf?.name || "N/A"}
+                </Text>
               </>
             )}
           </Box>
         )}
 
         {!loading && scanResult && !locationData && error && (
-          <Text color="red.500" fontWeight="semibold" fontSize="md" textAlign="center">
+          <Text
+            color="red.500"
+            fontWeight="semibold"
+            fontSize="md"
+            textAlign="center"
+          >
             ❌ {error}
           </Text>
         )}

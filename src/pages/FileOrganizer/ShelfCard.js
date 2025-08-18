@@ -1,156 +1,157 @@
-// src/pages/FileOrganizer/ShelfCard.js
 import React from "react";
 import {
   Box,
   Text,
-  Flex,
-  IconButton,
-  Tooltip,
+  HStack,
   useColorModeValue,
-  VStack,
-  Divider,
+  useDisclosure,
 } from "@chakra-ui/react";
-import { QRCodeSVG } from "qrcode.react";
-import { EditIcon, DeleteIcon } from "@chakra-ui/icons";
 import { useNavigate } from "react-router-dom";
+import DeleteConfirmModal from "../../components/FileOrganizer/DeleteConfirmModal";
+import QRCodeModal from "../../components/FileOrganizer/QRCodeModal";
+import GlobalMenuButton from "../../components/FileOrganizer/GlobalMenuButton";
 
-const ShelfCard = ({ shelf, containers = [], onEdit, onDelete }) => {
+const ShelfCard = ({
+  shelf,
+  containers = [],
+  onEdit,
+  onDelete,
+  onGenerateQR,
+   minHeight = 220
+}) => {
   const navigate = useNavigate();
-  const bg = useColorModeValue("white", "gray.800");
-  const border = useColorModeValue("gray.200", "gray.600");
-  const textColor = useColorModeValue("orange.700", "orange.200"); // 🔹 Keep original shelf.name color
-  const footerBg = useColorModeValue("gray.50", "gray.700");
+
+  // Shelf wood gradient + optional texture
+  const shelfBg = useColorModeValue(
+    "linear-gradient(135deg, #f9e7d2, #e3c8a6)",
+    "linear-gradient(135deg, #3a2f23, #5a4633)"
+  );
+  const shelfTexture = useColorModeValue(
+    "url('/textures/light-wood.png')",
+    "url('/textures/dark-wood.png')"
+  );
+
+  const labelBg = useColorModeValue("orange.300", "orange.600");
+  const textColor = useColorModeValue("orange.900", "orange.100");
+  const plankColor = useColorModeValue("#d6a66e", "#4a3525");
+  const containerBg = useColorModeValue("white", "gray.700");
+  const containerText = useColorModeValue("gray.700", "gray.200");
+
+  const [deleteTarget, setDeleteTarget] = React.useState(null);
+
+  const {
+    isOpen: isDeleteOpen,
+    onOpen: onDeleteOpen,
+    onClose: onDeleteClose,
+  } = useDisclosure();
+
+  const {
+    isOpen: isQrOpen,
+    onOpen: onQrOpen,
+    onClose: onQrClose,
+  } = useDisclosure();
 
   const handleCardClick = (e) => {
-    const isButton = e.target.closest("button");
+    const isButton = e.target.closest("button,[role=menuitem]");
     if (!isButton) {
       navigate(`/file-organizer/shelves/${shelf.id}/containers`);
     }
   };
 
   return (
-    <Box
-      borderWidth="1px"
-      borderColor={border}
-      borderRadius="xl"
-      bg={bg}
-      boxShadow="md"
-      transition="all 0.2s"
-      _hover={{ boxShadow: "lg", transform: "scale(1.01)" }}
-      cursor="pointer"
-      onClick={handleCardClick}
-      display="flex"
-      flexDirection="column"
-      h="100%" // 🔹 Allow equal height in grid
-    >
-      {/* Title Section */}
-      <Flex
-        direction="column"
-        align="center"
-        justify="center"
-        textAlign="center"
-        p={4}
-        minH="100px"
-        maxH="100px"
-        flexShrink={0}
+    <Box position="relative" mb={10}>
+      <Box
+        borderRadius="xl"
+        bg={shelfBg}
+        backgroundImage={shelfTexture}
+        backgroundBlendMode="overlay"
+        backgroundSize="cover"
+        boxShadow="lg"
+        cursor="pointer"
+        transition="all 0.2s"
+        _hover={{ boxShadow: "xl", transform: "translateY(-2px)" }}
+        onClick={handleCardClick}
+        overflow="hidden"
+        position="relative"
+        minH={`${minHeight}px`}
+        pb={6} // give space for the plank
       >
-        <Text
-          fontWeight="bold"
-          fontSize="md"
-          color={textColor}
-          noOfLines={2}
+        {/* Shelf label */}
+        <Box
+          position="absolute"
+          top={2}
+          left="50%"
+          transform="translateX(-50%)"
+          bg={labelBg}
+          px={4}
+          py={1}
+          borderRadius="md"
+          boxShadow="sm"
+          zIndex={2}
         >
-          {shelf.name}
-        </Text>
-      </Flex>
+          <Text fontWeight="bold" fontSize="sm" color={textColor} noOfLines={1}>
+            {shelf.name}
+          </Text>
+        </Box>
 
-      {/* Footer Section */}
-      <Flex
-        bg={footerBg}
-        p={3}
-        borderTop="1px solid"
-        borderColor={border}
-        flex="1"
-        direction="column"
-        justify="space-between"
-      >
-        {/* QR & Actions */}
-        <Flex justify="space-between" align="center">
-          {shelf.generated_code ? (
-            <Tooltip label={`Code: ${shelf.generated_code}`} placement="top">
-              <Box
-                border="1px solid"
-                borderColor={border}
-                borderRadius="md"
-                p={1}
-                bg="white"
-                boxShadow="sm"
-              >
-                <QRCodeSVG
-                  value={shelf.generated_code}
-                  size={48}
-                  bgColor="#ffffff"
-                  fgColor="#000000"
-                  level="H"
-                />
-              </Box>
-            </Tooltip>
-          ) : (
-            <Box w="48px" />
-          )}
+        {/* Menu Button */}
+        <Box
+          position="absolute"
+          top={2}
+          left={2}
+          zIndex={3}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <GlobalMenuButton
+            onEdit={() => onEdit()}
+            onDelete={() => {
+              setDeleteTarget(shelf);
+              onDeleteOpen();
+            }}
+            onShowQr={onQrOpen}
+            onGenerateQr={() => onGenerateQR(shelf)}
+            generatedCode={shelf.generated_code}
+          />
+        </Box>
 
-          <Flex gap={2}>
-            <Tooltip label="Edit Shelf">
-              <IconButton
-                size="sm"
-                icon={<EditIcon />}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit();
-                }}
-                aria-label="Edit Shelf"
-                variant="outline"
-              />
-            </Tooltip>
-            <Tooltip label="Delete Shelf">
-              <IconButton
-                size="sm"
-                icon={<DeleteIcon />}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete();
-                }}
-                aria-label="Delete Shelf"
-                colorScheme="red"
-                variant="outline"
-              />
-            </Tooltip>
-          </Flex>
-        </Flex>
-
-        <Divider my={2} />
-
-        {/* Container Preview */}
-        <VStack spacing={1} align="stretch" flex="1" overflow="hidden">
+        {/* Container section */}
+        <Box
+          p={4}
+          pt={12}
+          display="flex"
+          flexDirection="column"
+          justifyContent="center"
+          alignItems="center"
+          minH={`${minHeight}px`}
+          boxShadow="inset 0 2px 6px rgba(0,0,0,0.25)"
+        >
           {containers && containers.length > 0 ? (
             <>
-              {containers.slice(0, 3).map((container) => (
-                <Text
-                  key={container.id}
-                  fontSize="xs"
-                  color="gray.600"
-                  noOfLines={1}
-                  title={container.name}
-                >
-                  📦 {container.name}
-                </Text>
-              ))}
+              <HStack spacing={3} wrap="wrap" justify="center">
+                {containers.slice(0, 3).map((container) => (
+                  <Box
+                    key={container.id}
+                    px={3}
+                    py={2}
+                    borderRadius="md"
+                    bg={containerBg}
+                    color={containerText}
+                    boxShadow="sm"
+                    fontSize="xs"
+                    noOfLines={1}
+                    title={container.name}
+                  >
+                    📦 {container.name}
+                  </Box>
+                ))}
+              </HStack>
               {containers.length > 3 && (
                 <Text
                   fontSize="xs"
                   color="gray.500"
                   fontWeight="medium"
-                  textAlign="right"
+                  mt={2}
+                  textAlign="center"
                 >
                   +{containers.length - 3} more
                 </Text>
@@ -166,8 +167,41 @@ const ShelfCard = ({ shelf, containers = [], onEdit, onDelete }) => {
               No containers yet
             </Text>
           )}
-        </VStack>
-      </Flex>
+        </Box>
+
+        {/* Plank (tight under the card) */}
+        <Box
+          position="absolute"
+          bottom={0}
+          left={4}
+          right={4}
+          height="10px"
+          bg={plankColor}
+          borderRadius="full"
+          boxShadow="0 3px 6px rgba(0,0,0,0.3), inset 0 2px 3px rgba(255,255,255,0.3)"
+        />
+      </Box>
+
+      {/* QR Code Modal */}
+      <QRCodeModal
+        isOpen={isQrOpen}
+        onClose={onQrClose}
+        title={`QR Code for ${shelf.name}`}
+        code={shelf.generated_code}
+        name={shelf.name}
+      />
+
+      {/* Delete Confirm Modal */}
+      <DeleteConfirmModal
+        isOpen={isDeleteOpen}
+        onClose={onDeleteClose}
+        title="Delete Shelf"
+        message={`Are you sure you want to delete "${deleteTarget?.name}"?`}
+        onConfirm={() => {
+          onDelete(deleteTarget);
+          onDeleteClose();
+        }}
+      />
     </Box>
   );
 };

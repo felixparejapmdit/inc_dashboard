@@ -7,7 +7,7 @@ import {
   SimpleGrid,
   useColorModeValue,
 } from "@chakra-ui/react";
-import { AddIcon, PlusSquareIcon } from "@chakra-ui/icons";
+import { PlusSquareIcon } from "@chakra-ui/icons";
 import {
   getShelves,
   createShelf,
@@ -18,6 +18,8 @@ import { getAllData } from "../../utils/FileOrganizer/globalSearchService";
 import ShelfCard from "./ShelfCard";
 import AddShelfForm from "./AddShelfForm";
 import { handleError } from "../../utils/FileOrganizer/handleError";
+
+const CARD_MIN_HEIGHT = 220;
 
 const AddNewShelfCard = ({ onClick }) => {
   const bg = useColorModeValue("gray.100", "gray.600");
@@ -35,8 +37,9 @@ const AddNewShelfCard = ({ onClick }) => {
       justifyContent="center"
       cursor="pointer"
       onClick={onClick}
-      height="100%"
-      width="100%"
+      minH={`${CARD_MIN_HEIGHT}px`}
+      h="100%"
+      w="100%"
       color={color}
       userSelect="none"
       textAlign="center"
@@ -163,7 +166,8 @@ const ShelvesPage = () => {
             p={4}
             boxShadow="md"
             w="100%"
-            minHeight="300px" // fixed height to match ShelfCard height
+            minH={`${CARD_MIN_HEIGHT}px`}
+            h="100%"
             display="flex"
             flexDirection="column"
             justifyContent="center"
@@ -178,12 +182,7 @@ const ShelvesPage = () => {
             />
           </Box>
         ) : (
-          <Box
-            w="100%"
-            minHeight="300px" // same fixed height here too
-          >
-            <AddNewShelfCard onClick={() => setShowAddCard(true)} />
-          </Box>
+          <AddNewShelfCard onClick={() => setShowAddCard(true)} />
         )}
 
         {shelves.map((shelf) => (
@@ -198,6 +197,7 @@ const ShelvesPage = () => {
               setShowAddCard(true);
             }}
             onDelete={() => handleDelete(shelf)}
+            minHeight={CARD_MIN_HEIGHT}
           />
         ))}
       </SimpleGrid>

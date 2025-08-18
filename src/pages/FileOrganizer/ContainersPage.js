@@ -155,8 +155,8 @@ const ContainersPage = () => {
     }
   };
 
-  const handleUpdateContainer = async (containerId, updatedData) => {
-    setEditingContainer({ id: containerId, ...updatedData });
+  const handleUpdateContainer = (container) => {
+    setEditingContainer(container); // pass the whole container object
     setShowForm(true);
 
     setTimeout(() => {

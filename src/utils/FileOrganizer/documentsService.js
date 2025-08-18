@@ -12,9 +12,26 @@ const handleError = (fn) => async (...args) => {
 
 // ✅ GET all documents
 export const getDocuments = handleError(async (params = {}) => {
-  const res = await directus.get("/items/Documents", { params });
+  const defaultParams = {
+    fields: [
+      "id",
+      "name",
+      "description",
+      "generated_code",
+      "folder_id",     // ✅ Add this
+      "container_id",  // ✅ Add this (if exists in schema)
+      "shelf_id"       // ✅ Add this (if exists in schema)
+    ],
+    sort: ["name"]
+  };
+
+  const res = await directus.get("/items/Documents", {
+    params: { ...defaultParams, ...params }
+  });
+
   return res.data.data;
 });
+
 
 // ✅ GET documents by folder ID
 export const getDocumentsByFolderId = handleError(async (folderId) => {

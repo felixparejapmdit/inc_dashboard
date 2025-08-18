@@ -3,7 +3,7 @@ import { Box, Text, Checkbox, VStack } from "@chakra-ui/react";
 import { QRCodeCanvas } from "qrcode.react"; // ✅ Correct import
 
 const QRItemCard = ({ item, category, checked, onToggle }) => {
-  const qrValue = `${window.location.origin}/${category.toLowerCase()}/${item.id}`;
+  const qrValue = `${item.generated_code}`;
 
   return (
    <Box

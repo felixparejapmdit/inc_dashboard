@@ -19,10 +19,14 @@ const AddContainerForm = ({ onSave, editData }) => {
   const border = useColorModeValue("1px solid #E2E8F0", "1px solid #4A5568");
   const inputBg = useColorModeValue("orange.50", "orange.100");
 
+  // Prefill when editing
   useEffect(() => {
     if (editData) {
       setName(editData.name || "");
       setDescription(editData.description || "");
+    } else {
+      setName("");
+      setDescription("");
     }
   }, [editData]);
 
@@ -37,8 +41,12 @@ const AddContainerForm = ({ onSave, editData }) => {
     };
 
     onSave(dataToSave);
-    setName("");
-    setDescription("");
+
+    // reset only if adding a new one
+    if (!editData) {
+      setName("");
+      setDescription("");
+    }
   };
 
   return (
