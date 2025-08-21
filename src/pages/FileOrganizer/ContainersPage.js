@@ -325,8 +325,8 @@ const ContainersPage = () => {
                       bgImage="url('https://images.vexels.com/media/users/3/161071/isolated/preview/522782b07ea4b4cfccaf296c313de9b9-shelf-wood-flat.png')"
                       bgRepeat="no-repeat"
                       bgSize="100% 100%"
-                      filter="brightness(0) saturate(100%) invert(90%) sepia(15%) saturate(150%) hue-rotate(40deg) brightness(95%) contrast(90%)"
-                      borderRadius="md"
+                      filter="grayscale(100%) brightness(120%) contrast(100%)" // Adjusted filter
+                    borderRadius="md"
                       zIndex={0}
                     />
 

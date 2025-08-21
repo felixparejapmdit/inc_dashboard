@@ -29,6 +29,7 @@ export const getFolders = handleError(async (options = {}) => {
       "documents.folder_id",
       "documents.container_id",
       "documents.shelf_id",
+      "documents.file_url",
       "documents.created_at"
     ],
     sort: "-created_at",
@@ -65,7 +66,8 @@ export const getFoldersByContainerId = handleError(async (containerId) => {
         "description",
         "generated_code",
         "documents.id",
-        "documents.name",          // <-- Added this
+        "documents.name",     
+        "documents.file_url",     // <-- Added this
         "documents.created_at"
       ],
       sort: ["name"],

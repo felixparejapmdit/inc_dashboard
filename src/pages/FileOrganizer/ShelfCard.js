@@ -3,6 +3,7 @@ import {
   Box,
   Text,
   HStack,
+  Tag,
   useColorModeValue,
   useDisclosure,
 } from "@chakra-ui/react";
@@ -17,25 +18,17 @@ const ShelfCard = ({
   onEdit,
   onDelete,
   onGenerateQR,
-   minHeight = 220
+  minHeight = 220,
 }) => {
   const navigate = useNavigate();
 
-  // Shelf wood gradient + optional texture
-  const shelfBg = useColorModeValue(
-    "linear-gradient(135deg, #f9e7d2, #e3c8a6)",
-    "linear-gradient(135deg, #3a2f23, #5a4633)"
-  );
-  const shelfTexture = useColorModeValue(
-    "url('/textures/light-wood.png')",
-    "url('/textures/dark-wood.png')"
-  );
-
-  const labelBg = useColorModeValue("orange.300", "orange.600");
-  const textColor = useColorModeValue("orange.900", "orange.100");
-  const plankColor = useColorModeValue("#d6a66e", "#4a3525");
-  const containerBg = useColorModeValue("white", "gray.700");
+  // Theme colors
+  const shelfBg = useColorModeValue("#fdfdfc", "gray.800");
+  const labelBg = useColorModeValue("gray.200", "gray.600");
+  const textColor = useColorModeValue("gray.900", "gray.100");
+  const containerBg = useColorModeValue("gray.50", "gray.700");
   const containerText = useColorModeValue("gray.700", "gray.200");
+  const moreTagBg = useColorModeValue("gray.200", "gray.600");
 
   const [deleteTarget, setDeleteTarget] = React.useState(null);
 
@@ -59,22 +52,24 @@ const ShelfCard = ({
   };
 
   return (
-    <Box position="relative" mb={10}>
+    <Box position="relative" mb={14}>
       <Box
         borderRadius="xl"
+        border="1px solid"
+        borderColor={useColorModeValue("gray.200", "gray.700")}
         bg={shelfBg}
-        backgroundImage={shelfTexture}
-        backgroundBlendMode="overlay"
-        backgroundSize="cover"
-        boxShadow="lg"
+        boxShadow="sm"
         cursor="pointer"
-        transition="all 0.2s"
-        _hover={{ boxShadow: "xl", transform: "translateY(-2px)" }}
+        transition="all 0.25s"
+        _hover={{ boxShadow: "xl", transform: "translateY(-4px)" }}
         onClick={handleCardClick}
         overflow="hidden"
         position="relative"
         minH={`${minHeight}px`}
-        pb={6} // give space for the plank
+        pb={10} // space for plank
+        display="flex"
+        flexDirection="column"
+        justifyContent="flex-start"
       >
         {/* Shelf label */}
         <Box
@@ -85,11 +80,11 @@ const ShelfCard = ({
           bg={labelBg}
           px={4}
           py={1}
-          borderRadius="md"
-          boxShadow="sm"
+          borderRadius="full"
+          boxShadow="md"
           zIndex={2}
         >
-          <Text fontWeight="bold" fontSize="sm" color={textColor} noOfLines={1}>
+          <Text fontWeight="semibold" fontSize="sm" color={textColor} noOfLines={1}>
             {shelf.name}
           </Text>
         </Box>
@@ -111,33 +106,35 @@ const ShelfCard = ({
             onShowQr={onQrOpen}
             onGenerateQr={() => onGenerateQR(shelf)}
             generatedCode={shelf.generated_code}
+            type="shelf"
           />
         </Box>
 
-        {/* Container section */}
+        {/* Containers */}
         <Box
-          p={4}
-          pt={12}
+          flex="1"
           display="flex"
           flexDirection="column"
           justifyContent="center"
           alignItems="center"
-          minH={`${minHeight}px`}
-          boxShadow="inset 0 2px 6px rgba(0,0,0,0.25)"
+          px={4}
+          pt={12}
+          pb={6}
         >
           {containers && containers.length > 0 ? (
             <>
-              <HStack spacing={3} wrap="wrap" justify="center">
+              <HStack spacing={2} wrap="wrap" justify="center" gap={2}>
                 {containers.slice(0, 3).map((container) => (
                   <Box
                     key={container.id}
                     px={3}
-                    py={2}
-                    borderRadius="md"
+                    py={1.5}
+                    borderRadius="lg"
                     bg={containerBg}
                     color={containerText}
                     boxShadow="sm"
                     fontSize="xs"
+                    fontWeight="medium"
                     noOfLines={1}
                     title={container.name}
                   >
@@ -146,15 +143,15 @@ const ShelfCard = ({
                 ))}
               </HStack>
               {containers.length > 3 && (
-                <Text
-                  fontSize="xs"
-                  color="gray.500"
-                  fontWeight="medium"
+                <Tag
+                  size="sm"
                   mt={2}
-                  textAlign="center"
+                  bg={moreTagBg}
+                  color={textColor}
+                  borderRadius="full"
                 >
                   +{containers.length - 3} more
-                </Text>
+                </Tag>
               )}
             </>
           ) : (
@@ -169,16 +166,19 @@ const ShelfCard = ({
           )}
         </Box>
 
-        {/* Plank (tight under the card) */}
+        {/* Wooden plank */}
         <Box
           position="absolute"
-          bottom={0}
-          left={4}
-          right={4}
-          height="10px"
-          bg={plankColor}
-          borderRadius="full"
-          boxShadow="0 3px 6px rgba(0,0,0,0.3), inset 0 2px 3px rgba(255,255,255,0.3)"
+          bottom="0"
+          left="0"
+          right="0"
+          height="16px"
+          borderTopRadius="sm"
+          bgGradient="linear(to-r, gray.200, gray.300, gray.400, gray.200)"
+          backgroundSize="200% 100%"
+          backgroundPosition="center"
+          filter="contrast(115%) brightness(100%)"
+          boxShadow="inset 0 2px 4px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)"
         />
       </Box>
 

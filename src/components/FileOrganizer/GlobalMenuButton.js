@@ -1,3 +1,4 @@
+// src/components/FileOrganizer/GlobalMenuButton.js
 import React from "react";
 import {
   Menu,
@@ -8,9 +9,16 @@ import {
   IconButton,
   Portal,
 } from "@chakra-ui/react";
-import { HamburgerIcon, EditIcon, DeleteIcon, ViewIcon } from "@chakra-ui/icons";
+import {
+  HamburgerIcon,
+  EditIcon,
+  DeleteIcon,
+  ViewIcon,
+} from "@chakra-ui/icons";
 
 const GlobalMenuButton = ({
+  itemType = "shelf", // default
+  onView,
   onEdit,
   onDelete,
   onShowQr,
@@ -36,6 +44,19 @@ const GlobalMenuButton = ({
           boxShadow="lg"
           borderRadius="md"
         >
+          {/* ✅ Only show View File for DocumentCard */}
+          {itemType === "document" && onView && (
+            <MenuItem
+              icon={<ViewIcon />}
+              onClick={(e) => {
+                e.stopPropagation();
+                onView();
+              }}
+            >
+              View File
+            </MenuItem>
+          )}
+
           <MenuItem
             icon={<EditIcon />}
             onClick={(e) => {
@@ -43,7 +64,7 @@ const GlobalMenuButton = ({
               onEdit();
             }}
           >
-            Edit Shelf
+            {`Edit ${itemType.charAt(0).toUpperCase() + itemType.slice(1)}`}
           </MenuItem>
 
           <MenuItem
@@ -53,7 +74,7 @@ const GlobalMenuButton = ({
               onDelete();
             }}
           >
-            Delete Shelf
+            {`Delete ${itemType.charAt(0).toUpperCase() + itemType.slice(1)}`}
           </MenuItem>
 
           <MenuDivider my={2} />
@@ -63,9 +84,9 @@ const GlobalMenuButton = ({
             onClick={(e) => {
               e.stopPropagation();
               if (generatedCode) {
-                onShowQr();
+                onShowQr?.();
               } else {
-                onGenerateQr();
+                onGenerateQr?.();
               }
             }}
           >

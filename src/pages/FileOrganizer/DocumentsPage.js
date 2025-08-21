@@ -155,7 +155,7 @@ const DocumentsPage = () => {
         color="gray.700"
         fontWeight="semibold"
       >
-        🗂 Containers
+        🗂 Folders
       </BreadcrumbLink>
     </BreadcrumbItem>
 
