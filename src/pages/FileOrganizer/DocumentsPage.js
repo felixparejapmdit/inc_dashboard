@@ -173,6 +173,7 @@ const DocumentsPage = () => {
         justifyContent="space-between"
         alignItems="center"
         mb={6}
+        mt={6}
         flexWrap="wrap"
       >
         <HStack spacing={2} alignItems="baseline">

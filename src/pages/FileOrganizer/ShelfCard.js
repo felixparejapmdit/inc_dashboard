@@ -6,11 +6,16 @@ import {
   Tag,
   useColorModeValue,
   useDisclosure,
+  VStack,
+  Flex,
+  Icon,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import DeleteConfirmModal from "../../components/FileOrganizer/DeleteConfirmModal";
 import QRCodeModal from "../../components/FileOrganizer/QRCodeModal";
 import GlobalMenuButton from "../../components/FileOrganizer/GlobalMenuButton";
+import { FaBoxes } from "react-icons/fa";
+import { BsBoxSeam } from "react-icons/bs";
 
 const ShelfCard = ({
   shelf,
@@ -18,17 +23,19 @@ const ShelfCard = ({
   onEdit,
   onDelete,
   onGenerateQR,
-  minHeight = 220,
 }) => {
   const navigate = useNavigate();
 
   // Theme colors
-  const shelfBg = useColorModeValue("#fdfdfc", "gray.800");
-  const labelBg = useColorModeValue("gray.200", "gray.600");
-  const textColor = useColorModeValue("gray.900", "gray.100");
-  const containerBg = useColorModeValue("gray.50", "gray.700");
-  const containerText = useColorModeValue("gray.700", "gray.200");
+  const cardBg = useColorModeValue("white", "gray.700");
+  const cardBorderColor = useColorModeValue("gray.300", "gray.600");
+  const shelfNameBg = useColorModeValue("gray.200", "gray.700");
+  const shelfNameColor = useColorModeValue("gray.800", "gray.100");
+  const containerTagBg = useColorModeValue("gray.100", "gray.600");
+  const containerTagText = useColorModeValue("gray.700", "gray.200");
   const moreTagBg = useColorModeValue("gray.200", "gray.600");
+  const moreTagText = useColorModeValue("gray.600", "gray.300");
+  const emptyStateColor = useColorModeValue("gray.400", "gray.500");
 
   const [deleteTarget, setDeleteTarget] = React.useState(null);
 
@@ -52,134 +59,120 @@ const ShelfCard = ({
   };
 
   return (
-    <Box position="relative" mb={14}>
+    <Box position="relative">
       <Box
         borderRadius="xl"
         border="1px solid"
-        borderColor={useColorModeValue("gray.200", "gray.700")}
-        bg={shelfBg}
-        boxShadow="sm"
+        borderColor={cardBorderColor}
+        bg={cardBg}
+        boxShadow="md"
         cursor="pointer"
         transition="all 0.25s"
         _hover={{ boxShadow: "xl", transform: "translateY(-4px)" }}
         onClick={handleCardClick}
-        overflow="hidden"
-        position="relative"
-        minH={`${minHeight}px`}
-        pb={10} // space for plank
+        minH="220px"
         display="flex"
         flexDirection="column"
-        justifyContent="flex-start"
+        position="relative"
       >
-        {/* Shelf label */}
-        <Box
-          position="absolute"
-          top={2}
-          left="50%"
-          transform="translateX(-50%)"
-          bg={labelBg}
+        {/* Shelf Name and Menu */}
+        <Flex
           px={4}
-          py={1}
-          borderRadius="full"
-          boxShadow="md"
-          zIndex={2}
+          py={2}
+          bg={shelfNameBg}
+          borderTopRadius="xl"
+          justify="space-between"
+          align="center"
+          position="relative"
         >
-          <Text fontWeight="semibold" fontSize="sm" color={textColor} noOfLines={1}>
+          <Text
+            fontWeight="bold"
+            fontSize="md"
+            color={shelfNameColor}
+            noOfLines={1}
+            flex="1"
+          >
             {shelf.name}
           </Text>
-        </Box>
 
-        {/* Menu Button */}
-        <Box
-          position="absolute"
-          top={2}
-          left={2}
-          zIndex={3}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <GlobalMenuButton
-            onEdit={() => onEdit()}
-            onDelete={() => {
-              setDeleteTarget(shelf);
-              onDeleteOpen();
-            }}
-            onShowQr={onQrOpen}
-            onGenerateQr={() => onGenerateQR(shelf)}
-            generatedCode={shelf.generated_code}
-            type="shelf"
-          />
-        </Box>
+          <Box
+            position="absolute"
+            top="50%"
+            right={2}
+            transform="translateY(-50%)"
+            zIndex={3}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <GlobalMenuButton
+              onEdit={() => onEdit()}
+              onDelete={() => {
+                setDeleteTarget(shelf);
+                onDeleteOpen();
+              }}
+              onShowQr={onQrOpen}
+              onGenerateQr={() => onGenerateQR(shelf)}
+              generatedCode={shelf.generated_code}
+              type="shelf"
+            />
+          </Box>
+        </Flex>
 
-        {/* Containers */}
-        <Box
+        {/* Containers preview */}
+        <VStack
           flex="1"
-          display="flex"
-          flexDirection="column"
-          justifyContent="center"
-          alignItems="center"
-          px={4}
-          pt={12}
-          pb={6}
+          p={4}
+          justify="center"
+          align="center"
+          spacing={3}
+          textAlign="center"
         >
           {containers && containers.length > 0 ? (
-            <>
-              <HStack spacing={2} wrap="wrap" justify="center" gap={2}>
+            <VStack spacing={2}>
+              <HStack spacing={2} wrap="wrap" justify="center">
                 {containers.slice(0, 3).map((container) => (
-                  <Box
+                  <Tag
                     key={container.id}
+                    size="md"
                     px={3}
                     py={1.5}
                     borderRadius="lg"
-                    bg={containerBg}
-                    color={containerText}
-                    boxShadow="sm"
-                    fontSize="xs"
-                    fontWeight="medium"
+                    bg={containerTagBg}
+                    color={containerTagText}
                     noOfLines={1}
                     title={container.name}
                   >
-                    📦 {container.name}
-                  </Box>
+                    <HStack>
+                      <Icon as={BsBoxSeam} />
+                      <Text>{container.name}</Text>
+                    </HStack>
+                  </Tag>
                 ))}
               </HStack>
               {containers.length > 3 && (
-                <Tag
-                  size="sm"
-                  mt={2}
+                <Text
+                  fontSize="sm"
+                  color={moreTagText}
                   bg={moreTagBg}
-                  color={textColor}
+                  px={2}
+                  py={1}
                   borderRadius="full"
+                  fontWeight="medium"
+                  mt={2}
                 >
                   +{containers.length - 3} more
-                </Tag>
+                </Text>
               )}
-            </>
+            </VStack>
           ) : (
-            <Text
-              fontSize="xs"
-              color="gray.400"
-              fontStyle="italic"
-              textAlign="center"
-            >
-              No containers yet
-            </Text>
+            <VStack spacing={2} color={emptyStateColor}>
+              <Icon as={BsBoxSeam} boxSize="2em" />
+              <Text fontSize="sm" fontStyle="italic">
+                No containers yet
+              </Text>
+            </VStack>
           )}
-        </Box>
+        </VStack>
 
-        {/* Wooden plank */}
-        <Box
-          position="absolute"
-          bottom="0"
-          left="0"
-          right="0"
-          height="16px"
-          borderTopRadius="sm"
-          bgGradient="linear(to-r, gray.200, gray.300, gray.400, gray.200)"
-          backgroundSize="200% 100%"
-          backgroundPosition="center"
-          filter="contrast(115%) brightness(100%)"
-          boxShadow="inset 0 2px 4px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15)"
-        />
       </Box>
 
       {/* QR Code Modal */}
