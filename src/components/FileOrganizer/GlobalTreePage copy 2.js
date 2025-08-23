@@ -37,6 +37,11 @@ import {
 import { DownloadIcon, ViewIcon } from "@chakra-ui/icons";
 import { getAllData } from "../../utils/FileOrganizer/globalSearchService";
 
+import ShelfCard from "../../pages/FileOrganizer/ShelfCard";
+import ContainerCard from "../../pages/FileOrganizer/ContainerCard";
+import FolderCard from "../../pages/FileOrganizer/FolderCard";
+import DocumentCard from "../../pages/FileOrganizer/DocumentCard";
+
 /** Icon + color map */
 const getTypeIcon = (type) => {
   switch (type) {
@@ -386,30 +391,39 @@ const GlobalTreePage = () => {
               </Box>
             ) : selectedItemContent.length > 0 ? (
               <SimpleGrid columns={[2, 3, 4]} spacing={4}>
-                {selectedItemContent.map((item) => {
-                  const meta = getTypeIcon(item.type);
-                  return (
-                    <Box
-                      key={`${item.type}-${item.id}`}
-                      bg={contentCardBg}
-                      borderWidth="1px"
-                      borderColor={contentBorder}
-                      p={3}
-                      rounded="md"
-                      textAlign="center"
-                      cursor="pointer"
-                      onClick={() => handleSelect(item)}
-                      _hover={{ boxShadow: "md", transform: "translateY(-2px)" }}
-                      transition="all 0.2s"
-                    >
-                      <Icon as={meta.icon} boxSize={6} color={meta.color} mb={2} />
-                      <Text fontSize="sm" noOfLines={1}>
-                        {item.name}
-                      </Text>
-                    </Box>
-                  );
-                })}
-              </SimpleGrid>
+  {selectedItemContent.map((item) => {
+    const meta = getTypeIcon(item.type);
+alert(item.type);
+    // Determine which card component to use
+    let CardComponent;
+    switch (item.type) {
+      case "shelf":
+        CardComponent = ShelfCard;
+        break;
+      case "container":
+        CardComponent = ContainerCard;
+        break;
+      case "folder":
+        CardComponent = FolderCard;
+        break;
+      case "document":
+        CardComponent = DocumentCard;
+        break;
+      default:
+        CardComponent = Box; // fallback if type not recognized
+    }
+
+    return (
+      <CardComponent
+        key={`${item.type}-${item.id}`}
+        item={item}
+        icon={meta.icon}
+        iconColor={meta.color}
+        onClick={() => handleSelect(item)}
+      />
+    );
+  })}
+</SimpleGrid>
             ) : (
               <Text color={mutedText}>No items found.</Text>
             )}
