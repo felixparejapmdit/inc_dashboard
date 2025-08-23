@@ -18,13 +18,9 @@ import {
   FaFileArchive,
   FaFolder,
 } from "react-icons/fa";
-import { motion } from "framer-motion";
 import GlobalMenuButton from "../../components/FileOrganizer/GlobalMenuButton";
 import DeleteConfirmModal from "../../components/FileOrganizer/DeleteConfirmModal";
 import QRCodeModal from "../../components/FileOrganizer/QRCodeModal";
-
-const MotionFlex = motion(Flex);
-const MotionVStack = motion(VStack);
 
 const FolderCard = ({
   folder,
@@ -37,7 +33,6 @@ const FolderCard = ({
   const navigate = useNavigate();
   const [isQROpen, setIsQROpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
 
   // Theming
   const cardBg = useColorModeValue("white", "gray.700");
@@ -57,7 +52,6 @@ const FolderCard = ({
     }
   };
 
-  // --- FIX APPLIED HERE ---
   // Pick icon based on file extension, with a safety check
   const getFileIcon = (filename) => {
     if (!filename || typeof filename !== 'string') {
@@ -85,7 +79,6 @@ const FolderCard = ({
         return <FaFileAlt color="#4A5568" />;
     }
   };
-  // --- END OF FIX ---
 
   return (
     <>
@@ -103,8 +96,6 @@ const FolderCard = ({
         flexDirection="column"
         h="100%"
         position="relative"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
       >
         {/* Folder tab */}
         <Box
@@ -118,7 +109,7 @@ const FolderCard = ({
         />
 
         {/* Folder header (lid effect) */}
-        <MotionFlex
+        <Flex
           bg={folderHeaderBg}
           p={3}
           borderTopRadius="xl"
@@ -126,9 +117,6 @@ const FolderCard = ({
           justify="center"
           flexShrink={0}
           position="relative"
-          style={{ transformOrigin: "bottom center" }}
-          animate={{ rotateX: isHovered ? 25 : 0 }}
-          transition={{ type: "spring", stiffness: 200, damping: 15 }}
         >
           <Box position="absolute" top={2} right={2} zIndex={3}>
             <GlobalMenuButton
@@ -151,12 +139,12 @@ const FolderCard = ({
               {folder.name}
             </Text>
           </Flex>
-        </MotionFlex>
+        </Flex>
 
         <Divider borderColor={cardBorder} />
 
-        {/* Document preview reveal */}
-        <MotionVStack
+        {/* Document preview section - now always visible */}
+        <VStack
           bg={docSectionBg}
           p={4}
           spacing={2}
@@ -164,12 +152,6 @@ const FolderCard = ({
           align="stretch"
           borderBottomRadius="xl"
           overflow="hidden"
-          initial={{ height: 0, opacity: 0 }}
-          animate={{
-            height: isHovered ? "auto" : 0,
-            opacity: isHovered ? 1 : 0,
-          }}
-          transition={{ type: "spring", stiffness: 200, damping: 20 }}
         >
           {documents && documents.length > 0 ? (
             <>
@@ -218,7 +200,7 @@ const FolderCard = ({
               </Text>
             </Flex>
           )}
-        </MotionVStack>
+        </VStack>
       </Box>
 
       {/* QR Code Modal */}

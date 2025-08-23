@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Text,
@@ -9,12 +9,19 @@ import {
   VStack,
   Flex,
   Icon,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalCloseButton,
+  SimpleGrid,
+  Button
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import DeleteConfirmModal from "../../components/FileOrganizer/DeleteConfirmModal";
 import QRCodeModal from "../../components/FileOrganizer/QRCodeModal";
 import GlobalMenuButton from "../../components/FileOrganizer/GlobalMenuButton";
-import { FaBoxes } from "react-icons/fa";
 import { BsBoxSeam } from "react-icons/bs";
 
 const ShelfCard = ({
@@ -26,8 +33,11 @@ const ShelfCard = ({
 }) => {
   const navigate = useNavigate();
 
+  // State to manage the card's background color
+  const defaultCardColor = useColorModeValue("white", "gray.700");
+  const [cardColor, setCardColor] = useState(shelf.color || defaultCardColor);
+
   // Theme colors
-  const cardBg = useColorModeValue("white", "gray.700");
   const cardBorderColor = useColorModeValue("gray.300", "gray.600");
   const shelfNameBg = useColorModeValue("gray.200", "gray.700");
   const shelfNameColor = useColorModeValue("gray.800", "gray.100");
@@ -36,6 +46,8 @@ const ShelfCard = ({
   const moreTagBg = useColorModeValue("gray.200", "gray.600");
   const moreTagText = useColorModeValue("gray.600", "gray.300");
   const emptyStateColor = useColorModeValue("gray.400", "gray.500");
+  // FIX: Call useColorModeValue at the top level
+  const buttonTextColor = useColorModeValue("black", "white");
 
   const [deleteTarget, setDeleteTarget] = React.useState(null);
 
@@ -50,6 +62,22 @@ const ShelfCard = ({
     onOpen: onQrOpen,
     onClose: onQrClose,
   } = useDisclosure();
+  
+  // New disclosure for the color modal
+  const {
+    isOpen: isColorModalOpen,
+    onOpen: onColorModalOpen,
+    onClose: onColorModalClose,
+  } = useDisclosure();
+
+  const colors = [
+    { name: "White", value: "white" },
+    { name: "Gray", value: "gray.200" },
+    { name: "Teal", value: "teal.200" },
+    { name: "Red", value: "red.200" },
+    { name: "Blue", value: "blue.200" },
+    { name: "Yellow", value: "yellow.200" },
+  ];
 
   const handleCardClick = (e) => {
     const isButton = e.target.closest("button,[role=menuitem]");
@@ -58,13 +86,20 @@ const ShelfCard = ({
     }
   };
 
+  const handleColorChange = (newColor) => {
+    setCardColor(newColor);
+    onColorModalClose();
+    // You would also need to call a service to update the color in the backend
+    console.log(`Updating shelf ${shelf.name} to color ${newColor}`);
+  };
+
   return (
     <Box position="relative">
       <Box
         borderRadius="xl"
         border="1px solid"
         borderColor={cardBorderColor}
-        bg={cardBg}
+        bg={cardColor}
         boxShadow="md"
         cursor="pointer"
         transition="all 0.25s"
@@ -111,6 +146,7 @@ const ShelfCard = ({
               }}
               onShowQr={onQrOpen}
               onGenerateQr={() => onGenerateQR(shelf)}
+              onColorChange={onColorModalOpen} // This now opens the modal
               generatedCode={shelf.generated_code}
               type="shelf"
             />
@@ -195,6 +231,32 @@ const ShelfCard = ({
           onDeleteClose();
         }}
       />
+
+      {/* Color Picker Modal */}
+      <Modal isOpen={isColorModalOpen} onClose={onColorModalClose} isCentered>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Change Shelf Color</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <SimpleGrid columns={3} spacing={4}>
+              {colors.map((color) => (
+                <Button
+                  key={color.name}
+                  bg={color.value}
+                  color={buttonTextColor}
+                  onClick={() => handleColorChange(color.value)}
+                  border="1px solid"
+                  borderColor="gray.300"
+                  boxShadow={color.value === cardColor ? "0 0 0 3px teal" : "none"}
+                >
+                  {color.name}
+                </Button>
+              ))}
+            </SimpleGrid>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 };

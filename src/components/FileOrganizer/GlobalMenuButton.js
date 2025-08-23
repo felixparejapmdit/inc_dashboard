@@ -15,6 +15,7 @@ import {
   DeleteIcon,
   ViewIcon,
 } from "@chakra-ui/icons";
+import { FaPaintBrush } from "react-icons/fa";
 
 const GlobalMenuButton = ({
   itemType = "shelf", // default
@@ -23,6 +24,7 @@ const GlobalMenuButton = ({
   onDelete,
   onShowQr,
   onGenerateQr,
+  onColorChange,
   generatedCode,
 }) => {
   return (
@@ -44,7 +46,7 @@ const GlobalMenuButton = ({
           boxShadow="lg"
           borderRadius="md"
         >
-          {/* ✅ Only show View File for DocumentCard */}
+          {/* View File Option (for documents only) */}
           {itemType === "document" && onView && (
             <MenuItem
               icon={<ViewIcon />}
@@ -57,6 +59,7 @@ const GlobalMenuButton = ({
             </MenuItem>
           )}
 
+          {/* Edit Option */}
           <MenuItem
             icon={<EditIcon />}
             onClick={(e) => {
@@ -66,7 +69,23 @@ const GlobalMenuButton = ({
           >
             {`Edit ${itemType.charAt(0).toUpperCase() + itemType.slice(1)}`}
           </MenuItem>
+          
+          {/* Change Color Option */}
+          {onColorChange && (
+            <MenuItem
+              icon={<FaPaintBrush />}
+              onClick={(e) => {
+                e.stopPropagation();
+                onColorChange();
+              }}
+            >
+              Change Color
+            </MenuItem>
+          )}
 
+          <MenuDivider my={2} />
+
+          {/* Delete Option */}
           <MenuItem
             icon={<DeleteIcon />}
             onClick={(e) => {
@@ -77,8 +96,8 @@ const GlobalMenuButton = ({
             {`Delete ${itemType.charAt(0).toUpperCase() + itemType.slice(1)}`}
           </MenuItem>
 
+          {/* QR Code Option */}
           <MenuDivider my={2} />
-
           <MenuItem
             icon={<ViewIcon />}
             onClick={(e) => {

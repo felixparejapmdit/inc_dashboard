@@ -1,19 +1,27 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
   FormControl,
+  FormLabel,
   Input,
   Stack,
-  HStack,
-  IconButton,
+  Textarea,
   useColorModeValue,
-  useBreakpointValue,
+  HStack
 } from "@chakra-ui/react";
-import { CheckIcon, CloseIcon} from '@chakra-ui/icons';
-const AddShelfForm = ({ initialData, onSave, onCancel }) => {
-  const [name, setName] = useState("");
 
+const AddShelfForm = ({ initialData,onSave, onCancel }) => {
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+
+  const formBg = useColorModeValue("white", "gray.800");
+  const border = useColorModeValue("1px solid #E2E8F0", "1px solid #4A5568");
+  const inputBg = useColorModeValue("gray.50", "gray.700");
+  const inputColor = useColorModeValue("gray.800", "white");
+  const inputFocusBorder = useColorModeValue("teal.400", "teal.300");
+
+  // Prefill when editing
   useEffect(() => {
     if (initialData) {
       setName(initialData.name);
@@ -25,104 +33,79 @@ const AddShelfForm = ({ initialData, onSave, onCancel }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!name.trim()) return;
-    onSave({ name });
-    setName("");
+
+    const dataToSave = {
+      ...initialData,
+      name,
+      description,
+    };
+
+    onSave(dataToSave);
   };
-
-  const inputBg = useColorModeValue("gray.100", "gray.700");
-  const inputFocusBorder = useColorModeValue("teal.400", "teal.300");
-  const btnCancelHoverBg = useColorModeValue("gray.200", "gray.600");
-
-  const formWidth = useBreakpointValue({ base: "100%", md: "320px" });
-  const btnSize = useBreakpointValue({ base: "md", md: "lg" });
 
   return (
     <Box
       as="form"
       onSubmit={handleSubmit}
-      height="100%"
-      width="100%"
-      display="flex"
-      flexDirection="column"
-      justifyContent="center"
-      alignItems="center"
-      p={[4, 6]}
+      mt={4}
+      p={6}
+      borderRadius="lg"
+      bg={formBg}
+      boxShadow="lg"
+      border={border}
+      maxW="400px"
+      mx="auto"
     >
-      <Stack spacing={6} width={formWidth}>
+      <Stack spacing={5}>
         <FormControl isRequired>
+          <FormLabel fontWeight="semibold">Shelf Name</FormLabel>
           <Input
             placeholder="Enter shelf name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             bg={inputBg}
-            size="lg"
-            fontWeight="semibold"
-            textAlign="center"
-            borderRadius="md"
-            boxShadow="sm"
-            _hover={{ boxShadow: "md" }}
+            color={inputColor}
             _focus={{
               borderColor: inputFocusBorder,
-              boxShadow: `0 0 0 3px ${inputFocusBorder}`,
+              boxShadow: `0 0 0 1px ${inputFocusBorder}`,
             }}
-            _placeholder={{
-              color: "gray.400",
-              fontWeight: "medium",
-              textAlign: "center",
-            }}
-            autoFocus
-            transition="box-shadow 0.3s ease"
           />
         </FormControl>
 
-        <HStack
-  spacing={6}
-  justifyContent="center"
-  flexWrap="wrap"
-  width="100%"
-  direction={{ base: "column", md: "row" }}
->
-  <IconButton
-    aria-label="Save Shelf"
-    icon={<CheckIcon />}
-    color="orange.700"
-    border="2px solid"
-    borderColor="orange.700"
-    bg="transparent"
-    size={btnSize}
-    fontWeight="bold"
-    minW={["100%", "60px"]}
-    maxW={{ base: "100%", md: "60px" }}
-    _hover={{
-      bg: "orange.700",
-      color: "white",
-      boxShadow: "lg",
-      transform: "scale(1.1)",
-    }}
-    transition="all 0.3s ease"
-    flex={{ base: "unset", md: "1" }}
-    type="submit"
-  />
+        <FormControl>
+          <FormLabel fontWeight="semibold">Description (optional)</FormLabel>
+          <Textarea
+            placeholder="Enter description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            bg={inputBg}
+            color={inputColor}
+            _focus={{
+              borderColor: inputFocusBorder,
+              boxShadow: `0 0 0 1px ${inputFocusBorder}`,
+            }}
+          />
+        </FormControl>
 
-  <IconButton
-    aria-label="Cancel"
-    icon={<CloseIcon />}
-    variant="outline"
-    size={btnSize}
-    minW={["100%", "60px"]}
-    maxW={{ base: "100%", md: "60px" }}
-    onClick={() => {
-      if (onCancel) onCancel();
-      setName("");
-    }}
-    _hover={{
-      bg: useColorModeValue("gray.200", "gray.600"),
-      transform: "scale(1.1)",
-    }}
-    transition="all 0.2s ease"
-    flex={{ base: "unset", md: "1" }}
-  />
-</HStack>
+        <HStack spacing={4}>
+          <Button
+            type="submit"
+            colorScheme="teal"
+            size="md"
+            fontWeight="bold"
+            flex="1"
+          >
+            {initialData ? "Update Shelf" : "Save Shelf"}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={onCancel}
+            size="md"
+            flex="1"
+          >
+            Cancel
+          </Button>
+        </HStack>
       </Stack>
     </Box>
   );

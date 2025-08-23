@@ -6,8 +6,12 @@ import {
   useToast,
   SimpleGrid,
   useColorModeValue,
+  Center,
+  Spinner,
+  Text,
+  Button,
 } from "@chakra-ui/react";
-import { PlusSquareIcon } from "@chakra-ui/icons";
+import { PlusSquareIcon, AddIcon } from "@chakra-ui/icons";
 import {
   getShelves,
   createShelf,
@@ -19,54 +23,16 @@ import ShelfCard from "./ShelfCard";
 import AddShelfForm from "./AddShelfForm";
 import { handleError } from "../../utils/FileOrganizer/handleError";
 
-const CARD_MIN_HEIGHT = 220;
-
-const AddNewShelfCard = ({ onClick }) => {
-  const bg = useColorModeValue("gray.100", "gray.600");
-  const hoverBg = useColorModeValue("gray.200", "gray.500");
-  const color = useColorModeValue("orange.600", "orange.300");
-  const hoverColor = useColorModeValue("orange.500", "orange.400");
-
-  return (
-    <Box
-      bg={bg}
-      borderRadius="md"
-      p={6}
-      display="flex"
-      alignItems="center"
-      justifyContent="center"
-      cursor="pointer"
-      onClick={onClick}
-      minH={`${CARD_MIN_HEIGHT}px`}
-      h="100%"
-      w="100%"
-      color={color}
-      userSelect="none"
-      textAlign="center"
-      opacity={0.4}
-      fontSize="8xl"
-      transition="opacity 0.3s ease, transform 0.3s ease, color 0.3s ease, box-shadow 0.3s ease"
-      _hover={{
-        opacity: 1,
-        bg: hoverBg,
-        color: hoverColor,
-        transform: "scale(1.05)",
-        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-      }}
-    >
-      <PlusSquareIcon boxSize="72px" />
-    </Box>
-  );
-};
-
 const ShelvesPage = () => {
   const [shelves, setShelves] = useState([]);
   const [containers, setContainers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [allData, setAllData] = useState([]);
-  const [showAddCard, setShowAddCard] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
   const [editingShelf, setEditingShelf] = useState(null);
   const toast = useToast();
+
+  const primaryColor = useColorModeValue("teal.700", "teal.300");
+  const headerBg = useColorModeValue("white", "gray.800");
 
   useEffect(() => {
     const init = async () => {
@@ -97,14 +63,14 @@ const ShelvesPage = () => {
 
       setContainers(containersData);
 
-      const tagData = (items, type) => items.map((item) => ({ ...item, type }));
-
-      setAllData([
-        ...tagData(shelvesData, "shelf"),
-        ...tagData(containersData, "container"),
-        ...tagData(folders, "folder"),
-        ...tagData(documents, "document"),
-      ]);
+      // This section of code is not used for rendering, but kept for context.
+      // const tagData = (items, type) => items.map((item) => ({ ...item, type }));
+      // setAllData([
+      //   ...tagData(shelvesData, "shelf"),
+      //   ...tagData(containersData, "container"),
+      //   ...tagData(folders, "folder"),
+      //   ...tagData(documents, "document"),
+      // ]);
     } catch (error) {
       console.error("Failed to fetch global data:", error);
     }
@@ -120,7 +86,7 @@ const ShelvesPage = () => {
         toast({ title: "Shelf created", status: "success", isClosable: true });
       }
       setEditingShelf(null);
-      setShowAddCard(false);
+      setShowAddForm(false);
       fetchShelves();
     } catch (error) {
       handleError(
@@ -150,57 +116,65 @@ const ShelvesPage = () => {
     }
   };
 
-  const cardBg = useColorModeValue("gray.50", "gray.700");
+  const handleAddShelfClick = () => {
+    setEditingShelf(null);
+    setShowAddForm(true);
+  };
+
+  const handleEditShelfClick = (shelf) => {
+    setEditingShelf(shelf);
+    setShowAddForm(true);
+  };
+
+  const handleCancelForm = () => {
+    setShowAddForm(false);
+    setEditingShelf(null);
+  };
 
   return (
-    <Box p={[4, 6, 10]}>
-      <HStack justify="space-between" mt={12} mb={6}>
-        <Heading>📚 File Organizer — Shelves</Heading>
+    <Box p={[4, 6, 10]} bg={headerBg} minH="100vh" pt={20} mt={12}>
+      <HStack justify="space-between" mb={6}>
+        <Heading size="xl" color={primaryColor}>
+          📚 File Organizer — Shelves
+        </Heading>
+        <Button
+          leftIcon={<AddIcon />}
+          colorScheme="teal"
+          onClick={handleAddShelfClick}
+        >
+          Add Shelf
+        </Button>
       </HStack>
-
-      <SimpleGrid columns={[1, 2, 3]} spacing={6}>
-        {showAddCard ? (
-          <Box
-            bg={cardBg}
-            borderRadius="md"
-            p={4}
-            boxShadow="md"
-            w="100%"
-            minH={`${CARD_MIN_HEIGHT}px`}
-            h="100%"
-            display="flex"
-            flexDirection="column"
-            justifyContent="center"
-          >
-            <AddShelfForm
-              initialData={editingShelf}
-              onSave={handleAddOrEditShelf}
-              onCancel={() => {
-                setShowAddCard(false);
-                setEditingShelf(null);
-              }}
-            />
-          </Box>
-        ) : (
-          <AddNewShelfCard onClick={() => setShowAddCard(true)} />
-        )}
-
-        {shelves.map((shelf) => (
-          <ShelfCard
-            key={shelf.id}
-            shelf={shelf}
-            containers={containers.filter(
-              (container) => container.shelf_id === shelf.id
-            )}
-            onEdit={() => {
-              setEditingShelf(shelf);
-              setShowAddCard(true);
-            }}
-            onDelete={() => handleDelete(shelf)}
-            minHeight={CARD_MIN_HEIGHT}
+      
+      {showAddForm && (
+        <Box mb={6}>
+          <AddShelfForm
+            initialData={editingShelf}
+            onSave={handleAddOrEditShelf}
+            onCancel={handleCancelForm}
           />
-        ))}
-      </SimpleGrid>
+        </Box>
+      )}
+
+      {loading ? (
+        <Center minH="calc(100vh - 200px)">
+          <Spinner size="xl" color={primaryColor} />
+        </Center>
+      ) : (
+        <SimpleGrid columns={[1, 2, 3]} spacing={6}>
+          {shelves.map((shelf) => (
+            <ShelfCard
+              key={shelf.id}
+              shelf={shelf}
+              containers={containers.filter(
+                (container) => container.shelf_id === shelf.id
+              )}
+              onEdit={() => handleEditShelfClick(shelf)}
+              onDelete={() => handleDelete(shelf)}
+            />
+          ))}
+        </SimpleGrid>
+      )}
     </Box>
   );
 };

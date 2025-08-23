@@ -89,10 +89,9 @@ import ContainersPage from "./pages/FileOrganizer/ContainersPage.js";
 import FoldersPage from "./pages/FileOrganizer/FoldersPage.js";
 import DocumentsPage from "./pages/FileOrganizer/DocumentsPage.js";
 import GlobalSearchPage from "./pages/FileOrganizer/GlobalSearchPage.js";
-import GlobalTreePage from "./components/FileOrganizer/GlobalTreePage.js"; // New import for the tree view
 import GlobalSearchBar from "./components/FileOrganizer/GlobalSearchBar.js";
 import GenerateQRCode from "./pages/FileOrganizer/GenerateQRCode.js";
-import ScanningQrCode from "./pages/FileOrganizer/ScanningQrCode.js";
+ import ScanningQrCode from "./pages/FileOrganizer/ScanningQrCode.js";
  
 
 function App() {
@@ -120,7 +119,6 @@ function MainApp() {
     "/shelves/:shelfId/containers/:containerId/folders/:folderId/documents",
     "/file-organizer/qrcode",
     "/file-organizer/scancode",
-    "/file-organizer/tree", // New path for tree view
   ].some((pattern) =>
     matchPath({ path: pattern, end: false }, location.pathname)
   );
@@ -471,7 +469,6 @@ function MainApp() {
 
 <Route path="/file-organizer/qrcode" element={<GenerateQRCode />} />
 <Route path="/file-organizer/scancode" element={<ScanningQrCode />} />
-<Route path="/file-organizer/tree" element={<GlobalTreePage />} />
 
         <Route
           path="/Mastodon"
