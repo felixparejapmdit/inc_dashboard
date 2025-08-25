@@ -22,9 +22,6 @@ import {
   ModalCloseButton,
   ModalBody,
   useDisclosure,
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
 } from "@chakra-ui/react";
 import {
   FaChevronRight,
@@ -32,12 +29,19 @@ import {
   FaFolder,
   FaFileAlt,
   FaBoxes,
-  FaHome,
 } from "react-icons/fa";
 import { DownloadIcon, ViewIcon } from "@chakra-ui/icons";
 import { getAllData } from "../../utils/FileOrganizer/globalSearchService";
+import ShelfCard from "../../pages/FileOrganizer/ShelfCard";
+import ContainerCard from "../../pages/FileOrganizer/ContainerCard";
+import FolderCard from "../../pages/FileOrganizer/FolderCard";
+import DocumentCard from "../../pages/FileOrganizer/DocumentCard";
 
-/** Icon + color map */
+
+
+/** -------------------------------------------------------
+ * Icon + color map (returns { icon, color } objects)
+ * ------------------------------------------------------*/
 const getTypeIcon = (type) => {
   switch (type) {
     case "shelf":
@@ -57,7 +61,9 @@ const getTypeIcon = (type) => {
 const isImage = (fileUrl) => /\.(jpg|jpeg|png|gif|webp)$/i.test(fileUrl);
 const isPDF = (fileUrl) => /\.pdf$/i.test(fileUrl);
 
-/** Tree Node Component */
+/** -------------------------------------------------------
+ * Tree Node Component
+ * ------------------------------------------------------*/
 const TreeNode = ({ item, level = 0, onSelect, selectedItem, palette }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const hasChildren = item.children && item.children.length > 0;
@@ -99,7 +105,7 @@ const TreeNode = ({ item, level = 0, onSelect, selectedItem, palette }) => {
           {hasChildren ? (
             <Icon as={Chevron} boxSize={3} color={palette.chevron} />
           ) : (
-            <Box w="12px" />
+            <Box w="12px" /> // spacer to align
           )}
           <Icon as={icon} boxSize={4} color={color} />
           <Text
@@ -143,7 +149,9 @@ const TreeNode = ({ item, level = 0, onSelect, selectedItem, palette }) => {
   );
 };
 
-/** Main Page */
+/** -------------------------------------------------------
+ * Main Page Component
+ * ------------------------------------------------------*/
 const GlobalTreePage = () => {
   const [allData, setAllData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -151,7 +159,6 @@ const GlobalTreePage = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedItemContent, setSelectedItemContent] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [breadcrumb, setBreadcrumb] = useState([]); // ✅ Added breadcrumb state
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   // Theme tokens
@@ -159,11 +166,13 @@ const GlobalTreePage = () => {
   const sidebarBorder = useColorModeValue("gray.200", "gray.700");
   const sidebarHeader = useColorModeValue("blue.600", "blue.300");
   const hoverBg = useColorModeValue("gray.100", "gray.700");
+
   const selectedBg = useColorModeValue("blue.50", "blue.900");
   const selectedHoverBg = useColorModeValue("blue.100", "blue.800");
   const textColor = useColorModeValue("gray.800", "gray.100");
   const selectedText = useColorModeValue("blue.800", "blue.100");
   const chevronColor = useColorModeValue("gray.500", "gray.400");
+
   const contentBg = useColorModeValue("gray.50", "gray.900");
   const contentCardBg = useColorModeValue("white", "gray.800");
   const contentBorder = useColorModeValue("gray.200", "gray.700");
@@ -181,6 +190,11 @@ const GlobalTreePage = () => {
     }),
     [hoverBg, selectedBg, selectedHoverBg, textColor, selectedText, chevronColor]
   );
+  
+  // FIX: Moved handleSelect to the top level
+  const handleSelect = (item) => {
+    setSelectedItem(item);
+  };
 
   /** Load Data */
   useEffect(() => {
@@ -259,23 +273,6 @@ const GlobalTreePage = () => {
     }
   }, [selectedItem, allData]);
 
-  /** Handle item click and update breadcrumb */
-  const handleSelect = (item) => {
-    setSelectedItem(item);
-    setBreadcrumb((prev) => {
-      const index = prev.findIndex((b) => b.id === item.id && b.type === item.type);
-      if (index !== -1) return prev.slice(0, index + 1);
-      return [...prev, item];
-    });
-  };
-
-  /** Handle breadcrumb click */
-  const handleBreadcrumbClick = (index) => {
-    const newBreadcrumb = breadcrumb.slice(0, index + 1);
-    setBreadcrumb(newBreadcrumb);
-    setSelectedItem(newBreadcrumb[newBreadcrumb.length - 1]);
-  };
-
   const openFileModal = (file) => {
     setSelectedFile(file);
     onOpen();
@@ -291,129 +288,81 @@ const GlobalTreePage = () => {
 
   /** Render right-side details */
   const renderItemDetails = () => {
+    if (!selectedItem) {
+      return (
+        <Center w="100%" h="100%" p={8}>
+          <VStack spacing={2}>
+            <Icon as={FaBoxes} boxSize={6} color={mutedText} />
+            <Text color={mutedText}>Select an item to view details.</Text>
+          </VStack>
+        </Center>
+      );
+    }
+
+    const { icon: headerIcon, color: headerColorIcon } = getTypeIcon(selectedItem.type);
+
     return (
-      <Box>
-        {/* Breadcrumb Navigation */}
-      <Box bg="white" p={4} borderRadius="lg" shadow="sm" mb={4}>
-      <HStack spacing={2}>
-        <Breadcrumb
-          spacing="12px"
-          separator={<FaChevronRight color="#CBD5E0" />} // Light gray separator
+      <Box p={0} w="100%">
+        {/* Header */}
+        <Box
+          bg={contentCardBg}
+          borderWidth="1px"
+          borderColor={contentBorder}
+          borderRadius="lg"
+          boxShadow="sm"
+          p={4}
         >
-          {/* Home Icon as First Breadcrumb */}
-          <BreadcrumbItem>
-            <BreadcrumbLink
-              display="flex"
-              alignItems="center"
-              color="teal.600"
-              fontWeight="bold"
-              fontSize="sm"
-              _hover={{ textDecoration: "none", color: "teal.800" }}
-              onClick={() => handleBreadcrumbClick(0)}
-            >
-              <FaHome style={{ marginRight: "6px" }} />
-              Home
-            </BreadcrumbLink>
-          </BreadcrumbItem>
+          <HStack spacing={3} mb={1}>
+            <Icon as={headerIcon} boxSize={6} color={headerColorIcon} />
+            <Heading size="md" color={contentTextColor} noOfLines={2} title={selectedItem.name}>
+              {selectedItem.name}
+            </Heading>
+          </HStack>
+          <Text fontSize="sm" color={mutedText}>
+            Type: {selectedItem.type.charAt(0).toUpperCase() + selectedItem.type.slice(1)}
+          </Text>
+        </Box>
 
-          {/* Dynamic Breadcrumb Items */}
-          {breadcrumb.map((item, index) => (
-            <BreadcrumbItem key={item.id} isCurrentPage={index === breadcrumb.length - 1}>
-              <BreadcrumbLink
-                color={index === breadcrumb.length - 1 ? "gray.600" : "teal.500"}
-                fontWeight={index === breadcrumb.length - 1 ? "semibold" : "medium"}
-                fontSize="sm"
-                _hover={{
-                  textDecoration: index === breadcrumb.length - 1 ? "none" : "underline",
-                  color: index === breadcrumb.length - 1 ? "gray.600" : "teal.700"
-                }}
-                cursor={index === breadcrumb.length - 1 ? "default" : "pointer"}
-                onClick={() => index !== breadcrumb.length - 1 && handleBreadcrumbClick(index + 1)}
-              >
-                {item.name}
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-          ))}
-        </Breadcrumb>
-      </HStack>
-    </Box>
-
-        {!selectedItem ? (
-          <Center w="100%" h="100%" p={8}>
-            <VStack spacing={2}>
-              <Icon as={FaBoxes} boxSize={6} color={mutedText} />
-              <Text color={mutedText}>Select an item to view details.</Text>
+        <Divider my={4} />
+        
+        {/* Children / Content List or Document Preview */}
+        {selectedItem.type === "document" ? (
+            <VStack align="stretch" spacing={4} mt={4}>
+              <DocumentCard 
+                document={selectedItem}
+                onView={() => openFileModal(selectedItem)}
+              />
             </VStack>
-          </Center>
+        ) : selectedItemContent.length > 0 ? (
+          <SimpleGrid columns={[1, 2, 3]} spacing={6} minChildWidth="240px">
+            {selectedItemContent.map((item) => {
+              const commonProps = {
+                key: item.id,
+                onView: () => openFileModal(item),
+                onUpdate: () => {},
+                onDelete: () => {},
+              };
+              
+              switch (item.type) {
+                case "shelf":
+                  return <ShelfCard shelf={item} containers={allData.containers.filter(c => c.shelf_id === item.id)} {...commonProps} />;
+                case "container":
+                  return <ContainerCard container={item} folders={allData.folders.filter(f => f.container_id === item.id)} {...commonProps} />;
+                case "folder":
+                  return <FolderCard folder={item} documents={allData.documents.filter(d => d.folder_id === item.id)} {...commonProps} />;
+                case "document":
+                  return <DocumentCard document={item} {...commonProps} />;
+                default:
+                  return null;
+              }
+            })}
+          </SimpleGrid>
         ) : (
-          <>
-            {/* Header */}
-            <Box bg={contentCardBg} borderWidth="1px" borderColor={contentBorder} borderRadius="lg" p={4}>
-              <HStack spacing={3} mb={1}>
-                <Icon as={getTypeIcon(selectedItem.type).icon} boxSize={6} color={getTypeIcon(selectedItem.type).color} />
-                <Heading size="md" color={contentTextColor}>
-                  {selectedItem.name}
-                </Heading>
-              </HStack>
-              <Text fontSize="sm" color={mutedText}>
-                Type: {selectedItem.type}
-              </Text>
-            </Box>
-            <Divider my={4} />
-
-            {/* If Document -> Direct Preview */}
-            {selectedItem.type === "document" ? (
-              <Box>
-                {isImage(selectedItem.file_url) ? (
-                  <Image src={selectedItem.file_url} alt={selectedItem.name} maxH="400px" borderRadius="md" />
-                ) : isPDF(selectedItem.file_url) ? (
-                  <iframe
-                    src={selectedItem.file_url}
-                    title="PDF Viewer"
-                    style={{ width: "100%", height: "600px", border: "none" }}
-                  />
-                ) : (
-                  <Text color={mutedText}>Unsupported file type.</Text>
-                )}
-                <HStack justify="center" mt={4} spacing={4}>
-                  <Button as="a" href={selectedItem.file_url} download colorScheme="blue">
-                    Download
-                  </Button>
-                  <Button onClick={() => openFileModal(selectedItem)} colorScheme="gray" leftIcon={<ViewIcon />}>
-                    Fullscreen
-                  </Button>
-                </HStack>
-              </Box>
-            ) : selectedItemContent.length > 0 ? (
-              <SimpleGrid columns={[2, 3, 4]} spacing={4}>
-                {selectedItemContent.map((item) => {
-                  const meta = getTypeIcon(item.type);
-                  return (
-                    <Box
-                      key={`${item.type}-${item.id}`}
-                      bg={contentCardBg}
-                      borderWidth="1px"
-                      borderColor={contentBorder}
-                      p={3}
-                      rounded="md"
-                      textAlign="center"
-                      cursor="pointer"
-                      onClick={() => handleSelect(item)}
-                      _hover={{ boxShadow: "md", transform: "translateY(-2px)" }}
-                      transition="all 0.2s"
-                    >
-                      <Icon as={meta.icon} boxSize={6} color={meta.color} mb={2} />
-                      <Text fontSize="sm" noOfLines={1}>
-                        {item.name}
-                      </Text>
-                    </Box>
-                  );
-                })}
-              </SimpleGrid>
-            ) : (
-              <Text color={mutedText}>No items found.</Text>
-            )}
-          </>
+          <Center w="100%" p={8}>
+            <Text fontSize="sm" color={mutedText} fontStyle="italic">
+              No items found.
+            </Text>
+          </Center>
         )}
       </Box>
     );
@@ -424,7 +373,17 @@ const GlobalTreePage = () => {
       <Flex h="100vh" w="100%" pt="4rem">
         {/* Left: Tree View */}
         <Box w="320px" borderRight="1px solid" borderColor={sidebarBorder} bg={sidebarBg} display="flex" flexDirection="column">
-          <Box position="sticky" top="0" zIndex={1} bg={sidebarBg} borderBottom="1px solid" borderColor={sidebarBorder} px={4} py={3}>
+          {/* Sticky Header */}
+          <Box
+            position="sticky"
+            top="0"
+            zIndex={1}
+            bg={sidebarBg}
+            borderBottom="1px solid"
+            borderColor={sidebarBorder}
+            px={4}
+            py={3}
+          >
             <Heading size="md" color={sidebarHeader}>
               File Explorer
             </Heading>
@@ -432,6 +391,8 @@ const GlobalTreePage = () => {
               Shelves • Containers • Folders • Documents
             </Text>
           </Box>
+
+          {/* Tree Body */}
           <Box p={3} overflowY="auto">
             {treeData.map((shelf) => (
               <TreeNode
@@ -445,12 +406,12 @@ const GlobalTreePage = () => {
           </Box>
         </Box>
 
-        {/* Right: Content */}
+        {/* Right: Content Display */}
         <Box flex="1" p={6} bg={contentBg} overflowY="auto">
           {renderItemDetails()}
         </Box>
       </Flex>
-
+      
       {/* Fullscreen Modal */}
       <Modal isOpen={isOpen} onClose={onClose} size="6xl">
         <ModalOverlay />
