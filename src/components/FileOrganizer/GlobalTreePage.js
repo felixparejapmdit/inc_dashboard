@@ -178,7 +178,10 @@ const GlobalTreePage = () => {
   const contentBorder = useColorModeValue("gray.200", "gray.700");
   const mutedText = useColorModeValue("gray.500", "gray.400");
   const contentTextColor = useColorModeValue("gray.800", "white");
-
+  
+  const [selectedShelf, setSelectedShelf] = useState(null);
+  const [selectedContainer, setSelectedContainer] = useState(null);
+  const [selectedFolder, setSelectedFolder] = useState(null);
   const palette = useMemo(
     () => ({
       hoverBg,
@@ -191,7 +194,6 @@ const GlobalTreePage = () => {
     [hoverBg, selectedBg, selectedHoverBg, textColor, selectedText, chevronColor]
   );
   
-  // FIX: Moved handleSelect to the top level
   const handleSelect = (item) => {
     setSelectedItem(item);
   };
@@ -286,6 +288,22 @@ const GlobalTreePage = () => {
     );
   }
 
+    // ✅ This function fixes the "handleClick not defined" issue
+  const handleClick = (type, item) => {
+    if (type === "shelf") {
+      setSelectedShelf(item);
+      setSelectedContainer(null);
+      setSelectedFolder(null);
+    }
+    if (type === "container") {
+      setSelectedContainer(item);
+      setSelectedFolder(null);
+    }
+    if (type === "folder") {
+      setSelectedFolder(item);
+    }
+  };
+
   /** Render right-side details */
   const renderItemDetails = () => {
     if (!selectedItem) {
@@ -334,29 +352,58 @@ const GlobalTreePage = () => {
               />
             </VStack>
         ) : selectedItemContent.length > 0 ? (
-          <SimpleGrid columns={[1, 2, 3]} spacing={6} minChildWidth="240px">
-            {selectedItemContent.map((item) => {
-              const commonProps = {
-                key: item.id,
-                onView: () => openFileModal(item),
-                onUpdate: () => {},
-                onDelete: () => {},
-              };
-              
-              switch (item.type) {
-                case "shelf":
-                  return <ShelfCard shelf={item} containers={allData.containers.filter(c => c.shelf_id === item.id)} {...commonProps} />;
-                case "container":
-                  return <ContainerCard container={item} folders={allData.folders.filter(f => f.container_id === item.id)} {...commonProps} />;
-                case "folder":
-                  return <FolderCard folder={item} documents={allData.documents.filter(d => d.folder_id === item.id)} {...commonProps} />;
-                case "document":
-                  return <DocumentCard document={item} {...commonProps} />;
-                default:
-                  return null;
-              }
-            })}
-          </SimpleGrid>
+ <SimpleGrid columns={[1, 2, 3]} spacing={6} minChildWidth="240px">
+  {selectedItemContent.map((item) => {
+    const commonProps = {
+      onView: () => openFileModal(item),
+      onUpdate: () => {},
+      onDelete: () => {},
+      onGenerateQR: () => {},
+      onClick: () => handleClick(item),
+    };
+
+    switch (item.type) {
+      case "shelf":
+        return (
+          <ShelfCard
+            key={item.id}
+            shelf={item}
+            containers={allData.containers.filter(
+              (c) => c.shelf_id === item.id
+            )}
+            {...commonProps}
+          />
+        );
+      case "container":
+        return (
+          <ContainerCard
+            key={item.id}
+            container={item}
+            folders={allData.folders.filter(
+              (f) => f.container_id === item.id
+            )}
+            {...commonProps}
+          />
+        );
+      case "folder":
+        return (
+          <FolderCard
+            key={item.id}
+            folder={item}
+            documents={allData.documents.filter(
+              (d) => d.folder_id === item.id
+            )}
+            {...commonProps}
+          />
+        );
+      case "document":
+        return <DocumentCard key={item.id} document={item} {...commonProps} />;
+      default:
+        return null;
+    }
+  })}
+</SimpleGrid>
+
         ) : (
           <Center w="100%" p={8}>
             <Text fontSize="sm" color={mutedText} fontStyle="italic">

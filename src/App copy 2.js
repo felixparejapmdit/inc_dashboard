@@ -89,7 +89,7 @@ import ContainersPage from "./pages/FileOrganizer/ContainersPage.js";
 import FoldersPage from "./pages/FileOrganizer/FoldersPage.js";
 import DocumentsPage from "./pages/FileOrganizer/DocumentsPage.js";
 import GlobalSearchPage from "./pages/FileOrganizer/GlobalSearchPage.js";
-import GlobalTreePage from "./pages/FileOrganizer/GlobalTreePage.js"; // New import for the tree view
+import GlobalTreePage from "./components/FileOrganizer/GlobalTreePage.js"; // New import for the tree view
 import GlobalSearchBar from "./components/FileOrganizer/GlobalSearchBar.js";
 import GenerateQRCode from "./pages/FileOrganizer/GenerateQRCode.js";
 import ScanningQrCode from "./pages/FileOrganizer/ScanningQrCode.js";
@@ -471,16 +471,7 @@ function MainApp() {
 
 <Route path="/file-organizer/qrcode" element={<GenerateQRCode />} />
 <Route path="/file-organizer/scancode" element={<ScanningQrCode />} />
-{/* FIX: Route for GlobalTreePage is now inside Layout */}
-<Route 
-  path="/file-organizer/tree" 
-  element={
-    <Layout>
-      <GlobalTreePage />
-    </Layout>
-  } 
-/>
-
+<Route path="/file-organizer/tree" element={<GlobalTreePage />} />
 
         <Route
           path="/Mastodon"
