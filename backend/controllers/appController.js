@@ -125,6 +125,182 @@ exports.getAvailableApps1 = async (req, res) => {
   }
 };
 
+
+exports.getAvailableApps2 = async (req, res) => {
+  try {
+    const userId = req.headers["x-user-id"];
+
+    // ✅ Validate userId first before making any DB calls
+    if (!userId) {
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: No user ID provided" });
+    }
+
+    // ✅ Check if the user is VIP (Group ID = 2)
+    const isVIP = await UserGroupMapping.findOne({
+      where: { user_id: userId, group_id: 2 },
+    });
+
+    // ✅ Fetch all app types dynamically
+    const appTypes = await sequelize.query(
+      `SELECT id, name FROM applicationtypes ORDER BY id ASC`,
+      { type: sequelize.QueryTypes.SELECT }
+    );
+
+    // ✅ Fetch available apps for the logged-in user
+    const availableApps = await sequelize.query(
+      `
+      SELECT apps.*, apps.app_type 
+      FROM apps 
+      INNER JOIN available_apps ON apps.id = available_apps.app_id 
+      WHERE available_apps.user_id = :userId
+      `,
+      {
+        replacements: { userId },
+        type: sequelize.QueryTypes.SELECT,
+      }
+    );
+
+    const baseUrl = process.env.REACT_APP_API_URL;
+
+    // ✅ Fetch files data (filename, url, generated_code, thumbnail)
+    let filesData = await sequelize.query(
+      `
+      SELECT filename, url, generated_code, thumbnail AS thumbnail_url 
+      FROM files
+      `,
+      { type: sequelize.QueryTypes.SELECT }
+    );
+
+    // ✅ Normalize thumbnail paths
+    filesData = filesData.map((file) => ({
+      ...file,
+      thumbnail_url: file.thumbnail_url
+        ? `${baseUrl}/${file.thumbnail_url.replace(/\\/g, "/")}`
+        : null,
+      type: "file",
+    }));
+
+    // ✅ Build Phone Directory Query with VIP filter
+    const query = `
+      -- First Query: Matched phone directories
+      SELECT 
+        pd.name, 
+        pd.phone_name,
+        pd.prefix, 
+        pd.extension, 
+        pd.dect_number, 
+        pi.image_url AS avatar, 
+        p.personnel_id
+      FROM phone_directories pd
+      LEFT JOIN personnels p 
+        ON (
+          pd.name LIKE CONCAT('%', SUBSTRING_INDEX(p.givenname, ' ', 1), '%', p.surname_husband, '%') 
+          OR 
+          pd.name LIKE CONCAT('%', SUBSTRING_INDEX(SUBSTRING_INDEX(p.givenname, ' ', 2), ' ', -1), '%', p.surname_husband, '%')
+        )
+      LEFT JOIN personnel_images pi 
+        ON pi.personnel_id = p.personnel_id 
+        AND pi.type = '2x2 Picture'
+      WHERE pd.extension IS NOT NULL
+      ${isVIP ? "" : 'AND pd.location != "VIP Area"'}
+
+      UNION ALL
+
+      -- Second Query: Avoid duplicates
+      SELECT 
+        CONCAT(p.givenname, ' ', p.surname_husband) AS name,
+        MAX(pd.phone_name) AS phone_name,
+        MAX(pd.prefix) AS prefix, 
+        MAX(pd.extension) AS extension, 
+        MAX(pd.dect_number) AS dect_number, 
+        MAX(pi.image_url) AS avatar, 
+        p.personnel_id
+      FROM personnels p
+      LEFT JOIN personnel_images pi 
+        ON pi.personnel_id = p.personnel_id 
+        AND pi.type = '2x2 Picture'
+      LEFT JOIN personnel_contacts pc 
+        ON pc.personnel_id = p.personnel_id
+      LEFT JOIN phone_directories pd 
+        ON (
+          pd.name LIKE CONCAT('%', SUBSTRING_INDEX(p.givenname, ' ', 1), '%', p.surname_husband, '%') 
+          OR pd.name LIKE CONCAT('%', SUBSTRING_INDEX(SUBSTRING_INDEX(p.givenname, ' ', 2), ' ', -1), '%', p.surname_husband, '%')
+          OR (pc.contact_location = pd.location AND pc.extension = pd.extension)
+        )
+      WHERE 
+        -- 1. Exclude duplicates
+        NOT EXISTS (
+          SELECT 1 FROM phone_directories pd2
+          WHERE pd2.extension IS NOT NULL AND (
+            REPLACE(SUBSTRING_INDEX(pd2.name, ' ', 1), '-', '') = REPLACE(SUBSTRING_INDEX(p.givenname, ' ', 1), '-', '')
+            AND SUBSTRING_INDEX(pd2.name, ' ', -1) = p.surname_husband
+          )
+        )
+        AND NOT EXISTS (
+          SELECT 1 FROM phone_directories pd5
+          WHERE pd5.extension IS NOT NULL
+            AND REPLACE(SUBSTRING_INDEX(SUBSTRING_INDEX(p.givenname, ' ', 2), ' ', -1), '-', '') = REPLACE(SUBSTRING_INDEX(pd5.name, ' ', 1), '-', '')
+            AND p.surname_husband = SUBSTRING_INDEX(pd5.name, ' ', -1)
+        )
+        AND NOT EXISTS (
+          SELECT 1 FROM phone_directories pd6
+          WHERE pd6.extension IS NOT NULL
+            AND TRIM(REPLACE(CONCAT(p.givenname, ' ', p.surname_husband), '-', '')) = TRIM(REPLACE(pd6.name, '-', ''))
+        )
+        AND NOT EXISTS (
+          SELECT 1 FROM phone_directories pd7
+          LEFT JOIN personnels p7 
+            ON (
+              pd7.name LIKE CONCAT('%', SUBSTRING_INDEX(p7.givenname, ' ', 1), '%', p7.surname_husband, '%') 
+              OR pd7.name LIKE CONCAT('%', SUBSTRING_INDEX(SUBSTRING_INDEX(p7.givenname, ' ', 2), ' ', -1), '%', p7.surname_husband, '%')
+            )
+          WHERE pd7.extension IS NOT NULL
+            AND p7.personnel_id = p.personnel_id
+            AND pd7.phone_name = CONCAT(p.givenname, ' ', p.surname_husband)
+        )
+        ${isVIP ? "" : 'AND pd.location != "VIP Area"'}
+      GROUP BY p.personnel_id, p.givenname, p.surname_husband
+    `;
+
+    const phoneDirectoryData = await sequelize.query(query, {
+      type: sequelize.QueryTypes.SELECT,
+    });
+
+    // ✅ Combine apps, files, and phone directories into one structure
+    const combinedData = [
+      ...availableApps.map((app) => ({ ...app, type: "app" })),
+      ...filesData,
+      ...phoneDirectoryData.map((directory) => ({
+        ...directory,
+        type: "phone_directory",
+      })),
+    ];
+
+    // ✅ Categorize data dynamically
+    let categorizedApps = {};
+
+    appTypes.forEach((type) => {
+      categorizedApps[type.name] = combinedData.filter(
+        (item) => item.type === "app" && item.app_type === type.id
+      );
+    });
+
+    categorizedApps["Files"] = combinedData.filter((item) => item.type === "file");
+    categorizedApps["Phone Directories"] = combinedData.filter(
+      (item) => item.type === "phone_directory"
+    );
+
+    // ✅ Send the response
+    res.json(categorizedApps);
+  } catch (error) {
+    console.error("Error fetching available apps for user:", error);
+    res.status(500).json({ message: "Database error", error: error.message });
+  }
+};
+
+
 exports.getAvailableApps = async (req, res) => {
   const userId = req.headers["x-user-id"];
 
@@ -162,7 +338,7 @@ exports.getAvailableApps = async (req, res) => {
       }
     );
 
-    const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+    const baseUrl = process.env.REACT_APP_API_URL;
     // Fetch files data (filename and generated_code)
 // Fetch files data (filename, url, generated_code, thumbnail)
 let filesData = await sequelize.query(
