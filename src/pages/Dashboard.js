@@ -349,8 +349,7 @@ export default function Dashboard() {
 
   const fetchApplications = async () => {
     try {
-      //alert(`${API_URL}/api/apps/available`);
-      alert(currentUser.id);
+   
       const response = await fetch(`${API_URL}/api/apps/available`, {
         headers: {
           "Content-Type": "application/json",
