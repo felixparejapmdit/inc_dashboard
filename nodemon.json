@@ -2,5 +2,5 @@
   "watch": ["backend"],
   "ext": "js,json",
   "ignore": ["node_modules"],
-  "exec": "node backend/server.js1"
+  "exec": "node backend/server.js"
 }
