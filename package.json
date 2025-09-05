@@ -152,6 +152,12 @@
     "nodemon": "^3.1.4",
     "react-app-rewired": "^2.2.1"
   },
+  "overrides": {
+    "react-qr-reader": {
+      "react": "18.3.1",
+      "react-dom": "18.3.1"
+    }
+  },
   "jest": {
     "roots": [
       "<rootDir>/src"
@@ -177,7 +183,7 @@
       "^(?!.*\\.(js|jsx|mjs|cjs|ts|tsx|css|json)$)": "<rootDir>/config/jest/fileTransform.js"
     },
     "transformIgnorePatterns": [
-      "[/\\\\]node_modules[/\\\\].+\\.(js|jsx|mjs|cjs|ts|tsx)$",
+      "[/\\]node_modules[/\\].+\\.(js|jsx|mjs|cjs|ts|tsx)$",
       "^.+\\.module\\.(css|sass|scss)$"
     ],
     "modulePaths": [],
