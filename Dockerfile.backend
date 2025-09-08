@@ -1,0 +1,23 @@
+# Backend Dockerfile
+FROM node:18
+
+# Set working directory
+WORKDIR /usr/src/app
+
+# Copy package.json and package-lock.json for caching layers
+COPY backend/package*.json ./
+
+# Clean npm cache and install dependencies
+# Use `npm ci` if package-lock.json is present (better reproducibility)
+RUN npm cache clean --force \
+    && if [ -f package-lock.json ]; then npm ci; else npm install; fi \
+    && npm cache clean --force
+
+# Copy backend source code
+COPY backend/ .
+
+# Expose backend port (HTTP only; TLS handled by Nginx)
+EXPOSE 5000
+
+# Start backend server
+CMD ["node", "server.js"]

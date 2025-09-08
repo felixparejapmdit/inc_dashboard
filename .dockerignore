@@ -1,6 +1,22 @@
+# Ignore node_modules
 node_modules
+**/node_modules
+
+# Ignore build output (frontend will rebuild inside container)
 build
+
+# Ignore Docker-related files
 .dockerignore
 Dockerfile
+Dockerfile.backend
+Dockerfile.frontend
 docker-compose.yml
+
+# Ignore Git files
 .git
+.gitignore
+
+# Ignore local environment files (we mount .env explicitly in compose)
+*.env.local
+npm-debug.log
+yarn-error.log

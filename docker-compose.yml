@@ -1,20 +1,64 @@
-version: '3.8'
+version: "3.8"
 
 services:
-  nginx-proxy-manager:
-    image: 'jc21/nginx-proxy-manager:latest'
-    container_name: nginx-proxy-manager
-    restart: unless-stopped
-    ports:
-      - '80:80'    # HTTP
-      - '81:81'    # Admin UI
-      - '443:443'  # HTTPS
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: inc_backend
+    restart: always
+    working_dir: /usr/src/app
     volumes:
-      - ./data:/data
-      - ./letsencrypt:/etc/letsencrypt
+      # Mount backend source code
+      - ./backend:/usr/src/app
+      # Ensure node_modules stays inside container (avoid shadowing by host)
+      - /usr/src/app/node_modules
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    depends_on:
+      - db
     networks:
-      - app-network
+      - incnet
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: inc_frontend
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/certs:/etc/nginx/certs:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+    networks:
+      - incnet
+
+  db:
+    image: mysql:8.0
+    container_name: inc_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: ppi
+      MYSQL_USER: portal_dev
+      MYSQL_PASSWORD: M@sunur1n
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - incnet
+    # Uncomment this if you want to connect from host machine
+    # ports:
+    #   - "3307:3306"
 
 networks:
-  app-network:
-    external: true
+  incnet:
+    driver: bridge
+
+volumes:
+  db_data:
