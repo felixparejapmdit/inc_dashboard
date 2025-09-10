@@ -42,7 +42,7 @@ const importRoutes = require("./routes/importRoutes");
 const districtsRoutes = require("./routes/districtsRoutes");
 const localCongregationRoutes = require("./routes/localCongregationRoutes");
 
-//const chatRoutes = require("./routes/chatRoutes");
+const chatRoutes = require("./routes/chatRoutes");
 
 const groupRoutes = require("./routes/groupRoutes");
 const permissionRoutes = require("./routes/permissionRoutes");
@@ -185,7 +185,7 @@ app.use("/api", importRoutes);
 app.use(districtsRoutes);
 app.use(localCongregationRoutes);
 
-//app.use(chatRoutes);
+app.use(chatRoutes);
 app.use(settingRoutes);
 app.use(authRoutes);
 
@@ -194,90 +194,163 @@ app.use(housingRoutes);
 app.use(fileRoutes);
 app.use(phoneDirectoryRoutes);
 
-// Ensure upload folder exists
-const uploadDir = path.join(__dirname, "uploads/avatar");
-fs.mkdirSync(uploadDir, { recursive: true });
-console.log(`Upload path created at: ${uploadDir}`);
 
 
-// const Department = require("./models/Department");
-// const Section = require("./models/Section");
-// const Personnel = require("./models/personnels");
-
-// async function syncDatabase() {
-//   try {
-//     // Sync parent tables first
-//     await Department.sync({ alter: true });
-//     await Section.sync({ alter: true });
-
-//     // Then sync dependent tables
-//     await Personnel.sync({ alter: true });
-
-//     console.log("✅ Database synced successfully!");
-//   } catch (err) {
-//     console.error("❌ Failed to sync database33:", err);
-//   }
-// }
-
-// syncDatabase();
-
-// FIX: Clean up the connection block
+// ✅ Connect to MySQL database
 const db = mysql.createConnection({
   host: process.env.MYSQL_HOST,
   user: process.env.MYSQL_USER,
   password: process.env.MYSQL_PASSWORD,
   database: process.env.MYSQL_DATABASE,
-  port: process.env.MYSQL_PORT || 3306,
-  authPlugins: {
-    mysql_native_password: () => () => ""
-  }
 });
 
 db.connect((err) => {
-  if (err) {
-    console.error("❌ Error connecting to MySQL:", err);
-  } else {
-    console.log("✅ Connected to MySQL Database");
-  }
+  if (err) console.error("❌ Database connection failed:", err);
+  else console.log("✅ Connected to MySQL Database");
 });
 
-// Test route
-app.get("/api/test-upload", (req, res) => {
-  res.send("✅ Upload route working!");
-});
+// ✅ Middleware
+app.use(cors({ origin: "*" }));
+app.use(bodyParser.json());
 
-// Example: Add your route imports here
-// const userRoutes = require("./routes/userRoutes");
-// app.use(userRoutes);
+const Personnel = require("./models/personnels");
+const FamilyMember = require("./models/FamilyMember");
 
-// // Start HTTP server
-// http.createServer(app).listen(PORT_HTTP, IP_BIND, () => {
-//   console.log(`✅ HTTP Server running at http://localhost:${PORT_HTTP}`);
+// ✅ API Endpoint: Chatbot with Database Search
+// app.post("/api/chat", async (req, res) => {
+//   const userMessage = req.body.message.toLowerCase();
+//   const words = userMessage.split(" ");
+
+//   // 🔍 **Extract a potential name from the user input**
+//   const searchName = words.find((word) => word.length > 2); // Get a potential name
+
+//   if (searchName) {
+//     try {
+//       // 🔍 Search personnel using Sequelize
+//       const personnels = await Personnel.findAll({
+//         where: {
+//           [Op.or]: [
+//             { givenname: { [Op.like]: `%${searchName}%` } },
+//             { surname_husband: { [Op.like]: `%${searchName}%` } },
+//             { nickname: { [Op.like]: `%${searchName}%` } },
+//           ],
+//         },
+//         attributes: [
+//           "reference_number",
+//           "gender",
+//           "civil_status",
+//           "wedding_anniversary",
+//           "givenname",
+//           "surname_husband",
+//           "nickname",
+//           "date_of_birth",
+//           "place_of_birth",
+//         ],
+//       });
+
+//       // 🔍 Search family members using Sequelize
+//       const familyMembers = await FamilyMember.findAll({
+//         where: {
+//           givenname: { [Op.like]: `%${searchName}%` },
+//         },
+//         attributes: [
+//           "givenname",
+//           "lastname",
+//           "relationship_type",
+//           "date_of_birth",
+//           "gender",
+//         ],
+//       });
+
+//       if (personnels.length === 0 && familyMembers.length === 0) {
+//         return res.json({ reply: `No records found for "${searchName}".` });
+//       }
+
+//       // 📝 Format personnel details
+//       let personnelInfo = personnels
+//         .map(
+//           (p) =>
+//             `${p.givenname} ${p.surname_husband} (Nickname: ${
+//               p.nickname || "N/A"
+//             }) is a ${p.gender} with civil status ${p.civil_status}. Born on ${
+//               p.date_of_birth
+//             }, in ${p.place_of_birth}. Reference Number: ${
+//               p.reference_number
+//             }. Wedding Anniversary: ${p.wedding_anniversary || "N/A"}.`
+//         )
+//         .join("\n");
+
+//       // 📝 Format family member details
+//       let familyInfo = familyMembers
+//         .map(
+//           (f) =>
+//             `${f.givenname} ${f.lastname} is a ${f.relationship_type}. Gender: ${f.gender}. Born on ${f.date_of_birth}.`
+//         )
+//         .join("\n");
+
+//       // 🧠 **Send structured response to Ollama**
+//       const ollamaPrompt = `
+//       User asked about "${searchName}". Here is the information:
+
+//       **Personnel Details:**
+//       ${personnelInfo || "No personnel found."}
+
+//       **Family Member Details:**
+//       ${familyInfo || "No family members found."}
+//       `;
+
+//       const ollamaResponse = await generateOllamaResponse(ollamaPrompt);
+//       res.json({ reply: ollamaResponse });
+//     } catch (error) {
+//       console.error("❌ Database query error:", error);
+//       res.json({ reply: "Sorry, I couldn't retrieve the data." });
+//     }
+//     return;
+//   }
+
+//   // 🟢 **Default response if no match**
+//   const ollamaResponse = await generateOllamaResponse(userMessage);
+//   res.json({ reply: ollamaResponse });
 // });
 
-// // Start HTTPS server if enabled
-// if (sslOptions) {
-//   https.createServer(sslOptions, app).listen(PORT_HTTPS, IP_BIND, () => {
-//     console.log(`✅ HTTPS Server running at https://localhost:${PORT_HTTPS}`);
-//   });
+// ✅ Function to Call Ollama API
+// async function generateOllamaResponse(prompt) {
+//   try {
+//     const response = await axios.post(
+//       "http://172.18.121.50/api/generate", // ✅ Replace with your Ollama IP
+//       {
+//         model: "llama3.1", // or your chosen model
+//         prompt,
+//         stream: false,
+//       }
+//     );
+//     return response.data.response;
+//   } catch (error) {
+//     console.error("❌ Ollama API error:", error);
+//     return "I'm having trouble processing your request.";
+//   }
 // }
 
+// --- Start server ---
+// app.listen(PORT, "0.0.0.0", () => {
+//   console.log(`Server is running on ${IP_Address}:${PORT}`);
+// });
 
-app.get("/health", (req, res) => {
-  res.json({ status: "ok" });
-});
-
+// Start HTTPS server
+// https.createServer(sslOptions, app).listen(PORT, IP_BIND, () => {
+//   // For logging, use the API URL to show the full public access URL
+//   const publicURL = process.env.REACT_APP_API_URL || `https://localhost`;
+//   console.log(`✅ HTTPS Server running at ${publicURL}:${PORT}`);
+// });
 
 // Start HTTP server
-http.createServer(app).listen(PORT_HTTP, "0.0.0.0", () => {
-  console.log(`✅ HTTP Server running at http://0.0.0.0:${PORT_HTTP}`);
+http.createServer(app).listen(PORT_HTTP, IP_BIND, () => {
+  console.log(`✅ HTTP Server running at http://localhost:${PORT_HTTP}`);
 });
 
-// Start HTTPS server if enabled
+// Start HTTPS server
 if (sslOptions) {
-  https.createServer(sslOptions, app).listen(PORT_HTTPS, "0.0.0.0", () => {
-    console.log(`✅ HTTPS Server running at https://0.0.0.0:${PORT_HTTPS}`);
+  https.createServer(sslOptions, app).listen(PORT_HTTPS, IP_BIND, () => {
+    console.log(`✅ HTTPS Server running at https://localhost:${PORT_HTTPS}`);
   });
 }
-
-

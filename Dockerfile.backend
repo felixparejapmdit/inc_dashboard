@@ -4,20 +4,24 @@ FROM node:18
 # Set working directory
 WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json for caching layers
+# Install netcat for waiting on MySQL
+RUN apt-get update && apt-get install -y netcat-openbsd && rm -rf /var/lib/apt/lists/*
+
+# Copy package.json and package-lock.json first (better caching)
 COPY backend/package*.json ./
 
-# Clean npm cache and install dependencies
-# Use `npm ci` if package-lock.json is present (better reproducibility)
-RUN npm cache clean --force \
-    && if [ -f package-lock.json ]; then npm ci; else npm install; fi \
-    && npm cache clean --force
+# Install dependencies with a clean slate
+RUN npm install --legacy-peer-deps
 
 # Copy backend source code
 COPY backend/ .
 
-# Expose backend port (HTTP only; TLS handled by Nginx)
-EXPOSE 5000
+# Copy entrypoint script
+COPY backend/entrypoint.sh /usr/src/app/entrypoint.sh
+RUN chmod +x /usr/src/app/entrypoint.sh
 
-# Start backend server
-CMD ["node", "server.js"]
+# Expose backend port (use port 80 inside container)
+EXPOSE 80
+
+# Run entrypoint (wait for DB then start server)
+ENTRYPOINT ["/usr/src/app/entrypoint.sh"]

@@ -12,15 +12,17 @@ const Department = sequelize.define(
     name: {
       type: DataTypes.STRING(50),
       allowNull: false,
-      // Removed unique to prevent deadlock
-      // unique: true,
+    },
+    image_url: {
+      type: DataTypes.TEXT,
+      allowNull: true,
     },
   },
   {
-    tableName: "departments",
     timestamps: true,
-    createdAt: "created_at",
-    updatedAt: "updated_at",
+    createdAt: "created_at", // Map Sequelize `createdAt` to 'created_at'
+    updatedAt: "updated_at", // Map Sequelize `updatedAt` to 'updated_at'
+    tableName: "departments", // Ensure Sequelize maps to the correct table name
   }
 );
 

@@ -11,9 +11,14 @@ const Personnel = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
+    // reference_number: {
+    //   type: DataTypes.STRING(50),
+    //   allowNull: false,
+    // },
     reference_number: {
       type: DataTypes.STRING(50),
       allowNull: false,
+      unique: true, // ✅ keep this
     },
     enrollment_progress: {
       type: DataTypes.STRING(255),
@@ -101,13 +106,14 @@ const Personnel = sequelize.define(
     work_email_address: {
       type: DataTypes.STRING(50),
       allowNull: true,
-      unique: true,
+      unique: true, // ✅ keep this
     },
     email_address: {
       type: DataTypes.STRING(50),
       allowNull: false,
-      unique: true,
+      // ❌ no unique here
     },
+
     citizenship: {
       type: DataTypes.STRING, // Store as a comma-separated string
       allowNull: true,
@@ -130,14 +136,19 @@ const Personnel = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: "Departments",
+        model: "departments",
         key: "id",
       },
     },
     section_id: {
       type: DataTypes.INTEGER,
       allowNull: true,
+      references: {
+        model: "sections",
+        key: "id",
+      },
     },
+
     subsection_id: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -219,9 +230,9 @@ const Personnel = sequelize.define(
       defaultValue: DataTypes.NOW,
     },
     deleted_at: {
-  type: DataTypes.DATE,
-  allowNull: true,
-},
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   },
   {
     tableName: "personnels", // Ensure this matches your actual table name

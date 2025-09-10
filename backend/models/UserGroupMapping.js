@@ -6,12 +6,12 @@ const UserGroupMapping = sequelize.define(
   "UserGroupMapping",
   {
     user_id: {
-      type: DataTypes.BIGINT(20),
+      type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true, // Composite primary key
     },
     group_id: {
-      type: DataTypes.BIGINT(20),
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
   },

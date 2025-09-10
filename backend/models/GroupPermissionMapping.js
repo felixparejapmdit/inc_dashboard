@@ -15,7 +15,7 @@ const GroupPermissionMapping = sequelize.define(
       primaryKey: true, // Composite primary key
     },
     category_id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       allowNull: false,
     },
     accessrights: {

@@ -9,18 +9,18 @@ services:
     restart: always
     working_dir: /usr/src/app
     volumes:
-      # Mount backend source code
       - ./backend:/usr/src/app
-      # Ensure node_modules stays inside container (avoid shadowing by host)
       - /usr/src/app/node_modules
+      - ./nginx/certs:/usr/src/app/nginx/certs:ro
     ports:
-      - "5000:5000"
+      - "5000:80"
     env_file:
-      - .env
+      - .env.docker
     depends_on:
       - db
     networks:
       - incnet
+    entrypoint: ["/usr/src/app/entrypoint.sh"]
 
   frontend:
     build:
@@ -40,7 +40,7 @@ services:
       - incnet
 
   db:
-    image: mysql:8.0
+    image: mysql:5.7
     container_name: inc_mysql
     restart: always
     environment:
@@ -48,13 +48,12 @@ services:
       MYSQL_DATABASE: ppi
       MYSQL_USER: portal_dev
       MYSQL_PASSWORD: M@sunur1n
+    command: --default-authentication-plugin=mysql_native_password
     volumes:
       - db_data:/var/lib/mysql
+      - ./db/init:/docker-entrypoint-initdb.d
     networks:
       - incnet
-    # Uncomment this if you want to connect from host machine
-    # ports:
-    #   - "3307:3306"
 
 networks:
   incnet:
