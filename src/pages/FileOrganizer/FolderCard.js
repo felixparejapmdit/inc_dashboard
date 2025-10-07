@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,useLocation } from "react-router-dom";
 import {
   Box,
   Text,
@@ -29,11 +29,13 @@ const FolderCard = ({
   documents = [],
   onDelete,
   onUpdate,
+  onClick,
 }) => {
   const navigate = useNavigate();
   const [isQROpen, setIsQROpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
+  const location = useLocation(); // 👈 Initialize useLocation
   // Theming
   const cardBg = useColorModeValue("white", "gray.700");
   const cardBorder = useColorModeValue("gray.200", "gray.600");
@@ -44,13 +46,25 @@ const FolderCard = ({
   const docColor = useColorModeValue("gray.600", "gray.300");
   const emptyColor = useColorModeValue("gray.400", "gray.500");
 
-  const handleCardClick = (e) => {
+  const handleCardClick1 = (e) => {
     if (!e.target.closest("button")) {
       navigate(
         `/shelves/${shelfId}/containers/${containerId}/folders/${folder.id}/documents`
       );
     }
   };
+
+
+  const handleCardClick = (e) => {
+    if (!e.target.closest("button")) {
+      if (location.pathname.includes("/file-organizer/tree")) {
+        // This is the line that gets called:
+        onClick(folder); 
+      } else {
+        navigate(`/shelves/${shelfId}/containers/${containerId}/folders/${folder.id}/documents`);
+      }
+    }
+};
 
   // Pick icon based on file extension, with a safety check
   const getFileIcon = (filename) => {

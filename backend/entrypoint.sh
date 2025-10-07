@@ -1,11 +1,12 @@
 #!/bin/sh
-set -e
 
-echo "⏳ Waiting for MySQL at $MYSQL_HOST:$MYSQL_PORT..."
-until nc -z -v -w30 $MYSQL_HOST $MYSQL_PORT; do
-  echo "❌ Waiting for MySQL..."
+# Wait for the MySQL service to be ready
+# Use the internal container port, which is 3306
+until mysql -h"db" -P"3306" -u"portal_dev" -p"M@sunur1n" -e "SELECT 1;" > /dev/null 2>&1; do
+  echo "Database is not yet ready. Waiting..."
   sleep 2
 done
 
-echo "✅ MySQL is up - starting backend"
+echo "Database is ready! Starting the backend..."
+# The final command to start your Node.js application
 exec npm start

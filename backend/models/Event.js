@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
+const Location = require("./Location");
 
 const Event = sequelize.define(
   "Event",
@@ -14,16 +15,26 @@ const Event = sequelize.define(
       allowNull: false,
       validate: {
         notEmpty: true,
-        len: [3, 50],
+        len: {
+          args: [3, 50],
+          msg: "Event name must be between 3 and 50 characters.",
+        },
       },
     },
     date: {
       type: DataTypes.DATEONLY,
       allowNull: false,
+      validate: {
+        isDate: true,
+        notEmpty: true,
+      },
     },
     time: {
       type: DataTypes.TIME,
       allowNull: false,
+      validate: {
+        notEmpty: true,
+      },
     },
     location_id: {
       type: DataTypes.INTEGER,
@@ -34,7 +45,10 @@ const Event = sequelize.define(
       allowNull: true,
       defaultValue: "none",
       validate: {
-        isIn: [["daily", "weekly", "monthly", "none"]],
+        isIn: {
+          args: [["daily", "weekly", "monthly", "none"]],
+          msg: "Recurrence must be one of: daily, weekly, monthly, or none.",
+        },
       },
     },
   },
@@ -45,5 +59,17 @@ const Event = sequelize.define(
     updatedAt: "updated_at",
   }
 );
+
+// Define relationships with cascading delete
+Event.belongsTo(Location, {
+  foreignKey: "location_id",
+  as: "location",
+  onDelete: "CASCADE",
+});
+Location.hasMany(Event, {
+  foreignKey: "location_id",
+  as: "events",
+  onDelete: "CASCADE",
+});
 
 module.exports = Event;

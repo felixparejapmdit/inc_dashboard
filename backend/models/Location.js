@@ -17,8 +17,8 @@ const Location = sequelize.define(
   {
     tableName: "locations",
     timestamps: true,
-    createdAt: "created_at",
-    updatedAt: "updated_at",
+    createdAt: "created_at", // Map to 'created_at' column
+    updatedAt: "updated_at", // Map to 'updated_at' column
   }
 );
 

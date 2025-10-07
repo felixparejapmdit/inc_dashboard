@@ -8,10 +8,11 @@ const sequelize = new Sequelize(
   process.env.MYSQL_PASSWORD, // Database password
   {
     host: process.env.MYSQL_HOST, // Database host
-    port: process.env.MYSQL_PORT || 3306, // Use a default port if not provided
+    port: process.env.MYSQL_PORT || 3307, // Use a default port if not provided
     dialect: "mysql", // Specify MySQL as the dialect
     logging: process.env.NODE_ENV === "development" ? console.log : false, // Enable logging only in development
-    dialectOptions: {
+    dialectOptions: 
+    {
       connectTimeout: 10000, // Set a timeout for the connection
     },
     pool: {
@@ -22,23 +23,5 @@ const sequelize = new Sequelize(
     },
   }
 );
-
-// Test the connection function
-async function testConnection() {
-  try {
-    await sequelize.authenticate();
-    console.log("✅ Connection to MySQL has been established successfully.");
-  } catch (error) {
-    console.error("❌ Unable to connect to MySQL:", error.message);
-    console.error("Details:", error); // Include full error details for debugging
-    process.exit(1); // Exit with a failure code to indicate the connection failed
-  }
-}
-
-// Call the test function to check the connection
-if (require.main === module) {
-  // Only test the connection if this file is executed directly
-  testConnection();
-}
 
 module.exports = sequelize;

@@ -1,6 +1,6 @@
 // utils/FileOrganizer/fetchWithAuth.js
 
-export const DIRECTUS_API_URL = "http://172.18.162.62:3307";
+export const DIRECTUS_API_URL = "http://172.18.162.62:3306";
 
 // Function to get the full asset URL
 export const getAssetUrl = (assetId) => {

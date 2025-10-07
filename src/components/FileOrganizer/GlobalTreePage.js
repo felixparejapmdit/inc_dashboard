@@ -289,7 +289,12 @@ const GlobalTreePage = () => {
   }
 
     // ✅ This function fixes the "handleClick not defined" issue
-  const handleClick = (type, item) => {
+const handleClick = (type, item) => {
+    // 💡 Update the main selected item state
+    setSelectedItem(item); 
+    
+    // The following lines might be for breadcrumbs or other secondary features,
+    // but they can remain if they are needed elsewhere:
     if (type === "shelf") {
       setSelectedShelf(item);
       setSelectedContainer(null);
@@ -302,118 +307,129 @@ const GlobalTreePage = () => {
     if (type === "folder") {
       setSelectedFolder(item);
     }
-  };
+};
 
   /** Render right-side details */
-  const renderItemDetails = () => {
-    if (!selectedItem) {
-      return (
-        <Center w="100%" h="100%" p={8}>
-          <VStack spacing={2}>
-            <Icon as={FaBoxes} boxSize={6} color={mutedText} />
-            <Text color={mutedText}>Select an item to view details.</Text>
-          </VStack>
-        </Center>
-      );
-    }
+  
 
-    const { icon: headerIcon, color: headerColorIcon } = getTypeIcon(selectedItem.type);
+// GlobalTreePage.js
 
-    return (
-      <Box p={0} w="100%">
-        {/* Header */}
-        <Box
-          bg={contentCardBg}
-          borderWidth="1px"
-          borderColor={contentBorder}
-          borderRadius="lg"
-          boxShadow="sm"
-          p={4}
-        >
-          <HStack spacing={3} mb={1}>
-            <Icon as={headerIcon} boxSize={6} color={headerColorIcon} />
-            <Heading size="md" color={contentTextColor} noOfLines={2} title={selectedItem.name}>
-              {selectedItem.name}
-            </Heading>
-          </HStack>
-          <Text fontSize="sm" color={mutedText}>
-            Type: {selectedItem.type.charAt(0).toUpperCase() + selectedItem.type.slice(1)}
-          </Text>
-        </Box>
+// ... (Rest of the component code above renderItemDetails remains the same)
 
-        <Divider my={4} />
-        
-        {/* Children / Content List or Document Preview */}
-        {selectedItem.type === "document" ? (
-            <VStack align="stretch" spacing={4} mt={4}>
-              <DocumentCard 
-                document={selectedItem}
-                onView={() => openFileModal(selectedItem)}
-              />
-            </VStack>
-        ) : selectedItemContent.length > 0 ? (
- <SimpleGrid columns={[1, 2, 3]} spacing={6} minChildWidth="240px">
-  {selectedItemContent.map((item) => {
-    const commonProps = {
-      onView: () => openFileModal(item),
-      onUpdate: () => {},
-      onDelete: () => {},
-      onGenerateQR: () => {},
-      onClick: () => handleClick(item),
-    };
+/** Render right-side details */
+ const renderItemDetails = () => {
+ if (!selectedItem) {
+return (
+ <Center w="100%" h="100%" p={8}>
+ <VStack spacing={2}>
+<Icon as={FaBoxes} boxSize={6} color={mutedText} />
+ <Text color={mutedText}>Select an item to view details.</Text>
+</VStack>
+ </Center>
+ );
+ }
 
-    switch (item.type) {
-      case "shelf":
-        return (
-          <ShelfCard
-            key={item.id}
-            shelf={item}
-            containers={allData.containers.filter(
-              (c) => c.shelf_id === item.id
-            )}
-            {...commonProps}
-          />
-        );
-      case "container":
-        return (
-          <ContainerCard
-            key={item.id}
-            container={item}
-            folders={allData.folders.filter(
-              (f) => f.container_id === item.id
-            )}
-            {...commonProps}
-          />
-        );
-      case "folder":
-        return (
-          <FolderCard
-            key={item.id}
-            folder={item}
-            documents={allData.documents.filter(
-              (d) => d.folder_id === item.id
-            )}
-            {...commonProps}
-          />
-        );
-      case "document":
-        return <DocumentCard key={item.id} document={item} {...commonProps} />;
-      default:
-        return null;
-    }
-  })}
+ const { icon: headerIcon, color: headerColorIcon } = getTypeIcon(selectedItem.type);
+
+ return (
+ <Box p={0} w="100%">
+ {/* Header */}
+ <Box
+bg={contentCardBg}
+borderWidth="1px"
+borderColor={contentBorder}
+ borderRadius="lg"
+boxShadow="sm"
+ p={4}
+ >
+ <HStack spacing={3} mb={1}>
+ <Icon as={headerIcon} boxSize={6} color={headerColorIcon} />
+<Heading size="md" color={contentTextColor} noOfLines={2} title={selectedItem.name}>
+{selectedItem.name}
+</Heading>
+ </HStack>
+ <Text fontSize="sm" color={mutedText}>
+ Type: {selectedItem.type.charAt(0).toUpperCase() + selectedItem.type.slice(1)}
+</Text>
+ </Box>
+
+ <Divider my={4} />
+ 
+{/* Children / Content List or Document Preview */}
+{selectedItem.type === "document" ? (
+<VStack align="stretch" spacing={4} mt={4}>
+ <DocumentCard 
+ document={selectedItem}
+ onView={() => openFileModal(selectedItem)}
+ />
+ </VStack>
+ ) : selectedItemContent.length > 0 ? (
+<SimpleGrid columns={[1, 2, 3]} spacing={6} minChildWidth="240px">
+ {selectedItemContent.map((item) => {
+ const commonProps = {
+onView: () => openFileModal(item),
+onUpdate: () => {},
+onDelete: () => {},
+onGenerateQR: () => {},
+ // 🚨 PREVIOUS CODE (Incorrect for your goal): onClick: () => handleClick(item.type, item), 
+
+// ✅ CORRECTED CODE: Accept the item passed from the Card (cardItem) 
+ // and use its type and value to update the state using handleClick.
+     onClick: (cardItem) => handleClick(cardItem.type, cardItem),
+ };
+
+ switch (item.type) {
+ case "shelf":
+ return (
+ <ShelfCard
+ key={item.id}
+shelf={item}
+ containers={allData.containers.filter(
+ (c) => c.shelf_id === item.id
+ )}
+ {...commonProps}
+ />
+ );
+ case "container":
+ return (
+ <ContainerCard
+ key={item.id}
+ container={item}
+folders={allData.folders.filter(
+ (f) => f.container_id === item.id
+)}
+{...commonProps}
+/>
+);
+ case "folder":
+return (
+ <FolderCard
+ key={item.id}
+ folder={item}
+ documents={allData.documents.filter(
+ (d) => d.folder_id === item.id
+ )}
+ {...commonProps}
+ />
+);
+ case "document":
+ return <DocumentCard key={item.id} document={item} {...commonProps} />;
+ default:
+ return null;
+ }
+ })}
 </SimpleGrid>
 
-        ) : (
-          <Center w="100%" p={8}>
-            <Text fontSize="sm" color={mutedText} fontStyle="italic">
-              No items found.
-            </Text>
-          </Center>
-        )}
-      </Box>
-    );
-  };
+ ) : (
+ <Center w="100%" p={8}>
+ <Text fontSize="sm" color={mutedText} fontStyle="italic">
+ No items found.
+ </Text>
+ </Center>
+)}
+ </Box>
+);
+ };
 
   return (
     <>

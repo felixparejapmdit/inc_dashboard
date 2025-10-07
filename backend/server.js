@@ -1,3 +1,5 @@
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 require("dotenv").config();
 
 const fs = require("fs");
@@ -17,22 +19,22 @@ const { Op } = require("sequelize");
 const axios = require("axios"); // ✅ Axios to communicate with Ollama API
 
 const IP_BIND = "0.0.0.0";
-const PORT_HTTP = 80;
+const PORT_HTTP = 5000;
 const PORT_HTTPS = 443;
 
 // SSL config
 let sslOptions = null;
 if (process.env.HTTPS === "true") {
-  sslOptions = {
-    key: fs.readFileSync(process.env.SSL_KEY_FILE),
-    cert: fs.readFileSync(process.env.SSL_CRT_FILE),
-  };
+ sslOptions = {
+  key: fs.readFileSync(process.env.SSL_KEY_FILE),
+  cert: fs.readFileSync(process.env.SSL_CRT_FILE),
+ };
 }
 app.use(
-  cors({
-    origin: "*", // Allow all origins (update for production)
-    methods: ["GET", "POST", "PUT", "DELETE"],
-  })
+ cors({
+  origin: "*", // Allow all origins (update for production)
+  methods: ["GET", "POST", "PUT", "DELETE"],
+ })
 );
 
 const API_URL = "http://172.18.125.54:11434/api/generate"; // Ollama local API
@@ -58,7 +60,7 @@ const groupPermissionsRoutes = require("./routes/groupPermissionsRoutes");
 const permissionsAccessRoutes = require("./routes/permissionsAccessRoutes");
 
 const userRoutes = require("./routes/userRoutes");
-const ldapRoutes = require("./routes/ldapRoutes");
+// const ldapRoutes = require("./routes/ldapRoutes"); // THIS IS THE LINE TO BE REMOVED/MOVED
 const appRoutes = require("./routes/appRoutes");
 
 const suguanRoutes = require("./routes/suguanRoutes");
@@ -118,7 +120,7 @@ app.use(bodyParser.urlencoded({ limit: "100mb", extended: true }));
 
 
 app.get("/api/test-upload", (req, res) => {
-  res.send("✅ Upload route working!");
+   res.send("✅ Upload route working!");
 });
 
 // ✅ Register the route
@@ -133,8 +135,15 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 
+// >>>>>>>>>> START OF LDAP FIX <<<<<<<<<<<<
+// Only load LDAP routes if LDAP is enabled
+if (process.env.LDAP_ENABLED === "true") {
+  const ldapRoutes = require("./routes/ldapRoutes");
+  app.use(ldapRoutes);
+}
+// >>>>>>>>>> END OF LDAP FIX <<<<<<<<<<<<
 
-app.use(ldapRoutes);
+
 app.use(appRoutes);
 app.use(reminderRoutes);
 app.use(suguanRoutes);
@@ -197,87 +206,52 @@ app.use(phoneDirectoryRoutes);
 // Ensure upload folder exists
 const uploadDir = path.join(__dirname, "uploads/avatar");
 fs.mkdirSync(uploadDir, { recursive: true });
-console.log(`Upload path created at: ${uploadDir}`);
-
-
-// const Department = require("./models/Department");
-// const Section = require("./models/Section");
-// const Personnel = require("./models/personnels");
-
-// async function syncDatabase() {
-//   try {
-//     // Sync parent tables first
-//     await Department.sync({ alter: true });
-//     await Section.sync({ alter: true });
-
-//     // Then sync dependent tables
-//     await Personnel.sync({ alter: true });
-
-//     console.log("✅ Database synced successfully!");
-//   } catch (err) {
-//     console.error("❌ Failed to sync database33:", err);
-//   }
-// }
-
-// syncDatabase();
 
 // FIX: Clean up the connection block
 const db = mysql.createConnection({
-  host: process.env.MYSQL_HOST,
-  user: process.env.MYSQL_USER,
-  password: process.env.MYSQL_PASSWORD,
-  database: process.env.MYSQL_DATABASE,
-  port: process.env.MYSQL_PORT || 3306,
-  authPlugins: {
-    mysql_native_password: () => () => ""
-  }
+ host: process.env.MYSQL_HOST,
+ user: process.env.MYSQL_USER,
+ password: process.env.MYSQL_PASSWORD,
+ database: process.env.MYSQL_DATABASE,
+ port: process.env.MYSQL_PORT || 3306,
+ authPlugins: {
+  mysql_native_password: () => () => ""
+ }
 });
 
 db.connect((err) => {
-  if (err) {
-    console.error("❌ Error connecting to MySQL:", err);
-  } else {
-    console.log("✅ Connected to MySQL Database");
-  }
+ if (err) {
+  console.error("❌ Error connecting to MySQL:", err);
+ } else {
+  console.log("✅ Connected to MySQL Database");
+ }
 });
+
+// ✅ Middleware
+app.use(bodyParser.json());
 
 // Test route
 app.get("/api/test-upload", (req, res) => {
-  res.send("✅ Upload route working!");
+ res.send("✅ Upload route working!");
 });
 
 // Example: Add your route imports here
 // const userRoutes = require("./routes/userRoutes");
 // app.use(userRoutes);
 
-// // Start HTTP server
-// http.createServer(app).listen(PORT_HTTP, IP_BIND, () => {
-//   console.log(`✅ HTTP Server running at http://localhost:${PORT_HTTP}`);
-// });
-
-// // Start HTTPS server if enabled
-// if (sslOptions) {
-//   https.createServer(sslOptions, app).listen(PORT_HTTPS, IP_BIND, () => {
-//     console.log(`✅ HTTPS Server running at https://localhost:${PORT_HTTPS}`);
-//   });
-// }
-
-
-app.get("/health", (req, res) => {
-  res.json({ status: "ok" });
-});
-
-
 // Start HTTP server
-http.createServer(app).listen(PORT_HTTP, "0.0.0.0", () => {
-  console.log(`✅ HTTP Server running at http://0.0.0.0:${PORT_HTTP}`);
+http.createServer(app).listen(PORT_HTTP, IP_BIND, () => {
+ console.log(`✅ HTTP Server running at http://localhost:${PORT_HTTP}`);
 });
 
 // Start HTTPS server if enabled
 if (sslOptions) {
-  https.createServer(sslOptions, app).listen(PORT_HTTPS, "0.0.0.0", () => {
-    console.log(`✅ HTTPS Server running at https://0.0.0.0:${PORT_HTTPS}`);
-  });
+ https.createServer(sslOptions, app).listen(PORT_HTTPS, IP_BIND, () => {
+ console.log(`✅ HTTPS Server running at https://localhost:${PORT_HTTPS}`);
+ });
 }
 
 
+app.get("/health", (req, res) => {
+ res.json({ status: "ok" });
+});

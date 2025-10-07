@@ -25,63 +25,71 @@ const BASE_DN = process.env.BASE_DN;
 
 // Utility function to create an LDAP client
 const createLdapClient = () => {
-  return ldap.createClient({ url: LDAP_URL });
+  const client = ldap.createClient({ url: LDAP_URL });
+
+  // THIS IS THE FIX: Add an error handler to prevent crashing
+  client.on('error', (err) => {
+    console.error('❌ LDAP client error:', err);
+    // You can add more logic here, but for now, just logging is enough to prevent the crash.
+  });
+
+  return client;
 };
 
 // exports.changePassword = async (req, res) => {
-//   const { username, oldPassword, newPassword } = req.body;
+//   const { username, oldPassword, newPassword } = req.body;
 
-//   if (!username || !oldPassword || !newPassword) {
-//     return res.status(400).json({ message: "All fields are required." });
-//   }
+//   if (!username || !oldPassword || !newPassword) {
+//     return res.status(400).json({ message: "All fields are required." });
+//   }
 
-//   const client = ldap.createClient({ url: LDAP_URL });
-//   const userDN = `uid=${username},cn=PMD-IT,dc=pmdmc,dc=net`;
+//   const client = ldap.createClient({ url: LDAP_URL });
+//   const userDN = `uid=${username},cn=PMD-IT,dc=pmdmc,dc=net`;
 
-//   // ✅ Step 1: Bind as the User to Verify Old Password
-//   client.bind(userDN, oldPassword, (authErr) => {
-//     if (authErr) {
-//       client.unbind();
-//       return res.status(401).json({ message: "Incorrect old password." });
-//     }
+//   // ✅ Step 1: Bind as the User to Verify Old Password
+//   client.bind(userDN, oldPassword, (authErr) => {
+//     if (authErr) {
+//       client.unbind();
+//       return res.status(401).json({ message: "Incorrect old password." });
+//     }
 
-//     // ✅ Step 2: Admin Bind to Change Password
-//     client.bind(BIND_DN, BIND_PASSWORD, (adminErr) => {
-//       if (adminErr) {
-//         client.unbind();
-//         return res
-//           .status(500)
-//           .json({ message: "LDAP admin bind failed.", error: adminErr });
-//       }
+//     // ✅ Step 2: Admin Bind to Change Password
+//     client.bind(BIND_DN, BIND_PASSWORD, (adminErr) => {
+//       if (adminErr) {
+//         client.unbind();
+//         return res
+//           .status(500)
+//           .json({ message: "LDAP admin bind failed.", error: adminErr });
+//       }
 
-//       // ✅ Step 3: Hash the New Password Correctly (MD5 + Base64)
-//       const hashedNewPassword =
-//         `{MD5}` + crypto.createHash("md5").update(newPassword).digest("base64");
+//       // ✅ Step 3: Hash the New Password Correctly (MD5 + Base64)
+//       const hashedNewPassword =
+//         `{MD5}` + crypto.createHash("md5").update(newPassword).digest("base64");
 
-//       // ✅ Step 4: Modify the Password (Fixed Format)
-//       const change = new ldap.Change({
-//         operation: "replace",
-//         modification: new Attribute({
-//           type: "userPassword",
-//           values: [hashedNewPassword], // ✅ Correct format
-//         }),
-//       });
+//       // ✅ Step 4: Modify the Password (Fixed Format)
+//       const change = new ldap.Change({
+//         operation: "replace",
+//         modification: new Attribute({
+//           type: "userPassword",
+//           values: [hashedNewPassword], // ✅ Correct format
+//         }),
+//       });
 
-//       client.modify(userDN, change, (modErr) => {
-//         if (modErr) {
-//           client.unbind();
-//           return res
-//             .status(500)
-//             .json({ message: "Failed to update password", error: modErr });
-//         }
+//       client.modify(userDN, change, (modErr) => {
+//         if (modErr) {
+//           client.unbind();
+//           return res
+//             .status(500)
+//             .json({ message: "Failed to update password", error: modErr });
+//         }
 
-//         res.json({ message: "Password updated successfully." + username });
+//         res.json({ message: "Password updated successfully." + username });
 
-//         // ✅ Close connections properly
-//         client.unbind();
-//       });
-//     });
-//   });
+//         // ✅ Close connections properly
+//         client.unbind();
+//       });
+//     });
+//   });
 // };
 
 exports.changePassword = async (req, res) => {
