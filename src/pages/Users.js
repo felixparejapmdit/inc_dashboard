@@ -62,7 +62,7 @@ import Photoshoot from "./progress/Photoshoot"; // Import Photoshoot component
 import { getAuthHeaders } from "../utils/apiHeaders"; // adjust path as needed
 import { useUserFormData, suffixOptions } from "../hooks/userFormOptions";
 
-import { fetchData, postData, putData, deleteData } from "../utils/fetchData";
+import { fetchData,fetchDataPhotoshoot, postData, putData, deleteData } from "../utils/fetchData";
 
 const API_URL = process.env.REACT_APP_API_URL;
 const ITEMS_PER_PAGE = 5;
@@ -568,8 +568,39 @@ const Users = ({ personnelId }) => {
   };
 
   const fetchPersonnelImages = async (personnelId) => {
+  try {
+    // Reuse the generic fetch function
+    const data = await fetchDataPhotoshoot(personnelId);
 
-    alert(personnelId); 
+    if (Array.isArray(data) && data.length > 0) {
+      const imagesByType = {};
+
+      // Debugging: Log the API response
+      console.log("Fetched Personnel Images:", data);
+
+      // Store images based on type
+      data.forEach((img) => {
+        if (img.type && img.image_url) {
+          imagesByType[img.type.trim()] = `${API_URL}${img.image_url}`;
+        }
+      });
+
+      setPersonnelImages(imagesByType); // Store images in state
+
+      // Debugging: Log the mapped images
+      console.log("Mapped Personnel Images:", imagesByType);
+    } else {
+      console.warn("No personnel images found for ID:", personnelId);
+      setPersonnelImages({});
+    }
+  } catch (error) {
+    console.error("Error fetching personnel images:", error);
+  }
+};
+
+  const fetchPersonnelImages1 = async (personnelId) => {
+
+    
     try {
       const response = await axios.get(
         `${API_URL}/api/personnel_images/${personnelId}`

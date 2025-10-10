@@ -66,6 +66,49 @@ export const fetchData = async (
   }
 };
 
+/**
+ * Reusable GET data function specifically for Photoshoot/Personnel Images.
+ * Assumes the API endpoint is fixed to "personnel_images" and requires a personnelId parameter.
+ * @param {string} personnelId - The ID used in the route: /api/personnel_images/:personnel_id
+ * @param {Function} setter - State setter function
+ * @param {Function} [onError] - Optional error handler
+ * @param {string} [errorMsg] - Error message to display or log
+ */
+export const fetchDataPhotoshoot = async (
+    personnelId,
+    setter = null,
+    onError = null,
+    errorMsg = "Failed to fetch personnel images."
+) => {
+    try {
+        const url = `${API_URL}/api/personnel_images/${personnelId}`;
+        
+        const response = await axios.get(url, {
+            headers: getAuthHeaders(),
+        });
+
+        const data = response.data;
+
+        // CRITICAL: The image endpoint must return { success: true, data: [...] }
+        if (data.success && Array.isArray(data.data)) {
+            if (setter && typeof setter === "function") {
+                setter(data.data);
+            }
+            return data.data; // Return raw image data
+        } else {
+            console.warn(`Photoshoot API failed or returned unexpected format for ID ${personnelId}:`, data);
+            if (setter) setter([]);
+            if (onError) onError(errorMsg);
+            return [];
+        }
+
+    } catch (error) {
+        console.error(`Error fetching personnel_images/${personnelId}:`, error);
+        if (onError) onError(errorMsg);
+        throw error;
+    }
+};
+
 export const fetchProgressData = async (
   endpoint,
   setter,

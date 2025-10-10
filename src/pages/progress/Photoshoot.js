@@ -37,6 +37,7 @@ import { MdPhotoCamera, MdDelete } from "react-icons/md";
 import Select from "react-select";
 import {
   fetchData,
+  fetchDataPhotoshoot,
   postData,
   putData,
   deleteData,
@@ -76,7 +77,7 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
   useEffect(() => {
     if (!personnelId) return;
 
-    fetchData(
+    fetchDataPhotoshoot(
       "personnel_images",
       (data) => {
         if (data.success && Array.isArray(data.data)) {
