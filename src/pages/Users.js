@@ -568,6 +568,8 @@ const Users = ({ personnelId }) => {
   };
 
   const fetchPersonnelImages = async (personnelId) => {
+
+    alert(personnelId); 
     try {
       const response = await axios.get(
         `${API_URL}/api/personnel_images/${personnelId}`
@@ -759,6 +761,45 @@ const Users = ({ personnelId }) => {
   };
 
   const handleSyncUsers = async () => {
+    setLoadingSyncUsers(true);
+    try {
+        const response = await axios.post(
+            `${API_URL}/api/migrateLdapToPmdLoginUsers`,
+            {}, // CRITICAL: Ensure an empty body is explicitly sent for POST requests
+            { headers: getAuthHeaders() }
+        );
+        
+        toast({
+            title: "Sync Successful",
+            description: response.data.message || "Users have been successfully synchronized from LDAP.",
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+        });
+        fetchUsers(); // Refresh the users list
+    } catch (error) {
+        console.error("Error synchronizing users:", error);
+        
+        // CRITICAL FIX: Extract specific error message from the backend's 500 response
+        const errorMessage = error.response 
+                           && error.response.data 
+                           && error.response.data.message 
+                           ? error.response.data.message 
+                           : "Failed to synchronize users from LDAP. Please check network/LDAP.";
+                           
+        toast({
+            title: "Error",
+            description: errorMessage,
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+        });
+    } finally {
+        setLoadingSyncUsers(false);
+    }
+};
+
+  const handleSyncUsers1 = async () => {
     setLoadingSyncUsers(true);
     try {
       await axios.post(

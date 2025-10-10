@@ -6,12 +6,103 @@ const UserGroupMapping = require("../models/UserGroupMapping");
 const Personnel = require("../models/personnels"); // Import your Personnel model
 
 const axios = require("axios");
+const https = require("https"); // NOTE: You'll need to import 'https' in the environment where this runs
 
 // Environment variables
 const API_URL = process.env.REACT_APP_API_URL;
-
 // Controller function for migrating LDAP users
 exports.migrateLdapToPmdLoginUsers = async (req, res) => {
+    // Fetch LDAP users helper function
+    const fetchLdapUsers = async () => {
+        // --- CRITICAL FIX ---
+        // 1. Ensure the URL starts with a protocol (http:// or https://)
+        // 2. Safely join the base URL with the static path /api/ldap/users
+        const base = API_URL.startsWith('http') ? API_URL : `https:${API_URL}`;
+        const ldapApiUrl = `${base.replace(/\/+$/, "")}/api/ldap/users`; // Safely remove trailing slash and append path
+        // --------------------
+
+        try {
+            // Note: Assuming global SSL bypass is set in server.js
+            const response = await axios.get(ldapApiUrl);
+            
+            console.log("Fetched LDAP users:", response.data);
+            return { success: true, data: response.data }; 
+        } catch (error) {
+            console.error("Error fetching LDAP users:", error.message);
+            return { success: false, message: `Failed to connect to LDAP API at ${ldapApiUrl}. Network or certificate failure.` };
+        }
+    };
+
+    try {
+        const ldapResponse = await fetchLdapUsers();
+        
+        // CRITICAL FIX: Check the success flag from the helper function
+        if (!ldapResponse.success) {
+             return res.status(500).json({
+                 // Use the error message that contains the full URL for better diagnosis
+                message: ldapResponse.message, 
+                error: "LDAP_API_CONNECTION_FAILURE",
+            });
+        }
+        
+        const ldapUsers = ldapResponse.data;
+
+        if (!ldapUsers || ldapUsers.length === 0) {
+            return res.status(200).json({ 
+                message: "No LDAP users found or LDAP API returned empty list.",
+            });
+        }
+
+        // Process each LDAP user
+        const migrationResults = [];
+        let migratedCount = 0;
+        for (const ldapUser of ldapUsers) {
+             if (!ldapUser.uid) continue;
+
+             const existingUser = await User.findOne({
+                 where: { username: ldapUser.uid },
+             });
+
+             if (!existingUser) {
+                 const newUser = {
+                     uid: ldapUser.uid,
+                     personnel_id: null,
+                     username: ldapUser.uid,
+                     password: ldapUser.userPassword || 'LDAP_DEFAULT_PASS',
+                     avatar: null,
+                     isLoggedIn: 0,
+                     auth_type: "LDAP",
+                     failed_attempts: 0,
+                     last_failed_attempt: null,
+                     created_at: new Date(),
+                     updated_at: new Date(),
+                 };
+
+                 await User.create(newUser);
+                 migratedCount++;
+                 migrationResults.push({ uid: ldapUser.uid, status: "Migrated successfully" });
+             } else {
+                 migrationResults.push({ uid: ldapUser.uid, status: "Already exists in users table" });
+             }
+        }
+
+        // Return the migration summary
+        res.status(200).json({
+            message: `LDAP to PMD Login Users migration completed. ${migratedCount} new users added.`,
+            results: migrationResults,
+        });
+    } catch (error) {
+        console.error("CRITICAL DATABASE ERROR during LDAP migration:", error.message);
+        // This is the final unhandled error, likely a database write failure
+        res.status(500).json({
+            message: "An unhandled database error occurred during the migration process.",
+            error: error.message,
+        });
+    }
+};
+
+// Controller function for migrating LDAP users
+exports.migrateLdapToPmdLoginUsers1 = async (req, res) => {
   try {
     // Fetch LDAP users
     const fetchLdapUsers = async () => {

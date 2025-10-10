@@ -436,6 +436,33 @@ export const putData = async (
   }
 };
 
+
+// New function optimized for simple JSON updates (like contact extension)
+export const putDataContact = async (
+  endpoint, // e.g., 'personnel-contacts/90'
+  payload, // The JSON object {extension: '1234'}
+  errorMsg = "Failed to update contact data."
+) => {
+  try {
+    // CRITICAL FIX: The endpoint should be treated as the full path already, 
+    // without adding another /api/ or using complex ID logic.
+    const url = `${API_URL}/api/${endpoint}`;
+
+    // Note: We assume the payload is always a simple JSON object for this function.
+    const response = await axios.put(url, payload, {
+      headers: {
+        ...getAuthHeaders(),
+        "Content-Type": "application/json", // Explicitly set JSON content type
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error(`PUT error on ${endpoint}:`, error?.response || error);
+    throw new Error(errorMsg);
+  }
+};
+
 /**
  * Reusable DELETE request
  */

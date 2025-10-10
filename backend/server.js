@@ -19,16 +19,22 @@ const { Op } = require("sequelize");
 const axios = require("axios"); // ✅ Axios to communicate with Ollama API
 
 const IP_BIND = "0.0.0.0";
-const PORT_HTTP = 5000;
-const PORT_HTTPS = 443;
+// FIX: Use environment variables for ports, falling back to current static values
+const PORT_HTTP = process.env.REACT_PORT_HTTP || 80;
+const PORT_HTTPS = process.env.REACT_PORT_HTTPS || 443;
 
 // SSL config
 let sslOptions = null;
 if (process.env.HTTPS === "true") {
- sslOptions = {
-  key: fs.readFileSync(process.env.SSL_KEY_FILE),
-  cert: fs.readFileSync(process.env.SSL_CRT_FILE),
- };
+ try { // Use try/catch for file read to prevent crash
+  sslOptions = {
+  key: fs.readFileSync(process.env.SSL_KEY_FILE),
+  cert: fs.readFileSync(process.env.SSL_CRT_FILE),
+ };
+ } catch (err) {
+    console.error("❌ SSL CONFIG ERROR: Failed to read certificate files.", err.message);
+    sslOptions = null; // Disable HTTPS if files are missing
+ }
 }
 app.use(
  cors({
@@ -60,7 +66,7 @@ const groupPermissionsRoutes = require("./routes/groupPermissionsRoutes");
 const permissionsAccessRoutes = require("./routes/permissionsAccessRoutes");
 
 const userRoutes = require("./routes/userRoutes");
-// const ldapRoutes = require("./routes/ldapRoutes"); // THIS IS THE LINE TO BE REMOVED/MOVED
+ const ldapRoutes = require("./routes/ldapRoutes"); // THIS IS THE LINE TO BE REMOVED/MOVED
 const appRoutes = require("./routes/appRoutes");
 
 const suguanRoutes = require("./routes/suguanRoutes");
@@ -137,10 +143,8 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // >>>>>>>>>> START OF LDAP FIX <<<<<<<<<<<<
 // Only load LDAP routes if LDAP is enabled
-if (process.env.LDAP_ENABLED === "true") {
-  const ldapRoutes = require("./routes/ldapRoutes");
+//const ldapRoutes = require("./routes/ldapRoutes");
   app.use(ldapRoutes);
-}
 // >>>>>>>>>> END OF LDAP FIX <<<<<<<<<<<<
 
 

@@ -28,6 +28,7 @@ import {
   InputGroup,
   InputRightElement,
   InputLeftElement,
+  Icon,
 } from "@chakra-ui/react";
 import { FaEdit } from "react-icons/fa";
 import { FiLock, FiFile } from "react-icons/fi";
@@ -39,15 +40,18 @@ import {
   ExternalLinkIcon,
   ViewOffIcon,
   LockIcon,
+  AddIcon,
+  PhoneIcon, // Import PhoneIcon for the new field
 } from "@chakra-ui/icons";
 import { getAuthHeaders } from "../utils/apiHeaders"; // adjust path as needed
 import { usePermissionContext } from "../contexts/PermissionContext";
 
-import { fetchData, postData, putData, deleteData } from "../utils/fetchData";
+import { fetchData, postData, putData, putDataContact, deleteData } from "../utils/fetchData";
 
 const Profile = () => {
   const { hasPermission } = usePermissionContext(); // Correct usage
   const [user, setUser] = useState({ name: "", email: "", avatar: "" });
+   const [contacts, setContacts] = useState([]); // NEW STATE for contacts
   const [loading, setLoading] = useState(true);
 
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -57,7 +61,17 @@ const Profile = () => {
     name: "",
     email: "",
     avatar: "",
+    contactInfo: "", // NEW FIELD for editing contact
   });
+
+  // Assuming this helper function is defined elsewhere in your Profile.js file
+const renderAvatarSrc = (editUser, user, API_URL) => {
+    return editUser.avatarFile
+        ? editUser.avatar 
+        : user.avatar
+        ? `${API_URL}${user.avatar}`
+        : "/default-avatar.png";
+};
 
   // Edit Profile Modal State
   const {
@@ -73,6 +87,13 @@ const Profile = () => {
     onClose: onChangePassClose,
   } = useDisclosure();
 
+  // Add state for the "Add Extension" modal
+const {
+    isOpen: isAddExtensionOpen,
+    onOpen: onAddExtensionOpen,
+    onClose: onAddExtensionClose,
+} = useDisclosure();
+
   // New state for controlling modal loading
   const [isModalLoading, setIsModalLoading] = useState(false);
 
@@ -81,6 +102,58 @@ const Profile = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const toast = useToast();
   const profileRef = useRef(null);
+
+// Function to fetch user contact data
+const fetchUserContacts = async (personnelId) => {
+  // Define the target contact type ID
+  const TARGET_CONTACT_TYPE_ID = 5;
+
+  if (!personnelId) return;
+
+  try {
+    // ... (API fetch logic remains unchanged) ...
+    const response = await fetch(
+      `${process.env.REACT_APP_API_URL}/api/personnel-contacts/pid/${personnelId}`,
+      { headers: getAuthHeaders() }
+    );
+    
+    if (!response.ok) {
+        if (response.status === 404) {
+            setContacts([]);
+            return;
+        }
+        throw new Error("Failed to fetch contacts: " + response.statusText);
+    }
+    
+    const allContacts = await response.json();
+    
+    // Filter the array to find only the contact(s) with contactype_id = 5
+    const primaryContacts = allContacts.filter(
+        contact => contact.contactype_id === TARGET_CONTACT_TYPE_ID
+    );
+    
+    setContacts(primaryContacts); 
+    
+    // Set the primary contact info using the filtered array
+    if (primaryContacts.length > 0) {
+      setEditUser(prev => ({
+        ...prev,
+        contactInfo: primaryContacts[0].contact_info,
+        // CRITICAL FIX: Store the extension in the editUser state
+        extension: primaryContacts[0].extension, 
+      }));
+    } else {
+        // Clear both contactInfo and extension if no primary contacts are returned
+        setEditUser(prev => ({
+            ...prev,
+            contactInfo: '',
+            extension: '', // CRITICAL FIX: Clear extension as well
+        }));
+    }
+  } catch (error) {
+    console.error("Error fetching user contacts:", error.message);
+  }
+};
 
   // Fetch the user data (from users table)
   useEffect(() => {
@@ -108,10 +181,19 @@ const Profile = () => {
         }
         return response.json();
       })
-      .then((data) => {
+         .then((data) => {
         setUser(data);
-        setEditUser(data); // Set the data to editUser for editing functionality
+        setEditUser(prev => ({ 
+            ...data, 
+            contactInfo: prev.contactInfo || '', // Preserve contactInfo if already fetched
+        })); 
         setLoading(false);
+
+        // --- NEW: Fetch Contacts after fetching user data ---
+        if (data.personnel_id) {
+            fetchUserContacts(data.personnel_id);
+        }
+        // ---------------------------------------------------
       })
       .catch((error) => {
         console.error("Error fetching user data:", error);
@@ -147,25 +229,194 @@ const Profile = () => {
     }
   };
 
-  const handleSaveChanges = () => {
-    if (!editUser.avatarFile) {
-      toast({
-        title: "No avatar selected.",
-        description: "Please select an avatar to update.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-        position: "bottom-left", // Position the toast on the bottom-left
-      });
-      return;
-    }
+  // const handleSaveChanges = () => {
+  //   if (!editUser.avatarFile) {
+  //     toast({
+  //       title: "No avatar selected.",
+  //       description: "Please select an avatar to update.",
+  //       status: "error",
+  //       duration: 3000,
+  //       isClosable: true,
+  //       position: "bottom-left", // Position the toast on the bottom-left
+  //     });
+  //     return;
+  //   }
 
+  //   const formData = new FormData();
+  //   formData.append("avatar", editUser.avatarFile); // Add the file to FormData
+
+  //   fetch(`${process.env.REACT_APP_API_URL}/api/users_profile/${user.ID}`, {
+  //     method: "PUT",
+  //     body: formData, // Send the FormData with the avatar file
+  //   })
+  //     .then((response) => {
+  //       if (!response.ok) {
+  //         throw new Error(`Failed to update avatar: ${response.statusText}`);
+  //       }
+  //       return response.json();
+  //     })
+  //     .then((data) => {
+  //       // Update the avatar in the local state
+  //       setUser((prevUser) => ({
+  //         ...prevUser,
+  //         avatar: data.avatar, // Update with the new avatar URL
+  //       }));
+
+  //       // Show success toast notification
+  //       toast({
+  //         title: "Avatar updated.",
+  //         description: "Your avatar has been updated successfully.",
+  //         status: "success",
+  //         duration: 3000,
+  //         isClosable: true,
+  //         position: "bottom-left", // Position the toast on the bottom-left
+  //       });
+
+  //       // ✅ Close the Edit Profile modal after success
+  //       onEditProfileClose();
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error updating avatar:", error);
+
+  //       // Show error toast notification
+  //       toast({
+  //         title: "Error updating avatar.",
+  //         description:
+  //           error.message || "An error occurred while updating your avatar.",
+  //         status: "error",
+  //         duration: 3000,
+  //         isClosable: true,
+  //         position: "bottom-left", // Position the toast on the bottom-left
+  //       });
+  //     });
+  // };
+
+  // const handleSaveChanges = async () => {
+  //   if (!editUser.avatarFile) {
+  //     // Logic for updating JUST the contact info (since other fields are read-only)
+  //     if (user.personnel_id && contacts.length > 0 && editUser.contactInfo !== contacts[0].contact_info) {
+  //       try {
+  //         const primaryContactId = contacts[0].id;
+  //         const updatedContactData = {
+  //           personnel_id: user.personnel_id,
+  //           contactype_id: contacts[0].contactype_id, // Keep original type
+  //           contact_info: editUser.contactInfo,
+  //           contact_location: contacts[0].contact_location,
+  //           extension: contacts[0].extension,
+  //         };
+          
+  //         await putData(`/api/personnel-contacts/${primaryContactId}`, updatedContactData);
+
+  //         toast({ title: "Profile updated.", description: "Contact info updated successfully.", status: "success", duration: 3000, isClosable: true, position: "bottom-left" });
+  //         fetchUserContacts(user.personnel_id); // Re-fetch contacts
+  //         onEditProfileClose();
+  //         return;
+  //       } catch (error) {
+  //          toast({ title: "Error", description: "Failed to update contact info.", status: "error", duration: 3000, isClosable: true, position: "bottom-left" });
+  //          console.error("Contact update error:", error);
+  //          return;
+  //       }
+  //     }
+  //      toast({ title: "No changes", description: "No avatar selected and no change in contact info.", status: "info", duration: 3000, isClosable: true, position: "bottom-left" });
+  //      return;
+  //   }
+    
+  //   // Original avatar upload logic
+  //   const formData = new FormData();
+  //   formData.append("avatar", editUser.avatarFile); 
+
+  //   fetch(`${process.env.REACT_APP_API_URL}/api/users_profile/${user.ID}`, {
+  //     method: "PUT",
+  //     body: formData, 
+  //   })
+  //     .then((response) => {
+  //       if (!response.ok) {
+  //         throw new Error(`Failed to update avatar: ${response.statusText}`);
+  //       }
+  //       return response.json();
+  //     })
+  //     .then((data) => {
+  //       setUser((prevUser) => ({
+  //         ...prevUser,
+  //         avatar: data.avatar, 
+  //       }));
+  //       toast({ title: "Avatar updated.", status: "success", duration: 3000, isClosable: true, position: "bottom-left" });
+  //       onEditProfileClose(); 
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error updating avatar:", error);
+  //       toast({ title: "Error updating avatar.", description: error.message || "An error occurred while updating your avatar.", status: "error", duration: 3000, isClosable: true, position: "bottom-left" });
+  //     });
+  // };
+
+const handleSaveChanges1 = async () => {
+    // 1. Check if an avatar file has been selected for upload
+    if (!editUser.avatarFile) {
+        
+        // --- LOGIC FOR UPDATING EXTENSION ---
+        if (
+            user.personnel_id && 
+            contacts.length > 0 && 
+            editUser.extension !== contacts[0].extension
+        ) {
+            try {
+                const primaryContactId = contacts[0].id;
+                const updatedContactData = {
+                    personnel_id: user.personnel_id,
+                    contactype_id: contacts[0].contactype_id, 
+                    contact_info: contacts[0].contact_info,
+                    contact_location: contacts[0].contact_location,
+                    extension: editUser.extension, 
+                };
+                
+             // assuming putData prepends REACT_APP_API_URL without a trailing slash.
+                await putDataContact(`personnel-contacts/${primaryContactId}`, updatedContactData); 
+                
+                toast({ 
+                    title: "Profile updated.", 
+                    description: "Extension updated successfully.", 
+                    status: "success", 
+                    duration: 3000, 
+                    isClosable: true, 
+                    position: "bottom-left" 
+                });
+                
+                fetchUserContacts(user.personnel_id); // Re-fetch data to update UI
+                onEditProfileClose();
+                return; 
+            } catch (error) {
+                toast({ 
+                    title: "Error", 
+                    description: "Failed to update extension.", 
+                    status: "error", 
+                    duration: 3000, 
+                    isClosable: true, 
+                    position: "bottom-left" 
+                });
+                console.error("Extension update error:", error);
+                return;
+            }
+        }
+        
+        // If no avatar selected and no change in extension was detected
+        toast({ 
+            title: "No changes", 
+            description: "No avatar selected and no change in extension.", 
+            status: "info", 
+            duration: 3000, 
+            isClosable: true, 
+            position: "bottom-left" 
+        });
+        return; 
+    }
+    
+    // --- ORIGINAL AVATAR UPLOAD LOGIC (Runs if editUser.avatarFile exists) ---
     const formData = new FormData();
-    formData.append("avatar", editUser.avatarFile); // Add the file to FormData
+    formData.append("avatar", editUser.avatarFile); 
 
     fetch(`${process.env.REACT_APP_API_URL}/api/users_profile/${user.ID}`, {
-      method: "PUT",
-      body: formData, // Send the FormData with the avatar file
+        method: "PUT",
+        body: formData, 
     })
       .then((response) => {
         if (!response.ok) {
@@ -174,40 +425,245 @@ const Profile = () => {
         return response.json();
       })
       .then((data) => {
-        // Update the avatar in the local state
         setUser((prevUser) => ({
           ...prevUser,
-          avatar: data.avatar, // Update with the new avatar URL
+          avatar: data.avatar, 
         }));
-
-        // Show success toast notification
-        toast({
-          title: "Avatar updated.",
-          description: "Your avatar has been updated successfully.",
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-          position: "bottom-left", // Position the toast on the bottom-left
-        });
-
-        // ✅ Close the Edit Profile modal after success
-        onEditProfileClose();
+        toast({ title: "Avatar updated.", status: "success", duration: 3000, isClosable: true, position: "bottom-left" });
+        onEditProfileClose(); 
       })
       .catch((error) => {
         console.error("Error updating avatar:", error);
-
-        // Show error toast notification
-        toast({
-          title: "Error updating avatar.",
-          description:
-            error.message || "An error occurred while updating your avatar.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-          position: "bottom-left", // Position the toast on the bottom-left
-        });
+        toast({ title: "Error updating avatar.", description: error.message || "An error occurred while updating your avatar.", status: "error", duration: 3000, isClosable: true, position: "bottom-left" });
       });
-  };
+};
+
+
+const handleSaveChanges2 = async () => {
+    // Check if the primary contact record exists
+    const primaryContact = contacts[0];
+    const hasContact = user.personnel_id && contacts.length > 0;
+
+    // --- LOGIC 1: UPDATING EXTENSION (Highest Priority if no avatar is selected) ---
+    // If no avatar file is selected, check if the extension has changed.
+    if (!editUser.avatarFile) {
+        
+        if (hasContact && editUser.extension !== primaryContact.extension) {
+            try {
+                const primaryContactId = primaryContact.id;
+                
+                const updatedContactData = {
+                    // Send required fields, ensuring they are not null/undefined
+                    personnel_id: user.personnel_id, 
+                    contactype_id: primaryContact.contactype_id, 
+                    contact_info: primaryContact.contact_info || "N/A", // DEFENSE: Send "N/A" if original is null
+                    contact_location: primaryContact.contact_location,
+                    extension: editUser.extension, 
+                };
+                
+                // Use the dedicated putDataContact for JSON update
+                await putDataContact(`personnel-contacts/${primaryContactId}`, updatedContactData);
+
+                toast({
+    title: "Profile updated.",
+    description: "Extension updated successfully.",
+    status: "success",
+    duration: 3000,
+    isClosable: true,
+    position: "bottom-left"
+});
+                fetchUserContacts(user.personnel_id); // Re-fetch data
+                onEditProfileClose();
+                return;
+            } catch (error) {
+                // ... (error handling remains unchanged)
+                console.error("Extension update error:", error?.response?.data || error); // Better error logging
+                toast({ title: "Error", description: "Failed to update contact data. Check API/Payload.", status: "error", duration: 3000, isClosable: true, position: "bottom-left" });
+                return;
+            }
+        }
+        
+        // If execution reaches here, it means no avatar was selected AND the extension wasn't changed.
+        toast({ 
+            title: "No changes", 
+            description: "No avatar selected and no change in extension was detected.", 
+            status: "info", 
+            duration: 3000, 
+            isClosable: true, 
+            position: "bottom-left" 
+        });
+        return; 
+    }
+    
+    // --- LOGIC 2: UPLOADING AVATAR (If editUser.avatarFile exists) ---
+    const formData = new FormData();
+    formData.append("avatar", editUser.avatarFile); 
+
+    try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/users_profile/${user.ID}`, {
+            method: "PUT",
+            body: formData, 
+        });
+
+        if (!response.ok) { 
+            throw new Error(`Failed to update avatar: ${response.statusText}`); 
+        }
+
+        const data = await response.json();
+
+        setUser((prevUser) => ({
+            ...prevUser,
+            avatar: data.avatar, 
+        }));
+        
+        toast({ 
+            title: "Avatar updated.", 
+            description: "Your avatar has been updated successfully.", 
+            status: "success", 
+            duration: 3000, 
+            isClosable: true, 
+            position: "bottom-left" 
+        });
+        
+        onEditProfileClose(); 
+
+    } catch (error) {
+        console.error("Error updating avatar:", error);
+        toast({ 
+            title: "Error updating avatar.", 
+            description: error.message || "An error occurred while updating your avatar.", 
+            status: "error", 
+            duration: 3000, 
+            isClosable: true, 
+            position: "bottom-left" 
+        });
+    }
+};
+
+// NOTE: Assuming this function signature is used: handleSaveChanges(isCreation = false)
+
+const handleSaveChanges = async (isCreation = false) => {
+    const primaryContact = contacts[0];
+    const hasExistingContact = user.personnel_id && contacts.length > 0;
+    
+    // Determine if the action is valid
+    const isUpdateNeeded = hasExistingContact && editUser.extension !== primaryContact.extension;
+    const isCreationNeeded = isCreation && user.personnel_id && editUser.extension;
+    
+    // --- LOGIC 1: UPDATING/CREATING EXTENSION ---
+    // This block handles both PUT (update) and POST (create) requests.
+    if (!editUser.avatarFile) {
+        
+        if (isUpdateNeeded || isCreationNeeded) {
+            try {
+                // Determine the API method and path
+                const apiMethod = isCreationNeeded ? postData : putDataContact;
+                const apiPath = isCreationNeeded 
+                    ? `personnel-contacts` // POST: Requires the full base path
+                    : `personnel-contacts/${primaryContact.id}`; // PUT: Requires ID path
+                
+                // Define the common payload for both actions
+                const payload = {
+                    personnel_id: user.personnel_id, 
+                    contactype_id: 5, // Hardcoded for Primary Contact Type (from previous logic)
+                    
+                    // CRITICAL: For PUT, use the existing contact_info; for POST, use a safe default
+                    contact_info: hasExistingContact 
+                        ? primaryContact.contact_info || "Extension_Only"
+                        : "Extension_Only",
+                        
+                    contact_location: hasExistingContact ? primaryContact.contact_location : "",
+                    extension: editUser.extension, // The new/updated value
+                };
+
+                // Execute POST or PUT
+                await apiMethod(apiPath, payload);
+                
+                // Success feedback
+                toast({
+                    title: "Success!",
+                    description: `Extension has been successfully ${isCreationNeeded ? 'added' : 'updated'}.`,
+                    status: "success",
+                    duration: 3000,
+                    isClosable: true,
+                    position: "bottom-left"
+                });
+                
+                fetchUserContacts(user.personnel_id); // Re-fetch data to update UI/state
+                onEditProfileClose();
+                onAddExtensionClose(); // Close the appropriate modal
+                return;
+            } catch (error) {
+                // Failure feedback
+                console.error("Extension update/create error:", error?.response?.data || error); 
+                toast({ 
+                    title: "Error", 
+                    description: `Failed to ${isCreationNeeded ? 'add' : 'update'} extension. Check API/Payload.`, 
+                    status: "error", 
+                    duration: 4000, 
+                    isClosable: true, 
+                    position: "bottom-left" 
+                });
+                return; 
+            }
+        }
+        
+        // If execution reaches here, it means no avatar was selected AND no changes were detected.
+        toast({ 
+            title: "No changes", 
+            description: "No avatar selected and no change in extension was detected.", 
+            status: "info", 
+            duration: 3000, 
+            isClosable: true, 
+            position: "bottom-left" 
+        });
+        return; 
+    }
+    
+    // --- LOGIC 2: UPLOADING AVATAR (If editUser.avatarFile exists) ---
+    const formData = new FormData();
+    formData.append("avatar", editUser.avatarFile); 
+
+    try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/users_profile/${user.ID}`, {
+            method: "PUT",
+            body: formData, 
+        });
+
+        if (!response.ok) { 
+            throw new Error(`Failed to update avatar: ${response.statusText}`); 
+        }
+
+        const data = await response.json();
+
+        setUser((prevUser) => ({
+            ...prevUser,
+            avatar: data.avatar, 
+        }));
+        
+        toast({ 
+            title: "Avatar updated.", 
+            description: "Your avatar has been updated successfully.", 
+            status: "success", 
+            duration: 3000, 
+            isClosable: true, 
+            position: "bottom-left" 
+        });
+        
+        onEditProfileClose(); 
+
+    } catch (error) {
+        console.error("Error updating avatar:", error);
+        toast({ 
+            title: "Error updating avatar.", 
+            description: error.message || "An error occurred while updating your avatar.", 
+            status: "error", 
+            duration: 3000, 
+            isClosable: true, 
+            position: "bottom-left" 
+        });
+    }
+};
 
   // Check password strength
   const checkPasswordStrength = (password) => {
@@ -366,7 +822,33 @@ const Profile = () => {
               {user.email ? user.email : "Email not available"}
               {/* Fallback if email is missing */}
             </Text>
-
+{/* --- NEW: Display EXTENSION or ADD ICON --- */}
+<HStack spacing={2} mt={-4} justifyContent="center" alignItems="center">
+    <Icon as={PhoneIcon} color="teal.500" />
+    
+    {/* Conditional Display Logic */}
+    {contacts.length > 0 && contacts[0].extension ? (
+        // Case 1: Primary Contact Record EXISTS AND extension is NOT null/empty, display it
+        <Text fontSize="lg" color="gray.600">
+            Ext: {contacts[0].extension}
+        </Text>
+    ) : (
+        // Case 2: Primary Contact Record is missing (contacts.length === 0) 
+        // OR the extension is empty/null, show the Add/Edit button.
+        <Button 
+            size="sm" 
+            variant="ghost" 
+            colorScheme="teal" 
+            leftIcon={<AddIcon />}
+            // CRITICAL FIX: Determine which modal to open based on whether a record exists
+            onClick={contacts.length > 0 ? onEditProfileOpen : onAddExtensionOpen}
+            isDisabled={!user.personnel_id}
+        >
+            {contacts.length > 0 ? "Edit Extension" : "Add Extension"}
+        </Button>
+    )}
+</HStack>
+{/* ------------------------------------------ */}
             <Divider borderColor="teal.300" />
 
             {/* Icons Section */}
@@ -436,75 +918,150 @@ const Profile = () => {
             </HStack>
           </VStack>
 
-          {/* Edit Profile Modal */}
-          <Modal isOpen={isEditProfileOpen} onClose={onEditProfileClose}>
-            <ModalOverlay />
-            <ModalContent bg="yellow.50">
-              <ModalHeader color="orange.600">Edit Profile</ModalHeader>
-              <ModalCloseButton />
-              <ModalBody>
-                <VStack spacing={6} align="center">
-                  {/* User Avatar Preview */}
-                  <Image
-                    boxSize="150px"
-                    borderRadius="full"
-                    src={
-                      editUser.avatarFile
-                        ? editUser.avatar // Show Base64 preview if a new file is selected
-                        : user.avatar
-                        ? `${process.env.REACT_APP_API_URL}${user.avatar}` // Use avatar URL if available
-                        : "/default-avatar.png" // Provide fallback default avatar
-                    }
-                    alt="User Avatar"
-                  />
+<Modal isOpen={isAddExtensionOpen} onClose={onAddExtensionClose} isCentered>
+    <ModalOverlay />
+    <ModalContent bg="yellow.50" borderRadius="lg" boxShadow="xl" p={4}>
+        <ModalHeader color="teal.600">Add Extension</ModalHeader>
+        <ModalCloseButton />
+        
+        <ModalBody>
+            <VStack spacing={4}>
+                <Text fontSize="sm" color="gray.600">
+                    You do not have a primary contact record. Please add your extension.
+                </Text>
 
-                  {/* Upload New Avatar */}
-                  <FormControl>
-                    <FormLabel>Avatar</FormLabel>
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleAvatarChange} // Updates the avatar file in the state
-                    />
-                  </FormControl>
+                <FormControl isRequired>
+                    <FormLabel>Extension Number</FormLabel>
+                    <InputGroup>
+                        <InputLeftElement pointerEvents='none'>
+                            <PhoneIcon color='gray.500' />
+                        </InputLeftElement>
+                        <Input
+                            name="extension" 
+                            // The value should be bound to the state field being edited
+                            value={editUser.extension || ''} 
+                            onChange={handleInputChange} 
+                            placeholder="e.g., 1234 or N/A"
+                        />
+                    </InputGroup>
+                </FormControl>
+            </VStack>
+        </ModalBody>
+        
+        <ModalFooter>
+            <Button 
+                colorScheme="teal" 
+                mr={3} 
+                // CRITICAL: Call handleSaveChanges and pass 'true' for creation
+                onClick={() => handleSaveChanges(true)} 
+                // Disable if the field is empty
+                isDisabled={!editUser.extension}
+            >
+                Add Extension
+            </Button>
+            <Button 
+                onClick={onAddExtensionClose}
+                colorScheme="yellow"
+            >
+                Cancel
+            </Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
 
-                  {/* Name Field (Read-Only) */}
-                  <FormControl isRequired>
-                    <FormLabel>Name</FormLabel>
-                    <Input
-                      name="name"
-                      value={editUser.name}
-                      onChange={handleInputChange}
-                      isReadOnly // Keeps the name field disabled
-                    />
-                  </FormControl>
+{/* Edit Profile Modal */}
+<Modal isOpen={isEditProfileOpen} onClose={onEditProfileClose}>
+  <ModalOverlay />
+  <ModalContent bg="yellow.50">
+    <ModalHeader color="orange.600">Edit Profile</ModalHeader>
+    <ModalCloseButton />
+    <ModalBody>
+      <VStack spacing={6} align="center">
+        
+        {/* User Avatar Preview */}
+        <Image
+          boxSize="150px"
+          borderRadius="full"
+          src={renderAvatarSrc(editUser, user, process.env.REACT_APP_API_URL)}
+          alt="User Avatar"
+        />
 
-                  {/* Email Field (Read-Only) */}
-                  <FormControl isRequired>
-                    <FormLabel>Email</FormLabel>
-                    <Input
-                      name="email"
-                      value={editUser.email}
-                      onChange={handleInputChange}
-                      isReadOnly // Keeps the email field disabled
-                    />
-                  </FormControl>
-                </VStack>
-              </ModalBody>
-              <ModalFooter>
-                <Button colorScheme="orange" mr={3} onClick={handleSaveChanges}>
-                  Save Changes
-                </Button>
-                <Button
-                  colorScheme="yellow"
-                  mr={3}
-                  onClick={onEditProfileClose}
-                >
-                  Cancel
-                </Button>
-              </ModalFooter>
-            </ModalContent>
-          </Modal>
+        {/* Upload New Avatar */}
+        <FormControl>
+          <FormLabel>Avatar</FormLabel>
+          <Input
+            type="file"
+            accept="image/*"
+            onChange={handleAvatarChange} // Updates the avatar file in the state
+          />
+        </FormControl>
+
+        {/* Name Field (Read-Only) */}
+        <FormControl isRequired>
+          <FormLabel>Name</FormLabel>
+          <Input
+            name="name"
+            value={editUser.name}
+            onChange={handleInputChange}
+            isReadOnly 
+          />
+        </FormControl>
+
+        {/* Email Field (Read-Only) */}
+        <FormControl isRequired>
+          <FormLabel>Email</FormLabel>
+          <Input
+            name="email"
+            value={editUser.email}
+            onChange={handleInputChange}
+            isReadOnly 
+          />
+        </FormControl>
+
+        {/* --- NEW: Extension Field (Editable) --- */}
+        <FormControl>
+          <FormLabel>Extension Number</FormLabel>
+          <InputGroup>
+            <InputLeftElement pointerEvents='none'>
+              <PhoneIcon color='gray.500' />
+            </InputLeftElement>
+            <Input
+              // Binds to the 'extension' field in editUser state
+              name="extension" 
+              value={editUser.extension} 
+              onChange={handleInputChange} 
+              placeholder="Primary Extension"
+              // Disable if user lacks permission OR if no contact record exists
+              isDisabled={!hasPermission("profile.edit") || contacts.length === 0} 
+            />
+          </InputGroup>
+          <Text fontSize="xs" color="gray.500" mt={1}>
+            *Only the primary extension is editable here.
+          </Text>
+        </FormControl>
+        {/* ------------------------------------- */}
+
+      </VStack>
+    </ModalBody>
+    <ModalFooter>
+      <Button 
+        colorScheme="orange" 
+        mr={3} 
+        // We pass 'false' to indicate this is an update, not a creation
+        onClick={() => handleSaveChanges(false)}
+      >
+        Save Changes
+      </Button>
+      <Button
+        colorScheme="yellow"
+        mr={3}
+        onClick={onEditProfileClose}
+      >
+        Cancel
+      </Button>
+    </ModalFooter>
+  </ModalContent>
+</Modal>
 
           <Modal
             isOpen={isChangePassOpen}
