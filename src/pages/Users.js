@@ -567,7 +567,7 @@ const Users = ({ personnelId }) => {
       .catch(() => setStatus("Error deleting user."));
   };
 
-  const fetchPersonnelImages = async (personnelId) => {
+  const fetchPersonnelImages1 = async (personnelId) => {
   try {
     // Reuse the generic fetch function
     const data = await fetchDataPhotoshoot(personnelId);
@@ -598,12 +598,12 @@ const Users = ({ personnelId }) => {
   }
 };
 
-  const fetchPersonnelImages1 = async (personnelId) => {
+  const fetchPersonnelImages = async (personnelId) => {
 
     
     try {
       const response = await axios.get(
-        `${API_URL}/api/personnel_images/${personnelId}`
+        `https://172.18.125.134/api/personnel_images/${personnelId}`
       );
 
       if (response.data.success) {

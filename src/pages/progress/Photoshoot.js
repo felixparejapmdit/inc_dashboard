@@ -75,40 +75,42 @@ const Photoshoot = ({ personnel, onSaveImage }) => {
   const getStepLabel = (step) => stepLabels[step] || "2x2 Picture";
 
   useEffect(() => {
-    if (!personnelId) return;
+  if (!personnelId) return;
 
-    fetchDataPhotoshoot(
-      "personnel_images",
-      (data) => {
-        if (data.success && Array.isArray(data.data)) {
-          const imagesByType = {};
+  fetchDataPhotoshoot(
+    personnelId, // ✅ Correct parameter order
+    (data) => {
+      if (Array.isArray(data)) {
+        const imagesByType = {};
 
-          data.data.forEach((img) => {
-            imagesByType[
-              img.type
-            ] = `${process.env.REACT_APP_API_URL}${img.image_url}`;
-          });
-
-          setImages({
-            "2x2 Picture": imagesByType["2x2 Picture"] || null,
-            "Half Body Picture": imagesByType["Half Body Picture"] || null,
-            "Full Body Picture": imagesByType["Full Body Picture"] || null,
-          });
-        }
-      },
-      (err) => {
-        console.error("Error fetching images:", err);
-        toast({
-          title: "Error loading images",
-          description: err,
-          status: "error",
-          duration: 3000,
+        data.forEach((img) => {
+          if (img.type && img.image_url) {
+            imagesByType[img.type] = `${process.env.REACT_APP_API_URL}${img.image_url}`;
+          }
         });
-      },
-      "Failed to fetch personnel images",
-      personnelId // ✅ pass as optional route param
-    );
-  }, [personnelId]);
+
+        setImages({
+          "2x2 Picture": imagesByType["2x2 Picture"] || null,
+          "Half Body Picture": imagesByType["Half Body Picture"] || null,
+          "Full Body Picture": imagesByType["Full Body Picture"] || null,
+        });
+
+        console.log("✅ Mapped Images:", imagesByType);
+      }
+    },
+    (err) => {
+      console.error("Error fetching images:", err);
+      toast({
+        title: "Error loading images",
+        description: err,
+        status: "error",
+        duration: 3000,
+      });
+    },
+    "Failed to fetch personnel images"
+  );
+}, [personnelId]);
+
 
   // Move to next step only if image is uploaded
   const nextStep = () => {

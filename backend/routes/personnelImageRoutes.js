@@ -14,7 +14,7 @@ router.post(
 
 // GET route for fetching personnel images by personnel_id
 router.get(
-  "/api/personnel_images/:personnel_id",verifyToken,
+  "/api/personnel_images/:personnel_id",
   personnelImageController.getImagesByPersonnelId
 );
 
