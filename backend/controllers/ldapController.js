@@ -7,6 +7,7 @@ const path = require("path");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 
+const moment = require("moment");
 const { Attribute } = require("ldapjs"); // ✅ Ensure Attribute is imported
 
 const Personnel = require("../models/personnels");
@@ -460,6 +461,168 @@ exports.getRecentLoginAudits = async (req, res) => {
   } catch (error) {
     console.error("Failed to fetch recent login audits:", error);
     res.status(500).json({ error: "Failed to fetch recent login audits" });
+  }
+};
+
+exports.filterAudits = async (req, res) => {
+  try {
+    const { date, month, year, page = 1, limit = 15 } = req.query;
+    const offset = (page - 1) * limit;
+    const where = {};
+
+    // --- Date Filtering ---
+    if (date) {
+      where.login_time = {
+        [Op.between]: [moment(date).startOf("day").toDate(), moment(date).endOf("day").toDate()],
+      };
+    } else if (month && year) {
+      where.login_time = {
+        [Op.between]: [
+          moment(`${year}-${month}-01`).startOf("month").toDate(),
+          moment(`${year}-${month}-01`).endOf("month").toDate(),
+        ],
+      };
+    } else if (year) {
+      where.login_time = {
+        [Op.between]: [
+          moment(`${year}-01-01`).startOf("year").toDate(),
+          moment(`${year}-12-31`).endOf("year").toDate(),
+        ],
+      };
+    }
+
+    // --- Query with total count ---
+    const { count, rows } = await LoginAudit.findAndCountAll({
+      where,
+      include: [{ model: User, as: "user" }],
+      order: [["login_time", "DESC"]],
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+    });
+
+    res.status(200).json({
+      total: count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: parseInt(page),
+      audits: rows,
+    });
+  } catch (error) {
+    console.error("Error filtering login audits:", error);
+    res.status(500).json({
+      message: "Error filtering login audits",
+      error: error.message,
+    });
+  }
+};
+
+// GET /api/login-audits/filter
+exports.getFilteredLoginAudits = async (req, res) => {
+  try {
+    const { page = 1, limit = 15, date, month, year } = req.query;
+    const offset = (page - 1) * limit;
+
+    const where = {};
+    if (date) {
+      const start = new Date(date);
+      const end = new Date(date);
+      end.setDate(end.getDate() + 1);
+      where.login_time = { [Op.between]: [start, end] };
+    } else if (month && year) {
+      const start = new Date(`${year}-${month}-01`);
+      const end = new Date(start);
+      end.setMonth(end.getMonth() + 1);
+      where.login_time = { [Op.between]: [start, end] };
+    } else if (year) {
+      const start = new Date(`${year}-01-01`);
+      const end = new Date(`${parseInt(year) + 1}-01-01`);
+      where.login_time = { [Op.between]: [start, end] };
+    }
+
+    const { count, rows } = await LoginAudit.findAndCountAll({
+      where,
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["id", "username", "personnel_id", "avatar"],
+        },
+      ],
+      order: [["login_time", "DESC"]],
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+    });
+
+    res.json({
+      audits: rows,
+      total: count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: parseInt(page),
+    });
+  } catch (error) {
+    console.error("Failed to fetch filtered login audits:", error);
+    res.status(500).json({ error: "Failed to fetch filtered login audits" });
+  }
+};
+
+// GET /api/login-audits (New logic for the Audit Page)
+exports.getAllLoginAudits = async (req, res) => {
+    try {
+        const audits = await LoginAudit.findAll({
+            order: [["login_time", "DESC"]], // Order by most recent
+            include: [
+                {
+                    model: User,
+                    as: "user",
+                    attributes: ["id", "username", "personnel_id", "avatar"],
+                },
+            ],
+            // NOTE: No LIMIT here, fetching all data for the management page
+        });
+
+        res.json(audits);
+    } catch (error) {
+        console.error("Failed to fetch all login audits:", error);
+        res.status(500).json({ error: "Failed to fetch all login audits" });
+    }
+};
+
+// ✅ New: get users who have NOT logged in today
+exports.getUsersNotLoggedInToday = async (req, res) => {
+  try {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    // Get all users
+    const allUsers = await User.findAll({
+      attributes: ["id", "username", "personnel_id", "avatar"],
+    });
+
+    // Get users who logged in today
+    const loggedInToday = await LoginAudit.findAll({
+      where: {
+        login_time: {
+          [Op.between]: [todayStart, todayEnd],
+        },
+      },
+      attributes: ["user_id"],
+      group: ["user_id"],
+    });
+
+    const loggedInIds = loggedInToday.map((a) => a.user_id);
+
+    // Filter users who haven't logged in today
+    const missingUsers = allUsers.filter((u) => !loggedInIds.includes(u.id));
+
+    res.json({ success: true, data: missingUsers });
+  } catch (error) {
+    console.error("Error getting users not logged in today:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to retrieve users not logged in today",
+    });
   }
 };
 

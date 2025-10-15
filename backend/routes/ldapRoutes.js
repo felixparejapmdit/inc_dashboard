@@ -13,6 +13,10 @@ router.get(
 
 router.get("/api/login-audits/recent", ldapController.getRecentLoginAudits);
 
+router.get("/api/login-audits/missing-today", ldapController.getUsersNotLoggedInToday);
+
+
+
 router.get("/api/test_ldap_connection", ldapController.testLdapConnection);
 
 router.get("/api/ldap/users_json", ldapController.getUsersFromJson);

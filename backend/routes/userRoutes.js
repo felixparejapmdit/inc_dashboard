@@ -11,6 +11,7 @@ const path = require("path");
 const User = require("../models/User");
 const Personnel = require("../models/personnels");
 const UserController = require("../controllers/userController");
+const ldapController = require("../controllers/ldapController");
 
 const verifyToken = require("../middlewares/authMiddleware");
 
@@ -95,6 +96,12 @@ function verifyMD5(password, storedHash) {
 router.put("/api/users/:userId/assign-group", UserController.assignGroup);
 
 router.get("/api/users_access/:username", verifyToken, UserController.getUserByUsername);
+
+router.get("/api/login_users", verifyToken, UserController.getAllLoginUsers);
+
+//router.get("/api/login-audits/filter", ldapController.getFilteredLoginAudits);
+
+router.get("/api/login-audits/filter", verifyToken, ldapController.filterAudits);
 
 // Update user's progress stage
 router.put("/api/users/update-progress", verifyToken, UserController.updateProgress);

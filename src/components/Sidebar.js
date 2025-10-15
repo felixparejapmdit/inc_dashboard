@@ -422,6 +422,14 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   onClick={() => navigate("/managements/phonedirectory")} // Redirect to users.js
                 />
               )}
+
+                 <SidebarItem
+                  icon={FiUsers}
+                  label="Login Reports"
+                  isExpanded={isExpanded}
+                  onClick={() => navigate("/managements/loginaudits")} // Redirect to users.js
+                />
+
               {hasPermission("reminders.view") && (
                 <SidebarItem
                   icon={FiUser}

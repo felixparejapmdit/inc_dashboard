@@ -54,6 +54,8 @@ import FileManagement from "./pages/managements/FileManagement.js";
 
 import PhoneDirectory from "./pages/managements/PhoneDirectory.js";
 
+import LoginAudits from "./pages/managements/LoginAudits.js";
+
 import Enrollment from "./pages/Enrollment/EnrollmentForm.js"; // Import LdapUser page
 import Step1 from "./pages/Enrollment/Step1.js";
 import Step2 from "./pages/Enrollment/Step2.js";
@@ -712,6 +714,20 @@ function MainApp() {
               }}
             >
               <PhoneDirectory />
+            </Layout>
+          }
+        />
+
+   <Route
+          path="/managements/loginaudits"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <LoginAudits />
             </Layout>
           }
         />

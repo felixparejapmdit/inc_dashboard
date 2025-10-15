@@ -215,6 +215,40 @@ exports.assignGroup = async (req, res) => {
   }
 };
 
+exports.getAllLoginUsers = async (req, res) => {
+  try {
+    const users = await User.findAll({
+      attributes: ["id", "username", "avatar", "isLoggedIn", "last_login"],
+    });
+
+    // ✅ Format data to include readable online status
+    const formattedUsers = users.map((user) => ({
+      id: user.id,
+      username: user.username,
+      avatar: user.avatar,
+      last_login: user.last_login,
+      isLoggedIn: user.isLoggedIn,
+      status: user.isLoggedIn === 1 ? "Online" : "Offline",
+    }));
+
+    res.setHeader("Content-Type", "application/json");
+    return res.status(200).json({
+      success: true,
+      total: formattedUsers.length,
+      data: formattedUsers,
+    });
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.setHeader("Content-Type", "application/json");
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching users",
+      error: error.message,
+    });
+  }
+};
+
+
 // Fetch user details by username
 // controllers/UserController.js
 exports.getUserByUsername = async (req, res) => {

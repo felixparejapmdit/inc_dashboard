@@ -455,6 +455,28 @@ exports.getRecentLoginAudits = async (req, res) => {
   }
 };
 
+// GET /api/login-audits (New logic for the Audit Page)
+exports.getAllLoginAudits = async (req, res) => {
+    try {
+        const audits = await LoginAudit.findAll({
+            order: [["login_time", "DESC"]], // Order by most recent
+            include: [
+                {
+                    model: User,
+                    as: "user",
+                    attributes: ["id", "username", "personnel_id", "avatar"],
+                },
+            ],
+            // NOTE: No LIMIT here, fetching all data for the management page
+        });
+
+        res.json(audits);
+    } catch (error) {
+        console.error("Failed to fetch all login audits:", error);
+        res.status(500).json({ error: "Failed to fetch all login audits" });
+    }
+};
+
 // Login using PMD LDAP credentials by username
 exports.getUserByUsername = async (req, res) => {
   const username = req.params.username;
