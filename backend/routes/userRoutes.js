@@ -95,7 +95,7 @@ function verifyMD5(password, storedHash) {
 
 router.put("/api/users/:userId/assign-group", UserController.assignGroup);
 
-router.get("/api/users_access/:username", verifyToken, UserController.getUserByUsername);
+router.get("/api/users_access/:username", UserController.getUserByUsername);
 
 router.get("/api/login_users", verifyToken, UserController.getAllLoginUsers);
 

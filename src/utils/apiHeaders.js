@@ -7,3 +7,6 @@ export const getAuthHeaders = () => {
     "Content-Type": "application/json", // optional: add if you post/put json
   };
 };
+
+
+
