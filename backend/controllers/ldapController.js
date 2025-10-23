@@ -464,6 +464,39 @@ exports.getRecentLoginAudits = async (req, res) => {
   }
 };
 
+
+exports.getAllLoginAudits = async (req, res) => {
+    try {
+        const audits = await LoginAudit.findAll({
+            order: [["login_time", "DESC"]], // Order by most recent first
+            include: [
+                {
+                    model: User,
+                    as: "user",
+                    attributes: ["id", "username", "personnel_id", "avatar"],
+                },
+            ],
+            // Note: No WHERE clause, no LIMIT, fetches all records.
+        });
+
+        // Use the same success structure as getAllLoginUsers
+        res.setHeader("Content-Type", "application/json");
+        return res.status(200).json({
+            success: true,
+            total: audits.length,
+            data: audits, // Send the array of audit objects
+        });
+    } catch (error) {
+        console.error("Error fetching all login audits:", error);
+        res.setHeader("Content-Type", "application/json");
+        return res.status(500).json({
+            success: false,
+            message: "Error fetching all login audits",
+            error: error.message,
+        });
+    }
+};
+
 exports.filterAudits = async (req, res) => {
   try {
     const { date, month, year, page = 1, limit = 15 } = req.query;

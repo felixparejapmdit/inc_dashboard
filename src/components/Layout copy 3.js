@@ -24,8 +24,8 @@ const Layout = ({ children, currentUser }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = useRef();
 
-  const INACTIVITY_LIMIT = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
-  //const INACTIVITY_LIMIT = 1 * 60 * 1000; // 1 minute in milliseconds
+  //const INACTIVITY_LIMIT = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
+  const INACTIVITY_LIMIT = 1 * 60 * 1000; // 1 minute in milliseconds
 
   let inactivityTimer;
 
@@ -70,33 +70,7 @@ const Layout = ({ children, currentUser }) => {
 
     fetchPermissions(groupId); // Fetch permissions for the group
 
-
-        const checkLoginStatus = async () => {
-      try {
-        if (!username) {
-          navigate("/login");
-          return;
-        }
-
-      const userResponse = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/users_access/${username}`,
-        {
-          headers: getAuthHeaders(),
-        }
-      );
-
-        const user = userResponse.data;
-
-        if (!user || user.isLoggedIn === false || user.isLoggedIn === 0) {
-          navigate("/login");
-        }
-      } catch (error) {
-        console.error("Login status check failed:", error);
-        navigate("/login"); // fallback redirect on error
-      }
-    };
-    
- const checkLoginStatus1 = async () => {
+ const checkLoginStatus = async () => {
       try {
         if (!username) {
           navigate("/login");

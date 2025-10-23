@@ -23,7 +23,7 @@ import {
   AlertDialogFooter,
 } from "@chakra-ui/react";
 import { RepeatIcon } from "@chakra-ui/icons";
-import { fetchData, postData, putData, deleteData } from "../utils/fetchData";
+import { fetchData, postData, putData, putDataRestore, deleteData } from "../utils/fetchData";
 
 const ITEMS_PER_PAGE = 5;
 
@@ -47,10 +47,39 @@ const TemporarilyDeletedUsers = () => {
   }, []);
 
   const handleConfirmRestore = async () => {
+  if (!selectedUser) return;
+
+  try {
+    await putDataRestore("personnels/restore", selectedUser.personnel_id);
+    setDeletedUsers((prev) =>
+      prev.filter((user) => user.personnel_id !== selectedUser.personnel_id)
+    );
+    toast({
+      title: "User restored successfully.",
+      status: "success",
+      duration: 3000,
+      isClosable: true,
+    });
+  } catch (error) {
+    toast({
+      title: "Restore failed.",
+      description: error.message || "An error occurred.",
+      status: "error",
+      duration: 3000,
+      isClosable: true,
+    });
+  }
+
+  setSelectedUser(null);
+  onClose();
+};
+
+
+  const handleConfirmRestore1 = async () => {
     if (!selectedUser) return;
 
     try {
-      await putData(`personnels/restore/${selectedUser.personnel_id}`);
+      await putDataRestore("personnels/restore/",selectedUser.personnel_id);
       setDeletedUsers((prev) =>
         prev.filter((user) => user.personnel_id !== selectedUser.personnel_id)
       );

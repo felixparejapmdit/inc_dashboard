@@ -11,6 +11,7 @@ const API_URL = process.env.REACT_APP_API_URL;
  * @param {Function} [setStatus] - Optional error handler
  * @param {string} [errorMsg] - Error message to display or log
  */
+
 export const fetchData = async (
   endpoint,
   setter = null,
@@ -63,6 +64,99 @@ export const fetchData = async (
     if (typeof onFinally === "function") {
       onFinally();
     }
+  }
+};
+
+/**
+ * Fetch permissions for a specific group ID.
+ *
+ * @param {number|string} groupId - The group ID to fetch permissions for.
+ * @param {Function} setPermissions - State setter function for permissions.
+ * @param {Function} [onError] - Optional callback for handling errors.
+ */
+export const fetchPermissionData = async (groupId, setPermissions, onError) => {
+  if (!groupId) {
+    console.warn("⚠️ No group ID provided for permission fetch.");
+    if (onError) onError("Group ID is required to fetch permissions.");
+    return;
+  }
+
+  try {
+    const url = `${API_URL}/api/permissions_access/${groupId}`;
+
+    const response = await axios.get(url, {
+      headers: getAuthHeaders(),
+      timeout: 10000, // Prevent hanging requests
+    });
+
+    const data = response.data;
+
+    if (!data) {
+      console.warn("⚠️ Empty response received for permissions.");
+      setPermissions([]);
+      return;
+    }
+
+    // ✅ Handle possible data formats
+    if (Array.isArray(data)) {
+      setPermissions(data);
+    } else if (data.success && Array.isArray(data.data)) {
+      setPermissions(data.data);
+    } else if (data.data && typeof data.data === "object") {
+      setPermissions(Object.values(data.data));
+    } else {
+      console.warn("⚠️ Unexpected permissions data format:", data);
+      setPermissions([]);
+    }
+
+  } catch (error) {
+    console.error(`❌ Error fetching permissions for group ${groupId}:`, error);
+
+    // Handle specific network errors
+    if (error.code === "ECONNABORTED") {
+      console.error("Request timed out while fetching permissions.");
+    } else if (error.response) {
+      console.error(
+        `Server responded with ${error.response.status}:`,
+        error.response.data
+      );
+    }
+
+    if (onError) {
+      onError("Failed to fetch permissions. Please try again later.");
+    }
+
+    setPermissions([]); // fallback to empty
+  }
+};
+
+
+export const fetchLoginData = async (
+  endpoint,
+  onSuccess,
+  onError,
+  errorMessage = "Failed to fetch data",
+  param = null // dynamic parameter for endpoint (e.g., username or groupId)
+) => {
+  try {
+    const url = param ? `${API_URL}/api/${endpoint}/${param}` : `${API_URL}/api/${endpoint}`;
+
+    const response = await axios.get(url, {
+      headers: getAuthHeaders(),
+      timeout: 10000, // prevent hanging requests
+    });
+
+    const data = response.data;
+
+    if (data && (data.success || Array.isArray(data) || typeof data === "object")) {
+      onSuccess(data);
+    } else {
+      console.warn(`⚠️ Unexpected data format from ${url}:`, data);
+      onSuccess([]);
+    }
+  } catch (error) {
+    console.error(`❌ Error fetching ${endpoint}:`, error.message);
+    if (onError) onError(errorMessage);
   }
 };
 
@@ -475,6 +569,27 @@ export const putData = async (
     return response.data;
   } catch (error) {
     console.error(`PUT error on ${endpoint}:`, error?.response || error);
+    throw new Error(errorMsg);
+  }
+};
+
+export const putDataRestore = async (endpoint, id, errorMsg = "Failed to restore data.") => {
+  try {
+    // Build the correct restore URL
+    const url = `${API_URL}/api/${endpoint}/${id}`;
+
+    alert(url);
+    const response = await axios.put(
+      url,
+      {}, // Empty body for restore (no payload needed)
+      {
+        headers: getAuthHeaders(),
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error(`PUT restore error on ${endpoint}/${id}:`, error?.response || error);
     throw new Error(errorMsg);
   }
 };

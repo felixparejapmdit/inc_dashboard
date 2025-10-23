@@ -1,3 +1,49 @@
+// import React, { useState, useEffect } from "react";
+// import Sidebar from "./Sidebar"; // Import your Sidebar component
+// import { usePermissionContext } from "../contexts/PermissionContext"; // Import Permission Context
+
+// const Layout = ({ children, currentUser }) => {
+//   // State to track sidebar's expanded or collapsed state
+//   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+
+//   // Permission context
+//   const { fetchPermissions } = usePermissionContext();
+
+//   // Function to handle sidebar hover to expand or collapse
+//   const handleSidebarToggle = (expanded) => {
+//     setIsSidebarExpanded(expanded);
+//   };
+
+//   // Fetch permissions on layout load
+//   useEffect(() => {
+//     const groupId = localStorage.getItem("groupId");
+//     fetchPermissions(groupId); // Fetch permissions for the group
+//   }, [fetchPermissions]);
+
+//   return (
+//     <div style={{ display: "flex", position: "relative", height: "100vh" }}>
+//       {/* Sidebar */}
+//       <Sidebar
+//         currentUser={currentUser}
+//         onSidebarToggle={handleSidebarToggle}
+//       />
+
+//       {/* Main content */}
+//       <div
+//         style={{
+//           marginLeft: isSidebarExpanded ? "250px" : "60px", // Adjust dynamically
+//           width: "100%",
+//           padding: "20px",
+//           transition: "margin-left 0.3s ease", // Smooth transition
+//         }}
+//       >
+//         {children}
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default Layout;
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
@@ -15,7 +61,6 @@ import {
   Button,
 } from "@chakra-ui/react";
 import { getAuthHeaders } from "../utils/apiHeaders"; // adjust path as needed
-import { fetchData, fetchLoginData } from "../utils/fetchData";
 const Layout = ({ children, currentUser }) => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const { fetchPermissions } = usePermissionContext();
@@ -70,8 +115,7 @@ const Layout = ({ children, currentUser }) => {
 
     fetchPermissions(groupId); // Fetch permissions for the group
 
-
-        const checkLoginStatus = async () => {
+    const checkLoginStatus = async () => {
       try {
         if (!username) {
           navigate("/login");
@@ -90,35 +134,6 @@ const Layout = ({ children, currentUser }) => {
         if (!user || user.isLoggedIn === false || user.isLoggedIn === 0) {
           navigate("/login");
         }
-      } catch (error) {
-        console.error("Login status check failed:", error);
-        navigate("/login"); // fallback redirect on error
-      }
-    };
-    
- const checkLoginStatus1 = async () => {
-      try {
-        if (!username) {
-          navigate("/login");
-          return;
-        }
-
-        await fetchLoginData(
-          "users_access", // endpoint
-          (data) => {
-            // ✅ Handle valid login data
-            const user = data?.data || data; // handle both wrapped and direct data
-            if (!user || user.isLoggedIn === false || user.isLoggedIn === 0) {
-              navigate("/login");
-            }
-          },
-          (errorMsg) => {
-            console.error("❌ Login fetch error:", errorMsg);
-            navigate("/login");
-          },
-          "Failed to verify login status",
-          username // ✅ param passed to /users_access/:username
-        );
       } catch (error) {
         console.error("Login status check failed:", error);
         navigate("/login"); // fallback redirect on error

@@ -248,7 +248,6 @@ exports.getAllLoginUsers = async (req, res) => {
   }
 };
 
-
 // Fetch user details by username
 // controllers/UserController.js
 exports.getUserByUsername = async (req, res) => {

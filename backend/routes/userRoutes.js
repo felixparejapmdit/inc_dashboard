@@ -100,6 +100,11 @@ router.get("/api/users_access/:username", verifyToken, UserController.getUserByU
 router.get("/api/login_users", verifyToken, UserController.getAllLoginUsers);
 
 //router.get("/api/login-audits/filter", ldapController.getFilteredLoginAudits);
+router.get(
+  "/api/login-audits",
+  verifyToken,
+  ldapController.getAllLoginAudits
+);
 
 router.get("/api/login-audits/filter", verifyToken, ldapController.filterAudits);
 

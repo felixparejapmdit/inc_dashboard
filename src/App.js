@@ -55,6 +55,7 @@ import FileManagement from "./pages/managements/FileManagement.js";
 import PhoneDirectory from "./pages/managements/PhoneDirectory.js";
 
 import LoginAudits from "./pages/managements/LoginAudits.js";
+import AttendanceTracker from "./pages/managements/AttendanceTracker.js";
 
 import Enrollment from "./pages/Enrollment/EnrollmentForm.js"; // Import LdapUser page
 import Step1 from "./pages/Enrollment/Step1.js";
@@ -728,6 +729,19 @@ function MainApp() {
               }}
             >
               <LoginAudits />
+            </Layout>
+          }
+        />
+           <Route
+          path="/managements/attendancetracker"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <AttendanceTracker />
             </Layout>
           }
         />
