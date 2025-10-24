@@ -6,6 +6,12 @@ const User = require("../models/User"); // Your local user model
 require("dotenv").config();
 const { generateToken } = require("../utils/jwt"); // Import the generateToken function
 
+// ✅ Build API_URL dynamically based on HTTPS flag in .env
+const useHttps = process.env.HTTPS === "true";
+const protocol = useHttps ? "https" : "http";
+const host = process.env.REACT_APP_API_HOST || process.env.REACT_APP_API_URL || "localhost";
+const API_URL = `${protocol}://${host}`;
+
 // ✅ Load environment variables
 const LDAP_URL = process.env.LDAP_URL;
 const BIND_DN = process.env.BIND_DN;
@@ -14,7 +20,8 @@ const BASE_DN = process.env.BASE_DN;
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1d";
 
-const API_URL = process.env.REACT_APP_API_URL; // Backend API URL
+
+//const API_URL = process.env.REACT_APP_API_URL; // Backend API URL
 // ✅ Generate JWT Token
 // const generateToken = (user) => {
 //   return jwt.sign(
@@ -110,8 +117,54 @@ const authenticateLocal = async (username, password) => {
   return user;
 };
 
-// ✅ Fetch userId and groupId from API
+// ✅ Fetch userId and groupId from API 
 const getUserGroupId = async (username) => {
+  try {
+    console.log(`🔍 Fetching User ID for username: ${username}`);
+
+    // ✅ Check the API URL
+    console.log("API_URL:", API_URL);
+
+    // ✅ Fetch user info
+    const userResponse = await axios.get(`${API_URL}/api/users_access/${username}`);
+    console.log("👤 userResponse.data:", userResponse.data);
+
+    const userId = userResponse.data?.id || userResponse.data?.user_id;
+
+    if (!userId) {
+      console.error("❌ Error: User ID not found for", username);
+      return null;
+    }
+
+    console.log(`✅ Found User ID: ${userId}`);
+
+    // ✅ Fetch group info
+    const groupResponse = await axios.get(`${API_URL}/api/groups/user/${userId}`);
+    console.log("👥 groupResponse.data:", groupResponse.data);
+
+    // Adjust this based on actual backend response structure
+    const groupId = 
+      groupResponse.data?.groupId ||
+      groupResponse.data?.id ||
+      groupResponse.data?.group_id ||
+      groupResponse.data?.[0]?.groupId;
+
+    if (!groupId) {
+      console.error(`❌ Error: Group ID not found for User ID: ${userId}`);
+      return null;
+    }
+
+    console.log(`✅ Found Group ID: ${groupId}`);
+    return groupId;
+  } catch (error) {
+    console.error("❌ Error fetching user groupId:", error.response?.data || error.message);
+    return null;
+  }
+};
+
+
+// ✅ Fetch userId and groupId from API
+const getUserGroupId1 = async (username) => {
   try {
     console.log(`🔍 Fetching User ID for username: ${username}`);
     // ✅ Fetch the user ID
@@ -202,7 +255,7 @@ exports.Login1 = async (req, res) => {
   }
 };
 
-exports.Login = async (req, res) => {
+exports.Login2 = async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
@@ -252,6 +305,63 @@ exports.Login = async (req, res) => {
       .json({ message: "Server error during authentication.", error });
   }
 };
+
+exports.Login = async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ message: "Username and password are required." });
+  }
+
+  try {
+    let user;
+    let groupId;
+
+    // 🟢 Attempt LDAP Authentication
+    try {
+      const ldapUser = await authenticateLDAP(username, password);
+      groupId = await getUserGroupId(username); // will fetch actual groupId
+      if (!groupId) groupId = "LDAP_GROUP"; // fallback if not found
+
+      console.log(`✅ LDAP User Authenticated: ${ldapUser.username}`);
+      console.log(`✅ Group ID: ${groupId}`);
+
+      user = {
+        id: ldapUser.username,
+        username: ldapUser.username,
+        groupId,
+        fullName: ldapUser.username,
+      };
+
+      const token = generateToken(user);
+      return res.json({ success: true, token, user });
+
+    } catch (ldapErr) {
+      console.log(`⚠️ LDAP authentication failed: ${ldapErr}`);
+    }
+
+    // 🟢 Fallback to Local Authentication
+    try {
+      user = await authenticateLocal(username, password);
+      groupId = await getUserGroupId(username);
+      if (!groupId) groupId = "LOCAL_GROUP";
+
+      console.log(`✅ Local user authenticated: ${username}`);
+      console.log(`✅ Group ID: ${groupId}`);
+
+      const token = generateToken({ ...user, groupId });
+      return res.json({ success: true, token, user });
+
+    } catch (localErr) {
+      return res.status(401).json({ message: "Invalid username or password." });
+    }
+
+  } catch (error) {
+    console.error("❌ Server error:", error.message);
+    return res.status(500).json({ message: "Server error during authentication.", error });
+  }
+};
+
 
 // ✅ Middleware to Protect Routes
 exports.protect = (req, res, next) => {
