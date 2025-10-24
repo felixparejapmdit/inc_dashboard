@@ -10,7 +10,7 @@ const { generateToken } = require("../utils/jwt"); // Import the generateToken f
 const useHttps = process.env.HTTPS === "true";
 const protocol = useHttps ? "https" : "http";
 const host = process.env.REACT_APP_API_HOST || process.env.REACT_APP_API_URL || "localhost";
-const API_URL = `${protocol}://${host}`;
+const API_URL = `${protocol}:${host}`;
 
 // ✅ Load environment variables
 const LDAP_URL = process.env.LDAP_URL;

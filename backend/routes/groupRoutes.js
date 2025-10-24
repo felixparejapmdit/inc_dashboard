@@ -13,7 +13,6 @@ router.get("/api/groups/:id", verifyToken, groupsController.getGroupById);
 // Get group ID for a specific user
 router.get(
   "/api/groups/user/:userId",
-  verifyToken,
   groupsController.getGroupIdByUserId
 );
 
