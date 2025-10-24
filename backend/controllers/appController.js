@@ -304,6 +304,13 @@ exports.getAvailableApps2 = async (req, res) => {
 exports.getAvailableApps = async (req, res) => {
   const userId = req.headers["x-user-id"];
 
+  console.log("Received user ID in header:", userId);
+   // ✅ Validate early before making any Sequelize queries
+    if (!userId || userId === "undefined" || userId === "null") {
+      console.error("❌ Missing or invalid user ID:", userId);
+      return res.status(401).json({ message: "Unauthorized: No user ID provided" });
+    }
+
   const isVIP = await UserGroupMapping.findOne({
     where: {
       user_id: userId,

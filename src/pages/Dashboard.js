@@ -328,6 +328,7 @@ export default function Dashboard() {
     }
   }, [currentUser]); // Run when `currentUser` updates
 
+  
   useEffect(() => {
     const storedRecentApps =
       JSON.parse(localStorage.getItem("recentApps")) || [];
@@ -348,6 +349,13 @@ export default function Dashboard() {
   };
 
   const fetchApplications = async () => {
+
+    // CRITICAL FIX: Guard clause to prevent undefined header value
+    if (!currentUser.id) {
+      console.warn("Skipping fetchApplications: User ID is not yet defined.");
+      return;
+    }
+
     try {
    
       const response = await fetch(`${API_URL}/api/apps/available`, {
@@ -356,6 +364,8 @@ export default function Dashboard() {
           "x-user-id": currentUser.id,
         },
       });
+
+      console.log("Current user ID:", currentUser?.id);
 
       if (!response.ok)
         throw new Error(`Failed to fetch apps: ${response.statusText}`);
