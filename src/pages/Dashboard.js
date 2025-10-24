@@ -361,7 +361,7 @@ export default function Dashboard() {
       const response = await fetch(`${API_URL}/api/apps/available`, {
         headers: {
           "Content-Type": "application/json",
-          "x-user-id": currentUser.id,
+          "x-user-id": 46,
         },
       });
 
