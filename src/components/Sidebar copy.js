@@ -429,7 +429,12 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   isExpanded={isExpanded}
                   onClick={() => navigate("/managements/loginaudits")} // Redirect to users.js
                 />
-
+   <SidebarItem
+                  icon={FiUsers}
+                  label="Attendance Tracker"
+                  isExpanded={isExpanded}
+                  onClick={() => navigate("/managements/attendancetracker")} // Redirect to users.js
+                />
               {hasPermission("reminders.view") && (
                 <SidebarItem
                   icon={FiUser}
