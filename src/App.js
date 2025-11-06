@@ -97,13 +97,18 @@ import GlobalSearchBar from "./components/FileOrganizer/GlobalSearchBar.js";
 import GenerateQRCode from "./pages/FileOrganizer/GenerateQRCode.js";
 import ScanningQrCode from "./pages/FileOrganizer/ScanningQrCode.js";
  
+import ErrorBoundary from './components/ErrorBoundary'; // Import the new component
 
+// --- Main Router Component ---
 function App() {
   return (
     <PermissionProvider>
       <ChakraProvider theme={customTheme}>
         <Router>
-          <MainApp />
+          {/* CRITICAL FIX: Wrap the whole router in ErrorBoundary */}
+          <ErrorBoundary>
+            <MainApp />
+          </ErrorBoundary>
         </Router>
       </ChakraProvider>
     </PermissionProvider>
