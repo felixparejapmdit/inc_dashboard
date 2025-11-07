@@ -32,10 +32,12 @@ import {
   useToast,
   InputGroup,
   InputLeftElement,
+  Divider,
+    Link as ChakraLink
 } from "@chakra-ui/react";
 import "./Login.css"; // Custom CSS for animated input effect
 
-import { FiUser, FiLock } from "react-icons/fi"; // Import icons
+import { FiUser, FiLock,FiExternalLink } from "react-icons/fi"; // Import icons
 import { usePermissionContext } from "../contexts/PermissionContext";
 import { getAuthHeaders } from "../utils/apiHeaders"; // adjust path as needed
 
@@ -1003,170 +1005,209 @@ const Login = () => {
     }
   };
 
-  return (
-    <Flex
-      minH="100vh"
-      alignItems="center"
-      justifyContent="center"
-      className="login-page" // Added a className for scoping styles
-      bgGradient="linear(to-r, #FFD559, #F3C847)" // Gradient background
-      p={4}
-    >
-      <Flex
-        direction="column"
-        bg="yellow.100"
-        boxShadow="lg"
-        borderRadius="md"
-        p={8}
-        width={["90%", "400px"]}
-      >
-        <Flex justifyContent="center" mb={4}>
-          <Image src="/apps_logo.png" alt="Logo" boxSize="100px" />
-        </Flex>
-        <Heading as="h2" size="lg" textAlign="center" color="gray.850" mb={6}>
-          PMD Portal -1
-        </Heading>
-        {/* Form */}
-        <VStack as="form" onSubmit={handleSubmit} spacing={4}>
-          {/* Username Input */}
-          <FormControl isRequired>
-            <InputGroup>
-              <InputLeftElement pointerEvents="none">
-                <FiUser color="gray.500" />
-              </InputLeftElement>
-              <Input
-                type="text"
-                placeholder="Enter username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                bg="gray.50"
-                borderRadius="full"
-              />
-            </InputGroup>
-          </FormControl>
-
-          {/* Password Input */}
-          <FormControl isRequired>
-            <InputGroup>
-              <InputLeftElement pointerEvents="none">
-                <FiLock color="gray.500" />
-              </InputLeftElement>
-              <Input
-                type="password"
-                placeholder="Enter password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                bg="gray.50"
-                borderRadius="full"
-              />
-            </InputGroup>
-          </FormControl>
-
-          {error && <Text color="red.500">{error}</Text>}
-
-          {/* Login Button */}
-          <Button
-            type="submit"
-            width="100%"
-            bgGradient="linear(to-r, #FFB700, #FF8500)"
-            color="white"
-            _hover={{ bgGradient: "linear(to-r, #FF8500, #FFB700)" }}
-            borderRadius="full"
-            boxShadow="md"
-            transition="all 0.3s ease-in-out"
-          >
-            Log In
-          </Button>
-
-          <Flex direction="column" width="100%" alignItems="center">
-            <Button variant="link" colorScheme="orange" onClick={handleEnroll}>
-              Enroll
-            </Button>
-            <Text
-              as="button"
-              color="blue.500"
-              onClick={onOpen}
-              fontSize="sm"
-              mt={2} // Add margin-top to create spacing between the button and text
-              _hover={{ textDecoration: "underline" }}
+// --- UI Implementation ---
+    return (
+        <Flex
+            minH="100vh"
+            alignItems="center"
+            justifyContent="center"
+            // Retained the Gold/Orange gradient background
+            bgGradient="linear(to-br, #FFD559, #F3C847)" 
+            p={4}
+        >
+            <Box
+                // Card Styling: Clean off-white/yellow background with soft shadow
+                bg="yellow.50" 
+                boxShadow="2xl"
+                borderRadius="3xl" 
+                p={8}
+                // *** MAX RESPONSIVENESS ***
+                width={{ base: "95%", sm: "400px", md: "450px" }}
+                // **************************
+                transition="all 0.4s ease"
+                _hover={{ boxShadow: "dark-lg" }}
             >
-              Track your enrollment progress
-            </Text>
-            <VStack spacing={3} mt={4} display="none">
-              <Input type="file" accept=".xlsx" onChange={handleFileUpload} />
-              <Button colorScheme="blue" onClick={handleImportDistricts}>
-                Import Districts
-              </Button>
-              <Button colorScheme="green" onClick={handleImportLocal}>
-                Import Local Congregations
-              </Button>
-            </VStack>
-          </Flex>
-          {/* Modal for Reference Number */}
-          <Modal isOpen={isOpen} onClose={onClose}>
-            <ModalOverlay />
-            <ModalContent>
-              <ModalHeader>Track Enrollment Progress</ModalHeader>
-              <ModalCloseButton />
-              <ModalBody>
-                {/* Input Name */}
-                <FormControl mb={4}>
-                  <FormLabel>Full Name</FormLabel>
-                  <Input
-                    placeholder="Enter your first name + surname"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                </FormControl>
-                {/* Input Date of Birth */}
-                <FormControl mb={4}>
-                  <FormLabel>Date of Birth</FormLabel>
-                  <Input
-                    type="date"
-                    value={dateOfBirth}
-                    onChange={(e) => setDateOfBirth(e.target.value)}
-                  />
-                </FormControl>
-                {/* Input or Retrieved Reference Number */}
-                <FormControl mb={4}>
-                  <FormLabel>Reference Number</FormLabel>
-                  <Input
-                    placeholder="Enter or Retrieve Reference Number"
-                    value={retrievedReference || referenceNumber}
-                    onChange={(e) => setReferenceNumber(e.target.value)}
-                  />
-                </FormControl>
-              </ModalBody>
-              <ModalFooter>
-                {/* Retrieve Reference Button */}
-                <Button
-                  colorScheme="blue"
-                  onClick={handleRetrieveReference}
-                  isLoading={isLoading}
-                  loadingText="Retrieving"
-                  mr={3}
-                >
-                  Retrieve Reference
-                </Button>
+                <VStack spacing={6} as="form" onSubmit={handleSubmit}>
+                    
+                    {/* Logo & Heading Section */}
+                    <VStack spacing={2} mb={4}>
+                        <Image 
+                            src="/apps_logo.png" 
+                            alt="PMD Portal Logo" 
+                            boxSize="90px" 
+                            borderRadius="full"
+                            shadow="lg"
+                            border="2px solid"
+                            borderColor="gray.200"
+                        />
+                        <Heading 
+                            as="h1" 
+                            size={{ base: "lg", md: "xl" }} // Responsive Heading Size
+                            textAlign="center" 
+                            color="gray.700" 
+                            fontWeight="extrabold"
+                        >
+                            PMD Portal
+                        </Heading>
+                        <Text fontSize={{ base: "sm", md: "md" }} color="gray.500">
+                            Secure Access for Personnel
+                        </Text>
+                    </VStack>
 
-                {/* Proceed Button */}
-                <Button
-                  colorScheme="yellow"
-                  onClick={handleTrackProgress}
-                  mr={3}
-                >
-                  Proceed
-                </Button>
-                <Button variant="ghost" onClick={onClose}>
-                  Cancel
-                </Button>
-              </ModalFooter>
-            </ModalContent>
-          </Modal>
-        </VStack>
-      </Flex>
-    </Flex>
-  );
+                    <Divider borderColor="gray.300" />
+
+                    {/* Username Input */}
+                    <FormControl isRequired>
+                        <InputGroup size="lg">
+                            <InputLeftElement pointerEvents="none" children={<FiUser color="gray.500" />} />
+                            <Input
+                                type="text"
+                                placeholder="Username (e.g., first.last)"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                bg="white" // Clean white background for input
+                                borderRadius="xl"
+                                _focus={{ borderColor: "teal.400", boxShadow: "0 0 0 1px teal.400" }} 
+                                isInvalid={!!error}
+                                shadow="sm"
+                            />
+                        </InputGroup>
+                    </FormControl>
+
+                    {/* Password Input */}
+                    <FormControl isRequired>
+                        <InputGroup size="lg">
+                            <InputLeftElement pointerEvents="none" children={<FiLock color="gray.500" />} />
+                            <Input
+                                type="password"
+                                placeholder="Password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                bg="white" // Clean white background for input
+                                borderRadius="xl"
+                                _focus={{ borderColor: "teal.400", boxShadow: "0 0 0 1px teal.400" }}
+                                isInvalid={!!error}
+                                shadow="sm"
+                            />
+                        </InputGroup>
+                    </FormControl>
+
+                    {error && <Text color="red.500" fontSize="sm">{error}</Text>}
+
+                    {/* Login Button */}
+                    <Button
+                        type="submit"
+                        width="100%"
+                        size="lg"
+                        isLoading={isLoading}
+                        // Maintained Gold/Orange gradient for action button
+                        bgGradient="linear(to-r, #FF8500, #FFB700)" 
+                        color="white"
+                        _hover={{ bgGradient: "linear(to-r, #FFB700, #FF8500)", transform: "translateY(-1px)" }}
+                        borderRadius="xl"
+                        boxShadow="md"
+                        transition="all 0.3s ease-in-out"
+                        mt={4}
+                    >
+                        Log In
+                    </Button>
+
+                    <Flex direction="column" width="100%" alignItems="center" pt={2}>
+                        
+                        {/* Enroll Button (Primary Orange) */}
+                        <ChakraLink onClick={handleEnroll} color="orange.600" fontWeight="bold" fontSize="md">
+                            Enroll New Personnel 
+                        </ChakraLink>
+
+                        {/* Track Progress Link (Secondary Blue/Teal) */}
+                        <ChakraLink 
+                            onClick={onOpen} 
+                            fontSize="sm" 
+                            color="teal.600" // Used Teal for contrast/secondary action
+                            mt={2}
+                            _hover={{ color: "teal.400", textDecoration: "underline" }}
+                            display="flex"
+                            alignItems="center"
+                        >
+                            <FiExternalLink style={{ marginRight: '4px' }}/> 
+                            Track your enrollment progress
+                        </ChakraLink>
+                    </Flex>
+                </VStack>
+            </Box>
+            
+            {/* Modal for Reference Number (Track Progress) */}
+            <Modal isOpen={isOpen} onClose={onClose} isCentered>
+                <ModalOverlay />
+                <ModalContent p={2} borderRadius="xl">
+                    <ModalHeader color="teal.600">Track Enrollment Progress</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                        <VStack spacing={4}>
+                            {/* Input Name */}
+                            <FormControl>
+                                <Input
+                                    placeholder="Enter full name"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    borderRadius="md"
+                                />
+                            </FormControl>
+                            {/* Input Date of Birth */}
+                            <FormControl>
+                                <Input
+                                    type="date"
+                                    value={dateOfBirth}
+                                    onChange={(e) => setDateOfBirth(e.target.value)}
+                                    borderRadius="md"
+                                />
+                            </FormControl>
+                            {/* Input or Retrieved Reference Number */}
+                            <FormControl>
+                                <Input
+                                    placeholder="Reference Number (Retrieved)"
+                                    value={retrievedReference || referenceNumber}
+                                    onChange={(e) => setReferenceNumber(e.target.value)}
+                                    isReadOnly={!!retrievedReference}
+                                    borderRadius="md"
+                                />
+                            </FormControl>
+                            {/* Import Buttons (Hidden - for Admin/Dev Use) */}
+                            <VStack spacing={3} mt={4} display="none">
+                                <Input type="file" accept=".xlsx" onChange={handleFileUpload} />
+                                <Button colorScheme="blue" onClick={handleImportDistricts}>Import Districts</Button>
+                                <Button colorScheme="green" onClick={handleImportLocal}>Import Local Congregations</Button>
+                            </VStack>
+                        </VStack>
+                    </ModalBody>
+                    <ModalFooter>
+                        {/* Retrieve Reference Button */}
+                        <Button
+                            colorScheme="teal"
+                            onClick={handleRetrieveReference}
+                            isLoading={isLoading}
+                            loadingText="Retrieving"
+                            mr={3}
+                        >
+                            Retrieve Reference
+                        </Button>
+
+                        {/* Proceed Button */}
+                        <Button
+                            colorScheme="orange"
+                            onClick={handleTrackProgress}
+                            mr={3}
+                        >
+                            Proceed
+                        </Button>
+                        <Button variant="ghost" onClick={onClose}>
+                            Cancel
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+        </Flex>
+    );
 };
 
 export default Login;
