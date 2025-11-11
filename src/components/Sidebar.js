@@ -285,6 +285,14 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
             />
           )}
 
+    <SidebarItem
+              data-tour="inv_dashboard"
+              icon={FiBarChart2}
+              label="Inv Dashboard"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/inv-dashboard")}
+            />
+
           <SidebarItem
             data-tour="profile-settings"
             icon={FiUser}

@@ -95,6 +95,7 @@
     "react-scripts": "^5.0.1",
     "react-select": "^5.9.0",
     "react-to-print": "^3.0.5",
+    "recharts": "^3.4.1",
     "resolve": "^1.20.0",
     "resolve-url-loader": "^4.0.0",
     "sass-loader": "^12.3.0",

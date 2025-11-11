@@ -84,6 +84,8 @@ import DragDropSettings from "./pages/settings/DragDropSettings";
 import Maintenance from "./pages/Maintenance";
 import PersonnelStatistics from "./components/PersonnelStatistics";
 
+import InventoryDashboard from "./pages/InventoryDashboard.js";
+
 // Plugins
 import LokalProfile from "./pages/LokalProfile.js";
 
@@ -207,6 +209,19 @@ function MainApp() {
           }
         />
 
+   <Route
+          path="/inv-dashboard"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <InventoryDashboard />
+            </Layout>
+          }
+        />
         <Route
           path="/application"
           element={
