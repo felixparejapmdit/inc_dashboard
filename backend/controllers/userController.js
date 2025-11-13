@@ -1,5 +1,11 @@
 // controllers/UserController.js
 
+// ✅ Import Redis client
+const { client: redisClient, connectRedis } = require("../config/redisClient");
+
+// Connect Redis once
+connectRedis().catch((err) => console.error("Redis connection failed:", err));
+
 const User = require("../models/User");
 const Group = require("../models/Group");
 const UserGroupMapping = require("../models/UserGroupMapping");
@@ -216,7 +222,16 @@ exports.assignGroup = async (req, res) => {
 };
 
 exports.getAllLoginUsers = async (req, res) => {
+  const cacheKey = "all_login_users";
+
   try {
+      // 1️⃣ Check Redis cache
+    const cachedUsers = await redisClient.get(cacheKey);
+    if (cachedUsers) {
+      console.log("📦 Serving all login users from Redis cache");
+      return res.status(200).json(JSON.parse(cachedUsers));
+    }
+
     const users = await User.findAll({
       attributes: ["id", "username", "avatar", "isLoggedIn", "last_login"],
     });
@@ -231,12 +246,17 @@ exports.getAllLoginUsers = async (req, res) => {
       status: user.isLoggedIn === 1 ? "Online" : "Offline",
     }));
 
-    res.setHeader("Content-Type", "application/json");
-    return res.status(200).json({
+     const responseData = {
       success: true,
       total: formattedUsers.length,
       data: formattedUsers,
-    });
+    };
+
+    // 3️⃣ Cache in Redis for 5 minutes
+    await redisClient.set(cacheKey, JSON.stringify(responseData), { EX: 3600 });
+    console.log("✅ All login users cached in Redis");
+
+    return res.status(200).json(responseData);
   } catch (error) {
     console.error("Error fetching users:", error);
     res.setHeader("Content-Type", "application/json");
@@ -259,6 +279,15 @@ exports.getUserByUsername = async (req, res) => {
       return res.status(400).json({ message: "Username is required." });
     }
 
+    const cacheKey = `user_${username}`;
+
+    // 1️⃣ Check Redis cache
+    const cachedUser = await redisClient.get(cacheKey);
+    if (cachedUser) {
+      console.log(`📦 Serving user ${username} from Redis cache`);
+      return res.status(200).json(JSON.parse(cachedUser));
+    }
+
     const user = await User.findOne({ where: { username } });
 
     if (!user) {
@@ -267,12 +296,20 @@ exports.getUserByUsername = async (req, res) => {
     }
 
     res.setHeader("Content-Type", "application/json");
-    return res.status(200).json({
+
+       const userData = {
       id: user.id,
       username: user.username,
       email: user.email || null,
       isLoggedIn: user.isLoggedIn,
-    });
+    };
+
+    // 3️⃣ Store in Redis for 5 minutes
+    await redisClient.set(cacheKey, JSON.stringify(userData), { EX: 3600 });
+    console.log(`✅ User ${username} cached in Redis`);
+
+    return res.status(200).json(userData);
+
   } catch (error) {
     console.error("Error fetching user by username:", error);
     res.setHeader("Content-Type", "application/json");

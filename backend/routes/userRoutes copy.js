@@ -1,11 +1,3 @@
-
-// ✅ Import Redis client
-const { client: redisClient, connectRedis } = require("../config/redisClient");
-
-// Connect Redis before handling requests
-connectRedis().catch((err) => console.error("Redis connection failed:", err));
-
-
 const https = require("https");
 const express = require("express");
 const router = express.Router();
@@ -415,16 +407,6 @@ router.get("/api/users/logged-in", verifyToken, async (req, res) => {
   if (!username) {
     return res.status(400).json({ message: "Username is required" });
   }
-  const cacheKey = `logged_in_user_${username}`;
-
-   try {
-    // 1️⃣ Check Redis cache first
-    const cachedUser = await redisClient.get(cacheKey);
-    if (cachedUser) {
-      console.log(`📦 Serving logged-in user ${username} from Redis cache`);
-      return res.status(200).json(JSON.parse(cachedUser));
-    }
-
   const query = `
   SELECT u.ID, u.username, u.avatar, u.auth_type, u.personnel_id, GROUP_CONCAT(a.name) AS availableApps, p.enrollment_progress
   FROM users u
@@ -497,20 +479,11 @@ router.get("/api/users/logged-in", verifyToken, async (req, res) => {
       user.availableApps = user.availableApps
         ? user.availableApps.split(",")
         : [];
-
-        // 3️⃣ Cache the user in Redis for 5 minutes
-      await redisClient.set(cacheKey, JSON.stringify(user), { EX: 300 });
-      console.log(`✅ Logged-in user ${username} cached in Redis`);
-
       res.json(user);
     } else {
       res.status(404).json({ message: "No user is currently logged in" });
     }
   });
-    } catch (error) {
-    console.error("Error fetching logged-in user:", error);
-    return res.status(500).json({ message: "Internal server error", error: error.message });
-  }
 });
 
 router.get("/api/nextcloud-login", verifyToken,async (req, res) => {
@@ -596,17 +569,6 @@ const fetchApiData = async (url) => {
 
 // Get all users with their available apps and LDAP attributes
 router.get("/api/users", verifyToken, async (req, res) => {
-const cacheKey = "users_data"; // Redis key
-
-// 1️⃣ Check Redis cache first
-    const cachedData = await redisClient.get(cacheKey);
-    if (cachedData) {
-      console.log("📦 Serving users from Redis cache");
-      return res.json(JSON.parse(cachedData));
-    }
-
-    console.log("🧠 No cache found — fetching fresh data...");
-
   // Fetch external API data
   const districts = await fetchApiData(DISTRICT_API_URL);
   const localCongregations = await fetchApiData(LOCAL_CONGREGATION_API_URL);
@@ -816,10 +778,7 @@ GROUP BY
       };
     });
 
-      // 7️⃣ Cache in Redis for 10 minutes
-    await redisClient.set(cacheKey, JSON.stringify(combinedUsers), { EX: 3600 });
-    console.log("✅ Users cached in Redis for 10 minutes");
-
+    
     // Send combined users data as JSON response
     res.json(combinedUsers);
   } catch (err) {

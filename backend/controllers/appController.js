@@ -1,4 +1,12 @@
 // controllers/appController.js
+
+// ✅ Import Redis client
+const { client: redisClient, connectRedis } = require("../config/redisClient");
+
+// Connect Redis once
+connectRedis().catch((err) => console.error("Redis connection failed:", err));
+
+
 const App = require("../models/Apps");
 const ApplicationType = require("../models/ApplicationType");
 const { Op } = require("sequelize");
@@ -311,6 +319,16 @@ exports.getAvailableApps = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized: No user ID provided" });
     }
 
+     const cacheKey = `available_apps_${userId}`;
+try {
+
+   // 1️⃣ Check Redis cache first
+    const cachedData = await redisClient.get(cacheKey);
+    if (cachedData) {
+      console.log(`📦 Serving available apps for user ${userId} from Redis cache`);
+      return res.status(200).json(JSON.parse(cachedData));
+    }
+
   const isVIP = await UserGroupMapping.findOne({
     where: {
       user_id: userId,
@@ -324,7 +342,7 @@ exports.getAvailableApps = async (req, res) => {
       .json({ message: "Unauthorized: No user ID provided" });
   }
 
-  try {
+  
     // Fetch all app types dynamically
     const appTypes = await sequelize.query(
       `SELECT id, name FROM applicationtypes ORDER BY id ASC`,
@@ -518,6 +536,10 @@ GROUP BY
     categorizedApps["Phone Directories"] = combinedData.filter(
       (item) => item.type === "phone_directory"
     );
+
+    // 9️⃣ Cache the result in Redis for 5 minutes
+    await redisClient.set(cacheKey, JSON.stringify(categorizedApps), { EX: 3600 });
+    console.log(`✅ Cached available apps for user ${userId} in Redis`);
 
     // Send the dynamically categorized response
     res.json(categorizedApps);

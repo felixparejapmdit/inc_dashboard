@@ -63,6 +63,7 @@ import axios from "axios";
 
 import { fetchData, postData, putData, deleteData } from "../utils/fetchData";
 import { usePermissionContext } from "../contexts/PermissionContext";
+import { useDebounce } from "use-debounce"; // npm install use-debounce
 // Use environment variable
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -93,6 +94,9 @@ export default function Dashboard() {
     icon: "",
   });
   const [searchQuery, setSearchQuery] = useState(""); // Search input
+  // Debounced search query
+const [debouncedSearchQuery] = useDebounce(searchQuery, 300); // 300ms debounce
+
   const [currentUser, setCurrentUser] = useState({ name: "User" });
   const [pmdApplications, setPmdApplications] = useState([]);
   const [otherApplications, setOtherApplications] = useState([]);
@@ -219,34 +223,34 @@ export default function Dashboard() {
     setFilteredApps(filtered);
   };
 
-  // const handleSearch = (e) => {
-  //   const query = e.target.value.toLowerCase();
-  //   setSearchQuery(query);
+  // -------------------- SEARCH HANDLER --------------------
+useEffect(() => {
+  if (!debouncedSearchQuery.trim()) {
+    setFilteredApps([]);
+    return;
+  }
 
-  //   if (!query.trim()) {
-  //     setFilteredApps([]); // Reset if empty
-  //     return;
-  //   }
+  const filtered = [];
 
-  //   const filtered = [];
-  //   // Ensure you're filtering both Apps and Files correctly
-  //   for (const category in categorizedApps) {
-  //     const matchingApps = categorizedApps[category].filter((app) => {
-  //       const nameMatch = app.name && app.name.toLowerCase().includes(query); // Check if name exists
-  //       const codeMatch =
-  //         app.generated_code &&
-  //         app.generated_code.toLowerCase().includes(query); // Search in generated_code
-  //       const phoneMatch =
-  //         app.extension && app.extension.toLowerCase().includes(query);
-  //       return nameMatch || codeMatch || phoneMatch;
-  //     });
-  //     if (matchingApps.length > 0) {
-  //       filtered.push(...matchingApps); // Combine matching results
-  //     }
-  //   }
+  // Efficiently filter apps across all categories
+  Object.values(categorizedApps).forEach((appsArray) => {
+    appsArray.forEach((app) => {
+      const query = debouncedSearchQuery.toLowerCase();
+      const nameMatch = app.name?.toLowerCase().includes(query);
+      const codeMatch = app.generated_code?.toLowerCase().includes(query);
+      const phoneMatch = app.extension?.toLowerCase().includes(query);
 
-  //   setFilteredApps(filtered);
-  // };
+      if (nameMatch || codeMatch || phoneMatch) filtered.push(app);
+    });
+  });
+
+  setFilteredApps(filtered);
+}, [debouncedSearchQuery, categorizedApps]);
+
+// -------------------- SEARCH INPUT --------------------
+const handleSearchInput = (e) => {
+  setSearchQuery(e.target.value);
+};
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -348,7 +352,7 @@ export default function Dashboard() {
     }
   };
 
-  const fetchApplications = async () => {
+  const fetchApplications1 = async () => {
 
     // CRITICAL FIX: Guard clause to prevent undefined header value
     if (!currentUser.id) {
@@ -390,6 +394,50 @@ export default function Dashboard() {
       console.error("Error fetching apps:", error);
     }
   };
+
+  // -------------------- FETCH APPLICATIONS --------------------
+const fetchApplications = async () => {
+  try {
+    // Use cached apps if available in localStorage
+    const cachedApps = localStorage.getItem("categorizedApps");
+    if (cachedApps) {
+      setCategorizedApps(JSON.parse(cachedApps));
+      return;
+    }
+
+    if (!currentUser.id) {
+      console.warn("Skipping fetchApplications: User ID not defined yet");
+      return;
+    }
+
+    const response = await fetch(`${API_URL}/api/apps/available`, {
+      headers: {
+        "Content-Type": "application/json",
+        "x-user-id": currentUser.id, // use actual user ID
+      },
+    });
+
+    if (!response.ok)
+      throw new Error(`Failed to fetch apps: ${response.statusText}`);
+
+    const data = await response.json();
+
+    // Categorize apps
+    const categorized = {};
+    for (const category in data) {
+      if (data.hasOwnProperty(category)) {
+        categorized[category] = data[category];
+      }
+    }
+
+    setCategorizedApps(categorized);
+
+    // Cache the categorized apps in localStorage
+    localStorage.setItem("categorizedApps", JSON.stringify(categorized));
+  } catch (error) {
+    console.error("Error fetching apps:", error);
+  }
+};
 
   const handleSettingsClick = (app) => {
     setSelectedApp(app);
@@ -535,7 +583,7 @@ export default function Dashboard() {
                 bg="white"
                 maxW="300px"
                 value={searchQuery}
-                onChange={handleSearch}
+                onChange={handleSearchInput}
                 boxShadow="md"
                 transition="all 0.4s ease"
               />
@@ -573,7 +621,7 @@ export default function Dashboard() {
                 bg="white"
                 maxW="300px"
                 value={searchQuery}
-                onChange={handleSearch}
+                onChange={handleSearchInput}
                 boxShadow="md"
                 transition="all 0.4s ease"
               />

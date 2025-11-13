@@ -112,6 +112,7 @@ const authRoutes = require("./routes/authRoutes");
 
 const uploadLocalRoute = require('./routes/uploadLocal');
 
+const proxySnipeitRoutes = require("./routes/proxySnipeitRoutes");
 
 app.use(express.json()); // Middleware to parse JSON request bodies
 
@@ -206,6 +207,7 @@ app.use(lokalProfileRoutes);
 app.use(housingRoutes);
 app.use(fileRoutes);
 app.use(phoneDirectoryRoutes);
+app.use("/api",proxySnipeitRoutes);
 
 // Ensure upload folder exists
 const uploadDir = path.join(__dirname, "uploads/avatar");
@@ -259,3 +261,6 @@ if (sslOptions) {
 app.get("/health", (req, res) => {
  res.json({ status: "ok" });
 });
+
+
+

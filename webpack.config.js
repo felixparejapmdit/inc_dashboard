@@ -1,84 +1,85 @@
+// webpack.config.js
+
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 
 module.exports = {
-  // Entry point of your application
-  entry: "./src/index.js",
+  // Entry point of your application
+  entry: "./src/index.js",
 
-  // Output configuration
-  output: {
-    filename: "bundle.js", // Name of the bundled file
-    path: path.resolve(__dirname, "dist"), // Directory for the bundled file
-    publicPath: "/", // Ensures proper asset referencing for SPAs
-  },
+  // Output configuration
+  output: {
+    filename: "bundle.js", 
+    path: path.resolve(__dirname, "dist"), 
+    publicPath: "/", 
+  },
 
-  // Mode: Can be 'development' or 'production'
-  mode: "development",
+  // Mode: Can be 'development' or 'production'
+  mode: "development",
 
-  // Enable source maps for easier debugging in development
-  devtool: "inline-source-map",
+  // Enable source maps for easier debugging in development
+  devtool: "inline-source-map",
 
-  // Webpack Dev Server configuration
-  devServer: {
-    static: path.join(__dirname, "dist"), // Serve files from the 'dist' directory
-    historyApiFallback: true, // Support for single-page applications
-    open: true, // Automatically opens the browser
-    hot: true, // Enable hot module replacement
-    port: 5000, // Server port
-  },
+  // Webpack Dev Server configuration
+  devServer: {
+    static: path.join(__dirname, "dist"),
+    historyApiFallback: true,
+    open: true, 
+    hot: true, 
+    port: 5000, 
+  },
 
-  // Loaders: How webpack processes different types of files
-  module: {
-    rules: [
-      {
-        test: /\.(js|jsx)$/, // Process JS and JSX files
-        exclude: /node_modules/, // Ignore node_modules
-        use: {
-          loader: "babel-loader", // Transpile modern JS/JSX code
-        },
-      },
-      {
-        test: /\.css$/, // Process CSS files
-        use: ["style-loader", "css-loader"], // Inject CSS into the DOM
-      },
-      {
-        test: /\.(png|svg|jpg|jpeg|gif)$/i, // Process image files
-        type: "asset/resource", // Handle image imports
-      },
-      {
-        test: /\.(woff|woff2|eot|ttf|otf)$/i, // Process font files
-        type: "asset/resource",
-      },
-    ],
-  },
+  // Loaders: How webpack processes different types of files
+  module: {
+    rules: [
+      {
+        test: /\.(js|jsx)$/,
+        exclude: /node_modules/,
+        use: {
+          loader: "babel-loader",
+        },
+      },
+      {
+        test: /\.css$/,
+        use: ["style-loader", "css-loader"],
+      },
+      {
+        test: /\.(png|svg|jpg|jpeg|gif)$/i,
+        type: "asset/resource",
+      },
+      {
+        test: /\.(woff|woff2|eot|ttf|otf)$/i,
+        type: "asset/resource",
+      },
+    ],
+  },
 
-  // Plugins: Extend Webpack's capabilities
-  plugins: [
-    new CleanWebpackPlugin(), // Clean the dist folder before every build
-    new HtmlWebpackPlugin({
-      template: "./src/index.html", // Base the output on this template
-      title: "Your Project Title", // Set your project's HTML title
-    }),
-  ],
+  // Plugins: Extend Webpack's capabilities
+  plugins: [
+    new CleanWebpackPlugin(), 
+    new HtmlWebpackPlugin({
+      template: "./src/index.html", 
+      title: "Your Project Title", 
+    }),
+  ],
 
-  // Resolve options for module resolution
-  resolve: {
-    extensions: [".js", ".jsx"], // Automatically resolve .js and .jsx extensions
-    fallback: {
-      //stream: require.resolve("browserify-stream"),
-
-      stream: require.resolve("stream-browserify"),
-      crypto: require.resolve("crypto-browserify"),
-      buffer: require.resolve("buffer"),
-      assert: require.resolve("assert"),
-      util: require.resolve("util"),
-      path: require.resolve("path-browserify"),
-      process: require.resolve("process"),
-      http: require.resolve("stream-http"),
-      https: require.resolve("https-browserify"),
-      os: require.resolve("os-browserify/browser"),
-      url: require.resolve("url"),
-    },
-  },
+  // Resolve options for module resolution
+  resolve: {
+    extensions: [".js", ".jsx"],
+    fallback: {
+      stream: require.resolve("stream-browserify"),
+      crypto: require.resolve("crypto-browserify"),
+      buffer: require.resolve("buffer"),
+      assert: require.resolve("assert"),
+      util: require.resolve("util"),
+      path: require.resolve("path-browserify"),
+      process: require.resolve("process"),
+      http: require.resolve("stream-http"),
+      // ✅ This line correctly maps 'https' to the browser polyfill.
+      https: require.resolve("https-browserify"), 
+      os: require.resolve("os-browserify/browser"),
+      url: require.resolve("url"),
+    },
+  },
 };
