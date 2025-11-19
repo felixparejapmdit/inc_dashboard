@@ -284,7 +284,7 @@ exports.getUserByUsername = async (req, res) => {
     // 1️⃣ Check Redis cache
     const cachedUser = await redisClient.get(cacheKey);
     if (cachedUser) {
-      console.log(`📦 Serving user ${username} from Redis cache`);
+      //console.log(`📦 Serving user ${username} from Redis cache`);
       return res.status(200).json(JSON.parse(cachedUser));
     }
 

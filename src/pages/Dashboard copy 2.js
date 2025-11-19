@@ -1211,7 +1211,7 @@ const AppCard1 = React.memo(function AppCard({
 });
 
 
-// Memoized AppCard for performance
+// Memoized AppCard to avoid unnecessary re-renders
 const AppCard = React.memo(function AppCard({
   app,
   colors,
@@ -1222,16 +1222,11 @@ const AppCard = React.memo(function AppCard({
   const isPhoneDirectory = app.name && app.extension;
   const { hasPermission } = usePermissionContext();
 
-  // Define fixed dimensions for the card container
-  const CARD_DIMENSIONS = {
-    // CRITICAL FIX: Ensure width is responsive but constrained
-    w: { base: "100%", sm: small ? "120px" : "200px" }, 
-    // CRITICAL FIX: Define fixed height for all cards
-    h: small ? "120px" : "200px", 
-  };
-  
-  // Define Icon/Avatar size
-  const ICON_SIZE = small ? "40px" : "70px";
+  // --- Unified fixed size for ALL cards ---
+  const CARD_WIDTH = small ? "140px" : "180px";
+  const CARD_HEIGHT = small ? "160px" : "220px";
+
+  const ICON_SIZE = small ? "45px" : "70px";
 
   const isClickable =
     !isFileData || (hasPermission("atgfile.view") && !isPhoneDirectory);
@@ -1239,134 +1234,140 @@ const AppCard = React.memo(function AppCard({
   const handleClick = (e) => {
     if (!isClickable) return;
     e.preventDefault();
-    if (handleAppClick) {
-      handleAppClick(app);
-    }
-    const targetUrl = app.url;
-    if (targetUrl) {
-      window.open(targetUrl, "_blank");
-    }
+
+    if (handleAppClick) handleAppClick(app);
+
+    if (app.url) window.open(app.url, "_blank");
   };
 
-  // Helper function for rendering the icon/avatar
+  // --- Render Avatar / Icons ---
   const renderIcon = () => {
-    // 1. Phone Directory/Personnel Avatar
     if (isPhoneDirectory) {
-        return (
-            <Image
-                src={
-                    app.avatar
-                        ? `${process.env.REACT_APP_API_URL}${app.avatar}`
-                        : "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
-                }
-                alt={app.name}
-                boxSize={ICON_SIZE}
-                borderRadius="full"
-                mb={small ? 1 : 2}
-                boxShadow="md"
-            />
-        );
-    } 
-    // 2. Thumbnail/Custom Icon/Default Icon (Unified Logic)
-    if (app.thumbnail_url || app.icon) {
-        const src = app.thumbnail_url || app.icon;
-        return (
-            <Image
-                src={src}
-                alt={app.name}
-                boxSize={ICON_SIZE}
-                borderRadius="full"
-                mb={small ? 1 : 2}
-                boxShadow="md"
-                border="2px solid"
-                borderColor={colors.cardBorder}
-            />
-        );
+      return (
+        <Image
+          src={
+            app.avatar
+              ? `${process.env.REACT_APP_API_URL}${app.avatar}`
+              : "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+          }
+          alt={app.name}
+          boxSize={ICON_SIZE}
+          borderRadius="full"
+          mb={2}
+          boxShadow="md"
+        />
+      );
     }
-    return <Icon as={FiFile} boxSize={small ? 8 : 10} color={colors.cardHeader} mb={small ? 1 : 2} />;
+
+    if (app.thumbnail_url) {
+      return (
+        <Box
+          w={ICON_SIZE}
+          h={ICON_SIZE}
+          overflow="hidden"
+          borderRadius="full"
+          boxShadow="md"
+          border="2px solid"
+          borderColor={colors.cardBorder}
+          mb={2}
+        >
+          <Image
+            src={app.thumbnail_url}
+            alt="File Thumbnail"
+            objectFit="cover"
+            w="100%"
+            h="100%"
+          />
+        </Box>
+      );
+    }
+
+    if (app.icon) {
+      return (
+        <Image
+          src={app.icon}
+          alt={`${app.name} Icon`}
+          boxSize={ICON_SIZE}
+          borderRadius="full"
+          mb={2}
+          boxShadow="md"
+          border="2px solid"
+          borderColor={colors.cardBorder}
+        />
+      );
+    }
+
+    return (
+      <Icon as={FiFile} boxSize={ICON_SIZE} color={colors.cardHeader} mb={2} />
+    );
   };
 
-
-  // --- Unified Card Container ---
-  const CardContainer = ({ children }) => (
+  // --- Unified Card Container (same for phone directory & regular apps) ---
+  return (
     <VStack
-      as="div"
       bg={colors.appBg}
       borderRadius="xl"
       border={`3px solid ${colors.cardBorder}`}
-      p={small ? 2 : 4}
-      spacing={small ? 1 : 2}
+      p={3}
+      spacing={2}
       boxShadow="md"
       align="center"
       textAlign="center"
-      justifyContent="center" // CRITICAL: Center content vertically
-      
-      // APPLY FIXED/MAX DIMENSIONS HERE
-      width={CARD_DIMENSIONS.w}
-      minHeight={CARD_DIMENSIONS.h} 
-      maxHeight={CARD_DIMENSIONS.h}
+      width={CARD_WIDTH}
+      height={CARD_HEIGHT}
       flexShrink={0}
-      
-      // Fixes the zoom loop issue
-      transition="transform 0.2s ease-out" 
-      
+      cursor={isClickable ? "pointer" : "default"}
+
+      // 🔥 smooth one-time hover effect
+      transition="transform 0.25s ease, box-shadow 0.25s ease"
       _hover={
         isClickable
-          ? { transform: "scale(1.02)", boxShadow: "xl" } 
+          ? { transform: "scale(1.04)", boxShadow: "xl" }
           : {}
       }
       onClick={handleClick}
-      cursor={isClickable ? "pointer" : "not-allowed"}
     >
-        {children}
-    </VStack>
-  );
-
-  
-  // --- Final Rendering ---
-  return (
-    <CardContainer>
-      
+      {/* Icon / Avatar */}
       {renderIcon()}
 
-      {/* Name and Primary Information */}
-      <VStack spacing={0} maxWidth="100%">
+      {/* Content */}
+      <VStack spacing={0} maxW="100%">
         <Text
           fontSize={small ? "sm" : "lg"}
           fontWeight="bold"
           color={colors.cardHeader}
           noOfLines={1}
-          title={app.name}
         >
           {app.name}
         </Text>
-        
-        {/* --- Phone Directory Details --- */}
+
+        {/* Phone Directory Additional Info */}
         {isPhoneDirectory && (
-            <VStack spacing={0} fontSize="xs" color={colors.cardText}>
-                {app.extension && (
-                    <Text>Ext: {app.extension}</Text>
-                )}
-                {app.dect_number && (
-                    <Text>DECT: {app.dect_number.trim() !== "" ? app.dect_number : "N/A"}</Text>
-                )}
-            </VStack>
+          <VStack spacing={0} fontSize="xs" color={colors.cardText}>
+            <Text>Ext: {app.extension || "N/A"}</Text>
+            <Text>DECT: {app.dect_number || "N/A"}</Text>
+          </VStack>
         )}
-        {/* --- File Data Details --- */}
+
+        {/* File Data */}
         {isFileData && hasPermission("atgfile.view") && (
-            <Text fontSize="xs" color="gray.600" mt={1} noOfLines={1}>
-              Code: {app.generated_code || 'N/A'}
-            </Text>
+          <Text fontSize="xs" color="gray.600" noOfLines={1}>
+            Code: {app.generated_code}
+          </Text>
         )}
-        
-        {/* --- App Description --- */}
-        {!isFileData && !isPhoneDirectory && !small && (
-          <Text fontSize="sm" color={colors.cardText} noOfLines={2} mt={1}>
+
+        {/* App Description */}
+        {!small && !isFileData && !isPhoneDirectory && (
+          <Text
+            mt={1}
+            fontSize="sm"
+            color={colors.cardText}
+            noOfLines={2}
+          >
             {app.description}
           </Text>
         )}
       </VStack>
-
-    </CardContainer>
+    </VStack>
   );
 });

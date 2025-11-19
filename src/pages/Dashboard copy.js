@@ -1,12 +1,4 @@
-import React, {
-  useEffect,
-  useState,
-  useMemo,
-  useRef,
-  useCallback,
-  Suspense,
-  lazy,
-} from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import {
   Box,
   Heading,
@@ -15,7 +7,7 @@ import {
   Text,
   Icon,
   useColorModeValue,
-  useColorMode,
+  useColorMode, // For dark/light mode toggle
   Divider,
   Button,
   Modal,
@@ -54,34 +46,31 @@ import {
   FiSearch,
   FiGrid,
   FiSun,
-  FiMoon,
-  FiExternalLink,
+  FiMoon, // For sun and moon icons (theme toggle)
 } from "react-icons/fi";
 
 import { useDisclosure } from "@chakra-ui/react";
 import { PopoverHeader, List } from "@chakra-ui/react";
+import Chatbot from "../components/Chatbot"; // Import chatbot
+import Tutorial from "../components/Tutorial";
 
 import { SearchIcon } from "@chakra-ui/icons";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
+//import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { getAuthHeaders } from "../utils/apiHeaders";
-import { fetchData } from "../utils/fetchData";
+import { getAuthHeaders } from "../utils/apiHeaders"; // adjust path as needed
+import axios from "axios";
+
+import { fetchData, postData, putData, deleteData } from "../utils/fetchData";
 import { usePermissionContext } from "../contexts/PermissionContext";
-import { useDebounce } from "use-debounce";
-
+import { useDebounce } from "use-debounce"; // npm install use-debounce
+// Use environment variable
 const API_URL = process.env.REACT_APP_API_URL;
-
-// Lazy-load heavy components
-const Tutorial = lazy(() => import("../components/Tutorial"));
-
-// Simple cache config for apps
-const APPS_CACHE_KEY = "categorizedApps";
-const APPS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 export default function Dashboard() {
   const [appTypes, setAppTypes] = useState([]);
 
-  const { hasPermission } = usePermissionContext();
+  const { hasPermission } = usePermissionContext(); // Correct usage
 
   const [recentApps, setRecentApps] = useState([]);
   const [categorizedApps, setCategorizedApps] = useState({});
@@ -96,7 +85,7 @@ export default function Dashboard() {
     localStorage.getItem("userFullName") || ""
   );
 
-  const [currentDate, setCurrentDate] = useState(() => new Date());
+  const [currentDate, setCurrentDateTime] = useState(new Date());
   const [error, setError] = useState("");
   const [updatedApp, setUpdatedApp] = useState({
     name: "",
@@ -104,43 +93,36 @@ export default function Dashboard() {
     url: "",
     icon: "",
   });
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearchQuery] = useDebounce(searchQuery, 300);
+  const [searchQuery, setSearchQuery] = useState(""); // Search input
+  // Debounced search query
+const [debouncedSearchQuery] = useDebounce(searchQuery, 300); // 300ms debounce
 
   const [currentUser, setCurrentUser] = useState({ name: "User" });
   const [pmdApplications, setPmdApplications] = useState([]);
   const [otherApplications, setOtherApplications] = useState([]);
 
-  const [hoveredEvent, setHoveredEvent] = useState(null);
-  const [hoveredReminder, setHoveredReminder] = useState(null);
-  const { colorMode, toggleColorMode } = useColorMode();
+  const [hoveredEvent, setHoveredEvent] = useState(null); // Hover state for events
+  const [hoveredReminder, setHoveredReminder] = useState(null); // Hover state for reminders
+  const { colorMode, toggleColorMode } = useColorMode(); // Color mode state
   const [notifications, setNotifications] = useState([]);
   const [filteredApps, setFilteredApps] = useState([]);
 
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Initialize useNavigate
 
+  // ✅ Detect if the screen is mobile-sized
   const [isMobileDragEnabled, setIsMobileDragEnabled] = useState(false);
 
   const [compactGreeting, setCompactGreeting] = useState(false);
   const lastScrollTop = useRef(0);
 
-  // Login audit state + lazy-load control
-  const [loginAudits, setLoginAudits] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showLogins, setShowLogins] = useState(false);
-  const [hasLoadedLogins, setHasLoadedLogins] = useState(false);
-
-  useEffect(() => {
-    // We only need the date (not a ticking clock), so just set it once
-    setCurrentDate(new Date());
-  }, []);
-
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.scrollY || document.documentElement.scrollTop;
       if (scrollTop > lastScrollTop.current && scrollTop > 10) {
+        // Scrolling down
         setCompactGreeting(true);
       } else if (scrollTop < lastScrollTop.current && scrollTop <= 10) {
+        // Scrolling up to top
         setCompactGreeting(false);
       }
       lastScrollTop.current = scrollTop <= 0 ? 0 : scrollTop;
@@ -193,18 +175,16 @@ export default function Dashboard() {
     );
   };
 
-  // Lazily fetch login audits when user expands the section
+  const [loginAudits, setLoginAudits] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+
   useEffect(() => {
-    if (!showLogins || hasLoadedLogins) return;
     fetchData(
       "login-audits/recent",
-      (data) => {
-        setLoginAudits(data);
-        setHasLoadedLogins(true);
-      },
+      (data) => setLoginAudits(data),
       (error) => console.error("Failed to fetch login audits:", error)
     );
-  }, [showLogins, hasLoadedLogins]);
+  }, []);
 
   // Filter audits by username based on search term (case-insensitive)
   const filteredAudits = useMemo(() => {
@@ -214,35 +194,74 @@ export default function Dashboard() {
     );
   }, [loginAudits, searchTerm]);
 
-  // Search handler: use debounced query to filter apps
-  useEffect(() => {
-    if (!debouncedSearchQuery.trim()) {
-      setFilteredApps([]);
+  const handleSearch = (e) => {
+    const query = e.target.value.toLowerCase();
+    setSearchQuery(query);
+
+    if (!query.trim()) {
+      setFilteredApps([]); // Reset if empty
       return;
     }
 
     const filtered = [];
-    const query = debouncedSearchQuery.toLowerCase();
-
-    Object.values(categorizedApps).forEach((appsArray) => {
-      appsArray.forEach((app) => {
-        const nameMatch = app.name?.toLowerCase().includes(query);
-        const codeMatch = app.generated_code?.toLowerCase().includes(query);
-        const phoneMatch = app.extension?.toLowerCase().includes(query);
-
-        if (nameMatch || codeMatch || phoneMatch) filtered.push(app);
+    // Ensure you're filtering both Apps and Files correctly
+    for (const category in categorizedApps) {
+      const matchingApps = categorizedApps[category].filter((app) => {
+        const nameMatch = app.name && app.name.toLowerCase().includes(query); // Check if name exists
+        const codeMatch =
+          app.generated_code &&
+          app.generated_code.toLowerCase().includes(query); // Search in generated_code
+        const phoneMatch =
+          app.extension && app.extension.toLowerCase().includes(query);
+        return nameMatch || codeMatch || phoneMatch;
       });
-    });
+      if (matchingApps.length > 0) {
+        filtered.push(...matchingApps); // Combine matching results
+      }
+    }
 
     setFilteredApps(filtered);
-  }, [debouncedSearchQuery, categorizedApps]);
-
-  const handleSearchInput = (e) => {
-    setSearchQuery(e.target.value);
   };
 
+  // -------------------- SEARCH HANDLER --------------------
+useEffect(() => {
+  if (!debouncedSearchQuery.trim()) {
+    setFilteredApps([]);
+    return;
+  }
+
+  const filtered = [];
+
+  // Efficiently filter apps across all categories
+  Object.values(categorizedApps).forEach((appsArray) => {
+    appsArray.forEach((app) => {
+      const query = debouncedSearchQuery.toLowerCase();
+      const nameMatch = app.name?.toLowerCase().includes(query);
+      const codeMatch = app.generated_code?.toLowerCase().includes(query);
+      const phoneMatch = app.extension?.toLowerCase().includes(query);
+
+      if (nameMatch || codeMatch || phoneMatch) filtered.push(app);
+    });
+  });
+
+  setFilteredApps(filtered);
+}, [debouncedSearchQuery, categorizedApps]);
+
+// -------------------- SEARCH INPUT --------------------
+const handleSearchInput = (e) => {
+  setSearchQuery(e.target.value);
+};
+
   useEffect(() => {
-    const username = localStorage.getItem("username");
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer); // Cleanup the interval on unmount
+  }, []);
+
+  useEffect(() => {
+    const username = localStorage.getItem("username"); // Retrieve username
+    //console.log("Username retrieved from localStorage:", username);
 
     if (!username) {
       console.error("Username not found in localStorage");
@@ -250,7 +269,6 @@ export default function Dashboard() {
       return;
     }
 
-    // Non-critical data can stay, or be lazy-loaded later the same way as login audits
     fetchData("events", setEvents, (err) =>
       console.error("Error fetching events:", err)
     );
@@ -259,6 +277,7 @@ export default function Dashboard() {
       console.error("Error fetching reminders:", err)
     );
 
+    // Fetch logged-in user and available apps using username
     const url = `${API_URL}/api/users/logged-in?username=${encodeURIComponent(
       username
     )}`;
@@ -276,16 +295,21 @@ export default function Dashboard() {
         }
         return response.json();
       })
+
       .then((user) => {
+        //console.log("Fetched User Data:", user); // Log entire user data
+
         if (user && (user.ID || user.id)) {
+          // Set user data in state
           setCurrentUser({
             id: user.ID || user.id,
             username: user.username,
-            fullName: user.name || `${user.firstName} ${user.lastName}`,
-            email: user.email || "",
-            avatar: user.avatar || "",
+            fullName: user.name || `${user.firstName} ${user.lastName}`, // Handle full name from user object
+            email: user.email || "", // Optional: fallback to empty string
+            avatar: user.avatar || "", // Optional: fallback to empty string
           });
 
+          // Set available apps from user data
           setAvailableApps(user.availableApps || []);
           setUserFullName(user.name || `${user.firstName} ${user.lastName}`);
         } else {
@@ -296,7 +320,7 @@ export default function Dashboard() {
         console.error("Error fetching logged-in user data:", error);
         setError("Unable to fetch user data. Please check your connection.");
       });
-  }, []);
+  }, []); // Empty dependency array to run once on component mount
 
   useEffect(() => {
     fetchApplicationTypes();
@@ -306,8 +330,9 @@ export default function Dashboard() {
     if (currentUser && currentUser.id) {
       fetchApplications();
     }
-  }, [currentUser]);
+  }, [currentUser]); // Run when `currentUser` updates
 
+  
   useEffect(() => {
     const storedRecentApps =
       JSON.parse(localStorage.getItem("recentApps")) || [];
@@ -321,65 +346,98 @@ export default function Dashboard() {
       });
       if (!response.ok) throw new Error("Failed to fetch application types");
       const data = await response.json();
-      setAppTypes(data);
+      setAppTypes(data); // Store fetched app types dynamically
     } catch (error) {
       console.error("Error fetching application types:", error);
     }
   };
 
-  // Fetch applications with caching + TTL
-  const fetchApplications = async () => {
+  const fetchApplications1 = async () => {
+
+    // CRITICAL FIX: Guard clause to prevent undefined header value
+    if (!currentUser.id) {
+      console.warn("Skipping fetchApplications: User ID is not yet defined.");
+      return;
+    }
+
     try {
-      const cacheRaw = localStorage.getItem(APPS_CACHE_KEY);
-      if (cacheRaw) {
-        try {
-          const { data, ts } = JSON.parse(cacheRaw);
-          if (data) {
-            // Show cached data immediately
-            setCategorizedApps(data);
-          }
-          if (ts && Date.now() - ts < APPS_CACHE_TTL) {
-            // Fresh enough, skip network
-            return;
-          }
-        } catch (e) {
-          console.warn("Invalid apps cache, ignoring", e);
-        }
-      }
-
-      if (!currentUser.id) {
-        console.warn("Skipping fetchApplications: User ID not defined yet");
-        return;
-      }
-
+   
       const response = await fetch(`${API_URL}/api/apps/available`, {
         headers: {
           "Content-Type": "application/json",
-          "x-user-id": currentUser.id,
+          "x-user-id": 46,
         },
       });
+
+      console.log("Current user ID:", currentUser?.id);
 
       if (!response.ok)
         throw new Error(`Failed to fetch apps: ${response.statusText}`);
 
       const data = await response.json();
+      //console.log("Fetched Apps Data:", data); // Log the data to ensure it's coming through
 
-      const categorized = {};
+      // Initialize an empty object for categorized apps
+      let categorizedApps = {};
+
+      // Iterate over each category in the fetched data
       for (const category in data) {
         if (data.hasOwnProperty(category)) {
-          categorized[category] = data[category];
+          // Initialize the category in categorizedApps if it doesn't exist
+          categorizedApps[category] = data[category];
         }
       }
 
-      setCategorizedApps(categorized);
-      localStorage.setItem(
-        APPS_CACHE_KEY,
-        JSON.stringify({ data: categorized, ts: Date.now() })
-      );
+      // Update the categorizedApps state
+      setCategorizedApps(categorizedApps);
     } catch (error) {
       console.error("Error fetching apps:", error);
     }
   };
+
+  // -------------------- FETCH APPLICATIONS --------------------
+const fetchApplications = async () => {
+  try {
+    // Use cached apps if available in localStorage
+    const cachedApps = localStorage.getItem("categorizedApps");
+    if (cachedApps) {
+      setCategorizedApps(JSON.parse(cachedApps));
+      return;
+    }
+
+    if (!currentUser.id) {
+      console.warn("Skipping fetchApplications: User ID not defined yet");
+      return;
+    }
+
+    const response = await fetch(`${API_URL}/api/apps/available`, {
+      headers: {
+        "Content-Type": "application/json",
+        "x-user-id": currentUser.id, // use actual user ID
+      },
+    });
+
+    if (!response.ok)
+      throw new Error(`Failed to fetch apps: ${response.statusText}`);
+
+    const data = await response.json();
+
+    // Categorize apps
+    const categorized = {};
+    for (const category in data) {
+      if (data.hasOwnProperty(category)) {
+        categorized[category] = data[category];
+      }
+    }
+
+    setCategorizedApps(categorized);
+
+    // Cache the categorized apps in localStorage
+    localStorage.setItem("categorizedApps", JSON.stringify(categorized));
+  } catch (error) {
+    console.error("Error fetching apps:", error);
+  }
+};
 
   const handleSettingsClick = (app) => {
     setSelectedApp(app);
@@ -395,6 +453,7 @@ export default function Dashboard() {
   const handleSaveChanges = (e) => {
     e.preventDefault();
 
+    // Check if all required fields are present before proceeding
     if (!updatedApp.name || !updatedApp.url) {
       console.error("Name and URL fields are required.");
       return;
@@ -402,16 +461,18 @@ export default function Dashboard() {
 
     const updatedAppData = { ...selectedApp, ...updatedApp };
 
+    // Update the app immediately in the UI for feedback
     setApps((prevApps) =>
       prevApps.map((app) => (app.id === selectedApp.id ? updatedAppData : app))
     );
 
+    // Send the updated data to the backend
     fetch(`${API_URL}/api/apps/${selectedApp.id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(updatedAppData),
+      body: JSON.stringify(updatedAppData), // Send all fields, ensuring no fields are missed
     })
       .then((response) => {
         if (!response.ok) {
@@ -422,6 +483,7 @@ export default function Dashboard() {
       .then((data) => {
         const updatedAppFromAPI = data.app;
 
+        // Confirm the update in the UI with the backend response
         setApps((prevApps) =>
           prevApps.map((app) =>
             app.id === updatedAppFromAPI.id ? updatedAppFromAPI : app
@@ -429,7 +491,7 @@ export default function Dashboard() {
         );
 
         setStatus(`App "${updatedApp.name}" updated successfully.`);
-        onClose();
+        onClose(); // Close the modal after updating state
       })
       .catch((error) => {
         console.error("Error updating app:", error);
@@ -437,30 +499,40 @@ export default function Dashboard() {
       });
   };
 
-  // Time-based greeting using state instead of extra localStorage read
+  // Get the current time and greet the user accordingly
   const getTimeBasedGreeting = () => {
-    const name = userFullName || "User";
+    const userFullName = localStorage.getItem("userFullName") || "User"; // Retrieve full name from localStorage or use "User" as fallback
     const hour = new Date().getHours();
-    if (hour < 12) return `Good morning, ${name}`;
-    if (hour < 18) return `Good afternoon, ${name}`;
-    return `Good evening, ${name}`;
+    if (hour < 12) return `Good morning, ${userFullName}`;
+    if (hour < 18) return `Good afternoon, ${userFullName}`;
+    return `Good evening, ${userFullName}`;
   };
 
-  const handleAppClick = useCallback((app) => {
+  const handleAppClick = (app) => {
+    //console.log("App Clicked:", app.name);
+
+    // Retrieve stored recently opened apps
     const storedRecentApps =
       JSON.parse(localStorage.getItem("recentApps")) || [];
 
+    // Add the clicked app to the front of the list (avoid duplicates)
     const updatedRecentApps = [
       app,
       ...storedRecentApps.filter((a) => a.id !== app.id),
     ].slice(0, 5);
 
+    // Save updated list to local storage
     localStorage.setItem("recentApps", JSON.stringify(updatedRecentApps));
+
+    // Update state
     setRecentApps(updatedRecentApps);
-  }, []);
+  };
+
+  // 🟢 Dynamic column count for responsiveness
+  const columns = useBreakpointValue({ base: 1, sm: 1, md: 3, lg: 3, xl: 5 });
 
   const handleDragEnd = (result, type) => {
-    if (!result.destination || isMobile) return;
+    if (!result.destination || isMobile) return; // ✅ Disable drag on mobile
 
     const reorderedApps = [...categorizedApps[type]];
     const [movedApp] = reorderedApps.splice(result.source.index, 1);
@@ -491,12 +563,18 @@ export default function Dashboard() {
           transition="all 0.4s ease"
           flexWrap="wrap"
         >
-          {/* Tutorial (lazy-loaded) */}
-          <Suspense fallback={null}>
-            <Tutorial />
-          </Suspense>
-
+          {/* <Button
+            onClick={() => {
+              localStorage.removeItem("hasSeenTutorial");
+              window.location.reload();
+            }}
+          >
+            Reset Tutorial
+          </Button> */}
+          {/* ✅ Tutorial overlay always rendered once (if not seen yet) */}
+          <Tutorial />
           {compactGreeting ? (
+            // 👉 Compact greeting beside search input
             <>
               <Input
                 placeholder="Search"
@@ -529,6 +607,7 @@ export default function Dashboard() {
               </Box>
             </>
           ) : (
+            // 👉 Full greeting below search input
             <VStack
               spacing={4}
               align="start"
@@ -576,7 +655,7 @@ export default function Dashboard() {
             </VStack>
           )}
 
-          {/* Mode toggle & bell (currently hidden with display="none") */}
+          {/* Mode toggle & bell */}
           <IconButton
             icon={colorMode === "light" ? <FiMoon /> : <FiSun />}
             onClick={toggleColorMode}
@@ -635,18 +714,34 @@ export default function Dashboard() {
           </SimpleGrid>
         </Box>
       )}
-
+      {/* Dynamically Render Applications Based on Application Types */}
+      {/* {appTypes.map((type) => (
+        <Box key={type.id} mt={6}>
+          <Heading as="h2" size="lg" mb={4} display="flex" alignItems="center">
+            <FiGrid style={{ marginRight: "8px", color: "#F3C847" }} />
+            {type.name}
+          </Heading>
+          <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing={6}>
+            {categorizedApps[type.name] &&
+              categorizedApps[type.name].map((app) => (
+                <AppCard
+                  key={app.id}
+                  app={app}
+                  colors={colors}
+                  handleAppClick={handleAppClick}
+                />
+              ))}
+          </SimpleGrid>
+        </Box>
+      ))} */}
       <>
-        {/* Search Results vs Categorized Apps */}
+        {/* ✅ Show Search Results If Search Query Exists */}
         {searchQuery && filteredApps.length > 0 ? (
           <Box mt={6}>
             <Heading as="h2" size="lg" mb={4} color="gray.700">
               Search Results
             </Heading>
-            <SimpleGrid
-              columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
-              spacing={6}
-            >
+            <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing={6}>
               {filteredApps.map((app) => (
                 <AppCard
                   key={app.id}
@@ -669,7 +764,7 @@ export default function Dashboard() {
                 }}
               >
                 {appTypes.map((type) => {
-                  const appsForType = categorizedApps[type.name] || [];
+                  const apps = categorizedApps[type.name] || [];
                   return (
                     <Box key={type.id} mt={6}>
                       <Heading
@@ -685,7 +780,7 @@ export default function Dashboard() {
                         {type.name}
                       </Heading>
 
-                      {appsForType.length > 0 ? (
+                      {apps.length > 0 ? (
                         <Droppable
                           droppableId={type.name}
                           direction="horizontal"
@@ -697,7 +792,7 @@ export default function Dashboard() {
                               ref={provided.innerRef}
                               {...provided.droppableProps}
                             >
-                              {appsForType.map((app, index) => (
+                              {apps.map((app, index) => (
                                 <Draggable
                                   key={app.id}
                                   draggableId={app.id.toString()}
@@ -739,7 +834,7 @@ export default function Dashboard() {
                 </Text>
 
                 {appTypes.map((type) => {
-                  const appsForType = categorizedApps[type.name] || [];
+                  const apps = categorizedApps[type.name] || [];
                   return (
                     <Box key={type.id} mt={6}>
                       <Heading
@@ -755,12 +850,12 @@ export default function Dashboard() {
                         {type.name}
                       </Heading>
 
-                      {appsForType.length > 0 ? (
+                      {apps.length > 0 ? (
                         <SimpleGrid
                           columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
                           spacing={6}
                         >
-                          {appsForType.map((app) => (
+                          {apps.map((app) => (
                             <AppCard
                               key={app.id}
                               app={app}
@@ -783,167 +878,157 @@ export default function Dashboard() {
         )}
       </>
 
-      {/* Recent Login Logs Section (lazy-loaded) */}
+      {/* Recent Login Logs Section */}
       {hasPermission("home.recent_activity") && (
         <Box mt={6} mx="auto" px={{ base: 4, md: 8 }} width="100%" maxW="100%">
-          <HStack justify="space-between" align="center" mb={4}>
-            <Heading
-              as="h4"
-              size={{ base: "md", md: "lg" }}
-              bgGradient="linear(to-r, orange.400, yellow.300)"
-              bgClip="text"
-              fontWeight="extrabold"
-              userSelect="none"
-            >
-              Recent Login Activity
-            </Heading>
-            <Button
-              size="sm"
-              colorScheme="orange"
-              variant="outline"
-              onClick={() => setShowLogins((v) => !v)}
-            >
-              {showLogins ? "Hide" : "Show"} Recent Activity
-            </Button>
-          </HStack>
+          <Heading
+            as="h4"
+            size={{ base: "md", md: "lg" }}
+            mb={4}
+            bgGradient="linear(to-r, orange.400, yellow.300)"
+            bgClip="text"
+            fontWeight="extrabold"
+            userSelect="none"
+          >
+            Recent Login Activity
+          </Heading>
 
-          {showLogins && (
-            <>
-              <InputGroup mb={6} maxW={{ base: "100%", sm: "320px" }}>
-                <InputLeftElement pointerEvents="none">
-                  <SearchIcon color="gray.400" />
-                </InputLeftElement>
-                <Input
-                  type="text"
-                  placeholder="Search by username..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  _focus={{
-                    borderColor: "orange.400",
-                    boxShadow: "0 0 0 2px #ED8936",
-                  }}
-                  bg="white"
-                  borderRadius="md"
-                  boxShadow="sm"
-                  fontSize={{ base: "sm", md: "md" }}
-                  width="100%"
-                />
-              </InputGroup>
+          {/* Search bar */}
+          <InputGroup mb={6} maxW={{ base: "100%", sm: "320px" }}>
+            <InputLeftElement pointerEvents="none">
+              <SearchIcon color="gray.400" />
+            </InputLeftElement>
+            <Input
+              type="text"
+              placeholder="Search by username..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              _focus={{
+                borderColor: "orange.400",
+                boxShadow: "0 0 0 2px #ED8936",
+              }}
+              bg="white"
+              borderRadius="md"
+              boxShadow="sm"
+              fontSize={{ base: "sm", md: "md" }}
+              width="100%"
+            />
+          </InputGroup>
 
-              <Box
-                bg="white"
-                borderRadius="xl"
-                boxShadow="xl"
-                overflowX="auto"
-                p={{ base: 4, md: 6 }}
-                maxH="300px"
+          <Box
+            bg="white"
+            borderRadius="xl"
+            boxShadow="xl"
+            overflowX="auto"
+            p={{ base: 4, md: 6 }}
+            maxH="300px"
+          >
+            {filteredAudits.length === 0 ? (
+              <Text
+                color="gray.500"
+                textAlign="center"
+                py={10}
+                fontSize={{ base: "sm", md: "md" }}
               >
-                {filteredAudits.length === 0 ? (
-                  <Text
-                    color="gray.500"
-                    textAlign="center"
-                    py={10}
-                    fontSize={{ base: "sm", md: "md" }}
-                  >
-                    No login records found.
-                  </Text>
-                ) : (
-                  <Table
-                    variant="unstyled"
-                    size="sm"
-                    minWidth="700px"
-                    sx={{
-                      "thead tr": {
-                        backgroundColor: "orange.400",
-                      },
-                      "thead th": {
-                        color: "white",
-                        fontWeight: "bold",
-                        borderBottom: "none",
-                        userSelect: "none",
-                        position: "sticky",
-                        top: -7,
-                        zIndex: 10,
-                        px: { base: 3, md: 6 },
-                        py: { base: 2, md: 3 },
-                        fontSize: { base: "xs", md: "sm" },
-                        whiteSpace: "nowrap",
-                        backgroundColor: "orange.400",
-                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.06)",
-                      },
-                      "tbody tr": {
-                        bg: "white",
-                        transition: "background-color 0.3s ease",
-                      },
-                      "tbody tr:hover": {
-                        bg: "gray.50",
-                        cursor: "pointer",
-                      },
-                      "tbody td": {
-                        px: { base: 3, md: 6 },
-                        py: { base: 2, md: 3 },
-                        borderBottom: "1px solid #E2E8F0",
-                        color: "gray.700",
-                        fontSize: { base: "xs", md: "sm" },
-                        whiteSpace: "nowrap",
-                      },
-                    }}
-                  >
-                    <Thead>
-                      <Tr>
-                        <Th>#</Th>
-                        <Th>User</Th>
-                        <Th>Device</Th>
-                        <Th>OS</Th>
-                        <Th>Browser</Th>
-                        <Th>Date</Th>
-                      </Tr>
-                    </Thead>
-                    <Tbody>
-                      {filteredAudits.map((log, idx) => (
-                        <Tr key={log.id || idx}>
-                          <Td
-                            fontWeight="semibold"
-                            color="gray.600"
-                            whiteSpace="nowrap"
-                            fontSize={{ base: "xs", md: "sm" }}
-                          >
-                            {idx + 1}
-                          </Td>
-                          <Td>{log.user?.username || "—"}</Td>
-                          <Td>{log.device || "—"}</Td>
-                          <Td>{log.os || "—"}</Td>
-                          <Td>{log.browser || "—"}</Td>
-                          <Td>
-                            {log.login_time
-                              ? new Date(
-                                  log.login_time
-                                ).toLocaleDateString("en-US", {
-                                  year: "numeric",
-                                  month: "short",
-                                  day: "numeric",
-                                }) +
-                                " " +
-                                new Date(log.login_time)
-                                  .toLocaleTimeString("en-US", {
-                                    hour: "numeric",
-                                    minute: "2-digit",
-                                    hour12: true,
-                                  })
-                                  .toLowerCase()
-                              : "—"}
-                          </Td>
-                        </Tr>
-                      ))}
-                    </Tbody>
-                  </Table>
-                )}
-              </Box>
-            </>
-          )}
+                No login records found.
+              </Text>
+            ) : (
+              <Table
+                variant="unstyled"
+                size="sm"
+                minWidth="700px" // ensure table can scroll horizontally if needed
+                sx={{
+                  "thead tr": {
+                    // remove this if you're setting background on each <th> instead
+                    // otherwise, you can keep it for fallback
+                    backgroundColor: "orange.400",
+                  },
+                  "thead th": {
+                    color: "white",
+                    fontWeight: "bold",
+                    borderBottom: "none",
+                    userSelect: "none",
+                    position: "sticky",
+                    top: -7,
+                    zIndex: 10, // ensure it's above rows
+                    px: { base: 3, md: 6 },
+                    py: { base: 2, md: 3 },
+                    fontSize: { base: "xs", md: "sm" },
+                    whiteSpace: "nowrap",
+                    backgroundColor: "orange.400", // key fix
+                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.06)", // optional visual separation
+                  },
+                  "tbody tr": {
+                    bg: "white",
+                    transition: "background-color 0.3s ease",
+                  },
+                  "tbody tr:hover": {
+                    bg: "gray.50",
+                    cursor: "pointer",
+                  },
+                  "tbody td": {
+                    px: { base: 3, md: 6 },
+                    py: { base: 2, md: 3 },
+                    borderBottom: "1px solid #E2E8F0",
+                    color: "gray.700",
+                    fontSize: { base: "xs", md: "sm" },
+                    whiteSpace: "nowrap",
+                  },
+                }}
+              >
+                <Thead>
+                  <Tr>
+                    <Th>#</Th>
+                    <Th>User</Th>
+                    <Th>Device</Th>
+                    <Th>OS</Th>
+                    <Th>Browser</Th>
+                    <Th>Date</Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {filteredAudits.map((log, idx) => (
+                    <Tr key={log.id || idx}>
+                      <Td
+                        fontWeight="semibold"
+                        color="gray.600"
+                        whiteSpace="nowrap"
+                        fontSize={{ base: "xs", md: "sm" }}
+                      >
+                        {idx + 1}
+                      </Td>
+                      <Td>{log.user?.username || "—"}</Td>
+                      <Td>{log.device || "—"}</Td>
+                      <Td>{log.os || "—"}</Td>
+                      <Td>{log.browser || "—"}</Td>
+                      <Td>
+                        {log.login_time
+                          ? new Date(log.login_time).toLocaleDateString(
+                              "en-US",
+                              {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              }
+                            ) +
+                            " " +
+                            new Date(log.login_time)
+                              .toLocaleTimeString("en-US", {
+                                hour: "numeric",
+                                minute: "2-digit",
+                                hour12: true,
+                              })
+                              .toLowerCase()
+                          : "—"}
+                      </Td>
+                    </Tr>
+                  ))}
+                </Tbody>
+              </Table>
+            )}
+          </Box>
         </Box>
       )}
-
       {/* Modal for App Info */}
       {selectedApp && (
         <Modal isOpen={isOpen} onClose={onClose}>
@@ -994,8 +1079,6 @@ export default function Dashboard() {
                   type="file"
                   accept="image/*"
                   onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
                     const reader = new FileReader();
                     reader.onloadend = () => {
                       setUpdatedApp((prev) => ({
@@ -1003,7 +1086,7 @@ export default function Dashboard() {
                         icon: reader.result,
                       }));
                     };
-                    reader.readAsDataURL(file);
+                    reader.readAsDataURL(e.target.files[0]);
                   }}
                   mb={4}
                 />
@@ -1021,14 +1104,7 @@ export default function Dashboard() {
     </Box>
   );
 }
-
-// Memoized AppCard to avoid unnecessary re-renders
-const AppCard1 = React.memo(function AppCard({
-  app,
-  colors,
-  handleAppClick,
-  small,
-}) {
+const AppCard = ({ app, colors, handleAppClick, small }) => {
   const isFileData = app.generated_code && app.filename;
   const isPhoneDirectory = app.name && app.extension;
   const { hasPermission } = usePermissionContext();
@@ -1077,31 +1153,58 @@ const AppCard1 = React.memo(function AppCard({
           borderRadius="full"
           mb={3}
           boxShadow="md"
+          border="2px solid"
+          cursor={app.personnel_id ? "pointer" : "default"}
+          borderColor={colors.cardBorder}
+          onClick={() =>
+            window.open(`/personnel-preview/${app.personnel_id}`, "_blank")
+          }
         />
       </Box>
 
-      {/* Name & Extension */}
-      <VStack spacing={1}>
+      {/* Name & Phone Info */}
+      <Box
+        textAlign="center"
+        cursor={app.personnel_id ? "pointer" : "default"}
+        onClick={() =>
+          window.open(`/personnel-preview/${app.personnel_id}`, "_blank")
+        }
+      >
         <Text
-          fontSize={small ? "sm" : "lg"}
+          fontSize={small ? "10px" : "xl"}
           fontWeight="bold"
           color={colors.cardHeader}
+          mb={1}
         >
           {app.name}
         </Text>
-        <Text fontSize="sm" color={colors.cardText}>
-          <strong>Extension:</strong>{" "}
-          {app.extension && app.extension.trim() !== ""
-            ? app.extension
-            : "N/A"}
+
+        <Text fontSize="sm" color={colors.cardText} mb={1}>
+          <strong>Phone Name:</strong> {app.phone_name}
         </Text>
+
+        {(app.prefix || app.extension) && (
+          <HStack spacing={2} justify="center" mb={1}>
+            {app.prefix && (
+              <Text fontSize="sm" color={colors.cardText}>
+                <strong>Prefix:</strong> {app.prefix}
+              </Text>
+            )}
+            {app.extension && (
+              <Text fontSize="sm" color={colors.cardText}>
+                <strong>Ext:</strong> {app.extension}
+              </Text>
+            )}
+          </HStack>
+        )}
+
         <Text fontSize="sm" color={colors.cardText}>
-          <strong>DECT:</strong>{" "}
+          <strong>DECT:</strong>
           {app.dect_number && app.dect_number.trim() !== ""
             ? app.dect_number
             : "N/A"}
         </Text>
-      </VStack>
+      </Box>
     </VStack>
   ) : (
     // Regular App Layout
@@ -1184,6 +1287,7 @@ const AppCard1 = React.memo(function AppCard({
               alignItems="center"
               gap={4}
             >
+              {/* File info */}
               <Box>
                 <Text fontSize="md" fontWeight="bold" color={colors.cardText}>
                   {app.filename}
@@ -1200,6 +1304,7 @@ const AppCard1 = React.memo(function AppCard({
           )
         ) : null}
 
+        {/* App description */}
         {!small && !isFileData && (
           <Text fontSize="sm" color={colors.cardText}>
             {app.description}
@@ -1208,165 +1313,4 @@ const AppCard1 = React.memo(function AppCard({
       </Box>
     </VStack>
   );
-});
-
-
-// Memoized AppCard for performance
-const AppCard = React.memo(function AppCard({
-  app,
-  colors,
-  handleAppClick,
-  small = false,
-}) {
-  const isFileData = app.generated_code && app.filename;
-  const isPhoneDirectory = app.name && app.extension;
-  const { hasPermission } = usePermissionContext();
-
-  // Define fixed dimensions for the card container
-  const CARD_DIMENSIONS = {
-    // CRITICAL FIX: Ensure width is responsive but constrained
-    w: { base: "100%", sm: small ? "120px" : "200px" }, 
-    // CRITICAL FIX: Define fixed height for all cards
-    h: small ? "120px" : "200px", 
-  };
-  
-  // Define Icon/Avatar size
-  const ICON_SIZE = small ? "40px" : "70px";
-
-  const isClickable =
-    !isFileData || (hasPermission("atgfile.view") && !isPhoneDirectory);
-
-  const handleClick = (e) => {
-    if (!isClickable) return;
-    e.preventDefault();
-    if (handleAppClick) {
-      handleAppClick(app);
-    }
-    const targetUrl = app.url;
-    if (targetUrl) {
-      window.open(targetUrl, "_blank");
-    }
-  };
-
-  // Helper function for rendering the icon/avatar
-  const renderIcon = () => {
-    // 1. Phone Directory/Personnel Avatar
-    if (isPhoneDirectory) {
-        return (
-            <Image
-                src={
-                    app.avatar
-                        ? `${process.env.REACT_APP_API_URL}${app.avatar}`
-                        : "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
-                }
-                alt={app.name}
-                boxSize={ICON_SIZE}
-                borderRadius="full"
-                mb={small ? 1 : 2}
-                boxShadow="md"
-            />
-        );
-    } 
-    // 2. Thumbnail/Custom Icon/Default Icon (Unified Logic)
-    if (app.thumbnail_url || app.icon) {
-        const src = app.thumbnail_url || app.icon;
-        return (
-            <Image
-                src={src}
-                alt={app.name}
-                boxSize={ICON_SIZE}
-                borderRadius="full"
-                mb={small ? 1 : 2}
-                boxShadow="md"
-                border="2px solid"
-                borderColor={colors.cardBorder}
-            />
-        );
-    }
-    return <Icon as={FiFile} boxSize={small ? 8 : 10} color={colors.cardHeader} mb={small ? 1 : 2} />;
-  };
-
-
-  // --- Unified Card Container ---
-  const CardContainer = ({ children }) => (
-    <VStack
-      as="div"
-      bg={colors.appBg}
-      borderRadius="xl"
-      border={`3px solid ${colors.cardBorder}`}
-      p={small ? 2 : 4}
-      spacing={small ? 1 : 2}
-      boxShadow="md"
-      align="center"
-      textAlign="center"
-      justifyContent="center" // CRITICAL: Center content vertically
-      
-      // APPLY FIXED/MAX DIMENSIONS HERE
-      width={CARD_DIMENSIONS.w}
-      minHeight={CARD_DIMENSIONS.h} 
-      maxHeight={CARD_DIMENSIONS.h}
-      flexShrink={0}
-      
-      // Fixes the zoom loop issue
-      transition="transform 0.2s ease-out" 
-      
-      _hover={
-        isClickable
-          ? { transform: "scale(1.02)", boxShadow: "xl" } 
-          : {}
-      }
-      onClick={handleClick}
-      cursor={isClickable ? "pointer" : "not-allowed"}
-    >
-        {children}
-    </VStack>
-  );
-
-  
-  // --- Final Rendering ---
-  return (
-    <CardContainer>
-      
-      {renderIcon()}
-
-      {/* Name and Primary Information */}
-      <VStack spacing={0} maxWidth="100%">
-        <Text
-          fontSize={small ? "sm" : "lg"}
-          fontWeight="bold"
-          color={colors.cardHeader}
-          noOfLines={1}
-          title={app.name}
-        >
-          {app.name}
-        </Text>
-        
-        {/* --- Phone Directory Details --- */}
-        {isPhoneDirectory && (
-            <VStack spacing={0} fontSize="xs" color={colors.cardText}>
-                {app.extension && (
-                    <Text>Ext: {app.extension}</Text>
-                )}
-                {app.dect_number && (
-                    <Text>DECT: {app.dect_number.trim() !== "" ? app.dect_number : "N/A"}</Text>
-                )}
-            </VStack>
-        )}
-        {/* --- File Data Details --- */}
-        {isFileData && hasPermission("atgfile.view") && (
-            <Text fontSize="xs" color="gray.600" mt={1} noOfLines={1}>
-              Code: {app.generated_code || 'N/A'}
-            </Text>
-        )}
-        
-        {/* --- App Description --- */}
-        {!isFileData && !isPhoneDirectory && !small && (
-          <Text fontSize="sm" color={colors.cardText} noOfLines={2} mt={1}>
-            {app.description}
-          </Text>
-        )}
-      </VStack>
-
-    </CardContainer>
-  );
-});
+};
