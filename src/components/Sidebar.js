@@ -293,6 +293,13 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
               onClick={() => navigate("/inv-dashboard")}
             />
 
+   <SidebarItem
+              data-tour="atg_dashboard"
+              icon={FiBarChart2}
+              label="ATG Dashboard"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/atg-dashboard")}
+            />
           <SidebarItem
             data-tour="profile-settings"
             icon={FiUser}

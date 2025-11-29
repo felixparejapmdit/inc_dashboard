@@ -85,6 +85,7 @@ import Maintenance from "./pages/Maintenance";
 import PersonnelStatistics from "./components/PersonnelStatistics";
 
 import InventoryDashboard from "./pages/InventoryDashboard.js";
+import ATGDashboard from "./pages/ATG Dashboard.js";
 
 // Plugins
 import LokalProfile from "./pages/LokalProfile.js";
@@ -219,6 +220,20 @@ function MainApp() {
               }}
             >
               <InventoryDashboard />
+            </Layout>
+          }
+        />
+
+           <Route
+          path="/atg-dashboard"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <ATGDashboard />
             </Layout>
           }
         />
