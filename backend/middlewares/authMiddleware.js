@@ -14,7 +14,7 @@ const verifyToken = (req, res, next) => {
     req.user = decoded; // Attach user data to request
     next();
   } catch (error) {
-    res.status(401).json({ message: "Token is not valid" });
+    res.status(401).json({ message: "Token is not valid" },process.env.JWT_SECRET);
   }
 };
 
