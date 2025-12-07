@@ -169,14 +169,17 @@ exports.getPersonnelsByProgress = async (req, res) => {
 exports.getAllPersonnels = async (req, res) => {
   try {
     const personnels = await Personnel.findAll({
-      attributes: ["personnel_type"],
+      attributes: ["givenname", "surname_husband", "personnel_type"],
+      order: [["givenname", "ASC"]]   // ✅ Sort by givenname ASC
     });
+
     res.json(personnels);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch personnels" });
   }
 };
+
 
 
 // Retrieve a single personnel record by ID

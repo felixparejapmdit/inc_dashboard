@@ -306,7 +306,7 @@ exports.Login2 = async (req, res) => {
   }
 };
 
-exports.Login = async (req, res) => {
+exports.Login3 = async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
@@ -359,6 +359,73 @@ exports.Login = async (req, res) => {
   } catch (error) {
     console.error("❌ Server error:", error.message);
     return res.status(500).json({ message: "Server error during authentication.", error });
+  }
+};
+
+
+exports.Login = async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ message: "Username and password are required." });
+  }
+
+  try {
+    let user;
+    let groupId;
+
+    // ==============================
+    // 🔵 TRY LDAP AUTHENTICATION
+    // ==============================
+    try {
+      const ldapUser = await authenticateLDAP(username, password);
+      groupId = await getUserGroupId(username);
+
+      if (!groupId) groupId = "LDAP_GROUP";
+
+      console.log(`✅ LDAP Authenticated: ${ldapUser.username}`);
+      console.log(`➡️ Group ID: ${groupId}`);
+
+      user = {
+        id: ldapUser.username,
+        username: ldapUser.username,
+        groupId,
+        fullName: ldapUser.username,
+      };
+
+      const token = generateToken(user);
+      return res.json({ success: true, token, user });
+
+    } catch (ldapErr) {
+      console.log(`⚠️ LDAP failed: ${ldapErr.message}`);
+    }
+
+    // ==============================
+    // 🟢 FALLBACK TO LOCAL AUTH
+    // ==============================
+    try {
+      user = await authenticateLocal(username, password);
+      groupId = await getUserGroupId(username);
+
+      if (!groupId) groupId = "LOCAL_GROUP";
+
+      console.log(`✅ Local Authenticated: ${username}`);
+      console.log(`➡️ Group ID: ${groupId}`);
+
+      const token = generateToken({ ...user, groupId });
+      return res.json({ success: true, token, user });
+
+    } catch (localErr) {
+      console.log("❌ Local authentication failed:", localErr.message);
+      return res.status(401).json({ message: "Invalid username or password." });
+    }
+
+  } catch (error) {
+    console.error("❌ Server error:", error.message);
+    return res.status(500).json({
+      message: "Server error during authentication.",
+      error: error.message
+    });
   }
 };
 

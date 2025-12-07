@@ -885,8 +885,7 @@ router.post("/api/users/login", async (req, res) => {
         // ✅ Generate JWT Token
       const token = jwt.sign(
         { id: user.id, username: user.username },
-        process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRES_IN || "1d" }
+        process.env.JWT_SECRET
       );
       
       // If password matches, return success and user data

@@ -1,8 +1,8 @@
 const jwt = require("jsonwebtoken");
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key"; // You can change this to a more secure key
+const JWT_SECRET = process.env.JWT_SECRET;
 
-// Function to generate JWT Token
+// Generate token WITHOUT EXPIRATION
 const generateToken = (user) => {
   return jwt.sign(
     {
@@ -10,18 +10,13 @@ const generateToken = (user) => {
       username: user.username,
       groupId: user.groupId,
     },
-    JWT_SECRET,
-    { expiresIn: "1h" } // Token expires in 1 hour
+    JWT_SECRET
   );
 };
 
-// Function to verify JWT Token
+// Verify token
 const verifyToken = (token) => {
-  try {
-    return jwt.verify(token, JWT_SECRET);
-  } catch (error) {
-    throw new Error("Token is invalid or expired");
-  }
+  return jwt.verify(token, JWT_SECRET);
 };
 
 module.exports = { generateToken, verifyToken };
