@@ -169,7 +169,7 @@ exports.getPersonnelsByProgress = async (req, res) => {
 exports.getAllPersonnels = async (req, res) => {
   try {
     const personnels = await Personnel.findAll({
-      attributes: ["givenname", "surname_husband", "personnel_type"],
+      attributes: ["givenname", "surname_husband", "personnel_type", "personnel_id"],
       order: [["givenname", "ASC"]]   // ✅ Sort by givenname ASC
     });
 
