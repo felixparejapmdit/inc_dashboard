@@ -55,7 +55,7 @@ module.exports = {
     ],
   },
 
-  // Plugins: Extend Webpack's capabilities
+  // Plugins: Extend Webpack's capabilitiesss
   plugins: [
     new CleanWebpackPlugin(), 
     new HtmlWebpackPlugin({
