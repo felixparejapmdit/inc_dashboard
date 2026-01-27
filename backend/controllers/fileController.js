@@ -7,13 +7,41 @@ const { Op } = require("sequelize");
 const path = require("path");
 
 // Get all files
-const getAllFiles = async (req, res) => {
+const getAllFiles1 = async (req, res) => {
   try {
     const files = await File.findAll({
       order: [["created_at", "DESC"]], // Order by 'created_at' in descending order
     });
     res.status(200).json(files);
   } catch (error) {
+    res.status(500).json({ message: "Error retrieving files", error });
+  }
+};
+
+// Get all files with Personnel ID and Name mapping
+const getAllFiles = async (req, res) => {
+  try {
+    const files = await File.findAll({
+      order: [["created_at", "DESC"]], 
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["id"], // Include user ID for mapping
+          include: [
+            {
+              model: Personnel,
+              as: "personnel",
+              // We explicitly add personnel_id here so the Bot can find it
+              attributes: ["personnel_id", "givenname", "surname_husband"],
+            },
+          ],
+        },
+      ],
+    });
+    res.status(200).json(files);
+  } catch (error) {
+    console.error("Error retrieving files:", error);
     res.status(500).json({ message: "Error retrieving files", error });
   }
 };

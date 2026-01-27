@@ -166,7 +166,7 @@ exports.getPersonnelsByProgress = async (req, res) => {
 };
 
 // Get all personnels
-exports.getAllPersonnels = async (req, res) => {
+exports.getAllPersonnels1 = async (req, res) => {
   try {
     const personnels = await Personnel.findAll({
       attributes: ["givenname", "surname_husband", "personnel_type", "personnel_id"],
@@ -180,7 +180,21 @@ exports.getAllPersonnels = async (req, res) => {
   }
 };
 
-
+exports.getAllPersonnels = async (req, res) => {
+  try {
+    const personnels = await Personnel.findAll();
+    res.status(200).json(personnels);
+  } catch (error) {
+    console.error(
+      "Error fetching personnels:",
+      error.stack || error.message
+    );
+    res.status(500).json({
+      error:
+        error.message || "An error occurred while fetching personnels.",
+    });
+  }
+};
 
 // Retrieve a single personnel record by ID
 exports.getPersonnelById = async (req, res) => {
