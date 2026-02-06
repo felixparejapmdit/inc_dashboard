@@ -12,99 +12,100 @@ const UserGroupMapping = require("../models/UserGroupMapping");
 const Personnel = require("../models/personnels"); // Import your Personnel model
 
 const axios = require("axios");
-const https = require("https"); // NOTE: You'll need to import 'https' in the environment where this runs
+const https = require("https");
+const bcrypt = require("bcrypt");
 
 // Environment variables
 const API_URL = process.env.REACT_APP_API_URL;
 // Controller function for migrating LDAP users
 exports.migrateLdapToPmdLoginUsers = async (req, res) => {
-    // Fetch LDAP users helper function
-    const fetchLdapUsers = async () => {
-        // --- CRITICAL FIX ---
-        // 1. Ensure the URL starts with a protocol (http:// or https://)
-        // 2. Safely join the base URL with the static path /api/ldap/users
-        const base = API_URL.startsWith('http') ? API_URL : `https:${API_URL}`;
-        const ldapApiUrl = `${base.replace(/\/+$/, "")}/api/ldap/users`; // Safely remove trailing slash and append path
-        // --------------------
-
-        try {
-            // Note: Assuming global SSL bypass is set in server.js
-            const response = await axios.get(ldapApiUrl);
-            
-            console.log("Fetched LDAP users:", response.data);
-            return { success: true, data: response.data }; 
-        } catch (error) {
-            console.error("Error fetching LDAP users:", error.message);
-            return { success: false, message: `Failed to connect to LDAP API at ${ldapApiUrl}. Network or certificate failure.` };
-        }
-    };
+  // Fetch LDAP users helper function
+  const fetchLdapUsers = async () => {
+    // --- CRITICAL FIX ---
+    // 1. Ensure the URL starts with a protocol (http:// or https://)
+    // 2. Safely join the base URL with the static path /api/ldap/users
+    const base = API_URL.startsWith('http') ? API_URL : `https://${API_URL}`;
+    const ldapApiUrl = `${base.replace(/\/+$/, "")}/api/ldap/users`; // Safely remove trailing slash and append path
+    // --------------------
 
     try {
-        const ldapResponse = await fetchLdapUsers();
-        
-        // CRITICAL FIX: Check the success flag from the helper function
-        if (!ldapResponse.success) {
-             return res.status(500).json({
-                 // Use the error message that contains the full URL for better diagnosis
-                message: ldapResponse.message, 
-                error: "LDAP_API_CONNECTION_FAILURE",
-            });
-        }
-        
-        const ldapUsers = ldapResponse.data;
+      // Note: Assuming global SSL bypass is set in server.js
+      const response = await axios.get(ldapApiUrl);
 
-        if (!ldapUsers || ldapUsers.length === 0) {
-            return res.status(200).json({ 
-                message: "No LDAP users found or LDAP API returned empty list.",
-            });
-        }
+      console.log("Fetched LDAP users:", response.data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("Error fetching LDAP users:", error.message);
+      return { success: false, message: `Failed to connect to LDAP API at ${ldapApiUrl}. Network or certificate failure.` };
+    }
+  };
 
-        // Process each LDAP user
-        const migrationResults = [];
-        let migratedCount = 0;
-        for (const ldapUser of ldapUsers) {
-             if (!ldapUser.uid) continue;
+  try {
+    const ldapResponse = await fetchLdapUsers();
 
-             const existingUser = await User.findOne({
-                 where: { username: ldapUser.uid },
-             });
+    // CRITICAL FIX: Check the success flag from the helper function
+    if (!ldapResponse.success) {
+      return res.status(500).json({
+        // Use the error message that contains the full URL for better diagnosis
+        message: ldapResponse.message,
+        error: "LDAP_API_CONNECTION_FAILURE",
+      });
+    }
 
-             if (!existingUser) {
-                 const newUser = {
-                     uid: ldapUser.uid,
-                     personnel_id: null,
-                     username: ldapUser.uid,
-                     password: ldapUser.userPassword || 'LDAP_DEFAULT_PASS',
-                     avatar: null,
-                     isLoggedIn: 0,
-                     auth_type: "LDAP",
-                     failed_attempts: 0,
-                     last_failed_attempt: null,
-                     created_at: new Date(),
-                     updated_at: new Date(),
-                 };
+    const ldapUsers = ldapResponse.data;
 
-                 await User.create(newUser);
-                 migratedCount++;
-                 migrationResults.push({ uid: ldapUser.uid, status: "Migrated successfully" });
-             } else {
-                 migrationResults.push({ uid: ldapUser.uid, status: "Already exists in users table" });
-             }
-        }
+    if (!ldapUsers || ldapUsers.length === 0) {
+      return res.status(200).json({
+        message: "No LDAP users found or LDAP API returned empty list.",
+      });
+    }
 
-        // Return the migration summary
-        res.status(200).json({
-            message: `LDAP to PMD Login Users migration completed. ${migratedCount} new users added.`,
-            results: migrationResults,
-        });
-    } catch (error) {
-        console.error("CRITICAL DATABASE ERROR during LDAP migration:", error.message);
-        // This is the final unhandled error, likely a database write failure
-        res.status(500).json({
-            message: "An unhandled database error occurred during the migration process.",
-            error: error.message,
-        });
-    }
+    // Process each LDAP user
+    const migrationResults = [];
+    let migratedCount = 0;
+    for (const ldapUser of ldapUsers) {
+      if (!ldapUser.uid) continue;
+
+      const existingUser = await User.findOne({
+        where: { username: ldapUser.uid },
+      });
+
+      if (!existingUser) {
+        const newUser = {
+          uid: ldapUser.uid,
+          personnel_id: null,
+          username: ldapUser.uid,
+          password: ldapUser.userPassword || 'LDAP_DEFAULT_PASS',
+          avatar: null,
+          isLoggedIn: 0,
+          auth_type: "LDAP",
+          failed_attempts: 0,
+          last_failed_attempt: null,
+          created_at: new Date(),
+          updated_at: new Date(),
+        };
+
+        await User.create(newUser);
+        migratedCount++;
+        migrationResults.push({ uid: ldapUser.uid, status: "Migrated successfully" });
+      } else {
+        migrationResults.push({ uid: ldapUser.uid, status: "Already exists in users table" });
+      }
+    }
+
+    // Return the migration summary
+    res.status(200).json({
+      message: `LDAP to PMD Login Users migration completed. ${migratedCount} new users added.`,
+      results: migrationResults,
+    });
+  } catch (error) {
+    console.error("CRITICAL DATABASE ERROR during LDAP migration:", error.message);
+    // This is the final unhandled error, likely a database write failure
+    res.status(500).json({
+      message: "An unhandled database error occurred during the migration process.",
+      error: error.message,
+    });
+  }
 };
 
 // Controller function for migrating LDAP users
@@ -113,7 +114,7 @@ exports.migrateLdapToPmdLoginUsers1 = async (req, res) => {
     // Fetch LDAP users
     const fetchLdapUsers = async () => {
       try {
-        
+
         const response = await axios.get(`${API_URL}/api/ldap/users`);
         console.log("Fetched LDAP users:", response.data);
         return response.data; // Assuming the API response is an array of LDAP user objects
@@ -196,9 +197,12 @@ exports.assignGroup = async (req, res) => {
     }
 
     // Check if the group exists
-    const group = await Group.findByPk(groupId);
-    if (!group) {
-      return res.status(404).json({ message: "Group not found" });
+    // Check if the group exists (only if a group ID is provided)
+    if (groupId) {
+      const group = await Group.findByPk(groupId);
+      if (!group) {
+        return res.status(404).json({ message: "Group not found" });
+      }
     }
 
     // Delete existing mappings for the user
@@ -208,11 +212,13 @@ exports.assignGroup = async (req, res) => {
       },
     });
 
-    // Create a new mapping for the user and the assigned group
-    await UserGroupMapping.create({
-      user_id: userId,
-      group_id: groupId,
-    });
+    // Create a new mapping for the user and the assigned group (only if a group ID is provided)
+    if (groupId) {
+      await UserGroupMapping.create({
+        user_id: userId,
+        group_id: groupId,
+      });
+    }
 
     res.status(200).json({ message: "Group assigned successfully" });
   } catch (error) {
@@ -225,7 +231,7 @@ exports.getAllLoginUsers = async (req, res) => {
   const cacheKey = "all_login_users";
 
   try {
-      // 1️⃣ Check Redis cache
+    // 1️⃣ Check Redis cache
     const cachedUsers = await redisClient.get(cacheKey);
     if (cachedUsers) {
       console.log("📦 Serving all login users from Redis cache");
@@ -246,7 +252,7 @@ exports.getAllLoginUsers = async (req, res) => {
       status: user.isLoggedIn === 1 ? "Online" : "Offline",
     }));
 
-     const responseData = {
+    const responseData = {
       success: true,
       total: formattedUsers.length,
       data: formattedUsers,
@@ -254,7 +260,7 @@ exports.getAllLoginUsers = async (req, res) => {
 
     // 3️⃣ Cache in Redis for 5 minutes
     await redisClient.set(cacheKey, JSON.stringify(responseData), { EX: 3600 });
-    console.log("✅ All login users cached in Redis");
+    //console.log("✅ All login users cached in Redis");
 
     return res.status(200).json(responseData);
   } catch (error) {
@@ -297,7 +303,7 @@ exports.getUserByUsername = async (req, res) => {
 
     res.setHeader("Content-Type", "application/json");
 
-       const userData = {
+    const userData = {
       id: user.id,
       username: user.username,
       email: user.email || null,
@@ -305,8 +311,8 @@ exports.getUserByUsername = async (req, res) => {
     };
 
     // 3️⃣ Store in Redis for 5 minutes
-    await redisClient.set(cacheKey, JSON.stringify(userData), { EX: 3600 });
-    console.log(`✅ User ${username} cached in Redis`);
+    //await redisClient.set(cacheKey, JSON.stringify(userData), { EX: 3600 });
+
 
     return res.status(200).json(userData);
 
@@ -353,5 +359,64 @@ exports.updateProgress = async (req, res) => {
       message: "Internal server error. Failed to update progress.",
       error: error.message,
     });
+  }
+};
+
+exports.promotePersonnelToUser = async (req, res) => {
+  const { personnel_id, username, password } = req.body;
+
+  if (!personnel_id) {
+    return res.status(400).json({ message: "Personnel ID is required" });
+  }
+
+  try {
+    const personnel = await Personnel.findByPk(personnel_id);
+    if (!personnel) {
+      return res.status(404).json({ message: "Personnel not found" });
+    }
+
+    // Check if user already exists based on personnel_id
+    const existingUser = await User.findOne({ where: { personnel_id } });
+    if (existingUser) {
+      return res.status(400).json({ message: "User account already exists for this personnel" });
+    }
+
+    // Determine username: use provided, or email prefix, or First.Lastname
+    let finalUsername = username;
+    if (!finalUsername) {
+      if (personnel.email_address) {
+        finalUsername = personnel.email_address.split('@')[0];
+      } else {
+        const cleanName = str => (str || "").replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+        finalUsername = `${cleanName(personnel.givenname)}.${cleanName(personnel.surname_husband)}`;
+      }
+    }
+
+    // Default password if not provided
+    const rawPassword = password || "123456";
+    const hashedPassword = await bcrypt.hash(rawPassword, 10);
+
+    const newUser = await User.create({
+      personnel_id,
+      username: finalUsername,
+      password: hashedPassword,
+      auth_type: "Local",
+      isLoggedIn: 0,
+      email: personnel.email_address, // Optional: if User model has email field
+    });
+
+    res.status(201).json({
+      message: "User account created successfully",
+      user: {
+        id: newUser.id,
+        username: newUser.username,
+        personnel_id: newUser.personnel_id,
+      },
+      generatedPassword: rawPassword // Return so admin knows what temporary password is
+    });
+
+  } catch (error) {
+    console.error("Error promoting personnel to user:", error);
+    res.status(500).json({ message: "Failed to promote personnel", error: error.message });
   }
 };

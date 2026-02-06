@@ -1,5 +1,6 @@
 // src/pages/progress/Step8.js
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Heading,
@@ -7,6 +8,7 @@ import {
   Text,
   Checkbox,
   Button,
+  HStack,
   useToast,
   Alert,
   AlertIcon,
@@ -29,11 +31,13 @@ import {
   ModalFooter,
   useDisclosure,
 } from "@chakra-ui/react";
+import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import axios from "axios";
 import useGetNamesByIds from "../../hooks/useGetNamesByIds";
 import useLookupData from "../../hooks/useLookupData";
 
 import { usePermissionContext } from "../../contexts/PermissionContext";
+import { FiCheck, FiX } from "react-icons/fi";
 
 import ScanRFIDQRBarcode from "./ScanRFIDQRBarcode"; // Import the scan component
 
@@ -63,9 +67,12 @@ const Step8 = ({ onScanComplete }) => {
   const [search, setSearch] = useState("");
   const [personnelInfo, setPersonnelInfo] = useState(null);
   const toast = useToast();
+  const navigate = useNavigate();
   const [isCheckboxChecked, setIsCheckboxChecked] = useState(false);
   const [rfidInput, setRfidInput] = useState("");
   const { hasPermission } = usePermissionContext(); // Correct usage
+  const userGroupName = localStorage.getItem("userGroupName");
+  const isAdmin = userGroupName === "Admin"; // Check if user is Admin
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   // Fetch personnel list
@@ -200,9 +207,29 @@ const Step8 = ({ onScanComplete }) => {
 
   return (
     <Box p={6} bg="gray.50" minHeight="100vh" borderRadius="md">
-      <Heading size="lg" mb={4}>
-        Step 8: Report to the Personnel Office to Get the ID
-      </Heading>
+      <HStack justify="space-between" mb={6}>
+        <VStack align="start" spacing={0}>
+          <Heading size="lg">Step 8: Report to the Personnel Office to Get the ID</Heading>
+          <Text color="gray.500" fontSize="sm">Final step: Identification issuance and system activation</Text>
+        </VStack>
+        <HStack spacing={2}>
+          <Button
+            leftIcon={<ChevronLeftIcon />}
+            onClick={() => navigate("/progress/step7")}
+            variant="ghost"
+            size="sm"
+          >
+            Previous Step
+          </Button>
+          <Button
+            onClick={() => navigate("/progresstracking")}
+            colorScheme="green"
+            size="sm"
+          >
+            Go to Progress Tracker
+          </Button>
+        </HStack>
+      </HStack>
       {loading ? (
         <Spinner size="lg" />
       ) : (
@@ -290,9 +317,8 @@ const Step8 = ({ onScanComplete }) => {
                     <Divider />
                     <Text fontSize="lg" mt={2}>
                       <b>Name:</b>{" "}
-                      {`${personnelInfo?.givenname || ""} ${
-                        personnelInfo?.middlename || ""
-                      } ${personnelInfo?.surname_husband || ""}`}
+                      {`${personnelInfo?.givenname || ""} ${personnelInfo?.middlename || ""
+                        } ${personnelInfo?.surname_husband || ""}`}
                     </Text>
                     <Divider />
                     <Text fontSize="lg" mt={2}>
@@ -384,26 +410,34 @@ const Step8 = ({ onScanComplete }) => {
               </ModalBody>
 
               <ModalFooter>
-                {/* Submit Button */}
-                <Button
-                  colorScheme="orange"
-                  mt={6}
-                  size="lg"
-                  w="100%"
-                  onClick={handleVerify}
-                  isDisabled={!isCheckboxChecked || !rfidInput.trim()} // ✅ Both must be true
-                >
-                  Issue ID and Complete Process
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    setSelectedUser(null); // Clear selected user
-                    onClose(); // Close the modal
-                  }}
-                >
-                  Close
-                </Button>
+                <Flex w="100%" gap={4}>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedUser(null); // Clear selected user
+                      onClose(); // Close the modal
+                    }}
+                    flex={1}
+                    size="lg"
+                    leftIcon={<FiX />}
+                    colorScheme="gray"
+                  >
+                    Close
+                  </Button>
+                  {/* Submit Button */}
+                  <Button
+                    colorScheme="orange"
+                    size="lg"
+                    flex={1}
+                    onClick={handleVerify}
+                    isDisabled={!isCheckboxChecked || (!isAdmin && !rfidInput.trim())} // ✅ Admins can bypass scan
+                    leftIcon={<FiCheck />}
+                    _hover={{ transform: "translateY(-2px)", boxShadow: "lg" }}
+                    transition="all 0.2s"
+                  >
+                    Issue ID & Complete
+                  </Button>
+                </Flex>
               </ModalFooter>
             </ModalContent>
           </Modal>

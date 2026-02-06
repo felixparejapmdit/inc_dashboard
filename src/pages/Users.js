@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate for navigation
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useNavigate, useLocation } from "react-router-dom"; // Import useNavigate and useLocation for navigation
 
 import {
   Box,
@@ -10,6 +10,7 @@ import {
   Heading,
   VStack,
   Table,
+  Badge,
   Thead,
   Tbody,
   HStack,
@@ -42,6 +43,26 @@ import {
   MenuList,
   MenuItem,
   Icon,
+  SimpleGrid,
+  Image,
+  InputGroup,
+  InputLeftElement,
+  Tabs,
+  TabList,
+  TabPanels,
+  Tab,
+  TabPanel,
+  useColorModeValue,
+  Skeleton,
+  SkeletonCircle,
+  SkeletonText,
+  Spinner,
+  AlertDialog,
+  AlertDialogOverlay,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogBody,
+  AlertDialogFooter,
 } from "@chakra-ui/react";
 import {
   AddIcon,
@@ -51,20 +72,23 @@ import {
   ViewIcon,
   DownloadIcon,
   Search2Icon,
+  RepeatIcon,
 } from "@chakra-ui/icons";
 import axios from "axios";
-import { FaCamera, FaIdCard } from "react-icons/fa"; // ✅ Icon for Photoshoot
+import { FaCamera, FaIdCard } from "react-icons/fa";
+import { FiUser, FiInfo, FiRefreshCw, FiUsers } from "react-icons/fi";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import Papa from "papaparse";
 
 import { usePermissionContext } from "../contexts/PermissionContext";
 import Photoshoot from "./progress/Photoshoot"; // Import Photoshoot component
 import { getAuthHeaders } from "../utils/apiHeaders"; // adjust path as needed
 import { useUserFormData, suffixOptions } from "../hooks/userFormOptions";
 
-import { fetchData,fetchDataPhotoshoot, postData, putData, deleteData } from "../utils/fetchData";
+import { fetchData, fetchDataPhotoshoot, postData, putData, deleteData } from "../utils/fetchData";
 
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL = process.env.REACT_APP_API_URL || "";
 const ITEMS_PER_PAGE = 5;
 
 const Users = ({ personnelId }) => {
@@ -105,6 +129,7 @@ const Users = ({ personnelId }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [editingUser, setEditingUser] = useState(null);
   const [status, setStatus] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   const [existingPersonnel, setExistingPersonnel] = useState([]); // Personnel already in LDAP but no personnel_id
   const [newPersonnels, setNewPersonnels] = useState([]);
@@ -112,6 +137,9 @@ const Users = ({ personnelId }) => {
   const [searchNewPersonnels, setSearchNewPersonnels] = useState(""); // Search for new enrolled personnel
   const [currentPagePersonnel, setCurrentPagePersonnel] = useState(1);
   const [currentPageNew, setCurrentPageNew] = useState(1);
+  const [currentPageLdapOnly, setCurrentPageLdapOnly] = useState(1);
+  const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
+  const [userToDelete, setUserToDelete] = useState(null);
 
   const [columnVisibility, setColumnVisibility] = useState({});
 
@@ -119,7 +147,13 @@ const Users = ({ personnelId }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [personnelImages, setPersonnelImages] = useState([]);
+
+  // Sync Modal State
+  const [selectedSyncPersonnel, setSelectedSyncPersonnel] = useState(null);
+  const [selectedSyncGroup, setSelectedSyncGroup] = useState("");
+  const { isOpen: isSyncModalOpen, onOpen: onSyncModalOpen, onClose: onSyncModalClose } = useDisclosure();
 
   // For select all
   const allKeys =
@@ -131,6 +165,21 @@ const Users = ({ personnelId }) => {
   const avatarBaseUrl = `${API_URL}/uploads/`;
 
   const navigate = useNavigate(); // Initialize navigation
+  const location = useLocation(); // Get location to access navigation state
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const newEnrollSearch = params.get("new_enroll_search");
+    if (newEnrollSearch) {
+      setSearchNewPersonnels(newEnrollSearch);
+      // Wait for table to likely be rendered and then scroll
+      setTimeout(() => {
+        if (newPersonnelRef.current) {
+          newPersonnelRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 500);
+    }
+  }, [location.search]);
 
   const {
     isOpen: isOpenAdvance,
@@ -139,6 +188,28 @@ const Users = ({ personnelId }) => {
   } = useDisclosure();
 
   const [advancedFilters, setAdvancedFilters] = useState({
+    Minister: false,
+    Regular: false,
+    "Lay Member": false,
+    "Minister's Wife": false,
+    "Ministerial Student": false,
+    district: "",
+    local: "",
+    section: "",
+    team: "",
+    role: "",
+    birthdayMonth: "",
+    bloodtype: "",
+    language: "",
+    citizenship: "",
+    civil_status: "",
+    educational_attainment: "",
+    inc_housing_address_id: "",
+    incHousing: false,
+  });
+
+  // State for the filters actually applied to the list
+  const [appliedFilters, setAppliedFilters] = useState({
     Minister: false,
     Regular: false,
     "Lay Member": false,
@@ -227,12 +298,6 @@ const Users = ({ personnelId }) => {
   };
 
   const handleCheckboxChange = (key, isChecked) => {
-    const updatedCheckboxes = {
-      ...checkboxes,
-      [key]: isChecked,
-    };
-    setCheckboxes(updatedCheckboxes);
-
     const mapKey = {
       minister: "Minister",
       regular: "Regular",
@@ -241,35 +306,145 @@ const Users = ({ personnelId }) => {
       ministerialStudent: "Ministerial Student",
     };
 
+    const actualKey = mapKey[key];
+
+    const updatedCheckboxes = {
+      ...checkboxes,
+      [actualKey]: isChecked,
+    };
+    setCheckboxes(updatedCheckboxes);
+
     setAdvancedFilters((prev) => ({
       ...prev,
-      [mapKey[key]]: isChecked,
+      [actualKey]: isChecked,
     }));
   };
 
   const applyAdvancedFilters = () => {
-    fetchUsers(); // Or however you fetch filtered results
+    setAppliedFilters(advancedFilters);
+    setCurrentPagePersonnel(1); // Reset to first page
     onCloseAdvance();
+
+    toast({
+      title: "Filters applied.",
+      status: "info",
+      duration: 2000,
+      isClosable: true,
+    });
   };
 
+  const clearAdvancedFilters = () => {
+    const defaultFilters = {
+      Minister: false,
+      Regular: false,
+      "Lay Member": false,
+      "Minister's Wife": false,
+      "Ministerial Student": false,
+      district: "",
+      local: "",
+      section: "",
+      team: "",
+      role: "",
+      birthdayMonth: "",
+      bloodtype: "",
+      language: "",
+      citizenship: "",
+      civil_status: "",
+      educational_attainment: "",
+      inc_housing_address_id: "",
+      incHousing: false,
+    };
+    setAdvancedFilters(defaultFilters);
+    setAppliedFilters(defaultFilters); // Clear applied filters too immediately? Or wait for Apply? Usually Clear clears everything.
+    setCheckboxes({
+      Minister: false,
+      Regular: false,
+      "Lay Member": false,
+      "Minister's Wife": false,
+      "Ministerial Student": false,
+    });
+    setAllAdvanceSelected(false);
+    onCloseAdvance();
+
+    toast({
+      title: "Filters cleared.",
+      status: "info",
+      duration: 2000,
+      isClosable: true,
+    });
+  };
+
+
+
+  // Handle incoming filter from PersonnelStatistics
   useEffect(() => {
-    fetchUsers();
-    fetchNewPersonnels();
-  }, []);
+    if (location.state?.filterType) {
+      const filterType = location.state.filterType;
+
+      // Reset all filters first
+      const resetFilters = {
+        Minister: false,
+        Regular: false,
+        "Lay Member": false,
+        "Minister's Wife": false,
+        "Ministerial Student": false,
+        district: "",
+        local: "",
+        section: "",
+        team: "",
+        role: "",
+        birthdayMonth: "",
+        bloodtype: "",
+        language: "",
+        citizenship: "",
+        civil_status: "",
+        educational_attainment: "",
+        inc_housing_address_id: "",
+        incHousing: false,
+      };
+
+      // Set the specific filter
+      if (filterType && resetFilters.hasOwnProperty(filterType)) {
+        resetFilters[filterType] = true;
+        setCheckboxes(prev => ({
+          ...prev,
+          [filterType]: true,
+        }));
+      }
+
+      setAdvancedFilters(resetFilters);
+      setAppliedFilters(resetFilters);
+
+      // Show a toast notification
+      toast({
+        title: `Filtered by ${filterType || 'All Personnel'}`,
+        description: filterType ? `Showing ${filterType} only` : 'Showing all personnel',
+        status: "info",
+        duration: 3000,
+        isClosable: true,
+      });
+
+      // Clear the location state to prevent re-triggering
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const fetchApps = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/apps`, {
         headers: getAuthHeaders(),
       });
-      //console.log("Fetched Apps Data:", response.data); // Debug API response
-      if (!response.data || !Array.isArray(response.data)) {
+
+      const appsData = response.data;
+      if (!appsData || !Array.isArray(appsData)) {
         throw new Error("Invalid API response structure");
       }
 
+      setApps(appsData); // Set flat list
+
       // Group apps by application type name instead of ID
-      const groupedApps = response.data.reduce((acc, app) => {
-        const category = app.app_type || "Others"; // Use application type name instead of ID
+      const groupedApps = appsData.reduce((acc, app) => {
+        const category = app.app_type || "Others";
         if (!acc[category]) {
           acc[category] = [];
         }
@@ -281,19 +456,18 @@ const Users = ({ personnelId }) => {
     } catch (error) {
       console.error("Failed to load apps:", error);
       setCategorizedApps({});
+      setApps([]);
     }
   };
-
-  useEffect(() => {
-    fetchApps();
-  }, []);
 
   const fetchUsers = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/users`, {
-        headers: getAuthHeaders(), // ✅ Apply authorization headers here
+        headers: getAuthHeaders(),
       });
-      setExistingPersonnel(Array.isArray(response.data) ? response.data : []);
+      const userData = Array.isArray(response.data) ? response.data : [];
+      setExistingPersonnel(userData);
+      setUsers(userData);
     } catch (error) {
       console.error("Failed to load personnel list:", error);
     }
@@ -310,118 +484,134 @@ const Users = ({ personnelId }) => {
     }
   };
 
-  const filteredUsers = existingPersonnel.filter((user) => {
-    const personnelFields = [
-      user.personnel_givenname || "",
-      user.personnel_middlename || "",
-      user.personnel_surname_husband || "",
-      user.personnel_surname_maiden || "",
-      user.personnel_suffix || "",
-      user.personnel_nickname || "",
-      user.personnel_email || "",
-      user.personnel_gender || "",
-      user.personnel_civil_status || "",
-      user.personnel_local_congregation || "",
-      user.personnel_type || "",
-      user.personnel_assigned_number || "",
-      user.personnel_department_name || "",
-      user.personnel_section_name || "",
-      user.personnel_subsection_name || "",
-      user.personnel_designation_name || "",
-      user.personnel_district_name || "",
-      user.personnel_language_name || "",
-    ];
+  const filteredUsers = useMemo(() => {
+    return existingPersonnel.filter((user) => {
+      const personnelFields = [
+        user.personnel_givenname || "",
+        user.personnel_middlename || "",
+        user.personnel_surname_husband || "",
+        user.personnel_surname_maiden || "",
+        user.personnel_suffix || "",
+        user.personnel_nickname || "",
+        user.personnel_email || "",
+        user.personnel_gender || "",
+        user.personnel_civil_status || "",
+        user.personnel_local_congregation || "",
+        user.personnel_type || "",
+        user.personnel_assigned_number || "",
+        user.personnel_department_name || "",
+        user.personnel_section_name || "",
+        user.personnel_subsection_name || "",
+        user.personnel_designation_name || "",
+        user.personnel_district_name || "",
+        user.personnel_language_name || "",
+      ];
 
-    const combinedFields = [
-      user.username || "",
-      user.fullname || `${user.givenName || ""} ${user.sn || ""}`,
-      user.email || "",
-      ...personnelFields,
-    ]
-      .join(" ")
-      .toLowerCase();
+      const combinedFields = [
+        user.username || "",
+        user.fullname || `${user.givenName || ""} ${user.sn || ""}`,
+        user.email || "",
+        ...personnelFields,
+      ]
+        .join(" ")
+        .toLowerCase();
 
-    const {
-      incHousing,
-      district,
-      local,
-      section,
-      team,
-      role,
-      birthdayMonth,
-      bloodtype,
-      language,
-      citizenship,
-      civil_status,
-      educational_attainment, // ✅ add this
-      inc_housing_address_id, // ✅ and this
-    } = advancedFilters;
+      const {
+        incHousing,
+        district,
+        local,
+        section,
+        team,
+        role,
+        birthdayMonth,
+        bloodtype,
+        language,
+        citizenship,
+        civil_status,
+        educational_attainment,
+        inc_housing_address_id,
+      } = appliedFilters;
 
-    // Filter for personnel types: allow all if none selected, else match any selected
-    const selectedTypes = [];
-    if (advancedFilters.Minister) selectedTypes.push("Minister");
-    if (advancedFilters.Regular) selectedTypes.push("Regular");
-    if (advancedFilters["Lay Member"]) selectedTypes.push("Lay Member");
-    if (advancedFilters["Minister's Wife"])
-      selectedTypes.push("Minister's Wife");
-    if (advancedFilters["Ministerial Student"])
-      selectedTypes.push("Ministerial Student");
+      // Filter for personnel types
+      const selectedTypes = [];
+      if (appliedFilters.Minister) selectedTypes.push("Minister");
+      if (appliedFilters.Regular) selectedTypes.push("Regular");
+      if (appliedFilters["Lay Member"]) selectedTypes.push("Lay Member");
+      if (appliedFilters["Minister's Wife"]) selectedTypes.push("Minister's Wife");
+      if (appliedFilters["Ministerial Student"]) selectedTypes.push("Ministerial Student");
 
-    const personnelTypeMatch =
-      selectedTypes.length === 0 || selectedTypes.includes(user.personnel_type);
+      const personnelTypeMatch =
+        selectedTypes.length === 0 || selectedTypes.includes(user.personnel_type);
 
-    const matchesAdvancedFilters =
-      personnelTypeMatch &&
-      (!incHousing || user.personnel_housing === "Yes") &&
-      (!district ||
-        user.personnel_registered_district_id?.toString() === district) &&
-      (!local ||
-        user.personnel_registered_local_congregation?.toString() === local) &&
-      (!section || user.personnel_section_id?.toString() === section) &&
-      (!team || user.personnel_subsection_id?.toString() === team) &&
-      (!role || user.designation_id?.toString() === role) &&
-      (!birthdayMonth ||
-        new Date(user.date_of_birth).toLocaleString("default", {
-          month: "long",
-        }) === birthdayMonth) &&
-      (!bloodtype ||
-        user.personnel_bloodtype?.toLowerCase() === bloodtype.toLowerCase()) &&
-      (!language || user.p.language_id?.toString() === language) &&
-      (!citizenship ||
-        user.citizenship?.toLowerCase() === citizenship.toLowerCase()) &&
-      (!civil_status ||
-        user.personnel_civil_status?.toLowerCase() ===
+      const matchesAdvancedFilters =
+        personnelTypeMatch &&
+        (!incHousing || user.personnel_housing === "Yes") &&
+        (!district ||
+          user.personnel_registered_district_id?.toString() === district) &&
+        (!local ||
+          user.personnel_registered_local_congregation?.toString() === local) &&
+        (!section || user.personnel_section_id?.toString() === section) &&
+        (!team || user.personnel_subsection_id?.toString() === team) &&
+        (!role || user.designation_id?.toString() === role) &&
+        (!birthdayMonth ||
+          new Date(user.date_of_birth).toLocaleString("default", {
+            month: "long",
+          }) === birthdayMonth) &&
+        (!bloodtype ||
+          user.personnel_bloodtype?.toLowerCase() === bloodtype.toLowerCase()) &&
+        (!language || user.p.language_id?.toString() === language) &&
+        (!citizenship ||
+          user.citizenship?.toLowerCase() === citizenship.toLowerCase()) &&
+        (!civil_status ||
+          user.personnel_civil_status?.toLowerCase() ===
           civil_status.toLowerCase()) &&
-      (!educational_attainment ||
-        user.personnel_educational_level?.toLowerCase() ===
+        (!educational_attainment ||
+          user.personnel_educational_level?.toLowerCase() ===
           educational_attainment.toLowerCase()) &&
-      (!inc_housing_address_id ||
-        user.INC_Housing?.toLowerCase() ===
+        (!inc_housing_address_id ||
+          user.INC_Housing?.toLowerCase() ===
           inc_housing_address_id.toLowerCase());
 
-    return (
-      combinedFields.includes(searchPersonnelList.toLowerCase()) &&
-      matchesAdvancedFilters
-    );
-  });
+      return (
+        combinedFields.includes(searchPersonnelList.toLowerCase()) &&
+        matchesAdvancedFilters
+      );
+    });
+  }, [existingPersonnel, appliedFilters, searchPersonnelList]);
+
+  const personnelUsers = useMemo(() => {
+    return filteredUsers.filter((user) => user.personnel_id !== null);
+  }, [filteredUsers]);
+
+  const ldapOnlyUsers = useMemo(() => {
+    return filteredUsers.filter((user) => user.personnel_id === null);
+  }, [filteredUsers]);
 
   const uniqueIncHousingAddresses = Array.from(
     new Set(incHousingAddresses.map((address) => address.name))
   );
 
   // Independent search for Newly Enrolled Personnel (Filters from newPersonnels)
-  const filteredNewPersonnels = newPersonnels.filter((personnel) =>
-    `${personnel.givenname || ""} ${personnel.surname_husband || ""} ${
-      personnel.email_address || ""
-    } ${personnel.section || ""}`
-      .toLowerCase()
-      .includes(searchNewPersonnels.toLowerCase())
-  );
+  // Independent search for Newly Enrolled Personnel (Filters from newPersonnels)
+  const filteredNewPersonnels = useMemo(() => {
+    return newPersonnels.filter((personnel) =>
+      `${personnel.givenname || ""} ${personnel.surname_husband || ""} ${personnel.email_address || ""
+        } ${personnel.section || ""}`
+        .toLowerCase()
+        .includes(searchNewPersonnels.toLowerCase())
+    );
+  }, [newPersonnels, searchNewPersonnels]);
 
-  const totalPagesPersonnel = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
-  const currentItemsPersonnel = filteredUsers.slice(
+  const totalPagesPersonnel = Math.ceil(personnelUsers.length / ITEMS_PER_PAGE);
+  const currentItemsPersonnel = personnelUsers.slice(
     (currentPagePersonnel - 1) * ITEMS_PER_PAGE,
     currentPagePersonnel * ITEMS_PER_PAGE
+  );
+
+  const totalPagesLdapOnly = Math.ceil(ldapOnlyUsers.length / ITEMS_PER_PAGE);
+  const currentItemsLdapOnly = ldapOnlyUsers.slice(
+    (currentPageLdapOnly - 1) * ITEMS_PER_PAGE,
+    currentPageLdapOnly * ITEMS_PER_PAGE
   );
 
   const totalPagesNew = Math.ceil(
@@ -433,15 +623,78 @@ const Users = ({ personnelId }) => {
     currentPageNew * ITEMS_PER_PAGE
   );
 
+  const [avatars, setAvatars] = useState({});
+
   useEffect(() => {
-    fetchData("users", setUsers, setStatus, "Failed to load users.");
-    fetchData("apps", setApps, setStatus, "Failed to load apps.");
-    fetchData("groups", setGroups, setStatus, "Failed to load groups.");
+    const loadAllData = async () => {
+      setIsLoading(true);
+      try {
+        await Promise.all([
+          fetchUsers(),
+          fetchApps(),
+          fetchNewPersonnels(),
+          fetchData("groups", setGroups, setStatus, "Failed to load groups.")
+        ]);
+      } catch (err) {
+        console.error("Error loading initial data:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadAllData();
   }, []);
 
-  const handleAddUser = async (e) => {
-    e.preventDefault();
+  // Fetch 2x2 avatars for the currently visible personnel
+  useEffect(() => {
+    const fetchAvatars = async () => {
+      const newAvatars = {};
 
+      const allItems = [...currentItemsPersonnel, ...currentItemsNew];
+      const promises = allItems.map(async (user) => {
+        if (!user.personnel_id) return;
+
+        // Skip if we already have a 2x2 loaded (optional optimization, but good for UX)
+        // if (avatars[user.personnel_id]) return; 
+
+        try {
+          const response = await axios.get(
+            `${API_URL}/api/personnel_images/2x2/${user.personnel_id}`,
+            { headers: getAuthHeaders() }
+          );
+          if (response.data.success && response.data.data) {
+            // Append timestamp to bust cache if needed, or just use URL
+            newAvatars[user.personnel_id] = `${API_URL}${response.data.data.image_url}`;
+          }
+        } catch (err) {
+          // If 404 (no 2x2 picture), we just don't add it to the map
+        }
+      });
+
+      await Promise.all(promises);
+
+      if (Object.keys(newAvatars).length > 0) {
+        setAvatars((prev) => ({ ...prev, ...newAvatars }));
+      }
+    };
+
+    if (currentItemsPersonnel.length > 0) {
+      fetchAvatars();
+    }
+  }, [currentItemsPersonnel, currentItemsNew]); // Run whenever the page/list changes
+
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const cancelRef = useRef();
+  const newPersonnelRef = useRef(null); // Ref for scrolling to new personnel table
+
+  const onCloseAlert = () => setIsAlertOpen(false);
+
+  const handleAddUser = (e) => {
+    e.preventDefault();
+    setIsAlertOpen(true);
+  };
+
+  const confirmSave = async () => {
+    onCloseAlert();
     let avatarUrlResponse;
 
     // If a file is selected, upload the avatar using FormData
@@ -453,6 +706,9 @@ const Users = ({ personnelId }) => {
         `${API_URL}/api/users/${editingUser?.ID || "new"}/avatar`,
         {
           method: "PUT",
+          headers: {
+            ...getAuthHeaders(),
+          },
           body: formData,
         }
       );
@@ -465,6 +721,11 @@ const Users = ({ personnelId }) => {
       avatarUrlResponse = avatarData.avatar; // URL of the uploaded avatar
     }
 
+    // Map selected app names to their corresponding IDs
+    const appIds = selectedApps
+      .map((appName) => apps.find((app) => app.name === appName)?.id)
+      .filter((id) => id !== undefined); // Ensure no undefined IDs
+
     // Prepare the payload with the new avatar URL if uploaded
     const newUser = {
       username,
@@ -472,19 +733,14 @@ const Users = ({ personnelId }) => {
       fullname,
       email,
       avatar: avatarUrlResponse || avatarUrl, // Use the uploaded avatar URL if available
-      availableApps: selectedApps.map(
-        (appName) => apps.find((app) => app.name === appName)?.id
-      ),
+      availableApps: appIds, // Send clean array of IDs
+      app_ids: appIds, // Fallback: some backends prefer snake_case or different naming
     };
 
     try {
       if (editingUser) {
         // Update user information
-        await fetch(`${API_URL}/api/users/${editingUser.ID}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(newUser),
-        });
+        await putData(`users/${editingUser.ID}`, newUser);
 
         // Update selectedApps state with the saved apps
         setSelectedApps(newUser.availableApps || []);
@@ -495,32 +751,16 @@ const Users = ({ personnelId }) => {
         // Call handleAssignGroup to update the group
         await handleAssignGroup(editingUser.ID, selectedGroup);
 
-        // Update the user in the local state
-        setUsers((prevUsers) =>
-          prevUsers.map((user) =>
-            user.ID === editingUser.ID
-              ? {
-                  ...user,
-                  username: newUser.username,
-                  fullname: newUser.fullname,
-                  email: newUser.email,
-                  groupname:
-                    groups.find((group) => group.id === selectedGroup)?.name ||
-                    "N/A",
-                }
-              : user
-          )
-        );
-
-        setStatus("User updated successfully.");
+        toast({
+          title: "Success",
+          description: "User updated successfully.",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
       } else {
         // Add new user
-        const response = await fetch(`${API_URL}/api/users`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(newUser),
-        });
-        const data = await response.json();
+        const data = await postData("users", newUser);
 
         // Assign group to the new user
         await handleAssignGroup(data.id, selectedGroup);
@@ -555,62 +795,103 @@ const Users = ({ personnelId }) => {
     }
   };
 
-  const handleDeleteUser = (id) => {
-    if (!window.confirm("Are you sure you want to delete this user?")) return;
 
-    fetch(`${API_URL}/api/users/${id}`, { method: "DELETE" })
-      .then(() => {
-        fetchUsers();
-        setUsers((prevUsers) => prevUsers.filter((item) => item.ID !== id));
-        setStatus("User deleted successfully.");
-      })
-      .catch(() => setStatus("Error deleting user."));
+
+  const handleDeleteUser = (user) => {
+    if (!user) return;
+    setUserToDelete(user);
+    onDeleteOpen();
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
+    onDeleteClose();
+
+    try {
+      if (userToDelete.personnel_id) {
+        // Soft delete personnel
+        await deleteData("personnels", userToDelete.personnel_id, "Error deleting personnel.");
+
+        toast({
+          title: "Deleted",
+          description: "Personnel record deleted successfully.",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+
+        setUsers((prev) => prev.filter((u) => u.personnel_id !== userToDelete.personnel_id));
+      } else {
+        // Delete user
+        if (!userToDelete.ID) throw new Error("User ID missing.");
+        await deleteData("users", userToDelete.ID, "Error deleting user.");
+
+        toast({
+          title: "Deleted",
+          description: "User account deleted successfully.",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+
+        setUsers((prev) => prev.filter((u) => u.ID !== userToDelete.ID));
+      }
+      fetchUsers();
+    } catch (error) {
+      console.error("Delete failed:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete user.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
   const fetchPersonnelImages1 = async (personnelId) => {
-  try {
-    // Reuse the generic fetch function
-    const data = await fetchDataPhotoshoot(personnelId);
+    try {
+      // Reuse the generic fetch function
+      const data = await fetchDataPhotoshoot(personnelId);
 
-    if (Array.isArray(data) && data.length > 0) {
-      const imagesByType = {};
+      if (Array.isArray(data) && data.length > 0) {
+        const imagesByType = {};
 
-      // Debugging: Log the API response
-      console.log("Fetched Personnel Images:", data);
+        // Debugging: Log the API response
+        console.log("Fetched Personnel Images:", data);
 
-      // Store images based on type
-      data.forEach((img) => {
-        if (img.type && img.image_url) {
-          imagesByType[img.type.trim()] = `${API_URL}${img.image_url}`;
-        }
-      });
+        // Store images based on type
+        data.forEach((img) => {
+          if (img.type && img.image_url) {
+            imagesByType[img.type.trim()] = `${API_URL}${img.image_url}`;
+          }
+        });
 
-      setPersonnelImages(imagesByType); // Store images in state
+        setPersonnelImages(imagesByType); // Store images in state
 
-      // Debugging: Log the mapped images
-      console.log("Mapped Personnel Images:", imagesByType);
-    } else {
-      console.warn("No personnel images found for ID:", personnelId);
-      setPersonnelImages({});
+        // Debugging: Log the mapped images
+        console.log("Mapped Personnel Images:", imagesByType);
+      } else {
+        console.warn("No personnel images found for ID:", personnelId);
+        setPersonnelImages({});
+      }
+    } catch (error) {
+      console.error("Error fetching personnel images:", error);
     }
-  } catch (error) {
-    console.error("Error fetching personnel images:", error);
-  }
-};
+  };
 
   const fetchPersonnelImages = async (personnelId) => {
-
-    
     try {
       const response = await axios.get(
-        `https://172.18.125.134/api/personnel_images/${personnelId}`
+        `${API_URL}/api/personnel_images/${personnelId}`,
+        { headers: getAuthHeaders() }
       );
 
       if (response.data.success) {
         const imagesByType = {};
 
         // Debugging: Log the API response
-        console.log("Fetched Personnel Images:", response.data.data);
+        // console.log("Fetched Personnel Images:", response.data.data);
 
         // Store images based on type
         response.data.data.forEach((img) => {
@@ -620,7 +901,7 @@ const Users = ({ personnelId }) => {
         setPersonnelImages(imagesByType); // Store images in state
 
         // Debugging: Log the mapped images
-        console.log("Mapped Personnel Images:", imagesByType);
+        // console.log("Mapped Personnel Images:", imagesByType);
       }
     } catch (error) {
       console.error("Error fetching personnel images:", error);
@@ -631,12 +912,10 @@ const Users = ({ personnelId }) => {
     setEditingUser(item);
     setUsername(item.username);
 
-    // alert(`LDAP Last Name (sn): ${item.sn}`); // Debugging info
-
     // Extract first name and last name correctly
-    const givenNameParts = item.givenName.split(" "); // Split given name to handle middle initials
-    const firstName = givenNameParts[0]; // First word is the first name
-    const lastName = item.sn; // Last name (from LDAP)
+    const givenNameParts = item.givenName ? item.givenName.split(" ") : ["N/A"]; // Safe split
+    const firstName = givenNameParts[0];
+    const lastName = item.sn || "";
 
     setFirstName(firstName);
     setLastName(lastName);
@@ -645,10 +924,15 @@ const Users = ({ personnelId }) => {
     setFullname(`${firstName} ${lastName}`);
 
     setEmail(item.mail || "");
-    setAvatarUrl(item.avatar || "");
-    setSelectedApps(item.availableApps || []);
-    setSelectAll(item.availableApps?.length === apps.length); // Set the current group of the user
-    setSelectedGroup(item.groupId || ""); // Ensure groupId exists in user data
+    setAvatarUrl(avatars[item.personnel_id] || (item.avatar ? `${API_URL}${item.avatar}` : ""));
+
+    // Robust handling of availableApps: map objects to names if necessary
+    const rawApps = item.availableApps || [];
+    const appNames = rawApps.map(app => (typeof app === "object" && app !== null ? app.name : app));
+    setSelectedApps(appNames);
+
+    setSelectAll(appNames.length > 0 && appNames.length === apps.length);
+    setSelectedGroup(item.groupId || "");
 
     onOpen();
   };
@@ -705,7 +989,7 @@ const Users = ({ personnelId }) => {
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ groupId }),
+          body: JSON.stringify({ groupId: groupId || null }), // Pass null if empty
         }
       );
 
@@ -741,6 +1025,14 @@ const Users = ({ personnelId }) => {
     );
   };
 
+  const handlePageChangeLdapOnly = (direction) => {
+    setCurrentPageLdapOnly((prev) =>
+      direction === "next"
+        ? Math.min(prev + 1, totalPagesLdapOnly)
+        : Math.max(prev - 1, 1)
+    );
+  };
+
   // const [loading, setLoading] = useState(false);
 
   const [loadingSyncUsers, setLoadingSyncUsers] = useState(false); // Loading state for LDAP Sync
@@ -749,16 +1041,29 @@ const Users = ({ personnelId }) => {
   const toast = useToast();
 
   // Sync to users table for new personnel
-  const handleSyncToUsersTable = async (personnelId, personnelName) => {
-    // alert(personnelId);
+  // Open Sync Modal
+  const openSyncModal = (personnelId, personnelName) => {
+    setSelectedSyncPersonnel({ id: personnelId, name: personnelName });
+    setSelectedSyncGroup(""); // Reset group
+    onSyncModalOpen();
+  };
+
+  // Confirm Sync and Call API
+  const confirmSyncToUsers = async () => {
+    if (!selectedSyncPersonnel) return;
+
+    const { id: personnelId, name: personnelName } = selectedSyncPersonnel;
+
     setLoadingSyncPersonnel((prevLoading) => ({
       ...prevLoading,
       [personnelId]: true,
-    })); // Set loading for the specific button
+    }));
+
     try {
       const response = await axios.post(`${API_URL}/api/sync-to-users`, {
         personnelId,
-        personnelName, // Pass the dynamically constructed name
+        personnelName,
+        groupId: selectedSyncGroup || null, // Pass selected group
       });
 
       toast({
@@ -773,6 +1078,8 @@ const Users = ({ personnelId }) => {
       setNewPersonnels((prev) =>
         prev.filter((item) => item.personnel_id !== personnelId)
       );
+
+      onSyncModalClose(); // Close modal on success
     } catch (error) {
       console.error("Error syncing to users table:", error);
       toast({
@@ -787,48 +1094,48 @@ const Users = ({ personnelId }) => {
       setLoadingSyncPersonnel((prevLoading) => ({
         ...prevLoading,
         [personnelId]: false,
-      })); // Reset loading for the specific button
+      }));
     }
   };
 
   const handleSyncUsers = async () => {
     setLoadingSyncUsers(true);
     try {
-        const response = await axios.post(
-            `${API_URL}/api/migrateLdapToPmdLoginUsers`,
-            {}, // CRITICAL: Ensure an empty body is explicitly sent for POST requests
-            { headers: getAuthHeaders() }
-        );
-        
-        toast({
-            title: "Sync Successful",
-            description: response.data.message || "Users have been successfully synchronized from LDAP.",
-            status: "success",
-            duration: 3000,
-            isClosable: true,
-        });
-        fetchUsers(); // Refresh the users list
+      const response = await axios.post(
+        `${API_URL}/api/migrateLdapToPmdLoginUsers`,
+        {}, // CRITICAL: Ensure an empty body is explicitly sent for POST requests
+        { headers: getAuthHeaders() }
+      );
+
+      toast({
+        title: "Sync Successful",
+        description: response.data.message || "Users have been successfully synchronized from LDAP.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+      fetchUsers(); // Refresh the users list
     } catch (error) {
-        console.error("Error synchronizing users:", error);
-        
-        // CRITICAL FIX: Extract specific error message from the backend's 500 response
-        const errorMessage = error.response 
-                           && error.response.data 
-                           && error.response.data.message 
-                           ? error.response.data.message 
-                           : "Failed to synchronize users from LDAP. Please check network/LDAP.";
-                           
-        toast({
-            title: "Error",
-            description: errorMessage,
-            status: "error",
-            duration: 5000,
-            isClosable: true,
-        });
+      console.error("Error synchronizing users:", error);
+
+      // CRITICAL FIX: Extract specific error message from the backend's 500 response
+      const errorMessage = error.response
+        && error.response.data
+        && error.response.data.message
+        ? error.response.data.message
+        : "Failed to synchronize users from LDAP. Please check network/LDAP.";
+
+      toast({
+        title: "Error",
+        description: errorMessage,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
     } finally {
-        setLoadingSyncUsers(false);
+      setLoadingSyncUsers(false);
     }
-};
+  };
 
   const handleSyncUsers1 = async () => {
     setLoadingSyncUsers(true);
@@ -936,15 +1243,27 @@ const Users = ({ personnelId }) => {
         .replace(/\b\w/g, (c) => c.toUpperCase())
     );
 
-    const csvRows = [
-      headers.join(","), // Header row
-      ...filteredUsers.map((user) =>
-        visibleColumns.map((key) => `"${user[key] || ""}"`).join(",")
-      ),
-    ];
+    // Prepare data matching PDF layout logic
+    const data = filteredUsers.map((user) =>
+      visibleColumns.map((key) => {
+        if (key === "avatar") {
+          // Export full URL for avatar
+          return avatars[user.personnel_id] || (user.avatar ? `${API_URL}${user.avatar}` : "N/A");
+        }
+        return user[key] === null || user[key] === undefined ? "" : user[key];
+      })
+    );
 
-    const csvContent = csvRows.join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    // Use Papa Parse for robust CSV generation
+    const csvContent = Papa.unparse({
+      fields: headers,
+      data: data,
+    });
+
+    // Add BOM for Excel UTF-8 compatibility
+    const blob = new Blob(["\uFEFF" + csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
     const url = URL.createObjectURL(blob);
 
     const link = document.createElement("a");
@@ -955,41 +1274,104 @@ const Users = ({ personnelId }) => {
     document.body.removeChild(link);
   };
 
-  const exportAsPDF = () => {
+  const exportAsPDF = async () => {
     if (!filteredUsers || filteredUsers.length === 0) {
       alert("No data to export.");
       return;
     }
 
-    const doc = new jsPDF();
-    doc.setFontSize(14);
-    doc.text("Personnel List", 14, 15);
+    setIsExporting(true);
 
-    const visibleColumns = Object.keys(columnVisibility).filter(
-      (key) => columnVisibility[key]
-    );
+    try {
+      const doc = new jsPDF();
+      doc.setFontSize(14);
+      doc.text("Personnel List", 14, 15);
 
-    const headers = visibleColumns.map((key) =>
-      key
-        .replace("personnel_", "")
-        .replace(/_/g, " ")
-        .replace(/\b\w/g, (c) => c.toUpperCase())
-    );
+      const visibleColumns = Object.keys(columnVisibility).filter(
+        (key) => columnVisibility[key]
+      );
 
-    const data = filteredUsers.map((user) =>
-      visibleColumns.map((key) => user[key] || "")
-    );
+      const headers = visibleColumns.map((key) =>
+        key
+          .replace("personnel_", "")
+          .replace(/_/g, " ")
+          .replace(/\b\w/g, (c) => c.toUpperCase())
+      );
 
-    autoTable(doc, {
-      startY: 20,
-      head: [headers],
-      body: data,
-      theme: "grid",
-      headStyles: { fillColor: [0, 122, 204] },
-      styles: { fontSize: 9 },
-    });
+      const avatarColumnIndex = visibleColumns.indexOf("avatar");
 
-    doc.save("personnel_list.pdf");
+      // Helper to load image
+      const loadImage = (url) => {
+        return new Promise((resolve) => {
+          const img = new window.Image();
+          img.crossOrigin = "Anonymous";
+          img.src = url;
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            resolve(canvas.toDataURL('image/png'));
+          };
+          img.onerror = () => resolve(null);
+        });
+      };
+
+      // Pre-process data
+      const data = await Promise.all(filteredUsers.map(async (user) => {
+        const row = [];
+        for (const key of visibleColumns) {
+          if (key === 'avatar') {
+            const avatarUrl = avatars[user.personnel_id] || (user.avatar ? `${API_URL}${user.avatar}` : null);
+            let imageData = null;
+            if (avatarUrl) {
+              imageData = await loadImage(avatarUrl);
+            }
+            const initials = (user.givenName?.[0] || "") + (user.sn?.[0] || "");
+            row.push({ content: '', image: imageData, initials });
+          } else {
+            row.push(user[key] || "");
+          }
+        }
+        return row;
+      }));
+
+      autoTable(doc, {
+        startY: 20,
+        head: [headers],
+        body: data,
+        theme: "grid",
+        headStyles: { fillColor: [0, 122, 204] },
+        styles: { fontSize: 9, minCellHeight: 15, valign: 'middle' },
+        didDrawCell: (dataHook) => {
+          if (dataHook.section === 'body' && dataHook.column.index === avatarColumnIndex) {
+            const cellRaw = dataHook.cell.raw;
+            if (cellRaw && typeof cellRaw === 'object') {
+              const { image, initials } = cellRaw;
+              if (image) {
+                doc.addImage(image, 'PNG', dataHook.cell.x + 2, dataHook.cell.y + 2, 11, 11);
+              } else {
+                // Draw placeholder
+                doc.setFillColor(200, 200, 200);
+                doc.circle(dataHook.cell.x + 7.5, dataHook.cell.y + 7.5, 5, 'F');
+                doc.setFontSize(8);
+                doc.setTextColor(255, 255, 255);
+                doc.text(initials || "?", dataHook.cell.x + 7.5, dataHook.cell.y + 10, { align: 'center' });
+              }
+            }
+          }
+        }
+      });
+
+      doc.save("personnel_list.pdf");
+
+    } catch (error) {
+      console.error("Export PDF Error:", error);
+      alert("Failed to export PDF: " + error.message);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   // Add this ref
@@ -1066,381 +1448,622 @@ const Users = ({ personnelId }) => {
     }
   };
 
+  // Avatar Zoom State
+  const {
+    isOpen: isAvatarZoomOpen,
+    onOpen: onAvatarZoomOpen,
+    onClose: onAvatarZoomClose,
+  } = useDisclosure();
+  const [zoomedAvatarSrc, setZoomedAvatarSrc] = useState("");
+
+  const handleAvatarClick = (src) => {
+    setZoomedAvatarSrc(src);
+    onAvatarZoomOpen();
+  };
+
   return (
-    <Box p={6}>
-      <Heading mb={6}>Personnel Management</Heading>
+    <Box p={{ base: 4, md: 6 }} bg={useColorModeValue("gray.50", "gray.900")} minH="100vh">
+      <Flex direction={{ base: "column", md: "row" }} justify="space-between" align={{ base: "start", md: "center" }} mb={6} gap={4}>
+        <Heading size="lg" color="blue.600">Personnel Management</Heading>
 
-      {/* Sync Users Button */}
-      {hasPermission("personnels.syncfromldap") && (
-        <Button
-          colorScheme="orange"
-          mb={4}
-          isLoading={loadingSyncUsers}
-          onClick={handleSyncUsers}
-        >
-          Sync Users from LDAP
-        </Button>
-      )}
+        {/* Sync Users Button */}
+        {hasPermission("personnels.syncfromldap") && (
+          <Button
+            colorScheme="orange"
+            leftIcon={<Icon as={FiUser} />}
+            isLoading={loadingSyncUsers}
+            onClick={handleSyncUsers}
+            size="sm"
+            shadow="md"
+          >
+            Sync Users
+          </Button>
+        )}
+      </Flex>
 
-      <Flex mb={4} align="center" gap={2}>
+      {/* Controls Bar */}
+      <Stack direction={{ base: "column", md: "row" }} spacing={4} mb={6} align="center" bg="white" p={4} borderRadius="lg" shadow="sm">
         {/* Search bar for Personnel List */}
-        <Input
-          placeholder="Search personnel list..."
-          value={searchPersonnelList}
-          onChange={handleSearchChangePersonnel}
-          maxW="300px"
-        />
-
-        {/* Advanced Search Button */}
-        <IconButton
-          icon={<Search2Icon />}
-          aria-label="Advanced Search"
-          onClick={onOpenAdvance}
-          variant="outline"
-          colorScheme="blue"
-        />
-
-        {/* Columns Menu */}
-        <Menu
-          isOpen={isMenuOpen}
-          onClose={() => setIsMenuOpen(false)}
-          closeOnSelect={false}
-        >
-          <MenuButton
-            as={IconButton}
-            icon={<ViewIcon />}
-            aria-label="Columns"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
+        <InputGroup maxW={{ base: "100%", md: "300px" }}>
+          <InputLeftElement pointerEvents="none"><Search2Icon color="gray.400" /></InputLeftElement>
+          <Input
+            placeholder="Search personnel..."
+            value={searchPersonnelList}
+            onChange={handleSearchChangePersonnel}
+            variant="filled"
           />
-          <MenuList maxHeight="300px" overflowY="auto" minW="250px" px={2}>
-            {/* ✅ Select All Option */}
-            <Box px={2} py={1}>
-              <Checkbox
-                isChecked={allVisible}
-                onChange={(e) => {
-                  e.stopPropagation(); // Prevent menu from closing
-                  toggleSelectAll();
-                }}
-              >
-                Select All
-              </Checkbox>
-            </Box>
-            <Divider />
+        </InputGroup>
 
-            {/* ✅ Individual Columns */}
-            {allKeys.map((key) => (
-              <MenuItem key={key} as="div" _hover={{ bg: "transparent" }}>
+        <Tooltip label="Reload List / Clear Search" hasArrow>
+          <IconButton
+            icon={<RepeatIcon />}
+            aria-label="Reload Users"
+            onClick={() => {
+              setSearchPersonnelList("");
+              setAppliedFilters({ // Reset applied filters too if "display all" is intended
+                Minister: false,
+                Regular: false,
+                "Lay Member": false,
+                "Minister's Wife": false,
+                "Ministerial Student": false,
+                district: "",
+                local: "",
+                section: "",
+                team: "",
+                role: "",
+                birthdayMonth: "",
+                bloodtype: "",
+                language: "",
+                citizenship: "",
+                civil_status: "",
+                educational_attainment: "",
+                inc_housing_address_id: "",
+                incHousing: false,
+              });
+              setAdvancedFilters({ // Reset UI filters state as well
+                Minister: false,
+                Regular: false,
+                "Lay Member": false,
+                "Minister's Wife": false,
+                "Ministerial Student": false,
+                district: "",
+                local: "",
+                section: "",
+                team: "",
+                role: "",
+                birthdayMonth: "",
+                bloodtype: "",
+                language: "",
+                citizenship: "",
+                civil_status: "",
+                educational_attainment: "",
+                inc_housing_address_id: "",
+                incHousing: false,
+              });
+              setCheckboxes({
+                Minister: false,
+                Regular: false,
+                "Lay Member": false,
+                "Minister's Wife": false,
+                "Ministerial Student": false,
+              });
+              setAllAdvanceSelected(false);
+              setCurrentPagePersonnel(1);
+              fetchUsers();
+            }}
+            colorScheme="gray"
+            variant="outline"
+          />
+        </Tooltip>
+
+        <HStack spacing={2} ml="auto" w={{ base: "100%", md: "auto" }} justify={{ base: "space-between", md: "flex-end" }}>
+          {/* Advanced Search Button */}
+          <Tooltip label="Advanced Search">
+            <IconButton
+              icon={<Search2Icon />}
+              aria-label="Advanced Search"
+              onClick={onOpenAdvance}
+              colorScheme="blue"
+              variant="outline"
+            />
+          </Tooltip>
+
+          {/* Columns Menu */}
+          <Menu closeOnSelect={false}>
+            <Tooltip label="Toggle Columns">
+              <MenuButton as={IconButton} icon={<ViewIcon />} aria-label="Columns" variant="ghost" />
+            </Tooltip>
+            <MenuList maxHeight="300px" overflowY="auto" minW="250px" px={2} zIndex={10}>
+              <Box px={2} py={1}>
                 <Checkbox
-                  isChecked={columnVisibility[key]}
+                  isChecked={allVisible}
                   onChange={(e) => {
-                    e.stopPropagation(); // Prevent menu from closing
-                    toggleColumn(key);
+                    e.stopPropagation();
+                    toggleSelectAll();
                   }}
+                  colorScheme="blue"
                 >
-                  {key
-                    .replace("personnel_", "")
-                    .replace(/_/g, " ")
-                    .replace(/\b\w/g, (char) => char.toUpperCase())}
+                  Select All
                 </Checkbox>
+              </Box>
+              <Divider my={2} />
+              {allKeys.map((key) => (
+                <MenuItem key={key} as="div" _hover={{ bg: "transparent" }}>
+                  <Checkbox
+                    isChecked={columnVisibility[key]}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      toggleColumn(key);
+                    }}
+                    colorScheme="blue"
+                  >
+                    {key
+                      .replace("personnel_", "")
+                      .replace(/_/g, " ")
+                      .replace(/\b\w/g, (char) => char.toUpperCase())}
+                  </Checkbox>
+                </MenuItem>
+              ))}
+            </MenuList>
+          </Menu>
+
+          {/* Export Menu */}
+          <Menu>
+            <Tooltip label="Export Data">
+              <MenuButton as={IconButton} icon={<DownloadIcon />} aria-label="Export" variant="ghost" />
+            </Tooltip>
+            <MenuList>
+              <MenuItem icon={<DownloadIcon />} onClick={exportAsCSV}>Export as CSV</MenuItem>
+              <MenuItem icon={isExporting ? <Spinner size="xs" /> : <DownloadIcon />} onClick={exportAsPDF} isDisabled={isExporting}>
+                {isExporting ? "Exporting..." : "Export as PDF"}
               </MenuItem>
-            ))}
-          </MenuList>
-        </Menu>
+            </MenuList>
+          </Menu>
+        </HStack>
+      </Stack>
 
-        {/* Export Menu */}
-        <Menu>
-          <MenuButton
-            as={IconButton}
-            icon={<DownloadIcon />}
-            aria-label="Export"
-          />
-          <MenuList>
-            <MenuItem onClick={exportAsCSV}>Export as CSV</MenuItem>
-            <MenuItem onClick={exportAsPDF}>Export as PDF</MenuItem>
-          </MenuList>
-        </Menu>
-      </Flex>
 
-      <Heading size="md"> Personnel List</Heading>
-      <Flex justify="space-between" align="center" mt={4} mb={6}>
-        <Button
-          onClick={() => handlePageChangePersonnel("previous")}
-          disabled={currentPagePersonnel === 1}
-        >
-          Previous
-        </Button>
-        <Text>
-          Page {currentPagePersonnel} of {totalPagesPersonnel}
-        </Text>
-        <Button
-          onClick={() => handlePageChangePersonnel("next")}
-          disabled={currentPagePersonnel === totalPagesPersonnel}
-        >
-          Next
-        </Button>
-      </Flex>
-      {/* Existing Personnel Table */}
-      <VStack align="start" spacing={4} mb={6} width="100%">
-        <Box width="100%" overflowX="auto">
-          <Table variant="simple" minWidth="1000px">
-            <Thead>
-              <Tr>
-                {existingPersonnel.length > 0 &&
-                  Object.keys(existingPersonnel[0]).map((key) =>
-                    columnVisibility[key] ? (
-                      <Th key={key}>
-                        {key
-                          .replace("personnel_", "")
-                          .replace(/_/g, " ")
-                          .replace(/\b\w/g, (c) => c.toUpperCase())}
-                      </Th>
-                    ) : null
-                  )}
-                <Th>Actions</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {currentItemsPersonnel.map((item, index) => {
-                const avatarSrc = item.avatar ? `${API_URL}${item.avatar}` : "";
+      <Flex direction="column" bg="white" p={4} borderRadius="lg" shadow="md">
+        <HStack justify="space-between" mb={4}>
+          <Heading size="md" color="gray.700">User Management</Heading>
+        </HStack>
 
-                return (
-                  <Tr key={item.ID} cursor="pointer">
-                    {Object.entries(item).map(
-                      ([key, value]) =>
-                        columnVisibility[key] && (
-                          <Td key={key}>
-                            {key === "avatar" ? (
-                              <Avatar
-                                size="sm"
-                                src={avatarSrc}
-                                name={`${item.givenName || "N/A"} ${
-                                  item.sn || "N/A"
-                                }`}
-                              />
-                            ) : key === "givenName" || key === "sn" ? null : (
-                              <Text fontSize="sm">
-                                {typeof value === "object"
-                                  ? JSON.stringify(value)
-                                  : value || "N/A"}
-                              </Text>
-                            )}
+        <Tabs variant="enclosed" colorScheme="blue" defaultIndex={0}>
+          <TabList>
+            <Tab fontWeight="bold">Synced Personnel ({personnelUsers.length})</Tab>
+            <Tab fontWeight="bold">LDAP Only ({ldapOnlyUsers.length})</Tab>
+          </TabList>
+
+          <TabPanels>
+            {/* Tab 1: Synced Personnel */}
+            <TabPanel px={0} pt={4}>
+              <HStack justify="space-between" mb={4}>
+                <Text fontSize="sm" color="gray.500" fontWeight="medium">
+                  Showing {currentItemsPersonnel.length} of {personnelUsers.length} synced records
+                </Text>
+              </HStack>
+              <Box width="100%" overflowX="auto">
+                <Table variant="simple" minWidth="1000px" size="md">
+                  <Thead bg="gray.50">
+                    <Tr>
+                      <Th py={3} color="gray.600">#</Th>
+                      <Th py={3} color="gray.600">Full Name</Th>
+                      <Th py={3} color="gray.600">Personnel Type</Th>
+                      <Th py={3} color="gray.600">Action</Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {isLoading ? (
+                      Array.from({ length: 5 }).map((_, i) => (
+                        <Tr key={i}>
+                          <Td colSpan={4}>
+                            <HStack>
+                              <SkeletonCircle size="10" />
+                              <SkeletonText mt="4" noOfLines={1} spacing="4" skeletonHeight="4" width="100%" />
+                            </HStack>
                           </Td>
-                        )
+                        </Tr>
+                      ))
+                    ) : (
+                      currentItemsPersonnel.map((item, index) => {
+                        const avatarSrc = avatars[item.personnel_id] || (item.avatar ? `${API_URL}${item.avatar}` : "");
+                        return (
+                          <Tr key={item.ID} _hover={{ bg: "blue.50" }} transition="background 0.2s">
+                            <Td fontWeight="bold" color="blue.500">{(currentPagePersonnel - 1) * ITEMS_PER_PAGE + index + 1}</Td>
+                            <Td>
+                              <HStack spacing={3}>
+                                <Tooltip label="Click to zoom" placement="top">
+                                  <Avatar
+                                    size="md"
+                                    src={avatarSrc}
+                                    name={`${item.givenName || item.personnel_givenname || "N/A"} ${item.sn || item.personnel_surname_husband || "N/A"}`}
+                                    cursor="pointer"
+                                    border="2px solid white"
+                                    boxShadow="sm"
+                                    _hover={{ transform: "scale(1.5)", zIndex: 10, borderColor: "blue.400" }}
+                                    transition="all 0.2s"
+                                    onClick={() => handleAvatarClick(avatarSrc)}
+                                  />
+                                </Tooltip>
+                                <Text fontWeight="bold" fontSize="sm" color="gray.700" whiteSpace="nowrap">
+                                  {`${item.givenName || item.personnel_givenname || "N/A"} ${item.sn || item.personnel_surname_husband || "N/A"}`}
+                                </Text>
+                              </HStack>
+                            </Td>
+                            <Td>
+                              <Badge colorScheme={
+                                item.personnel_type === "Minister" ? "purple" :
+                                  item.personnel_type === "Regular" ? "green" :
+                                    "gray"
+                              }>
+                                {item.personnel_type || "N/A"}
+                              </Badge>
+                            </Td>
+                            <Td>
+                              <HStack spacing={2}>
+                                {hasPermission("personnels.edit") && (
+                                  <Tooltip label="Edit User">
+                                    <IconButton size="sm" icon={<EditIcon />} colorScheme="yellow" onClick={() => handleEditUser(item)} aria-label="Edit" />
+                                  </Tooltip>
+                                )}
+                                {hasPermission("personnels.photo") && (
+                                  <Tooltip label="Photoshoot">
+                                    <IconButton size="sm" icon={<FaCamera />} colorScheme="teal" onClick={() => { setSelectedUser(item); setIsPhotoModalOpen(true); }} aria-label="Photoshoot" />
+                                  </Tooltip>
+                                )}
+                                {hasPermission("personnels.edit_rfid_code") && (
+                                  <Tooltip label="Update RFID">
+                                    <IconButton size="sm" icon={<FaIdCard />} colorScheme="blue" onClick={() => { setSelectedUserForRfid(item.personnel_id); setRfidCode(item.rfid_code || ""); onRfidModalOpen(); }} aria-label="Update RFID" />
+                                  </Tooltip>
+                                )}
+                                {hasPermission("personnels.view") && (
+                                  <IconButton size="sm" icon={<ViewIcon />} colorScheme="purple" onClick={() => handleViewUser(item.personnel_id)} isDisabled={!item.personnel_id} aria-label="View" />
+                                )}
+                                {hasPermission("personnels.info") && (
+                                  <IconButton size="sm" icon={<InfoIcon />} colorScheme="orange" onClick={() => { window.location.href = `/enroll?personnel_id=${item.personnel_id}&type=edituser`; }} aria-label="Info" />
+                                )}
+                                {hasPermission("personnels.delete") && (
+                                  <IconButton size="sm" icon={<DeleteIcon />} colorScheme="red" onClick={(e) => { e.stopPropagation(); handleDeleteUser(item); }} aria-label="Delete" />
+                                )}
+                              </HStack>
+                            </Td>
+                          </Tr>
+                        );
+                      })
                     )}
+                  </Tbody>
+                </Table>
+              </Box>
+              <Flex justify="space-between" align="center" mt={6} borderTop="1px solid" borderColor="gray.100" pt={4}>
+                <Button size="sm" onClick={() => handlePageChangePersonnel("previous")} isDisabled={currentPagePersonnel === 1} variant="outline">Previous</Button>
+                <Text fontSize="sm" fontWeight="bold">Page {currentPagePersonnel} of {totalPagesPersonnel}</Text>
+                <Button size="sm" onClick={() => handlePageChangePersonnel("next")} isDisabled={currentPagePersonnel === totalPagesPersonnel} variant="outline">Next</Button>
+              </Flex>
+            </TabPanel>
 
-                    <Td>
-                      <HStack spacing={2}>
-                        {hasPermission("personnels.edit") && (
-                          <IconButton
-                            icon={<EditIcon />}
-                            colorScheme="yellow"
-                            onClick={() => handleEditUser(item)}
-                          />
-                        )}
-                        {hasPermission("personnels.photo") && ( // ✅ Optional: add a permission check
-                          <IconButton
-                            icon={<FaCamera />}
-                            colorScheme="teal"
-                            onClick={() => {
-                              setSelectedUser(item); // ✅ Set selected user
-                              setIsPhotoModalOpen(true); // ✅ Open modal
-                            }}
-                          />
-                        )}
-                        {hasPermission("personnels.edit_rfid_code") && (
-                          <IconButton
-                            icon={<FaIdCard />}
-                            colorScheme="blue"
-                            onClick={() => {
-                              // ✅ Set personnel_id (not the whole item object)
-                              setSelectedUserForRfid(item.personnel_id);
+            {/* Tab 2: LDAP Only Users */}
+            <TabPanel px={0} pt={4}>
+              <HStack justify="space-between" mb={4}>
+                <Text fontSize="sm" color="gray.500" fontWeight="medium">
+                  Showing {currentItemsLdapOnly.length} of {ldapOnlyUsers.length} LDAP-only records
+                </Text>
+              </HStack>
+              <Box width="100%" overflowX="auto">
+                <Table variant="simple" minWidth="1000px" size="md">
+                  <Thead bg="gray.50">
+                    <Tr>
+                      <Th py={3} color="gray.600">#</Th>
+                      <Th py={3} color="gray.600">Username/UID</Th>
+                      <Th py={3} color="gray.600">Full Name (from LDAP)</Th>
+                      <Th py={3} color="gray.600">Group Name</Th>
+                      <Th py={3} color="gray.600">Action</Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {isLoading ? (
+                      Array.from({ length: 5 }).map((_, i) => (
+                        <Tr key={i}>
+                          <Td colSpan={5}>
+                            <HStack>
+                              <SkeletonCircle size="10" />
+                              <SkeletonText mt="4" noOfLines={1} spacing="4" skeletonHeight="4" width="100%" />
+                            </HStack>
+                          </Td>
+                        </Tr>
+                      ))
+                    ) : ldapOnlyUsers.length === 0 ? (
+                      <Tr>
+                        <Td colSpan={5} textAlign="center" py={10}>
+                          <VStack spacing={2}>
+                            <Icon as={FiUsers} boxSize={8} color="gray.300" />
+                            <Text color="gray.500">No LDAP-only users found. Try syncing.</Text>
+                          </VStack>
+                        </Td>
+                      </Tr>
+                    ) : (
+                      currentItemsLdapOnly.map((item, index) => (
+                        <Tr key={item.ID} _hover={{ bg: "orange.50" }} transition="background 0.2s">
+                          <Td fontWeight="bold" color="orange.500">{(currentPageLdapOnly - 1) * ITEMS_PER_PAGE + index + 1}</Td>
+                          <Td>
+                            <Badge colorScheme="orange" variant="outline">{item.username}</Badge>
+                          </Td>
+                          <Td fontWeight="medium" color="gray.700">
+                            {`${item.givenName || ""} ${item.sn || ""}`.trim() || item.username}
+                          </Td>
+                          <Td>
+                            <Badge colorScheme={item.groupId ? "blue" : "gray"}>
+                              {groups.find(g => g.id === item.groupId)?.name || "N/A"}
+                            </Badge>
+                          </Td>
+                          <Td>
+                            <HStack spacing={2}>
+                              {hasPermission("personnels.edit") && (
+                                <Tooltip label="Edit User">
+                                  <IconButton
+                                    size="sm"
+                                    icon={<EditIcon />}
+                                    colorScheme="yellow"
+                                    onClick={() => handleEditUser(item)}
+                                    aria-label="Edit"
+                                  />
+                                </Tooltip>
+                              )}
+                              <Tooltip label="Requires Personnel Sync">
+                                <IconButton
+                                  size="sm"
+                                  icon={<InfoIcon />}
+                                  colorScheme="gray"
+                                  onClick={() => {
+                                    window.location.href = `/enroll?not_enrolled=${item.username}&type=edituser`;
+                                  }}
+                                  aria-label="Enrollment Info"
+                                />
+                              </Tooltip>
+                              {hasPermission("personnels.delete") && (
+                                <IconButton
+                                  size="sm"
+                                  icon={<DeleteIcon />}
+                                  colorScheme="red"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteUser(item);
+                                  }}
+                                  aria-label="Delete"
+                                />
+                              )}
+                            </HStack>
+                          </Td>
+                        </Tr>
+                      ))
+                    )}
+                  </Tbody>
+                </Table>
+              </Box>
+              <Flex justify="space-between" align="center" mt={6} borderTop="1px solid" borderColor="gray.100" pt={4}>
+                <Button size="sm" onClick={() => handlePageChangeLdapOnly("previous")} isDisabled={currentPageLdapOnly === 1} variant="outline">Previous</Button>
+                <Text fontSize="sm" fontWeight="bold">Page {currentPageLdapOnly} of {totalPagesLdapOnly}</Text>
+                <Button size="sm" onClick={() => handlePageChangeLdapOnly("next")} isDisabled={currentPageLdapOnly === totalPagesLdapOnly} variant="outline">Next</Button>
+              </Flex>
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
+      </Flex>
 
-                              // ✅ Prefill RFID code if exists
-                              setRfidCode(item.rfid_code || "");
+      <Divider my={8} borderColor="gray.200" borderStyle="dashed" />
 
-                              // ✅ Open the RFID modal
-                              onRfidModalOpen();
-                            }}
-                            aria-label="Update RFID"
-                          />
-                        )}
+      {hasPermission("personnels.newly_enrolled_personnel") && (
+        <Box
+          ref={newPersonnelRef}
+          bg="white"
+          p={6}
+          borderRadius="xl"
+          shadow="lg"
+          border="1px solid"
+          borderColor="gray.100"
+          className="new-personnel-section"
+        >
+          <Flex
+            justify="space-between"
+            align={{ base: "start", md: "center" }}
+            mb={6}
+            direction={{ base: "column", md: "row" }}
+            gap={4}
+          >
+            <Box>
+              <Heading size="md" color="blue.600" mb={1}>
+                Newly Enrolled Personnel
+              </Heading>
+              <Text fontSize="sm" color="gray.500">
+                Manage and review the latest personnel enrollments ready for syncing.
+              </Text>
+            </Box>
 
-                        {hasPermission("personnels.view") && (
-                          <Tooltip
-                            label={
-                              !item.personnel_id
-                                ? "No personnel data is available."
-                                : ""
-                            }
-                          >
-                            <IconButton
-                              icon={<ViewIcon />}
-                              colorScheme="orange"
-                              onClick={() => handleViewUser(item.personnel_id)}
-                              isDisabled={!item.personnel_id}
-                            />
-                          </Tooltip>
-                        )}
-                        {hasPermission("personnels.info") && (
-                          <IconButton
-                            icon={<InfoIcon />}
-                            colorScheme="orange"
-                            onClick={() => {
-                              const personnelId = item.personnel_id;
-                              if (personnelId) {
-                                window.location.href = `/enroll?personnel_id=${personnelId}&type=editpersonnel`;
-                              } else {
-                                window.location.href = `/enroll?not_enrolled=${item.username}&type=editpersonnel`;
-                              }
-                            }}
-                          />
-                        )}
-                        {hasPermission("personnels.delete") && (
-                          <IconButton
-                            icon={<DeleteIcon />}
-                            colorScheme="red"
-                            onClick={() => handleDeleteUser(item.personnel_id)}
-                          />
-                        )}
-                      </HStack>
+            <InputGroup maxW="350px" size="md">
+              <InputLeftElement pointerEvents="none" children={<Search2Icon color="gray.400" />} />
+              <Input
+                placeholder="Search name, email, or section..."
+                value={searchNewPersonnels}
+                onChange={(e) => setSearchNewPersonnels(e.target.value)}
+                borderRadius="full"
+                focusBorderColor="blue.500"
+                bg="gray.50"
+                _focus={{ bg: "white", shadow: "md" }}
+              />
+            </InputGroup>
+          </Flex>
+
+          <Box overflowX="auto" borderRadius="lg" border="1px solid" borderColor="gray.100">
+            <Table variant="simple" size="md">
+              <Thead bg="gray.50">
+                <Tr>
+                  <Th py={4} color="gray.600">#</Th>
+                  <Th py={4} color="gray.600">Personnel Details</Th>
+                  <Th py={4} color="gray.600">Section</Th>
+                  <Th py={4} color="gray.600">Action</Th>
+                </Tr>
+              </Thead>
+              <Tbody>
+                {isLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <Tr key={i}>
+                      <Td colSpan={5} py={4}>
+                        <SkeletonText noOfLines={1} spacing="4" skeletonHeight="20px" />
+                      </Td>
+                    </Tr>
+                  ))
+                ) : filteredNewPersonnels.length === 0 ? (
+                  <Tr>
+                    <Td colSpan={5} textAlign="center" py={8} color="gray.500">
+                      <VStack spacing={2}>
+                        <InfoIcon boxSize={6} color="gray.300" />
+                        <Text>No newly enrolled personnel found.</Text>
+                      </VStack>
                     </Td>
                   </Tr>
-                );
-              })}
-            </Tbody>
-          </Table>
+                ) : (
+                  currentItemsNew.map((personnel, index) => {
+                    const rowNumber = (currentPageNew - 1) * ITEMS_PER_PAGE + index + 1;
+                    return (
+                      <Tr
+                        key={personnel.personnel_id}
+                        _hover={{ bg: "blue.50", transition: "all 0.2s" }}
+                      >
+                        <Td>
+                          <HStack spacing={2}>
+                            <Text fontWeight="bold" color="blue.500" minW="20px">{rowNumber}</Text>
+                            <Badge colorScheme="purple" variant="subtle" px={2} borderRadius="md" fontSize="xs">
+                              {personnel.personnel_id}
+                            </Badge>
+                          </HStack>
+                        </Td>
+                        <Td>
+                          <HStack spacing={3}>
+                            <Tooltip label="Click to zoom" placement="top">
+                              <Avatar
+                                size="md"
+                                name={`${personnel.givenname} ${personnel.surname_husband}`}
+                                src={avatars[personnel.personnel_id] || `${API_URL}/uploads/avatar/${personnel.personnel_id}.jpg` || ""}
+                                border="2px solid white"
+                                boxShadow="sm"
+                                cursor="pointer"
+                                onClick={() => handleAvatarClick(avatars[personnel.personnel_id] || `${API_URL}/uploads/avatar/${personnel.personnel_id}.jpg`)}
+                              />
+                            </Tooltip>
+                            <Box>
+                              <Text fontWeight="bold" fontSize="sm" color="gray.700" whiteSpace="nowrap">
+                                {`${personnel.givenname} ${personnel.surname_husband}`}
+                              </Text>
+                              <Text fontSize="xs" color="gray.500">
+                                {personnel.email_address}
+                              </Text>
+                            </Box>
+                          </HStack>
+                        </Td>
+                        <Td color="gray.600">{personnel.section || "N/A"}</Td>
+                        {/* Actions will continue below... */}
+                        <Td>
+                          <HStack spacing={2}>
+                            <Tooltip label="View Full Profile">
+                              <IconButton
+                                size="sm"
+                                icon={<ViewIcon />}
+                                colorScheme="purple"
+                                onClick={() => window.open(`/personnel-preview/${personnel.personnel_id}`, "_blank")}
+                                aria-label="View Profile"
+                              />
+                            </Tooltip>
+
+                            <Tooltip label="View Enrollment Info">
+                              <IconButton
+                                size="sm"
+                                icon={<InfoIcon />}
+                                colorScheme="orange"
+                                onClick={() => window.location.href = `/enroll?personnel_id=${personnel.personnel_id}&type=edituser`}
+                                aria-label="View Enrollment Info"
+                              />
+                            </Tooltip>
+
+                            {hasPermission("personnels.photo") && (
+                              <Tooltip label="Photoshoot">
+                                <IconButton
+                                  size="sm"
+                                  icon={<FaCamera />}
+                                  colorScheme="teal"
+                                  onClick={() => {
+                                    setSelectedUser(personnel);
+                                    setIsPhotoModalOpen(true);
+                                  }}
+                                  aria-label="Photoshoot"
+                                />
+                              </Tooltip>
+                            )}
+
+                            {hasPermission("personnels.edit_rfid_code") && (
+                              <Tooltip label="Update RFID">
+                                <IconButton
+                                  size="sm"
+                                  icon={<FaIdCard />}
+                                  colorScheme="blue"
+                                  onClick={() => {
+                                    setSelectedUserForRfid(personnel.personnel_id);
+                                    setRfidCode(personnel.rfid_code || "");
+                                    onRfidModalOpen();
+                                  }}
+                                  aria-label="Update RFID"
+                                />
+                              </Tooltip>
+                            )}
+
+                            {hasPermission("personnels.sync_to_users") && (
+                              <Tooltip label="Sync to Users Table">
+                                <IconButton
+                                  size="sm"
+                                  icon={<Icon as={FiRefreshCw} boxSize={4} />}
+                                  colorScheme="green"
+                                  variant="solid"
+                                  onClick={() => openSyncModal(personnel.personnel_id, `${personnel.givenname} ${personnel.surname_husband}`)}
+                                  isLoading={loadingSyncPersonnel && loadingSyncPersonnel[personnel.personnel_id]}
+                                  isDisabled={personnel.personnel_progress !== "8"}
+                                  aria-label="Sync User"
+                                  boxShadow="sm"
+                                />
+                              </Tooltip>
+                            )}
+                          </HStack>
+                        </Td>
+                      </Tr>
+                    );
+                  })
+                )}
+              </Tbody>
+            </Table>
+          </Box>
+
+          <Flex justify="space-between" align="center" mt={6} borderTop="1px solid" borderColor="gray.100" pt={4} w="100%">
+            <Button
+              size="sm"
+              onClick={() => handlePageChangeNewPersonnel("previous")}
+              isDisabled={currentPageNew === 1}
+              variant="outline"
+              leftIcon={<Icon as={props => <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>} />}
+            >
+              Previous
+            </Button>
+            <Text fontSize="sm" fontWeight="bold" color="gray.600">
+              Page {currentPageNew} of {totalPagesNew || 1}
+            </Text>
+            <Button
+              size="sm"
+              onClick={() => handlePageChangeNewPersonnel("next")}
+              isDisabled={currentPageNew === totalPagesNew}
+              variant="outline"
+              rightIcon={<Icon as={props => <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>} />}
+            >
+              Next
+            </Button>
+          </Flex>
         </Box>
-      </VStack>
-
-      <Flex justify="space-between" align="center" mt={4} mb={6}>
-        <Button
-          onClick={() => handlePageChangePersonnel("previous")}
-          disabled={currentPagePersonnel === 1}
-        >
-          Previous
-        </Button>
-        <Text>
-          Page {currentPagePersonnel} of {totalPagesPersonnel}
-        </Text>
-        <Button
-          onClick={() => handlePageChangePersonnel("next")}
-          disabled={currentPagePersonnel === totalPagesPersonnel}
-        >
-          Next
-        </Button>
-      </Flex>
-
-      <Divider style={{ borderBottom: "2px dotted black" }} />
-
-      {hasPermission("personnels.newly_enrolled_personnel") && (
-        <>
-          {/* Search bar for Newly Enrolled Personnel */}
-          <Input
-            placeholder="Search newly enrolled personnel..."
-            value={searchNewPersonnels}
-            onChange={(e) => setSearchNewPersonnels(e.target.value)}
-            mb={1}
-            mt={6}
-          />
-        </>
       )}
-
-      {/* Updated Table with Row Numbers and Action Button */}
-      {hasPermission("personnels.newly_enrolled_personnel") && (
-        <Heading size="md">Newly Enrolled Personnel</Heading>
-      )}
-      {hasPermission("personnels.newly_enrolled_personnel") && (
-        <Flex justify="space-between" align="center" mt={4}>
-          <Button
-            onClick={() => handlePageChangeNewPersonnel("previous")}
-            disabled={currentPageNew === 1}
-          >
-            Previous
-          </Button>
-          <Text>
-            Page {currentPageNew} of {totalPagesNew}
-          </Text>
-          <Button
-            onClick={() => handlePageChangeNewPersonnel("next")}
-            disabled={currentPageNew === totalPagesNew}
-          >
-            Next
-          </Button>
-        </Flex>
-      )}
-
-      {/* New Personnel Table */}
-      <VStack align="start" spacing={4} mt={8}>
-        {hasPermission("personnels.newly_enrolled_personnel") && (
-          <Table variant="simple">
-            <Thead>
-              <Tr>
-                <Th>#</Th>
-                <Th>Personnel ID</Th>
-                <Th>Section</Th>
-                <Th>First Name</Th>
-                <Th>Last Name</Th>
-                <Th>Email</Th>
-                <Th>Action</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {currentItemsNew.map((personnel, index) => {
-                const personnelName = `${personnel.givenname} ${personnel.surname_husband}`; // Construct the full name dynamically
-                return (
-                  <Tr key={personnel.personnel_id}>
-                    <Td>{index + 1}</Td> {/* Display the row number */}
-                    <Td>{personnel.personnel_id}</Td>
-                    {/* Display Personnel ID */}
-                    <Td>{personnel.section || "No Section"}</Td>
-                    {/* Display the section name */}
-                    <Td>{personnel.givenname}</Td>
-                    {/* Display first name */}
-                    <Td>{personnel.surname_husband}</Td>
-                    {/* Display last name */}
-                    <Td>{personnel.email_address}</Td>
-                    {/* Display email address */}
-                    {hasPermission("personnels.sync_to_users") && (
-                      <Td>
-                        {/* <Button
-                          colorScheme="yellow"
-                          onClick={() =>
-                            handleSyncToUsersTable(
-                              personnel.personnel_id,
-                              personnelName
-                            )
-                          }
-                          isLoading={
-                            loadingSyncPersonnel[personnel.personnel_id]
-                          } // Loading state specific to this button
-                        >
-                          Sync to Users Table
-                        </Button> */}
-
-                        <Button
-                          colorScheme="yellow"
-                          onClick={() =>
-                            handleSyncToUsersTable(
-                              personnel.personnel_id,
-                              personnelName
-                            )
-                          }
-                          isLoading={
-                            loadingSyncPersonnel[personnel.personnel_id]
-                          }
-                          isDisabled={personnel.personnel_progress !== "8"} // ✅ Only enable if 'Done'
-                        >
-                          Sync to Users Table
-                        </Button>
-                      </Td>
-                    )}
-                  </Tr>
-                );
-              })}
-            </Tbody>
-          </Table>
-        )}
-      </VStack>
 
       <Modal isOpen={isRfidModalOpen} onClose={onRfidModalClose}>
         <ModalOverlay />
@@ -1475,6 +2098,64 @@ const Users = ({ personnelId }) => {
           </ModalFooter>
         </ModalContent>
       </Modal>
+
+      {/* Alert Dialog for Save Confirmation */}
+      <AlertDialog
+        isOpen={isAlertOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={onCloseAlert}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Save Changes
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              Are you sure you want to save changes?
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onCloseAlert}>
+                Cancel
+              </Button>
+              <Button colorScheme="blue" onClick={confirmSave} ml={3}>
+                Save
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        isOpen={isDeleteOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={onDeleteClose}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Delete User
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              Are you sure you want to delete <b>{userToDelete?.username || userToDelete?.fullname}</b>?
+              <br />
+              This action cannot be undone.
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onDeleteClose}>
+                Cancel
+              </Button>
+              <Button colorScheme="red" onClick={confirmDeleteUser} ml={3}>
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
 
       <Modal isOpen={isOpen} onClose={closeModal}>
         <ModalOverlay />
@@ -1598,7 +2279,7 @@ const Users = ({ personnelId }) => {
                             fontSize="md"
                             color="gray.700"
                           >
-                            {category}
+                            {category === "1" ? "General Apps" : category}
                           </Text>
                           <Checkbox
                             isChecked={allSelected}
@@ -1615,32 +2296,34 @@ const Users = ({ personnelId }) => {
                           </Checkbox>
                         </Flex>
 
-                        <CheckboxGroup
-                          value={selectedApps}
-                          onChange={(updatedSelection) =>
-                            handleAppChange(updatedSelection, apps)
-                          }
-                        >
-                          <Stack spacing={2} pl={4}>
-                            {apps.map((app) => (
+                        <Stack spacing={2} pl={4}>
+                          {apps.map((app) => {
+                            const isChecked = selectedApps.includes(app.name);
+                            return (
                               <Checkbox
                                 key={app.id}
-                                value={app.name}
+                                isChecked={isChecked}
+                                onChange={(e) => {
+                                  const checked = e.target.checked;
+                                  setSelectedApps((prev) => {
+                                    if (checked) {
+                                      return [...prev, app.name];
+                                    } else {
+                                      return prev.filter((name) => name !== app.name);
+                                    }
+                                  });
+                                }}
                                 colorScheme="blue"
                                 _hover={{
                                   transform: "scale(1.02)",
                                   transition: "0.2s ease-in-out",
                                 }}
-                                _focus={{
-                                  borderColor: "blue.400",
-                                  boxShadow: "0 0 4px blue",
-                                }}
                               >
                                 {app.name}
                               </Checkbox>
-                            ))}
-                          </Stack>
-                        </CheckboxGroup>
+                            );
+                          })}
+                        </Stack>
                       </Box>
                     );
                   })
@@ -1709,263 +2392,175 @@ const Users = ({ personnelId }) => {
           <ModalHeader>Advanced Personnel Search</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <VStack spacing={3} align="stretch">
-              {/* Select All */}
-              <Checkbox
-                isChecked={allAdvanceSelected}
-                onChange={handleAdvanceSelectAll}
-              >
-                Select All
-              </Checkbox>
-
-              {/* Role Checkboxes */}
-              <Checkbox
-                isChecked={checkboxes.minister}
-                onChange={(e) =>
-                  handleCheckboxChange("minister", e.target.checked)
-                }
-              >
-                Minister
-              </Checkbox>
-              <Checkbox
-                isChecked={checkboxes.regular}
-                onChange={(e) =>
-                  handleCheckboxChange("regular", e.target.checked)
-                }
-              >
-                Regular
-              </Checkbox>
-              <Checkbox
-                isChecked={checkboxes.layMember}
-                onChange={(e) =>
-                  handleCheckboxChange("layMember", e.target.checked)
-                }
-              >
-                Lay Member
-              </Checkbox>
-              <Checkbox
-                isChecked={checkboxes.ministersWife}
-                onChange={(e) =>
-                  handleCheckboxChange("ministersWife", e.target.checked)
-                }
-              >
-                Minister's Wife
-              </Checkbox>
-              <Checkbox
-                isChecked={checkboxes.ministerialStudent}
-                onChange={(e) =>
-                  handleCheckboxChange("ministerialStudent", e.target.checked)
-                }
-              >
-                Ministerial Student
-              </Checkbox>
-
-              {/* District and Local */}
-              <HStack spacing={4}>
-                <Select
-                  placeholder="District"
-                  onChange={(e) =>
-                    handleDropdownFilterChange("district", e.target.value)
-                  }
+            <VStack spacing={4} align="stretch" pb={4}>
+              <Box bg="gray.50" p={3} borderRadius="md">
+                <Text fontWeight="bold" mb={2} fontSize="sm" color="gray.600">Personnel Types</Text>
+                <Checkbox
+                  isChecked={allAdvanceSelected}
+                  onChange={handleAdvanceSelectAll}
+                  colorScheme="blue"
+                  mb={2}
                 >
-                  {districts.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.name}
-                    </option>
-                  ))}
-                </Select>
+                  Select All
+                </Checkbox>
+                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={2}>
+                  <Checkbox isChecked={checkboxes.Minister} onChange={(e) => handleCheckboxChange("minister", e.target.checked)}>Minister</Checkbox>
+                  <Checkbox isChecked={checkboxes.Regular} onChange={(e) => handleCheckboxChange("regular", e.target.checked)}>Regular</Checkbox>
+                  <Checkbox isChecked={checkboxes["Lay Member"]} onChange={(e) => handleCheckboxChange("layMember", e.target.checked)}>Lay Member</Checkbox>
+                  <Checkbox isChecked={checkboxes["Minister's Wife"]} onChange={(e) => handleCheckboxChange("ministersWife", e.target.checked)}>Minister's Wife</Checkbox>
+                  <Checkbox isChecked={checkboxes["Ministerial Student"]} onChange={(e) => handleCheckboxChange("ministerialStudent", e.target.checked)}>Ministerial Student</Checkbox>
+                </SimpleGrid>
+              </Box>
 
-                <Select
-                  placeholder="Local"
-                  onChange={(e) =>
-                    handleDropdownFilterChange("local", e.target.value)
-                  }
-                >
-                  {filteredLocals.map((l) => (
-                    <option key={l.id} value={l.id}>
-                      {l.name}
-                    </option>
-                  ))}
-                </Select>
-              </HStack>
+              <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
+                <FormControl>
+                  <FormLabel fontSize="sm">District</FormLabel>
+                  <Select placeholder="All Districts" value={advancedFilters.district} onChange={(e) => handleDropdownFilterChange("district", e.target.value)}>
+                    {districts.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+                  </Select>
+                </FormControl>
+                <FormControl>
+                  <FormLabel fontSize="sm">Local</FormLabel>
+                  <Select placeholder="All Locals" value={advancedFilters.local} onChange={(e) => handleDropdownFilterChange("local", e.target.value)}>
+                    {filteredLocals.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+                  </Select>
+                </FormControl>
 
-              {/* Section and Team */}
-              <HStack spacing={4}>
-                <Select
-                  placeholder="Section"
-                  onChange={(e) =>
-                    handleDropdownFilterChange("section", e.target.value)
-                  }
-                >
-                  {sections.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
-                </Select>
+                <FormControl>
+                  <FormLabel fontSize="sm">Section</FormLabel>
+                  <Select placeholder="All Sections" value={advancedFilters.section} onChange={(e) => handleDropdownFilterChange("section", e.target.value)}>
+                    {sections.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  </Select>
+                </FormControl>
 
-                <Select
-                  placeholder="Team"
-                  onChange={(e) =>
-                    handleDropdownFilterChange("team", e.target.value)
-                  }
-                >
-                  {subsections.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name}
-                    </option>
-                  ))}
-                </Select>
-              </HStack>
+                <FormControl>
+                  <FormLabel fontSize="sm">Team (Subsection)</FormLabel>
+                  <Select placeholder="All Teams" value={advancedFilters.team} onChange={(e) => handleDropdownFilterChange("team", e.target.value)}>
+                    {subsections.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  </Select>
+                </FormControl>
 
-              {/* Role and Birthday Month */}
-              <HStack spacing={4}>
-                <Select
-                  placeholder="Role"
-                  onChange={(e) =>
-                    handleDropdownFilterChange("role", e.target.value)
-                  }
-                >
-                  {designations.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.name}
-                    </option>
-                  ))}
-                </Select>
+                <FormControl>
+                  <FormLabel fontSize="sm">Designation / Role</FormLabel>
+                  <Select placeholder="All Roles" value={advancedFilters.role} onChange={(e) => handleDropdownFilterChange("role", e.target.value)}>
+                    {designations.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+                  </Select>
+                </FormControl>
 
-                <Select
-                  placeholder="Birthday Month"
-                  onChange={(e) =>
-                    handleDropdownFilterChange("birthdayMonth", e.target.value)
-                  }
-                >
-                  {[
-                    "January",
-                    "February",
-                    "March",
-                    "April",
-                    "May",
-                    "June",
-                    "July",
-                    "August",
-                    "September",
-                    "October",
-                    "November",
-                    "December",
-                  ].map((month) => (
-                    <option key={month} value={month}>
-                      {month}
-                    </option>
-                  ))}
-                </Select>
-              </HStack>
-
-              {/* Blood Type and Language */}
-              <HStack spacing={4}>
-                <Select
-                  placeholder="Select Blood Type"
-                  value={advancedFilters.bloodtype}
-                  onChange={(e) =>
-                    handleDropdownFilterChange("bloodtype", e.target.value)
-                  }
-                >
-                  <option value="">All Blood Types</option>
-                  {bloodtypes
-                    .filter((bt) => bt && bt.trim() !== "") // removes null, undefined, empty strings
-                    .map((bt) => (
-                      <option key={bt} value={bt}>
-                        {bt}
-                      </option>
+                <FormControl>
+                  <FormLabel fontSize="sm">Birthday Month</FormLabel>
+                  <Select placeholder="All Months" value={advancedFilters.birthdayMonth} onChange={(e) => handleDropdownFilterChange("birthdayMonth", e.target.value)}>
+                    {["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].map((month) => (
+                      <option key={month} value={month}>{month}</option>
                     ))}
-                </Select>
+                  </Select>
+                </FormControl>
 
-                <Select
-                  placeholder="Language"
-                  onChange={(e) =>
-                    handleDropdownFilterChange("language", e.target.value)
-                  }
-                >
-                  {languages.map((lang) => (
-                    <option key={lang.id} value={lang.id}>
-                      {lang.name}
-                    </option>
-                  ))}
-                </Select>
-              </HStack>
+                <FormControl>
+                  <FormLabel fontSize="sm">Blood Type</FormLabel>
+                  <Select placeholder="All Blood Types" value={advancedFilters.bloodtype} onChange={(e) => handleDropdownFilterChange("bloodtype", e.target.value)}>
+                    {bloodtypes.filter(bt => bt && bt.trim() !== "").map((bt) => <option key={bt} value={bt}>{bt}</option>)}
+                  </Select>
+                </FormControl>
 
-              {/* Citizenship and Civil Status */}
-              <HStack spacing={4}>
-                <Select
-                  placeholder="Citizenship"
-                  onChange={(e) =>
-                    handleDropdownFilterChange("citizenship", e.target.value)
-                  }
-                >
-                  {citizenships.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.citizenship}
-                    </option>
-                  ))}
-                </Select>
+                <FormControl>
+                  <FormLabel fontSize="sm">Language</FormLabel>
+                  <Select placeholder="All Languages" value={advancedFilters.language} onChange={(e) => handleDropdownFilterChange("language", e.target.value)}>
+                    {languages.map((lang) => <option key={lang.id} value={lang.id}>{lang.name}</option>)}
+                  </Select>
+                </FormControl>
 
-                <Select
-                  placeholder="Civil Status"
-                  onChange={(e) =>
-                    handleDropdownFilterChange("civil_status", e.target.value)
-                  }
-                >
-                  {civilStatusOptions.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </Select>
-              </HStack>
+                <FormControl>
+                  <FormLabel fontSize="sm">Citizenship</FormLabel>
+                  <Select placeholder="All Citizenships" value={advancedFilters.citizenship} onChange={(e) => handleDropdownFilterChange("citizenship", e.target.value)}>
+                    {citizenships.map((c) => <option key={c.id} value={c.id}>{c.citizenship}</option>)}
+                  </Select>
+                </FormControl>
 
-              {/* Educational Level and INC Housing Address */}
-              <HStack spacing={4} mt={4}>
-                <Select
-                  placeholder="Select All"
-                  value={advancedFilters.educational_attainment}
-                  onChange={(e) =>
-                    handleDropdownFilterChange(
-                      "educational_attainment",
-                      e.target.value
-                    )
-                  }
-                >
-                  {educationalLevelOptions.map((level) => (
-                    <option key={level} value={level}>
-                      {level}
-                    </option>
-                  ))}
-                </Select>
+                <FormControl>
+                  <FormLabel fontSize="sm">Civil Status</FormLabel>
+                  <Select placeholder="All Statuses" value={advancedFilters.civil_status} onChange={(e) => handleDropdownFilterChange("civil_status", e.target.value)}>
+                    {civilStatusOptions.map((status) => <option key={status} value={status}>{status}</option>)}
+                  </Select>
+                </FormControl>
 
-                <Select
-                  placeholder="Select All"
-                  value={advancedFilters.inc_housing_address_id}
-                  onChange={(e) =>
-                    handleDropdownFilterChange(
-                      "inc_housing_address_id",
-                      e.target.value
-                    )
-                  }
-                >
-                  {uniqueIncHousingAddresses.map((name, index) => (
-                    <option key={index} value={name}>
-                      {name}
-                    </option>
-                  ))}
-                </Select>
-              </HStack>
+                <FormControl>
+                  <FormLabel fontSize="sm">Educational Attainment</FormLabel>
+                  <Select placeholder="All Levels" value={advancedFilters.educational_attainment} onChange={(e) => handleDropdownFilterChange("educational_attainment", e.target.value)}>
+                    {educationalLevelOptions.map((level) => <option key={level} value={level}>{level}</option>)}
+                  </Select>
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel fontSize="sm">INC Housing Address</FormLabel>
+                  <Select placeholder="All Addresses" value={advancedFilters.inc_housing_address_id} onChange={(e) => handleDropdownFilterChange("inc_housing_address_id", e.target.value)}>
+                    {uniqueIncHousingAddresses.map((name, index) => <option key={index} value={name}>{name}</option>)}
+                  </Select>
+                </FormControl>
+              </SimpleGrid>
             </VStack>
           </ModalBody>
-          <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={applyAdvancedFilters}>
+          <ModalFooter borderTop="1px solid" borderColor="gray.100" bg="gray.50" py={3}>
+            <Button variant="ghost" mr="auto" colorScheme="red" onClick={clearAdvancedFilters}>
+              Clear Filters
+            </Button>
+            <Button variant="outline" onClick={onCloseAdvance} mr={3}>
+              Cancel
+            </Button>
+            <Button colorScheme="blue" onClick={applyAdvancedFilters}>
               Apply Filters
             </Button>
-            <Button variant="ghost" onClick={onCloseAdvance}>
-              Cancel
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+      {/* Avatar Zoom Modal */}
+      <Modal isOpen={isAvatarZoomOpen} onClose={onAvatarZoomClose} size="xl" isCentered>
+        <ModalOverlay backdropFilter="blur(5px)" bg="blackAlpha.600" />
+        <ModalContent bg="transparent" boxShadow="none">
+          <ModalBody p={0} onClick={onAvatarZoomClose} cursor="pointer" display="flex" justifyContent="center">
+            <Image
+              src={zoomedAvatarSrc || "https://bit.ly/broken-link"}
+              alt="Zoomed Avatar"
+              borderRadius="md"
+              boxShadow="2xl"
+              maxH="80vh"
+              objectFit="contain"
+            />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+      {/* Sync User Modal */}
+      <Modal isOpen={isSyncModalOpen} onClose={onSyncModalClose} isCentered>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Sync Personnel to User</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Text mb={4}>
+              You are about to promote <strong>{selectedSyncPersonnel?.name}</strong> to a User account.
+            </Text>
+            <FormControl>
+              <FormLabel>Assign Group (Optional)</FormLabel>
+              <Select
+                placeholder="Select Group"
+                value={selectedSyncGroup}
+                onChange={(e) => setSelectedSyncGroup(e.target.value)}
+              >
+                {groups.map((group) => (
+                  <option key={group.id} value={group.id}>{group.name}</option>
+                ))}
+              </Select>
+            </FormControl>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" onClick={onSyncModalClose}>Cancel</Button>
+            <Button
+              colorScheme="green"
+              onClick={confirmSyncToUsers}
+              ml={3}
+              isLoading={selectedSyncPersonnel && loadingSyncPersonnel[selectedSyncPersonnel.id]}
+            >
+              Sync User
             </Button>
           </ModalFooter>
         </ModalContent>

@@ -7,14 +7,13 @@ import {
   Text,
   Heading,
   Input,
-  //Select,
   Button,
-  Table,
-  Tbody,
-  Tr,
-  Td,
   IconButton,
   useToast,
+  SimpleGrid,
+  FormControl,
+  FormLabel,
+  Flex
 } from "@chakra-ui/react";
 import { EditIcon, DeleteIcon, CheckIcon } from "@chakra-ui/icons";
 import axios from "axios";
@@ -201,9 +200,8 @@ const Step6 = ({
 
       toast({
         title: id ? "Spouse Updated" : "Spouse Added",
-        description: `${relationship_type} information has been ${
-          id ? "updated" : "added"
-        } successfully.`,
+        description: `${relationship_type} information has been ${id ? "updated" : "added"
+          } successfully.`,
         status: "success",
         duration: 3000,
         isClosable: true,
@@ -216,11 +214,9 @@ const Step6 = ({
       );
       toast({
         title: "Error",
-        description: `Failed to ${
-          id ? "update" : "add"
-        } ${relationship_type} information. ${
-          error.response?.data?.message || "Please try again later."
-        }`,
+        description: `Failed to ${id ? "update" : "add"
+          } ${relationship_type} information. ${error.response?.data?.message || "Please try again later."
+          }`,
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -231,890 +227,278 @@ const Step6 = ({
     }
   };
 
-  const renderSelect = (placeholder, value, options, onChange, isDisabled) => (
-    <Select
-      placeholder={placeholder} // Placeholder text
-      value={
-        value
-          ? options
-              .map((option) => ({
-                value: option.id || option.value,
-                label:
-                  option.citizenship ||
-                  option.nationality ||
-                  option.label ||
-                  option.name,
-              }))
-              .find((option) => option.value === value)
-          : null
-      } // Find and display the correct selected option
-      onChange={(selectedOption) => onChange(selectedOption?.value || "")} // Update the selected value
-      options={options.map((option) => ({
-        value: option.id || option.value,
-        label:
-          option.citizenship ||
-          option.nationality ||
-          option.label ||
-          option.name,
-      }))} // Map options to value-label pairs
-      isDisabled={isDisabled} // Disable conditionally
-      isClearable // Allow clearing the selection
-      styles={{
-        container: (base) => ({ ...base, width: "100%" }),
-        placeholder: (base) => ({ ...base, color: "#a8a8a8" }),
-      }}
-    />
-  );
-
   return (
-    <VStack width="100%" bg="white" boxShadow="sm" my={85} p={5}>
-      <Heading as="h2" size="lg" textAlign="center" mb={6}>
+    <Box width="100%" bg="white" boxShadow="sm" p={{ base: 4, md: 5 }}>
+      <Heading as="h2" size={{ base: "lg", md: "xl" }} textAlign="center" mb={2} color="#0a5856">
         Step 6: Spouse Information
       </Heading>
-      {data.map((spouse, index) => (
-        <VStack align="start" spacing={4} mb={8} w="100%">
-          <Table
-            key={spouse.id || spouse.generatedId}
-            size="md"
-            variant="simple"
-          >
-            <Tbody>
-              {/* Personal Information */}
-              <Tr bg={getRowBgColor(index)}>
-                <Td colSpan={4}>
-                  <Text fontWeight="bold">Personal Information</Text>
-                </Td>
-              </Tr>
-              <Tr>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Gender:
-                  </Text>
-                  {renderSelect(
-                    "Select Gender",
-                    spouse.gender ||
-                      (enrolleeGender === "Male" ? "Female" : "Male"),
-                    [
-                      enrolleeGender === "Male"
-                        ? { value: "Female", label: "Female" }
-                        : { value: "Male", label: "Male" },
-                    ],
-                    (value) => onChange(index, "gender", value),
-                    !spouse.isEditing
-                  )}
-                </Td>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Given Name:
-                  </Text>
-                  <Input
-                    placeholder="Given Name"
-                    value={spouse.givenname}
-                    onChange={(e) =>
-                      onChange(index, "givenname", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                  />
-                </Td>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Middle Name:
-                  </Text>
-                  <Input
-                    placeholder="Middle Name"
-                    value={spouse.middlename}
-                    onChange={(e) =>
-                      onChange(index, "middlename", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                  />
-                </Td>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Last Name:
-                  </Text>
-                  <Input
-                    placeholder="Last Name"
-                    value={spouse.lastname}
-                    onChange={(e) =>
-                      onChange(index, "lastname", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                  />
-                </Td>
-              </Tr>
-              <Tr>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Suffix:
-                  </Text>
-                  <Select
-                    placeholder="Select Suffix"
-                    name="suffix"
-                    value={
-                      spouse.suffix
-                        ? { value: spouse.suffix, label: spouse.suffix }
-                        : null
-                    } // Ensures the selected value matches spouse.suffix
-                    onChange={(selectedOption) =>
-                      onChange(index, "suffix", selectedOption?.value || "")
-                    } // Updates the suffix field in state
-                    options={suffixOptions.map((suffix) => ({
-                      value: suffix,
-                      label: suffix,
-                    }))} // Maps suffix options to value-label pairs
-                    isDisabled={!spouse.isEditing || spouse.gender === "Female"} // Conditionally disable for editing or gender
-                    isClearable // Allow clearing the selection
-                    styles={{
-                      container: (base) => ({
-                        ...base,
-                        width: "100%", // Adjust width to fit the design
-                      }),
-                    }}
-                  />
-                </Td>
+      <VStack align="start" spacing={4} mb={8} w="100%">
+        {data.map((spouse, index) => (
+          <Box key={spouse.id || spouse.generatedId} w="100%" p={4} bg="white" shadow="sm" border="1px" borderColor="gray.100" borderRadius="lg">
+            <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={4}>
+              {/* Personal Info */}
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Gender</FormLabel>
+                <Select
+                  placeholder="Select Gender"
+                  value={spouse.gender ? { value: spouse.gender, label: spouse.gender } : (enrolleeGender === "Male" ? { value: "Female", label: "Female" } : { value: "Male", label: "Male" })}
+                  onChange={(selectedOption) => onChange(index, "gender", selectedOption?.value || "")}
+                  options={enrolleeGender === "Male" ? [{ value: "Female", label: "Female" }] : [{ value: "Male", label: "Male" }]}
+                  isDisabled={!spouse.isEditing}
+                  isClearable
+                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Given Name</FormLabel>
+                <Input placeholder="Given Name" value={spouse.givenname} onChange={(e) => onChange(index, "givenname", e.target.value)} isDisabled={!spouse.isEditing} />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Middle Name</FormLabel>
+                <Input placeholder="Middle Name" value={spouse.middlename} onChange={(e) => onChange(index, "middlename", e.target.value)} isDisabled={!spouse.isEditing} />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Last Name</FormLabel>
+                <Input placeholder="Last Name" value={spouse.lastname} onChange={(e) => onChange(index, "lastname", e.target.value)} isDisabled={!spouse.isEditing} />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Suffix</FormLabel>
+                <Select
+                  placeholder="Select Suffix"
+                  name="suffix"
+                  value={spouse.suffix ? { value: spouse.suffix, label: spouse.suffix } : null}
+                  onChange={(selectedOption) => onChange(index, "suffix", selectedOption?.value || "")}
+                  options={suffixOptions.map((suffix) => ({ value: suffix, label: suffix }))}
+                  isDisabled={!spouse.isEditing || spouse.gender === "Female"}
+                  isClearable
+                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Date of Birth</FormLabel>
+                <Input type="date" value={spouse.date_of_birth} onChange={(e) => onChange(index, "date_of_birth", e.target.value)} isDisabled={!spouse.isEditing} />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Contact Number</FormLabel>
+                <Input placeholder="Contact Number" value={spouse.contact_number} onChange={(e) => onChange(index, "contact_number", e.target.value)} isDisabled={!spouse.isEditing} />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Blood Type</FormLabel>
+                <Select
+                  placeholder="Select Blood Type"
+                  value={spouse.bloodtype ? { value: spouse.bloodtype, label: spouse.bloodtype } : null}
+                  onChange={(opt) => onChange(index, "bloodtype", opt?.value || "")}
+                  options={bloodtypes.map(t => ({ value: t, label: t }))}
+                  isDisabled={!spouse.isEditing}
+                  isClearable
+                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Civil Status</FormLabel>
+                <Select
+                  placeholder="Select Civil Status"
+                  value={spouse.civil_status ? { value: spouse.civil_status, label: spouse.civil_status } : null}
+                  onChange={(opt) => onChange(index, "civil_status", opt?.value || "")}
+                  options={civilStatusOptions.map(s => ({ value: s, label: s }))}
+                  isDisabled={!spouse.isEditing}
+                  isClearable
+                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Date of Marriage</FormLabel>
+                <Input type="date" value={spouse.date_of_marriage} onChange={(e) => onChange(index, "date_of_marriage", e.target.value)} isDisabled={!spouse.isEditing || spouse.civil_status === "Single"} />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Place of Marriage</FormLabel>
+                <Input placeholder="Place of Marriage" value={spouse.place_of_marriage} onChange={(e) => onChange(index, "place_of_marriage", e.target.value)} isDisabled={!spouse.isEditing || spouse.civil_status === "Single"} />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Citizenship</FormLabel>
+                <Select
+                  placeholder="Select Citizenship"
+                  value={spouse.citizenship ? citizenships.map(c => ({ value: c.id, label: c.citizenship })).find(opt => opt.value === spouse.citizenship) : null}
+                  onChange={(opt) => onChange(index, "citizenship", opt?.value || "")}
+                  options={citizenships.map(c => ({ value: c.id, label: c.citizenship }))}
+                  isDisabled={!spouse.isEditing}
+                  isClearable
+                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Ethnicity</FormLabel>
+                <Select
+                  placeholder="Select Ethnicity"
+                  value={spouse.nationality ? nationalities.map(n => ({ value: n.id, label: n.nationality })).find(opt => opt.value === spouse.nationality) : null}
+                  onChange={(opt) => onChange(index, "nationality", opt?.value || "")}
+                  options={nationalities.map(n => ({ value: n.id, label: n.nationality }))}
+                  isDisabled={!spouse.isEditing}
+                  isClearable
+                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Livelihood</FormLabel>
+                <Input placeholder="Livelihood" value={spouse.livelihood} onChange={(e) => onChange(index, "livelihood", e.target.value)} isDisabled={!spouse.isEditing} />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">District</FormLabel>
+                <Select
+                  placeholder="Select District"
+                  value={districts.map(d => ({ value: d.id, label: d.name })).find(opt => opt.value === spouse.district_id) || null}
+                  onChange={(opt) => {
+                    onChange(index, "district_id", opt?.value || "");
+                    onChange(index, "local_congregation", "");
+                  }}
+                  options={districts.map(d => ({ value: d.id, label: d.name }))}
+                  isClearable
+                  isDisabled={!spouse.isEditing}
+                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Local Congregation</FormLabel>
+                <Select
+                  placeholder="Select Local Congregation"
+                  value={(filteredCongregations[spouse.district_id] || []).map(c => ({ value: c.id, label: c.name })).find(opt => opt.value === spouse.local_congregation) || null}
+                  onChange={(opt) => onChange(index, "local_congregation", opt?.value || "")}
+                  options={(filteredCongregations[spouse.district_id] || []).map(c => ({ value: c.id, label: c.name }))}
+                  isClearable
+                  isDisabled={!spouse.isEditing || !spouse.district_id}
+                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Church Duties</FormLabel>
+                <Input placeholder="Church Duties" value={spouse.church_duties} onChange={(e) => onChange(index, "church_duties", e.target.value)} isDisabled={!spouse.isEditing} />
+              </FormControl>
+              <FormControl display="none">
+                <Input placeholder="Evangelist" value={spouse.minister_officiated} onChange={(e) => onChange(index, "minister_officiated", e.target.value)} />
+              </FormControl>
 
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Date of Birth:
-                  </Text>
-                  <Input
-                    placeholder="Date of Birth"
-                    type="date"
-                    value={spouse.date_of_birth}
-                    onChange={(e) =>
-                      onChange(index, "date_of_birth", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                  />
-                </Td>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Contact Number:
-                  </Text>
-                  <Input
-                    placeholder="Contact Number"
-                    value={spouse.contact_number}
-                    onChange={(e) =>
-                      onChange(index, "contact_number", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                  />
-                </Td>
-                <Td>
-                  <Text fontWeight="bold" mb="2" color="#0a5856">
-                    Blood Type:
-                  </Text>
-                  {renderSelect(
-                    "Select Blood Type",
-                    spouse.bloodtype,
-                    bloodtypes.map((type) => ({ value: type, label: type })),
-                    (value) => onChange(index, "bloodtype", value),
-                    !spouse.isEditing
-                  )}
-                </Td>
-              </Tr>
-              <Tr>
-                <Td>
-                  <Text fontWeight="bold" mb="2" color="#0a5856">
-                    Civil Status:
-                  </Text>
-                  {renderSelect(
-                    "Select Civil Status",
-                    spouse.civil_status,
-                    civilStatusOptions.map((status) => ({
-                      value: status,
-                      label: status,
-                    })),
-                    (value) => onChange(index, "civil_status", value),
-                    !spouse.isEditing
-                  )}
-                </Td>
+              {/* Work Info */}
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Employment Type</FormLabel>
+                <Select
+                  placeholder="Select Employment Type"
+                  value={spouse.employment_type ? employmentTypeOptions.map(t => ({ value: t, label: t })).find(opt => opt.value === spouse.employment_type) : null}
+                  onChange={(opt) => onChange(index, "employment_type", opt?.value || "")}
+                  options={employmentTypeOptions.map(t => ({ value: t, label: t }))}
+                  isClearable
+                  isDisabled={!spouse.isEditing}
+                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Company</FormLabel>
+                <Input placeholder="Company" value={spouse.company} onChange={(e) => onChange(index, "company", e.target.value)} isDisabled={!spouse.isEditing || ["Volunteer/Kawani"].includes(spouse.employment_type)} />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Address</FormLabel>
+                <Input placeholder="Address" value={spouse.address} onChange={(e) => onChange(index, "address", e.target.value)} isDisabled={!spouse.isEditing} />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Brief Description of Responsibilities</FormLabel>
+                <Input placeholder="Brief Description" value={spouse.position} onChange={(e) => onChange(index, "position", e.target.value)} isDisabled={!spouse.isEditing} />
+              </FormControl>
+              <FormControl display="none">
+                <Input placeholder="Department" value={spouse.department} onChange={(e) => onChange(index, "department", e.target.value)} />
+              </FormControl>
+              <FormControl display="none">
+                <Input placeholder="Section" value={spouse.section} onChange={(e) => onChange(index, "section", e.target.value)} />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Start Date</FormLabel>
+                <Input type="date" value={spouse.start_date} onChange={(e) => onChange(index, "start_date", e.target.value)} isDisabled={!spouse.isEditing} />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">End Date</FormLabel>
+                <Input type="date" value={spouse.end_date} onChange={(e) => onChange(index, "end_date", e.target.value)} isDisabled={!spouse.isEditing} />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Reason for Leaving</FormLabel>
+                <Input placeholder="Reason for Leaving" value={spouse.reason_for_leaving} onChange={(e) => onChange(index, "reason_for_leaving", e.target.value)} isDisabled={!spouse.isEditing} />
+              </FormControl>
 
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Date of Marriage:
-                  </Text>
-                  <Input
-                    placeholder="Date of Marriage"
-                    type="date"
-                    value={spouse.date_of_marriage}
-                    onChange={(e) =>
-                      onChange(index, "date_of_marriage", e.target.value)
-                    }
-                    isDisabled={
-                      !spouse.isEditing || spouse.civil_status === "Single"
-                    } // Disable if civil_status is "Single"
-                  />
-                </Td>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Place of Marriage:
-                  </Text>
-                  <Input
-                    placeholder="Place of Marriage"
-                    value={spouse.place_of_marriage}
-                    onChange={(e) =>
-                      onChange(index, "place_of_marriage", e.target.value)
-                    }
-                    isDisabled={
-                      !spouse.isEditing || spouse.civil_status === "Single"
-                    } // Disable if civil_status is "Single"
-                  />
-                </Td>
+              {/* Edu Info */}
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Educational Level</FormLabel>
+                <Select
+                  placeholder="Select Educational Level"
+                  value={spouse.education_level ? educationalLevelOptions.map(l => ({ value: l, label: l })).find(opt => opt.value === spouse.education_level) : null}
+                  onChange={(opt) => onChange(index, "education_level", opt?.value || "")}
+                  options={educationalLevelOptions.map(l => ({ value: l, label: l }))}
+                  isClearable
+                  isDisabled={!spouse.isEditing}
+                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Start Year</FormLabel>
+                <Input placeholder="Start Year" type="number" value={spouse.start_year} onChange={(e) => onChange(index, "start_year", e.target.value)} isDisabled={!spouse.isEditing} />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Completion Year</FormLabel>
+                <Input placeholder="Completion Year" type="number" value={spouse.completion_year} onChange={(e) => onChange(index, "completion_year", e.target.value)} isDisabled={!spouse.isEditing} />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">School</FormLabel>
+                <Input placeholder="School" value={spouse.school} onChange={(e) => onChange(index, "school", e.target.value)} isDisabled={!spouse.isEditing} />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Field of Study</FormLabel>
+                <Input placeholder="Field of Study" value={spouse.field_of_study} onChange={(e) => onChange(index, "field_of_study", e.target.value)} isDisabled={!spouse.isEditing || ["No Formal Education", "Primary Education", "Secondary Education", "Senior High School"].includes(spouse.education_level)} />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Degree</FormLabel>
+                <Input placeholder="Degree" value={spouse.degree} onChange={(e) => onChange(index, "degree", e.target.value)} isDisabled={!spouse.isEditing || ["No Formal Education", "Primary Education", "Secondary Education", "Senior High School"].includes(spouse.education_level)} />
+              </FormControl>
+              <FormControl display="none">
+                <Input placeholder="Institution" value={spouse.institution} onChange={(e) => onChange(index, "institution", e.target.value)} />
+              </FormControl>
+              <FormControl>
+                <FormLabel color="#0a5856" fontWeight="bold">Professional Licensure</FormLabel>
+                <Input placeholder="Licensure" value={spouse.professional_licensure_examination} onChange={(e) => onChange(index, "professional_licensure_examination", e.target.value)} isDisabled={!spouse.isEditing || ["No Formal Education", "Primary Education", "Secondary Education", "Senior High School"].includes(spouse.education_level)} />
+              </FormControl>
 
-                <Td>
-                  <Text fontWeight="bold" mb="2" color="#0a5856">
-                    Citizenship:
-                  </Text>
-                  {renderSelect(
-                    "Select Citizenship", // Placeholder
-                    spouse.citizenship, // Current selected value
-                    citizenships, // Array of options
-                    (value) => onChange(index, "citizenship", value), // Change handler
-                    !spouse.isEditing // Disable conditionally
-                  )}
-                </Td>
-              </Tr>
-              <Tr>
-                <Td>
-                  <Text fontWeight="bold" mb="2" color="#0a5856">
-                    Ethnicity:
-                  </Text>
-                  {renderSelect(
-                    "Select Ethnicity",
-                    spouse.nationality,
-                    nationalities,
-                    (value) => onChange(index, "nationality", value),
-                    !spouse.isEditing
-                  )}
-                </Td>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Livelihood:
-                  </Text>
-                  <Input
-                    placeholder="Livelihood"
-                    value={spouse.livelihood}
-                    onChange={(e) =>
-                      onChange(index, "livelihood", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                  />
-                </Td>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    District:
-                  </Text>
-                  <Select
-                    placeholder="Select District"
-                    name="district_id"
-                    value={
-                      districts
-                        .map((district) => ({
-                          value: district.id,
-                          label: district.name,
-                        }))
-                        .find(
-                          (option) => option.value === spouse.district_id
-                        ) || null
-                    } // Ensure the correct selected district
-                    onChange={(selectedOption) => {
-                      onChange(
-                        index,
-                        "district_id",
-                        selectedOption?.value || ""
-                      );
-                      onChange(index, "local_congregation", ""); // Reset local congregation when district changes
-                    }}
-                    options={districts.map((district) => ({
-                      value: district.id,
-                      label: district.name,
-                    }))}
-                    isClearable
-                    isDisabled={!spouse.isEditing} // Disable when editing is not enabled
-                    styles={{
-                      container: (base) => ({
-                        ...base,
-                        width: "100%",
-                      }),
-                    }}
-                  />
-                </Td>
+            </SimpleGrid>
 
-                {/* ✅ Local Congregation Select Dropdown */}
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Local Congregation:
-                  </Text>
-                  <Select
-                    placeholder="Select Local Congregation"
-                    name="local_congregation"
-                    value={
-                      (filteredCongregations[spouse.district_id] || [])
-                        .map((congregation) => ({
-                          value: congregation.id,
-                          label: congregation.name,
-                        }))
-                        .find(
-                          (option) => option.value === spouse.local_congregation
-                        ) || null
-                    } // Ensure the correct selected local congregation
-                    onChange={(selectedOption) =>
-                      onChange(
-                        index,
-                        "local_congregation",
-                        selectedOption?.value || ""
-                      )
-                    }
-                    options={(
-                      filteredCongregations[spouse.district_id] || []
-                    ).map((congregation) => ({
-                      value: congregation.id,
-                      label: congregation.name,
-                    }))}
-                    isClearable
-                    isDisabled={!spouse.isEditing || !spouse.district_id} // Disable if no district is selected
-                    styles={{
-                      container: (base) => ({
-                        ...base,
-                        width: "100%",
-                      }),
-                    }}
-                  />
-                </Td>
-              </Tr>
+            <Flex justify="center" mt={6} gap={2}>
+              <IconButton
+                icon={spouse.isEditing ? <CheckIcon /> : <EditIcon />}
+                onClick={() => {
+                  if (spouse.isEditing) {
+                    handleSaveOrUpdate(index);
+                  } else {
+                    const updatedSpouses = [...data];
+                    updatedSpouses[index].isEditing = true;
+                    setData(updatedSpouses);
+                  }
+                }}
+                colorScheme={spouse.isEditing ? "green" : "blue"}
+              />
+              {/* Delete icon not present in original for Spouse table, only Add. Wait, original had no Delete? */}
+              {/* Original Line 1073 commented out code had delete? No. 
+                   Line 19: import {EditIcon, DeleteIcon...}.
+                   But Render loop didn't show Delete button.
+                   Line 1071: Td colSpan={4} textAlign="center".
+                   Only Edit/Save button.
+                   So I will NOT add Delete button for Spouse.
+                  */}
+            </Flex>
+          </Box>
+        ))}
 
-              <Tr>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Church Duties:
-                  </Text>
-                  <Input
-                    placeholder="Church Duties"
-                    value={spouse.church_duties}
-                    onChange={(e) =>
-                      onChange(index, "church_duties", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                  />
-                </Td>
-                <Td display="none">
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Evangelist:
-                  </Text>
-                  <Input
-                    placeholder="Evangelist"
-                    value={spouse.minister_officiated}
-                    onChange={(e) =>
-                      onChange(index, "minister_officiated", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                  />
-                </Td>
-              </Tr>
-
-              {/* Work Information Section */}
-              <Tr bg={getRowBgColor(index)}>
-                <Td colSpan={4}>
-                  <Text fontWeight="bold">Work Information</Text>
-                </Td>
-              </Tr>
-              <Tr>
-                <Td>
-                  <Text fontWeight="bold" mb="2" color="#0a5856">
-                    Employment Type:
-                  </Text>
-                  {renderSelect(
-                    "Select Employment Type", // Placeholder
-                    spouse.employment_type, // Current selected value
-                    employmentTypeOptions.map((type) => ({
-                      value: type,
-                      label: type,
-                    })), // Transform `employmentTypeOptions` to value-label pairs
-                    (value) => onChange(index, "employment_type", value), // Handle change
-                    !spouse.isEditing // Disable when not in edit mode
-                  )}
-                </Td>
-
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Company:
-                  </Text>
-                  <Input
-                    placeholder="Company"
-                    value={spouse.company}
-                    onChange={(e) => onChange(index, "company", e.target.value)}
-                    isDisabled={
-                      !spouse.isEditing ||
-                      ["Volunteer/Kawani"].includes(spouse.employment_type)
-                    } // Disable if employment_type is Volunteer or Kawani
-                  />
-                </Td>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Address:
-                  </Text>
-                  <Input
-                    placeholder="Address"
-                    value={spouse.address}
-                    onChange={(e) => onChange(index, "address", e.target.value)}
-                    isDisabled={!spouse.isEditing}
-                  />
-                </Td>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Brief Description <br></br> of Responsibilities:
-                  </Text>
-                  <Input
-                    placeholder="Brief Description of Responsibilities:"
-                    value={spouse.position}
-                    onChange={(e) =>
-                      onChange(index, "position", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                  />
-                </Td>
-              </Tr>
-              <Tr>
-                <Td display="none">
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Department:
-                  </Text>
-                  <Input
-                    placeholder="Department"
-                    value={spouse.department}
-                    onChange={(e) =>
-                      onChange(index, "department", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                  />
-                </Td>
-                <Td display="none">
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Section:
-                  </Text>
-                  <Input
-                    placeholder="Section"
-                    value={spouse.section}
-                    onChange={(e) => onChange(index, "section", e.target.value)}
-                    isDisabled={!spouse.isEditing}
-                  />
-                </Td>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Start Date:
-                  </Text>
-                  <Input
-                    placeholder="Start Date"
-                    type="date"
-                    value={spouse.start_date}
-                    onChange={(e) =>
-                      onChange(index, "start_date", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                  />
-                </Td>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    End Date:
-                  </Text>
-                  <Input
-                    placeholder="End Date"
-                    type="date"
-                    value={spouse.end_date}
-                    onChange={(e) =>
-                      onChange(index, "end_date", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                  />
-                </Td>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Reason for Leaving:
-                  </Text>
-                  <Input
-                    placeholder="Reason for Leaving"
-                    value={spouse.reason_for_leaving}
-                    onChange={(e) =>
-                      onChange(index, "reason_for_leaving", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                  />
-                </Td>
-              </Tr>
-
-              {/* Educational Information Section */}
-              <Tr bg={getRowBgColor(index)}>
-                <Td colSpan={4}>
-                  <Text fontWeight="bold">Educational Information</Text>
-                </Td>
-              </Tr>
-              <Tr>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Educational Level:
-                  </Text>
-                  {renderSelect(
-                    "Select Educational Level", // Placeholder text
-                    spouse.education_level, // Selected value
-                    educationalLevelOptions.map((level) => ({
-                      value: level,
-                      label: level,
-                    })), // Options for the dropdown
-                    (value) => onChange(index, "education_level", value), // Change handler
-                    !spouse.isEditing // Disable editing when not allowed
-                  )}
-                </Td>
-
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Start Year:
-                  </Text>
-                  <Input
-                    placeholder="Start Year"
-                    type="number"
-                    value={spouse.start_year}
-                    onChange={(e) =>
-                      onChange(index, "start_year", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                  />
-                </Td>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Completion Year:
-                  </Text>
-                  <Input
-                    placeholder="Completion Year"
-                    type="number"
-                    value={spouse.completion_year}
-                    onChange={(e) =>
-                      onChange(index, "completion_year", e.target.value)
-                    }
-                    isDisabled={!spouse.isEditing}
-                  />
-                </Td>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    School:
-                  </Text>
-                  <Input
-                    placeholder="School"
-                    value={spouse.school}
-                    onChange={(e) => onChange(index, "school", e.target.value)}
-                    isDisabled={!spouse.isEditing}
-                  />
-                </Td>
-              </Tr>
-              <Tr>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Field of Study:
-                  </Text>
-                  <Input
-                    placeholder="Field of Study"
-                    value={spouse.field_of_study}
-                    onChange={(e) =>
-                      onChange(index, "field_of_study", e.target.value)
-                    }
-                    isDisabled={
-                      !spouse.isEditing ||
-                      spouse.education_level === "No Formal Education" ||
-                      spouse.education_level === "Primary Education" ||
-                      spouse.education_level === "Secondary Education" ||
-                      spouse.education_level === "Senior High School"
-                    }
-                  />
-                </Td>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Degree:
-                  </Text>
-                  <Input
-                    placeholder="Degree"
-                    value={spouse.degree}
-                    onChange={(e) => onChange(index, "degree", e.target.value)}
-                    isDisabled={
-                      !spouse.isEditing ||
-                      spouse.education_level === "No Formal Education" ||
-                      spouse.education_level === "Primary Education" ||
-                      spouse.education_level === "Secondary Education" ||
-                      spouse.education_level === "Senior High School"
-                    }
-                  />
-                </Td>
-                <Td display="none">
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Institution:
-                  </Text>
-                  <Input
-                    placeholder="Institution"
-                    value={spouse.institution}
-                    onChange={(e) =>
-                      onChange(index, "institution", e.target.value)
-                    }
-                    isDisabled={
-                      !spouse.isEditing ||
-                      spouse.education_level === "No Formal Education" ||
-                      spouse.education_level === "Primary Education" ||
-                      spouse.education_level === "Secondary Education" ||
-                      spouse.education_level === "Senior High School"
-                    }
-                  />
-                </Td>
-                <Td>
-                  <Text
-                    fontWeight="bold"
-                    mb="2"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Professional Licensure:
-                  </Text>
-                  <Input
-                    placeholder="Professional Licensure"
-                    value={spouse.professional_licensure_examination}
-                    onChange={(e) =>
-                      onChange(
-                        index,
-                        "professional_licensure_examination",
-                        e.target.value
-                      )
-                    }
-                    isDisabled={
-                      !spouse.isEditing ||
-                      spouse.education_level === "No Formal Education" ||
-                      spouse.education_level === "Primary Education" ||
-                      spouse.education_level === "Secondary Education" ||
-                      spouse.education_level === "Senior High School"
-                    }
-                  />
-                </Td>
-              </Tr>
-
-              {/* Save and Edit Button */}
-              <Tr>
-                <Td colSpan={4} textAlign="center">
-                  {/* <IconButton
-                    icon={spouse.isEditing ? <CheckIcon /> : <EditIcon />}
-                    onClick={() => {
-                      if (spouse.isEditing) {
-                        handleSaveOrUpdate(index); // Save when already in edit mode
-                      } else {
-                        const updatedSpouses = [...data];
-                        updatedSpouses[index].isEditing = true; // Set isEditing to true
-                        setData(updatedSpouses); // Update state to enable editing
-                      }
-                    }}
-                    colorScheme={spouse.isEditing ? "green" : "blue"}
-                  /> */}
-
-                  <IconButton
-                    icon={spouse.isEditing ? <CheckIcon /> : <EditIcon />}
-                    onClick={() => {
-                      if (spouse.isEditing) {
-                        handleSaveOrUpdate(index); // Save when already in edit mode
-                      } else {
-                        const updatedSpouses = [...data];
-                        updatedSpouses[index].isEditing = true; // Set isEditing to true
-                        setData(updatedSpouses); // Update state to enable editing
-                      }
-                    }}
-                    colorScheme={spouse.isEditing ? "green" : "blue"}
-                  />
-                </Td>
-              </Tr>
-            </Tbody>
-          </Table>
-          <HStack spacing={2} mt={4}></HStack>
-        </VStack>
-      ))}
-
-      {/* Conditional add spouse button */}
-      {spouses.length > 0 &&
-        spouses[spouses.length - 1]?.status === "Deceased" && (
-          <Button onClick={onAdd} colorScheme="teal" mt={4}>
-            Add Spouse
-          </Button>
-        )}
-    </VStack>
+        {/* Conditional add spouse button */}
+        {spouses.length > 0 &&
+          spouses[spouses.length - 1]?.status === "Deceased" && (
+            <Button onClick={onAdd} colorScheme="teal" mt={4}>
+              Add Spouse
+            </Button>
+          )}
+      </VStack>
+    </Box>
   );
 };
-
 export default Step6;

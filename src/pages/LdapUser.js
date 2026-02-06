@@ -16,10 +16,10 @@ import {
   Text,
 } from "@chakra-ui/react";
 
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL = process.env.REACT_APP_API_URL || "";
 
-if (!API_URL) {
-  console.error("REACT_APP_API_URL is not defined in the environment.");
+if (process.env.REACT_APP_API_URL === undefined) {
+  console.warn("REACT_APP_API_URL is not defined in the environment. Using relative path.");
 }
 
 // Utility function to extract attribute values with improved handling
@@ -33,8 +33,8 @@ const getAttributeValue = (attributes, type) => {
       return attribute.vals
         ? attribute.vals[0]
         : attribute.values
-        ? attribute.values[0]
-        : "N/A";
+          ? attribute.values[0]
+          : "N/A";
     }
   } else if (typeof attributes === "object" && attributes[type]) {
     // Handle case where `attributes` is an object with direct key-value pairs
@@ -49,10 +49,8 @@ const LdapUsers = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!API_URL) {
-      setError("API URL is not defined.");
-      setLoading(false);
-      return;
+    if (process.env.REACT_APP_API_URL === undefined) {
+      console.warn("API URL is undefined, using relative path.");
     }
 
     fetch(`${API_URL}/api/ldap/users`)

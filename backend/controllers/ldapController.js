@@ -363,8 +363,8 @@ exports.getLdapUsersAndGroups = async (req, res) => {
           return attribute.vals
             ? attribute.vals[0]
             : attribute.values
-            ? attribute.values[0]
-            : "N/A";
+              ? attribute.values[0]
+              : "N/A";
         }
       } else if (typeof attributes === "object" && attributes[type]) {
         return attributes[type];
@@ -466,35 +466,35 @@ exports.getRecentLoginAudits = async (req, res) => {
 
 
 exports.getAllLoginAudits = async (req, res) => {
-    try {
-        const audits = await LoginAudit.findAll({
-            order: [["login_time", "DESC"]], // Order by most recent first
-            include: [
-                {
-                    model: User,
-                    as: "user",
-                    attributes: ["id", "username", "personnel_id", "avatar"],
-                },
-            ],
-            // Note: No WHERE clause, no LIMIT, fetches all records.
-        });
+  try {
+    const audits = await LoginAudit.findAll({
+      order: [["login_time", "DESC"]], // Order by most recent first
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["id", "username", "personnel_id", "avatar"],
+        },
+      ],
+      // Note: No WHERE clause, no LIMIT, fetches all records.
+    });
 
-        // Use the same success structure as getAllLoginUsers
-        res.setHeader("Content-Type", "application/json");
-        return res.status(200).json({
-            success: true,
-            total: audits.length,
-            data: audits, // Send the array of audit objects
-        });
-    } catch (error) {
-        console.error("Error fetching all login audits:", error);
-        res.setHeader("Content-Type", "application/json");
-        return res.status(500).json({
-            success: false,
-            message: "Error fetching all login audits",
-            error: error.message,
-        });
-    }
+    // Use the same success structure as getAllLoginUsers
+    res.setHeader("Content-Type", "application/json");
+    return res.status(200).json({
+      success: true,
+      total: audits.length,
+      data: audits, // Send the array of audit objects
+    });
+  } catch (error) {
+    console.error("Error fetching all login audits:", error);
+    res.setHeader("Content-Type", "application/json");
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching all login audits",
+      error: error.message,
+    });
+  }
 };
 
 exports.filterAudits = async (req, res) => {
@@ -599,24 +599,24 @@ exports.getFilteredLoginAudits = async (req, res) => {
 
 // GET /api/login-audits (New logic for the Audit Page)
 exports.getAllLoginAudits = async (req, res) => {
-    try {
-        const audits = await LoginAudit.findAll({
-            order: [["login_time", "DESC"]], // Order by most recent
-            include: [
-                {
-                    model: User,
-                    as: "user",
-                    attributes: ["id", "username", "personnel_id", "avatar"],
-                },
-            ],
-            // NOTE: No LIMIT here, fetching all data for the management page
-        });
+  try {
+    const audits = await LoginAudit.findAll({
+      order: [["login_time", "DESC"]], // Order by most recent
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["id", "username", "personnel_id", "avatar"],
+        },
+      ],
+      // NOTE: No LIMIT here, fetching all data for the management page
+    });
 
-        res.json(audits);
-    } catch (error) {
-        console.error("Failed to fetch all login audits:", error);
-        res.status(500).json({ error: "Failed to fetch all login audits" });
-    }
+    res.json(audits);
+  } catch (error) {
+    console.error("Failed to fetch all login audits:", error);
+    res.status(500).json({ error: "Failed to fetch all login audits" });
+  }
 };
 
 // ✅ New: get users who have NOT logged in today
@@ -660,9 +660,9 @@ exports.getUsersNotLoggedInToday = async (req, res) => {
 };
 
 // Login using PMD LDAP credentials by username
-exports.getUserByUsername = async (req, res) => {
-  const username = req.params.username;
-  console.log("Received request for username:", username);
+// Refactored: Find LDAP user and log audit (Internal use)
+exports.findLdapUserAndAudit = async (username, userAgent) => {
+  console.log("Looking up LDAP user (internal):", username);
 
   const client = createLdapClient();
 
@@ -671,9 +671,7 @@ exports.getUserByUsername = async (req, res) => {
       client.bind(BIND_DN, BIND_PASSWORD, (err) => {
         if (err) {
           client.unbind((unbindErr) => {
-            if (unbindErr) {
-              console.error("LDAP unbind error:", unbindErr);
-            }
+            if (unbindErr) console.error("LDAP unbind error:", unbindErr);
           });
           reject(err);
         } else {
@@ -682,13 +680,12 @@ exports.getUserByUsername = async (req, res) => {
       });
     });
 
-  //Search the ldap users from the login credentials
   const searchLDAP = () =>
     new Promise((resolve, reject) => {
       const searchOptions = {
         filter: `(uid=${username})`,
         scope: "sub",
-        attributes: ["cn", "sn", "mail", "uid", "userPassword"], // Specify the attributes to retrieve
+        attributes: ["cn", "sn", "mail", "uid", "userPassword"],
       };
 
       const user = {};
@@ -696,11 +693,10 @@ exports.getUserByUsername = async (req, res) => {
       client.search(BASE_DN, searchOptions, (err, result) => {
         if (err) {
           client.unbind((unbindErr) => {
-            if (unbindErr) {
-              console.error("LDAP unbind error:", unbindErr);
-            }
+            if (unbindErr) console.error("LDAP unbind error:", unbindErr);
           });
           reject(err);
+          return;
         }
 
         result.on("searchEntry", (entry) => {
@@ -715,82 +711,74 @@ exports.getUserByUsername = async (req, res) => {
 
         result.on("end", async () => {
           client.unbind((unbindErr) => {
-            if (unbindErr) {
-              console.error("LDAP unbind error:", unbindErr);
-            }
+            if (unbindErr) console.error("LDAP unbind error:", unbindErr);
           });
 
           if (Object.keys(user).length > 0) {
-            const parser = new UAParser(req.headers["user-agent"]);
-            const deviceData = parser.getResult();
-            const device = deviceData.device?.type || "desktop";
-            const os = `${deviceData.os?.name || "Unknown OS"} ${
-              deviceData.os?.version || ""
-            }`.trim();
-            const browser = `${deviceData.browser?.name || "Unknown Browser"} ${
-              deviceData.browser?.version || ""
-            }`.trim();
+            // --- Login Audit Logic ---
+            if (userAgent) {
+              const parser = new UAParser(userAgent);
+              const deviceData = parser.getResult();
+              const device = deviceData.device?.type || "desktop";
+              const os = `${deviceData.os?.name || "Unknown OS"} ${deviceData.os?.version || ""
+                }`.trim();
+              const browser = `${deviceData.browser?.name || "Unknown Browser"} ${deviceData.browser?.version || ""
+                }`.trim();
 
-            // ✅ Skip if OS or Browser is unknown
-            if (
-              os.startsWith("Unknown OS") ||
-              browser.startsWith("Unknown Browser")
-            ) {
-              console.warn(
-                "⛔ Skipping login audit due to unknown OS or browser."
-              );
-              return resolve(user); // resolve anyway, login is still valid
-            }
+              if (
+                !os.startsWith("Unknown OS") &&
+                !browser.startsWith("Unknown Browser")
+              ) {
+                try {
+                  const localUser = await User.findOne({ where: { username } });
 
-            try {
-              const localUser = await User.findOne({ where: { username } });
+                  if (localUser) {
+                    const now = new Date();
+                    const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+                    const endOfDay = new Date(now.setHours(23, 59, 59, 999));
 
-              if (localUser) {
-                const now = new Date();
+                    const existingAudit = await LoginAudit.findOne({
+                      where: {
+                        user_id: localUser.id,
+                        login_time: {
+                          [Op.between]: [startOfDay, endOfDay]
+                        }
+                      },
+                    });
 
-                // You might want to compare only the date, not exact timestamp
-                const existingAudit = await LoginAudit.findOne({
-                  where: {
-                    user_id: localUser.id,
-                    login_time: now, // Consider refining this check for just same day
-                  },
-                });
-
-                if (!existingAudit) {
-                  await LoginAudit.create({
-                    user_id: localUser.id,
-                    device,
-                    os,
-                    browser,
-                  });
-                  console.log(
-                    `✅ Login audit recorded for user_id ${localUser.id}`
-                  );
-                } else {
-                  console.log(
-                    `🔁 Login audit already exists today for user_id ${localUser.id}`
-                  );
+                    if (!existingAudit) {
+                      await LoginAudit.create({
+                        user_id: localUser.id,
+                        device,
+                        os,
+                        browser,
+                      });
+                      console.log(`✅ Login audit recorded for user_id ${localUser.id}`);
+                    } else {
+                      console.log(`🔁 Login audit already exists today for user_id ${localUser.id}`);
+                    }
+                  } else {
+                    console.warn(`⚠️ No local user found for username: ${username}, skipping login audit`);
+                  }
+                } catch (auditErr) {
+                  console.error("❌ Failed to log login audit:", auditErr);
                 }
               } else {
-                console.warn(
-                  `⚠️ No local user found for username: ${username}, skipping login audit`
-                );
+                console.warn("⛔ Skipping login audit due to unknown OS or browser.");
               }
-            } catch (auditErr) {
-              console.error("❌ Failed to log login audit:", auditErr);
             }
+            // --- End Audit Logic ---
 
             resolve(user);
           } else {
+            console.warn(`⚠️ User not found in LDAP: ${username}`);
             reject(new Error("User not found"));
           }
         });
 
         result.on("error", (err) => {
           client.unbind((unbindErr) => {
-            if (unbindErr) {
-              console.error("LDAP unbind error:", unbindErr);
-            }
+            if (unbindErr) console.error("LDAP unbind error:", unbindErr);
           });
           reject(err);
         });
@@ -800,10 +788,26 @@ exports.getUserByUsername = async (req, res) => {
   try {
     await bindClient();
     const user = await searchLDAP();
+    return user;
+  } catch (error) {
+    console.error("Error during LDAP search:", error.message);
+    throw new Error("LDAP search failed: " + error.message);
+  }
+};
+
+// Login using PMD LDAP credentials by username
+exports.getUserByUsername = async (req, res) => {
+  const username = req.params.username;
+  console.log("Received request for username:", username);
+
+  try {
+    const user = await exports.findLdapUserAndAudit(username, req.headers["user-agent"]);
     res.json(user);
-  } catch (err) {
-    console.error("LDAP error: Cannot find the user", err);
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    if (error.message === "User not found") {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(500).json({ message: "LDAP error", error: error.message });
   }
 };
 

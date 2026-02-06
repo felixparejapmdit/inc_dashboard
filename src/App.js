@@ -19,6 +19,7 @@ import TemporarilyDeletedUsers from "./pages/TemporarilyDeletedUsers"; // Import
 import ProgressTracking from "./pages/progress/ProgressTracking"; // Import User Page
 
 import PersonnelPreview from "./pages/PersonnelPreview";
+import PersonnelHistory from "./pages/PersonnelHistory";
 
 import ProgressStep1 from "./pages/progress/Step1";
 import ProgressStep2 from "./pages/progress/Step2";
@@ -28,6 +29,7 @@ import ProgressStep5 from "./pages/progress/Step5";
 import ProgressStep6 from "./pages/progress/Step6";
 import ProgressStep7 from "./pages/progress/Step7";
 import ProgressStep8 from "./pages/progress/Step8";
+import UsersProgress from "./pages/progress/UsersProgress";
 
 import Suguan from "./pages/Suguan"; // Import Suguan Page
 import Events from "./pages/Events"; // Import Events Page
@@ -70,12 +72,14 @@ import GroupManagement from "./pages/managements/GroupManagement.js";
 import PermissionManagement from "./pages/managements/PermissionManagement.js";
 import PermissionCategoriesManagement from "./pages/managements/PermissionCategoriesManagement.js";
 
-//import { PermissionProvider } from "./contexts/PermissionContext";
 import { PermissionProvider } from "./contexts/PermissionContext";
 
 import OllamaAPI from "./pages/AI/OllamaAPI";
 
-import Chatbot from "./components/Chatbot"; // Import Chatbot
+import Chatbot from "./components/Chatbot";
+import Notifications from "./components/Notifications";
+import ReminderNotifier from "./components/ReminderNotifier";
+import SuguanNotifier from "./components/SuguanNotifier";
 
 import "./App.css"; // ✅ Import your global CSS
 
@@ -99,7 +103,7 @@ import GlobalTreePage from "./components/FileOrganizer/GlobalTreePage.js"; // Ne
 import GlobalSearchBar from "./components/FileOrganizer/GlobalSearchBar.js";
 import GenerateQRCode from "./pages/FileOrganizer/GenerateQRCode.js";
 import ScanningQrCode from "./pages/FileOrganizer/ScanningQrCode.js";
- 
+
 import ErrorBoundary from './components/ErrorBoundary'; // Import the new component
 
 // --- Main Router Component ---
@@ -120,7 +124,7 @@ function App() {
 
 function MainApp() {
   const location = useLocation(); // Get current route
-  const isUnderMaintenance = true; // Change to `true` to enable maintenance mode
+  const isUnderMaintenance = false; // Change to `true` to enable maintenance mode
 
   const showSearchBar = [
     "/shelvespage",
@@ -159,7 +163,7 @@ function MainApp() {
           <Route path="*" element={<Maintenance />} />
         ) : (
           <>
-            <Route path="/" element={<Dashboard />} />
+            {/* <Route path="/" element={<Dashboard />} /> */}
             <Route path="/maintenance" element={<Maintenance />} />
           </>
         )}
@@ -210,7 +214,7 @@ function MainApp() {
           }
         />
 
-   <Route
+        <Route
           path="/inv-dashboard"
           element={
             <Layout
@@ -224,7 +228,7 @@ function MainApp() {
           }
         />
 
-           <Route
+        <Route
           path="/atg-dashboard"
           element={
             <Layout
@@ -280,6 +284,20 @@ function MainApp() {
         <Route
           path="/personnel-preview/:personnelId"
           element={<PersonnelPreview />}
+        />
+
+        <Route
+          path="/personnel-history"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <PersonnelHistory />
+            </Layout>
+          }
         />
 
         <Route
@@ -403,6 +421,19 @@ function MainApp() {
             </Layout>
           }
         />
+        <Route
+          path="/progress/users-progress"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <UsersProgress />
+            </Layout>
+          }
+        />
 
         <Route
           path="/profile"
@@ -484,32 +515,32 @@ function MainApp() {
             </Layout>
           }
         />
-<Route path="/shelvespage" element={<ShelvesPage />} />
+        <Route path="/shelvespage" element={<ShelvesPage />} />
 
-<Route path="/file-organizer/shelves" element={<ShelvesPage />} />
+        <Route path="/file-organizer/shelves" element={<ShelvesPage />} />
 
-<Route path="/containers/:shelfId" element={<ContainersPage />} />
+        <Route path="/containers/:shelfId" element={<ContainersPage />} />
 
-<Route
-  path="/file-organizer/shelves/:shelfId/containers"
-  element={<ContainersPage />}
-/>
+        <Route
+          path="/file-organizer/shelves/:shelfId/containers"
+          element={<ContainersPage />}
+        />
 
-<Route
-  path="/containers/:containerId/folders"
-  element={<FoldersPage />}
-/>
+        <Route
+          path="/containers/:containerId/folders"
+          element={<FoldersPage />}
+        />
 
-<Route
-  path="/shelves/:shelfId/containers/:containerId/folders/:folderId/documents"
-  element={<DocumentsPage />}
-/>
+        <Route
+          path="/shelves/:shelfId/containers/:containerId/folders/:folderId/documents"
+          element={<DocumentsPage />}
+        />
 
-<Route path="/file-organizer/search" element={<GlobalSearchPage />} />
+        <Route path="/file-organizer/search" element={<GlobalSearchPage />} />
 
-<Route path="/file-organizer/qrcode" element={<GenerateQRCode />} />
-<Route path="/file-organizer/scancode" element={<ScanningQrCode />} />
-<Route path="/file-organizer/tree" element={<GlobalTreePage />} />
+        <Route path="/file-organizer/qrcode" element={<GenerateQRCode />} />
+        <Route path="/file-organizer/scancode" element={<ScanningQrCode />} />
+        <Route path="/file-organizer/tree" element={<GlobalTreePage />} />
 
         <Route
           path="/Mastodon"
@@ -754,7 +785,7 @@ function MainApp() {
           }
         />
 
-   <Route
+        <Route
           path="/managements/loginaudits"
           element={
             <Layout
@@ -767,7 +798,7 @@ function MainApp() {
             </Layout>
           }
         />
-           <Route
+        <Route
           path="/managements/attendancetracker"
           element={
             <Layout
@@ -843,6 +874,9 @@ function MainApp() {
       {/* Render Chatbot only if NOT on /login AND hide it when printing */}
       {location.pathname !== "/login" && (
         <div className="noPrint">
+          <Notifications />
+          <ReminderNotifier />
+          <SuguanNotifier />
           <Chatbot />
         </div>
       )}

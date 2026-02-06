@@ -189,18 +189,17 @@ const EnrollmentForm = ({ referenceNumber }) => {
     // ); // Navigate back to form
 
     navigate(
-      `/enroll?personnel_id=${personnelId}&step=${stepParam}&personnel_progress=${personnelProgress}${
-        typeParam === "evaluation"
-          ? "&type=evaluation"
-          : typeParam === "editprofile"
+      `/enroll?personnel_id=${personnelId}&step=${stepParam}&personnel_progress=${personnelProgress}${typeParam === "evaluation"
+        ? "&type=evaluation"
+        : typeParam === "editprofile"
           ? "&type=editprofile"
           : typeParam === "editpersonnel"
-          ? "&type=editpersonnel"
-          : typeParam === "track"
-          ? "&type=track"
-          : typeParam === "new"
-          ? "&type=new"
-          : ""
+            ? "&type=editpersonnel"
+            : typeParam === "track"
+              ? "&type=track"
+              : typeParam === "new"
+                ? "&type=new"
+                : ""
       }`
     ); // Navigate back to form
   };
@@ -615,17 +614,18 @@ const EnrollmentForm = ({ referenceNumber }) => {
   const navigate = useNavigate();
 
   const handleBackHome = () => {
+    console.log("🏠 handleBackHome called, typeParam:", typeParam);
     if (typeParam === "track" || typeParam === "new") {
       const confirmExit = window.confirm(
         "Are you sure you want to exit? Please make sure all necessary data is saved."
       );
       if (!confirmExit) return;
       navigate("/login");
-    } else if (typeParam === "editprofile") {
+    } else if (typeParam === "editpersonnel") {
       navigate("/profile");
     } else if (typeParam === "editprogress") {
       navigate("/progresstracking");
-    } else if (typeParam === "editpersonnel") {
+    } else if (typeParam === "edituser") {
       navigate("/user");
     } else if (typeParam === "evaluation") {
       navigate("/progress/step1");
@@ -1034,16 +1034,15 @@ const EnrollmentForm = ({ referenceNumber }) => {
         //navigate(`/enroll?personnel_id=${personnelId}&step=${nextStep}`);
 
         navigate(
-          `/enroll?personnel_id=${personnelId}&step=${nextStep}${
-            typeParam === "evaluation"
-              ? "&type=evaluation"
-              : typeParam === "editprofile"
+          `/enroll?personnel_id=${personnelId}&step=${nextStep}${typeParam === "evaluation"
+            ? "&type=evaluation"
+            : typeParam === "editprofile"
               ? "&type=editprofile"
               : typeParam === "track"
-              ? "&type=track"
-              : typeParam === "new"
-              ? "&type=new"
-              : "&type=editpersonnel"
+                ? "&type=track"
+                : typeParam === "new"
+                  ? "&type=new"
+                  : "&type=editpersonnel"
           }`
         );
 
@@ -1090,16 +1089,15 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
     // Include type=evaluation in the URL if typeParam is "evaluation"
     navigate(
-      `/enroll?personnel_id=${personnelId}&step=${previousStep}${
-        typeParam === "evaluation"
-          ? "&type=evaluation"
-          : typeParam === "editprofile"
+      `/enroll?personnel_id=${personnelId}&step=${previousStep}${typeParam === "evaluation"
+        ? "&type=evaluation"
+        : typeParam === "editprofile"
           ? "&type=editprofile"
           : typeParam === "track"
-          ? "&type=track"
-          : typeParam === "new"
-          ? "&type=new"
-          : "&type=editpersonnel"
+            ? "&type=track"
+            : typeParam === "new"
+              ? "&type=new"
+              : "&type=editpersonnel"
       }`
     );
   };
@@ -1388,11 +1386,11 @@ const EnrollmentForm = ({ referenceNumber }) => {
   return (
     <VStack
       spacing={4}
-      w="80%"
+      w={{ base: "100%", lg: "80%" }}
       mx="auto"
-      mt="50px"
+      mt={{ base: "120px", md: "130px" }}
       mb="50px"
-      p="6"
+      p={{ base: 2, md: 4, lg: 6 }}
       boxShadow="lg"
       rounded="md"
       bg="white"
@@ -1400,129 +1398,353 @@ const EnrollmentForm = ({ referenceNumber }) => {
       <Box
         position="fixed"
         top="0"
+        left="0"
+        right="0"
         width="100%"
-        zIndex="1"
+        zIndex="1000"
         bg="white"
-        boxShadow="sm"
+        boxShadow="md"
+        pb={{ base: 2, md: 3 }}
       >
-        <Flex alignItems="center" my={2}>
-          {[
-            "editprofile",
-            "editpersonnel",
-            "editprogress",
-            "evaluation",
-            "track",
-            "new",
-          ].includes(typeParam) && (
-            <Button
-              ml={4}
-              mr={4}
-              colorScheme="yellow"
-              onClick={handleBackHome}
-              justifyContent="center"
-              width="40px"
-              height="40px"
-              p={0}
-            >
-              {typeParam === "track" || typeParam === "new" ? (
-                <FiArrowLeft size={20} />
-              ) : (
-                <AiFillHome size={20} />
-              )}
-            </Button>
-          )}
-
-          <Heading
-            as="h2"
-            size="lg"
-            color="teal.600"
-            textAlign="center"
-            flex="1"
+        {/* Unified Header + Progress Indicator Container */}
+        <Box
+          bgGradient="linear(to-r, yellow.50, orange.50)"
+          pt={{ base: 4, md: 5 }}
+          pb={{ base: 2, md: 3 }}
+          px={{ base: 2, md: 4 }}
+          boxShadow="0 1px 6px rgba(0,0,0,0.05)"
+          borderBottom="2px solid"
+          borderColor="orange.200"
+        >
+          {/* Progress Indicator with Back Button */}
+          <Flex
+            align="center"
+            justify="space-between"
+            w="100%"
+            px={{ base: 2, md: 4 }}
           >
-            {typeParam === "new"
-              ? "Personnel Enrollment"
-              : "Personnel Information"}
-          </Heading>
-        </Flex>
-        {/* Progress Indicator */}
-        <Flex justify="center" align="center" my={6} px={4} bg="#FEF3C7" py={2}>
-          {Array.from({ length: totalSteps }, (_, index) => {
-            const isDisabled =
-              personnelData.civil_status === "Single" && index + 1 === 6;
-
-            return (
-              <Box
-                key={index}
-                as="button"
+            {/* Back Button - Left Side */}
+            <Box flexShrink={0}>
+              <Button
+                leftIcon={typeParam === "track" || typeParam === "new" ? <FiArrowLeft size={20} /> : <AiFillHome size={20} />}
+                colorScheme="orange"
+                variant="solid"
                 onClick={() => {
-                  if (isDisabled) {
-                    toast({
-                      title: "Step Disabled",
-                      description:
-                        "This step is not applicable for single civil status.",
-                      status: "info",
-                      duration: 3000,
-                      isClosable: true,
-                      position: "bottom-right",
-                    });
-                    return;
-                  }
-                  const selectedStep = index + 1;
-
-                  if (selectedStep > 1 && !personnelId) {
-                    alert(
-                      "Please complete the primary information before proceeding to the next step."
-                    );
-                    return;
-                  }
-
-                  // Construct the new URL based on typeParam
-                  const newUrl = `/enroll?personnel_id=${personnelId}&step=${selectedStep}${
-                    typeParam === "evaluation"
-                      ? "&type=evaluation"
-                      : typeParam === "editpersonnel"
-                      ? "&type=editpersonnel"
-                      : typeParam === "editprofile"
-                      ? "&type=editprofile"
-                      : typeParam === "track"
-                      ? "&type=track"
-                      : typeParam === "new"
-                      ? "&type=new"
-                      : ""
-                  }`;
-
-                  // Navigate to the updated URL
-                  navigate(newUrl);
-
-                  // Set the step state to match the selected progress indicator
-                  setStep(selectedStep);
+                  console.log("🔘 Button clicked!");
+                  console.log("📍 typeParam:", typeParam);
+                  console.log("📍 navigate function:", navigate);
+                  handleBackHome();
                 }}
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
+                size="md"
+                px={{ base: 3, md: 4 }}
                 borderRadius="full"
-                width="40px"
-                height="40px"
-                mx={2}
-                fontWeight="bold"
-                color="white"
-                bg={
-                  isDisabled
-                    ? "gray.400"
-                    : step > index
-                    ? "green.400"
-                    : "gray.200"
-                }
-                border={step === index + 1 ? "2px solid #2D3748" : "none"}
-                transition="background 0.3s, border 0.3s"
-                cursor={isDisabled ? "not-allowed" : "pointer"}
-                opacity={isDisabled ? 0.5 : 1} // Visual indicator for disabled steps
+                boxShadow="md"
+                fontWeight="semibold"
+                _hover={{
+                  transform: "translateY(-1px)",
+                  boxShadow: "lg",
+                  bg: "orange.600",
+                }}
+                _active={{
+                  transform: "translateY(0)",
+                  boxShadow: "md",
+                }}
+                transition="all 0.2s ease-out"
               >
-                {step > index ? <CheckIcon /> : index + 1}
-              </Box>
-            );
-          })}
-        </Flex>
+                {typeParam === "track" || typeParam === "new" ? "Back" : "Home"}
+              </Button>
+            </Box>
+
+            {/* Stepper - Center */}
+            <Box
+              flex="1"
+              overflowX="auto"
+              overflowY="visible"
+              mx={{ base: 2, md: 4 }}
+              css={{
+                '&::-webkit-scrollbar': {
+                  height: '6px',
+                },
+                '&::-webkit-scrollbar-track': {
+                  background: '#f1f1f1',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  background: '#888',
+                  borderRadius: '3px',
+                },
+                '&::-webkit-scrollbar-thumb:hover': {
+                  background: '#555',
+                },
+              }}
+            >
+              <Flex
+                justify="center"
+                align="center"
+                position="relative"
+                minW={{ base: "700px", md: "auto" }}
+                maxW="1200px"
+                mx="auto"
+              >
+                {/* Step labels array */}
+                {(() => {
+                  const stepLabels = [
+                    "Personal Info",
+                    "Contact & Address",
+                    "Education & Work",
+                    "Parents",
+                    "Siblings",
+                    "Spouse",
+                    "Children",
+                  ];
+
+                  return Array.from({ length: totalSteps }, (_, index) => {
+                    const isDisabled =
+                      personnelData.civil_status === "Single" && index + 1 === 6;
+                    const isCompleted = step > index;
+                    const isActive = step === index + 1;
+                    const isUpcoming = step < index + 1;
+
+                    return (
+                      <Box
+                        key={index}
+                        position="relative"
+                        flex="1"
+                        display="flex"
+                        flexDirection="column"
+                        alignItems="center"
+                        zIndex="10"
+                      >
+                        {/* Connecting Line */}
+                        {index < totalSteps - 1 && (
+                          <Box
+                            position="absolute"
+                            top={{ base: "17px", md: "22px" }}
+                            left="50%"
+                            width="100%"
+                            height={{ base: "3px", md: "4px" }}
+                            zIndex="0"
+                            overflow="hidden"
+                            borderRadius="full"
+                          >
+                            {/* Background line */}
+                            <Box
+                              position="absolute"
+                              width="100%"
+                              height="100%"
+                              bg="gray.200"
+                            />
+                            {/* Progress line with animation and glow */}
+                            <Box
+                              position="absolute"
+                              width={isCompleted ? "100%" : "0%"}
+                              height="100%"
+                              bgGradient="linear(to-r, green.400, teal.400, cyan.400)"
+                              transition="width 0.5s ease-out"
+                              boxShadow={isCompleted ? "0 0 10px rgba(72, 187, 120, 0.5)" : "none"}
+                              animation={isCompleted ? "shimmer 1.5s ease-in-out infinite" : "none"}
+                              sx={{
+                                "@keyframes shimmer": {
+                                  "0%": {
+                                    backgroundPosition: "-200% center",
+                                  },
+                                  "100%": {
+                                    backgroundPosition: "200% center",
+                                  },
+                                },
+                                backgroundSize: "200% 100%",
+                              }}
+                            />
+                          </Box>
+                        )}
+
+                        {/* Step Circle Button */}
+                        <Box
+                          as="button"
+                          onClick={() => {
+                            if (isDisabled) {
+                              toast({
+                                title: "Step Disabled",
+                                description:
+                                  "This step is not applicable for single civil status.",
+                                status: "info",
+                                duration: 3000,
+                                isClosable: true,
+                                position: "bottom-right",
+                              });
+                              return;
+                            }
+                            const selectedStep = index + 1;
+
+                            if (selectedStep > 1 && !personnelId) {
+                              alert(
+                                "Please complete the primary information before proceeding to the next step."
+                              );
+                              return;
+                            }
+
+                            const newUrl = `/enroll?personnel_id=${personnelId}&step=${selectedStep}${typeParam === "evaluation"
+                              ? "&type=evaluation"
+                              : typeParam === "editpersonnel"
+                                ? "&type=editpersonnel"
+                                : typeParam === "editprofile"
+                                  ? "&type=editprofile"
+                                  : typeParam === "track"
+                                    ? "&type=track"
+                                    : typeParam === "new"
+                                      ? "&type=new"
+                                      : ""
+                              }`;
+
+                            navigate(newUrl);
+                            setStep(selectedStep);
+                          }}
+                          position="relative"
+                          zIndex="100"
+                          display="flex"
+                          alignItems="center"
+                          justifyContent="center"
+                          borderRadius="full"
+                          width={{ base: "36px", md: "46px" }}
+                          height={{ base: "36px", md: "46px" }}
+                          fontWeight="bold"
+                          fontSize={{ base: "sm", md: "md" }}
+                          color="white"
+                          bg={
+                            isDisabled
+                              ? "gray.400"
+                              : isCompleted
+                                ? "linear-gradient(135deg, #48bb78 0%, #38a169 100%)"
+                                : isActive
+                                  ? "linear-gradient(135deg, #4299e1 0%, #3182ce 100%)"
+                                  : "linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%)"
+                          }
+                          border={isActive ? "4px solid" : isCompleted ? "3px solid" : "2px solid"}
+                          borderColor={
+                            isActive
+                              ? "blue.300"
+                              : isCompleted
+                                ? "green.300"
+                                : "gray.300"
+                          }
+                          boxShadow={
+                            isActive
+                              ? "0 0 0 3px rgba(66, 153, 225, 0.2), 0 6px 15px rgba(66, 153, 225, 0.3)"
+                              : isCompleted
+                                ? "0 3px 12px rgba(72, 187, 120, 0.4)"
+                                : "0 2px 6px rgba(0,0,0,0.1)"
+                          }
+                          cursor={isDisabled ? "not-allowed" : "pointer"}
+                          opacity={isDisabled ? 0.5 : 1}
+                          transform={isActive ? "scale(1.15)" : "scale(1)"}
+                          transition="all 0.3s ease-out"
+                          animation={
+                            isActive
+                              ? "pulse 1.5s ease-in-out infinite"
+                              : isCompleted
+                                ? "bounce 0.6s ease-in-out"
+                                : "none"
+                          }
+                          _hover={{
+                            transform: isDisabled ? "scale(1)" : isActive ? "scale(1.25)" : "scale(1.15)",
+                            boxShadow: isDisabled
+                              ? "none"
+                              : isActive
+                                ? "0 0 0 4px rgba(66, 153, 225, 0.25), 0 8px 20px rgba(66, 153, 225, 0.4)"
+                                : isCompleted
+                                  ? "0 4px 18px rgba(72, 187, 120, 0.5)"
+                                  : "0 4px 12px rgba(0,0,0,0.15)",
+                          }}
+                          _active={{
+                            transform: isDisabled ? "scale(1)" : "scale(0.95)",
+                          }}
+                          sx={{
+                            "@keyframes pulse": {
+                              "0%, 100%": {
+                                boxShadow:
+                                  "0 0 0 3px rgba(66, 153, 225, 0.2), 0 6px 15px rgba(66, 153, 225, 0.3)",
+                              },
+                              "50%": {
+                                boxShadow:
+                                  "0 0 0 6px rgba(66, 153, 225, 0.3), 0 8px 20px rgba(66, 153, 225, 0.5)",
+                              },
+                            },
+                            "@keyframes bounce": {
+                              "0%, 100%": {
+                                transform: "scale(1)",
+                              },
+                              "50%": {
+                                transform: "scale(1.2)",
+                              },
+                            },
+                          }}
+                        >
+                          {isCompleted ? (
+                            <CheckIcon boxSize={{ base: 3, md: 4 }} />
+                          ) : (
+                            <Text
+                              fontSize={{ base: "sm", md: "md" }}
+                              fontWeight="extrabold"
+                              color={isActive || isCompleted ? "white" : "gray.500"}
+                            >
+                              {index + 1}
+                            </Text>
+                          )}
+                        </Box>
+
+                        {/* Step Label */}
+                        <Text
+                          mt={2}
+                          fontSize={{ base: "2xs", sm: "xs", md: "sm" }}
+                          fontWeight={isActive ? "bold" : isCompleted ? "semibold" : "medium"}
+                          textAlign="center"
+                          maxWidth={{ base: "70px", md: "100px" }}
+                          color={
+                            isDisabled
+                              ? "gray.400"
+                              : isActive
+                                ? "blue.700"
+                                : isCompleted
+                                  ? "green.700"
+                                  : "gray.600"
+                          }
+                          textShadow={
+                            isActive
+                              ? "0 1px 3px rgba(66, 153, 225, 0.3)"
+                              : isCompleted
+                                ? "0 1px 2px rgba(72, 187, 120, 0.2)"
+                                : "none"
+                          }
+                          transition="all 0.3s ease-out"
+                          lineHeight="1.2"
+                          noOfLines={2}
+                          opacity={isDisabled ? 0.6 : 1}
+                          animation={isActive ? "fadeIn 0.3s ease-in" : "none"}
+                          sx={{
+                            "@keyframes fadeIn": {
+                              "0%": {
+                                opacity: 0,
+                                transform: "translateY(5px)",
+                              },
+                              "100%": {
+                                opacity: 1,
+                                transform: "translateY(0)",
+                              },
+                            },
+                          }}
+                        >
+                          {stepLabels[index]}
+                        </Text>
+                      </Box>
+                    );
+                  });
+                })()}
+              </Flex>
+            </Box>
+
+            {/* Spacer - Right Side (for balance) */}
+            <Box flexShrink={0} width={{ base: "36px", md: "40px" }} />
+          </Flex>
+        </Box>
       </Box>
 
       {/* Step Content */}
@@ -1557,12 +1779,12 @@ const EnrollmentForm = ({ referenceNumber }) => {
           contacts={contacts}
           addresses={addresses}
           govIDs={govIDs}
-          // handleAddContact={handleAddContact}
-          // handleAddAddress={handleAddAddress}
-          // handleAddGovID={handleAddGovID}
-          // handleContactChange={handleContactChange}
-          // handleAddressChange={handleAddressChange}
-          // handleGovIDChange={handleGovIDChange}
+        // handleAddContact={handleAddContact}
+        // handleAddAddress={handleAddAddress}
+        // handleAddGovID={handleAddGovID}
+        // handleContactChange={handleContactChange}
+        // handleAddressChange={handleAddressChange}
+        // handleGovIDChange={handleGovIDChange}
         />
       )}
 
@@ -1621,21 +1843,21 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
             return existingParent
               ? {
-                  ...existingParent,
-                  givenname: existingParent.givenname || "", // Ensure givenname exists
-                  lastname: existingParent.lastname || "", // Ensure lastname exists
-                  gender:
-                    existingParent.gender ||
-                    (relationship === "Father" ? "Male" : "Female"),
-                  //isEditing: existingParent.isEditing ?? true, // Preserve edit mode
-                }
+                ...existingParent,
+                givenname: existingParent.givenname || "", // Ensure givenname exists
+                lastname: existingParent.lastname || "", // Ensure lastname exists
+                gender:
+                  existingParent.gender ||
+                  (relationship === "Father" ? "Male" : "Female"),
+                //isEditing: existingParent.isEditing ?? true, // Preserve edit mode
+              }
               : {
-                  relationship_type: relationship,
-                  givenname: "",
-                  lastname: "",
-                  gender: relationship === "Father" ? "Male" : "Female",
-                  //isEditing: true, // Always allow editing for new entries
-                };
+                relationship_type: relationship,
+                givenname: "",
+                lastname: "",
+                gender: relationship === "Father" ? "Male" : "Female",
+                //isEditing: true, // Always allow editing for new entries
+              };
           })}
           setData={(updatedParents) =>
             setFamily((prevFamily) => ({
@@ -1689,12 +1911,12 @@ const EnrollmentForm = ({ referenceNumber }) => {
             family.spouses?.length > 0
               ? family.spouses
               : [
-                  {
-                    relationship_type: "Spouse",
-                    givenname: "",
-                    lastname: "",
-                  },
-                ]
+                {
+                  relationship_type: "Spouse",
+                  givenname: "",
+                  lastname: "",
+                },
+              ]
           }
           setData={(updatedSpouses) =>
             setFamily((prevFamily) => ({
@@ -1891,35 +2113,68 @@ const EnrollmentForm = ({ referenceNumber }) => {
         isCentered
         size="xl"
       >
-        <ModalOverlay />
-        <ModalContent maxWidth="900px">
-          <ModalHeader bg="yellow.400" color="black" textAlign="center">
+        <ModalOverlay bg="blackAlpha.600" backdropFilter="blur(10px)" />
+        <ModalContent maxWidth={{ base: "95%", md: "900px" }} borderRadius="2xl" overflow="hidden">
+          <ModalHeader
+            bgGradient="linear(to-r, yellow.400, orange.400)"
+            color="white"
+            textAlign="center"
+            py={6}
+            fontSize={{ base: "lg", md: "2xl" }}
+            fontWeight="extrabold"
+            textShadow="2px 2px 4px rgba(0,0,0,0.2)"
+          >
             🎉 Congratulations! You are now enrolled! 🎉
           </ModalHeader>
-          <ModalCloseButton />
+          <ModalCloseButton color="white" size="lg" />
           <ModalBody>
-            <Text textAlign="center" fontSize="lg" fontWeight="semibold" mb={4}>
+            <Text
+              textAlign="center"
+              fontSize={{ base: "md", md: "lg" }}
+              fontWeight="semibold"
+              mb={4}
+              color="gray.700"
+              px={{ base: 2, md: 4 }}
+            >
               Please download and keep your reference number from the folder for
               future tracking of your application.
             </Text>
             <Box
-              bg="yellow.100"
-              borderRadius="lg"
-              p={5}
-              boxShadow="lg"
+              bgGradient="linear(to-br, yellow.50, orange.50)"
+              borderRadius="xl"
+              p={{ base: 4, md: 6 }}
+              boxShadow="xl"
               textAlign="center"
+              border="2px solid"
+              borderColor="orange.200"
             >
-              <Text fontSize="md" fontWeight="bold" mb={4}>
-                Progress Guide:
+              <Text
+                fontSize={{ base: "md", md: "lg" }}
+                fontWeight="extrabold"
+                mb={6}
+                bgGradient="linear(to-r, orange.600, yellow.600)"
+                bgClip="text"
+              >
+                📋 Progress Guide:
               </Text>
               {/* Progress Bar */}
-              <Flex justifyContent="space-between" alignItems="center" mt={6}>
+              <Flex
+                justifyContent="space-between"
+                alignItems="center"
+                mt={6}
+                position="relative"
+                px={{ base: 2, md: 4 }}
+              >
                 {steps.map((step, index) => {
                   const progressNumber = Number(progress);
 
                   const isCompleted = Array.isArray(step.progressValue)
                     ? step.progressValue.includes(progressNumber)
                     : progressNumber >= step.progressValue;
+
+                  const isActive = Array.isArray(step.progressValue)
+                    ? step.progressValue.includes(progressNumber)
+                    : progressNumber === step.progressValue;
 
                   const isNextCompleted =
                     index < steps.length - 1 &&
@@ -1935,42 +2190,115 @@ const EnrollmentForm = ({ referenceNumber }) => {
                       flex="1"
                       position="relative"
                     >
-                      {/* Line to next step */}
+                      {/* Connecting Line */}
                       {index !== steps.length - 1 && (
                         <Box
                           position="absolute"
-                          top="50%"
+                          top={{ base: "17px", md: "22px" }}
                           left="50%"
                           width="100%"
-                          height="4px"
-                          bg={isNextCompleted ? "blue.500" : "gray.300"} // ✅ Fixes the line
-                          zIndex={0}
-                          transform="translateX(-50%)"
-                        />
+                          height={{ base: "3px", md: "4px" }}
+                          zIndex="0"
+                          overflow="hidden"
+                          borderRadius="full"
+                        >
+                          {/* Background line */}
+                          <Box
+                            position="absolute"
+                            width="100%"
+                            height="100%"
+                            bg="gray.200"
+                          />
+                          {/* Progress line with animation */}
+                          <Box
+                            position="absolute"
+                            width={isNextCompleted ? "100%" : "0%"}
+                            height="100%"
+                            bgGradient="linear(to-r, blue.400, teal.400)"
+                            transition="width 0.6s cubic-bezier(0.4, 0, 0.2, 1)"
+                            boxShadow="0 0 10px rgba(66, 153, 225, 0.5)"
+                          />
+                        </Box>
                       )}
+
                       {/* Step circle */}
                       <Box
-                        bg={isCompleted ? "blue.500" : "gray.300"}
+                        bg={
+                          isCompleted
+                            ? "linear-gradient(135deg, #4299e1 0%, #3182ce 100%)"
+                            : "linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%)"
+                        }
                         borderRadius="full"
-                        w="40px"
-                        h="40px"
+                        w={{ base: "36px", md: "46px" }}
+                        h={{ base: "36px", md: "46px" }}
                         display="flex"
                         justifyContent="center"
                         alignItems="center"
                         mb={2}
                         zIndex={1}
+                        border={isCompleted ? "3px solid" : "2px solid"}
+                        borderColor={isCompleted ? "blue.300" : "gray.300"}
+                        boxShadow={
+                          isActive
+                            ? "0 0 0 4px rgba(66, 153, 225, 0.2), 0 8px 20px rgba(66, 153, 225, 0.4)"
+                            : isCompleted
+                              ? "0 4px 15px rgba(66, 153, 225, 0.4)"
+                              : "0 2px 8px rgba(0,0,0,0.1)"
+                        }
+                        transform={isActive ? "scale(1.1)" : "scale(1)"}
+                        transition="all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)"
+                        animation={isActive ? "modalPulse 2s ease-in-out infinite" : "none"}
+                        _hover={{
+                          transform: "scale(1.15)",
+                          boxShadow: isCompleted
+                            ? "0 6px 25px rgba(66, 153, 225, 0.5)"
+                            : "0 6px 20px rgba(0,0,0,0.15)",
+                        }}
+                        sx={{
+                          "@keyframes modalPulse": {
+                            "0%, 100%": {
+                              boxShadow:
+                                "0 0 0 4px rgba(66, 153, 225, 0.2), 0 8px 20px rgba(66, 153, 225, 0.4)",
+                            },
+                            "50%": {
+                              boxShadow:
+                                "0 0 0 8px rgba(66, 153, 225, 0.3), 0 12px 30px rgba(66, 153, 225, 0.6)",
+                            },
+                          },
+                        }}
                       >
-                        <Text color="white" fontSize="xl" fontWeight="bold">
-                          {isCompleted ? "✔" : ""}
-                        </Text>
+                        {isCompleted ? (
+                          <CheckIcon
+                            boxSize={{ base: 3, md: 4 }}
+                            color="white"
+                          />
+                        ) : (
+                          <Text
+                            fontSize={{ base: "sm", md: "md" }}
+                            fontWeight="extrabold"
+                            color="gray.500"
+                          >
+                            {index + 1}
+                          </Text>
+                        )}
                       </Box>
+
                       {/* Step label */}
                       <Text
-                        fontSize="sm"
-                        fontWeight="medium"
+                        fontSize={{ base: "2xs", sm: "xs", md: "sm" }}
+                        fontWeight={isActive ? "bold" : isCompleted ? "semibold" : "medium"}
                         textAlign="center"
-                        maxWidth="80px"
-                        color={isCompleted ? "black" : "gray.500"}
+                        maxWidth={{ base: "65px", md: "95px" }}
+                        color={
+                          isActive
+                            ? "blue.700"
+                            : isCompleted
+                              ? "blue.600"
+                              : "gray.500"
+                        }
+                        transition="all 0.3s"
+                        lineHeight="1.2"
+                        noOfLines={2}
                       >
                         {step.label}
                       </Text>
@@ -2014,7 +2342,18 @@ const EnrollmentForm = ({ referenceNumber }) => {
             ) : (
               <>
                 {personnelProgress < 7 ? (
-                  <Button colorScheme="blue" onClick={handleEdit}>
+                  <Button
+                    bgGradient="linear(to-r, blue.500, teal.500)"
+                    color="white"
+                    _hover={{
+                      bgGradient: "linear(to-r, teal.500, blue.500)",
+                      transform: "translateY(-2px)",
+                      boxShadow: "lg",
+                    }}
+                    size={{ base: "md", md: "lg" }}
+                    px={8}
+                    onClick={handleEdit}
+                  >
                     Edit Enrollment
                   </Button>
                 ) : (

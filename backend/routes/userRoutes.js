@@ -1,9 +1,9 @@
 
-// ✅ Import Redis client
-const { client: redisClient, connectRedis } = require("../config/redisClient");
+// ✅ Import Redis client (DISABLED)
+// const { client: redisClient, connectRedis } = require("../config/redisClient");
 
-// Connect Redis before handling requests
-connectRedis().catch((err) => console.error("Redis connection failed:", err));
+// Connect Redis before handling requests (DISABLED)
+// connectRedis().catch((err) => console.error("Redis connection failed:", err));
 
 
 const https = require("https");
@@ -18,6 +18,9 @@ const multer = require("multer");
 const path = require("path");
 const User = require("../models/User");
 const Personnel = require("../models/personnels");
+const PersonnelHistory = require("../models/PersonnelHistory");
+const UserGroupMapping = require("../models/UserGroupMapping");
+const Group = require("../models/Group");
 const UserController = require("../controllers/userController");
 const ldapController = require("../controllers/ldapController");
 
@@ -201,7 +204,7 @@ router.put("/api/users/update", async (req, res) => {
 });
 
 router.post("/api/sync-to-users", async (req, res) => {
-  const { personnelId, personnelName } = req.body;
+  const { personnelId, personnelName, groupId } = req.body;
 
   try {
     // Step 1: Find personnel by ID
@@ -241,12 +244,6 @@ router.post("/api/sync-to-users", async (req, res) => {
 
     // Step 3: Check if the user already exists in the users table
     const existingUser = await User.findOne({ where: { uid } });
-    // if (!existingUser) {
-    //   return res.status(404).json({
-    //     message:
-    //       "User does not exist in the users table. Please add the user first.",
-    //   });
-    // }
 
     if (existingUser) {
       return res.status(400).json({
@@ -255,13 +252,21 @@ router.post("/api/sync-to-users", async (req, res) => {
     }
 
     // Step 4: Save the user in the users table
-    await User.create({
+    const newUser = await User.create({
       uid,
       personnel_id: personnelId,
       username: uid, // Use `uid` as username
       password: ldapUser.userPassword || "", // Default to an empty string if undefined
       auth_type: "LDAP",
     });
+
+    // Step 5: Assign Group if selected
+    if (groupId) {
+      await UserGroupMapping.create({
+        user_id: newUser.id,
+        group_id: groupId
+      });
+    }
 
     res.status(200).json({ message: "User synced successfully." });
   } catch (error) {
@@ -417,16 +422,16 @@ router.get("/api/users/logged-in", verifyToken, async (req, res) => {
   }
   const cacheKey = `logged_in_user_${username}`;
 
-   try {
-    // 1️⃣ Check Redis cache first
-    const cachedUser = await redisClient.get(cacheKey);
-    if (cachedUser) {
-      console.log(`📦 Serving logged-in user ${username} from Redis cache`);
-      return res.status(200).json(JSON.parse(cachedUser));
-    }
+  try {
+    // 1️⃣ CACHE REMOVED (DISABLED)
+    // const cachedUser = await redisClient.get(cacheKey);
+    // if (cachedUser) {
+    //   console.log(`📦 Serving logged-in user ${username} from Redis cache`);
+    //   return res.status(200).json(JSON.parse(cachedUser));
+    // }
 
-  const query = `
-  SELECT u.ID, u.username, u.avatar, u.auth_type, u.personnel_id, GROUP_CONCAT(a.name) AS availableApps, p.enrollment_progress
+    const query = `
+  SELECT u.ID, u.username, u.avatar, u.auth_type, u.personnel_id, GROUP_CONCAT(a.name) AS availableApps, p.enrollment_progress, p.gender
   FROM users u
   LEFT JOIN available_apps ua ON u.ID = ua.user_id
   LEFT JOIN personnels p ON p.personnel_id = u.personnel_id
@@ -434,86 +439,59 @@ router.get("/api/users/logged-in", verifyToken, async (req, res) => {
   WHERE u.username = '${username}'
     GROUP BY u.ID`;
 
-  db.query(query, async (err, results) => {
-    if (err) {
-      console.error("Error fetching logged-in user:", err);
-      return res.status(500).json({ message: "Database error" });
-    }
-
-    if (results.length > 0) {
-      const user = results[0];
-
-      // Check if user is authenticated with LDAP
-      if (user.auth_type === "LDAP") {
-        try {
-          // Fetch user details from the LDAP API
-
-          const https = require("https");
-
-          // Determine if HTTPS is enabled
-          const isHttps = process.env.HTTPS === "true";
-
-          // Choose protocol and port
-          const protocol = isHttps ? "https" : "http";
-          const port = isHttps
-            ? process.env.REACT_PORT_HTTPS
-            : process.env.REACT_PORT_HTTP;
-
-          // Normalize the API base address (strip protocol if included)
-          const baseAddress = process.env.REACT_APP_API_URL.replace(
-            /^https?:\/\//,
-            ""
-          );
-
-          // Final API URL
-          const apiUrl = `${protocol}://${baseAddress}:${port}`;
-
-          // Axios request with conditional httpsAgent
-          const ldapResponse = await axios.get(
-            `${apiUrl}/ldap/user/${user.username}`,
-            {
-              ...(isHttps && {
-                httpsAgent: new https.Agent({ rejectUnauthorized: false }),
-              }),
-            }
-          );
-
-          const ldapUser = ldapResponse.data;
-
-          // Update user object with LDAP details
-          user.name = `${ldapUser.cn}`;
-          user.username = ldapUser.uid;
-          user.email = ldapUser.mail; // Email from LDAP
-        } catch (error) {
-          console.error("Error connecting to LDAP server:", error);
-          // Notify the user about LDAP server issues
-          return res.status(500).json({
-            message: "LDAP server is unreachable. Unable to fetch full name.",
-          });
-        }
+    db.query(query, async (err, results) => {
+      if (err) {
+        console.error("Error fetching logged-in user:", err);
+        return res.status(500).json({ message: "Database error" });
       }
 
-      // Process available applications
-      user.availableApps = user.availableApps
-        ? user.availableApps.split(",")
-        : [];
+      if (results.length > 0) {
+        const user = results[0];
 
-        // 3️⃣ Cache the user in Redis for 5 minutes
-      await redisClient.set(cacheKey, JSON.stringify(user), { EX: 300 });
-      console.log(`✅ Logged-in user ${username} cached in Redis`);
+        // Check if user is authenticated with LDAP
+        if (user.auth_type === "LDAP") {
+          try {
+            // Fetch user details from LDAP directly (avoiding HTTP loopback)
+            const ldapUser = await ldapController.findLdapUserAndAudit(user.username, req.headers["user-agent"]);
 
-      res.json(user);
-    } else {
-      res.status(404).json({ message: "No user is currently logged in" });
-    }
-  });
-    } catch (error) {
+            // Update user object with LDAP details
+            const getVal = (val) => Array.isArray(val) ? val[0] : val;
+
+            user.name = getVal(ldapUser.cn);
+            user.username = getVal(ldapUser.uid);
+            user.email = getVal(ldapUser.mail);
+
+          } catch (error) {
+            console.error("Error fetching LDAP data:", error);
+            // Notify the user about LDAP server issues
+            return res.status(500).json({
+              message: "LDAP server issue. Unable to fetch full name.",
+              error: error.message
+            });
+          }
+        }
+
+        // Process available applications
+        user.availableApps = user.availableApps
+          ? user.availableApps.split(",")
+          : [];
+
+        // 3️⃣ Cache Removed (DISABLED)
+        // await redisClient.set(cacheKey, JSON.stringify(user), { EX: 300 });
+        // console.log(`✅ Logged-in user ${username} cached in Redis`);
+
+        res.json(user);
+      } else {
+        res.status(404).json({ message: "No user is currently logged in" });
+      }
+    });
+  } catch (error) {
     console.error("Error fetching logged-in user:", error);
     return res.status(500).json({ message: "Internal server error", error: error.message });
   }
 });
 
-router.get("/api/nextcloud-login", verifyToken,async (req, res) => {
+router.get("/api/nextcloud-login", verifyToken, async (req, res) => {
   const { username } = req.query;
 
   if (!username) {
@@ -579,6 +557,18 @@ router.put("/api/users/update-login-status", (req, res) => {
     }
 
     console.log("Login status updated for user ID:", ID);
+
+    // 🗑️ INVALIDATE REDIS CACHE (DISABLED)
+    // const cacheKey = `user_${ID}`;
+    // redisClient.del(cacheKey).then(() => {
+    //   console.log(`🗑️ Invalidated Redis cache for: ${cacheKey}`);
+    // }).catch(err => console.error("Redis delete error:", err));
+
+    // Also invalidate logged_in_user cache just in case (DISABLED)
+    // const loggedInCacheKey = `logged_in_user_${ID}`;
+    // redisClient.del(loggedInCacheKey).catch(err => console.error("Redis delete error:", err));
+
+
     res.status(200).json({ message: "User login status updated successfully" });
   });
 });
@@ -596,16 +586,11 @@ const fetchApiData = async (url) => {
 
 // Get all users with their available apps and LDAP attributes
 router.get("/api/users", verifyToken, async (req, res) => {
-const cacheKey = "users_data"; // Redis key
+  // 1️⃣ CACHE REMOVED: Fetch fresh data from DB every time
+  // const cachedData = await redisClient.get(cacheKey);
+  // if (cachedData) { ... }
 
-// 1️⃣ Check Redis cache first
-    const cachedData = await redisClient.get(cacheKey);
-    if (cachedData) {
-      console.log("📦 Serving users from Redis cache");
-      return res.json(JSON.parse(cachedData));
-    }
-
-    console.log("🧠 No cache found — fetching fresh data...");
+  console.log("🧠 Fetching fresh user data...");
 
   // Fetch external API data
   const districts = await fetchApiData(DISTRICT_API_URL);
@@ -690,7 +675,7 @@ LEFT JOIN (
     ) latest ON pa.personnel_id = latest.personnel_id AND pa.id = latest.max_id
     WHERE pa.address_type = 'INC Housing'
 ) AS addr ON addr.personnel_id = u.personnel_id
-WHERE u.personnel_id IS NOT NULL AND u.uid IS NOT NULL
+WHERE u.uid IS NOT NULL AND (p.deleted_at IS NULL OR u.personnel_id IS NULL)
 GROUP BY 
   u.ID, u.personnel_id, u.username, u.password, u.avatar, 
   p.givenname, p.middlename, p.surname_husband, p.surname_maiden, p.suffix, p.nickname, 
@@ -769,20 +754,20 @@ GROUP BY
 
         const formattedResults = Array.isArray(results)
           ? results.map((user) => ({
-              ...user,
-              availableApps: user.availableApps
-                ? user.availableApps.split(",")
-                : [],
-              // Convert ID to Name using fetched API data
-              personnel_district_assignment_name:
-                districts.find(
-                  (d) => d.id === user.personnel_district_assignment_id
-                )?.name || "N/A",
-              personnel_local_congregation_assignment_name:
-                localCongregations.find(
-                  (lc) => lc.id === user.personnel_local_congregation_assignment
-                )?.name || "N/A",
-            }))
+            ...user,
+            availableApps: user.availableApps
+              ? user.availableApps.split(",")
+              : [],
+            // Convert ID to Name using fetched API data
+            personnel_district_assignment_name:
+              districts.find(
+                (d) => d.id === user.personnel_district_assignment_id
+              )?.name || "N/A",
+            personnel_local_congregation_assignment_name:
+              localCongregations.find(
+                (lc) => lc.id === user.personnel_local_congregation_assignment
+              )?.name || "N/A",
+          }))
           : [];
         resolve(formattedResults);
       });
@@ -816,9 +801,9 @@ GROUP BY
       };
     });
 
-      // 7️⃣ Cache in Redis for 10 minutes
-    await redisClient.set(cacheKey, JSON.stringify(combinedUsers), { EX: 3600 });
-    console.log("✅ Users cached in Redis for 10 minutes");
+    // 7️⃣ Cache in Redis (DISABLED)
+    // await redisClient.set(cacheKey, JSON.stringify(combinedUsers), { EX: 3600 });
+
 
     // Send combined users data as JSON response
     res.json(combinedUsers);
@@ -875,22 +860,22 @@ router.post("/api/users/login", async (req, res) => {
         // MD5 hash
         isMatch = verifyMD5(password, storedHash);
       }
- 
+
       if (!isMatch) {
         return res
           .status(401)
           .json({ success: false, message: "Invalid username or password111" + storedHash });
       }
 
-        // ✅ Generate JWT Token
+      // ✅ Generate JWT Token
       const token = jwt.sign(
         { id: user.id, username: user.username },
         process.env.JWT_SECRET
       );
-      
+
       // If password matches, return success and user data
       console.log("User authenticated:", username);
-           // ✅ Return token and user info
+      // ✅ Return token and user info
       return res.status(200).json({
         success: true,
         token,
@@ -967,14 +952,17 @@ router.post("/api/users", (req, res) => {
 // Update user details and assigned apps
 router.put("/api/users/:id", (req, res) => {
   const userId = parseInt(req.params.id, 10);
-  const { username, avatar, availableApps } = req.body;
+  const { username, avatar, availableApps, fullname, email } = req.body;
+
+  console.log(`[PUT] Updating user ${userId}. Payload:`, { username, fullname, email, appsCount: availableApps?.length });
 
   // Update user details
+  // Note: 'fullname' and 'email' columns do not exist in the users table, so they are omitted here.
   const updateUserQuery =
     "UPDATE users SET username = ?, avatar = ? WHERE ID = ?";
   db.query(updateUserQuery, [username, avatar, userId], (err) => {
     if (err) {
-      console.error("Error updating user:", err);
+      console.error("Error updating user details:", err);
       return res.status(500).json({ message: "Database update error" });
     }
 
@@ -983,25 +971,28 @@ router.put("/api/users/:id", (req, res) => {
     db.query(deleteAppsQuery, [userId], (deleteErr) => {
       if (deleteErr) {
         console.error("Error deleting existing apps:", deleteErr);
-        return res.status(500).json({ message: "Error updating apps" });
+        return res.status(500).json({ message: "Error updating apps (delete phase)" });
       }
 
       // Insert new available apps if any
-      if (availableApps && availableApps.length > 0) {
+      if (availableApps && Array.isArray(availableApps) && availableApps.length > 0) {
         const insertAppsQuery =
           "INSERT INTO available_apps (user_id, app_id) VALUES ?";
         const values = availableApps.map((appId) => [userId, appId]);
+
         db.query(insertAppsQuery, [values], (insertErr) => {
           if (insertErr) {
             console.error("Error inserting updated apps:", insertErr);
-            return res.status(500).json({ message: "Error updating apps" });
+            return res.status(500).json({ message: "Error updating apps (insert phase)" });
           }
 
           // Respond with success
+          console.log(`[PUT] User ${userId} updated successfully with ${availableApps.length} apps.`);
           res.json({ message: "User and apps updated successfully" });
         });
       } else {
         // No apps to update, respond with success
+        console.log(`[PUT] User ${userId} updated successfully (no apps assigned).`);
         res.json({
           message: "User updated successfully with no apps assigned",
         });
@@ -1013,36 +1004,50 @@ router.put("/api/users/:id", (req, res) => {
 const moment = require("moment"); // Or use new Date() if you don't want to install moment
 
 // Delete user and associated apps
-router.delete("/api/users/:id", (req, res) => {
-  const personnelId = parseInt(req.params.id, 10); // Ensure personnelId is an integer
+router.delete("/api/users/:id", verifyToken, async (req, res) => {
+  const id = parseInt(req.params.id, 10);
 
-  if (isNaN(personnelId)) {
-    return res.status(400).json({ message: "Invalid personnel ID" });
+  if (isNaN(id)) {
+    return res.status(400).json({ message: "Invalid ID" });
   }
 
-  // Delete associated apps (optional)
-  db.query("DELETE FROM available_apps WHERE user_id = ?", [personnelId], (err) => {
-    if (err) {
-      console.error("Error deleting personnel apps:", err);
-      return res.status(500).json({ message: "Database error on apps" });
+  try {
+    const user = await User.findByPk(id);
+
+    if (user && !user.personnel_id) {
+      // It's an LDAP Only user, delete from users table
+      await db.query("DELETE FROM available_apps WHERE user_id = ?", [id]);
+      await user.destroy();
+      return res.status(200).json({ message: "LDAP-only user deleted successfully." });
     }
 
-    // Soft delete personnel by setting deleted_at to current timestamp
-    const deletedAt = moment().format("YYYY-MM-DD HH:mm:ss");
+    if (user && user.personnel_id) {
+      const personnelId = user.personnel_id;
 
-    db.query("UPDATE personnels SET deleted_at = ? WHERE personnel_id = ?", [deletedAt, personnelId], (err, results) => {
-      if (err) {
-        console.error("Error soft deleting personnel:", err);
-        return res.status(500).json({ message: "Database error" });
-      }
+      // Delete apps associations
+      await db.query("DELETE FROM available_apps WHERE user_id = ?", [id]);
 
-      if (results.affectedRows === 0) {
-        return res.status(404).json({ message: "Personnel not found" });
-      }
+      const deletedAt = moment().format("YYYY-MM-DD HH:mm:ss");
 
-      res.status(200).json({ message: "Personnel soft-deleted successfully." });
-    });
-  });
+      // Soft delete personnel
+      await db.query("UPDATE personnels SET deleted_at = ? WHERE personnel_id = ?", [deletedAt, personnelId]);
+
+      // Log history
+      await PersonnelHistory.create({
+        personnel_id: personnelId,
+        action: "Out",
+        reason: "User deleted from User Management",
+        performed_by: req.user ? req.user.username : "System"
+      });
+
+      return res.status(200).json({ message: "Personnel soft-deleted successfully." });
+    }
+
+    return res.status(404).json({ message: "Record not found" });
+  } catch (error) {
+    console.error("Error in delete route:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 });
 
 // User Logout Endpoint

@@ -21,19 +21,31 @@ import {
   Spacer,
   FormErrorMessage,
   IconButton,
+  Text,
+  ButtonGroup,
+  Card,
+  CardBody,
+  SimpleGrid,
+  Badge,
+  Icon,
+  HStack,
+  useColorModeValue,
 } from "@chakra-ui/react";
-import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
+import { AddIcon, DeleteIcon, CalendarIcon, TimeIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
-import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import moment from "moment";
+import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import { FaMapMarkerAlt, FaCalendarAlt, FaList } from "react-icons/fa";
 
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Events = () => {
+  /* ---------- State ---------- */
+  const [viewMode, setViewMode] = useState("calendar"); // 'calendar' or 'list'
   const [events, setEvents] = useState([]);
   const [locations, setLocations] = useState([]);
   const [formData, setFormData] = useState({
@@ -46,9 +58,13 @@ const Events = () => {
   const [editingEvent, setEditingEvent] = useState(null);
   const [formErrors, setFormErrors] = useState({});
 
+  /* ---------- Hooks ---------- */
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
+  const bgColor = useColorModeValue("gray.50", "gray.900");
+  const cardBg = useColorModeValue("white", "gray.800");
 
+  /* ---------- Data Fetching ---------- */
   const fetchEventsAndLocations = useCallback(async () => {
     try {
       const [eventsRes, locationsRes] = await Promise.all([
@@ -60,7 +76,9 @@ const Events = () => {
       const locationsData = await locationsRes.json();
 
       const eventsWithLocation = eventsData.map((event) => {
-        const location = locationsData.find((loc) => loc.id === event.location_id);
+        const location = locationsData.find(
+          (loc) => loc.id === event.location_id
+        );
         return { ...event, locationName: location?.name || "N/A" };
       });
 
@@ -69,8 +87,8 @@ const Events = () => {
     } catch (err) {
       console.error("Error fetching data:", err);
       toast({
-        title: "Error fetching data.",
-        description: "Failed to load events or locations. Please check the server.",
+        title: "Connection Error",
+        description: "Could not load events. Please check your internet or server.",
         status: "error",
         duration: 5000,
         isClosable: true,
@@ -82,20 +100,25 @@ const Events = () => {
     fetchEventsAndLocations();
   }, [fetchEventsAndLocations]);
 
-  // Updated to include time in the event title
+  /* ---------- Memos ---------- */
   const formattedEvents = useMemo(() => {
-    return events.map((event) => {
-      const startTime = moment(`${event.date}T${event.time}`);
-      const formattedTime = startTime.format("h:mm A");
-      return {
-        title: `${formattedTime} - ${event.eventName} (${event.locationName || "N/A"})`,
-        start: startTime.toDate(),
-        end: startTime.clone().add(1, "hours").toDate(),
-        id: event.id,
-      };
-    });
+    // Sort events by date for list view stability
+    return events
+      .map((event) => {
+        const startTime = moment(`${event.date}T${event.time}`);
+        return {
+          title: `${event.eventName}`, // Cleaner title for calendar
+          start: startTime.toDate(),
+          end: startTime.clone().add(1, "hours").toDate(), // Default 1 hour duration
+          allDay: false,
+          resource: event, // Store full object for easy access
+          id: event.id,
+        };
+      })
+      .sort((a, b) => a.start - b.start);
   }, [events]);
 
+  /* ---------- Handlers ---------- */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -103,12 +126,19 @@ const Events = () => {
   };
 
   const resetForm = () => {
-    setFormData({ eventName: "", date: "", time: "", location_id: "", recurrence: "none" });
+    setFormData({
+      eventName: "",
+      date: "",
+      time: "",
+      location_id: "",
+      recurrence: "none",
+    });
     setEditingEvent(null);
     setFormErrors({});
   };
 
   const handleSaveEvent = async () => {
+    // Validation
     const errors = {};
     if (!formData.eventName) errors.eventName = "Event Name is required.";
     if (!formData.date) errors.date = "Date is required.";
@@ -143,7 +173,7 @@ const Events = () => {
       await fetchEventsAndLocations();
 
       toast({
-        title: editingEvent ? "Event Updated" : "Event Added",
+        title: editingEvent ? "Event Updated" : "Event Created",
         status: "success",
         duration: 2500,
         isClosable: true,
@@ -154,26 +184,28 @@ const Events = () => {
     } catch (err) {
       console.error("Error saving event:", err);
       toast({
-        title: "Error",
-        description: "Failed to save event. Please try again.",
+        title: "Save Failed",
+        description: "Something went wrong. Please try again.",
         status: "error",
-        duration: 2500,
+        duration: 3000,
         isClosable: true,
       });
     }
   };
 
-  const handleEditEvent = (event) => {
-    const selectedEvent = events.find((e) => e.id === event.id);
-    if (!selectedEvent) return;
+  const handleEditEvent = (eventData) => {
+    // Handle both Calendar event object and raw event object
+    const rawEvent = eventData.resource || events.find(e => e.id === eventData.id);
 
-    setEditingEvent(selectedEvent);
+    if (!rawEvent) return;
+
+    setEditingEvent(rawEvent);
     setFormData({
-      eventName: selectedEvent.eventName,
-      date: moment(selectedEvent.date).format("YYYY-MM-DD"),
-      time: moment(selectedEvent.time, "HH:mm:ss").format("HH:mm"),
-      location_id: selectedEvent.location_id,
-      recurrence: selectedEvent.recurrence || "none",
+      eventName: rawEvent.eventName,
+      date: moment(rawEvent.date).format("YYYY-MM-DD"),
+      time: moment(rawEvent.time, "HH:mm:ss").format("HH:mm"),
+      location_id: rawEvent.location_id,
+      recurrence: rawEvent.recurrence || "none",
     });
     setFormErrors({});
     onOpen();
@@ -181,7 +213,7 @@ const Events = () => {
 
   const handleDeleteEvent = async () => {
     if (!editingEvent) return;
-    if (!window.confirm(`Delete event "${editingEvent.eventName}"?`)) return;
+    if (!window.confirm(`Are you sure you want to delete "${editingEvent.eventName}"?`)) return;
 
     try {
       const res = await fetch(`${API_URL}/api/events/${editingEvent.id}`, {
@@ -191,206 +223,234 @@ const Events = () => {
       if (!res.ok) throw new Error("Delete failed");
 
       await fetchEventsAndLocations();
-
-      toast({ title: "Event Deleted", status: "success", duration: 2000, isClosable: true });
-
+      toast({ title: "Event Deleted", status: "info", duration: 2000, isClosable: true });
       resetForm();
       onClose();
     } catch (err) {
-      console.error("Error deleting event:", err);
-      toast({
-        title: "Error",
-        description: "Failed to delete event. Please try again.",
-        status: "error",
-        duration: 2500,
-        isClosable: true,
-      });
+      toast({ title: "Delete Failed", status: "error", duration: 2500, isClosable: true });
     }
   };
 
-  const handleEventDrop = async ({ event, start, end }) => {
+  /* ---------- DnD Handlers ---------- */
+  const handleEventDrop = async ({ event, start }) => {
     const updatedEvent = {
-      ...event,
+      ...event.resource,
       date: moment(start).format("YYYY-MM-DD"),
       time: moment(start).format("HH:mm:ss"),
     };
-
-    try {
-      const res = await fetch(`${API_URL}/api/events/${event.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedEvent),
-      });
-
-      if (!res.ok) throw new Error("Failed to update event");
-
-      await fetchEventsAndLocations();
-
-      toast({
-        title: "Event moved",
-        status: "success",
-        duration: 2000,
-        isClosable: true,
-      });
-    } catch (err) {
-      console.error("Error updating event:", err);
-      toast({
-        title: "Error",
-        description: "Failed to move event.",
-        status: "error",
-        duration: 2500,
-        isClosable: true,
-      });
-    }
+    await updateEventSilently(updatedEvent, "Event moved");
   };
 
-  const handleEventResize = async ({ event, start, end }) => {
+  const updateEventSilently = async (eventPayload, successMsg) => {
     try {
-      const res = await fetch(`${API_URL}/api/events/${event.id}`, {
+      const res = await fetch(`${API_URL}/api/events/${eventPayload.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...event,
-          date: moment(start).format("YYYY-MM-DD"),
-          time: moment(start).format("HH:mm:ss"),
-        }),
+        body: JSON.stringify(eventPayload),
       });
-
-      if (!res.ok) throw new Error("Failed to resize event");
+      if (!res.ok) throw new Error("Update failed");
 
       await fetchEventsAndLocations();
-
-      toast({
-        title: "Event resized",
-        status: "success",
-        duration: 2000,
-        isClosable: true,
-      });
+      toast({ title: successMsg, status: "success", duration: 2000, isClosable: true });
     } catch (err) {
-      console.error("Error resizing event:", err);
-      toast({
-        title: "Error",
-        description: "Failed to resize event.",
-        status: "error",
-        duration: 2500,
-        isClosable: true,
-      });
+      toast({ title: "Update Failed", status: "error", duration: 2000 });
     }
-  };
+  }
+
+
+  /* ---------- Render Components ---------- */
+
+  const ListView = () => (
+    <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={4}>
+      {formattedEvents.map((evt) => (
+        <Card
+          key={evt.id}
+          bg={cardBg}
+          borderLeft="4px solid"
+          borderColor="blue.400"
+          shadow="md"
+          _hover={{ shadow: "lg", transform: "translateY(-2px)" }}
+          transition="all 0.2s"
+          cursor="pointer"
+          onClick={() => handleEditEvent(evt)}
+        >
+          <CardBody>
+            <Flex justify="space-between" align="start">
+              <VStack align="start" spacing={2}>
+                <Heading size="sm" color="blue.700">
+                  {evt.title}
+                </Heading>
+                <HStack fontSize="sm" color="gray.600">
+                  <Icon as={FaCalendarAlt} color="blue.400" />
+                  <Text>{moment(evt.start).format("MMM DD, YYYY")}</Text>
+                </HStack>
+                <HStack fontSize="sm" color="gray.600">
+                  <Icon as={TimeIcon} color="orange.400" />
+                  <Text>{moment(evt.start).format("h:mm A")}</Text>
+                </HStack>
+                <HStack fontSize="sm" color="gray.600">
+                  <Icon as={FaMapMarkerAlt} color="red.400" />
+                  <Text>{evt.resource.locationName}</Text>
+                </HStack>
+              </VStack>
+              {evt.resource.recurrence !== 'none' && (
+                <Badge colorScheme="purple">{evt.resource.recurrence}</Badge>
+              )}
+            </Flex>
+          </CardBody>
+        </Card>
+      ))}
+      {formattedEvents.length === 0 && (
+        <Box gridColumn="1 / -1" textAlign="center" py={10} color="gray.500">
+          <Text>No events scheduled. Click "Add Event" to get started.</Text>
+        </Box>
+      )}
+    </SimpleGrid>
+  );
 
   return (
-    <Box p={6} bg="gray.50" minHeight="100vh">
-      <Heading mb={6} color="blue.800" textAlign="center" fontSize="3xl">
-        🗓️ Event Management
-      </Heading>
-      
-      <Flex direction={{ base: "column", md: "row" }} align="center" justify="space-between" mb={6}>
-        <Heading size="lg" mb={{ base: 4, md: 0 }} color="gray.700">
-          Event Calendar
-        </Heading>
-        <Button
-          leftIcon={<AddIcon />}
-          onClick={() => {
-            resetForm();
-            onOpen();
-          }}
-          colorScheme="blue"
-          size="md"
-          borderRadius="lg"
-          boxShadow="md"
-          _hover={{ transform: "scale(1.02)", boxShadow: "lg" }}
-        >
-          Add Event
-        </Button>
+    <Box p={{ base: 4, md: 8 }} bg={bgColor} minHeight="100vh">
+      <Flex direction={{ base: "column", md: "row" }} align="center" justify="space-between" mb={8} gap={4}>
+        <Box textAlign={{ base: "center", md: "left" }}>
+          <Heading size="lg" color="blue.800" mb={1}>
+            Event Schedule
+          </Heading>
+          <Text color="gray.500">Manage your upcoming events and appointments.</Text>
+        </Box>
+
+        <HStack>
+          <ButtonGroup isAttached variant="outline" size="sm" mr={2}>
+            <IconButton
+              aria-label="Calendar View"
+              icon={<Icon as={FaCalendarAlt} />}
+              colorScheme={viewMode === 'calendar' ? 'blue' : 'gray'}
+              isActive={viewMode === 'calendar'}
+              onClick={() => setViewMode('calendar')}
+            />
+            <IconButton
+              aria-label="List View"
+              icon={<Icon as={FaList} />}
+              colorScheme={viewMode === 'list' ? 'blue' : 'gray'}
+              isActive={viewMode === 'list'}
+              onClick={() => setViewMode('list')}
+            />
+          </ButtonGroup>
+
+          <Button
+            leftIcon={<AddIcon />}
+            colorScheme="blue"
+            onClick={() => {
+              resetForm();
+              onOpen();
+            }}
+            shadow="md"
+          >
+            Add Event
+          </Button>
+        </HStack>
       </Flex>
 
-      <Box
-        bg="white"
-        borderRadius="xl"
-        boxShadow="xl"
-        p={6}
-        transition="0.3s"
-        _hover={{ boxShadow: "2xl" }}
-      >
-        <DnDCalendar
-          localizer={localizer}
-          events={formattedEvents}
-          startAccessor="start"
-          endAccessor="end"
-          style={{ height: 600 }}
-          selectable
-          popup
-          resizable
-          views={["month", "week", "day", "agenda"]}
-          onSelectEvent={handleEditEvent}
-          onEventDrop={handleEventDrop}
-          onEventResize={handleEventResize}
-          eventPropGetter={() => ({
-            style: {
-              backgroundColor: "#4299e1", // Blue-400
-              color: "white",
-              borderRadius: "8px",
-              padding: "6px",
-              fontWeight: "500",
-              boxShadow: "sm",
-            },
-          })}
-        />
+      {/* Content Area */}
+      <Box>
+        {viewMode === "calendar" ? (
+          <Box
+            bg={cardBg}
+            borderRadius="xl"
+            boxShadow="lg"
+            p={4}
+            height="700px" // Fixed height for calendar
+            overflow="hidden"
+          >
+            <DnDCalendar
+              localizer={localizer}
+              events={formattedEvents}
+              startAccessor="start"
+              endAccessor="end"
+              style={{ height: "100%" }}
+              selectable
+              popup
+              resizable // DnD feature
+              views={["month", "week", "day", "agenda"]}
+              defaultView="month"
+              onSelectEvent={handleEditEvent}
+              onEventDrop={handleEventDrop}
+              eventPropGetter={() => ({
+                style: {
+                  backgroundColor: "#3182ce",
+                  borderRadius: "6px",
+                  opacity: 0.9,
+                  color: "white",
+                  border: "none",
+                  display: "block",
+                },
+              })}
+            />
+          </Box>
+        ) : (
+          <ListView />
+        )}
       </Box>
 
-      <Modal isOpen={isOpen} onClose={onClose} size="lg" motionPreset="slideInBottom">
-        <ModalOverlay />
-        <ModalContent borderRadius="xl" boxShadow="2xl">
-          <ModalHeader color="blue.800" fontWeight="bold">
-            {editingEvent ? "Edit Event" : "Add Event"}
+      {/* Add/Edit Modal */}
+      <Modal isOpen={isOpen} onClose={onClose} size="lg" isCentered motionPreset="slideInBottom">
+        <ModalOverlay backdropFilter="blur(5px)" />
+        <ModalContent borderRadius="xl" shadow="2xl">
+          <ModalHeader borderBottom="1px solid" borderColor="gray.100">
+            <Flex align="center" gap={2}>
+              <Icon as={editingEvent ? TimeIcon : AddIcon} color="blue.500" />
+              {editingEvent ? "Edit Event Details" : "Create New Event"}
+            </Flex>
           </ModalHeader>
           <ModalCloseButton />
-          <ModalBody>
-            <VStack spacing={4}>
+
+          <ModalBody py={6}>
+            <VStack spacing={5}>
               <FormControl isRequired isInvalid={!!formErrors.eventName}>
-                <FormLabel>Event Name</FormLabel>
+                <FormLabel fontWeight="semibold">Event Name</FormLabel>
                 <Input
                   name="eventName"
                   value={formData.eventName}
                   onChange={handleChange}
-                  placeholder="Enter event name"
-                  variant="filled"
+                  placeholder="e.g. Weekly Meeting"
+                  focusBorderColor="blue.500"
                 />
                 <FormErrorMessage>{formErrors.eventName}</FormErrorMessage>
               </FormControl>
 
-              <FormControl isRequired isInvalid={!!formErrors.date}>
-                <FormLabel>Date</FormLabel>
-                <Input
-                  type="date"
-                  name="date"
-                  value={formData.date}
-                  onChange={handleChange}
-                  variant="filled"
-                />
-                <FormErrorMessage>{formErrors.date}</FormErrorMessage>
-              </FormControl>
+              <HStack w="100%" spacing={4}>
+                <FormControl isRequired isInvalid={!!formErrors.date}>
+                  <FormLabel fontWeight="semibold">Date</FormLabel>
+                  <Input
+                    type="date"
+                    name="date"
+                    value={formData.date}
+                    onChange={handleChange}
+                    focusBorderColor="blue.500"
+                  />
+                  <FormErrorMessage>{formErrors.date}</FormErrorMessage>
+                </FormControl>
 
-              <FormControl isRequired isInvalid={!!formErrors.time}>
-                <FormLabel>Time</FormLabel>
-                <Input
-                  type="time"
-                  name="time"
-                  value={formData.time}
-                  onChange={handleChange}
-                  variant="filled"
-                />
-                <FormErrorMessage>{formErrors.time}</FormErrorMessage>
-              </FormControl>
+                <FormControl isRequired isInvalid={!!formErrors.time}>
+                  <FormLabel fontWeight="semibold">Time</FormLabel>
+                  <Input
+                    type="time"
+                    name="time"
+                    value={formData.time}
+                    onChange={handleChange}
+                    focusBorderColor="blue.500"
+                  />
+                  <FormErrorMessage>{formErrors.time}</FormErrorMessage>
+                </FormControl>
+              </HStack>
 
               <FormControl isRequired isInvalid={!!formErrors.location_id}>
-                <FormLabel>Location</FormLabel>
+                <FormLabel fontWeight="semibold">Location</FormLabel>
                 <Select
                   name="location_id"
                   value={formData.location_id}
                   onChange={handleChange}
                   placeholder="Select Location"
-                  variant="filled"
+                  focusBorderColor="blue.500"
                 >
                   {locations.map((loc) => (
                     <option key={loc.id} value={loc.id}>
@@ -402,14 +462,14 @@ const Events = () => {
               </FormControl>
 
               <FormControl>
-                <FormLabel>Recurrence</FormLabel>
+                <FormLabel fontWeight="semibold">Recurrence</FormLabel>
                 <Select
                   name="recurrence"
                   value={formData.recurrence}
                   onChange={handleChange}
-                  variant="filled"
+                  focusBorderColor="blue.500"
                 >
-                  <option value="none">None</option>
+                  <option value="none">Does not repeat</option>
                   <option value="daily">Daily</option>
                   <option value="weekly">Weekly</option>
                   <option value="monthly">Monthly</option>
@@ -417,24 +477,28 @@ const Events = () => {
               </FormControl>
             </VStack>
           </ModalBody>
-          <ModalFooter>
+
+          <ModalFooter bg="gray.50" borderBottomRadius="xl">
             <Flex w="100%" justifyContent="space-between">
-              {editingEvent && (
-                <IconButton
-                  icon={<DeleteIcon />}
-                  aria-label="Delete Event"
+              {editingEvent ? (
+                <Button
+                  leftIcon={<DeleteIcon />}
                   colorScheme="red"
-                  onClick={handleDeleteEvent}
                   variant="ghost"
-                />
-              )}
-              <Spacer />
-              <Button variant="ghost" mr={3} onClick={onClose}>
-                Cancel
-              </Button>
-              <Button colorScheme="blue" onClick={handleSaveEvent}>
-                {editingEvent ? "Save Changes" : "Add Event"}
-              </Button>
+                  onClick={handleDeleteEvent}
+                >
+                  Delete
+                </Button>
+              ) : <Box />} {/* Spacer */}
+
+              <HStack>
+                <Button variant="ghost" onClick={onClose}>
+                  Cancel
+                </Button>
+                <Button colorScheme="blue" onClick={handleSaveEvent} px={6}>
+                  Save
+                </Button>
+              </HStack>
             </Flex>
           </ModalFooter>
         </ModalContent>

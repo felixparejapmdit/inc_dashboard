@@ -1,104 +1,127 @@
-import { Box, Text, Image, VStack, HStack } from "@chakra-ui/react";
+import React from 'react';
+import { Box, Text, Image, VStack, HStack, SimpleGrid } from "@chakra-ui/react";
 
-const PrintableLokalProfile = ({ profile }) => {
-  if (!profile) return null;
+const PrintableLokalProfile = ({ profile, innerRef }) => {
+  if (!profile) return <div ref={innerRef} />;
 
   return (
-    <Box p={6} fontFamily="Arial">
-      <HStack justify="space-between" mb={4}>
-        <Box>
-          <Text fontWeight="bold" fontSize="xl">
-            Distrito:
+    <Box ref={innerRef} p={8} fontFamily="Arial, sans-serif" bg="white" color="black" maxW="210mm" mx="auto">
+      {/* Header with Organization Branding (Placeholder) */}
+      <HStack justify="space-between" mb={6} borderBottom="2px solid" borderColor="teal.500" pb={4}>
+        <VStack align="start" spacing={0}>
+          <Text fontSize="sm" color="gray.500" textTransform="uppercase" letterSpacing="widest">Profile Record</Text>
+          <Text fontWeight="extrabold" fontSize="3xl" color="teal.700" lineHeight={1.2}>
+            {profile.lokalName}
           </Text>
-          <Text>{profile.districtName}</Text>
-          <Text fontWeight="bold" fontSize="xl">
-            Lokal:
+          <Text fontSize="lg" fontWeight="medium" color="gray.600">
+            District of {profile.districtName}
           </Text>
-          <Text>{profile.lokalName}</Text>
-        </Box>
-
-        <Box>
-          <Image
-            src={profile.imageUrl || ""}
-            alt="Lokal"
-            boxSize="250px"
-            objectFit="cover"
-            fallbackSrc="https://via.placeholder.com/250x200?text=Lokal+Image"
-          />
+        </VStack>
+        <Box textAlign="right">
+          <Text fontSize="sm" color="gray.400">Serial Number</Text>
+          <Text fontWeight="bold" fontSize="xl">{profile.serialNumber || "N/A"}</Text>
         </Box>
       </HStack>
 
-      <VStack align="start" spacing={2}>
-        <Text>
-          <b>Anniversary:</b> {profile.anniversary}
-        </Text>
-        <Text>
-          <b>Serial Number:</b> {profile.serialNumber}
-        </Text>
-        <Text>
-          <b>Destinado:</b> {profile.destinado}
-        </Text>
-        <Text>
-          <b>Contact:</b> {profile.destinadoContact}
-        </Text>
-        <Text>
-          <b>District Chronicler:</b> {profile.districtChronicler}
-        </Text>
-        <Text>
-          <b>Contact:</b> {profile.chroniclerContact}
-        </Text>
-        <Text>
-          <b>District Minister:</b> {profile.districtMinister}
-        </Text>
-        <Text>
-          <b>Contact:</b> {profile.ministerContact}
-        </Text>
-        <Text>
-          <b>Seating Capacity:</b> {profile.seatingCapacity}
-        </Text>
-        <Text>
-          <b>Distance from Central:</b> {profile.distanceFromCentral}
-        </Text>
-        <Text>
-          <b>Travel Time:</b> {profile.travelTimeFromCentral}
-        </Text>
-        <Text>
-          <b>Internet Speed:</b> {profile.internetSpeed}
-        </Text>
-        <Text>
-          <b>LED Wall:</b> {profile.ledWall ? "Yes" : "No"}
-        </Text>
-        <Text>
-          <b>Generator:</b> {profile.generator ? "Yes" : "No"}
-        </Text>
-        <Text>
-          <b>Prepared By:</b> {profile.preparedBy}
-        </Text>
-        <Text>
-          <b>Date:</b> {new Date(profile.datePrepared).toLocaleDateString()}
-        </Text>
-      </VStack>
+      <HStack align="start" spacing={8} mb={8}>
+        {/* Main Image */}
+        <Box flex="1" borderRadius="md" overflow="hidden" border="1px solid" borderColor="gray.200">
+          <Image
+            src={profile.imageUrl || ""}
+            alt="Lokal Facade"
+            w="100%"
+            h="auto"
+            maxH="300px"
+            objectFit="cover"
+            fallbackSrc="https://via.placeholder.com/600x400?text=No+Image+Available"
+          />
+        </Box>
 
-      <Box mt={4}>
-        <Text fontWeight="bold" color="green.600">
-          Midweek Schedule
-        </Text>
-        {["Tuesday", "Wednesday", "Thursday"].map((day) => (
-          <Text key={day}>
-            {day}: {profile.scheduleMidweek?.[day] || "-"}
-          </Text>
-        ))}
+        {/* Key Info Summary */}
+        <VStack flex="1" align="stretch" spacing={3} p={4} bg="gray.50" borderRadius="md">
+          <Text fontWeight="bold" color="teal.600" borderBottom="1px solid" borderColor="gray.200" pb={1}>Key Information</Text>
+          <HStack justify="space-between">
+            <Text color="gray.600">Anniversary:</Text>
+            <Text fontWeight="medium">{profile.anniversary}</Text>
+          </HStack>
+          <HStack justify="space-between">
+            <Text color="gray.600">Seating Capacity:</Text>
+            <Text fontWeight="medium">{profile.seatingCapacity}</Text>
+          </HStack>
+          <HStack justify="space-between">
+            <Text color="gray.600">Designated Minister:</Text>
+            <Text fontWeight="medium">{profile.destinado}</Text>
+          </HStack>
+          <HStack justify="space-between">
+            <Text color="gray.600">Contact Number:</Text>
+            <Text fontWeight="medium">{profile.destinadoContact}</Text>
+          </HStack>
+        </VStack>
+      </HStack>
+
+      {/* Detailed Grid */}
+      <Box mb={8}>
+        <Text fontWeight="bold" fontSize="lg" mb={3} color="teal.700">Operational Details</Text>
+        <SimpleGrid columns={2} spacing={6}>
+          <Box>
+            <Text fontWeight="bold" fontSize="sm" color="gray.500" mb={1}>FACILITIES</Text>
+            <VStack align="start" spacing={1}>
+              <Text><b>Internet Speed:</b> {profile.internetSpeed}</Text>
+              <Text><b>LED Wall:</b> {profile.ledWall ? "Available" : "None"}</Text>
+              <Text><b>Generator:</b> {profile.generator ? "Available" : "None"}</Text>
+            </VStack>
+          </Box>
+          <Box>
+            <Text fontWeight="bold" fontSize="sm" color="gray.500" mb={1}>CONTACTS</Text>
+            <VStack align="start" spacing={1}>
+              <Text><b>District Minister:</b> {profile.districtMinister}</Text>
+              <Text><b>Contact:</b> {profile.ministerContact}</Text>
+              <Text><b>District Chronicler:</b> {profile.districtChronicler}</Text>
+              <Text><b>Contact:</b> {profile.chroniclerContact}</Text>
+            </VStack>
+          </Box>
+          <Box>
+            <Text fontWeight="bold" fontSize="sm" color="gray.500" mb={1}>LOGISTICS</Text>
+            <VStack align="start" spacing={1}>
+              <Text><b>Distance from Central:</b> {profile.distanceFromCentral} km</Text>
+              <Text><b>Travel Time:</b> {profile.travelTimeFromCentral}</Text>
+            </VStack>
+          </Box>
+        </SimpleGrid>
       </Box>
 
-      <Box mt={4}>
-        <Text fontWeight="bold" color="green.600">
-          Weekend Schedule
-        </Text>
-        {["Friday", "Saturday", "Sunday"].map((day) => (
-          <Text key={day}>
-            {day}: {profile.scheduleWeekend?.[day] || "-"}
-          </Text>
-        ))}
+      {/* Schedules */}
+      <HStack align="start" spacing={10} mb={10}>
+        <Box flex="1">
+          <Text fontWeight="bold" color="teal.600" mb={2} borderBottom="1px solid" borderColor="teal.100">Midweek Schedule</Text>
+          {["Tuesday", "Wednesday", "Thursday"].map((day) => (
+            profile.scheduleMidweek?.[day] && (
+              <HStack key={day} justify="space-between" py={1} borderBottom="1px dashed" borderColor="gray.100">
+                <Text fontSize="sm" fontWeight="medium">{day}</Text>
+                <Text fontSize="sm">{profile.scheduleMidweek[day]}</Text>
+              </HStack>
+            )
+          ))}
+        </Box>
+        <Box flex="1">
+          <Text fontWeight="bold" color="teal.600" mb={2} borderBottom="1px solid" borderColor="teal.100">Weekend Schedule</Text>
+          {["Friday", "Saturday", "Sunday"].map((day) => (
+            profile.scheduleWeekend?.[day] && (
+              <HStack key={day} justify="space-between" py={1} borderBottom="1px dashed" borderColor="gray.100">
+                <Text fontSize="sm" fontWeight="medium">{day}</Text>
+                <Text fontSize="sm">{profile.scheduleWeekend[day]}</Text>
+              </HStack>
+            )
+          ))}
+        </Box>
+      </HStack>
+
+      {/* Footer */}
+      <Box pt={4} borderTop="1px solid" borderColor="gray.300">
+        <HStack justify="space-between" fontSize="xs" color="gray.500">
+          <Text>Prepared By: {profile.preparedBy}</Text>
+          <Text>Date Generated: {new Date().toLocaleDateString()}</Text>
+        </HStack>
       </Box>
     </Box>
   );

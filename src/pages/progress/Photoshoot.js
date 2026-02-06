@@ -1,16 +1,12 @@
 // src/pages/progress/Photoshoot.js
 import React, { useState, useRef, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+// import { useSearchParams } from "react-router-dom"; // Unused
 import {
   VStack,
   Box,
   Image,
   Text,
-  Input,
-  //Select,
   Button,
-  Icon,
-  useToast,
   IconButton,
   HStack,
   Modal,
@@ -21,554 +17,487 @@ import {
   ModalBody,
   ModalCloseButton,
   Heading,
-  Grid,
-  GridItem,
+  useToast,
+  Container,
+  Card,
+  CardBody,
+  Stepper,
+  Step,
+  StepIndicator,
+  StepStatus,
+  StepTitle,
+  StepDescription,
+  StepSeparator,
+  StepIcon,
+  StepNumber,
+  useSteps,
+  Center,
+  Stack,
+  Badge,
+  Flex,
+  Icon,
+  SimpleGrid,
   Tooltip,
-  Spinner,
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogOverlay,
 } from "@chakra-ui/react";
-import { BsUpload } from "react-icons/bs";
-import { MdPhotoCamera, MdDelete } from "react-icons/md";
-import Select from "react-select";
-import {
-  fetchData,
-  fetchDataPhotoshoot,
-  postData,
-  putData,
-  deleteData,
-} from "../../utils/fetchData";
+import { BsUpload, BsCheckCircleFill } from "react-icons/bs";
+import { MdPhotoCamera, MdDelete, MdCloudUpload, MdSave } from "react-icons/md";
+import { fetchDataPhotoshoot, deleteData } from "../../utils/fetchData"; // Keeping original imports
+
+const API_URL = process.env.REACT_APP_API_URL || "https://localhost";
 
 const Photoshoot = ({ personnel, onSaveImage }) => {
+  // --- State Management ---
   const [image, setImage] = useState(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
-  const [imageSize, setImageSize] = useState("2x2"); // Default to 2x2
   const [images, setImages] = useState({
     "2x2 Picture": null,
     "Half Body Picture": null,
     "Full Body Picture": null,
   });
+  const [isDragOver, setIsDragOver] = useState(false);
+
 
   const fileInputRef = useRef(null);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const toast = useToast();
-  const [imageList, setImageList] = useState([]);
 
-  const [isLoading, setIsLoading] = useState(false);
+  const personnelId = personnel?.personnel_id;
 
-  const personnelId = personnel?.personnel_id; // Get ID from props
+  // --- Stepper Configuration ---
+  const steps = [
+    { title: "2x2 Picture", description: "Headshot" },
+    { title: "Half Body", description: "Upper body" },
+    { title: "Full Body", description: "Full view" },
+  ];
 
-  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
-  const [imageToDelete, setImageToDelete] = useState(null);
-  const cancelRef = useRef();
+  const { activeStep, setActiveStep } = useSteps({
+    index: 0,
+    count: steps.length,
+  });
 
-  const [step, setStep] = useState(0); // Track the current step
+  // Map activeStep index to Step Label string expected by backend
+  const getStepLabel = (index) => {
+    // Exact mapping to backend "type" field
+    const labels = ["2x2 Picture", "Half Body Picture", "Full Body Picture"];
+    return labels[index];
+  }
 
-  // Function to get step label
-  const stepLabels = ["2x2 Picture", "Half Body Picture", "Full Body Picture"];
-
-  const getStepLabel = (step) => stepLabels[step] || "2x2 Picture";
-
+  // --- Effects ---
   useEffect(() => {
-  if (!personnelId) return;
+    if (!personnelId) return;
 
-  fetchDataPhotoshoot(
-    personnelId, // ✅ Correct parameter order
-    (data) => {
-      if (Array.isArray(data)) {
-        const imagesByType = {};
+    fetchDataPhotoshoot(
+      personnelId,
+      (data) => {
+        // console.log("Photoshoot Data:", data); // Debug log
+        if (Array.isArray(data)) {
+          const imagesByType = {};
 
-        data.forEach((img) => {
-          if (img.type && img.image_url) {
-            imagesByType[img.type] = `${process.env.REACT_APP_API_URL}${img.image_url}`;
-          }
-        });
+          data.forEach((img) => {
+            if (img.type && img.image_url) {
+              // Ensure we handle potential legacy types if they differ, though current schema is "Picture" suffix
+              imagesByType[img.type] = `${API_URL}${img.image_url}`;
+            }
+          });
 
-        setImages({
-          "2x2 Picture": imagesByType["2x2 Picture"] || null,
-          "Half Body Picture": imagesByType["Half Body Picture"] || null,
-          "Full Body Picture": imagesByType["Full Body Picture"] || null,
-        });
-
-        console.log("✅ Mapped Images:", imagesByType);
-      }
-    },
-    (err) => {
-      console.error("Error fetching images:", err);
-      toast({
-        title: "Error loading images",
-        description: err,
-        status: "error",
-        duration: 3000,
-      });
-    },
-    "Failed to fetch personnel images"
-  );
-}, [personnelId]);
-
-
-  // Move to next step only if image is uploaded
-  const nextStep = () => {
-    const currentLabel = getStepLabel(step);
-
-    if (!images[currentLabel]) {
-      toast({
-        title: "Upload required",
-        description: `Please upload a ${currentLabel} before proceeding.`,
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    if (step < 2) {
-      setStep(step + 1);
-    }
-  };
-
-  const prevStep = () => {
-    if (step > 0) {
-      setStep(step - 1);
-    }
-  };
-
-  const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: "File too large",
-          description: "Image size should be less than 5MB.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-        return;
-      }
-      if (file.type === "image/jpeg" || file.type === "image/png") {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          setImage(e.target.result);
-        };
-        reader.readAsDataURL(file);
-      } else {
-        toast({
-          title: "Invalid file type",
-          description: "Only JPEG and PNG formats are supported.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      }
-    }
-  };
-
-  const openDeleteAlert = (id) => {
-    setImageToDelete(id);
-    setIsDeleteAlertOpen(true);
-  };
-
-  const closeDeleteAlert = () => {
-    setImageToDelete(null);
-    setIsDeleteAlertOpen(false);
-  };
-
-  // Button to trigger the delete alert
-  const handleDeleteImage = async () => {
-    if (!imageToDelete) return;
-
-    try {
-      await deleteData("personnel_images", imageToDelete);
-      setImageList((prevList) =>
-        prevList.filter((img) => img.id !== imageToDelete)
-      );
-
-      toast({
-        title: "Image deleted successfully",
-        status: "info",
-        duration: 3000,
-        isClosable: true,
-      });
-    } catch (error) {
-      toast({
-        title: "Error deleting image",
-        description:
-          error.response?.data?.message ||
-          error.message ||
-          "Something went wrong. Please try again.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
-      closeDeleteAlert();
-    }
-  };
-
-  const openCamera = async () => {
-    try {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error("Camera not supported on this browser.");
-      }
-      setIsCameraOpen(true);
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-      });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-    } catch (error) {
-      toast({
-        title: "Camera Error",
-        description: error.message || "Unable to access the camera.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-        position: "bottom-left", // Position the toast on the bottom-left
-      });
-    }
-  };
-
-  const closeCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject;
-      const tracks = stream.getTracks();
-      tracks.forEach((track) => track.stop());
-      videoRef.current.srcObject = null;
-    }
-    setIsCameraOpen(false);
-  };
-
-  const captureImage = () => {
-    const canvas = canvasRef.current;
-    const video = videoRef.current;
-    if (canvas && video) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const context = canvas.getContext("2d");
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL("image/png");
-      setImage(dataUrl);
-      closeCamera();
-    }
-  };
-
-  const handleSaveImage = async () => {
-    if (!image) {
-      toast({
-        title: "No image to save",
-        description: "Please upload or capture an image before saving.",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("personnel_id", personnelId);
-    formData.append("type", getStepLabel(step)); // Send correct step type
-    const fileData = dataURLtoFile(image, `${Date.now()}.png`);
-
-    if (!fileData) {
-      toast({
-        title: "Image conversion failed",
-        description: "Please try again.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    formData.append("image", fileData);
-
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/personnel_images`,
-        {
-          method: "POST",
-          body: formData,
+          setImages({
+            "2x2 Picture": imagesByType["2x2 Picture"] || null,
+            "Half Body Picture": imagesByType["Half Body Picture"] || null,
+            "Full Body Picture": imagesByType["Full Body Picture"] || null,
+          });
         }
-      );
-
-      const result = await response.json();
-
-      if (response.ok) {
+      },
+      (err) => {
+        console.error("Error fetching images:", err);
         toast({
-          title: "Image updated successfully",
-          status: "success",
+          title: "Error loading images",
+          description: "Could not fetch existing photos.",
+          status: "error",
           duration: 3000,
-          isClosable: true,
         });
+      },
+      "Failed to fetch personnel images"
+    );
+  }, [personnelId, toast]);
 
-        // Update the stored images and refresh the UI
-        setImages((prev) => ({
-          ...prev,
-          [getStepLabel(
-            step
-          )]: `${process.env.REACT_APP_API_URL}${result.image.image_url}`,
-        }));
 
-        setImage(null);
-      } else {
-        throw new Error(result.message || "Failed to save the image.");
-      }
-    } catch (err) {
-      toast({
-        title: "Error saving image",
-        description: err.message || "Something went wrong. Please try again.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-  };
+  // --- Helper Functions ---
 
-  // Helper function to convert base64 to File object
+  // Convert Base64 to File
   const dataURLtoFile = (dataUrl, filename) => {
     try {
       if (!dataUrl || typeof dataUrl !== "string" || !dataUrl.includes(",")) {
-        console.error("Invalid data URL:", dataUrl);
         return null;
       }
-
       const arr = dataUrl.split(",");
-      if (arr.length < 2) {
-        console.error("Malformed data URL:", dataUrl);
-        return null;
-      }
-
-      const mimeMatch = arr[0].match(/:(.*?);/);
-      if (!mimeMatch) {
-        console.error("Invalid MIME type in data URL:", dataUrl);
-        return null;
-      }
-
-      const mime = mimeMatch[1];
+      const mime = arr[0].match(/:(.*?);/)[1];
       const bstr = atob(arr[1]);
       let n = bstr.length;
       const u8arr = new Uint8Array(n);
       while (n--) {
         u8arr[n] = bstr.charCodeAt(n);
       }
-
       return new File([u8arr], filename, { type: mime });
     } catch (error) {
-      console.error("Error in dataURLtoFile:", error);
+      console.error("Error converting data URL:", error);
       return null;
-    }
-  };
-
-  const getBoxSize = () => {
-    switch (imageSize) {
-      case "wholebody":
-        return { width: "300px", height: "400px" };
-      case "halfbody":
-        return { width: "300px", height: "250px" };
-      default:
-        return { width: "150px", height: "150px" };
-    }
-  };
-
-  const imageSizeOptions = [
-    { value: "2x2", label: "2x2 Picture" },
-    { value: "Whole Body", label: "Whole Body Picture" },
-    { value: "Half Body", label: "Half Body Picture" },
-  ];
-
-  const handleImageSizeChange = (selectedOption) => {
-    setImageSize(selectedOption.value);
-  };
-
-  const isOptionDisabled = (option) => {
-    return imageList.some((img) => img.type === option.label);
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const file = e.dataTransfer.files[0];
-
-    if (file) {
-      readFileAsBase64(file);
-    }
-  };
-
-  const handleFileSelect = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      readFileAsBase64(file);
     }
   };
 
   const readFileAsBase64 = (file) => {
     const reader = new FileReader();
-    reader.onload = (event) => {
-      setImage(event.target.result); // Store base64 image
-    };
+    reader.onload = (event) => setImage(event.target.result);
     reader.readAsDataURL(file);
   };
 
+  // --- Handlers ---
+
+  const handleNext = () => {
+    const currentLabel = getStepLabel(activeStep);
+    // User can proceed if valid image exists from DB OR they have a new unsaved image pending (though best practice is to save first)
+    // Actually, original logic forced upload to exist before next.
+    // Let's check if there is an image for this step either in `images` state or just uploaded `image` state (but `image` state is transient).
+    // Original logic: "Move to next step only if image is uploaded" (meaning saved to DB? or just present?)
+    // "Upload required" toast suggests it checks `images[currentLabel]`.
+
+    if (!images[currentLabel] && !image) {
+      toast({
+        title: "Photo required",
+        description: "Please upload and save a photo for this step before proceeding.",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    // Identify if user has unsaved changes
+    if (image) {
+      toast({
+        title: "Unsaved changes",
+        description: "Please save your current image before moving to the next step.",
+        status: "warning",
+        duration: 3000,
+      });
+      return;
+    }
+
+    if (activeStep < steps.length - 1) {
+      setActiveStep(activeStep + 1);
+      setImage(null); // Clear transient image
+    }
+  };
+
+  const handlePrev = () => {
+    if (activeStep > 0) {
+      setActiveStep(activeStep - 1);
+      setImage(null);
+    }
+  };
+
+  const handleSaveImage = async () => {
+    if (!image) {
+      toast({
+        title: "No image selected",
+        status: "warning",
+        duration: 3000,
+      });
+      return;
+    }
+
+    const currentLabel = getStepLabel(activeStep);
+
+    if (!currentLabel) {
+      toast({ title: "Error", description: "Invalid step selected.", status: "error" });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("personnel_id", personnelId);
+    formData.append("type", currentLabel);
+
+    const fileData = dataURLtoFile(image, `${Date.now()}.png`);
+    if (!fileData) {
+      toast({ title: "Image processing failed", status: "error" });
+      return;
+    }
+    formData.append("image", fileData);
+
+    try {
+      const response = await fetch(
+        `${API_URL}/api/personnel_images`,
+        { method: "POST", body: formData }
+      );
+      const result = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: `${currentLabel} saved successfully!`,
+          status: "success",
+          duration: 3000,
+        });
+
+        // Update local state - Add timestamp to force image refresh
+        const newImageUrl = `${API_URL}${result.image.image_url}?t=${Date.now()}`;
+
+        setImages((prev) => ({
+          ...prev,
+          [currentLabel]: newImageUrl,
+        }));
+        setImage(null); // Clear upload preview
+      } else {
+        throw new Error(result.message || "Failed to save.");
+      }
+    } catch (err) {
+      toast({
+        title: "Error saving",
+        description: err.message,
+        status: "error",
+        duration: 3000,
+      });
+    }
+  };
+
+  // --- Drag & Drop ---
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith("image/")) {
+      readFileAsBase64(file);
+    } else {
+      toast({ title: "Invalid file", description: "Please drop an image file.", status: "error" });
+    }
+  };
+
+  // --- Camera ---
+  const openCamera = async () => {
+    try {
+      setIsCameraOpen(true);
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      if (videoRef.current) videoRef.current.srcObject = stream;
+    } catch (error) {
+      toast({ title: "Camera Error", description: "Cannot access camera.", status: "error" });
+      setIsCameraOpen(false);
+    }
+  };
+
+  const closeCamera = () => {
+    if (videoRef.current?.srcObject) {
+      videoRef.current.srcObject.getTracks().forEach(t => t.stop());
+    }
+    setIsCameraOpen(false);
+  };
+
+  const captureImage = () => {
+    if (canvasRef.current && videoRef.current) {
+      const vid = videoRef.current;
+      const cvs = canvasRef.current;
+      cvs.width = vid.videoWidth;
+      cvs.height = vid.videoHeight;
+      cvs.getContext("2d").drawImage(vid, 0, 0);
+      setImage(cvs.toDataURL("image/png"));
+      closeCamera();
+    }
+  };
+
   return (
-    <VStack spacing={6} align="center" my={8}>
-      <Heading size="md">
-        Step {step + 1}: {getStepLabel(step)}
-      </Heading>
-      {/* Capture or Upload Image */}
-      <Box
-        p={5}
-        border="2px dashed gray"
-        borderRadius="md"
-        width="250px"
-        height="250px"
-        textAlign="center"
-        onClick={() => fileInputRef.current.click()} // Click event to open file picker
-        onDragOver={(e) => e.preventDefault()}
-        onDragLeave={(e) => e.preventDefault()}
-        onDrop={handleDrop} // Drag & Drop event
-        cursor="pointer"
-      >
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          hidden
-          onChange={handleFileSelect} // Handle file selection
-        />
+    <Container maxW="container.lg" py={6}>
+      <VStack spacing={8} w="full">
 
-        {image ? (
-          <Image
-            src={image}
-            alt="Uploaded or Captured"
-            width="100%"
-            height="100%"
-            objectFit="cover"
-          />
-        ) : (
-          <Text textAlign="center" fontSize="sm" color="gray.500">
-            Drag & Drop an image here <br /> or <strong>click to upload</strong>
-          </Text>
-        )}
-      </Box>
+        {/* Header */}
+        <Heading size="lg" textAlign="center" bgGradient="linear(to-r, blue.400, purple.500)" bgClip="text">
+          Photoshoot Session
+        </Heading>
 
-      {/* Camera & Upload Buttons */}
-      <HStack>
-        <IconButton
-          icon={<MdPhotoCamera />}
-          colorScheme="blue"
-          onClick={openCamera}
-        />
-        <IconButton
-          icon={<BsUpload />}
-          colorScheme="green"
-          as="label"
-          htmlFor="file-upload"
-        />
+        {/* Stepper Navigation */}
+        <Stepper index={activeStep} w="full" colorScheme="blue" size={["sm", "md", "lg"]} flexWrap="wrap">
+          {steps.map((step, index) => (
+            <Step key={index} onClick={() => setActiveStep(index)} style={{ cursor: "pointer" }}>
+              <StepIndicator>
+                <StepStatus
+                  complete={<StepIcon />}
+                  incomplete={<StepNumber />}
+                  active={<StepNumber />}
+                />
+              </StepIndicator>
 
-        <input
-          id="file-upload"
-          type="file"
-          accept="image/jpeg, image/png, image/jpg, image/gif, image/bmp, image/webp" // ✅ Restrict file selection to only image formats
-          hidden
-          onChange={(e) => {
-            const file = e.target.files[0];
-            if (!file) return;
+              <Box flexShrink="0" display={{ base: "none", md: "block" }}>
+                <StepTitle>{step.title}</StepTitle>
+                <StepDescription>{step.description}</StepDescription>
+              </Box>
 
-            // ✅ Allowed image types
-            const allowedTypes = [
-              "image/jpeg",
-              "image/png",
-              "image/jpg",
-              "image/gif",
-              "image/bmp",
-              "image/webp",
-            ];
-            const isValidType = allowedTypes.includes(file.type);
+              <StepSeparator />
+            </Step>
+          ))}
+        </Stepper>
 
-            if (!isValidType) {
-              toast({
-                title: "Invalid file type",
-                description:
-                  "Only JPG, PNG, GIF, BMP, and WebP image formats are allowed.",
-                status: "error",
-                duration: 3000,
-                isClosable: true,
-              });
-              return;
-            }
+        {/* Main Content Card */}
+        <Card w="full" variant="outline" boxShadow="md" borderRadius="xl">
+          <CardBody>
+            <Stack direction={{ base: "column", md: "row" }} spacing={8} align="center" justify="center">
 
-            // ✅ Convert file to base64
-            const reader = new FileReader();
-            reader.onload = (event) => {
-              setImage(event.target.result); // Store base64 image
-            };
-            reader.readAsDataURL(file);
-          }}
-        />
+              {/* Left Side: Current Saved Image */}
+              <VStack spacing={3}>
+                <Text fontWeight="semibold" color="gray.600">Current Saved Photo</Text>
+                <Box
+                  w="250px" h="300px"
+                  border="1px solid" borderColor="gray.200"
+                  borderRadius="lg"
+                  overflow="hidden"
+                  bg="gray.50"
+                  position="relative"
+                >
+                  {images[getStepLabel(activeStep)] ? (
+                    <Image
+                      src={images[getStepLabel(activeStep)]}
+                      w="full" h="full" objectFit="contain"
+                    />
+                  ) : (
+                    <Center h="full" flexDirection="column" color="gray.400">
+                      <MdPhotoCamera size={40} />
+                      <Text fontSize="sm" mt={2}>No saved photo</Text>
+                    </Center>
+                  )}
+                  {images[getStepLabel(activeStep)] && (
+                    <Badge position="absolute" top={2} right={2} colorScheme="green">
+                      Saved
+                    </Badge>
+                  )}
+                </Box>
+              </VStack>
 
-        {image && (
-          <Button colorScheme="teal" onClick={handleSaveImage}>
-            Save & Next
+              {/* Divider for Mobile */}
+              <Box display={{ base: "block", md: "none" }} w="full" h="1px" bg="gray.200" />
+
+              {/* Right Side: Upload/Capture Area */}
+              <VStack spacing={4} w="full" maxW="400px">
+                <Text fontWeight="semibold" color="blue.600">
+                  {image ? "Previewing New Photo" : `Upload New ${steps[activeStep].title}`}
+                </Text>
+
+                {/* Drag & Drop Zone */}
+                <Box
+                  w="full" h="300px"
+                  border="2px dashed"
+                  borderColor={isDragOver ? "blue.500" : "gray.300"}
+                  bg={isDragOver ? "blue.50" : "white"}
+                  borderRadius="xl"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  flexDirection="column"
+                  cursor="pointer"
+                  transition="all 0.2s"
+                  _hover={{ borderColor: "blue.400", bg: "gray.50" }}
+                  onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+                  onDragLeave={() => setIsDragOver(false)}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current.click()}
+                  position="relative"
+                  overflow="hidden"
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={(e) => {
+                      if (e.target.files[0]) readFileAsBase64(e.target.files[0]);
+                    }}
+                  />
+
+                  {image ? (
+                    <Image src={image} w="full" h="full" objectFit="contain" />
+                  ) : (
+                    <>
+                      <Icon as={MdCloudUpload} w={10} h={10} color="gray.400" mb={3} />
+                      <Text fontWeight="medium" color="gray.600">Click or Drag Image Here</Text>
+                      <Text fontSize="xs" color="gray.400" mt={1}>Supports PNG, JPG, WEBP</Text>
+                    </>
+                  )}
+                </Box>
+
+                {/* Action Buttons */}
+                <SimpleGrid columns={2} spacing={3} w="full">
+                  <Tooltip label="Open Camera" hasArrow>
+                    <IconButton
+                      icon={<MdPhotoCamera size={24} />}
+                      onClick={openCamera}
+                      colorScheme="purple"
+                      variant="outline"
+                      aria-label="Open Camera"
+                      w="full"
+                    />
+                  </Tooltip>
+                  {image ? (
+                    <Button
+                      leftIcon={<MdSave />}
+                      colorScheme="blue"
+                      onClick={handleSaveImage}
+                      isLoading={false} // Add loading state if needed
+                    >
+                      Save Photo
+                    </Button>
+                  ) : (
+                    <Tooltip label="Select Image File" hasArrow>
+                      <IconButton
+                        icon={<BsUpload size={20} />}
+                        onClick={() => fileInputRef.current.click()}
+                        variant="outline"
+                        aria-label="Upload File"
+                        w="full"
+                      />
+                    </Tooltip>
+                  )}
+                </SimpleGrid>
+              </VStack>
+
+            </Stack>
+          </CardBody>
+        </Card>
+
+        {/* Global Navigation */}
+        <Flex w="full" justify="space-between">
+          <Button onClick={handlePrev} isDisabled={activeStep === 0} variant="ghost">
+            Back
           </Button>
-        )}
-      </HStack>
+          <Button onClick={handleNext} isDisabled={activeStep === steps.length - 1} colorScheme="blue">
+            Next Step
+          </Button>
+        </Flex>
 
-      {/* Navigation Buttons */}
-      <HStack spacing={4} mt={4}>
-        <Button onClick={prevStep} isDisabled={step === 0}>
-          Previous
-        </Button>
-        <Button onClick={nextStep} isDisabled={step === 2}>
-          Next
-        </Button>
-      </HStack>
+      </VStack>
 
-      {/* Image Preview (Only the selected step) */}
-      <Box textAlign="center">
-        <Text fontWeight="bold">{getStepLabel(step)}</Text>
-        {images[getStepLabel(step)] ? (
-          <Image
-            src={images[getStepLabel(step)]}
-            width="150px"
-            height="150px"
-            objectFit="cover"
-            fallbackSrc="/fallback-image.png"
-          />
-        ) : (
-          <Text fontSize="sm" color="gray.500">
-            No image uploaded for {getStepLabel(step)}
-          </Text>
-        )}
-      </Box>
-
-      {/* Camera Modal */}
-      <Modal isOpen={isCameraOpen} onClose={closeCamera}>
+      {/* Camera Preview Modal */}
+      <Modal isOpen={isCameraOpen} onClose={closeCamera} size="xl" isCentered>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Capture Image</ModalHeader>
+          <ModalHeader>Take a Photo</ModalHeader>
           <ModalCloseButton />
-          <ModalBody>
-            <video ref={videoRef} autoPlay style={{ width: "100%" }} />
+          <ModalBody p={0} bg="black">
+            <Box position="relative" w="full" pt="75%"> {/* 4:3 Aspect Ratio */}
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            </Box>
             <canvas ref={canvasRef} style={{ display: "none" }} />
           </ModalBody>
-          <ModalFooter>
-            <Button onClick={captureImage} colorScheme="teal">
+          <ModalFooter bg="gray.50">
+            <Button colorScheme="red" mr={3} onClick={closeCamera}>Cancel</Button>
+            <Button colorScheme="blue" leftIcon={<MdPhotoCamera />} onClick={captureImage}>
               Capture
-            </Button>
-            <Button variant="ghost" onClick={closeCamera}>
-              Close
             </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
-    </VStack>
+
+    </Container>
   );
 };
 

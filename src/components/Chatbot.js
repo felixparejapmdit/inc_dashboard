@@ -8,13 +8,12 @@ import {
   IconButton,
   Spinner,
 } from "@chakra-ui/react";
-import { FiSend, FiMic, FiMessageCircle, FiX } from "react-icons/fi";
+import { FiSend, FiMessageCircle, FiX } from "react-icons/fi";
 import ReactMarkdown from "react-markdown";
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  const [isListening, setIsListening] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const chatEndRef = useRef(null);
@@ -22,15 +21,13 @@ const Chatbot = () => {
 
   const API_URL = `${process.env.REACT_APP_API_URL}/api/chat`;
 
-  // 🎨 Theme Colors Matching Your Login Page
-  const bgGradient = "linear(to-b, yellow.100, orange.200)";
-  const chatBg = "yellow.50";
-  const buttonColor = "orange.500";
-  const inputBorder = "orange.400";
+  const headerGradient = "linear(to-r, orange.500, orange.400)";
+  const shellGradient = "linear(to-b, orange.50, white)";
+  const userBubbleGradient = "linear(to-br, orange.500, orange.400)";
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, isTyping]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -59,9 +56,14 @@ const Chatbot = () => {
       });
 
       const data = await response.json();
-      const replyText = data.reply || "Error: No response from AI.";
+      let replyText =
+        typeof data.reply === "string"
+          ? data.reply
+          : JSON.stringify(data.reply ?? "Error: No response from AI.");
+      if (replyText.endsWith("undefined")) {
+        replyText = replyText.replace(/undefined$/, "").trim();
+      }
 
-      // Display AI message character by character
       displayAIMessageGradually(replyText);
     } catch (error) {
       setMessages((prev) => [
@@ -75,7 +77,6 @@ const Chatbot = () => {
     }
   };
 
-  // 🎯 Display AI Message Gradually (Letter by Letter)
   const displayAIMessageGradually = (text) => {
     let index = 0;
     setIsTyping(true);
@@ -86,141 +87,197 @@ const Chatbot = () => {
           if (lastMessage?.sender === "bot") {
             return [
               ...prev.slice(0, -1),
-              { text: lastMessage.text + text[index], sender: "bot" },
+              { text: (lastMessage.text || "") + text[index], sender: "bot" },
             ];
-          } else {
-            return [...prev, { text: text[index], sender: "bot" }];
           }
+          return [...prev, { text: text[index], sender: "bot" }];
         });
-        index++;
+        index += 1;
       } else {
         clearInterval(interval);
         setIsTyping(false);
       }
-    }, 50); // Typing Speed: 50ms per letter
+    }, 40);
   };
 
-  const handleVoiceInput = () => {
-    const recognition = new (window.SpeechRecognition ||
-      window.webkitSpeechRecognition)();
-    recognition.lang = "en-US";
-    recognition.start();
-    setIsListening(true);
-
-    recognition.onresult = (event) => {
-      setInput(event.results[0][0].transcript);
-      setIsListening(false);
-    };
-
-    recognition.onerror = () => {
-      setIsListening(false);
-      alert("Voice recognition error. Try again.");
-    };
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      sendMessage();
+    }
   };
 
   return (
-    <Box position="fixed" bottom="20px" right="20px" zIndex="1000">
+    <Box position="fixed" bottom="30px" right="30px" zIndex="1000">
       {!isChatOpen && (
         <IconButton
-          icon={<FiMessageCircle />}
+          aria-label="Open chat"
+          icon={<FiMessageCircle size="24px" />}
           isRound
           size="lg"
-          colorScheme="orange"
+          w="60px"
+          h="60px"
+          bgGradient="linear(to-br, orange.400, orange.600)"
+          color="white"
           onClick={() => setIsChatOpen(true)}
-          boxShadow="xl"
+          boxShadow="0 12px 28px rgba(237, 137, 54, 0.45)"
+          _hover={{ transform: "scale(1.08)", boxShadow: "0 18px 36px rgba(237, 137, 54, 0.55)" }}
+          transition="all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)"
         />
       )}
 
       {isChatOpen && (
         <Box
           ref={chatboxRef}
-          w="350px"
-          h="450px"
-          bgGradient={bgGradient}
-          boxShadow="2xl"
-          borderRadius="lg"
-          p={4}
+          w={{ base: "92vw", sm: "420px" }}
+          h={{ base: "75vh", sm: "560px" }}
+          bgGradient={shellGradient}
+          boxShadow="0 22px 55px rgba(0,0,0,0.18)"
+          borderRadius="2xl"
+          p={0}
           display="flex"
           flexDirection="column"
+          overflow="hidden"
+          border="1px solid"
+          borderColor="orange.100"
+          transition="all 0.3s ease"
         >
-          {/* Chat Header */}
-          <HStack justifyContent="space-between" mb={4}>
-            <Text fontSize="lg" fontWeight="bold" color="orange.700">
-              Chat with AI
-            </Text>
+          <HStack
+            justifyContent="space-between"
+            p={4}
+            bgGradient={headerGradient}
+            color="white"
+          >
+            <HStack spacing={3}>
+              <Box bg="whiteAlpha.300" p={2} borderRadius="lg">
+                <FiMessageCircle size="20px" />
+              </Box>
+              <VStack align="start" spacing={0}>
+                <Text fontSize="md" fontWeight="bold">
+                  PMD Assistant
+                </Text>
+                <HStack spacing={1}>
+                  <Box w="8px" h="8px" bg="green.300" borderRadius="full" />
+                  <Text fontSize="xs" opacity={0.9}>
+                    Online
+                  </Text>
+                </HStack>
+              </VStack>
+            </HStack>
             <IconButton
+              aria-label="Close chat"
               icon={<FiX />}
               size="sm"
-              colorScheme="red"
+              variant="ghost"
+              color="white"
+              _hover={{ bg: "whiteAlpha.300" }}
               onClick={() => setIsChatOpen(false)}
             />
           </HStack>
 
-          {/* Messages Section */}
           <VStack
             flex="1"
             overflowY="auto"
             align="stretch"
-            spacing={2}
-            bg={chatBg}
-            p={2}
-            borderRadius="md"
+            spacing={4}
+            p={4}
+            css={{
+              "&::-webkit-scrollbar": { width: "4px" },
+              "&::-webkit-scrollbar-track": { background: "transparent" },
+              "&::-webkit-scrollbar-thumb": { background: "#cbd5e0", borderRadius: "20px" },
+            }}
           >
+            <Text fontSize="xs" textAlign="center" color="gray.400" py={1}>
+              Ask about Personnel, Family, or Project Data
+            </Text>
+
+            {messages.length === 0 && !isTyping && (
+              <Box
+                p={4}
+                borderRadius="xl"
+                bg="white"
+                boxShadow="sm"
+                border="1px dashed"
+                borderColor="orange.200"
+              >
+                <Text fontSize="sm" color="gray.600">
+                  Try asking: "Show personnel named Maria" or "List the fields in the Personnel model."
+                </Text>
+              </Box>
+            )}
+
             {messages.map((msg, index) => (
               <Box
                 key={index}
                 p={3}
-                borderRadius="lg"
-                bg={msg.sender === "user" ? "orange.400" : "yellow.300"}
+                borderRadius={msg.sender === "user" ? "20px 20px 4px 20px" : "20px 20px 20px 4px"}
+                bgGradient={msg.sender === "user" ? userBubbleGradient : "none"}
+                bg={msg.sender === "user" ? undefined : "white"}
+                boxShadow="sm"
                 alignSelf={msg.sender === "user" ? "flex-end" : "flex-start"}
-                color="black"
-                maxW="80%"
+                color={msg.sender === "user" ? "white" : "gray.800"}
+                maxW="85%"
+                fontSize="0.95rem"
+                border={msg.sender === "bot" ? "1px solid" : "none"}
+                borderColor="gray.100"
               >
-                <ReactMarkdown>{msg.text}</ReactMarkdown>
+                <ReactMarkdown
+                  components={{
+                    p: ({ node, ...props }) => <p style={{ margin: 0 }} {...props} />,
+                  }}
+                >
+                  {msg.text}
+                </ReactMarkdown>
               </Box>
             ))}
 
-            {/* Typing Indicator */}
             {isTyping && (
-              <Box
+              <HStack
+                spacing={2}
                 p={3}
-                borderRadius="lg"
-                bg="yellow.300"
+                bg="white"
+                borderRadius="20px 20px 20px 4px"
                 alignSelf="flex-start"
-                color="black"
-                maxW="80%"
-                fontStyle="italic"
+                boxShadow="sm"
+                border="1px solid"
+                borderColor="gray.100"
               >
-                AI is typing...
-              </Box>
+                <Spinner size="xs" color="orange.400" />
+                <Text fontSize="sm" color="gray.500">
+                  AI is thinking...
+                </Text>
+              </HStack>
             )}
-
             <div ref={chatEndRef}></div>
           </VStack>
 
-          {/* Input Section */}
-          <HStack mt={2}>
-            <Input
-              flex="1"
-              placeholder="Type a message..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && sendMessage()}
-              borderColor={inputBorder}
-              _focus={{ borderColor: "orange.600" }}
-            />
-            <IconButton
-              icon={<FiSend />}
-              colorScheme="orange"
-              onClick={sendMessage}
-              isDisabled={isTyping}
-            />
-            <IconButton
-              icon={isListening ? <Spinner /> : <FiMic />}
-              colorScheme="yellow"
-              onClick={handleVoiceInput}
-            />
-          </HStack>
+          <Box p={4} borderTop="1px solid" borderColor="orange.100" bg="white">
+            <HStack>
+              <Input
+                variant="filled"
+                bg="orange.50"
+                _focus={{ bg: "white", borderColor: "orange.400", boxShadow: "none" }}
+                placeholder="Type your question..."
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                borderRadius="full"
+                py={6}
+              />
+              <IconButton
+                aria-label="Send message"
+                icon={<FiSend />}
+                isRound
+                bg="orange.500"
+                color="white"
+                _hover={{ bg: "orange.600", transform: "translateY(-1px)" }}
+                onClick={sendMessage}
+                isDisabled={isTyping || !input.trim()}
+                boxShadow="lg"
+                transition="all 0.2s ease"
+              />
+            </HStack>
+          </Box>
         </Box>
       )}
     </Box>

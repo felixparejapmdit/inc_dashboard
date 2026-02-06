@@ -2,6 +2,7 @@
   "name": "pmd-dashboard-application",
   "version": "0.1.0",
   "private": true,
+  "proxy": "http://127.0.0.1:5000",
   "dependencies": {
     "@babel/core": "^7.16.0",
     "@chakra-ui/icons": "^2.1.1",
@@ -16,7 +17,7 @@
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "assert": "^2.1.0",
-    "axios": "^1.7.7",
+    "axios": "^1.13.4",
     "babel-jest": "^27.4.2",
     "babel-loader": "^8.2.3",
     "babel-plugin-named-asset-import": "^0.3.8",
@@ -41,7 +42,7 @@
     "eslint": "^8.3.0",
     "eslint-config-react-app": "^7.0.1",
     "eslint-webpack-plugin": "^3.1.1",
-    "express": "^4.21.2",
+    "express": "^4.22.1",
     "file-loader": "^6.2.0",
     "framer-motion": "^11.12.0",
     "fs-extra": "^10.0.0",
@@ -53,7 +54,7 @@
     "jest": "^27.4.3",
     "jest-resolve": "^27.4.2",
     "jest-watch-typeahead": "^1.0.0",
-    "jsonwebtoken": "^9.0.2",
+    "jsonwebtoken": "^9.0.3",
     "jspdf": "^2.5.2",
     "jspdf-autotable": "^5.0.2",
     "jsqr": "^1.4.0",
@@ -83,6 +84,7 @@
     "react-app-polyfill": "^3.0.0",
     "react-barcode": "^1.6.1",
     "react-big-calendar": "^1.13.4",
+    "react-confetti": "^6.4.0",
     "react-dev-utils": "^12.0.1",
     "react-dom": "^18.3.1",
     "react-icons": "^5.5.0",
@@ -97,7 +99,7 @@
     "react-select": "^5.9.0",
     "react-to-print": "^3.0.5",
     "recharts": "^3.4.1",
-    "redis": "^5.9.0",
+    "redis": "^5.10.0",
     "resolve": "^1.20.0",
     "resolve-url-loader": "^4.0.0",
     "sass-loader": "^12.3.0",
@@ -154,7 +156,8 @@
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "concurrently": "^9.1.2",
     "nodemon": "^3.1.4",
-    "react-app-rewired": "^2.2.1"
+    "react-app-rewired": "^2.2.1",
+    "vm-browserify": "^1.1.2"
   },
   "overrides": {
     "react-qr-reader": {

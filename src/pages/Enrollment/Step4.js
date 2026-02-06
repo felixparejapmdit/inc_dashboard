@@ -14,13 +14,14 @@ import {
   Text,
   Heading,
   Input,
-  //Select,
-  Table,
-  Tbody,
-  Tr,
-  Td,
   IconButton,
   useToast,
+  SimpleGrid,
+  FormControl,
+  FormLabel,
+  Flex,
+  Divider,
+  Button
 } from "@chakra-ui/react";
 import { CheckIcon, EditIcon } from "@chakra-ui/icons";
 import axios from "axios";
@@ -204,75 +205,75 @@ const Step4 = ({
   }, [personnelId]);
 
   const fetchParents = () => {
-  if (!personnelId) return;
+    if (!personnelId) return;
 
-  const params = {
-    personnel_id: personnelId,
-    relationship_type: ["Father", "Mother"],
-  };
+    const params = {
+      personnel_id: personnelId,
+      relationship_type: ["Father", "Mother"],
+    };
 
-  fetchData(
-    "get-family-members",
-    (res) => {
-      const parents = [
-        {
-          relationship_type: "Father",
-          givenname: "",
-          lastname: "",
-          bloodtype: "",
-          birthplace: "",
-          birthdate: "",
-          nationality: "",
-          religion: "",
-          occupation: "",
-          employer: "",
-          is_alive: true,
-          isEditing: true,
-        },
-        {
-          relationship_type: "Mother",
-          givenname: "",
-          lastname: "",
-          bloodtype: "",
-          birthplace: "",
-          birthdate: "",
-          nationality: "",
-          religion: "",
-          occupation: "",
-          employer: "",
-          is_alive: true,
-          isEditing: true,
-        },
-      ];
+    fetchData(
+      "get-family-members",
+      (res) => {
+        const parents = [
+          {
+            relationship_type: "Father",
+            givenname: "",
+            lastname: "",
+            bloodtype: "",
+            birthplace: "",
+            birthdate: "",
+            nationality: "",
+            religion: "",
+            occupation: "",
+            employer: "",
+            is_alive: true,
+            isEditing: true,
+          },
+          {
+            relationship_type: "Mother",
+            givenname: "",
+            lastname: "",
+            bloodtype: "",
+            birthplace: "",
+            birthdate: "",
+            nationality: "",
+            religion: "",
+            occupation: "",
+            employer: "",
+            is_alive: true,
+            isEditing: true,
+          },
+        ];
 
-      setData((prevData) => {
-        const mergedParents = parents.map((defaultParent) => {
-          const found = res.find(
-            (item) =>
-              item.relationship_type === defaultParent.relationship_type
-          );
+        setData((prevData) => {
+          const mergedParents = parents.map((defaultParent) => {
+            const found = res.find(
+              (item) =>
+                item.relationship_type === defaultParent.relationship_type
+            );
 
-          const prevParent = prevData.find(
-            (p) => p.relationship_type === defaultParent.relationship_type
-          );
+            const prevParent = prevData.find(
+              (p) => p.relationship_type === defaultParent.relationship_type
+            );
 
-          return {
-            ...defaultParent,
-            ...found,
-            isEditing: prevParent?.isEditing ?? true,
-          };
+            return {
+              ...defaultParent,
+              ...found,
+              isEditing: prevParent?.isEditing ?? true,
+            };
+          });
+
+          return mergedParents;
         });
-
-        return mergedParents;
-      });
-    },
-    (err) => {
-      console.error("Error fetching parents:", err);
-    },
-    "Failed to fetch parent data.",
-    params
-  );
-};
+      },
+      (err) => {
+        console.error("Error fetching parents:", err);
+      },
+      "Failed to fetch parent data.",
+      params
+    );
+  };
 
 
   useEffect(() => {
@@ -356,16 +357,6 @@ const Step4 = ({
 
       const savedParent = response.family_member;
 
-      // setData((prevData) => {
-      //   const newData = [...prevData];
-      //   newData[index] = {
-      //     ...prevData[index],
-      //     ...savedParent,
-      //     isEditing: false, // 🔁 Important: turn off edit mode
-      //   };
-      //   return newData;
-      // });
-
       await fetchParents();
 
       console.log("Saved parent from response:", savedParent);
@@ -385,11 +376,9 @@ const Step4 = ({
       );
       toast({
         title: "Error",
-        description: `Failed to save ${
-          updatedParent.relationship_type
-        } information. ${
-          error.response?.data?.message || "Please try again later."
-        }`,
+        description: `Failed to save ${updatedParent.relationship_type
+          } information. ${error.response?.data?.message || "Please try again later."
+          }`,
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -401,12 +390,12 @@ const Step4 = ({
   };
 
   return (
-    <Box width="100%" bg="white" boxShadow="sm" my={85} p={5}>
-      <Heading as="h2" size="lg" textAlign="center" mb={6}>
+    <Box width="100%" maxW="none" bg="white" boxShadow="sm" p={{ base: 4, md: 6 }}>
+      <Heading as="h2" size={{ base: "lg", md: "xl" }} textAlign="center" mb={2} color="#0a5856">
         Step 4: Parents Information
       </Heading>
-      <VStack align="start" spacing={4} mb={8} w="100%">
-        <Tabs variant="enclosed" colorScheme="blue">
+      <VStack align="stretch" spacing={4} mb={4} w="100%">
+        <Tabs variant="enclosed" colorScheme="blue" w="100%">
           <TabList>
             {data.length > 0 ? (
               data.map((parent, index) => (
@@ -417,1043 +406,258 @@ const Step4 = ({
             )}
           </TabList>
 
-          <TabPanels>
+          <TabPanels w="100%">
             {data.map((parent, index) => (
-              <TabPanel key={index}>
-                <Table size="md" variant="simple">
-                  <Tbody>
-                    {/* Personal Information */}
-                    <Tr bg="gray.50">
-                      <Td colSpan={4}>
-                        <Text fontWeight="bold">Personal Information</Text>
-                      </Td>
-                    </Tr>
-                    <Tr>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Given Name:
-                        </Text>
-                        <Input
-                          placeholder="Given Name"
-                          value={parent.givenname}
-                          onChange={(e) =>
-                            onChange(index, "givenname", e.target.value)
-                          }
-                          isDisabled={!parent.isEditing}
-                        />
-                      </Td>
+              <TabPanel key={index} px={0} py={2}>
+                <Box w="100%" maxW="none" py={2} bg="white" shadow="sm" border="1px" borderColor="gray.100" borderRadius="lg">
+                  {/* Personal Information Group */}
+                  <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={5} mb={4}>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Given Name</FormLabel>
+                      <Input placeholder="Given Name" value={parent.givenname} onChange={(e) => onChange(index, "givenname", e.target.value)} isDisabled={!parent.isEditing} />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Middle Name</FormLabel>
+                      <Input placeholder="Middle Name" value={parent.middlename} onChange={(e) => onChange(index, "middlename", e.target.value)} isDisabled={!parent.isEditing} />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">{parent.relationship_type === "Mother" ? "Surname (Maiden Name)" : "Surname"}</FormLabel>
+                      <Input placeholder="Surname" value={parent.lastname} onChange={(e) => onChange(index, "lastname", e.target.value)} isDisabled={!parent.isEditing} />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Suffix</FormLabel>
+                      <Select
+                        placeholder="Select Suffix"
+                        name="suffix"
+                        value={parent.suffix ? { value: parent.suffix, label: parent.suffix } : null}
+                        onChange={(selectedOption) => onChange(index, "suffix", selectedOption?.value || "")}
+                        options={suffixOptions.map((suffix) => ({ value: suffix, label: suffix }))}
+                        isDisabled={!parent.isEditing || parent.gender === "Female"}
+                        isClearable
+                        styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Gender</FormLabel>
+                      <Select
+                        value={{ value: parent.relationship_type === "Father" ? "Male" : "Female", label: parent.relationship_type === "Father" ? "Male" : "Female" }}
+                        options={[{ value: "Male", label: "Male" }, { value: "Female", label: "Female" }]}
+                        isDisabled
+                        styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Date of Birth</FormLabel>
+                      <Input type="date" value={parent.date_of_birth} onChange={(e) => onChange(index, "date_of_birth", e.target.value)} isDisabled={!parent.isEditing} />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Contact Number</FormLabel>
+                      <Input placeholder="Contact Number" type="number" value={parent.contact_number} onChange={(e) => onChange(index, "contact_number", e.target.value)} isDisabled={!parent.isEditing} />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Blood Type</FormLabel>
+                      <Select
+                        placeholder="Select Blood Type"
+                        value={bloodtypes.map(type => ({ value: type, label: type })).find(opt => opt.value === parent.bloodtype)}
+                        onChange={(opt) => onChange(index, "bloodtype", opt?.value || "")}
+                        options={bloodtypes.map(type => ({ value: type, label: type }))}
+                        isClearable
+                        isDisabled={!parent.isEditing}
+                        styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Civil Status</FormLabel>
+                      <Select
+                        placeholder="Select Civil Status"
+                        value={civilStatusOptions.map(s => ({ value: s, label: s })).find(opt => opt.value === parent.civil_status)}
+                        onChange={(opt) => onChange(index, "civil_status", opt?.value || "")}
+                        options={civilStatusOptions.map(s => ({ value: s, label: s }))}
+                        isClearable
+                        isDisabled={!parent.isEditing}
+                        styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Date of Marriage</FormLabel>
+                      <Input type="date" value={parent.date_of_marriage} onChange={(e) => onChange(index, "date_of_marriage", e.target.value)} isDisabled={!parent.isEditing || parent.civil_status === "Single"} />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Place of Marriage</FormLabel>
+                      <Input placeholder="Place of Marriage" value={parent.place_of_marriage} onChange={(e) => onChange(index, "place_of_marriage", e.target.value)} isDisabled={!parent.isEditing || parent.civil_status === "Single"} />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Citizenship</FormLabel>
+                      <Select
+                        placeholder="Select Citizenship"
+                        value={citizenships.map(c => ({ value: c.id, label: c.citizenship })).find(opt => opt.value === parent.citizenship)}
+                        onChange={(opt) => onChange(index, "citizenship", opt?.value || "")}
+                        options={citizenships.map(c => ({ value: c.id, label: c.citizenship }))}
+                        isClearable
+                        isDisabled={!parent.isEditing}
+                        styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Ethnicity</FormLabel>
+                      <Select
+                        placeholder="Select Ethnicity"
+                        value={nationalities.map(n => ({ value: n.id, label: n.nationality })).find(opt => opt.value === parent.nationality)}
+                        onChange={(opt) => onChange(index, "nationality", opt?.value || "")}
+                        options={nationalities.map(n => ({ value: n.id, label: n.nationality }))}
+                        isClearable
+                        isDisabled={!parent.isEditing}
+                        styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Livelihood</FormLabel>
+                      <Input placeholder="Livelihood" value={parent.livelihood} onChange={(e) => onChange(index, "livelihood", e.target.value)} isDisabled={!parent.isEditing} />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">District</FormLabel>
+                      <Select
+                        placeholder="Select District"
+                        value={districts.map(d => ({ value: d.id, label: d.name })).find(opt => opt.value === parent.district_id) || null}
+                        onChange={(opt) => {
+                          onChange(index, "district_id", opt?.value || "");
+                          onChange(index, "local_congregation", "");
+                        }}
+                        options={districts.map(d => ({ value: d.id, label: d.name }))}
+                        isClearable
+                        isDisabled={!parent.isEditing}
+                        styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Local Congregation</FormLabel>
+                      <Select
+                        placeholder="Select Local Congregation"
+                        value={(filteredCongregations[parent.district_id] || []).map(c => ({ value: c.id, label: c.name })).find(opt => opt.value === parent.local_congregation) || null}
+                        onChange={(opt) => onChange(index, "local_congregation", opt?.value || "")}
+                        options={(filteredCongregations[parent.district_id] || []).map(c => ({ value: c.id, label: c.name }))}
+                        isClearable
+                        isDisabled={!parent.isEditing || !parent.district_id}
+                        styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Church Duties</FormLabel>
+                      <Input placeholder="Church Duties" value={parent.church_duties} onChange={(e) => onChange(index, "church_duties", e.target.value)} isDisabled={!parent.isEditing} />
+                    </FormControl>
+                    <FormControl display="none">
+                      <Input placeholder="Evangelist" value={parent.minister_officiated} onChange={(e) => onChange(index, "minister_officiated", e.target.value)} />
+                    </FormControl>
+                  </SimpleGrid>
 
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Middle Name:
-                        </Text>
-                        <Input
-                          placeholder="Middle Name"
-                          value={parent.middlename}
-                          onChange={(e) =>
-                            onChange(index, "middlename", e.target.value)
-                          }
-                          isDisabled={!parent.isEditing}
-                        />
-                      </Td>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          {parent.relationship_type === "Mother"
-                            ? "Surname (Maiden Name)"
-                            : "Surname"}
-                        </Text>
-                        <Input
-                          placeholder="Surname"
-                          value={parent.lastname}
-                          onChange={(e) =>
-                            onChange(index, "lastname", e.target.value)
-                          }
-                          isDisabled={!parent.isEditing}
-                        />
-                      </Td>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Suffix:
-                        </Text>
-                        <Select
-                          placeholder="Select Suffix"
-                          name="suffix"
-                          value={
-                            parent.suffix
-                              ? { value: parent.suffix, label: parent.suffix }
-                              : null // Ensure no default value on load if none exists
-                          }
-                          onChange={(selectedOption) => {
-                            onChange(
-                              index,
-                              "suffix",
-                              selectedOption?.value || ""
-                            ); // Update the state
-                          }}
-                          options={suffixOptions.map((suffix) => ({
-                            value: suffix,
-                            label: suffix,
-                          }))}
-                          isDisabled={
-                            !parent.isEditing || parent.gender === "Female"
-                          } // Conditionally disable for Female or when not editing
-                          isClearable // Adds a clear button to reset selection
-                          styles={{
-                            container: (base) => ({
-                              ...base,
-                              width: "100%",
-                            }),
-                          }}
-                        />
-                      </Td>
-                    </Tr>
-                    <Tr>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Gender:
-                        </Text>
-                        <Select
-                          value={{
-                            value:
-                              parent.relationship_type === "Father"
-                                ? "Male"
-                                : "Female",
-                            label:
-                              parent.relationship_type === "Father"
-                                ? "Male"
-                                : "Female",
-                          }} // Automatically set based on relationship_type
-                          options={[
-                            { value: "Male", label: "Male" },
-                            { value: "Female", label: "Female" },
-                          ]} // Define the options for gender
-                          isDisabled // Always disabled
-                          styles={{
-                            container: (base) => ({
-                              ...base,
-                              width: "100%",
-                            }),
-                          }}
-                        />
-                      </Td>
+                  {/* Work Information Group */}
+                  <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={5} mb={4}>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Employment Type</FormLabel>
+                      <Select
+                        placeholder="Select Employment Type"
+                        value={employmentTypeOptions.map(t => ({ value: t, label: t })).find(opt => opt.value === parent.employment_type)}
+                        onChange={(opt) => onChange(index, "employment_type", opt?.value || "")}
+                        options={employmentTypeOptions.map(t => ({ value: t, label: t }))}
+                        isClearable
+                        isDisabled={!parent.isEditing}
+                        styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Company</FormLabel>
+                      <Input placeholder="Company" value={parent.company} onChange={(e) => onChange(index, "company", e.target.value)} isDisabled={!parent.isEditing || ["Volunteer/Kawani"].includes(parent.employment_type)} />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Address</FormLabel>
+                      <Input placeholder="Address" value={parent.address} onChange={(e) => onChange(index, "address", e.target.value)} isDisabled={!parent.isEditing} />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Brief Description of Responsibilities</FormLabel>
+                      <Input placeholder="Brief Description" value={parent.position} onChange={(e) => onChange(index, "position", e.target.value)} isDisabled={!parent.isEditing} />
+                    </FormControl>
+                    <FormControl display="none">
+                      <Input placeholder="Department" value={parent.department} onChange={(e) => onChange(index, "department", e.target.value)} />
+                    </FormControl>
+                    <FormControl display="none">
+                      <Input placeholder="Section" value={parent.section} onChange={(e) => onChange(index, "section", e.target.value)} />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Start Date</FormLabel>
+                      <Input type="date" value={parent.start_date} onChange={(e) => onChange(index, "start_date", e.target.value)} isDisabled={!parent.isEditing} />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">End Date</FormLabel>
+                      <Input type="date" value={parent.end_date} onChange={(e) => onChange(index, "end_date", e.target.value)} isDisabled={!parent.isEditing} />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Reason for Leaving</FormLabel>
+                      <Input placeholder="Reason for Leaving" value={parent.reason_for_leaving} onChange={(e) => onChange(index, "reason_for_leaving", e.target.value)} isDisabled={!parent.isEditing} />
+                    </FormControl>
+                  </SimpleGrid>
 
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Date Of Birth:
-                        </Text>
-                        <Input
-                          placeholder="Date of Birth"
-                          type="date"
-                          value={parent.date_of_birth}
-                          onChange={(e) =>
-                            onChange(index, "date_of_birth", e.target.value)
-                          }
-                          isDisabled={!parent.isEditing}
-                        />
-                      </Td>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Contact Number:
-                        </Text>
-                        <Input
-                          placeholder="Contact Number"
-                          value={parent.contact_number}
-                          type="number"
-                          onChange={(e) =>
-                            onChange(index, "contact_number", e.target.value)
-                          }
-                          isDisabled={!parent.isEditing}
-                        />
-                      </Td>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Blood Type:
-                        </Text>
-                        <Select
-                          placeholder="Select Blood Type"
-                          name="bloodtype"
-                          value={bloodtypes
-                            .map((type) => ({
-                              value: type,
-                              label: type,
-                            }))
-                            .find(
-                              (option) => option.value === parent.bloodtype
-                            )} // Match selected value
-                          onChange={
-                            (selectedOption) =>
-                              onChange(
-                                index,
-                                "bloodtype",
-                                selectedOption?.value || ""
-                              ) // Update state on selection
-                          }
-                          options={bloodtypes.map((type) => ({
-                            value: type,
-                            label: type,
-                          }))}
-                          isClearable
-                          isDisabled={!parent.isEditing} // Conditionally disable dropdown
-                          styles={{
-                            container: (base) => ({
-                              ...base,
-                              width: "100%",
-                            }),
-                          }}
-                        />
-                      </Td>
-                    </Tr>
-                    <Tr>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Civil Status:
-                        </Text>
-                        <Select
-                          placeholder="Select Civil Status"
-                          name="civil_status"
-                          value={civilStatusOptions
-                            .map((status) => ({
-                              value: status,
-                              label: status,
-                            }))
-                            .find(
-                              (option) => option.value === parent.civil_status
-                            )} // Match selected value
-                          onChange={
-                            (selectedOption) =>
-                              onChange(
-                                index,
-                                "civil_status",
-                                selectedOption?.value || ""
-                              ) // Update state on selection
-                          }
-                          options={civilStatusOptions.map((status) => ({
-                            value: status,
-                            label: status,
-                          }))}
-                          isClearable
-                          isDisabled={!parent.isEditing} // Conditionally disable dropdown
-                          styles={{
-                            container: (base) => ({
-                              ...base,
-                              width: "100%",
-                            }),
-                          }}
-                        />
-                      </Td>
+                  {/* Educational Info Group */}
+                  <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={5} mb={4}>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Educational Level</FormLabel>
+                      <Select
+                        placeholder="Select Educational Level"
+                        value={educationalLevelOptions.map(l => ({ value: l, label: l })).find(opt => opt.value === parent.education_level)}
+                        onChange={(opt) => onChange(index, "education_level", opt?.value || "")}
+                        options={educationalLevelOptions.map(l => ({ value: l, label: l }))}
+                        isClearable
+                        isDisabled={!parent.isEditing}
+                        styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Start Year</FormLabel>
+                      <Input placeholder="Start Year" value={parent.start_year} onChange={(e) => onChange(index, "start_year", e.target.value)} isDisabled={!parent.isEditing} />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Completion Year</FormLabel>
+                      <Input placeholder="Completion Year" value={parent.completion_year} onChange={(e) => onChange(index, "completion_year", e.target.value)} isDisabled={!parent.isEditing} />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">School</FormLabel>
+                      <Input placeholder="School" value={parent.school} onChange={(e) => onChange(index, "school", e.target.value)} isDisabled={!parent.isEditing} />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Field of Study</FormLabel>
+                      <Input placeholder="Field of Study" value={parent.field_of_study} onChange={(e) => onChange(index, "field_of_study", e.target.value)} isDisabled={!parent.isEditing} />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Degree</FormLabel>
+                      <Input placeholder="Degree" value={parent.degree} onChange={(e) => onChange(index, "degree", e.target.value)} isDisabled={!parent.isEditing} />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Institution</FormLabel>
+                      <Input placeholder="Institution" value={parent.institution} onChange={(e) => onChange(index, "institution", e.target.value)} isDisabled={!parent.isEditing} />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel color="#0a5856" fontWeight="bold">Professional Licensure Examination</FormLabel>
+                      <Input placeholder="Licensure Exam" value={parent.professional_licensure_examination} onChange={(e) => onChange(index, "professional_licensure_examination", e.target.value)} isDisabled={!parent.isEditing} />
+                    </FormControl>
+                  </SimpleGrid>
 
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Date of Marriage:
-                        </Text>
-                        <Input
-                          placeholder="Date of Marriage"
-                          type="date"
-                          value={parent.date_of_marriage}
-                          onChange={(e) =>
-                            onChange(index, "date_of_marriage", e.target.value)
-                          }
-                          isDisabled={
-                            !parent.isEditing ||
-                            parent.civil_status === "Single"
-                          } // Disable if civil_status is "Single"
-                        />
-                      </Td>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Place of Marriage:
-                        </Text>
-                        <Input
-                          placeholder="Place of Marriage"
-                          value={parent.place_of_marriage}
-                          onChange={(e) =>
-                            onChange(index, "place_of_marriage", e.target.value)
-                          }
-                          isDisabled={
-                            !parent.isEditing ||
-                            parent.civil_status === "Single"
-                          } // Disable if civil_status is "Single"
-                        />
-                      </Td>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Citizenship:
-                        </Text>
-                        <Select
-                          placeholder="Select Citizenship"
-                          name="citizenship"
-                          value={citizenships
-                            .map((citizenship) => ({
-                              value: citizenship.id,
-                              label: citizenship.citizenship,
-                            }))
-                            .find(
-                              (option) => option.value === parent.citizenship
-                            )} // Map value for selected option
-                          onChange={
-                            (selectedOption) =>
-                              onChange(
-                                index,
-                                "citizenship",
-                                selectedOption?.value || ""
-                              ) // Update state on selection
-                          }
-                          options={citizenships.map((citizenship) => ({
-                            value: citizenship.id,
-                            label: citizenship.citizenship,
-                          }))}
-                          isClearable
-                          isDisabled={!parent.isEditing} // Disable when editing is not enabled
-                          styles={{
-                            container: (base) => ({
-                              ...base,
-                              width: "100%",
-                            }),
-                          }}
-                        />
-                      </Td>
-                    </Tr>
-                    <Tr>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Ethnicity:
-                        </Text>
-                        <Select
-                          placeholder="Select Ethnicity"
-                          name="nationality"
-                          value={nationalities
-                            .map((nationality) => ({
-                              value: nationality.id,
-                              label: nationality.nationality,
-                            }))
-                            .find(
-                              (option) => option.value === parent.nationality
-                            )} // Map value for selected option
-                          onChange={
-                            (selectedOption) =>
-                              onChange(
-                                index,
-                                "nationality",
-                                selectedOption?.value || ""
-                              ) // Update state on selection
-                          }
-                          options={nationalities.map((nationality) => ({
-                            value: nationality.id,
-                            label: nationality.nationality,
-                          }))}
-                          isClearable
-                          isDisabled={!parent.isEditing} // Disable when editing is not enabled
-                          styles={{
-                            container: (base) => ({
-                              ...base,
-                              width: "100%",
-                            }),
-                          }}
-                        />
-                      </Td>
-
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Livelihood:
-                        </Text>
-                        <Input
-                          placeholder="Livelihood"
-                          value={parent.livelihood}
-                          onChange={(e) =>
-                            onChange(index, "livelihood", e.target.value)
-                          }
-                          isDisabled={!parent.isEditing}
-                        />
-                      </Td>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          District:
-                        </Text>
-                        <Select
-                          placeholder="Select District"
-                          name="district_id"
-                          value={
-                            districts
-                              .map((district) => ({
-                                value: district.id,
-                                label: district.name,
-                              }))
-                              .find(
-                                (option) => option.value === parent.district_id
-                              ) || null
-                          } // Ensure the correct selected district
-                          onChange={(selectedOption) => {
-                            onChange(
-                              index,
-                              "district_id",
-                              selectedOption?.value || ""
-                            );
-                            onChange(index, "local_congregation", ""); // Reset local congregation when district changes
-                          }}
-                          options={districts.map((district) => ({
-                            value: district.id,
-                            label: district.name,
-                          }))}
-                          isClearable
-                          isDisabled={!parent.isEditing} // Disable when editing is not enabled
-                          styles={{
-                            container: (base) => ({
-                              ...base,
-                              width: "100%",
-                            }),
-                          }}
-                        />
-                      </Td>
-
-                      {/* ✅ Local Congregation Select Dropdown */}
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Local Congregation:
-                        </Text>
-                        <Select
-                          placeholder="Select Local Congregation"
-                          name="local_congregation"
-                          value={
-                            (filteredCongregations[parent.district_id] || [])
-                              .map((congregation) => ({
-                                value: congregation.id,
-                                label: congregation.name,
-                              }))
-                              .find(
-                                (option) =>
-                                  option.value === parent.local_congregation
-                              ) || null
-                          } // Ensure the correct selected local congregation
-                          onChange={(selectedOption) =>
-                            onChange(
-                              index,
-                              "local_congregation",
-                              selectedOption?.value || ""
-                            )
-                          }
-                          options={(
-                            filteredCongregations[parent.district_id] || []
-                          ).map((congregation) => ({
-                            value: congregation.id,
-                            label: congregation.name,
-                          }))}
-                          isClearable
-                          isDisabled={!parent.isEditing || !parent.district_id} // Disable if no district is selected
-                          styles={{
-                            container: (base) => ({
-                              ...base,
-                              width: "100%",
-                            }),
-                          }}
-                        />
-                      </Td>
-                    </Tr>
-
-                    <Tr>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Church Duties:
-                        </Text>
-                        <Input
-                          placeholder="Church Duties"
-                          value={parent.church_duties}
-                          onChange={(e) =>
-                            onChange(index, "church_duties", e.target.value)
-                          }
-                          isDisabled={!parent.isEditing}
-                        />
-                      </Td>
-                      <Td display="none">
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Evangelist:
-                        </Text>
-                        <Input
-                          placeholder="Evangelist"
-                          value={parent.minister_officiated}
-                          onChange={(e) =>
-                            onChange(
-                              index,
-                              "minister_officiated",
-                              e.target.value
-                            )
-                          }
-                          isDisabled={!parent.isEditing}
-                        />
-                      </Td>
-                    </Tr>
-
-                    {/* Work Information Section */}
-                    <Tr bg="gray.50">
-                      <Td colSpan={4}>
-                        <Text fontWeight="bold">Work Information</Text>
-                      </Td>
-                    </Tr>
-                    <Tr>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Employment Type:
-                        </Text>
-                        <Select
-                          placeholder="Select Employment Type"
-                          name="employment_type"
-                          value={employmentTypeOptions
-                            .map((type) => ({
-                              value: type,
-                              label: type,
-                            }))
-                            .find(
-                              (option) =>
-                                option.value === parent.employment_type
-                            )} // Map value for selected option
-                          onChange={
-                            (selectedOption) =>
-                              onChange(
-                                index,
-                                "employment_type",
-                                selectedOption?.value || ""
-                              ) // Update state on selection
-                          }
-                          options={employmentTypeOptions.map((type) => ({
-                            value: type,
-                            label: type,
-                          }))}
-                          isClearable
-                          isDisabled={!parent.isEditing} // Disable when editing is not enabled
-                          styles={{
-                            container: (base) => ({
-                              ...base,
-                              width: "100%",
-                            }),
-                          }}
-                        />
-                      </Td>
-
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Company:
-                        </Text>
-                        <Input
-                          placeholder="Company"
-                          value={parent.company}
-                          onChange={(e) =>
-                            onChange(index, "company", e.target.value)
-                          }
-                          isDisabled={
-                            !parent.isEditing ||
-                            ["Volunteer/Kawani"].includes(
-                              parent.employment_type
-                            )
-                          } // Disable if employment_type is Volunteer or Kawani
-                        />
-                      </Td>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Address:
-                        </Text>
-                        <Input
-                          placeholder="Address"
-                          value={parent.address}
-                          onChange={(e) =>
-                            onChange(index, "address", e.target.value)
-                          }
-                          isDisabled={!parent.isEditing}
-                        />
-                      </Td>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="100px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Brief Description <br></br> of Responsibilities:
-                        </Text>
-                        <Input
-                          placeholder="Brief Description of Responsibilities"
-                          value={parent.position}
-                          onChange={(e) =>
-                            onChange(index, "position", e.target.value)
-                          }
-                          isDisabled={!parent.isEditing}
-                        />
-                      </Td>
-                    </Tr>
-                    <Tr>
-                      {/* Department Field */}
-                      <Td display="none">
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Department:
-                        </Text>
-                        <Input
-                          placeholder="Department"
-                          value={parent.department} // Ensure binding to state
-                          onChange={
-                            (e) => onChange(index, "department", e.target.value) // Pass index, field, and value
-                          }
-                          isDisabled={!parent.isEditing} // Enable/disable based on editing state
-                        />
-                      </Td>
-
-                      {/* Section Field */}
-                      <Td display="none">
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Section:
-                        </Text>
-                        <Input
-                          placeholder="Section"
-                          value={parent.section} // Ensure binding to state
-                          onChange={
-                            (e) => onChange(index, "section", e.target.value) // Pass index, field, and value
-                          }
-                          isDisabled={!parent.isEditing} // Enable/disable based on editing state
-                        />
-                      </Td>
-
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Start Date:
-                        </Text>
-                        <Input
-                          placeholder="Start Date"
-                          type="date"
-                          value={parent.start_date}
-                          onChange={(e) =>
-                            onChange(index, "start_date", e.target.value)
-                          }
-                          isDisabled={!parent.isEditing}
-                        />
-                      </Td>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          End Date:
-                        </Text>
-                        <Input
-                          placeholder="End Date"
-                          type="date"
-                          value={parent.end_date}
-                          onChange={(e) =>
-                            onChange(index, "end_date", e.target.value)
-                          }
-                          isDisabled={!parent.isEditing}
-                        />
-                      </Td>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Reason for Leaving:
-                        </Text>
-                        <Input
-                          placeholder="Reason for Leaving"
-                          value={parent.reason_for_leaving}
-                          onChange={(e) =>
-                            onChange(
-                              index,
-                              "reason_for_leaving",
-                              e.target.value
-                            )
-                          }
-                          isDisabled={!parent.isEditing}
-                        />
-                      </Td>
-                    </Tr>
-
-                    {/* Educational Information Section */}
-                    <Tr bg="gray.50">
-                      <Td colSpan={4}>
-                        <Text fontWeight="bold">Educational Information</Text>
-                      </Td>
-                    </Tr>
-                    <Tr>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Educational Level:
-                        </Text>
-                        <Select
-                          placeholder="Select Educational Level"
-                          name="education_level"
-                          value={educationalLevelOptions
-                            .map((level) => ({
-                              value: level,
-                              label: level,
-                            }))
-                            .find(
-                              (option) =>
-                                option.value === parent.education_level
-                            )} // Map value for selected option
-                          onChange={
-                            (selectedOption) =>
-                              onChange(
-                                index,
-                                "education_level",
-                                selectedOption?.value || ""
-                              ) // Update state on selection
-                          }
-                          options={educationalLevelOptions.map((level) => ({
-                            value: level,
-                            label: level,
-                          }))}
-                          isClearable
-                          isDisabled={!parent.isEditing} // Conditionally disable dropdown
-                          styles={{
-                            container: (base) => ({
-                              ...base,
-                              width: "100%",
-                            }),
-                          }}
-                        />
-                      </Td>
-
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Start Year:
-                        </Text>
-                        <Input
-                          placeholder="Start Year"
-                          type="number"
-                          value={parent.start_year}
-                          onChange={(e) =>
-                            onChange(index, "start_year", e.target.value)
-                          }
-                          isDisabled={!parent.isEditing}
-                        />
-                      </Td>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Completion Year:
-                        </Text>
-                        <Input
-                          placeholder="Completion Year"
-                          type="number"
-                          value={parent.completion_year}
-                          onChange={(e) =>
-                            onChange(index, "completion_year", e.target.value)
-                          }
-                          isDisabled={!parent.isEditing}
-                        />
-                      </Td>
-
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          School:
-                        </Text>
-                        <Input
-                          placeholder="School"
-                          value={parent.school}
-                          onChange={(e) =>
-                            onChange(index, "school", e.target.value)
-                          }
-                          isDisabled={!parent.isEditing}
-                        />
-                      </Td>
-                    </Tr>
-                    <Tr>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Field of Study:
-                        </Text>
-                        <Input
-                          placeholder="Field of Study"
-                          value={parent.field_of_study}
-                          onChange={(e) =>
-                            onChange(index, "field_of_study", e.target.value)
-                          }
-                          isDisabled={
-                            !parent.isEditing ||
-                            parent.education_level === "No Formal Education" ||
-                            parent.education_level === "Primary Education" ||
-                            parent.education_level === "Secondary Education" ||
-                            parent.education_level === "Senior High School"
-                          }
-                        />
-                      </Td>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Degree:
-                        </Text>
-                        <Input
-                          placeholder="Degree"
-                          value={parent.degree}
-                          onChange={(e) =>
-                            onChange(index, "degree", e.target.value)
-                          }
-                          isDisabled={
-                            !parent.isEditing ||
-                            parent.education_level === "No Formal Education" ||
-                            parent.education_level === "Primary Education" ||
-                            parent.education_level === "Secondary Education" ||
-                            parent.education_level === "Senior High School"
-                          }
-                        />
-                      </Td>
-                      <Td display="none">
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Institution:
-                        </Text>
-                        <Input
-                          placeholder="Institution"
-                          value={parent.institution}
-                          onChange={(e) =>
-                            onChange(index, "institution", e.target.value)
-                          }
-                          isDisabled={
-                            !parent.isEditing ||
-                            parent.education_level === "No Formal Education" ||
-                            parent.education_level === "Primary Education" ||
-                            parent.education_level === "Secondary Education" ||
-                            parent.education_level === "Senior High School"
-                          }
-                        />
-                      </Td>
-                      <Td>
-                        <Text
-                          fontWeight="bold"
-                          mb="2"
-                          minWidth="120px"
-                          whiteSpace="nowrap"
-                          color="#0a5856"
-                        >
-                          Professional Licensure:
-                        </Text>
-                        <Input
-                          placeholder="Professional Licensure"
-                          value={parent.professional_licensure_examination}
-                          onChange={(e) =>
-                            onChange(
-                              index,
-                              "professional_licensure_examination",
-                              e.target.value
-                            )
-                          }
-                          isDisabled={
-                            !parent.isEditing ||
-                            parent.education_level === "No Formal Education" ||
-                            parent.education_level === "Primary Education" ||
-                            parent.education_level === "Secondary Education" ||
-                            parent.education_level === "Senior High School"
-                          }
-                        />
-                      </Td>
-                    </Tr>
-
-                    {/* Save Button */}
-                    <Tr>
-                      <Td colSpan={4} textAlign="center">
-                        <IconButton
-                          icon={parent.isEditing ? <CheckIcon /> : <EditIcon />}
-                          onClick={() => {
-                            if (parent.isEditing) {
-                              handleSaveOrUpdate(index); // Save data and disable editing
-                            } else {
-                              // Enable editing by updating the state
-                              const updatedParents = [...data];
-                              updatedParents[index].isEditing = true;
-                              setData(updatedParents);
-                            }
-                          }}
-                          colorScheme={parent.isEditing ? "green" : "blue"}
-                        />
-                      </Td>
-                    </Tr>
-                  </Tbody>
-                </Table>
+                  <Flex justify="center" mt={4}>
+                    <IconButton
+                      icon={parent.isEditing ? <CheckIcon /> : <EditIcon />}
+                      onClick={() => {
+                        if (parent.isEditing) {
+                          handleSaveOrUpdate(index); // Save data and disable editing
+                        } else {
+                          // Enable editing by updating the state
+                          const updatedParents = [...data];
+                          updatedParents[index].isEditing = true;
+                          setData(updatedParents);
+                        }
+                      }}
+                      colorScheme={parent.isEditing ? "green" : "blue"}
+                      aria-label={parent.isEditing ? "Save" : "Edit"}
+                    />
+                  </Flex>
+                </Box>
               </TabPanel>
             ))}
           </TabPanels>

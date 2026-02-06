@@ -2,7 +2,7 @@
 import axios from "axios";
 import { getAuthHeaders } from "./apiHeaders";
 
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL = process.env.REACT_APP_API_URL || "";
 
 /**
  * Reusable GET data function
@@ -19,7 +19,7 @@ export const fetchData = async (
   errorMsg = null,
   params = null,
   onFinally = null,
-  baseUrl = API_URL
+  baseUrl = ""
 ) => {
   try {
     let url = `${baseUrl}/api/${endpoint}`;
@@ -169,38 +169,38 @@ export const fetchLoginData = async (
  * @param {string} [errorMsg] - Error message to display or log
  */
 export const fetchDataPhotoshoot = async (
-    personnelId,
-    setter = null,
-    onError = null,
-    errorMsg = "Failed to fetch personnel images."
+  personnelId,
+  setter = null,
+  onError = null,
+  errorMsg = "Failed to fetch personnel images."
 ) => {
-    try {
-        const url = `${API_URL}/api/personnel_images/${personnelId}`;
-        
-        const response = await axios.get(url, {
-            headers: getAuthHeaders(),
-        });
+  try {
+    const url = `${API_URL}/api/personnel_images/${personnelId}`;
 
-        const data = response.data;
+    const response = await axios.get(url, {
+      headers: getAuthHeaders(),
+    });
 
-        // CRITICAL: The image endpoint must return { success: true, data: [...] }
-        if (data.success && Array.isArray(data.data)) {
-            if (setter && typeof setter === "function") {
-                setter(data.data);
-            }
-            return data.data; // Return raw image data
-        } else {
-            console.warn(`Photoshoot API failed or returned unexpected format for ID ${personnelId}:`, data);
-            if (setter) setter([]);
-            if (onError) onError(errorMsg);
-            return [];
-        }
+    const data = response.data;
 
-    } catch (error) {
-        console.error(`Error fetching personnel_images/${personnelId}:`, error);
-        if (onError) onError(errorMsg);
-        throw error;
+    // CRITICAL: The image endpoint must return { success: true, data: [...] }
+    if (data.success && Array.isArray(data.data)) {
+      if (setter && typeof setter === "function") {
+        setter(data.data);
+      }
+      return data.data; // Return raw image data
+    } else {
+      console.warn(`Photoshoot API failed or returned unexpected format for ID ${personnelId}:`, data);
+      if (setter) setter([]);
+      if (onError) onError(errorMsg);
+      return [];
     }
+
+  } catch (error) {
+    console.error(`Error fetching personnel_images/${personnelId}:`, error);
+    if (onError) onError(errorMsg);
+    throw error;
+  }
 };
 
 export const fetchProgressData = async (
@@ -578,7 +578,6 @@ export const putDataRestore = async (endpoint, id, errorMsg = "Failed to restore
     // Build the correct restore URL
     const url = `${API_URL}/api/${endpoint}/${id}`;
 
-    alert(url);
     const response = await axios.put(
       url,
       {}, // Empty body for restore (no payload needed)

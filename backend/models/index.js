@@ -7,6 +7,7 @@ const UserGroupMapping = require("./UserGroupMapping");
 const PermissionDefinition = require("./PermissionDefinition");
 const PermissionCategory = require("./PermissionCategory");
 const GroupPermissionMapping = require("./GroupPermissionMapping");
+const PersonnelHistory = require("./PersonnelHistory");
 
 // Sync database
 sequelize

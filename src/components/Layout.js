@@ -71,19 +71,19 @@ const Layout = ({ children, currentUser }) => {
     fetchPermissions(groupId); // Fetch permissions for the group
 
 
-        const checkLoginStatus = async () => {
+    const checkLoginStatus = async () => {
       try {
         if (!username) {
           navigate("/login");
           return;
         }
 
-      const userResponse = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/users_access/${username}`,
-        {
-          headers: getAuthHeaders(),
-        }
-      );
+        const userResponse = await axios.get(
+          `${process.env.REACT_APP_API_URL}/api/users_access/${username}`,
+          {
+            headers: getAuthHeaders(),
+          }
+        );
 
         const user = userResponse.data;
 
@@ -95,8 +95,8 @@ const Layout = ({ children, currentUser }) => {
         navigate("/login"); // fallback redirect on error
       }
     };
-    
- const checkLoginStatus1 = async () => {
+
+    const checkLoginStatus1 = async () => {
       try {
         if (!username) {
           navigate("/login");
@@ -148,7 +148,7 @@ const Layout = ({ children, currentUser }) => {
   }, [resetInactivityTimer]);
 
   return (
-    <div style={{ display: "flex", position: "relative", height: "100vh" }}>
+    <div style={{ display: "flex", position: "relative", minHeight: "100vh" }}>
       {/* Sidebar */}
       <Sidebar
         currentUser={currentUser}
@@ -158,10 +158,9 @@ const Layout = ({ children, currentUser }) => {
       {/* Main content */}
       <div
         style={{
-          marginLeft: isSidebarExpanded ? "250px" : "60px", // Adjust dynamically
+          flex: 1, // Take remaining space
           width: "100%",
           padding: "20px",
-          transition: "margin-left 0.3s ease", // Smooth transition
         }}
       >
         {children}

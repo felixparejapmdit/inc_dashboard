@@ -6,11 +6,11 @@ const LokalProfile = sequelize.define(
   "LokalProfile",
   {
     district: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING, // Changed to STRING to support flexibility
       allowNull: false,
     },
     lokal: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING, // Changed to STRING to support manual input
       allowNull: false,
     },
     anniversary: DataTypes.DATE,
@@ -37,7 +37,7 @@ const LokalProfile = sequelize.define(
     signature: DataTypes.STRING,
     datePrepared: DataTypes.DATE,
     imageUrl: {
-      type: DataTypes.STRING, // ✅ this is enough to store the relative path or filename
+      type: DataTypes.TEXT('long'), // Changed to TEXT long to store Base64 images
       allowNull: true,
     },
 

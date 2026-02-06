@@ -1,17 +1,16 @@
 // src/pages/ATG Dashboard.js
-import React, { useEffect, useMemo, useState, useRef } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   Box,
   Grid,
-  GridItem,
   Heading,
   Text,
   Input,
   InputGroup,
   InputLeftElement,
   Button,
+  Center,
   Card,
-  CardHeader,
   CardBody,
   Table,
   Thead,
@@ -20,523 +19,665 @@ import {
   Th,
   Td,
   Flex,
-  Spacer,
   Avatar,
   Select,
   useToast,
-  Link,
   Stack,
   Badge,
   VStack,
   HStack,
   IconButton,
-  Divider,
+  Icon,
+  Image,
+  Skeleton,
+  useColorModeValue,
+  Tooltip,
+  useDisclosure,
+  Collapse,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton
 } from "@chakra-ui/react";
 import {
-  ExternalLinkIcon,
   SearchIcon,
   AddIcon,
   DownloadIcon,
-  SmallCloseIcon,
+  DeleteIcon,
+  AttachmentIcon,
+  CalendarIcon,
+  ChevronDownIcon,
+  ChevronUpIcon
 } from "@chakra-ui/icons";
+import {
+  FaUserTie,
+  FaBuilding,
+  FaFilePdf,
+  FaFileExcel,
+  FaFileWord,
+  FaFileImage,
+  FaFileAlt
+} from "react-icons/fa";
+import { getAuthHeaders } from "../utils/apiHeaders";
+import ATGNewsSidebar from "./ATGNewsSidebar";
 
-/**
- * ATG Dashboard (Option A)
- *
- * - News is a right-side fixed sidebar occupying ~15% width on large screens.
- * - Main content occupies remaining ~85%.
- * - Improved layout & styling, fixed search (debounced), pagination, responsive.
- * - Organization chart preview uses the provided local dev file path.
- *
- * Replace mock data with real API calls as needed.
- */
+const API_URL = process.env.REACT_APP_API_URL;
 
-// Use the uploaded file path (dev-provided) as the default org-chart preview URL.
-const ORG_CHART_DEFAULT = "/mnt/data/0e0e7ae3-1f8f-4a52-9fd4-c307403b494b.png";
+/* ---------- Helper Components ---------- */
 
-const PAGE_SIZES = [10, 20, 50];
-const DEFAULT_PAGE_SIZE = 20;
+const FileIcon = ({ type }) => {
+  if (!type) return <Icon as={FaFileAlt} color="gray.400" />;
+  const t = type.toLowerCase();
+  if (t.includes('pdf')) return <Icon as={FaFilePdf} color="red.500" />;
+  if (t.includes('excel') || t.includes('sheet') || t.includes('xls')) return <Icon as={FaFileExcel} color="green.500" />;
+  if (t.includes('word') || t.includes('doc')) return <Icon as={FaFileWord} color="blue.500" />;
+  if (t.includes('image') || t.includes('png') || t.includes('jpg')) return <Icon as={FaFileImage} color="purple.500" />;
+  return <Icon as={FaFileAlt} color="gray.500" />;
+};
 
-/* ---------- Mock data (replace with API responses) ---------- */
-const mockDirectory = Array.from({ length: 88 }).map((_, i) => ({
-  id: i + 1,
-  name: `Person ${i + 1}`,
-  department: ["PMD", "ATG", "EIS", "Video"][i % 4],
-  phone: `+63 912 345 ${String(1000 + i).slice(-4)}`,
-  email: `person${i + 1}@example.local`,
-}));
+const DashboardCard = ({ title, icon, onClick, ...props }) => {
+  return (
+    <Card
+      bg="white"
+      shadow="sm"
+      borderRadius="2xl"
+      border="1px solid"
+      borderColor="gray.100"
+      p={{ base: 6, md: 10 }}
+      cursor="pointer"
+      transition="all 0.3s"
+      _hover={{
+        transform: "translateY(-8px)",
+        shadow: "2xl",
+        borderColor: "blue.300",
+        bg: "blue.50"
+      }}
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+      justifyContent="center"
+      onClick={onClick}
+      role="group"
+      {...props}
+    >
+      <Flex
+        p={6}
+        bg="blue.50"
+        borderRadius="2xl"
+        color="blue.600"
+        mb={6}
+        transition="all 0.3s"
+        _groupHover={{ bg: "blue.600", color: "white" }}
+      >
+        {React.cloneElement(icon, { boxSize: 10 })}
+      </Flex>
+      <Heading size="md" color="gray.700" textAlign="center" fontWeight="800" textTransform="uppercase" letterSpacing="wider">
+        {title}
+      </Heading>
+      <Text mt={2} fontSize="sm" color="gray.400" fontWeight="600" textTransform="uppercase">
+        Click to View
+      </Text>
+    </Card>
+  );
+};
 
-const mockWebex = [
-  {
-    id: 1,
-    title: "Daily Ops Sync",
-    host: "Kuya Marcel",
-    start: "2025-11-24 09:00",
-    duration: "30m",
-    joinUrl: "#",
-  },
-  {
-    id: 2,
-    title: "Weekly ATG Review",
-    host: "Kuya Ruben",
-    start: "2025-11-25 14:00",
-    duration: "1h",
-    joinUrl: "#",
-  },
-];
+const DashboardModal = ({ isOpen, onClose, title, children, size = "4xl" }) => (
+  <Modal isOpen={isOpen} onClose={onClose} size={size} isCentered scrollBehavior="inside">
+    <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
+    <ModalContent borderRadius="3xl" shadow="2xl" overflow="hidden" maxH="90vh">
+      <ModalHeader borderBottom="1px solid" borderColor="gray.100" bgGradient="linear(to-r, blue.50, white)" py={6}>
+        <HStack spacing={4}>
+          <Heading size="md" color="blue.800" textTransform="uppercase" letterSpacing="widest">{title}</Heading>
+        </HStack>
+        <ModalCloseButton mt={2} borderRadius="full" />
+      </ModalHeader>
+      <ModalBody p={0}>
+        {children}
+      </ModalBody>
+      <ModalFooter bg="gray.50" borderTop="1px solid" borderColor="gray.100" py={4}>
+        <Button colorScheme="blue" onClick={onClose} borderRadius="xl" px={8}>Close</Button>
+      </ModalFooter>
+    </ModalContent>
+  </Modal>
+);
 
-const mockSuguan = [
-  { id: 1, name: "Suguan A", lokal: "Local 1", district: "District 1", phone: "+63 900 111 2222" },
-  { id: 2, name: "Suguan B", lokal: "Local 2", district: "District 2", phone: "+63 900 222 3333" },
-];
+/* ---------- Main Component ---------- */
 
-const mockATGFiles = [
-  { id: 1, type: "Report", filename: "ATG_Suguan_Report_2025.pdf", date: "2025-11-01", url: "#" },
-  { id: 2, type: "Memo", filename: "ATG_Memo_Transport.xlsx", date: "2025-10-25", url: "#" },
-];
-
-const mockNews = [
-  { id: 1, title: "System Maintenance 27 Nov", author: "Admin", date: "2025-11-20", excerpt: "Planned maintenance at 02:00-04:00." },
-  { id: 2, title: "New Video Streaming Guidelines", author: "Kuya Marcel", date: "2025-11-18", excerpt: "Guidelines for encoded content." },
-];
-
-/* ---------- Component ---------- */
 export default function ATGDashboard() {
   const toast = useToast();
+  const bg = useColorModeValue("gray.50", "gray.900");
 
-  // Directory state & search (debounced)
-  const [directory] = useState(mockDirectory);
-  const [searchInput, setSearchInput] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const searchDebounceRef = useRef(null);
+  // Modal Disclosures
+  const orgModal = useDisclosure();
+  const suguanModal = useDisclosure();
+  const directoryModal = useDisclosure();
+  const filesModal = useDisclosure();
 
+  // Data States
+  const [directory, setDirectory] = useState([]);
+  const [suguan, setSuguan] = useState([]);
+  const [files, setFiles] = useState([]);
+  const [news, setNews] = useState([]);
+  const [orgChart, setOrgChart] = useState(null);
 
-  // Pagination
-  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  // Celebration State
+  const [celebrants, setCelebrants] = useState([]);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
+
+  // Loading States
+  const [loadingDir, setLoadingDir] = useState(true);
+  const [loadingFiles, setLoadingFiles] = useState(true);
+
+  // Filters & Pagination
+  const [phoneSearch, setPhoneSearch] = useState("");
+  const [phoneFilter, setPhoneFilter] = useState("All");
+  const [fileCategory, setFileCategory] = useState("All");
+
+  // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
 
-  // Other sections
-  const [webexMeetings] = useState(mockWebex);
-  const [suguanList] = useState(mockSuguan);
-  const [atgFiles, setAtgFiles] = useState(mockATGFiles);
+  /* ---------- API Functions ---------- */
 
-  // News (right sidebar)
-  const [newsList, setNewsList] = useState(mockNews);
-  const [isAdminPosting, setIsAdminPosting] = useState(false);
-  const [newNewsTitle, setNewNewsTitle] = useState("");
-  const [newNewsExcerpt, setNewNewsExcerpt] = useState("");
-
-  // Org chart
-  const [orgChartUrl, setOrgChartUrl] = useState(ORG_CHART_DEFAULT);
-
-  /* ---------- Effects ---------- */
-  // Debounce search input to update searchQuery
-  useEffect(() => {
-    if (searchDebounceRef.current) {
-      window.clearTimeout(searchDebounceRef.current);
+  const fetchDirectory = async () => {
+    setLoadingDir(true);
+    try {
+      const res = await fetch(`${API_URL}/api/phone-directory`, { headers: getAuthHeaders() });
+      if (res.ok) {
+        const data = await res.json();
+        setDirectory(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      console.error("Failed to load directory", err);
+    } finally {
+      setLoadingDir(false);
     }
-    searchDebounceRef.current = window.setTimeout(() => {
-      setSearchQuery(searchInput.trim().toLowerCase());
-      setCurrentPage(1);
-    }, 300); // 300ms debounce
-    return () => {
-      if (searchDebounceRef.current) window.clearTimeout(searchDebounceRef.current);
-    };
-  }, [searchInput]);
+  };
 
-  // Derived: filtered directory based on searchQuery
+  const fetchNews = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/news`, { headers: getAuthHeaders() });
+      if (res.ok) {
+        const data = await res.json();
+        setNews(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      console.error("Failed to load news", err);
+    }
+  };
+
+  const fetchSuguan = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/suguan`, { headers: getAuthHeaders() });
+      if (res.ok) {
+        const data = await res.json();
+        setSuguan(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      console.error("Failed to load suguan", err);
+    }
+  };
+
+  const fetchFiles = async () => {
+    setLoadingFiles(true);
+    try {
+      const res = await fetch(`${API_URL}/api/atg-files`, { headers: getAuthHeaders() });
+      if (res.ok) {
+        const data = await res.json();
+        const fileList = Array.isArray(data) ? data : [];
+        setFiles(fileList);
+
+        // Extract Org Chart
+        const chart = fileList.find(f => f.category === 'OrgChart');
+        if (chart) setOrgChart(chart);
+      }
+    } catch (err) {
+      console.error("Failed to load files", err);
+    } finally {
+      setLoadingFiles(false);
+    }
+  };
+
+  const handlePostNews = async () => {
+    const title = prompt("Enter News Title:");
+    if (!title) return;
+    const excerpt = prompt("Enter short excerpt/summary:");
+    const category = prompt("Category (Local/Foreign):", "Local");
+
+    try {
+      const res = await fetch(`${API_URL}/api/news`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("authToken")} `
+        },
+        body: JSON.stringify({ title, excerpt, category })
+      });
+      if (res.ok) {
+        toast({ title: "News Posted", status: "success" });
+        fetchNews();
+      }
+    } catch (err) {
+      toast({ title: "Failed to post", status: "error" });
+    }
+  };
+
+  const handleFileUpload = async (event, category = "General") => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Reset input value to allow re-uploading same file if needed in future,
+    // though hard with the current hidden input structure unless we Ref it.
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("category", category);
+    formData.append("uploaded_by", localStorage.getItem("username") || "User");
+
+    try {
+      toast({ title: "Uploading...", status: "info", duration: 1000 });
+
+      const res = await fetch(`${API_URL}/api/atg-files`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("authToken")} `
+          // Explicitly NO Content-Type header to let browser set boundary
+        },
+        body: formData
+      });
+
+      if (res.ok) {
+        toast({ title: "Upload successful!", status: "success" });
+        fetchFiles();
+      } else {
+        const errorText = await res.text();
+        console.error("Upload failed details:", errorText);
+        throw new Error(errorText || "Upload failed");
+      }
+    } catch (err) {
+      console.error("Upload Error:", err);
+      toast({ title: "Upload Error", description: "Check console for details", status: "error" });
+    }
+  };
+
+  const handleDeleteFile = async (id) => {
+    if (!window.confirm("Delete this file?")) return;
+    try {
+      const res = await fetch(`${API_URL}/api/atg-files/${id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders()
+      });
+      if (res.ok) {
+        toast({ title: "Deleted", status: "success" });
+        fetchFiles();
+      }
+    } catch (err) {
+      toast({ title: "Delete failed", status: "error" });
+    }
+  };
+
+  useEffect(() => {
+    fetchDirectory();
+    fetchSuguan();
+    fetchFiles();
+    fetchNews();
+  }, []);
+
+  /* ---------- Render Helpers ---------- */
+
+  // Filter Phone Directory
   const filteredDirectory = useMemo(() => {
-    if (!searchQuery) return directory;
-    return directory.filter(
-      (d) =>
-        d.name.toLowerCase().includes(searchQuery) ||
-        d.department.toLowerCase().includes(searchQuery) ||
-        d.phone.includes(searchQuery) ||
-        d.email.toLowerCase().includes(searchQuery)
+    const q = phoneSearch.toLowerCase();
+    return directory.filter(d =>
+      ((d.name && d.name.toLowerCase().includes(q)) ||
+        (d.location && d.location.toLowerCase().includes(q)) ||
+        (d.phone_name && d.phone_name.toLowerCase().includes(q))) &&
+      (phoneFilter === 'All' || d.location === phoneFilter)
     );
-  }, [directory, searchQuery]);
+  }, [directory, phoneSearch, phoneFilter]);
 
-  const pageCount = Math.max(1, Math.ceil(filteredDirectory.length / pageSize));
-  const paginatedDirectory = filteredDirectory.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-
+  // Reset page on search/filter change
   useEffect(() => {
     setCurrentPage(1);
-  }, [pageSize, searchQuery]);
+  }, [phoneSearch, phoneFilter]);
 
-  /* ---------- Handlers ---------- */
-  const clearSearch = () => {
-    setSearchInput("");
-    setSearchQuery("");
-  };
+  // Pagination Logic
+  const totalPages = Math.ceil(filteredDirectory.length / itemsPerPage);
+  const paginatedDirectory = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredDirectory.slice(start, start + itemsPerPage);
+  }, [filteredDirectory, currentPage]);
 
-  const handleDownloadFile = (file) => {
-    toast({ title: "Download", description: `Downloading ${file.filename}`, status: "info", duration: 2000, isClosable: true });
-    // Replace with actual download logic or window.open(file.url)
-  };
-
-  const handlePostNews = () => {
-    if (!newNewsTitle.trim()) {
-      toast({ title: "Title required", status: "warning", duration: 2000, isClosable: true });
-      return;
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
     }
-    const item = {
-      id: Date.now(),
-      title: newNewsTitle,
-      author: "Admin",
-      date: new Date().toISOString().slice(0, 10),
-      excerpt: newNewsExcerpt,
-    };
-    setNewsList((s) => [item, ...s]);
-    setNewNewsTitle("");
-    setNewNewsExcerpt("");
-    setIsAdminPosting(false);
-    toast({ title: "News posted", status: "success", duration: 2000, isClosable: true });
   };
 
-  const handleOrgChartUpload = (evt) => {
-    const f = evt.target.files?.[0];
-    if (!f) return;
-    const localUrl = URL.createObjectURL(f);
-    setOrgChartUrl(localUrl);
-    toast({ title: "Uploaded", description: f.name, status: "success", duration: 2000, isClosable: true });
-    // TODO: upload to backend and replace url with hosted link
-  };
+  // Extract Unique Locations for Filter
+  const uniqueLocations = useMemo(() => {
+    const locs = directory.map(d => d.location).filter(Boolean);
+    return [...new Set(locs)].sort();
+  }, [directory]);
 
-  /* ---------- Helpers: pagination rendering ---------- */
-  const renderPageButtons = () => {
-    const buttons = [];
-    const total = pageCount;
-    const cur = currentPage;
+  // Filter Suguan (Current Week Only)
+  const currentWeekSuguan = useMemo(() => {
+    const now = new Date();
+    // Calculate start of week (Monday) and end of week (Sunday)
+    const day = now.getDay();
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+    const monday = new Date(now.setDate(diff));
+    monday.setHours(0, 0, 0, 0);
 
-    const pushBtn = (n) =>
-      buttons.push(
-        <Button key={n} size="sm" colorScheme={cur === n ? "teal" : "gray"} onClick={() => setCurrentPage(n)}>
-          {n}
-        </Button>
-      );
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
 
-    if (total <= 7) {
-      for (let i = 1; i <= total; i++) pushBtn(i);
-    } else {
-      if (cur <= 4) {
-        for (let i = 1; i <= 5; i++) pushBtn(i);
-        buttons.push(<Text key="ell1" px={2}>...</Text>);
-        pushBtn(total);
-      } else if (cur >= total - 3) {
-        pushBtn(1);
-        buttons.push(<Text key="ell2" px={2}>...</Text>);
-        for (let i = total - 4; i <= total; i++) pushBtn(i);
-      } else {
-        pushBtn(1);
-        buttons.push(<Text key="ell3" px={2}>...</Text>);
-        pushBtn(cur - 1);
-        pushBtn(cur);
-        pushBtn(cur + 1);
-        buttons.push(<Text key="ell4" px={2}>...</Text>);
-        pushBtn(total);
-      }
-    }
+    return suguan.filter(s => {
+      const sDate = new Date(s.date);
+      return sDate >= monday && sDate <= sunday;
+    });
+  }, [suguan]);
 
-    return buttons;
-  };
+  const visibleFiles = useMemo(() => {
+    return files.filter(f => f.category !== 'OrgChart' && (fileCategory === 'All' || f.category === fileCategory));
+  }, [files, fileCategory]);
 
-  /* ---------- Small UI helpers ---------- */
-  const SectionHeader = ({ title, right }) => (
-    <Flex align="center" mb={3}>
-      <Heading size="md">{title}</Heading>
-      <Spacer />
-      {right}
-    </Flex>
-  );
 
-  /* ---------- Return JSX ---------- */
+
+
   return (
-    <Box bg="gray.50" minH="100vh" p={{ base: 4, md: 8 }}>
-      <Flex align="center" mb={6} gap={4}>
-        <Heading>ATG Dashboard</Heading>
-        <Text color="gray.500" fontSize="sm">Overview • Directory • Meetings • Files</Text>
-      </Flex>
+    <Box minH="100vh" bg={bg} p={{ base: 4, md: 6, lg: 8 }}>
+      <Stack spacing={6} maxW="1800px" mx="auto">
 
-      <Grid
-        templateColumns={{ base: "1fr", lg: "85% 15%" }}
-        gap={6}
-        alignItems="start"
-      >
-        {/* ---------- MAIN COLUMN (85%) ---------- */}
-        <GridItem>
-          <Stack spacing={6}>
-            {/* Directory + controls */}
-            <Card>
-              <CardHeader>
-                <SectionHeader
-                  title="Directory (Phone & Contacts)"
-                  right={
-                    <HStack spacing={3}>
-                      <InputGroup size="sm" maxW="420px">
-                        <InputLeftElement pointerEvents="none" children={<SearchIcon color="gray.400" />} />
-                        <Input
-                          placeholder="Search name, dept, phone, or email"
-                          value={searchInput}
-                          onChange={(e) => setSearchInput(e.target.value)}
-                          bg="white"
-                        />
-                        {searchInput && (
-                          <IconButton
-                            aria-label="clear"
-                            icon={<SmallCloseIcon />}
-                            size="sm"
-                            onClick={clearSearch}
-                            ml={1}
-                            variant="ghost"
-                          />
-                        )}
-                      </InputGroup>
+        {/* Compact Premium Header */}
+        <Center
+          py={6}
+          bg="white"
+          borderRadius="2xl"
+          shadow="sm"
+          border="1px solid"
+          borderColor="gray.100"
+          bgGradient="linear(to-b, white, blue.50)"
+          position="relative"
+          overflow="hidden"
+        >
+          <Box
+            position="absolute"
+            top="-10px"
+            right="-10px"
+            bg="blue.500"
+            opacity={0.05}
+            w="150px"
+            h="150px"
+            borderRadius="full"
+          />
+          <VStack spacing={1}>
+            <Heading
+              size="xl"
+              fontWeight="900"
+              color="blue.900"
+              letterSpacing="tight"
+              textTransform="uppercase"
+            >
+              ATG Dashboard
+            </Heading>
+            <Box
+              h="3px"
+              w="60px"
+              bg="blue.500"
+              borderRadius="full"
+            />
+          </VStack>
+        </Center>
 
-                    <Select
-  size="sm"
-  value={pageSize}
-  onChange={(e) => setPageSize(Number(e.target.value))}
-  maxW="120px"
->
-  {PAGE_SIZES.map((s) => (
-    <option key={s} value={s}>
-      {s} / page
-    </option>
-  ))}
-</Select>
 
-                    </HStack>
-                  }
-                />
-              </CardHeader>
 
-              <CardBody>
-                <Table size="sm" variant="simple">
-                  <Thead bg="gray.100">
+        {/* Main Layout Grid - Optimized for Responsiveness */}
+        <Grid templateColumns={{ base: "1fr", xl: "3fr 1fr" }} gap={8} alignItems="start">
+
+          {/* LEFT COLUMN - Minimal 2x2 Interactive Grid */}
+          <Box w="full">
+            <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={8}>
+
+              {/* Box 1: Organizational Chart */}
+              <DashboardCard
+                title="Organizational Chart"
+                icon={<Icon as={FaBuilding} />}
+                onClick={orgModal.onOpen}
+              />
+
+              {/* Box 2: Suguan */}
+              <DashboardCard
+                title="Suguan Schedule"
+                icon={<CalendarIcon />}
+                onClick={suguanModal.onOpen}
+              />
+
+              {/* Box 3: Phone Directory */}
+              <DashboardCard
+                title="Phone Directory"
+                icon={<Icon as={FaUserTie} />}
+                onClick={directoryModal.onOpen}
+              />
+
+              {/* Box 4: ATG Files & Docs */}
+              <DashboardCard
+                title="Files & Documents"
+                icon={<Icon as={AttachmentIcon} />}
+                onClick={filesModal.onOpen}
+              />
+            </Grid>
+
+            {/* --- Modals for Each Box --- */}
+
+            {/* 1. Organizational Chart Modal */}
+            <DashboardModal
+              isOpen={orgModal.isOpen}
+              onClose={orgModal.onClose}
+              title="Organizational Chart"
+            >
+              <Box p={6}>
+                <Flex justify="space-between" align="center" mb={4} bg="blue.50" p={4} borderRadius="xl">
+                  <Text fontWeight="600" color="blue.700">Manage Company Structure Diagram</Text>
+                  <Button as="label" size="sm" colorScheme="blue" leftIcon={<AttachmentIcon />} cursor="pointer">
+                    Update Image
+                    <input type="file" hidden accept="image/*" onChange={(e) => handleFileUpload(e, 'OrgChart')} />
+                  </Button>
+                </Flex>
+                <Flex align="center" justify="center" minH="500px" bg="gray.100" borderRadius="2xl" overflow="hidden" border="1px solid" borderColor="gray.200">
+                  {orgChart ? (
+                    <Image
+                      src={`${API_URL}${orgChart.file_path}`}
+                      alt="Org Chart"
+                      maxH="100%"
+                      maxW="100%"
+                      objectFit="contain"
+                    />
+                  ) : (
+                    <VStack spacing={4}>
+                      <Icon as={FaBuilding} boxSize={12} color="gray.300" />
+                      <Text color="gray.400">No Organizational Chart has been uploaded yet.</Text>
+                    </VStack>
+                  )}
+                </Flex>
+              </Box>
+            </DashboardModal>
+
+            {/* 2. Suguan Modal */}
+            <DashboardModal
+              isOpen={suguanModal.isOpen}
+              onClose={suguanModal.onClose}
+              title="Suguan (This Week's Schedule)"
+            >
+              <Box>
+                <Table variant="simple" size="md">
+                  <Thead bg="gray.50" position="sticky" top={0} zIndex={1}>
                     <Tr>
-                      <Th>Person</Th>
-                      <Th>Department</Th>
-                      <Th>Phone</Th>
-                      <Th>Email</Th>
+                      <Th>Time</Th>
+                      <Th>Name</Th>
+                      <Th>Lokal</Th>
+                      <Th>Gampanin</Th>
                     </Tr>
                   </Thead>
-
                   <Tbody>
-                    {paginatedDirectory.map((p) => (
-                      <Tr key={p.id} _hover={{ bg: "yellow.50" }}>
-                        <Td>
-                          <Flex align="center">
-                            <Avatar name={p.name} size="sm" mr={3} />
-                            <Box>
-                              <Text fontWeight="semibold">{p.name}</Text>
-                              <Text fontSize="xs" color="gray.600">ID: {p.id}</Text>
-                            </Box>
-                          </Flex>
-                        </Td>
-                        <Td><Text>{p.department}</Text></Td>
-                        <Td><Text>{p.phone}</Text></Td>
-                        <Td><Text>{p.email}</Text></Td>
-                      </Tr>
-                    ))}
+                    {currentWeekSuguan.length === 0 ? (
+                      <Tr><Td colSpan={4} textAlign="center" py={12} color="gray.500">No schedules recorded for this week.</Td></Tr>
+                    ) : (
+                      currentWeekSuguan.map((s, i) => (
+                        <Tr key={i} _hover={{ bg: "blue.50" }}>
+                          <Td fontWeight="bold" color="blue.600">{s.time}</Td>
+                          <Td fontWeight="600">{s.name}</Td>
+                          <Td>{s.local_congregation}</Td>
+                          <Td><Badge colorScheme="blue" variant="subtle" px={2} borderRadius="md">{s.gampanin_id}</Badge></Td>
+                        </Tr>
+                      ))
+                    )}
                   </Tbody>
                 </Table>
+              </Box>
+            </DashboardModal>
 
-                {/* Pagination row */}
-                <Flex justify="space-between" align="center" mt={4} wrap="wrap" gap={3}>
-                  <Text fontSize="sm" color="gray.600">
-                    Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, filteredDirectory.length)} of {filteredDirectory.length} rows
-                  </Text>
-
-                  <Flex align="center" gap={2} wrap="wrap">
-                    <Button size="sm" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1}>
-                      Previous
-                    </Button>
-
-                    {renderPageButtons()}
-
-                    <Button size="sm" onClick={() => setCurrentPage((p) => Math.min(pageCount, p + 1))} disabled={currentPage === pageCount}>
-                      Next
-                    </Button>
-                  </Flex>
+            {/* 3. Phone Directory Modal */}
+            <DashboardModal
+              isOpen={directoryModal.isOpen}
+              onClose={directoryModal.onClose}
+              title="Phone Directory"
+              size="6xl"
+            >
+              <Box>
+                <Flex p={4} gap={4} bg="gray.50" borderBottom="1px solid" borderColor="gray.100">
+                  <InputGroup maxW="400px">
+                    <InputLeftElement pointerEvents="none"><SearchIcon color="gray.400" /></InputLeftElement>
+                    <Input
+                      placeholder="Search by name or number..."
+                      bg="white"
+                      value={phoneSearch}
+                      onChange={(e) => setPhoneSearch(e.target.value)}
+                    />
+                  </InputGroup>
+                  <Select
+                    maxW="200px"
+                    bg="white"
+                    placeholder="All Locations"
+                    value={phoneFilter}
+                    onChange={(e) => setPhoneFilter(e.target.value)}
+                  >
+                    {uniqueLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+                  </Select>
                 </Flex>
-              </CardBody>
-            </Card>
-
-            {/* Middle row: Webex, Suguan, Org Chart, Files (stacked nicely) */}
-            <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={6}>
-              <GridItem>
-                <Stack spacing={6}>
-                  {/* Webex */}
-                  <Card>
-                    <CardHeader>
-                      <SectionHeader
-                        title="Webex / Meetings"
-                        right={<Button size="sm" leftIcon={<AddIcon />} onClick={() => toast({ title: "TODO add meeting", status: "info" })}>Add</Button>}
-                      />
-                    </CardHeader>
-                    <CardBody>
-                      <VStack spacing={3} align="stretch">
-                        {webexMeetings.map((m) => (
-                          <Flex key={m.id} align="center" gap={3} p={2} borderRadius="md" _hover={{ bg: "gray.50" }}>
-                            <Box>
-                              <Text fontWeight="semibold">{m.title}</Text>
-                              <Text fontSize="sm" color="gray.600">{m.host} • {m.start} • {m.duration}</Text>
-                            </Box>
-                            <Spacer />
-                            <Link href={m.joinUrl} isExternal>
-                              <Button size="sm" colorScheme="teal" rightIcon={<ExternalLinkIcon />}>Join</Button>
-                            </Link>
-                          </Flex>
-                        ))}
-                      </VStack>
-                    </CardBody>
-                  </Card>
-
-                  {/* Suguan (PMD) */}
-                  <Card>
-                    <CardHeader>
-                      <SectionHeader title="Suguan (PMD Personnel)" right={<Text fontSize="sm" color="gray.600">Improved list</Text>} />
-                    </CardHeader>
-                    <CardBody>
-                      <VStack spacing={3} align="stretch">
-                        {suguanList.map((s) => (
-                          <Flex key={s.id} align="center" gap={3} p={2} borderRadius="md" _hover={{ bg: "gray.50" }}>
-                            <Avatar name={s.name} size="sm" />
-                            <Box>
-                              <Text fontWeight="semibold">{s.name}</Text>
-                              <Text fontSize="sm" color="gray.600">{s.lokal} • {s.district}</Text>
-                            </Box>
-                            <Spacer />
-                            <Text fontSize="sm">{s.phone}</Text>
-                          </Flex>
-                        ))}
-                      </VStack>
-                    </CardBody>
-                  </Card>
-                </Stack>
-              </GridItem>
-
-              <GridItem>
-                <Stack spacing={6}>
-                  {/* Organization Chart */}
-                  <Card>
-                    <CardHeader>
-                      <SectionHeader
-                        title="Organization Chart"
-                        right={
-                          <HStack>
-                            <Input type="file" accept=".pdf,.png,.jpg" size="sm" onChange={handleOrgChartUpload} display="none" id="org-upload" />
-                            <Button as="label" htmlFor="org-upload" size="sm">Upload</Button>
-                            <Button size="sm" onClick={() => { setOrgChartUrl(ORG_CHART_DEFAULT); toast({ title: "Reset", status: "info", duration: 1000 }); }}>Reset</Button>
-                          </HStack>
-                        }
-                      />
-                    </CardHeader>
-                    <CardBody>
-                      <Box borderRadius="md" overflow="hidden" border="1px solid" borderColor="gray.100">
-                        {orgChartUrl?.toLowerCase().endsWith(".pdf") ? (
-                          <Flex align="center" justify="center" p={6}>
-                            <Link href={orgChartUrl} isExternal><Button leftIcon={<DownloadIcon />}>Open Organization Chart (PDF)</Button></Link>
-                          </Flex>
-                        ) : (
-                          <img src={orgChartUrl} alt="Organization Chart" style={{ width: "100%", display: "block", maxHeight: 320, objectFit: "contain" }} />
-                        )}
-                      </Box>
-                      <Text fontSize="sm" mt={2} color="gray.600">Preview uses the local dev file path or uploaded image.</Text>
-                    </CardBody>
-                  </Card>
-
-                  {/* ATG Suguan Files */}
-                  <Card>
-                    <CardHeader>
-                      <SectionHeader title="ATG Suguan - Files" right={<Button size="sm" leftIcon={<AddIcon />} onClick={() => toast({ title: "TODO add file", status: "info" })}>Upload</Button>} />
-                    </CardHeader>
-                    <CardBody>
-                      <Table size="sm" variant="simple">
-                        <Thead bg="gray.100">
-                          <Tr>
-                            <Th>Type</Th>
-                            <Th>File</Th>
-                            <Th>Date</Th>
-                            <Th>Action</Th>
+                <Box maxH="600px" overflowY="auto">
+                  <Table variant="simple">
+                    <Thead bg="gray.50" position="sticky" top={0} zIndex={5}>
+                      <Tr>
+                        <Th>Name</Th>
+                        <Th>Location</Th>
+                        <Th textAlign="right">Ext / Dect</Th>
+                      </Tr>
+                    </Thead>
+                    <Tbody>
+                      {loadingDir ? (
+                        <Tr><Td colSpan={4} textAlign="center" py={10}><Skeleton height="20px" /></Td></Tr>
+                      ) : paginatedDirectory.length === 0 ? (
+                        <Tr><Td colSpan={4} textAlign="center" py={10}>No contacts found.</Td></Tr>
+                      ) : (
+                        paginatedDirectory.map((d, i) => (
+                          <Tr key={i} _hover={{ bg: "blue.50" }}>
+                            <Td>
+                              <HStack spacing={3}>
+                                <Avatar name={d.name} size="sm" />
+                                <Text fontWeight="600">{d.name}</Text>
+                              </HStack>
+                            </Td>
+                            <Td>{d.location}</Td>
+                            <Td textAlign="right">
+                              <HStack justify="flex-end">
+                                {d.extension && <Text fontSize="sm" fontWeight="bold">Loc {d.extension}</Text>}
+                                {d.dect_number && <Badge colorScheme="purple">{d.dect_number}</Badge>}
+                              </HStack>
+                            </Td>
                           </Tr>
-                        </Thead>
-                        <Tbody>
-                          {atgFiles.map((f) => (
-                            <Tr key={f.id} _hover={{ bg: "yellow.50" }}>
-                              <Td><Badge colorScheme="purple">{f.type}</Badge></Td>
-                              <Td><Text fontWeight="semibold">{f.filename}</Text></Td>
-                              <Td>{f.date}</Td>
-                              <Td>
-                                <Button size="sm" onClick={() => handleDownloadFile(f)} leftIcon={<DownloadIcon />}>Download</Button>
-                              </Td>
-                            </Tr>
-                          ))}
-                        </Tbody>
-                      </Table>
-                    </CardBody>
-                  </Card>
-                </Stack>
-              </GridItem>
-            </Grid>
-          </Stack>
-        </GridItem>
-
-        {/* ---------- RIGHT SIDEBAR (15%) - NEWS ---------- */}
-        <GridItem>
-          <Box position={{ lg: "sticky" }} top={{ lg: 20 }} alignSelf="start">
-            <Card boxShadow="md" borderRadius="md">
-              <CardHeader>
-                <Flex align="center" gap={3}>
-                  <Heading size="sm">News</Heading>
-                  <Spacer />
-                  <Text fontSize="xs" color="gray.500">Daily / Weekly</Text>
+                        ))
+                      )}
+                    </Tbody>
+                  </Table>
+                </Box>
+                {/* Pagination */}
+                <Flex justify="space-between" align="center" px={6} py={4} bg="gray.50">
+                  <Text fontSize="sm" color="gray.500">Page {currentPage} of {totalPages}</Text>
+                  <HStack spacing={2}>
+                    <Button size="sm" onClick={() => handlePageChange(currentPage - 1)} isDisabled={currentPage === 1}>Previous</Button>
+                    <Button size="sm" onClick={() => handlePageChange(currentPage + 1)} isDisabled={currentPage === totalPages}>Next</Button>
+                  </HStack>
                 </Flex>
-              </CardHeader>
+              </Box>
+            </DashboardModal>
 
-              <CardBody>
-                <VStack spacing={3} align="stretch">
-                  {/* Admin post area (collapsible) */}
-                  {isAdminPosting ? (
-                    <Box p={2} bg="gray.50" borderRadius="md">
-                      <Input placeholder="Title" mb={2} size="sm" value={newNewsTitle} onChange={(e) => setNewNewsTitle(e.target.value)} />
-                      <Input placeholder="Short excerpt" mb={2} size="sm" value={newNewsExcerpt} onChange={(e) => setNewNewsExcerpt(e.target.value)} />
-                      <HStack>
-                        <Button size="sm" colorScheme="teal" onClick={handlePostNews}>Publish</Button>
-                        <Button size="sm" onClick={() => setIsAdminPosting(false)}>Cancel</Button>
-                      </HStack>
-                    </Box>
+            {/* 4. ATG Files Modal */}
+            <DashboardModal
+              isOpen={filesModal.isOpen}
+              onClose={filesModal.onClose}
+              title="Files & Documents"
+            >
+              <Box>
+                <Flex p={4} gap={4} bg="gray.50" borderBottom="1px solid" borderColor="gray.100" justify="space-between">
+                  <Select size="sm" maxW="200px" bg="white" value={fileCategory} onChange={(e) => setFileCategory(e.target.value)}>
+                    <option value="All">All Categories</option>
+                    <option value="Report">Reports</option>
+                    <option value="Memo">Memos</option>
+                    <option value="General">General</option>
+                  </Select>
+                  <Button as="label" size="sm" colorScheme="blue" leftIcon={<AddIcon />} cursor="pointer">
+                    Upload New File
+                    <input type="file" hidden onChange={(e) => handleFileUpload(e, fileCategory !== 'All' ? fileCategory : 'General')} />
+                  </Button>
+                </Flex>
+                <VStack align="stretch" spacing={0} maxH="600px" overflowY="auto">
+                  {loadingFiles ? (
+                    <Text p={8} textAlign="center">Loading...</Text>
+                  ) : visibleFiles.length === 0 ? (
+                    <Text p={8} textAlign="center">No files found.</Text>
                   ) : (
-                    <Button size="sm" leftIcon={<AddIcon />} onClick={() => setIsAdminPosting(true)}>Post News</Button>
-                  )}
-
-                  <Divider />
-
-                  {/* News list - scrollable if long */}
-                  <VStack spacing={2} align="stretch" maxH={{ lg: "60vh" }} overflowY="auto" pr={2}>
-                    {newsList.map((n) => (
-                      <Box key={n.id} p={2} bg="white" borderRadius="md" boxShadow="sm">
-                        <Text fontWeight="bold" fontSize="sm">{n.title}</Text>
-                        <Text fontSize="xs" color="gray.500">{n.author} • {n.date}</Text>
-                        <Text fontSize="sm" mt={1}>{n.excerpt}</Text>
-                        <HStack mt={2} justify="space-between">
-                          <Link href="#" fontSize="xs">Read more <ExternalLinkIcon mx="2px" /></Link>
-                          <Text fontSize="xs" color="gray.400">ID {n.id}</Text>
+                    visibleFiles.map(file => (
+                      <Flex key={file.id} p={4} borderBottom="1px solid" borderColor="gray.100" align="center" justify="space-between" _hover={{ bg: "gray.50" }}>
+                        <HStack spacing={4}>
+                          <Box p={2} bg="blue.50" borderRadius="md"><FileIcon type={file.file_type} /></Box>
+                          <Box>
+                            <Text fontWeight="600" fontSize="sm">{file.filename}</Text>
+                            <HStack spacing={4}>
+                              <Badge size="xs" colorScheme="gray">{file.category}</Badge>
+                              <Text fontSize="xs" color="gray.400">{new Date(file.createdAt).toLocaleDateString()}</Text>
+                            </HStack>
+                          </Box>
                         </HStack>
-                      </Box>
-                    ))}
-                    {newsList.length === 0 && <Text color="gray.500">No news posted yet.</Text>}
-                  </VStack>
+                        <HStack>
+                          <IconButton icon={<DownloadIcon />} size="sm" variant="ghost" colorScheme="blue" onClick={() => window.open(`${API_URL}${file.file_path}`, '_blank')} />
+                          <IconButton icon={<DeleteIcon />} size="sm" variant="ghost" colorScheme="red" onClick={() => handleDeleteFile(file.id)} />
+                        </HStack>
+                      </Flex>
+                    ))
+                  )}
                 </VStack>
-              </CardBody>
-            </Card>
+              </Box>
+            </DashboardModal>
           </Box>
-        </GridItem>
-      </Grid>
 
-      <Box mt={8} textAlign="center" color="gray.500">
-        <Text fontSize="sm">This is a responsive ATG Dashboard template. Replace mock data with your APIs and endpoints.</Text>
-      </Box>
+          {/* RIGHT COLUMN - News Sidebar (Sticky on Desktop, Stacked on Mobile) */}
+          <Box
+            position={{ base: "relative", xl: "sticky" }}
+            top={{ base: "0", xl: "6" }}
+            h={{ base: "700px", xl: "calc(100vh - 120px)" }}
+            mt={{ base: 4, xl: 0 }}
+          >
+            <ATGNewsSidebar />
+          </Box>
+        </Grid>
+
+      </Stack>
     </Box>
   );
 }

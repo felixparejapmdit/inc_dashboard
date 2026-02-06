@@ -1,10 +1,11 @@
-const Personnel = require("../models/personnels"); // Ensure the correct path
+const Personnel = require("../models/personnels"); // Ensure the correct path.
 
 const User = require("../models/User"); // Ensure this model is correctly defined
 const { Sequelize, Op, fn, col } = require("sequelize"); // Import Sequelize and Op
 const Section = require("../models/Section");
 const sequelize = require("../config/database"); // Ensure Sequelize instance is imported
 const PersonnelChurchDuties = require("../models/PersonnelChurchDuties");
+const PersonnelHistory = require("../models/PersonnelHistory");
 
 const moment = require("moment");
 // Controller: Get soft-deleted personnels
@@ -27,9 +28,20 @@ exports.getDeletedPersonnels = async (req, res) => {
 // Controller: Restore soft-deleted personnel by ID
 exports.restorePersonnel = async (req, res) => {
   try {
-    await Personnel.restore({ where: { personnel_id: req.params.id } });
+    const personnelId = req.params.id;
+    await Personnel.restore({ where: { personnel_id: personnelId } });
+
+    // Log history
+    await PersonnelHistory.create({
+      personnel_id: personnelId,
+      action: "In",
+      reason: "Personnel restored from Temporarily Deleted list",
+      performed_by: req.user ? req.user.username : "System"
+    });
+
     res.json({ message: "User restored successfully." });
   } catch (err) {
+    console.error("Restore failed:", err);
     res.status(500).json({ message: "Restore failed." });
   }
 };
@@ -85,6 +97,97 @@ exports.getAllNewPersonnels = async (req, res) => {
   }
 };
 
+// Monitor personnel progress (progress = 8)
+exports.getMonitoringPersonnels = async (req, res) => {
+  try {
+    const Group = require("../models/Group"); // Ensure Group model is imported
+    const UserGroupMapping = require("../models/UserGroupMapping");
+
+    const personnels = await Personnel.findAll({
+      where: {
+        deleted_at: null,
+      },
+      include: [
+        {
+          model: User,
+          as: "user",
+          required: false, // Include all, then filter below or handle in map
+          include: [
+            {
+              model: UserGroupMapping,
+              include: [
+                { model: Group }
+              ]
+            }
+          ]
+        },
+        {
+          model: Section,
+          as: "Section",
+          attributes: ["name"]
+        }
+      ],
+      // Filter to only those without users, matching ProgressTracking's "New" list
+      // Note: Sequelize include where filters out the parent if required is false but where is used on child.
+      // So we filter in the results or use the "$user.id$": null syntax.
+      where: {
+        deleted_at: null,
+        "$user.id$": null
+      },
+      order: [["created_at", "DESC"]]
+    });
+
+    const formatted = personnels.map(p => {
+      const userGroups = p.user && p.user.UserGroupMappings
+        ? p.user.UserGroupMappings.map(mapping => mapping.Group ? mapping.Group.name : null).filter(n => n)
+        : [];
+
+      return {
+        personnel_id: p.personnel_id,
+        fullname: `${p.givenname} ${p.surname_husband}`,
+        personnel_progress: p.personnel_progress,
+        email: p.email_address,
+        section: p.Section ? p.Section.name : "N/A",
+        user_created: !!p.user,
+        username: p.user ? p.user.username : null,
+        groups: userGroups
+      };
+    });
+
+    res.status(200).json(formatted);
+  } catch (error) {
+    console.error("Error monitoring personnels:", error);
+    res.status(500).json({ message: "Error monitoring personnels", error: error.message });
+  }
+};
+
+// Controller: Get personnels with associated users (Active)
+exports.getPersonnelsWithUsers = async (req, res) => {
+  try {
+    const personnels = await Personnel.findAll({
+      attributes: ["personnel_id", "personnel_type"], // Only fetch necessary fields
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["id"],
+          required: true, // Inner Join: Only return personnel who have an associated user
+        },
+      ],
+      where: {
+        deleted_at: null,
+      },
+    });
+    res.status(200).json(personnels);
+  } catch (error) {
+    console.error("Error fetching active personnels:", error);
+    res.status(500).json({
+      message: "Error fetching active personnels",
+      error: error.message,
+    });
+  }
+};
+
 // Controller to get church duties by personnel ID
 exports.getPersonnelDutiesByPersonnelId = async (req, res) => {
   try {
@@ -112,6 +215,8 @@ exports.getPersonnelDutiesByPersonnelId = async (req, res) => {
     });
   }
 };
+
+
 
 // Get personnels by progress
 exports.getPersonnelsByProgress = async (req, res) => {
@@ -149,6 +254,7 @@ exports.getPersonnelsByProgress = async (req, res) => {
       include: [
         {
           model: User,
+          as: "user",
           attributes: [],
           required: false,
         },
@@ -616,16 +722,27 @@ exports.updatePersonnel = async (req, res) => {
 // Delete a personnel record by ID
 exports.deletePersonnel = async (req, res) => {
   try {
-    const personnel = await Personnel.findByPk(req.params.id);
+    const personnelId = req.params.id;
+    const personnel = await Personnel.findByPk(personnelId);
+
     if (!personnel) {
       return res.status(404).json({ message: "Personnel not found" });
     }
 
-    // Perform soft delete by setting deleted_at
-    await personnel.update({ deleted_at: new Date() });
+    // Perform soft delete using standard Sequelize paranoid behavior
+    await personnel.destroy();
+
+    // Log history
+    await PersonnelHistory.create({
+      personnel_id: personnelId,
+      action: "Out",
+      reason: "Personnel deleted directly",
+      performed_by: req.user ? req.user.username : "System"
+    });
 
     res.status(200).json({ message: "Personnel record marked as deleted" });
   } catch (error) {
+    console.error("Error deleting personnel:", error);
     res.status(500).json({
       message: "Error deleting personnel record",
       error: error.message,
@@ -765,3 +882,115 @@ exports.deletePersonnelChurchDuty = async (req, res) => {
   }
 };
 
+
+// Get personnel with birthdays or wedding anniversaries in the current month
+exports.getTodaysCelebrants = async (req, res) => {
+  try {
+    const today = new Date();
+    const currentMonth = today.getMonth() + 1; // 0-indexed
+    const currentDay = today.getDate();
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    // Fetch minimal needed fields for all active personnels
+    const personnels = await Personnel.findAll({
+      attributes: [
+        "personnel_id",
+        "givenname",
+        "surname_husband",
+        "date_of_birth",
+        "wedding_anniversary",
+        "personnel_type"
+      ],
+      where: {
+        deleted_at: null,
+      },
+    });
+
+    const celebrants = [];
+
+    personnels.forEach((p) => {
+      const fullname = `${p.givenname || ""} ${p.surname_husband || ""}`.trim();
+
+      // Check Birthday
+      if (p.date_of_birth) {
+        const dob = new Date(p.date_of_birth);
+        if (dob.getMonth() + 1 === currentMonth) {
+          const day = dob.getDate();
+          const isToday = day === currentDay;
+          celebrants.push({
+            id: `bday-${p.personnel_id}`,
+            title: isToday ? "Happy Birthday Today! 🎂" : `Birthday on ${monthNames[currentMonth - 1]} ${day} 🎂`,
+            description: isToday ? `${fullname} is celebrating today!` : `${fullname}`,
+            type: "birthday",
+            date: day,
+            isToday: isToday,
+            timestamp: new Date(today.getFullYear(), currentMonth - 1, day).getTime()
+          });
+        }
+      }
+
+      // Check Anniversary
+      if (p.wedding_anniversary) {
+        const anniv = new Date(p.wedding_anniversary);
+        if (anniv.getMonth() + 1 === currentMonth) {
+          const day = anniv.getDate();
+          const isToday = day === currentDay;
+          celebrants.push({
+            id: `anniv-${p.personnel_id}`,
+            title: isToday ? "Happy Anniversary Today! 💍" : `Anniversary on ${monthNames[currentMonth - 1]} ${day} 💍`,
+            description: isToday ? `${fullname} is celebrating today!` : `${fullname}`,
+            type: "anniversary",
+            date: day,
+            isToday: isToday,
+            timestamp: new Date(today.getFullYear(), currentMonth - 1, day).getTime()
+          });
+        }
+      }
+    });
+
+    // Sort: Today first, then day (asc)
+    celebrants.sort((a, b) => {
+      if (a.isToday && !b.isToday) return -1;
+      if (!a.isToday && b.isToday) return 1;
+      return a.date - b.date;
+    });
+
+    res.status(200).json(celebrants);
+  } catch (error) {
+    console.error("Error fetching celebrants:", error);
+    res.status(500).json({ error: "Failed to fetch celebrants" });
+  }
+};
+
+exports.getPersonnelHistory = async (req, res) => {
+  try {
+    const history = await PersonnelHistory.findAll({
+      include: [
+        {
+          model: Personnel,
+          as: "personnel",
+          attributes: ["givenname", "surname_husband"],
+          paranoid: false, // Include names even for currently deleted personnel
+        },
+      ],
+      order: [["timestamp", "DESC"]],
+    });
+
+    const formatted = history.map((h) => ({
+      id: h.id,
+      personnel_id: h.personnel_id,
+      fullname: h.personnel
+        ? `${h.personnel.givenname} ${h.personnel.surname_husband}`
+        : "Unknown Personnel",
+      action: h.action,
+      reason: h.reason,
+      performed_by: h.performed_by,
+      timestamp: h.timestamp,
+    }));
+
+    res.status(200).json(formatted);
+  } catch (error) {
+    console.error("Error fetching personnel history:", error);
+    res.status(500).json({ message: "Error fetching personnel history" });
+  }
+};

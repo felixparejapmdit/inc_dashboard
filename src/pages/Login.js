@@ -1,14 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import CryptoJS from "crypto-js"; // For crypto-js (used for MD5)
-//import crypto from "crypto"; // For Node.js crypto (used for SSHA)
+import CryptoJS from "crypto-js";
 import crypto from "crypto-browserify";
-import bcrypt from "bcryptjs"; // Ensure bcrypt is installed
-import sha from "sha.js"; // For SHA encryption
 import { Buffer } from "buffer";
 
-import * as XLSX from "xlsx";
 import {
   Box,
   Button,
@@ -20,7 +16,6 @@ import {
   Flex,
   Text,
   Image,
-  Spinner,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -32,21 +27,37 @@ import {
   useToast,
   InputGroup,
   InputLeftElement,
+  InputRightElement,
   Divider,
-    Link as ChakraLink
+  Link as ChakraLink,
+  Icon,
+  Card,
+  CardBody,
+  HStack,
+  Badge,
+  useColorModeValue,
+  IconButton,
 } from "@chakra-ui/react";
-import "./Login.css"; // Custom CSS for animated input effect
 
-import { FiUser, FiLock,FiExternalLink } from "react-icons/fi"; // Import icons
+import {
+  FiUser,
+  FiLock,
+  FiExternalLink,
+  FiEye,
+  FiEyeOff,
+  FiUserPlus,
+  FiCalendar,
+  FiHash,
+} from "react-icons/fi";
 import { usePermissionContext } from "../contexts/PermissionContext";
-import { getAuthHeaders } from "../utils/apiHeaders"; // adjust path as needed
+import { fetchData } from "../utils/fetchData";
 
-import { fetchData, postData, putData, deleteData } from "../utils/fetchData";
+const API_URL = process.env.REACT_APP_API_URL || "https://localhost";
 
-const API_URL = process.env.REACT_APP_API_URL;
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [referenceNumber, setReferenceNumber] = useState("");
   const [name, setName] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
@@ -57,126 +68,84 @@ const Login = () => {
 
   const navigate = useNavigate();
   const toast = useToast();
-
   const { fetchPermissions } = usePermissionContext();
 
-  const [isPlaying, setIsPlaying] = useState(false);
+  // Color mode values
+  const cardBg = useColorModeValue("white", "gray.800");
+  const bgGradient = useColorModeValue(
+    "linear(to-br, orange.400, yellow.400)",
+    "linear(to-br, gray.900, gray.800)"
+  );
 
-  const [file, setFile] = useState(null);
-
-  const handleFileUpload = (event) => {
-    setFile(event.target.files[0]);
-  };
-
-  const handleImportDistricts = async () => {
-    if (!file) {
-      toast({
-        title: "Error",
-        description: "Please select an XLSX file to import.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.readAsBinaryString(file);
-    reader.onload = async (e) => {
-      const data = e.target.result;
-      const workbook = XLSX.read(data, { type: "binary" });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet);
-
-      try {
-        const response = await axios.post(`${API_URL}/api/import-districts`, {
-          districts: jsonData,
-        });
-
-        toast({
-          title: "Success",
-          description: response.data.message,
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
-      } catch (error) {
-        console.error("Import error:", error);
-        toast({
-          title: "Error",
-          description: "Failed to import districts.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      }
-    };
-  };
-
-  const handleImportLocal = async () => {
-    if (!file) {
-      toast({
-        title: "Error",
-        description: "Please select an XLSX file to import.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.readAsBinaryString(file);
-    reader.onload = async (e) => {
-      const data = e.target.result;
-      const workbook = XLSX.read(data, { type: "binary" });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet);
-
-      if (!jsonData.length) {
-        toast({
-          title: "Error",
-          description: "No data found in the file.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-        return;
-      }
-
-      const batchSize = 1000; // Send in batches of 1000 records
-      for (let i = 0; i < jsonData.length; i += batchSize) {
-        const batch = jsonData.slice(i, i + batchSize);
-        try {
-          await axios.post(
-            `${process.env.REACT_APP_API_URL}/api/import-local-congregations`,
-            { data: batch }
-          );
-          //console.log(`Imported ${i + batchSize} rows`);
-        } catch (error) {
-          console.error("Error importing batch:", error);
-          toast({
-            title: "Error",
-            description:
-              "Failed to import some data. Check console for errors.",
-            status: "error",
-            duration: 3000,
-            isClosable: true,
-          });
-          return;
+  // Hash password functions
+  const hashPassword = (password, encryptionType, existingHash = null) => {
+    switch (encryptionType.toLowerCase()) {
+      case "md5": {
+        if (existingHash) {
+          const md5sum = CryptoJS.MD5(password);
+          const computedHash = `{MD5}` + CryptoJS.enc.Base64.stringify(md5sum);
+          return computedHash === existingHash;
+        } else {
+          const md5sum = CryptoJS.MD5(password);
+          return `{MD5}` + CryptoJS.enc.Base64.stringify(md5sum);
         }
       }
+      case "sha": {
+        if (existingHash) {
+          const sha1sum = CryptoJS.SHA1(password);
+          const computedHash = `{SHA}` + CryptoJS.enc.Base64.stringify(sha1sum);
+          return computedHash === existingHash;
+        } else {
+          const sha1sum = CryptoJS.SHA1(password);
+          return `{SHA}` + CryptoJS.enc.Base64.stringify(sha1sum);
+        }
+      }
+      case "ssha": {
+        if (existingHash) {
+          return validateSSHA(password, existingHash);
+        } else {
+          const salt = crypto.randomBytes(8);
+          const sha1sum = crypto
+            .createHash("sha1")
+            .update(password)
+            .update(salt)
+            .digest();
+          const combined = Buffer.concat([sha1sum, salt]).toString("base64");
+          return `{SSHA}` + combined;
+        }
+      }
+      case "clear": {
+        return password === existingHash;
+      }
+      default: {
+        throw new Error(`Unsupported encryption type: ${encryptionType}`);
+      }
+    }
+  };
 
-      toast({
-        title: "Success",
-        description: "Local Congregations imported successfully!",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-    };
+  const validateSSHA = (password, sshaHash) => {
+    if (!sshaHash.startsWith("{SSHA}")) {
+      return false;
+    }
+
+    const base64Hash = sshaHash.slice(6);
+
+    try {
+      const decoded = Buffer.from(base64Hash, "base64");
+      const sha1Hash = decoded.slice(0, 20);
+      const salt = decoded.slice(20);
+
+      const recomputedHash = crypto
+        .createHash("sha1")
+        .update(password)
+        .update(salt)
+        .digest();
+
+      return Buffer.compare(sha1Hash, recomputedHash) === 0;
+    } catch (error) {
+      console.error("Error decoding Base64 string:", error.message);
+      return false;
+    }
   };
 
   const handleRetrieveReference = async () => {
@@ -187,12 +156,10 @@ const Login = () => {
         status: "error",
         duration: 3000,
         isClosable: true,
-        position: "bottom-left", // Position the toast on the bottom-left
       });
       return;
     }
 
-    // Attempt to split the name into first, middle, and surname
     const nameParts = name.split(" ").filter(Boolean);
     if (nameParts.length < 2) {
       toast({
@@ -201,17 +168,12 @@ const Login = () => {
         status: "error",
         duration: 3000,
         isClosable: true,
-        position: "bottom-left",
       });
       return;
     }
 
-    // Assume the first part is the given name and the last part is the surname
-    const givenname = nameParts[0]; // First name
-    const surname_husband = nameParts.slice(1).join(" "); // Everything after first word = surname
-
-    //console.log("Given Name:", givenname);
-    //console.log("Surname:", surname_husband);
+    const givenname = nameParts[0];
+    const surname_husband = nameParts.slice(1).join(" ");
 
     setIsLoading(true);
     try {
@@ -230,7 +192,6 @@ const Login = () => {
           status: "success",
           duration: 3000,
           isClosable: true,
-          position: "bottom-left", // Position the toast on the bottom-left
         });
       } else {
         toast({
@@ -239,7 +200,6 @@ const Login = () => {
           status: "error",
           duration: 3000,
           isClosable: true,
-          position: "bottom-left", // Position the toast on the bottom-left
         });
       }
     } catch (error) {
@@ -252,16 +212,14 @@ const Login = () => {
         status: "error",
         duration: 3000,
         isClosable: true,
-        position: "bottom-left", // Position the toast on the bottom-left
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Track Enrollment Progress
   const handleTrackProgress = async () => {
-    const trackingNumber = referenceNumber || retrievedReference; // Use referenceNumber if available, otherwise use retrievedReference
+    const trackingNumber = referenceNumber || retrievedReference;
 
     if (!trackingNumber) {
       toast({
@@ -270,7 +228,6 @@ const Login = () => {
         status: "error",
         duration: 3000,
         isClosable: true,
-        position: "bottom-left", // Position the toast on the bottom-left
       });
       return;
     }
@@ -280,13 +237,10 @@ const Login = () => {
         `${API_URL}/api/getreference?reference_number=${trackingNumber}`
       );
 
-      //(response.data);
-
       if (response.data && response.data.personnel_id) {
         const { personnel_id, enrollment_progress, personnel_progress } =
           response.data;
 
-        // Navigate to the EnrollmentForm with the appropriate step
         navigate(
           `/enroll?personnel_id=${personnel_id}&step=${enrollment_progress}&personnel_progress=${personnel_progress}&type=track`
         );
@@ -297,7 +251,6 @@ const Login = () => {
           status: "error",
           duration: 3000,
           isClosable: true,
-          position: "bottom-left", // Position the toast on the bottom-left
         });
       }
     } catch (error) {
@@ -309,444 +262,12 @@ const Login = () => {
         status: "error",
         duration: 3000,
         isClosable: true,
-        position: "bottom-left", // Position the toast on the bottom-left
       });
     }
-  };
-
-  const startMusic = () => {
-    const audio = document.getElementById("background-audio");
-    audio.muted = false; // Unmute the audio
-    audio.play(); // Play the audio
-    setIsPlaying(true); // Hide the overlay
   };
 
   const handleEnroll = () => {
     navigate("/enroll?type=new");
-  };
-
-  // Hash the password for LDAP MD5 format
-  const md5HashPassword = (password) => {
-    const md5sum = crypto.MD5(password);
-    return `{MD5}` + crypto.enc.Base64.stringify(md5sum);
-  };
-
-  //const crypto = require("crypto");
-
-  const hashPassword = (password, encryptionType, existingHash = null) => {
-    switch (encryptionType.toLowerCase()) {
-      case "bcrypt": {
-        // Validate bcrypt
-        if (existingHash) {
-          return bcrypt.compareSync(password, existingHash); // Compare password with hash
-        } else {
-          const saltRounds = 10;
-          const hashedPassword = bcrypt.hashSync(password, saltRounds);
-          console.log("Generated bcrypt hash:", hashedPassword);
-          return hashedPassword; // Return hash if generating
-        }
-      }
-      case "md5": {
-        if (existingHash) {
-          const md5sum = CryptoJS.MD5(password);
-          const computedHash = `{MD5}` + CryptoJS.enc.Base64.stringify(md5sum);
-          return computedHash === existingHash; // Compare generated hash with existing hash
-        } else {
-          const md5sum = CryptoJS.MD5(password);
-          return `{MD5}` + CryptoJS.enc.Base64.stringify(md5sum); // Return generated hash
-        }
-      }
-      case "sha": {
-        if (existingHash) {
-          const sha1sum = CryptoJS.SHA1(password);
-          const computedHash = `{SHA}` + CryptoJS.enc.Base64.stringify(sha1sum);
-          return computedHash === existingHash; // Compare hashes
-        } else {
-          const sha1sum = CryptoJS.SHA1(password);
-          return `{SHA}` + CryptoJS.enc.Base64.stringify(sha1sum); // Return generated hash
-        }
-      }
-      case "sha256": {
-        if (existingHash) {
-          const sha256sum = CryptoJS.SHA256(password);
-          const computedHash =
-            `{SHA256}` + CryptoJS.enc.Base64.stringify(sha256sum);
-          return computedHash === existingHash; // Compare hashes
-        } else {
-          const sha256sum = CryptoJS.SHA256(password);
-          return `{SHA256}` + CryptoJS.enc.Base64.stringify(sha256sum); // Return generated hash
-        }
-      }
-      case "sha512": {
-        if (existingHash) {
-          const sha512sum = CryptoJS.SHA512(password);
-          const computedHash =
-            `{SHA512}` + CryptoJS.enc.Base64.stringify(sha512sum);
-          return computedHash === existingHash; // Compare hashes
-        } else {
-          const sha512sum = CryptoJS.SHA512(password);
-          return `{SHA512}` + CryptoJS.enc.Base64.stringify(sha512sum); // Return generated hash
-        }
-      }
-      case "ssha": {
-        if (existingHash) {
-          return validateSSHA(password, existingHash); // Use validateSSHA for validation
-        } else {
-          // Generate SSHA
-          const salt = crypto.randomBytes(8); // Generate 8-byte random salt
-          const sha1sum = crypto
-            .createHash("sha1")
-            .update(password)
-            .update(salt)
-            .digest();
-
-          const combined = Buffer.concat([sha1sum, salt]).toString("base64");
-          return `{SSHA}` + combined; // Return generated hash
-        }
-      }
-      case "clear": {
-        return password === existingHash; // Compare plain-text password
-      }
-      default: {
-        throw new Error(`Unsupported encryption type: ${encryptionType}`);
-      }
-    }
-  };
-
-  const validateSSHA = (password, sshaHash) => {
-    // Ensure the SSHA hash starts with the correct prefix
-    if (!sshaHash.startsWith("{SSHA}")) {
-      console.error("Invalid SSHA format: Missing '{SSHA}' prefix.");
-      return false;
-    }
-
-    // Remove the "{SSHA}" prefix
-    const base64Hash = sshaHash.slice(6); // Remove "{SSHA}"
-
-    try {
-      // Decode the Base64-encoded hash
-      const decoded = Buffer.from(base64Hash, "base64");
-
-      // The first 20 bytes are the SHA-1 hash, the rest is the salt
-      const sha1Hash = decoded.slice(0, 20); // First 20 bytes
-      const salt = decoded.slice(20); // Remaining bytes are the salt
-
-      //console.log("Decoded Hash (Hex):", sha1Hash.toString("hex"));
-      //console.log("Salt (Hex):", salt.toString("hex"));
-
-      // Recompute the SHA-1 hash using the password and the extracted salt
-      const recomputedHash = crypto
-        .createHash("sha1")
-        .update(password) // Add the password
-        .update(salt) // Add the salt
-        .digest();
-
-      //console.log("Recomputed Hash (Hex):", recomputedHash.toString("hex"));
-
-      // Compare the recomputed hash with the original hash
-      return Buffer.compare(sha1Hash, recomputedHash) === 0;
-    } catch (error) {
-      console.error("Error decoding Base64 string:", error.message);
-      return false;
-    }
-  };
-
-  const handleSubmit1 = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
-
-    if (!username || !password) {
-      setError("Username and password are required.");
-      setIsLoading(false);
-      return;
-    }
-
-    const ldapTimeout = 5000; // Set LDAP timeout to 5 seconds
-
-    try {
-      // ✅ Attempt Login with JWT Authentication API
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/auth/login`,
-        { username, password }
-      );
-
-      if (response.data.success) {
-        const { token, user } = response.data;
-
-        // Check if the group ID exists
-        if (!user.groupId) {
-          setError(
-            "User does not belong to any group. Please contact the administrator to Assign."
-          );
-          setIsLoading(false);
-          return;
-        }
-
-        // ✅ Store JWT token & user details in localStorage
-        localStorage.setItem("token", token);
-        localStorage.setItem("userFullName", user.fullName);
-        localStorage.setItem("username", user.username);
-        localStorage.setItem("userId", user.id);
-        localStorage.setItem("groupId", user.groupId);
-
-        // ✅ Set Authorization Header for Future API Calls
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
-        navigate("/dashboard"); // Redirect to Dashboard
-      } else {
-        setError("Invalid username or password.");
-      }
-    } catch (err) {
-      console.error("Login error:", err.response?.data || err.message);
-      setError(
-        err.response?.data?.message ||
-          "Error connecting to the server. Please try again."
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSubmit2 = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
-
-    if (!username || !password) {
-      setError("Username and password are required.");
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      // 🔐 Call unified login endpoint that handles LDAP & local
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/auth/login`,
-        { username, password }
-      );
-
-      if (response.data.success) {
-        const { token, user } = response.data;
-
-        // ✅ Store token for protected API calls
-        localStorage.setItem("token", token);
-
-        // ✅ Save essential user info
-        localStorage.setItem("username", user.username);
-        localStorage.setItem("userFullName", user.fullName || user.username);
-
-        // Fetch userId via /users_access endpoint
-        const userResponse = await axios.get(
-          `${process.env.REACT_APP_API_URL}/api/users_access/${user.username}`,
-          {
-            headers: getAuthHeaders(),
-          }
-        );
-        const userId = userResponse.data.id;
-        localStorage.setItem("userId", userId);
-
-        // Fetch groupId via /groups/user endpoint
-        const groupResponse = await axios.get(
-          `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`,
-          {
-            headers: getAuthHeaders(),
-          }
-        );
-        const groupId = groupResponse.data.groupId;
-
-        if (!groupId) {
-          setError(
-            "User does not belong to any group. Please contact the administrator."
-          );
-          setIsLoading(false);
-          return;
-        }
-
-        localStorage.setItem("groupId", groupId);
-
-        // 🔄 Fetch and store permissions
-        fetchPermissions(groupId);
-
-        // ➡ Navigate to dashboard
-        navigate("/dashboard");
-
-        // ✅ Update login status in DB
-        await axios.put(
-          `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
-          {
-            ID: user.username, // or user.id depending on structure
-            isLoggedIn: true,
-          },
-          {
-            headers: getAuthHeaders(),
-          }
-        );
-      } else {
-        setError("Invalid username or password.");
-      }
-    } catch (err) {
-      console.error("Login error:", err);
-      setError("Failed to connect or authenticate. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSubmit3 = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
-
-    if (!username || !password) {
-      setError("Username and password are required.");
-      setIsLoading(false);
-      return;
-    }
-
-    const ldapTimeout = 5000;
-
-    const ldapPromise = axios
-      .get(`${process.env.REACT_APP_API_URL}/ldap/user/${username}`, {
-        timeout: ldapTimeout,
-      })
-      .then(async (ldapResponse) => {
-        const ldapUser = ldapResponse.data;
-
-        const encryptionType = ldapUser.userPassword.match(/^\{(\w+)\}/)?.[1];
-        if (!encryptionType) {
-          setError("Unsupported or unknown encryption type.");
-          setIsLoading(false);
-          return;
-        }
-
-        const isPasswordValid = hashPassword(
-          password,
-          encryptionType,
-          ldapUser.userPassword
-        );
-
-        if (isPasswordValid) {
-          // ✅ Authenticate via local login to get JWT token
-          const loginResponse = await axios.post(
-            `${process.env.REACT_APP_API_URL}/api/users/login`,
-            { username, password }
-          );
-
-          const token = loginResponse.data.token;
-          localStorage.setItem("authToken", token);
-
-          const userResponse = await axios.get(
-            `${process.env.REACT_APP_API_URL}/api/users_access/${username}`,
-            { headers: getAuthHeaders() }
-          );
-          const userId = userResponse.data.id;
-
-          const groupResponse = await axios.get(
-            `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`
-          );
-          const groupId = groupResponse.data.groupId;
-
-          if (!groupId) {
-            setError(
-              "User does not belong to any group. Please contact the administrator to Assign."
-            );
-            setIsLoading(false);
-            return;
-          }
-
-          const fullName = ldapUser.cn?.[0] || "User";
-          localStorage.setItem("userFullName", fullName);
-          localStorage.setItem("username", ldapUser.uid);
-          localStorage.setItem("userId", userId);
-          localStorage.setItem("groupId", groupId);
-
-          fetchPermissions(groupId);
-          navigate("/dashboard");
-
-          await axios.put(
-            `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
-            {
-              ID: ldapUser.uid?.[0],
-              isLoggedIn: true,
-            }
-          );
-        } else {
-          throw new Error("Invalid LDAP username or password");
-        }
-      });
-
-    try {
-      await ldapPromise;
-    } catch (err) {
-      console.error(
-        "LDAP connection failed, falling back to local login:",
-        err
-      );
-
-      try {
-        const response = await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/users/login`,
-          { username, password }
-        );
-
-        if (response.data.success) {
-          const token = response.data.token;
-          const user = response.data.user;
-
-          localStorage.setItem("authToken", token);
-
-          const userResponse = await axios.get(
-            `${process.env.REACT_APP_API_URL}/api/users_access/${user.username}`,
-            {
-              headers: getAuthHeaders(),
-            }
-          );
-
-          const userId = userResponse.data.id;
-
-          const groupResponse = await axios.get(
-            `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`,
-            {
-              headers: getAuthHeaders(),
-            }
-          );
-
-          const groupId = groupResponse.data.groupId;
-
-          if (!groupId) {
-            setError(
-              "User does not belong to any group. Please contact the administrator to Assign."
-            );
-            setIsLoading(false);
-            return;
-          }
-
-          localStorage.setItem("userFullName", user.username);
-          localStorage.setItem("username", user.username);
-          localStorage.setItem("userId", userId);
-          localStorage.setItem("groupId", groupId);
-
-          fetchPermissions(groupId);
-          navigate("/dashboard");
-
-          await axios.put(
-            `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
-            {
-              ID: user.ID,
-              isLoggedIn: true,
-            }
-          );
-        } else {
-          setError("Invalid username or password");
-        }
-      } catch (error) {
-        console.error("Error during local login:", error);
-        setError("Error connecting to the server. Please try again.");
-      }
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   const handleSubmit = async (e) => {
@@ -760,454 +281,413 @@ const Login = () => {
       return;
     }
 
-    const ldapTimeout = 5000; // Set LDAP timeout to 5 seconds
-
-    // Attempt LDAP Authentication first
-    const ldapPromise = axios
-      .get(`${process.env.REACT_APP_API_URL}/ldap/user/${username}`, {
-        timeout: ldapTimeout,
-      })
-      .then(async (ldapResponse) => {
-        const ldapUser = ldapResponse.data;
-
-        const encryptionType = ldapUser.userPassword.match(/^\{(\w+)\}/)?.[1];
-        if (!encryptionType) {
-          setError("Unsupported or unknown encryption type.");
-          setIsLoading(false);
-          return;
-        }
-        const isPasswordValid = hashPassword(
-          password,
-          encryptionType,
-          ldapUser.userPassword
-        );
-
-        if (isPasswordValid) {
-          // Proceed with login
-          const loginResponse = await axios.post(
-            `${process.env.REACT_APP_API_URL}/api/auth/login`,
-            { username, password }
-          );
-
-          const token = loginResponse.data.token;
-          localStorage.setItem("authToken", token);
-
-          // Fetch the user ID for the local login and login status
-          let userId = null;
-
-          await fetchData(
-            `users_access/${username}`,
-            (data) => {
-              userId = data.id;
-            },
-            (error) => {
-              console.error("Error fetching user ID:", error);
-              setError("Failed to fetch user information.");
-              setIsLoading(false);
-            },
-          );
-
-          // Fetch the group ID using the user ID
-          let groupId = null;
-
-          await fetchData(
-            `groups/user/${userId}`,
-            (data) => {
-              groupId = data.groupId;
-            },
-            (error) => {
-              console.error("Error fetching group ID:", error);
-              setError("Failed to fetch group information. Please try again.");
-              setIsLoading(false);
-            }
-          );
-
-          // Check if the group ID exists
-          if (!groupId) {
-            setError(
-              "User does not belong to any group. Please contact the administrator to Assign."
-            );
-            setIsLoading(false);
-            return;
-          }
-
-          // Store user data and navigate to dashboard
-          const fullName = ldapUser.cn?.[0] || "User"; // Adjust to the LDAP format
-          localStorage.setItem("userFullName", fullName);
-          localStorage.setItem("username", ldapUser.uid); // or response.data.user.username for local login
-          localStorage.setItem("userId", userId);
-          // Store the group ID in localStorage
-          localStorage.setItem("groupId", groupId);
-          fetchPermissions(groupId);
-
-          navigate("/dashboard");
-
-          // Update isLoggedIn status in the database
-          await axios.put(
-            `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
-            {
-              ID: ldapUser.uid?.[0], // Ensure this matches the expected ID format
-              isLoggedIn: true,
-            }
-          );
-        } else {
-          throw new Error("Invalid LDAP username or password");
-        }
-      });
-    // Fall back to local login if LDAP fails
     try {
-      await ldapPromise;
-    } catch (err) {
-      console.error(
-        "LDAP connection failed, falling back to local login:",
-        err
-      );
-
-      // Attempt local login if LDAP fails
-      try {
-        const response = await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/users/login`,
-          { username, password }
-        );
-
-        if (response.data.success) {
-          // Set the username for local login as well
-          //const userName = response.data.user.username || "User";
-
-          const user = response.data.user;
-
-          const userResponse = await axios.get(
-            `${process.env.REACT_APP_API_URL}/api/users_access/${user.username}`,
-            {
-              headers: getAuthHeaders(),
-            }
-          );
-          const userId = userResponse.data.id;
-
-          // Fetch the group ID using the user ID
-          const groupResponse = await axios.get(
-            `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`
-          );
-          const groupId = groupResponse.data.groupId;
-
-          // Check if the group ID exists
-          if (!groupId) {
-            setError(
-              "User does not belong to any group. Please contact the administrator to Assign."
-            );
-            setIsLoading(false);
-            return;
-          }
-
-          localStorage.setItem("userFullName", user.username);
-          localStorage.setItem("username", user.username); // or response.data.user.username for local login
-          localStorage.setItem("userId", userId);
-
-          // Store the group ID in localStorage
-          localStorage.setItem("groupId", groupId);
-          fetchPermissions(groupId);
-
-          navigate("/dashboard");
-
-          // Update isLoggedIn status in the database
-          await axios.put(
-            `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
-            {
-              ID: user.ID,
-              isLoggedIn: true,
-            }
-          );
-        } else {
-          setError("Invalid username or password");
-        }
-      } catch (error) {
-        console.error("Error during local login:", error);
-        setError("Error connecting to the server. Please try again.");
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSubmit4 = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
-
-    if (!username || !password) {
-      setError("Username and password are required.");
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      // 🔐 Attempt to login using the new /api/auth/login (LDAP or local is handled server-side)
-      const loginResponse = await axios.post(
+      // ✅ Call Backend Login (Handles both LDAP and Local)
+      const response = await axios.post(
         `${process.env.REACT_APP_API_URL}/api/auth/login`,
         { username, password }
       );
 
-      const { token, user } = loginResponse.data;
-      const authToken = token;
+      if (response.data.success) {
+        const { token, user } = response.data;
 
-      // 🧠 Save token to localStorage
-      localStorage.setItem("authToken", authToken);
-
-      // 🔍 Fetch user access info using the token
-      const userResponse = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/users_access/${username}`,
-        { headers: getAuthHeaders() }
-      );
-      const userId = userResponse.data.id;
-
-      // 🔍 Fetch user's group
-      const groupResponse = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/groups/user/${userId}`
-      );
-      const groupId = groupResponse.data.groupId;
-
-      if (!groupId) {
-        setError(
-          "User does not belong to any group. Please contact the administrator."
-        );
-        setIsLoading(false);
-        return;
-      }
-
-      // ✅ Save data to localStorage
-      localStorage.setItem("userFullName", user.fullName || user.username);
-      localStorage.setItem("username", user.username);
-      localStorage.setItem("userId", userId);
-      localStorage.setItem("groupId", groupId);
-
-      fetchPermissions(groupId);
-
-      // 🧭 Navigate to dashboard
-      navigate("/dashboard");
-
-      // ✅ Update login status in DB
-      await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
-        {
-          ID: user.id || userId,
-          isLoggedIn: true,
+        // ✅ Check if User has an Assigned Group
+        if (!user.groupId) {
+          setError("User has no assigned group. Contact the PMD-IT to proceed.");
+          setIsLoading(false);
+          return;
         }
-      );
-    } catch (err) {
-      console.error("Login error:", err);
-      if (err?.response?.status === 401) {
-        setError("Invalid username or password.");
+
+        // ✅ Save Session Data
+        localStorage.setItem("authToken", token);
+        localStorage.setItem("username", user.username);
+        localStorage.setItem("userFullName", user.fullName || user.username);
+        localStorage.setItem("groupId", user.groupId);
+        localStorage.setItem("isLoggingIn", "true");
+
+        // ✅ Fetch Numeric User ID if not provided as number (for LDAP fallback)
+        let userId = user.id;
+        if (typeof userId !== "number") {
+          try {
+            const userDetailRes = await axios.get(`${process.env.REACT_APP_API_URL}/api/users_access/${user.username}`);
+            if (userDetailRes.data && userDetailRes.data.id) {
+              userId = userDetailRes.data.id;
+            }
+          } catch (err) {
+            console.warn("Could not fetch numeric userId, using fallback:", userId);
+          }
+        }
+        localStorage.setItem("userId", userId);
+
+        // ✅ Fetch Permissions if group is valid
+        if (user.groupId && user.groupId !== "LDAP_GROUP") {
+          fetchPermissions(user.groupId);
+        }
+
+        // ✅ Update Login Status (Audit)
+        try {
+          await axios.put(
+            `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
+            {
+              ID: user.username,
+              isLoggedIn: true,
+            }
+          );
+        } catch (statusErr) {
+          console.warn("Update login status failed:", statusErr.message);
+        }
+
+        navigate("/dashboard");
       } else {
-        setError("Login failed. Please try again.");
+        setError("Invalid username or password.");
       }
+    } catch (err) {
+      const msg = err.response?.data?.message || "Error connecting to the server.";
+      console.error("Login failed:", msg);
+      setError(msg);
     } finally {
       setIsLoading(false);
     }
   };
 
-// --- UI Implementation ---
-    return (
-        <Flex
-            minH="100vh"
-            alignItems="center"
-            justifyContent="center"
-            // Retained the Gold/Orange gradient background
-            bgGradient="linear(to-br, #FFD559, #F3C847)" 
-            p={4}
-        >
-            <Box
-                // Card Styling: Clean off-white/yellow background with soft shadow
-                bg="yellow.50" 
-                boxShadow="2xl"
-                borderRadius="3xl" 
-                p={8}
-                // *** MAX RESPONSIVENESS ***
-                width={{ base: "95%", sm: "400px", md: "450px" }}
-                // **************************
-                transition="all 0.4s ease"
-                _hover={{ boxShadow: "dark-lg" }}
+  return (
+    <Flex
+      minH="100vh"
+      maxH="100vh"
+      alignItems="center"
+      justifyContent="center"
+      bgGradient="linear(to-br, #FFD559, #F3C847)"
+      p={{ base: 3, sm: 4, md: 6 }}
+      w="100vw"
+      overflow="hidden"
+      position="relative"
+    >
+      <Card
+        bg="rgba(255, 255, 255, 0.95)"
+        backdropFilter="blur(10px)"
+        boxShadow="0 20px 60px rgba(0,0,0,0.15)"
+        borderRadius={{ base: "xl", md: "2xl" }}
+        width={{ base: "100%", sm: "400px", md: "420px" }}
+        maxW="95vw"
+        maxH={{ base: "95vh", md: "auto" }}
+        overflow="auto"
+        border="1px solid"
+        borderColor="orange.200"
+      >
+        <CardBody p={{ base: 5, sm: 6, md: 7 }}>
+          <VStack spacing={{ base: 4, md: 5 }} as="form" onSubmit={handleSubmit} w="100%">
+            {/* Logo & Heading Section */}
+            <VStack spacing={2} w="100%">
+              <Box position="relative">
+                <Image
+                  src="/apps_logo.png"
+                  alt="PMD Portal Logo"
+                  boxSize={{ base: "65px", md: "80px" }}
+                  borderRadius="full"
+                  shadow="lg"
+                  border="3px solid"
+                  borderColor="orange.400"
+                  transition="all 0.3s"
+                  _hover={{ transform: "scale(1.05)", borderColor: "orange.500" }}
+                />
+                <Badge
+                  position="absolute"
+                  top="-1"
+                  right="-1"
+                  bgGradient="linear(to-r, orange.500, yellow.500)"
+                  color="white"
+                  borderRadius="full"
+                  px={2}
+                  py={0.5}
+                  fontSize="2xs"
+                  fontWeight="bold"
+                  boxShadow="sm"
+                >
+                  v2.0
+                </Badge>
+              </Box>
+              <VStack spacing={0.5}>
+                <Heading
+                  as="h1"
+                  size={{ base: "lg", md: "xl" }}
+                  textAlign="center"
+                  bgGradient="linear(to-r, #FF8500, #FFB700)"
+                  bgClip="text"
+                  fontWeight="extrabold"
+                  letterSpacing="tight"
+                >
+                  PMD Portal
+                </Heading>
+                <Text fontSize={{ base: "xs", md: "sm" }} color="gray.600" textAlign="center" fontWeight="medium">
+                </Text>
+              </VStack>
+            </VStack>
+
+            <Divider borderColor="orange.200" />
+
+            {/* Username Input */}
+            <FormControl isRequired>
+              <InputGroup size="md">
+                <InputLeftElement
+                  pointerEvents="none"
+                  children={<Icon as={FiUser} color="orange.500" />}
+                />
+                <Input
+                  type="text"
+                  placeholder="Username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  bg="white"
+                  borderRadius="lg"
+                  borderColor="gray.300"
+                  _hover={{ borderColor: "orange.300" }}
+                  _focus={{
+                    borderColor: "orange.400",
+                    boxShadow: "0 0 0 1px #FF8500",
+                  }}
+                  isInvalid={!!error}
+                />
+              </InputGroup>
+            </FormControl>
+
+            {/* Password Input */}
+            <FormControl isRequired>
+              <InputGroup size="md">
+                <InputLeftElement
+                  pointerEvents="none"
+                  children={<Icon as={FiLock} color="orange.500" />}
+                />
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  bg="white"
+                  borderRadius="lg"
+                  borderColor="gray.300"
+                  _hover={{ borderColor: "orange.300" }}
+                  _focus={{
+                    borderColor: "orange.400",
+                    boxShadow: "0 0 0 1px #FF8500",
+                  }}
+                  isInvalid={!!error}
+                />
+                <InputRightElement>
+                  <IconButton
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    icon={<Icon as={showPassword ? FiEyeOff : FiEye} />}
+                    size="sm"
+                    variant="ghost"
+                    color="gray.600"
+                    _hover={{ color: "orange.500", bg: "orange.50" }}
+                    onClick={() => setShowPassword(!showPassword)}
+                  />
+                </InputRightElement>
+              </InputGroup>
+            </FormControl>
+
+            {error && (
+              <Box
+                w="100%"
+                p={2.5}
+                bg="red.50"
+                borderRadius="lg"
+                border="1px"
+                borderColor="red.300"
+              >
+                <Text color="red.700" fontSize="sm" textAlign="center" fontWeight="medium">
+                  {error}
+                </Text>
+              </Box>
+            )}
+
+            {/* Login Button */}
+            <Button
+              type="submit"
+              width="100%"
+              size="md"
+              isLoading={isLoading}
+              loadingText="Logging in..."
+              bgGradient="linear(to-r, #FF8500, #FFB700)"
+              color="white"
+              _hover={{
+                bgGradient: "linear(to-r, #FFB700, #FF8500)",
+                transform: "translateY(-2px)",
+                boxShadow: "0 8px 20px rgba(255,133,0,0.4)",
+              }}
+              _active={{
+                transform: "translateY(0)",
+              }}
+              borderRadius="lg"
+              fontWeight="bold"
+              fontSize="md"
+              h="48px"
+              transition="all 0.3s ease-in-out"
+              mt={2}
             >
-                <VStack spacing={6} as="form" onSubmit={handleSubmit}>
-                    
-                    {/* Logo & Heading Section */}
-                    <VStack spacing={2} mb={4}>
-                        <Image 
-                            src="/apps_logo.png" 
-                            alt="PMD Portal Logo" 
-                            boxSize="90px" 
-                            borderRadius="full"
-                            shadow="lg"
-                            border="2px solid"
-                            borderColor="gray.200"
-                        />
-                        <Heading 
-                            as="h1" 
-                            size={{ base: "lg", md: "xl" }} // Responsive Heading Size
-                            textAlign="center" 
-                            color="gray.700" 
-                            fontWeight="extrabold"
-                        >
-                            PMD Portal
-                        </Heading>
-                        <Text fontSize={{ base: "sm", md: "md" }} color="gray.500">
-                            Secure Access for Personnel
-                        </Text>
-                    </VStack>
+              Log In
+            </Button>
 
-                    <Divider borderColor="gray.300" />
+            <Divider borderColor="orange.200" />
 
-                    {/* Username Input */}
-                    <FormControl isRequired>
-                        <InputGroup size="lg">
-                            <InputLeftElement pointerEvents="none" children={<FiUser color="gray.500" />} />
-                            <Input
-                                type="text"
-                                placeholder="Username (e.g., first.last)"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                bg="white" // Clean white background for input
-                                borderRadius="xl"
-                                _focus={{ borderColor: "teal.400", boxShadow: "0 0 0 1px teal.400" }} 
-                                isInvalid={!!error}
-                                shadow="sm"
-                            />
-                        </InputGroup>
-                    </FormControl>
+            {/* Action Links */}
+            {/* Action Links */}
+            <HStack spacing={3} width="100%" pt={1}>
+              <Button
+                onClick={handleEnroll}
+                variant="outline"
+                colorScheme="orange"
+                size="sm"
+                flex={1}
+                leftIcon={<Icon as={FiUserPlus} />}
+                borderRadius="lg"
+                borderWidth="2px"
+                fontWeight="semibold"
+                _hover={{
+                  bg: "orange.50",
+                  borderColor: "orange.500",
+                  transform: "translateY(-1px)",
+                }}
+              >
+                Enroll
+              </Button>
 
-                    {/* Password Input */}
-                    <FormControl isRequired>
-                        <InputGroup size="lg">
-                            <InputLeftElement pointerEvents="none" children={<FiLock color="gray.500" />} />
-                            <Input
-                                type="password"
-                                placeholder="Password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                bg="white" // Clean white background for input
-                                borderRadius="xl"
-                                _focus={{ borderColor: "teal.400", boxShadow: "0 0 0 1px teal.400" }}
-                                isInvalid={!!error}
-                                shadow="sm"
-                            />
-                        </InputGroup>
-                    </FormControl>
+              <Button
+                onClick={onOpen}
+                variant="ghost"
+                colorScheme="teal"
+                size="sm"
+                flex={1}
+                leftIcon={<Icon as={FiExternalLink} />}
+                borderRadius="lg"
+                fontWeight="semibold"
+                _hover={{
+                  bg: "teal.50",
+                  color: "teal.700",
+                  transform: "translateY(-1px)"
+                }}
+              >
+                Track Status
+              </Button>
+            </HStack>
+          </VStack>
+        </CardBody>
+      </Card>
 
-                    {error && <Text color="red.500" fontSize="sm">{error}</Text>}
+      {/* Modal for Reference Number (Track Progress) */}
+      <Modal isOpen={isOpen} onClose={onClose} isCentered size={{ base: "sm", md: "md" }}>
+        <ModalOverlay bg="blackAlpha.600" backdropFilter="blur(6px)" />
+        <ModalContent
+          mx={{ base: 3, md: 0 }}
+          borderRadius="xl"
+          overflow="hidden"
+          maxH="90vh"
+        >
+          <ModalHeader
+            bgGradient="linear(to-r, teal.500, blue.500)"
+            color="white"
+            fontSize={{ base: "md", md: "lg" }}
+            py={4}
+          >
+            Track Enrollment Progress
+          </ModalHeader>
+          <ModalCloseButton color="white" />
+          <ModalBody p={{ base: 4, md: 5 }} overflowY="auto">
+            <VStack spacing={3.5} w="100%">
+              <Text fontSize="sm" color="gray.600" textAlign="center">
+                Enter your details to track your enrollment status
+              </Text>
 
-                    {/* Login Button */}
-                    <Button
-                        type="submit"
-                        width="100%"
-                        size="lg"
-                        isLoading={isLoading}
-                        // Maintained Gold/Orange gradient for action button
-                        bgGradient="linear(to-r, #FF8500, #FFB700)" 
-                        color="white"
-                        _hover={{ bgGradient: "linear(to-r, #FFB700, #FF8500)", transform: "translateY(-1px)" }}
-                        borderRadius="xl"
-                        boxShadow="md"
-                        transition="all 0.3s ease-in-out"
-                        mt={4}
-                    >
-                        Log In
-                    </Button>
+              <FormControl isRequired>
+                <FormLabel fontSize="sm" fontWeight="semibold">Full Name</FormLabel>
+                <InputGroup size="md">
+                  <InputLeftElement children={<Icon as={FiUser} color="gray.500" />} />
+                  <Input
+                    placeholder="First Middle Last"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    borderRadius="lg"
+                    _focus={{ borderColor: "teal.400", boxShadow: "0 0 0 1px teal.400" }}
+                  />
+                </InputGroup>
+              </FormControl>
 
-                    <Flex direction="column" width="100%" alignItems="center" pt={2}>
-                        
-                        {/* Enroll Button (Primary Orange) */}
-                        <ChakraLink onClick={handleEnroll} color="orange.600" fontWeight="bold" fontSize="md">
-                            Enroll New Personnel 
-                        </ChakraLink>
+              <FormControl isRequired>
+                <FormLabel fontSize="sm" fontWeight="semibold">Date of Birth</FormLabel>
+                <InputGroup size="md">
+                  <InputLeftElement children={<Icon as={FiCalendar} color="gray.500" />} />
+                  <Input
+                    type="date"
+                    value={dateOfBirth}
+                    onChange={(e) => setDateOfBirth(e.target.value)}
+                    borderRadius="lg"
+                    _focus={{ borderColor: "teal.400", boxShadow: "0 0 0 1px teal.400" }}
+                  />
+                </InputGroup>
+              </FormControl>
 
-                        {/* Track Progress Link (Secondary Blue/Teal) */}
-                        <ChakraLink 
-                            onClick={onOpen} 
-                            fontSize="sm" 
-                            color="teal.600" // Used Teal for contrast/secondary action
-                            mt={2}
-                            _hover={{ color: "teal.400", textDecoration: "underline" }}
-                            display="flex"
-                            alignItems="center"
-                        >
-                            <FiExternalLink style={{ marginRight: '4px' }}/> 
-                            Track your enrollment progress
-                        </ChakraLink>
-                    </Flex>
-                </VStack>
-            </Box>
-            
-            {/* Modal for Reference Number (Track Progress) */}
-            <Modal isOpen={isOpen} onClose={onClose} isCentered>
-                <ModalOverlay />
-                <ModalContent p={2} borderRadius="xl">
-                    <ModalHeader color="teal.600">Track Enrollment Progress</ModalHeader>
-                    <ModalCloseButton />
-                    <ModalBody>
-                        <VStack spacing={4}>
-                            {/* Input Name */}
-                            <FormControl>
-                                <Input
-                                    placeholder="Enter full name"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    borderRadius="md"
-                                />
-                            </FormControl>
-                            {/* Input Date of Birth */}
-                            <FormControl>
-                                <Input
-                                    type="date"
-                                    value={dateOfBirth}
-                                    onChange={(e) => setDateOfBirth(e.target.value)}
-                                    borderRadius="md"
-                                />
-                            </FormControl>
-                            {/* Input or Retrieved Reference Number */}
-                            <FormControl>
-                                <Input
-                                    placeholder="Reference Number (Retrieved)"
-                                    value={retrievedReference || referenceNumber}
-                                    onChange={(e) => setReferenceNumber(e.target.value)}
-                                    isReadOnly={!!retrievedReference}
-                                    borderRadius="md"
-                                />
-                            </FormControl>
-                            {/* Import Buttons (Hidden - for Admin/Dev Use) */}
-                            <VStack spacing={3} mt={4} display="none">
-                                <Input type="file" accept=".xlsx" onChange={handleFileUpload} />
-                                <Button colorScheme="blue" onClick={handleImportDistricts}>Import Districts</Button>
-                                <Button colorScheme="green" onClick={handleImportLocal}>Import Local Congregations</Button>
-                            </VStack>
-                        </VStack>
-                    </ModalBody>
-                    <ModalFooter>
-                        {/* Retrieve Reference Button */}
-                        <Button
-                            colorScheme="teal"
-                            onClick={handleRetrieveReference}
-                            isLoading={isLoading}
-                            loadingText="Retrieving"
-                            mr={3}
-                        >
-                            Retrieve Reference
-                        </Button>
+              <FormControl>
+                <FormLabel fontSize="sm" fontWeight="semibold">Reference Number</FormLabel>
+                <InputGroup size="md">
+                  <InputLeftElement children={<Icon as={FiHash} color="gray.500" />} />
+                  <Input
+                    placeholder="Auto-filled after retrieval"
+                    value={retrievedReference || referenceNumber}
+                    onChange={(e) => setReferenceNumber(e.target.value)}
+                    isReadOnly={!!retrievedReference}
+                    borderRadius="lg"
+                    bg={retrievedReference ? "green.50" : "white"}
+                    borderColor={retrievedReference ? "green.300" : "gray.300"}
+                    _focus={{ borderColor: "teal.400", boxShadow: "0 0 0 1px teal.400" }}
+                  />
+                </InputGroup>
+              </FormControl>
+            </VStack>
+          </ModalBody>
 
-                        {/* Proceed Button */}
-                        <Button
-                            colorScheme="orange"
-                            onClick={handleTrackProgress}
-                            mr={3}
-                        >
-                            Proceed
-                        </Button>
-                        <Button variant="ghost" onClick={onClose}>
-                            Cancel
-                        </Button>
-                    </ModalFooter>
-                </ModalContent>
-            </Modal>
-        </Flex>
-    );
+          <ModalFooter
+            flexDirection={{ base: "column", sm: "row" }}
+            gap={2}
+            p={{ base: 4, md: 5 }}
+          >
+            <Button
+              colorScheme="teal"
+              onClick={handleRetrieveReference}
+              isLoading={isLoading}
+              loadingText="Retrieving..."
+              flex={{ base: "1", sm: "auto" }}
+              w={{ base: "100%", sm: "auto" }}
+              size="sm"
+            >
+              Retrieve Reference
+            </Button>
+
+            <Button
+              bgGradient="linear(to-r, #FF8500, #FFB700)"
+              color="white"
+              _hover={{ bgGradient: "linear(to-r, #FFB700, #FF8500)" }}
+              onClick={handleTrackProgress}
+              flex={{ base: "1", sm: "auto" }}
+              w={{ base: "100%", sm: "auto" }}
+              size="sm"
+            >
+              Proceed
+            </Button>
+
+            <Button
+              variant="ghost"
+              onClick={onClose}
+              flex={{ base: "1", sm: "auto" }}
+              w={{ base: "100%", sm: "auto" }}
+              size="sm"
+            >
+              Cancel
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </Flex>
+  );
 };
 
 export default Login;

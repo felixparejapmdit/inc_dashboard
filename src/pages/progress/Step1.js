@@ -31,6 +31,8 @@ import {
   CheckCircleIcon,
   TimeIcon,
   ViewIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from "@chakra-ui/icons";
 import axios from "axios";
 
@@ -185,9 +187,30 @@ const Step1 = () => {
 
   return (
     <Box p={6} bg="gray.50" minHeight="100vh" borderRadius="md">
-      <Heading size="lg" mb={4}>
-        Step 1: Report to Section Chief
-      </Heading>
+      <HStack justify="space-between" mb={6}>
+        <VStack align="start" spacing={0}>
+          <Heading size="lg">Step 1: Report to Section Chief</Heading>
+          <Text color="gray.500" fontSize="sm">Personnel evaluation and initial verification</Text>
+        </VStack>
+        <HStack spacing={2}>
+          <Button
+            leftIcon={<ChevronLeftIcon />}
+            onClick={() => navigate("/progresstracking")}
+            variant="ghost"
+            size="sm"
+          >
+            Back to List
+          </Button>
+          <Button
+            rightIcon={<ChevronRightIcon />}
+            onClick={() => navigate("/progress/step2")}
+            colorScheme="blue"
+            size="sm"
+          >
+            Next Step
+          </Button>
+        </HStack>
+      </HStack>
       {loading ? (
         <Spinner size="lg" />
       ) : (
@@ -278,9 +301,8 @@ const Step1 = () => {
                 <Divider />
                 <Text fontSize="lg" mt={2}>
                   <b>Name:</b>{" "}
-                  {`${personnelInfo.givenname} ${
-                    personnelInfo.middlename || ""
-                  } ${personnelInfo.surname_husband}`}
+                  {`${personnelInfo.givenname} ${personnelInfo.middlename || ""
+                    } ${personnelInfo.surname_husband}`}
                 </Text>
                 <Divider />
                 <Text fontSize="lg" mt={2}>
@@ -374,50 +396,50 @@ const Step1 = () => {
                       </HStack>
                       {(personnelInfo.personnel_type === "Minister" ||
                         personnelInfo.personnel_type === "Regular") && (
-                        <>
-                          <Flex align="center" w="100%" mb={4}>
-                            <Text fontWeight="bold" minWidth="150px" mr={2}>
-                              Panunumpa Date:
-                            </Text>
-                            <Input
-                              value={
-                                personnelInfo.panunumpa_date
-                                  ? new Date(
+                          <>
+                            <Flex align="center" w="100%" mb={4}>
+                              <Text fontWeight="bold" minWidth="150px" mr={2}>
+                                Panunumpa Date:
+                              </Text>
+                              <Input
+                                value={
+                                  personnelInfo.panunumpa_date
+                                    ? new Date(
                                       personnelInfo.panunumpa_date
                                     ).toLocaleDateString("en-US", {
                                       year: "numeric",
                                       month: "long",
                                       day: "numeric",
                                     })
-                                  : ""
-                              }
-                              readOnly
-                              flex="1"
-                              textOverflow="ellipsis"
-                              placeholder="N/A"
-                            />
-                          </Flex>
-
-                          {personnelInfo.personnel_type === "Minister" && (
-                            <>
-                              <Text>
-                                <b>Ordination Date:</b>
-                              </Text>
-                              <Input
-                                type="date"
-                                value={
-                                  personnelInfo.ordination_date
-                                    ? new Date(personnelInfo.ordination_date)
-                                        .toISOString()
-                                        .split("T")[0]
                                     : ""
                                 }
                                 readOnly
+                                flex="1"
+                                textOverflow="ellipsis"
+                                placeholder="N/A"
                               />
-                            </>
-                          )}
-                        </>
-                      )}
+                            </Flex>
+
+                            {personnelInfo.personnel_type === "Minister" && (
+                              <>
+                                <Text>
+                                  <b>Ordination Date:</b>
+                                </Text>
+                                <Input
+                                  type="date"
+                                  value={
+                                    personnelInfo.ordination_date
+                                      ? new Date(personnelInfo.ordination_date)
+                                        .toISOString()
+                                        .split("T")[0]
+                                      : ""
+                                  }
+                                  readOnly
+                                />
+                              </>
+                            )}
+                          </>
+                        )}
                     </VStack>
                   </Box>
                 )}

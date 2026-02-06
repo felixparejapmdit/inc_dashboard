@@ -396,9 +396,9 @@ const PersonnelPreview = () => {
 
   return (
     <div
-      style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
+      style={{ display: "block", minHeight: "100vh" }}
     >
-      <div style={{ display: "flex", minHeight: "100vh" }}>
+      <div className="main-content-row" style={{ display: "flex", minHeight: "100vh" }}>
         {/* Passing the correct props to ProfileSidebar and PersonnelInfo */}
         <div className={hideSidebarOnPrint ? "no-print" : ""}></div>
         <ProfileSidebar
@@ -418,16 +418,125 @@ const PersonnelPreview = () => {
         />
       </div>
 
+      {/* === WHOLE BODY PICTURE (Solo Page) === */}
+      {personnelImage?.wholeBody && (
+        <div
+          className={`${styles.printOnly} ${styles.pageBreak} wholeBodyPrint`}
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "90vh", // Fixed height for centering
+            width: "100%",
+            pageBreakBefore: "always", // Force explicit new page
+            breakBefore: "page",
+          }}
+        >
+          <div style={{ textAlign: "center", width: "100%" }}>
+            <img
+              src={`${API_URL}${personnelImage.wholeBody}`}
+              alt="Whole Body"
+              style={{
+                width: "100%",
+                maxWidth: "600px",
+                height: "auto",
+                margin: "1rem auto",
+                display: "block",
+                objectFit: "contain",
+                border: "2px solid #000",
+                borderRadius: "8px",
+              }}
+            />
+            <div style={{ fontSize: "0.85rem", marginTop: "4px" }}>
+              Whole Body Picture
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* === 2x2 & HALF BODY PICTURES (Combined Page) === */}
+      {(personnelImage?.twoByTwo || personnelImage?.halfBody) && (
+        <div
+          className={`${styles.printOnly} twoByTwoHalfBodyPrint`}
+          style={{
+            marginTop: "2rem",
+            textAlign: "center",
+            width: "100%",
+            pageBreakBefore: "always",
+            breakBefore: "page",
+            pageBreakAfter: "avoid", // Ensure no page break after this
+          }}
+        >
+          {/* 2x2 Pictures Grid */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(2, 1fr)",
+              gap: "1rem",
+              justifyContent: "center",
+              marginBottom: "2rem",
+            }}
+          >
+            {[...Array(4)].map((_, index) => (
+              <div key={index} style={{ textAlign: "center" }}>
+                <img
+                  src={
+                    personnelImage.twoByTwo
+                      ? `${API_URL}${personnelImage.twoByTwo}`
+                      : "/default-avatar.png"
+                  }
+                  alt={`2x2 Picture ${index + 1}`}
+                  style={{
+                    width: "100%",
+                    maxWidth: "150px",
+                    height: "auto",
+                    objectFit: "cover",
+                    border: "1px solid #ccc",
+                    borderRadius: "4px",
+                    margin: "0 auto",
+                  }}
+                />
+                <div style={{ fontSize: "0.8rem", marginTop: "4px" }}>
+                  2x2 Picture
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Half Body Picture */}
+          {personnelImage.halfBody && (
+            <div style={{ textAlign: "center" }}>
+              <img
+                src={`${API_URL}${personnelImage.halfBody}`}
+                alt="Half Body"
+                style={{
+                  width: "100%",
+                  maxWidth: "300px",
+                  height: "auto",
+                  objectFit: "cover",
+                  border: "2px solid #333",
+                  borderRadius: "6px",
+                  margin: "0 auto",
+                }}
+              />
+              <div style={{ fontSize: "0.85rem", marginTop: "4px" }}>
+                Half Body Picture
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <style>
         {`
           @media print {
             @page {
-              margin: 20mm;
+              margin: 10mm; /* Reduced margins */
 
               @bottom-right {
-                content: "Page " counter(page) " | " counter(pages) "\\AThis document was generated dated  " attr(data-date);
+                content: "Page " counter(page) " | " counter(pages) "\\AThis document was generated dated " attr(data-date);
                 white-space: pre-wrap;
-                font-size: 12px;
+                font-size: 10px;
                 border-top: 1px solid #ccc;
                 padding-top: 5px;
               }

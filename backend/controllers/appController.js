@@ -1,10 +1,10 @@
 // controllers/appController.js
 
-// ✅ Import Redis client
-const { client: redisClient, connectRedis } = require("../config/redisClient");
+// ✅ Import Redis client (DISABLED)
+// const { client: redisClient, connectRedis } = require("../config/redisClient");
 
-// Connect Redis once
-connectRedis().catch((err) => console.error("Redis connection failed:", err));
+// Connect Redis once (DISABLED)
+// connectRedis().catch((err) => console.error("Redis connection failed:", err));
 
 
 const App = require("../models/Apps");
@@ -313,36 +313,35 @@ exports.getAvailableApps = async (req, res) => {
   const userId = req.headers["x-user-id"];
 
   console.log("Received user ID in header:", userId);
-   // ✅ Validate early before making any Sequelize queries
-    if (!userId || userId === "undefined" || userId === "null") {
-      console.error("❌ Missing or invalid user ID:", userId);
-      return res.status(401).json({ message: "Unauthorized: No user ID provided" });
-    }
-
-     const cacheKey = `available_apps_${userId}`;
-try {
-
-   // 1️⃣ Check Redis cache first
-    const cachedData = await redisClient.get(cacheKey);
-    if (cachedData) {
-      console.log(`📦 Serving available apps for user ${userId} from Redis cache`);
-      return res.status(200).json(JSON.parse(cachedData));
-    }
-
-  const isVIP = await UserGroupMapping.findOne({
-    where: {
-      user_id: userId,
-      group_id: 2,
-    },
-  });
-
-  if (!userId) {
-    return res
-      .status(401)
-      .json({ message: "Unauthorized: No user ID provided" });
+  // ✅ Validate early before making any Sequelize queries
+  if (!userId || userId === "undefined" || userId === "null") {
+    console.error("❌ Missing or invalid user ID:", userId);
+    return res.status(401).json({ message: "Unauthorized: No user ID provided" });
   }
 
-  
+  const cacheKey = `available_apps_${userId}`;
+  try {
+
+    // 1️⃣ CACHE REMOVED: Redis disabled
+    // const cachedData = await redisClient.get(cacheKey);
+    // if (cachedData) { ... }
+
+    console.log(`🧠 Fetching fresh available apps for user ${userId}...`);
+
+    const isVIP = await UserGroupMapping.findOne({
+      where: {
+        user_id: userId,
+        group_id: 2,
+      },
+    });
+
+    if (!userId) {
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: No user ID provided" });
+    }
+
+
     // Fetch all app types dynamically
     const appTypes = await sequelize.query(
       `SELECT id, name FROM applicationtypes ORDER BY id ASC`,
@@ -365,25 +364,25 @@ try {
 
     const baseUrl = process.env.REACT_APP_API_URL;
     // Fetch files data (filename and generated_code)
-// Fetch files data (filename, url, generated_code, thumbnail)
-let filesData = await sequelize.query(
-  `
-    SELECT filename, url, generated_code, thumbnail AS thumbnail_url 
+    // Fetch files data (filename, url, generated_code, thumbnail)
+    let filesData = await sequelize.query(
+      `
+    SELECT id, filename, url, generated_code, thumbnail AS thumbnail_url 
     FROM files
   `,
-  {
-    type: sequelize.QueryTypes.SELECT,
-  }
-);
+      {
+        type: sequelize.QueryTypes.SELECT,
+      }
+    );
 
-// Normalize thumbnail path
-filesData = filesData.map((file) => ({
-  ...file,
-  thumbnail_url: file.thumbnail_url
-    ? `${baseUrl}/${file.thumbnail_url.replace(/\\/g, '/')}`
-    : null,
-  type: "file", // tag it now so you don't repeat below
-}));
+    // Normalize thumbnail path
+    filesData = filesData.map((file) => ({
+      ...file,
+      thumbnail_url: file.thumbnail_url
+        ? `${baseUrl}/${file.thumbnail_url.replace(/\\/g, '/')}`
+        : null,
+      type: "file", // tag it now so you don't repeat below
+    }));
 
     // Base query
     // let query = `
@@ -395,6 +394,7 @@ filesData = filesData.map((file) => ({
     let query = `
 -- First Query: Matched phone directories
 SELECT 
+  pd.id,
   pd.name, 
   pd.phone_name,
   pd.prefix, 
@@ -423,6 +423,7 @@ UNION ALL
 
 -- Second Query: Avoid duplicates
 SELECT 
+  p.personnel_id AS id,
   CONCAT(p.givenname, ' ', p.surname_husband) AS name,
   MAX(pd.phone_name) AS phone_name,
   MAX(pd.prefix) AS prefix, 
@@ -513,6 +514,7 @@ GROUP BY
       })),
       ...phoneDirectoryData.map((directory) => ({
         ...directory,
+        id: directory.id ? directory.id : `pd_gen_${Math.random()}`, // Ensure ID exists
         type: "phone_directory",
       })),
     ];
@@ -523,9 +525,23 @@ GROUP BY
     // Initialize the categorizedApps object with categories based on appTypes
     appTypes.forEach((type) => {
       categorizedApps[type.name] = combinedData.filter(
-        (item) => item.type === "app" && item.app_type === type.id // Filter for apps by app_type
+        (item) => item.type === "app" && item.app_type === type.id
       );
     });
+
+    // 🛡️ Fallback: Collect apps that passed validation but didn't match any specific App Type
+    // This ensures apps with deleted/invalid types or active types not in the fetched list (if filtered) still show up.
+    const knownTypeIds = new Set(appTypes.map((t) => t.id));
+    const uncategorizedApps = combinedData.filter(
+      (item) => item.type === "app" && !knownTypeIds.has(item.app_type)
+    );
+
+    if (uncategorizedApps.length > 0) {
+      if (!categorizedApps["Others"]) {
+        categorizedApps["Others"] = [];
+      }
+      categorizedApps["Others"].push(...uncategorizedApps);
+    }
 
     // Add files to a "Files" category
     categorizedApps["Files"] = combinedData.filter(
@@ -537,9 +553,9 @@ GROUP BY
       (item) => item.type === "phone_directory"
     );
 
-    // 9️⃣ Cache the result in Redis for 5 minutes
-    await redisClient.set(cacheKey, JSON.stringify(categorizedApps), { EX: 3600 });
-    console.log(`✅ Cached available apps for user ${userId} in Redis`);
+    // 9️⃣ Cache Removed
+    // await redisClient.set(cacheKey, JSON.stringify(categorizedApps), { EX: 3600 });
+    // console.log(`✅ Cached available apps for user ${userId} in Redis`);
 
     // Send the dynamically categorized response
     res.json(categorizedApps);

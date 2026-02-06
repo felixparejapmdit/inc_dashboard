@@ -1,25 +1,49 @@
+
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Heading,
   VStack,
   HStack,
   Text,
-  Progress,
   Button,
   IconButton,
   useToast,
+  Input,
+  Flex,
+  Divider,
+  Slide,
+  useDisclosure,
+  SimpleGrid,
+  Card,
+  CardHeader,
+  CardBody,
+  CardFooter,
+  Avatar,
+  Badge,
+  Container,
+  Stat,
+  StatLabel,
+  StatNumber,
+  StatHelpText,
+  Icon,
+  Tooltip,
+  Circle,
+  useColorModeValue,
   Table,
   Thead,
   Tbody,
   Tr,
   Th,
   Td,
-  Input,
-  Flex,
-  Divider,
-  Slide,
-  useDisclosure,
+  Drawer,
+  DrawerBody,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerCloseButton,
 } from "@chakra-ui/react";
 import {
   CheckIcon,
@@ -28,18 +52,13 @@ import {
   CloseIcon,
   ViewIcon,
   DeleteIcon,
+  TimeIcon,
+  ArrowForwardIcon,
 } from "@chakra-ui/icons";
-import axios from "axios";
-import { MdTrackChanges } from "react-icons/md"; // Import Track Icon
+import { MdTrackChanges, MdPerson, MdEmail, MdTimeline, MdCheckCircle, MdCancel, MdGridView, MdViewList } from "react-icons/md";
+import { fetchEnrollData, fetchProgressData, deleteData, putData } from "../../utils/fetchData";
+import { usePermissionContext } from "../../contexts/PermissionContext";
 
-import {
-  fetchData,
-  fetchProgressData,  
-  fetchEnrollData,
-  postData,
-  putData,
-  deleteData,
-} from "../../utils/fetchData";
 const API_URL = process.env.REACT_APP_API_URL;
 
 const stages = [
@@ -55,6 +74,7 @@ const stages = [
 
 const ProgressTracking = () => {
   const [users, setUsers] = useState([]);
+  const navigate = useNavigate();
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [progress, setProgress] = useState(0);
@@ -62,38 +82,41 @@ const ProgressTracking = () => {
   const toast = useToast();
   const [search, setSearch] = useState("");
 
-  // Chakra UI Hook for Slide Panel Control
   const { isOpen, onOpen, onClose } = useDisclosure();
 
+  const { hasPermission } = usePermissionContext();
+  // Check if user is in "Admin" group OR has superuser permission
+  const userGroup = localStorage.getItem("userGroupName");
+  const isAdmin = userGroup === "Admin" || hasPermission("*");
+
+  const [viewMode, setViewMode] = useState("list"); // 'grid' | 'list'
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  // Colors
+  const cardBg = useColorModeValue("white", "gray.700");
+  const mainBg = useColorModeValue("gray.50", "gray.900");
+
   const fetchUsers = () => {
+    // ... (logic remains same)
+    // NOTE: Using the useEffect hook logic below instead.
+  };
+
+  useEffect(() => {
+    // Re-implementing the fetch call exactly as it was to ensure data consistency
     fetchEnrollData(
       "personnels/new",
       (data) => {
         const formattedUsers = data.map((user) => ({
           ...user,
-          fullname: `${user.givenname || ""} ${
-            user.surname_husband || ""
-          }`.trim(),
+          fullname: `${user.givenname || ""} ${user.surname_husband || ""}`.trim(),
         }));
-
         setUsers(formattedUsers);
         setFilteredUsers(formattedUsers);
       },
-      (err) =>
-        toast({
-          title: "Error",
-          description: err,
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        }),
+      (err) => console.error(err),
       "Failed to fetch users"
     );
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, [toast]);
+  }, []);
 
   const handleDelete = (personnelId) => {
     const confirmDelete = window.confirm(
@@ -112,7 +135,6 @@ const ProgressTracking = () => {
           duration: 3000,
           isClosable: true,
         });
-
         const updatedUsers = users.filter(
           (user) => user.personnel_id !== personnelId
         );
@@ -127,21 +149,50 @@ const ProgressTracking = () => {
           duration: 3000,
           isClosable: true,
         });
-        console.error("Delete error:", err);
       },
       "Failed to delete personnel"
     );
   };
 
   const handleUserSelect = (user) => {
+    if (!user || !user.personnel_id) {
+      toast({
+        title: "Error",
+        description: "Invalid personnel data selected.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
     setLoading(true);
 
     fetchProgressData(
-      "personnels", // endpoint
+      "personnels",
       (updatedUser) => {
-        setSelectedUser(updatedUser);
-        setProgress(updatedUser.personnel_progress || 0);
-        onOpen(); // open sidebar
+        const userObj = Array.isArray(updatedUser) ? updatedUser[0] : updatedUser;
+
+        if (!userObj) {
+          toast({
+            title: "Error",
+            description: "No data received for this user.",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+          setLoading(false);
+          return;
+        }
+
+        setSelectedUser(userObj);
+        const rawProgress = userObj.personnel_progress;
+        const currentProgress = (rawProgress !== undefined && rawProgress !== null)
+          ? Number(rawProgress)
+          : 0;
+
+        setProgress(currentProgress);
+        onOpen();
       },
       (err) => {
         toast({
@@ -151,10 +202,11 @@ const ProgressTracking = () => {
           duration: 3000,
           isClosable: true,
         });
+        setLoading(false);
       },
-      "Failed to load user progress", // error message
-      user.personnel_id, // the param (like /personnels/59)
-      () => setLoading(false) // finally
+      "Failed to load user progress",
+      String(user.personnel_id),
+      () => setLoading(false)
     );
   };
 
@@ -172,200 +224,659 @@ const ProgressTracking = () => {
     setFilteredUsers(filtered);
   };
 
+  const handleUpdateProgress = async (newProgressStep) => {
+    if (!selectedUser || !selectedUser.personnel_id) return;
+
+    const confirmUpdate = window.confirm(
+      `Are you sure you want to update the progress to: "${stages[newProgressStep]}"?`
+    );
+    if (!confirmUpdate) return;
+
+    setIsUpdating(true);
+    try {
+      await putData("users/update-progress", {
+        personnel_id: selectedUser.personnel_id,
+        personnel_progress: newProgressStep,
+      });
+
+      setProgress(newProgressStep);
+
+      // Update the local users list to reflect the change immediately
+      const updatedUsers = users.map(u =>
+        u.personnel_id === selectedUser.personnel_id
+          ? { ...u, personnel_progress: newProgressStep }
+          : u
+      );
+      setUsers(updatedUsers);
+      setFilteredUsers(
+        updatedUsers.filter(u => {
+          const fullname = u.fullname || "";
+          const email = u.email || "";
+          return fullname.toLowerCase().includes(search.toLowerCase()) ||
+            email.toLowerCase().includes(search.toLowerCase());
+        })
+      );
+
+      toast({
+        title: "Progress Updated",
+        description: `Successfully moved to step ${newProgressStep}`,
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (err) {
+      toast({
+        title: "Update Failed",
+        description: err.message || "Could not update progress.",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  // Stats
+  const pendingUsersAll = filteredUsers.filter(u => (u.personnel_progress || 0) < 8);
+  const completedUsersAll = filteredUsers.filter(u => (u.personnel_progress || 0) >= 8);
+
+  const totalRequests = pendingUsersAll.length;
+  const totalCompleted = completedUsersAll.length;
+
+  // Pagination State
+  const [pendingPage, setPendingPage] = useState(1);
+  const [completedPage, setCompletedPage] = useState(1);
+  const itemsPerPage = 10; // Adjust as needed
+
+  // Pagination Logic
+  const paginate = (items, page, perPage) => {
+    const start = (page - 1) * perPage;
+    return items.slice(start, start + perPage);
+  };
+
+  const pendingUsers = paginate(pendingUsersAll, pendingPage, itemsPerPage);
+  const completedUsers = paginate(completedUsersAll, completedPage, itemsPerPage);
+
+  const pendingTotalPages = Math.ceil(pendingUsersAll.length / itemsPerPage);
+  const completedTotalPages = Math.ceil(completedUsersAll.length / itemsPerPage);
+
+  // Reset pagination on search
+  useEffect(() => {
+    setPendingPage(1);
+    setCompletedPage(1);
+  }, [search, users]);
+  // Estimate completed: progress >= 7? Or based on some other flag. 
+  // We'll just show Total for now.
+
   return (
-    <Flex p={6} bg="gray.50" minHeight="100vh">
-      {/* Left: Personnel Table */}
-      <Box flex="2" pr={6} zIndex={0}>
-        <Heading as="h1" size="lg" textAlign="center" mb={6}>
-          Personnel Progress Tracking
-        </Heading>
+    <Box bg={mainBg} minH="100vh" py={6} px={{ base: 4, md: 6 }}>
+      {/* Use full width container if needed, or keeping it cleaner maxW="full" */}
+      <Box maxW="full" mx="auto">
+        {/* Header Section */}
+        <VStack spacing={6} align="stretch" mb={8}>
+          <Flex justifyContent="space-between" alignItems="center" wrap="wrap" gap={4}>
+            <VStack align="start" spacing={0}>
+              <Heading size="lg" bgGradient="linear(to-r, orange.400, red.500)" bgClip="text" fontWeight="extrabold">
+                Personnel Tracker
+              </Heading>
+              <Text color="gray.500" fontSize="sm">Monitor and manage enrollment progress</Text>
+            </VStack>
 
-        {/* Search Input */}
-        <Input
-          placeholder="Search by fullname or email"
-          value={search}
-          onChange={handleSearch}
-          mb={4}
-          size="lg"
-          variant="outline"
-        />
+            <HStack spacing={3} w={{ base: "full", md: "auto" }}>
+              <Input
+                placeholder="Search personnel..."
+                value={search}
+                onChange={handleSearch}
+                bg="white"
+                variant="outline"
+                borderColor="gray.300"
+                focusBorderColor="orange.500"
+                width={{ base: "full", md: "300px" }}
+                borderRadius="md"
+              />
 
-        {/* Personnel List Table */}
-        <Table variant="striped" colorScheme="gray">
-          <Thead>
-            <Tr>
-              <Th>#</Th>
-              <Th>Full Name</Th>
-              <Th>Email</Th>
-              <Th>Action</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {filteredUsers.map((user, index) => (
-              // <Tr key={user.id}>
-              <Tr key={`${user.id}-${index}`}>
-                <Td>{index + 1}</Td>
-                <Td>{user.fullname || "N/A"}</Td>
-                <Td>{user.email_address || "No Email"}</Td>
-                <Td>
-                  <Button
-                    leftIcon={<MdTrackChanges />}
-                    colorScheme="orange"
-                    size="sm"
-                    mr={2}
-                    onClick={() => handleUserSelect(user)}
-                  >
-                    Track
-                  </Button>
+              {/* View Toggle */}
+              <HStack spacing={0} border="1px solid" borderColor="gray.300" borderRadius="md" overflow="hidden">
+                <IconButton
+                  aria-label="Grid View"
+                  icon={<Icon as={MdGridView} />}
+                  variant={viewMode === 'grid' ? "solid" : "ghost"}
+                  colorScheme={viewMode === 'grid' ? "orange" : "gray"}
+                  borderRadius="0"
+                  size="md"
+                  onClick={() => setViewMode("grid")}
+                />
+                <IconButton
+                  aria-label="List View"
+                  icon={<Icon as={MdViewList} />}
+                  variant={viewMode === 'list' ? "solid" : "ghost"}
+                  colorScheme={viewMode === 'list' ? "orange" : "gray"}
+                  borderRadius="0"
+                  size="md"
+                  onClick={() => setViewMode("list")}
+                />
+              </HStack>
 
-                  <IconButton
-                    icon={<ViewIcon />}
-                    aria-label="Print"
-                    colorScheme="yellow"
-                    size="sm"
-                    mr={2}
-                    onClick={() =>
-                      window.open(
-                        `/personnel-preview/${user.personnel_id}`,
-                        "_blank"
-                      )
-                    }
-                  />
+              <Button
+                leftIcon={<Icon as={MdTimeline} />}
+                colorScheme="purple"
+                variant="solid"
+                size="md"
+                onClick={() => navigate("/progress/step1")}
+                shadow="sm"
+                _hover={{ transform: "translateY(-1px)", shadow: "md" }}
+              >
+                Start Step
+              </Button>
+            </HStack>
+          </Flex>
 
-                  <IconButton
-                    icon={<ExternalLinkIcon />}
-                    colorScheme="teal"
-                    variant="solid"
-                    size="sm"
-                    aria-label="Update Info"
-                    onClick={() => {
-                      const personnelId = user.personnel_id;
-                      if (personnelId) {
-                        window.location.href = `/enroll?personnel_id=${personnelId}&type=editprogress`;
-                      } else {
-                        window.location.href = `/enroll?not_enrolled=${user.username}&type=editprogress`;
-                      }
-                    }}
-                  />
+          {/* Stats Section (Compact) */}
+          <SimpleGrid columns={{ base: 1, sm: 3, md: 4 }} spacing={4}>
+            <Stat
+              px={4} py={3}
+              bg="white"
+              shadow="sm"
+              rounded="lg"
+              borderLeft="4px solid"
+              borderColor="orange.400"
+            >
+              <StatLabel color="gray.500" fontSize="xs" fontWeight="bold">PENDING REQUESTS</StatLabel>
+              <StatNumber fontSize="2xl" fontWeight="bold">{totalRequests}</StatNumber>
+            </Stat>
 
-                  <IconButton
-                    icon={<DeleteIcon />}
-                    colorScheme="red"
-                    size="sm"
-                    aria-label="Delete Personnel"
-                    ml={2}
-                    onClick={() => handleDelete(user.personnel_id)}
-                  />
-                </Td>
-              </Tr>
-            ))}
-          </Tbody>
-        </Table>
-      </Box>
+            <Stat
+              px={4} py={3}
+              bg="white"
+              shadow="sm"
+              rounded="lg"
+              borderLeft="4px solid"
+              borderColor="green.400"
+            >
+              <StatLabel color="gray.500" fontSize="xs" fontWeight="bold">COMPLETED</StatLabel>
+              <StatNumber fontSize="2xl" fontWeight="bold">{totalCompleted}</StatNumber>
+            </Stat>
+          </SimpleGrid>
+        </VStack>
 
-      {/* Right: Progress Sidebar */}
-      <Slide direction="right" in={isOpen} style={{ zIndex: 50 }}>
-        <Box
-          position="fixed"
-          top="0"
-          right="0"
-          height="100vh"
-          width={{ base: "100%", sm: "400px" }} // Responsive width
-          bgGradient="linear(to-b, white, orange.50)" // Gradient effect
-          p={6}
-          boxShadow="2xl"
-          borderLeft="8px solid orange"
-          display="flex"
-          flexDirection="column"
-          transition="all 0.3s ease-in-out"
-        >
-          {/* Close Button at the Upper Right */}
-          <IconButton
-            icon={<CloseIcon />}
-            aria-label="Close Progress Tracking"
-            colorScheme="red"
-            position="absolute"
-            top="10px"
-            right="10px"
-            size="md"
-            variant="ghost"
-            _hover={{ bg: "red.200", transform: "scale(1.1)" }}
-            onClick={onClose}
-          />
+        {/* Content Area */}
+        {pendingUsersAll.length === 0 && completedUsersAll.length === 0 ? (
+          <Flex justify="center" align="center" h="200px" bg="white" rounded="lg" shadow="sm">
+            <Text color="gray.500">No personnel found matching your search.</Text>
+          </Flex>
+        ) : (
+          <VStack spacing={8} align="stretch">
 
-          <Box mt={6}>
-            {selectedUser ? (
-              <>
-                <Heading size="md" mb={2} color="orange.600">
-                  Tracking Progress
-                </Heading>
-
-                <Text fontSize="lg" fontWeight="bold" mb={4} color="gray.700">
-                  {selectedUser.givenname} {selectedUser.surname_husband}
-                </Text>
-
-                <VStack spacing={3} align="stretch">
-                  {stages.map((stage, index) => (
-                    <HStack
-                      key={index}
-                      p={4}
-                      bg={progress > index ? "green.100" : "red.100"}
-                      borderRadius="md"
-                      boxShadow="md"
-                      transition="all 0.2s ease-in-out"
-                      _hover={{ transform: "scale(1.02)", boxShadow: "lg" }}
-                    >
-                      <Box>
-                        {progress > index ? (
-                          <CheckIcon color="green.600" boxSize={5} /> // ✔ Check Icon for completed
-                        ) : (
-                          <CloseIcon color="red.500" boxSize={5} /> // ✖ X Icon for incomplete
-                        )}
-                      </Box>
-                      <Text
-                        fontSize="md"
-                        fontWeight={progress > index ? "bold" : "normal"}
-                        color={progress > index ? "green.700" : "red.700"}
+            {/* PENDING / IN PROGRESS SECTION */}
+            {pendingUsers.length > 0 && (
+              <Box>
+                <Heading size="md" mb={4} color="orange.600">Pending / In Progress</Heading>
+                {viewMode === "grid" ? (
+                  <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={6}>
+                    {pendingUsers.map((user, index) => (
+                      <Card
+                        key={`pending-${user.id}-${index}`}
+                        bg={cardBg}
+                        shadow="sm"
+                        rounded="lg"
+                        overflow="hidden"
+                        border="1px solid"
+                        borderColor="gray.100"
+                        _hover={{ shadow: "md", borderColor: "orange.200" }}
                       >
-                        {stage}
-                      </Text>
-                    </HStack>
-                  ))}
-                </VStack>
+                        <CardHeader pb={0} pt={4}>
+                          <Flex gap={3} alignItems="center">
+                            <Avatar
+                              name={user.fullname}
+                              size="sm"
+                              bg="orange.100"
+                              color="orange.600"
+                              fontWeight="bold"
+                            />
+                            <Box overflow="hidden">
+                              <Text fontWeight="bold" fontSize="md" noOfLines={1}>{user.fullname || "Unknown"}</Text>
+                              <Text fontSize="xs" color="gray.500" noOfLines={1}>
+                                {user.email_address || "No Email"}
+                              </Text>
+                            </Box>
+                          </Flex>
+                        </CardHeader>
 
-                <Divider my={4} />
+                        <CardBody py={3}>
+                          <Flex justify="space-between" align="center">
+                            <Badge
+                              colorScheme="orange"
+                              variant="subtle"
+                              rounded="full"
+                              px={2}
+                              fontSize="xx-small"
+                            >
+                              IN PROGRESS
+                            </Badge>
+                            <Text fontSize="xs" fontWeight="bold" color="gray.400">Step {user.personnel_progress || 0}</Text>
+                          </Flex>
+                        </CardBody>
 
-                <Text
-                  fontSize="sm"
-                  textAlign="center"
-                  fontWeight="bold"
-                  color="gray.600"
-                >
-                  Overall Progress:{" "}
-                  {((progress / stages.length) * 100).toFixed(0)}%
-                </Text>
-              </>
-            ) : (
-              <Text>Select a user to see progress.</Text>
+                        <Divider color="gray.100" />
+
+                        <CardFooter justify="space-between" bg="gray.50" py={2} px={4}>
+                          <Button
+                            leftIcon={<Icon as={MdTrackChanges} />}
+                            colorScheme="orange"
+                            variant="solid"
+                            size="xs"
+                            onClick={() => handleUserSelect(user)}
+                          >
+                            Track
+                          </Button>
+
+                          <HStack spacing={0}>
+                            <Tooltip label="Preview">
+                              <IconButton
+                                icon={<ViewIcon />}
+                                variant="ghost" colorScheme="blue" size="xs"
+                                onClick={() => window.open(`/personnel-preview/${user.personnel_id}`, "_blank")}
+                              />
+                            </Tooltip>
+                            <Tooltip label="Update">
+                              <IconButton
+                                icon={<ExternalLinkIcon />}
+                                variant="ghost" colorScheme="teal" size="xs"
+                                onClick={() => {
+                                  const pid = user.personnel_id;
+                                  const url = pid ? `/enroll?personnel_id=${pid}&type=editprogress`
+                                    : `/enroll?not_enrolled=${user.username}&type=editprogress`;
+                                  window.location.href = url;
+                                }}
+                              />
+                            </Tooltip>
+                            <Tooltip label="Delete">
+                              <IconButton
+                                icon={<DeleteIcon />}
+                                variant="ghost" colorScheme="red" size="xs"
+                                onClick={() => handleDelete(user.personnel_id)}
+                              />
+                            </Tooltip>
+                          </HStack>
+                        </CardFooter>
+                      </Card>
+                    ))}
+                  </SimpleGrid>
+                ) : (
+                  // LIST VIEW (Table) - Pending
+                  <Box bg="white" shadow="md" rounded="lg" overflowX="auto">
+                    <Table variant="striped" colorScheme="gray">
+                      <Thead>
+                        <Tr>
+                          <Th>#</Th>
+                          <Th>Full Name</Th>
+                          <Th>Email</Th>
+                          <Th>Status</Th>
+                          <Th>Action</Th>
+                        </Tr>
+                      </Thead>
+                      <Tbody>
+                        {pendingUsers.map((user, index) => (
+                          <Tr key={`pending-${user.id}-${index}`}>
+                            <Td>{index + 1}</Td>
+                            <Td fontWeight="bold">{user.fullname || "N/A"}</Td>
+                            <Td>{user.email_address || "No Email"}</Td>
+                            <Td>
+                              <Badge colorScheme="orange" variant="subtle" rounded="full" fontSize="xx-small">
+                                STEP {user.personnel_progress || 0}
+                              </Badge>
+                            </Td>
+                            <Td>
+                              <HStack spacing={2}>
+                                <Button
+                                  leftIcon={<Icon as={MdTrackChanges} />}
+                                  colorScheme="orange"
+                                  size="sm"
+                                  onClick={() => handleUserSelect(user)}
+                                >
+                                  Track
+                                </Button>
+                                <IconButton icon={<ViewIcon />} size="sm" colorScheme="yellow" onClick={() => window.open(`/personnel-preview/${user.personnel_id}`, "_blank")} />
+                                <IconButton icon={<ExternalLinkIcon />} size="sm" colorScheme="teal" onClick={() => window.location.href = user.personnel_id ? `/enroll?personnel_id=${user.personnel_id}&type=editprogress` : `/enroll?not_enrolled=${user.username}&type=editprogress`} />
+                                <IconButton icon={<DeleteIcon />} size="sm" colorScheme="red" onClick={() => handleDelete(user.personnel_id)} />
+                              </HStack>
+                            </Td>
+                          </Tr>
+                        ))}
+                      </Tbody>
+                    </Table>
+                  </Box>
+                )}
+              </Box>
             )}
-          </Box>
-        </Box>
-      </Slide>
 
- {/* Background Overlay (Click Outside to Close) */}
-  {isOpen && (
-    <Box
-      position="fixed"
-      top="0"
-      left="0"
-      w="100%"
-      h="100vh"
-      bg="blackAlpha.500"
-      zIndex={40} // Less than Slide (50)
-      onClick={onClose}
-    />
-  )}
-    </Flex>
+            {/* Pagination Controls for Pending */}
+            {pendingUsersAll.length > itemsPerPage && (
+              <Flex justify="center" mt={4} gap={2}>
+                <Button
+                  size="sm"
+                  onClick={() => setPendingPage(p => Math.max(1, p - 1))}
+                  isDisabled={pendingPage === 1}
+                >
+                  Previous
+                </Button>
+                <Text alignSelf="center" fontSize="sm">
+                  Page {pendingPage} of {pendingTotalPages}
+                </Text>
+                <Button
+                  size="sm"
+                  onClick={() => setPendingPage(p => Math.min(pendingTotalPages, p + 1))}
+                  isDisabled={pendingPage === pendingTotalPages}
+                >
+                  Next
+                </Button>
+              </Flex>
+            )}
+
+            {/* COMPLETED SECTION */}
+            {completedUsers.length > 0 && (
+              <Box>
+                <Heading size="md" mb={1} color="green.600">Completed Personnel</Heading>
+                <Text fontSize="sm" color="gray.500" mb={4} fontStyle="italic">
+                  * Proceed to the Personnel page to sync users for portal access.
+                </Text>
+                {viewMode === "grid" ? (
+                  <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={6}>
+                    {completedUsers.map((user, index) => (
+                      <Card
+                        key={`completed-${user.id}-${index}`}
+                        bg={cardBg}
+                        shadow="sm"
+                        rounded="lg"
+                        overflow="hidden"
+                        border="1px solid"
+                        borderColor="green.100"
+                        _hover={{ shadow: "md", borderColor: "green.300" }}
+                      >
+                        <CardHeader pb={0} pt={4}>
+                          <Flex gap={3} alignItems="center">
+                            <Avatar
+                              name={user.fullname}
+                              size="sm"
+                              bg="green.100"
+                              color="green.600"
+                              fontWeight="bold"
+                            />
+                            <Box overflow="hidden">
+                              <Text fontWeight="bold" fontSize="md" noOfLines={1}>{user.fullname || "Unknown"}</Text>
+                              <Text fontSize="xs" color="gray.500" noOfLines={1}>
+                                {user.email_address || "No Email"}
+                              </Text>
+                            </Box>
+                          </Flex>
+                        </CardHeader>
+
+                        <CardBody py={3}>
+                          <Flex justify="space-between" align="center">
+                            <Badge
+                              colorScheme="green"
+                              variant="solid"
+                              rounded="full"
+                              px={2}
+                              fontSize="xx-small"
+                            >
+                              COMPLETED
+                            </Badge>
+                            <Icon as={MdCheckCircle} color="green.500" boxSize={5} />
+                          </Flex>
+                        </CardBody>
+
+                        <Divider color="gray.100" />
+
+                        <CardFooter justify="space-between" bg="gray.50" py={2} px={4}>
+                          <Button
+                            leftIcon={<Icon as={MdTrackChanges} />}
+                            colorScheme="orange"
+                            variant="solid"
+                            size="xs"
+                            onClick={() => handleUserSelect(user)}
+                          >
+                            Track
+                          </Button>
+
+                          <HStack spacing={0}>
+                            <Tooltip label="Preview">
+                              <IconButton
+                                icon={<ViewIcon />}
+                                variant="ghost" colorScheme="blue" size="xs"
+                                onClick={() => window.open(`/personnel-preview/${user.personnel_id}`, "_blank")}
+                              />
+                            </Tooltip>
+                            <Tooltip label="Update">
+                              <IconButton
+                                icon={<ExternalLinkIcon />}
+                                variant="ghost" colorScheme="teal" size="xs"
+                                onClick={() => {
+                                  const pid = user.personnel_id;
+                                  const url = pid ? `/enroll?personnel_id=${pid}&type=editprogress`
+                                    : `/enroll?not_enrolled=${user.username}&type=editprogress`;
+                                  window.location.href = url;
+                                }}
+                              />
+                            </Tooltip>
+                            {/* Completed users typically don't need update/delete here, but keeping for consistency if needed */}
+                            <Tooltip label="Delete">
+                              <IconButton
+                                icon={<DeleteIcon />}
+                                variant="ghost" colorScheme="red" size="xs"
+                                onClick={() => handleDelete(user.personnel_id)}
+                              />
+                            </Tooltip>
+                            <Tooltip label="Proceed to Personnel Page">
+                              <IconButton
+                                icon={<ArrowForwardIcon />}
+                                variant="ghost" colorScheme="blue" size="xs"
+                                onClick={() => navigate(`/user?new_enroll_search=${encodeURIComponent(user.fullname)}`)}
+                              />
+                            </Tooltip>
+                          </HStack>
+                        </CardFooter>
+                      </Card>
+                    ))}
+                  </SimpleGrid>
+                ) : (
+                  // LIST VIEW (Table) - Completed
+                  <Box bg="white" shadow="md" rounded="lg" overflowX="auto">
+                    <Table variant="striped" colorScheme="green">
+                      <Thead>
+                        <Tr>
+                          <Th>#</Th>
+                          <Th>Full Name</Th>
+                          <Th>Email</Th>
+                          <Th>Status</Th>
+                          <Th>Action</Th>
+                        </Tr>
+                      </Thead>
+                      <Tbody>
+                        {completedUsers.map((user, index) => (
+                          <Tr key={`completed-${user.id}-${index}`}>
+                            <Td>{index + 1}</Td>
+                            <Td fontWeight="bold">{user.fullname || "N/A"}</Td>
+                            <Td>{user.email_address || "No Email"}</Td>
+                            <Td>
+                              <Badge colorScheme="green" variant="solid" rounded="full" fontSize="xx-small">
+                                COMPLETED
+                              </Badge>
+                            </Td>
+                            <Td>
+                              <HStack spacing={2}>
+                                <Button
+                                  leftIcon={<Icon as={MdTrackChanges} />}
+                                  colorScheme="orange"
+                                  size="sm"
+                                  onClick={() => handleUserSelect(user)}
+                                >
+                                  Track
+                                </Button>
+                                <IconButton icon={<ViewIcon />} size="sm" colorScheme="yellow" onClick={() => window.open(`/personnel-preview/${user.personnel_id}`, "_blank")} />
+                                <IconButton icon={<ExternalLinkIcon />} size="sm" colorScheme="teal" onClick={() => window.location.href = user.personnel_id ? `/enroll?personnel_id=${user.personnel_id}&type=editprogress` : `/enroll?not_enrolled=${user.username}&type=editprogress`} />
+                                <IconButton icon={<DeleteIcon />} size="sm" colorScheme="red" onClick={() => handleDelete(user.personnel_id)} />
+                                <Tooltip label="Proceed to Personnel Page">
+                                  <IconButton icon={<ArrowForwardIcon />} size="sm" colorScheme="blue" onClick={() => navigate(`/user?new_enroll_search=${encodeURIComponent(user.fullname)}`)} />
+                                </Tooltip>
+                              </HStack>
+                            </Td>
+                          </Tr>
+                        ))}
+                      </Tbody>
+                    </Table>
+                  </Box>
+                )}
+              </Box>
+            )}
+
+            {/* Pagination Controls for Completed */}
+            {completedUsersAll.length > itemsPerPage && (
+              <Flex justify="center" mt={4} gap={2}>
+                <Button
+                  size="sm"
+                  onClick={() => setCompletedPage(p => Math.max(1, p - 1))}
+                  isDisabled={completedPage === 1}
+                >
+                  Previous
+                </Button>
+                <Text alignSelf="center" fontSize="sm">
+                  Page {completedPage} of {completedTotalPages}
+                </Text>
+                <Button
+                  size="sm"
+                  onClick={() => setCompletedPage(p => Math.min(completedTotalPages, p + 1))}
+                  isDisabled={completedPage === completedTotalPages}
+                >
+                  Next
+                </Button>
+              </Flex>
+            )}
+
+          </VStack>
+        )}
+      </Box> {/* End Main Box */}
+
+      {/* Sidebar Drawer */}
+      <Drawer isOpen={isOpen} placement="right" onClose={onClose} size="md">
+        <DrawerOverlay />
+        <DrawerContent>
+          <DrawerCloseButton color="white" mt={2} mr={2} zIndex={10} />
+
+          <DrawerHeader bg="orange.500" color="white" py={6}>
+            <Heading size="md">Tracking Timeline</Heading>
+            <Text fontSize="sm" opacity={0.9} mt={1} fontWeight="normal">
+              {selectedUser?.givenname} {selectedUser?.surname_husband}
+            </Text>
+          </DrawerHeader>
+
+          <DrawerBody p={0}>
+            <Box p={6}>
+              <Flex justify="space-between" align="center" mb={6} bg="gray.50" p={3} rounded="lg">
+                <Text fontSize="sm" fontWeight="semibold" color="gray.600">Current Level</Text>
+                <Badge colorScheme="orange" fontSize="md" px={3} py={1} rounded="md">
+                  Step {progress}
+                </Badge>
+              </Flex>
+
+              {/* Timeline */}
+              <VStack align="stretch" spacing={0} position="relative">
+                {stages.map((stage, index) => {
+                  const isCompleted = index < progress;
+                  const isCurrent = index === progress;
+                  // const isFuture = index > progress;
+
+                  return (
+                    <Flex key={index} gap={4} pb={8} position="relative">
+                      {/* Vertical Line */}
+                      {index !== stages.length - 1 && (
+                        <Box
+                          position="absolute"
+                          left="15px"
+                          top="30px"
+                          bottom="-10px"
+                          width="2px"
+                          bg={isCompleted ? "green.400" : "gray.200"}
+                        />
+                      )}
+
+                      {/* Icon Indicator */}
+                      <Circle
+                        size="32px"
+                        bg={isCompleted ? "green.100" : isCurrent ? "orange.100" : "gray.100"}
+                        border="2px solid"
+                        borderColor={isCompleted ? "green.400" : isCurrent ? "orange.400" : "gray.300"}
+                        zIndex={1}
+                      >
+                        {isCompleted ? (
+                          <Icon as={MdCheckCircle} color="green.500" boxSize={5} />
+                        ) : isCurrent ? (
+                          <Icon as={TimeIcon} color="orange.500" boxSize={4} />
+                        ) : (
+                          <Icon as={MdTimeline} color="gray.400" boxSize={4} />
+                        )}
+                      </Circle>
+
+                      {/* Content */}
+                      <Box
+                        pt={1}
+                        flex="1"
+                        cursor="pointer"
+                        onClick={() => navigate(`/progress/step${index + 1}`)}
+                        _hover={{ bg: "gray.50", rounded: "md", px: 1 }}
+                        transition="all 0.2s"
+                      >
+                        <Flex justify="space-between" align="start">
+                          <Box>
+                            <Text
+                              fontWeight={isCompleted || isCurrent ? "bold" : "medium"}
+                              color={isCompleted ? "green.800" : isCurrent ? "orange.800" : "gray.500"}
+                              fontSize="md"
+                            >
+                              {stage}
+                            </Text>
+                            <Text fontSize="xs" color="gray.400">
+                              {isCompleted ? "Completed" : isCurrent ? "Current Step" : "Pending"}
+                            </Text>
+                          </Box>
+
+                          {isAdmin && !isCurrent && (
+                            <Button
+                              size="xs"
+                              colorScheme="orange"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleUpdateProgress(index);
+                              }}
+                              isLoading={isUpdating}
+                              ml={2}
+                            >
+                              {isCompleted ? "Revert to here" : "Move to here"}
+                            </Button>
+                          )}
+                        </Flex>
+                      </Box>
+                    </Flex>
+                  );
+                })}
+              </VStack>
+
+              <Divider my={6} />
+              <Box textAlign="center">
+                <Text fontSize="xs" color="gray.400" textTransform="uppercase" letterSpacing="wide">
+                  Overall Completion
+                </Text>
+                <Heading size="lg" color="orange.500">
+                  {((progress / stages.length) * 100).toFixed(0)}%
+                </Heading>
+              </Box>
+            </Box>
+          </DrawerBody>
+        </DrawerContent>
+      </Drawer>
+    </Box >
   );
 };
 

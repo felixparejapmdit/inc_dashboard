@@ -47,7 +47,7 @@ import {
   FiBarChart2,
 } from "react-icons/fi";
 import { FaDownload, FaShareAlt } from "react-icons/fa"; // Font Awesome download icon
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import { usePermissionContext } from "../contexts/PermissionContext";
 
@@ -100,16 +100,125 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
   const iconColor = useColorModeValue("gray.600", "gray.300");
   const cancelRef = useRef(); // Reference for cancel button in the alert dialog
   const navigate = useNavigate();
+  const location = useLocation();
   const showLdapUsers = false; // Set this to true if you want to show the item
   const roleTextColor = useColorModeValue("gray.500", "gray.300");
 
-  // Fetch the logged-in user's name from localStorage
+  // Fetch the logged-in user's name and gender from the backend
   useEffect(() => {
-    const storedName = localStorage.getItem("userFullName") || "User";
-    const avatarUrl = user.avatarUrl || "/default-avatar.png";
-    setUser({ name: storedName, avatarUrl });
+    // 1. Define Helper to fetch the 2x2 image separately (mirroring Profile.js)
+    const fetchProfileImage = async (personnelId) => {
+      if (!personnelId) return null;
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/personnel_images/2x2/${personnelId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          }
+        });
+        if (response.ok) {
+          const json = await response.json();
+          if (json.success && json.data && json.data.image_url) {
+            return `${process.env.REACT_APP_API_URL}${json.data.image_url}`;
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching profile image:", error);
+      }
+      return null;
+    };
+
+    const fetchUserData = async () => {
+      const username = localStorage.getItem("username");
+      const token = localStorage.getItem("authToken");
+
+      if (!username || !token) {
+        const storedName = localStorage.getItem("userFullName") || "User";
+        setUser({ name: storedName, avatarUrl: "/default-avatar.png" });
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `${process.env.REACT_APP_API_URL}/api/users/logged-in?username=${username}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          // Decide on avatar based on gender if no custom avatar is set
+          const gender = (data.gender || "Male").toLowerCase();
+          const defaultAvatar = gender === "male" ? "/male-avatar.png" : "/female-avatar.png";
+
+          let avatarUrl = defaultAvatar;
+
+          // 2. Priority Logic with extra fetch
+          if (data.personnel_id) {
+            const profileImg = await fetchProfileImage(data.personnel_id);
+            if (profileImg) {
+              avatarUrl = profileImg;
+            } else if (data["2x2 Picture"]) {
+              avatarUrl = `${process.env.REACT_APP_API_URL}/uploads/avatar/${data["2x2 Picture"]}`;
+            } else if (data.avatar) {
+              avatarUrl = data.avatar;
+            }
+          } else {
+            // Fallback if no personnel_id associated
+            if (data["2x2 Picture"]) {
+              avatarUrl = `${process.env.REACT_APP_API_URL}/uploads/avatar/${data["2x2 Picture"]}`;
+            } else if (data.avatar) {
+              avatarUrl = data.avatar;
+            }
+          }
+
+          setUser({
+            name: data.name || data.username || "User",
+            avatarUrl: avatarUrl,
+          });
+        } else {
+          const storedName = localStorage.getItem("userFullName") || "User";
+          setUser({ name: storedName, avatarUrl: "/default-avatar.png" });
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        const storedName = localStorage.getItem("userFullName") || "User";
+        setUser({ name: storedName, avatarUrl: "/default-avatar.png" });
+      }
+    };
+
+    fetchUserData();
     onSidebarToggle(true);
   }, []);
+
+  // ✅ Auto-expand submenus based on active route
+  useEffect(() => {
+    const path = location.pathname;
+
+    // Check Settings
+    const settingsPaths = ["/application", "/managements/applicationtype", "/managements/categorymanagement", "/settings/drag-drop", "/add-events", "/managements/locations", "/managements/groupmanagement", "/managements/permissionmanagement", "/user", "/tempdeleted-users", "/managements/phonelocations", "/managements/phonedirectory", "/managements/loginaudits", "/reminders", "/add-suguan", "/ldap-users"];
+    if (settingsPaths.some(p => path.startsWith(p))) {
+      setIsSettingsExpanded(true);
+    }
+
+    // Check Enrollment Progress
+    if (path.startsWith("/progress/") || path === "/progresstracking") {
+      setIsProgressStepsExpanded(true);
+    }
+
+    // Check Management
+    const managementPaths = ["/managements/citizenships", "/managements/contact_infos", "/managements/departments", "/managements/designations", "/managements/districts", "/managements/housingmanagement", "/managements/government_issued_ids", "/managements/languages", "/managements/nationalities", "/managements/sections", "/managements/subsections"];
+    if (managementPaths.some(p => path.startsWith(p))) {
+      setIsManagementsExpanded(true);
+    }
+
+    // Check Plugins
+    if (path === "/lokalprofile") {
+      setIsPluginsExpanded(true);
+    }
+  }, [location.pathname]);
 
   // Toggle sidebar expansion on hover
   // const handleMouseEnter = () => {
@@ -178,7 +287,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
   };
 
   return (
-    <Box position="fixed" zIndex="100">
+    <Box display="flex" flexDirection="column" minH="100%" bg="#FFD559">
       {/* <Button to="/dashboard" data-tour="dashboard">
   Dashboard
 </Button>
@@ -193,12 +302,12 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
   Schedule
 </Button> */}
 
-      {/* Toggle Button */}
       <Button
-        position="absolute"
-        top="20px"
-        right={isExpanded ? "-260px" : "90px"} // Fixing the position for both states
-        transform={isExpanded ? "translateX(0)" : "translateX(180px)"} // smoother toggle for collapsed state
+        data-tour="sidebar-toggle"
+        position="fixed"
+        top="24px"
+        left={isExpanded ? "235px" : "16px"}
+        transition="all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)"
         borderRadius="full"
         size="sm"
         onClick={() => {
@@ -206,35 +315,40 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
           setIsExpanded(newExpandedState);
           onSidebarToggle(newExpandedState);
         }}
-        bg="#FFD559" // match sidebar color
+        bg="white"
+        color="orange.400"
         _hover={{
-          bg: "#FFC400", // slightly darker yellow on hover
-          boxShadow: "0 0 10px #FFD559, 0 0 20px #FFA500", // glow effect
+          bg: "gray.50",
+          transform: "scale(1.1)",
+          boxShadow: "lg",
         }}
-        boxShadow="0 0 6px #FFD559" // subtle glow by default
-        border="2px solid white" // stroke effect
-        zIndex={999}
-        p={2}
+        _active={{
+          transform: "scale(0.95)"
+        }}
+        boxShadow="0 4px 12px rgba(0,0,0,0.15)"
+        zIndex={1500}
+        p={0}
+        w="32px"
+        h="32px"
       >
         <Icon
-          as={isExpanded ? FiArrowLeft : FiArrowRight}
-          color="black" // better contrast against yellow
+          as={isExpanded ? FiArrowLeft : FiMenu}
           boxSize={4}
         />
       </Button>
 
       <Flex
         direction="column"
-        bg="#FFD559"
-        h="100vh"
-        width={isExpanded ? "250px" : "70px"}
-        transition="width 0.3s ease"
-        position="fixed"
-        boxShadow="lg"
-        zIndex="100"
-        p={4}
-        overflowX="visible" // ✅ fine
-        overflowY="auto" // ✅ fine
+        height="100vh"
+        position="sticky"
+        top="0"
+        overflowY="auto"
+        width={isExpanded ? "250px" : "0px"}
+        transition="all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)"
+        boxShadow="4px 0 24px rgba(0,0,0,0.08)"
+        zIndex={100}
+        p={isExpanded ? 4 : 0}
+        overflowX="hidden"
         css={{
           "::-webkit-scrollbar": {
             width: "4px",
@@ -252,28 +366,33 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
         }}
       >
         {/* Logo Box */}
-        <Box position="relative" mb={8}>
-          <Box display="flex" justifyContent="center" alignItems="center">
+        {isExpanded && (
+          <Box data-tour="dashboard-logo" position="relative" mb={6} mt={2} textAlign="center">
             <Image
               src="/apps_logo.png"
               alt="INC Dashboard"
-              boxSize={isExpanded ? "100px" : "50px"}
-              transition="all 0.3s"
+              boxSize="90px"
+              objectFit="contain"
+              mx="auto"
+              filter="drop-shadow(0px 4px 6px rgba(0,0,0,0.1))"
             />
           </Box>
-        </Box>
+        )}
 
         {/* Menu */}
-        <VStack align="start" spacing={4}>
+        <VStack align="stretch" spacing={2}>
           {/* Adjusted the spacing */}
 
-          <SidebarItem
-            data-tour="dashboard"
-            icon={FiHome}
-            label="Home"
-            isExpanded={isExpanded}
-            onClick={() => navigate("/dashboard")}
-          />
+          {hasPermission("*home.view") && (
+            <SidebarItem
+              data-tour="dashboard"
+              icon={FiHome}
+              label="Home"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/dashboard")}
+              isActive={location.pathname === "/dashboard"}
+            />
+          )}
 
           {hasPermission("statistics.view") && (
             <SidebarItem
@@ -282,31 +401,42 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
               label="Statistics"
               isExpanded={isExpanded}
               onClick={() => navigate("/personnel-statistics")}
+              isActive={location.pathname === "/personnel-statistics"}
             />
           )}
 
-    <SidebarItem
-              data-tour="inv_dashboard"
+          {hasPermission("inv_dashboard.view") && (
+            <SidebarItem
+              data-tour="inventory-dashboard"
               icon={FiBarChart2}
               label="Inv Dashboard"
               isExpanded={isExpanded}
               onClick={() => navigate("/inv-dashboard")}
+              isActive={location.pathname === "/inv-dashboard"}
             />
+          )}
 
-   <SidebarItem
-              data-tour="atg_dashboard"
+          {hasPermission("atg_dashboard.view") && (
+            <SidebarItem
+              data-tour="atg-dashboard"
               icon={FiBarChart2}
               label="ATG Dashboard"
               isExpanded={isExpanded}
               onClick={() => navigate("/atg-dashboard")}
+              isActive={location.pathname === "/atg-dashboard"}
             />
-          <SidebarItem
-            data-tour="profile-settings"
-            icon={FiUser}
-            label="Profile"
-            isExpanded={isExpanded}
-            onClick={() => navigate("/profile")}
-          />
+          )}
+
+          {hasPermission("*profile.view") && (
+            <SidebarItem
+              data-tour="profile-settings"
+              icon={FiUser}
+              label="Profile"
+              isExpanded={isExpanded}
+              onClick={() => navigate("/profile")}
+              isActive={location.pathname === "/profile"}
+            />
+          )}
 
           {hasPermission("links.view") && (
             <SidebarItem
@@ -315,12 +445,14 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
               isExpanded={isExpanded}
               onClick={() => navigate("/managements/filemanagement")}
               icon={FaShareAlt}
+              isActive={location.pathname === "/managements/filemanagement"}
             />
           )}
 
           {/* Settings with submenu */}
           {hasPermission("*settings.view") && (
             <SidebarItem
+              data-tour="settings-menu"
               icon={FiSettings}
               label="Settings"
               isExpanded={isExpanded}
@@ -337,6 +469,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   label="Apps"
                   isExpanded={isExpanded}
                   onClick={() => navigate("/application")} // Redirect to application.js
+                  isActive={location.pathname === "/application"}
                 />
               )}
               {hasPermission("applicationtype.view") && (
@@ -345,6 +478,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   isExpanded={isExpanded}
                   onClick={() => navigate("/managements/applicationtype")}
                   useDynamicIcon
+                  isActive={location.pathname === "/managements/applicationtype"}
                 />
               )}
               {hasPermission("categories.view") && (
@@ -353,6 +487,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   label="Categories"
                   isExpanded={isExpanded}
                   onClick={() => navigate("/managements/categorymanagement")} // Redirect to categorymanagement.js
+                  isActive={location.pathname === "/managements/categorymanagement"}
                 />
               )}
               {hasPermission("dragdrop.view") && (
@@ -361,6 +496,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   label="Drap & Drop"
                   isExpanded={isExpanded}
                   onClick={() => navigate("/settings/drag-drop")} // Redirect to categorymanagement.js
+                  isActive={location.pathname === "/settings/drag-drop"}
                 />
               )}
               {hasPermission("events.view") && (
@@ -369,6 +505,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   label="Events"
                   isExpanded={isExpanded}
                   onClick={() => navigate("/add-events")} // Redirect to Events.js
+                  isActive={location.pathname === "/add-events"}
                 />
               )}
               {hasPermission("eventlocations.view") && (
@@ -377,6 +514,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   isExpanded={isExpanded}
                   onClick={() => navigate("/managements/locations")}
                   useDynamicIcon
+                  isActive={location.pathname === "/managements/locations"}
                 />
               )}
 
@@ -394,6 +532,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   label="Groups"
                   isExpanded={isExpanded}
                   onClick={() => navigate("/managements/groupmanagement")} // Redirect to groupmanagement.js
+                  isActive={location.pathname === "/managements/groupmanagement"}
                 />
               )}
               {hasPermission("permission.view") && (
@@ -402,6 +541,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   label="Permissions"
                   isExpanded={isExpanded}
                   onClick={() => navigate("/managements/permissionmanagement")} // Redirect to permissionmanagement.js
+                  isActive={location.pathname === "/managements/permissionmanagement"}
                 />
               )}
 
@@ -411,6 +551,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   label="Personnel"
                   isExpanded={isExpanded}
                   onClick={() => navigate("/user")} // Redirect to users.js
+                  isActive={location.pathname === "/user"}
                 />
               )}
               {hasPermission("personnels.tempdeleted") && (
@@ -419,6 +560,16 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   label="Deleted Users"
                   isExpanded={isExpanded}
                   onClick={() => navigate("/tempdeleted-users")} // Redirect to users.js
+                  isActive={location.pathname === "/tempdeleted-users"}
+                />
+              )}
+              {hasPermission("personnels.view") && ( // Or use a specific permission like personnels.history
+                <SidebarItem
+                  icon={FiUsers}
+                  label="Personnel History"
+                  isExpanded={isExpanded}
+                  onClick={() => navigate("/personnel-history")}
+                  isActive={location.pathname === "/personnel-history"}
                 />
               )}
               {hasPermission("phonelocations.view") && (
@@ -427,6 +578,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   isExpanded={isExpanded}
                   onClick={() => navigate("/managements/phonelocations")}
                   useDynamicIcon
+                  isActive={location.pathname === "/managements/phonelocations"}
                 />
               )}
               {hasPermission("phonedirectory.view") && (
@@ -435,15 +587,17 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   label="Phone Directory"
                   isExpanded={isExpanded}
                   onClick={() => navigate("/managements/phonedirectory")} // Redirect to users.js
+                  isActive={location.pathname === "/managements/phonedirectory"}
                 />
               )}
 
-                 <SidebarItem
-                  icon={FiUsers}
-                  label="Login Reports"
-                  isExpanded={isExpanded}
-                  onClick={() => navigate("/managements/loginaudits")} // Redirect to users.js
-                />
+              <SidebarItem
+                icon={FiUsers}
+                label="Login Reports"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/managements/loginaudits")} // Redirect to users.js
+                isActive={location.pathname === "/managements/loginaudits"}
+              />
 
               {hasPermission("reminders.view") && (
                 <SidebarItem
@@ -451,6 +605,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   label="Reminder"
                   isExpanded={isExpanded}
                   onClick={() => navigate("/reminders")} // Redirect to Reminders.js
+                  isActive={location.pathname === "/reminders"}
                 />
               )}
               {hasPermission("suguan.view") && (
@@ -459,6 +614,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   label="Suguan"
                   isExpanded={isExpanded}
                   onClick={() => navigate("/add-suguan")} // Redirect to Suguan.js
+                  isActive={location.pathname === "/add-suguan"}
                 />
               )}
               {showLdapUsers && (
@@ -467,6 +623,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   label="LdapUsers" // Added LdapUsers page
                   isExpanded={isExpanded}
                   onClick={() => navigate("/ldap-users")}
+                  isActive={location.pathname === "/ldap-users"}
                 />
               )}
             </VStack>
@@ -475,8 +632,9 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
           {/* Add Progress Steps Menu */}
           {hasPermission("*progress.view") && (
             <SidebarItem
+              data-tour="enrollment-menu"
               icon={FiLayers} // Choose an appropriate icon
-              label="Enrollment Progress"
+              label="Enrollment "
               isExpanded={isExpanded}
               onClick={handleProgressToggle} // Toggle settings menu
               rightIcon={isProgressStepsExpanded ? FiArrowUp : FiArrowDown}
@@ -486,10 +644,12 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
             <VStack align="start" ml={isExpanded ? 4 : 0} spacing={3}>
               {hasPermission("progresstracking.view") && (
                 <SidebarItem
+                  data-tour="progress-tracker"
                   icon={FiUsers}
                   label="Progress Tracker"
                   isExpanded={isExpanded}
                   onClick={() => navigate("/progresstracking")} // Redirect to the main progress tracking page
+                  isActive={location.pathname === "/progresstracking"}
                 />
               )}
 
@@ -499,6 +659,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   label="Section Chief"
                   isExpanded={isExpanded}
                   onClick={() => navigate("/progress/step1")} // Step 1: Section Chief
+                  isActive={location.pathname === "/progress/step1"}
                 />
               )}
               {hasPermission("adminoffice.view") && (
@@ -507,6 +668,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   label="Admin Office"
                   isExpanded={isExpanded}
                   onClick={() => navigate("/progress/step2")} // Step 2: Admin Office
+                  isActive={location.pathname === "/progress/step2"}
                 />
               )}
               {hasPermission("securityoverseer.view") && (
@@ -515,6 +677,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   label="Security Overseer"
                   isExpanded={isExpanded}
                   onClick={() => navigate("/progress/step3")} // Step 3: Security Overseer
+                  isActive={location.pathname === "/progress/step3"}
                 />
               )}
               {hasPermission("pmdit.view") && (
@@ -523,6 +686,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   label="PMD IT"
                   isExpanded={isExpanded}
                   onClick={() => navigate("/progress/step4")} // Step 4: PMD IT
+                  isActive={location.pathname === "/progress/step4"}
                 />
               )}
               {hasPermission("atg1.view") && (
@@ -531,6 +695,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   label="ATG Office 1"
                   isExpanded={isExpanded}
                   onClick={() => navigate("/progress/step5")} // Step 5: Marco Cervantes
+                  isActive={location.pathname === "/progress/step5"}
                 />
               )}
               {hasPermission("atg2.view") && (
@@ -539,6 +704,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   label="ATG Office 2"
                   isExpanded={isExpanded}
                   onClick={() => navigate("/progress/step6")} // Step 6: Karl Dematera
+                  isActive={location.pathname === "/progress/step6"}
                 />
               )}
               {hasPermission("atgapproval.view") && (
@@ -547,6 +713,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   label="ATG Office Approval"
                   isExpanded={isExpanded}
                   onClick={() => navigate("/progress/step7")} // Step 7: ATG Office
+                  isActive={location.pathname === "/progress/step7"}
                 />
               )}
               {hasPermission("personneloffice.view") && (
@@ -555,6 +722,16 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   label="Personnel Office"
                   isExpanded={isExpanded}
                   onClick={() => navigate("/progress/step8")} // Step 8: Personnel Office
+                  isActive={location.pathname === "/progress/step8"}
+                />
+              )}
+              {hasPermission("personneloffice.view") && (
+                <SidebarItem
+                  icon={FiUsers}
+                  label="Users Progress"
+                  isExpanded={isExpanded}
+                  onClick={() => navigate("/progress/users-progress")} // Users Progress
+                  isActive={location.pathname === "/progress/users-progress"}
                 />
               )}
             </VStack>
@@ -563,6 +740,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
           {/* Managements Section */}
           {hasPermission("*management.view") && (
             <SidebarItem
+              data-tour="management-menu"
               icon={FiTool} // Change icon to FiBriefcase or any other appropriate icon
               label="Management"
               isExpanded={isExpanded}
@@ -579,6 +757,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   isExpanded={isExpanded}
                   onClick={() => navigate("/managements/citizenships")}
                   useDynamicIcon
+                  isActive={location.pathname === "/managements/citizenships"}
                 />
               )}
               {hasPermission("contact.view") && (
@@ -587,6 +766,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   isExpanded={isExpanded}
                   onClick={() => navigate("/managements/contact_infos")}
                   useDynamicIcon
+                  isActive={location.pathname === "/managements/contact_infos"}
                 />
               )}
               {hasPermission("department.view") && (
@@ -595,6 +775,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   isExpanded={isExpanded}
                   onClick={() => navigate("/managements/departments")}
                   useDynamicIcon // Use dynamic icon mapping
+                  isActive={location.pathname === "/managements/departments"}
                 />
               )}
               {hasPermission("designation.view") && (
@@ -603,6 +784,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   isExpanded={isExpanded}
                   onClick={() => navigate("/managements/designations")}
                   useDynamicIcon
+                  isActive={location.pathname === "/managements/designations"}
                 />
               )}
               {hasPermission("district.view") && (
@@ -611,6 +793,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   isExpanded={isExpanded}
                   onClick={() => navigate("/managements/districts")}
                   useDynamicIcon
+                  isActive={location.pathname === "/managements/districts"}
                 />
               )}
               {hasPermission("housing.view") && (
@@ -619,6 +802,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   isExpanded={isExpanded}
                   onClick={() => navigate("/managements/housingmanagement")}
                   useDynamicIcon
+                  isActive={location.pathname === "/managements/housingmanagement"}
                 />
               )}
               {hasPermission("issued_id.view") && (
@@ -627,6 +811,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   isExpanded={isExpanded}
                   onClick={() => navigate("/managements/government_issued_ids")}
                   useDynamicIcon
+                  isActive={location.pathname === "/managements/government_issued_ids"}
                 />
               )}
               {hasPermission("language.view") && (
@@ -635,6 +820,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   isExpanded={isExpanded}
                   onClick={() => navigate("/managements/languages")}
                   useDynamicIcon
+                  isActive={location.pathname === "/managements/languages"}
                 />
               )}
 
@@ -644,6 +830,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   isExpanded={isExpanded}
                   onClick={() => navigate("/managements/nationalities")}
                   useDynamicIcon
+                  isActive={location.pathname === "/managements/nationalities"}
                 />
               )}
               {hasPermission("section.view") && (
@@ -652,6 +839,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   isExpanded={isExpanded}
                   onClick={() => navigate("/managements/sections")}
                   useDynamicIcon
+                  isActive={location.pathname === "/managements/sections"}
                 />
               )}
               {hasPermission("subsection.view") && (
@@ -660,6 +848,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   isExpanded={isExpanded}
                   onClick={() => navigate("/managements/subsections")}
                   useDynamicIcon
+                  isActive={location.pathname === "/managements/subsections"}
                 />
               )}
             </VStack>
@@ -668,11 +857,12 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
           {/* Managements Section */}
           {hasPermission("*plugins.view") && (
             <SidebarItem
+              data-tour="plugins-menu"
               icon={FiSliders} // Change icon to FiBriefcase or any other appropriate icon
               label="Plugins"
               isExpanded={isExpanded}
               onClick={handlePluginsToggle}
-              rightIcon={isManagementsExpanded ? FiArrowUp : FiArrowDown}
+              rightIcon={isPluginsExpanded ? FiArrowUp : FiArrowDown}
             />
           )}
 
@@ -684,6 +874,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   label="Lokal Profile"
                   isExpanded={isExpanded}
                   onClick={() => navigate("/lokalprofile")} // Redirect to lokalprofile.js
+                  isActive={location.pathname === "/lokalprofile"}
                 />
               )}
             </VStack>
@@ -691,71 +882,65 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
 
           <Collapse in={isPluginsExpanded} animateOpacity>
             <VStack align="start" ml={isExpanded ? 4 : 0} spacing={3}>
-              <SidebarItem
-                icon={FiCalendar}
-                label="File Organizer"
-                isExpanded={isExpanded}
-                onClick={() => window.open("/shelvespage", "_blank")} // Open in new tab
-              />
+              {hasPermission("fileorganizer.view") && (
+                <SidebarItem
+                  icon={FiCalendar}
+                  label="File Organizer"
+                  isExpanded={isExpanded}
+                  onClick={() => window.open("/fileorganizer", "_blank")} // Open in new tab
+                />
+              )}
             </VStack>
           </Collapse>
         </VStack>
 
         <Flex flexGrow={1} />
 
-        {/* Current User Info */}
+        {/* Current User Info - Fixed at Bottom */}
         <Flex
-          direction="column"
-          align="center"
+          position="sticky"
+          bottom={0}
+          zIndex={10}
           mt="auto"
-          bg="#FFD559" // Updated background color here
-          py={4}
-          px={isExpanded ? 4 : 2}
-          borderRadius="md"
-          boxShadow="sm"
+          mb={6}
+          mx={isExpanded ? 3 : 0}
+          p={3}
+          bg="whiteAlpha.400"
+          backdropFilter="blur(10px)"
+          borderRadius="2xl"
+          align="center"
+          justify={isExpanded ? "flex-start" : "center"}
+          cursor="pointer"
+          onClick={openLogoutDialog}
+          _hover={{ bg: "whiteAlpha.600", shadow: "lg", transform: "translateY(-2px)" }}
+          transition="all 0.2s"
+          border="1px solid rgba(255,255,255,0.3)"
+          data-tour="logout"
         >
-          <Box
-            position="relative"
-            textAlign="center"
-            data-tour="logout"
-            onClick={openLogoutDialog} // Handle logout when clicked
-            cursor="pointer"
-            bg="transparent" // No background, since the icon itself provides the design
-            _hover={{
-              transform: "scale(1.1)",
-              boxShadow: "lg",
-            }}
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            flexDirection="column"
-          >
-            {/* User Icon */}
-            <Icon
-              as={FiUser} // User icon
-              color={useColorModeValue("blue.500", "blue.300")}
-              boxSize="40px"
-              mb={1} // Margin below the user icon
-            />
-            {/* Forward Arrow Icon */}
-            <Icon
-              as={FiArrowRight} // Forward arrow icon
-              color={useColorModeValue("green.500", "green.300")}
-              boxSize="24px"
-            />
-            {/* Full Name */}
-            {isExpanded && (
-              <Text
-                mt={2}
-                fontSize="md"
-                fontWeight="bold"
-                color={iconColor}
-                textAlign="center"
-              >
-                {user.name || "User"}
+          <Avatar
+            size="sm"
+            name={user.name}
+            src={user.avatarUrl}
+            mr={isExpanded ? 3 : 0}
+            bg="white"
+            color="gray.800"
+            border="2px solid white"
+          />
+
+          {isExpanded && (
+            <Box overflow="hidden" textAlign="left">
+              <Text fontWeight="bold" fontSize="0.9rem" noOfLines={1} color="gray.800">
+                {user.name}
               </Text>
-            )}
-          </Box>
+              <Text fontSize="xs" color="gray.600" fontWeight="500">
+                Click to Logout
+              </Text>
+            </Box>
+          )}
+
+          {isExpanded && (
+            <Icon as={FiLogOut} ml="auto" color="gray.700" boxSize={4} />
+          )}
         </Flex>
 
         {/* Logout Confirmation Dialog */}
@@ -770,8 +955,13 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 Confirm Logout
               </AlertDialogHeader>
               <AlertDialogBody>
-                Are you sure you want to log out, {user.name || "User"}? You
-                will need to log in again to access the dashboard.
+                <VStack spacing={4} align="center" mb={4}>
+                  <Avatar size="xl" name={user.name} src={user.avatarUrl} border="4px solid white" boxShadow="lg" />
+                  <Text fontWeight="bold" fontSize="lg">{user.name || "User"}</Text>
+                </VStack>
+                <Text textAlign="center">
+                  Are you sure you want to log out? You will need to log in again to access the dashboard.
+                </Text>
               </AlertDialogBody>
               <AlertDialogFooter>
                 <Button ref={cancelRef} onClick={closeLogoutDialog}>
@@ -784,13 +974,16 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
             </AlertDialogContent>
           </AlertDialogOverlay>
         </AlertDialog>
+        <Tutorial
+          isSidebarExpanded={isExpanded}
+          onExpandSidebar={() => {
+            setIsExpanded(true);
+            onSidebarToggle(true);
+          }}
+        />
       </Flex>
-    </Box>
+    </Box >
   );
-  {
-    /* ✅ Tutorial overlay always rendered once (if not seen yet) */
-  }
-  <Tutorial />;
 };
 
 // Sidebar Item Component
@@ -799,33 +992,53 @@ const SidebarItem = ({
   label,
   isExpanded,
   onClick,
+  isActive,
   rightIcon,
   useDynamicIcon = false,
+  ...rest
 }) => {
-  const menuHoverBg = useColorModeValue("gray.200", "gray.700");
-  const iconColor = useColorModeValue("gray.600", "gray.300");
   const IconComponent = useDynamicIcon ? getIconForLabel(label) : icon;
 
   return (
     <Button
       onClick={onClick}
-      justifyContent="flex-start" // Left-align the content
-      w="100%"
-      bg="transparent"
-      _hover={{ bg: "#FFFFB2" }}
-      pl={isExpanded ? 4 : 0} // Add padding to the left
+      variant="ghost"
+      w={isExpanded ? "92%" : "0px"}
+      mx="auto"
+      mb={1}
+      px={4}
+      height="50px"
+      justifyContent="flex-start"
+      bg={isActive ? "whiteAlpha.900" : "transparent"}
+      color={isActive ? "black" : "#2D3748"} // gray.800
+      boxShadow={isActive ? "md" : "none"}
+      _hover={{
+        bg: "whiteAlpha.600",
+        transform: "translateX(5px)",
+        boxShadow: "md",
+        color: "black"
+      }}
+      _active={{
+        bg: "whiteAlpha.900",
+        transform: "scale(0.98)"
+      }}
+      borderRadius="2xl"
+      transition="all 0.2s cubic-bezier(0.4, 0, 0.2, 1)"
       leftIcon={
         isExpanded &&
-        IconComponent && <Icon as={IconComponent} color={iconColor} />
-      } // Apply dynamic or static icon
-      rightIcon={isExpanded && rightIcon && <Icon as={rightIcon} />} // Add right icon for expanded items
+        IconComponent && <Icon as={IconComponent} boxSize={5} color={isActive ? "orange.500" : "#4A5568"} /> // gray.600
+      }
+      rightIcon={isExpanded && rightIcon && <Icon as={rightIcon} color={isActive ? "black" : "#4A5568"} />}
+      overflow="hidden"
+      whiteSpace="nowrap"
+      {...rest}
     >
-      {!isExpanded ? (
-        <Icon as={IconComponent} color={iconColor} />
-      ) : (
-        <Text>{label}</Text>
+      {isExpanded && (
+        <Text fontSize="md" fontWeight="600" letterSpacing="wide" ml={1}>
+          {label}
+        </Text>
       )}
-    </Button>
+    </Button >
   );
 };
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Heading,
@@ -29,6 +30,7 @@ import {
   ModalFooter,
   useDisclosure,
 } from "@chakra-ui/react";
+import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import axios from "axios";
 import useLookupData from "../../hooks/useLookupData";
 import getNamesByIds from "../../utils/getNamesByIds";
@@ -62,6 +64,7 @@ const Step2 = () => {
   const [search, setSearch] = useState("");
   const [personnelInfo, setPersonnelInfo] = useState(null);
   const toast = useToast();
+  const navigate = useNavigate();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const fetchPersonnel = () => {
@@ -258,9 +261,30 @@ const Step2 = () => {
 
   return (
     <Box p={6} bg="gray.50" minHeight="100vh" borderRadius="md">
-      <Heading size="lg" mb={4}>
-        Step 2: Report to Building Admin Office
-      </Heading>
+      <HStack justify="space-between" mb={6}>
+        <VStack align="start" spacing={0}>
+          <Heading size="lg">Step 2: Report to Building Admin Office</Heading>
+          <Text color="gray.500" fontSize="sm">Checklist and facility orientation</Text>
+        </VStack>
+        <HStack spacing={2}>
+          <Button
+            leftIcon={<ChevronLeftIcon />}
+            onClick={() => navigate("/progress/step1")}
+            variant="ghost"
+            size="sm"
+          >
+            Previous Step
+          </Button>
+          <Button
+            rightIcon={<ChevronRightIcon />}
+            onClick={() => navigate("/progress/step3")}
+            colorScheme="blue"
+            size="sm"
+          >
+            Next Step
+          </Button>
+        </HStack>
+      </HStack>
       {loading ? (
         <Spinner size="lg" />
       ) : (
@@ -350,9 +374,8 @@ const Step2 = () => {
                     <Divider />
                     <Text fontSize="lg" mt={2}>
                       <b>Name:</b>{" "}
-                      {`${personnelInfo?.givenname} ${
-                        personnelInfo?.middlename || ""
-                      } ${personnelInfo?.surname_husband}`}
+                      {`${personnelInfo?.givenname} ${personnelInfo?.middlename || ""
+                        } ${personnelInfo?.surname_husband}`}
                     </Text>
                     <Divider />
                     <Text fontSize="lg" mt={2}>
@@ -465,52 +488,52 @@ const Step2 = () => {
                           </HStack>
                           {(personnelInfo?.personnel_type === "Minister" ||
                             personnelInfo?.personnel_type === "Regular") && (
-                            <>
-                              <Flex align="center" w="100%" mb={4}>
-                                <Text fontWeight="bold" minWidth="150px" mr={2}>
-                                  Panunumpa Date:
-                                </Text>
-                                <Input
-                                  value={
-                                    personnelInfo?.panunumpa_date
-                                      ? new Date(
+                              <>
+                                <Flex align="center" w="100%" mb={4}>
+                                  <Text fontWeight="bold" minWidth="150px" mr={2}>
+                                    Panunumpa Date:
+                                  </Text>
+                                  <Input
+                                    value={
+                                      personnelInfo?.panunumpa_date
+                                        ? new Date(
                                           personnelInfo?.panunumpa_date
                                         ).toLocaleDateString("en-US", {
                                           year: "numeric",
                                           month: "long",
                                           day: "numeric",
                                         })
-                                      : ""
-                                  }
-                                  readOnly
-                                  flex="1"
-                                  textOverflow="ellipsis"
-                                  placeholder="N/A"
-                                />
-                              </Flex>
+                                        : ""
+                                    }
+                                    readOnly
+                                    flex="1"
+                                    textOverflow="ellipsis"
+                                    placeholder="N/A"
+                                  />
+                                </Flex>
 
-                              {personnelInfo?.personnel_type === "Minister" && (
-                                <>
-                                  <Text>
-                                    <b>Ordination Date:</b>
-                                  </Text>
-                                  <Input
-                                    type="date"
-                                    value={
-                                      personnelInfo?.ordination_date
-                                        ? new Date(
+                                {personnelInfo?.personnel_type === "Minister" && (
+                                  <>
+                                    <Text>
+                                      <b>Ordination Date:</b>
+                                    </Text>
+                                    <Input
+                                      type="date"
+                                      value={
+                                        personnelInfo?.ordination_date
+                                          ? new Date(
                                             personnelInfo?.ordination_date
                                           )
                                             .toISOString()
                                             .split("T")[0]
-                                        : ""
-                                    }
-                                    readOnly
-                                  />
-                                </>
-                              )}
-                            </>
-                          )}
+                                          : ""
+                                      }
+                                      readOnly
+                                    />
+                                  </>
+                                )}
+                              </>
+                            )}
                         </VStack>
                       </Box>
                     )}

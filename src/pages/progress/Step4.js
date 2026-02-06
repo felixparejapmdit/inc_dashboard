@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Heading,
@@ -29,6 +30,7 @@ import {
   ModalFooter,
   useDisclosure,
 } from "@chakra-ui/react";
+import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import axios from "axios";
 import useGetNamesByIds from "../../hooks/useGetNamesByIds";
 import useLookupData from "../../hooks/useLookupData";
@@ -66,6 +68,7 @@ const Step4 = () => {
   const [search, setSearch] = useState("");
   const [personnelInfo, setPersonnelInfo] = useState(null);
   const toast = useToast();
+  const navigate = useNavigate();
 
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -238,9 +241,30 @@ const Step4 = () => {
 
   return (
     <Box p={6} bg="gray.50" minHeight="100vh" borderRadius="md">
-      <Heading size="lg" mb={4}>
-        Step 4: Report to PMD IT
-      </Heading>
+      <HStack justify="space-between" mb={6}>
+        <VStack align="start" spacing={0}>
+          <Heading size="lg">Step 4: Report to PMD IT</Heading>
+          <Text color="gray.500" fontSize="sm">System access and digital toolbox setup</Text>
+        </VStack>
+        <HStack spacing={2}>
+          <Button
+            leftIcon={<ChevronLeftIcon />}
+            onClick={() => navigate("/progress/step3")}
+            variant="ghost"
+            size="sm"
+          >
+            Previous Step
+          </Button>
+          <Button
+            rightIcon={<ChevronRightIcon />}
+            onClick={() => navigate("/progress/step5")}
+            colorScheme="blue"
+            size="sm"
+          >
+            Next Step
+          </Button>
+        </HStack>
+      </HStack>
       {loading ? (
         <Spinner size="lg" />
       ) : (
@@ -330,9 +354,8 @@ const Step4 = () => {
                     <Divider />
                     <Text fontSize="lg" mt={2}>
                       <b>Name:</b>{" "}
-                      {`${personnelInfo?.givenname} ${
-                        personnelInfo?.middlename || ""
-                      } ${personnelInfo?.surname_husband}`}
+                      {`${personnelInfo?.givenname} ${personnelInfo?.middlename || ""
+                        } ${personnelInfo?.surname_husband}`}
                     </Text>
                     <Divider />
                     <Text fontSize="lg" mt={2}>
@@ -445,8 +468,8 @@ const Step4 = () => {
                           {key === "nextCloud"
                             ? "Nextcloud"
                             : key
-                                .replace(/([A-Z])/g, " $1")
-                                .replace(/^./, (str) => str.toUpperCase())}
+                              .replace(/([A-Z])/g, " $1")
+                              .replace(/^./, (str) => str.toUpperCase())}
                         </Checkbox>
                       ))}
                     </VStack>

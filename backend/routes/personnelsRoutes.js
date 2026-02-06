@@ -3,6 +3,20 @@ const router = express.Router();
 const personnelsController = require("../controllers/personnelsController");
 const verifyToken = require("../middlewares/authMiddleware");
 
+// Route to get all active personnels (with users)
+router.get(
+  "/api/personnels/active",
+  verifyToken,
+  personnelsController.getPersonnelsWithUsers
+);
+
+// Route to get today's celebrants (birthdays & anniversaries)
+router.get(
+  "/api/personnels/celebrants",
+  verifyToken,
+  personnelsController.getTodaysCelebrants
+);
+
 // Route to get all personnels
 router.get(
   "/api/personnels",
@@ -31,11 +45,25 @@ router.get(
   personnelsController.getAllNewPersonnels
 );
 
+// Route to monitor personnel progress
+router.get(
+  "/api/personnels/monitoring",
+  verifyToken,
+  personnelsController.getMonitoringPersonnels
+);
+
 // Route to get personnels by progress
 router.get(
   "/api/personnels/progress/:step",
   verifyToken,
   personnelsController.getPersonnelsByProgress
+);
+
+// Route to get personnel history
+router.get(
+  "/api/personnels/history",
+  verifyToken,
+  personnelsController.getPersonnelHistory
 );
 
 // Route to get a specific personnel by ID
@@ -55,14 +83,12 @@ router.post(
 // Route to retrieve reference number based on name and date of birth
 router.get(
   "/api/getretrievereference",
-  verifyToken,
   personnelsController.getReferenceNumber
 );
 
 // Route to get a personnel by reference number or all
 router.get(
   "/api/getreference",
-  verifyToken,
   personnelsController.getPersonnelByReferenceNumber
 );
 
@@ -121,5 +147,7 @@ router.delete(
   verifyToken,
   personnelsController.deletePersonnelChurchDuty
 );
+
+
 
 module.exports = router;

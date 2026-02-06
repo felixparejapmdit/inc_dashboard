@@ -484,25 +484,26 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
   };
 
   return (
-    <Box width="100%" bg="white" boxShadow="sm" p={5} mt={20}>
-      <Heading as="h2" size="lg" textAlign="center" mb={6}>
+    <Box width="100%" bg="white" boxShadow="sm" p={{ base: 4, md: 5 }}>
+      <Heading as="h2" size={{ base: "lg", md: "xl" }} textAlign="center" mb={2} color="#0a5856">
         Step 3: Educational Background & Work Experience
       </Heading>
 
       {/* Educational Background Section */}
-      <Text fontWeight="bold" fontSize="lg" mt={6} mb={2}>
-        Educational Background
-      </Text>
+
       {education.map((edu, idx) => (
         <Box
           key={idx}
           p={4}
-          bg="cyan.50"
-          borderRadius="md"
+          p={4}
+          bg="white"
+          borderRadius="lg"
           mb={4}
-          boxShadow="md"
+          shadow="sm"
+          border="1px"
+          borderColor="gray.100"
         >
-          <Grid templateColumns="repeat(4, 1fr)" gap={4}>
+          <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }} gap={4}>
             <GridItem>
               <Text
                 fontWeight="bold"
@@ -693,7 +694,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
             </GridItem>
             {/* Certificate Upload Section */}
             {isCertificateUploadAllowed(edu.level) && (
-              <GridItem colSpan={4}>
+              <GridItem colSpan={{ base: 1, md: 2, lg: 4 }}>
                 <Text fontWeight="bold" mb="2">
                   Upload Certificates:
                 </Text>
@@ -770,19 +771,20 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
       </Button>
 
       {/* Work Experience Section */}
-      <Text fontWeight="bold" fontSize="lg" mt={6} mb={2}>
-        Work Experience
-      </Text>
+
       {workExperience.map((work, idx) => (
         <Box
           key={idx}
           p={4}
-          bg="cyan.50"
-          borderRadius="md"
+          p={4}
+          bg="white"
+          borderRadius="lg"
           mb={4}
-          boxShadow="md"
+          shadow="sm"
+          border="1px"
+          borderColor="gray.100"
         >
-          <Grid templateColumns="repeat(4, 1fr)" gap={4}>
+          <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }} gap={4}>
             <GridItem>
               <Text
                 fontWeight="bold"

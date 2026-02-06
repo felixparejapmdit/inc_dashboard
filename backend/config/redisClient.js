@@ -1,24 +1,20 @@
 const redis = require("redis");
 
-// Create Redis client
-const client = redis.createClient({
-  socket: {
-    host: "127.0.0.1", // localhost
-    port: 6379,        // default Redis port
-  },
-});
+// ⚠️ REDIS DISABLED GLOBALLY
+const client = {
+  isOpen: false,
+  connect: async () => console.log("⚠️ Redis caching is DISABLED."),
+  on: (event, callback) => { /* no-op */ },
+  get: async (key) => null, // Always return null (cache miss)
+  set: async (key, value, options) => "OK", // Pretend to save
+  del: async (key) => 0,
+  quit: async () => { },
+  disconnect: async () => { }
+};
 
-// Event listeners
-client.on("error", (err) => console.error("❌ Redis error:", err));
-client.on("connect", () => console.log("🔌 Connecting to Redis..."));
-client.on("ready", () => console.log("✅ Redis is ready and connected!"));
-client.on("end", () => console.log("🛑 Redis connection closed"));
-
-// Function to connect (async)
+// Start connection (Shim)
 const connectRedis = async () => {
-  if (!client.isOpen) {
-    await client.connect();
-  }
+  console.log("⚠️ Redis caching is DISABLED.");
 };
 
 module.exports = {

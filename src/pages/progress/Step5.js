@@ -1,5 +1,6 @@
 // src/pages/progress/Step5.js
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Heading,
@@ -19,6 +20,7 @@ import {
   Th,
   Td,
   Divider,
+  HStack,
   Flex,
   Modal,
   ModalOverlay,
@@ -29,6 +31,7 @@ import {
   ModalFooter,
   Image, // ✅ Add Image here
 } from "@chakra-ui/react";
+import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import axios from "axios";
 import useGetNamesByIds from "../../hooks/useGetNamesByIds";
 import useLookupData from "../../hooks/useLookupData";
@@ -74,9 +77,10 @@ const Step5 = () => {
   const { hasPermission } = usePermissionContext(); // Correct usage
 
   const toast = useToast();
+  const navigate = useNavigate();
 
   // Fetch new personnel list
-  const fetchPersonnel = (onComplete = () => {}) => {
+  const fetchPersonnel = (onComplete = () => { }) => {
     setLoading(true);
 
     fetchEnrollData(
@@ -251,9 +255,30 @@ const Step5 = () => {
 
   return (
     <Box p={6} bg="gray.50" minHeight="100vh" borderRadius="md">
-      <Heading size="lg" mb={4}>
-        Step 5: Report to Ka Marco Cervantes for Photoshoot
-      </Heading>
+      <HStack justify="space-between" mb={6}>
+        <VStack align="start" spacing={0}>
+          <Heading size="lg">Step 5: Report to Ka Marco Cervantes for Photoshoot</Heading>
+          <Text color="gray.500" fontSize="sm">Official photography and profile creation</Text>
+        </VStack>
+        <HStack spacing={2}>
+          <Button
+            leftIcon={<ChevronLeftIcon />}
+            onClick={() => navigate("/progress/step4")}
+            variant="ghost"
+            size="sm"
+          >
+            Previous Step
+          </Button>
+          <Button
+            rightIcon={<ChevronRightIcon />}
+            onClick={() => navigate("/progress/step6")}
+            colorScheme="blue"
+            size="sm"
+          >
+            Next Step
+          </Button>
+        </HStack>
+      </HStack>
       {loading ? (
         <Spinner size="lg" />
       ) : (

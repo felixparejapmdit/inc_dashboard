@@ -12,10 +12,10 @@ export const PermissionProvider = ({ children }) => {
    */
 
   const fetchPermissions = async (groupId) => {
-  if (!groupId) {
-    console.error("Group ID is required to fetch permissions.");
-    return;
-  }
+    if (!groupId) {
+      console.error("Group ID is required to fetch permissions.");
+      return;
+    }
 
     try {
       await fetchPermissionData(
@@ -29,21 +29,7 @@ export const PermissionProvider = ({ children }) => {
   };
 
 
-  const fetchPermissions1 = async (groupId) => {
-    if (!groupId) {
-      console.error("Group ID is required to fetch permissions.");
-      return;
-    }
 
-    await fetchData(
-      `permissions_access/${groupId}`,
-      (data) => setPermissions(Array.isArray(data) ? data : []),
-      (error) => {
-        console.error("Error fetching permissions:", error);
-      },
-      "Failed to fetch permissions"
-    );
-  };
 
   /**
    * Check if the user has a specific permission

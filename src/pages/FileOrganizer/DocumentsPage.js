@@ -37,7 +37,7 @@ import { getContainerById } from "../../utils/FileOrganizer/containersService";
 import { getShelfById } from "../../utils/FileOrganizer/shelvesService";
 import { handleError } from "../../utils/FileOrganizer/handleError";
 
-const MotionBox = motion(Box);
+const MotionBox = motion.create(Box);
 
 const DocumentsPage = () => {
   const { containerId, folderId } = useParams();
@@ -123,48 +123,48 @@ const DocumentsPage = () => {
     <Box p={[4, 6, 10]} mt={12}>
 
 
-  {/* Simple Breadcrumb */}
-  <Breadcrumb
-    spacing="8px"
-    separator={<ChevronRightIcon color="gray.400" boxSize={4} />}
-    fontWeight="medium"
-    fontSize={{ base: "xs", sm: "sm", md: "sm" }}
-    color="gray.600"
-  >
-    <BreadcrumbItem>
-      <BreadcrumbLink as={RouterLink} to="/file-organizer/shelves">
-        📁 Shelves
-      </BreadcrumbLink>
-    </BreadcrumbItem>
-
-    <BreadcrumbItem>
-      <BreadcrumbLink
-        as={RouterLink}
-        to={`/file-organizer/shelves/${shelf?.id}/containers`}
-        color="teal.700"
-        fontWeight="semibold"
+      {/* Simple Breadcrumb */}
+      <Breadcrumb
+        spacing="8px"
+        separator={<ChevronRightIcon color="gray.400" boxSize={4} />}
+        fontWeight="medium"
+        fontSize={{ base: "xs", sm: "sm", md: "sm" }}
+        color="gray.600"
       >
-        {shelf ? shelf.name : "Loading..."}
-      </BreadcrumbLink>
-    </BreadcrumbItem>
+        <BreadcrumbItem>
+          <BreadcrumbLink as={RouterLink} to="/file-organizer/shelves">
+            📁 Shelves
+          </BreadcrumbLink>
+        </BreadcrumbItem>
 
-    <BreadcrumbItem>
-      <BreadcrumbLink
-        as={RouterLink}
-        to={`/containers/${containerId}/folders`}
-        color="gray.700"
-        fontWeight="semibold"
-      >
-        🗂 Folders
-      </BreadcrumbLink>
-    </BreadcrumbItem>
+        <BreadcrumbItem>
+          <BreadcrumbLink
+            as={RouterLink}
+            to={`/file-organizer/shelves/${shelf?.id}/containers`}
+            color="teal.700"
+            fontWeight="semibold"
+          >
+            {shelf ? shelf.name : "Loading..."}
+          </BreadcrumbLink>
+        </BreadcrumbItem>
 
-    <BreadcrumbItem isCurrentPage>
-      <BreadcrumbLink color="gray.700" fontWeight="semibold">
-        📄 Documents
-      </BreadcrumbLink>
-    </BreadcrumbItem>
-  </Breadcrumb>
+        <BreadcrumbItem>
+          <BreadcrumbLink
+            as={RouterLink}
+            to={`/containers/${containerId}/folders`}
+            color="gray.700"
+            fontWeight="semibold"
+          >
+            🗂 Folders
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+
+        <BreadcrumbItem isCurrentPage>
+          <BreadcrumbLink color="gray.700" fontWeight="semibold">
+            📄 Documents
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+      </Breadcrumb>
 
 
 

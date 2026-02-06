@@ -30,9 +30,11 @@ exports.getAllProfiles = async (req, res) => {
 
     const enrichedProfiles = profiles.map((profile) => ({
       ...profile.dataValues,
+      // Handle District: Lookup by ID (loose match) or use raw string
       districtName:
-        districts.find((d) => d.id === profile.district)?.name || "N/A",
-      lokalName: lokals.find((l) => l.id === profile.lokal)?.name || "N/A",
+        districts.find((d) => d.id == profile.district)?.name || profile.district, // Loose equality for string/int IDs
+      // Handle Lokal: Lookup by ID (loose match) or use raw string
+      lokalName: lokals.find((l) => l.id == profile.lokal)?.name || profile.lokal,
     }));
 
     res.json(enrichedProfiles);
@@ -53,20 +55,58 @@ exports.getProfileById = async (req, res) => {
 
 exports.createProfile = async (req, res) => {
   try {
-    const newProfile = await LokalProfile.create(req.body);
+    const data = { ...req.body };
+
+    // Handle File Upload
+    if (req.file) {
+      data.imageUrl = `/uploads/local/${req.file.filename}`;
+    }
+
+    // Parse JSON fields if they came as strings (from FormData)
+    if (typeof data.scheduleMidweek === 'string') {
+      try { data.scheduleMidweek = JSON.parse(data.scheduleMidweek); } catch (e) { }
+    }
+    if (typeof data.scheduleWeekend === 'string') {
+      try { data.scheduleWeekend = JSON.parse(data.scheduleWeekend); } catch (e) { }
+    }
+    // Handle boolean conversions from string "true"/"false"
+    if (typeof data.ledWall === 'string') data.ledWall = data.ledWall === 'true';
+    if (typeof data.generator === 'string') data.generator = data.generator === 'true';
+
+    const newProfile = await LokalProfile.create(data);
     res.status(201).json(newProfile);
   } catch (error) {
+    console.error("Create Profile Error:", error);
     res.status(500).json({ message: "Error creating profile", error });
   }
 };
 
 exports.updateProfile = async (req, res) => {
   try {
-    const updated = await LokalProfile.update(req.body, {
+    const data = { ...req.body };
+
+    // Handle File Upload
+    if (req.file) {
+      data.imageUrl = `/uploads/local/${req.file.filename}`;
+    }
+
+    // Parse JSON fields
+    if (typeof data.scheduleMidweek === 'string') {
+      try { data.scheduleMidweek = JSON.parse(data.scheduleMidweek); } catch (e) { }
+    }
+    if (typeof data.scheduleWeekend === 'string') {
+      try { data.scheduleWeekend = JSON.parse(data.scheduleWeekend); } catch (e) { }
+    }
+    // Handle boolean conversions
+    if (typeof data.ledWall === 'string') data.ledWall = data.ledWall === 'true';
+    if (typeof data.generator === 'string') data.generator = data.generator === 'true';
+
+    const updated = await LokalProfile.update(data, {
       where: { id: req.params.id },
     });
     res.json({ message: "Profile updated successfully", updated });
   } catch (error) {
+    console.error("Update Profile Error:", error);
     res.status(500).json({ message: "Error updating profile", error });
   }
 };

@@ -11,9 +11,10 @@ const sequelize = new Sequelize(
     port: process.env.MYSQL_PORT || 3307, // Use a default port if not provided
     dialect: "mysql", // Specify MySQL as the dialect
     logging: process.env.NODE_ENV === "development" ? console.log : false, // Enable logging only in development
-    dialectOptions: 
+    dialectOptions:
     {
       connectTimeout: 10000, // Set a timeout for the connection
+      allowPublicKeyRetrieval: true
     },
     pool: {
       max: 5, // Maximum number of connections in the pool

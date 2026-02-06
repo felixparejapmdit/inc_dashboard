@@ -216,9 +216,15 @@ exports.getGroupIdByUserId = async (req, res) => {
   const userId = req.params.userId;
 
   try {
-    // Fetch the group ID from user_group_mappings
     const mapping = await UserGroupMapping.findOne({
       where: { user_id: userId },
+      include: [
+        {
+          model: Group,
+          as: "Group",
+          attributes: ["name"],
+        },
+      ],
     });
 
     if (!mapping) {
@@ -227,7 +233,10 @@ exports.getGroupIdByUserId = async (req, res) => {
         .json({ message: "Group mapping not found for the user." });
     }
 
-    res.status(200).json({ groupId: mapping.group_id });
+    res.status(200).json({
+      groupId: mapping.group_id,
+      groupName: mapping.Group ? mapping.Group.name : "N/A"
+    });
   } catch (error) {
     console.error("Error fetching group ID for user:", error);
     res.status(500).json({ message: "Error fetching group ID", error });

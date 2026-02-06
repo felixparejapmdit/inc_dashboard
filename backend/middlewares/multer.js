@@ -3,7 +3,7 @@ const path = require("path");
 const fs = require("fs");
 
 // Set the relative path for the avatar folder
-const uploadPath = path.join(__dirname, "../../uploads/avatar");
+const uploadPath = path.join(__dirname, "../uploads/avatar");
 
 // Create the upload folder if it doesn't exist
 if (!fs.existsSync(uploadPath)) {

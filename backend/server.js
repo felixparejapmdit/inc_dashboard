@@ -1,4 +1,5 @@
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+// Restart trigger
 
 require("dotenv").config();
 
@@ -21,26 +22,27 @@ const axios = require("axios"); // ✅ Axios to communicate with Ollama API
 const IP_BIND = "0.0.0.0";
 // FIX: Use environment variables for ports, falling back to current static values
 const PORT_HTTP = process.env.REACT_PORT_HTTP || 80;
+console.log("Basic Server Port Configuration - HTTP:", PORT_HTTP);
 const PORT_HTTPS = process.env.REACT_PORT_HTTPS || 443;
 
 // SSL config
 let sslOptions = null;
 if (process.env.HTTPS === "true") {
- try { // Use try/catch for file read to prevent crash
-  sslOptions = {
-  key: fs.readFileSync(process.env.SSL_KEY_FILE),
-  cert: fs.readFileSync(process.env.SSL_CRT_FILE),
- };
- } catch (err) {
+  try { // Use try/catch for file read to prevent crash
+    sslOptions = {
+      key: fs.readFileSync(process.env.SSL_KEY_FILE),
+      cert: fs.readFileSync(process.env.SSL_CRT_FILE),
+    };
+  } catch (err) {
     console.error("❌ SSL CONFIG ERROR: Failed to read certificate files.", err.message);
     sslOptions = null; // Disable HTTPS if files are missing
- }
+  }
 }
 app.use(
- cors({
-  origin: "*", // Allow all origins (update for production)
-  methods: ["GET", "POST", "PUT", "DELETE"],
- })
+  cors({
+    origin: "*", // Allow all origins (update for production)
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  })
 );
 
 const API_URL = "http://172.18.125.54:11434/api/generate"; // Ollama local API
@@ -50,7 +52,7 @@ const importRoutes = require("./routes/importRoutes");
 const districtsRoutes = require("./routes/districtsRoutes");
 const localCongregationRoutes = require("./routes/localCongregationRoutes");
 
-//const chatRoutes = require("./routes/chatRoutes");
+const chatRoutes = require("./routes/chatRoutes");
 
 const groupRoutes = require("./routes/groupRoutes");
 const permissionRoutes = require("./routes/permissionRoutes");
@@ -66,7 +68,7 @@ const groupPermissionsRoutes = require("./routes/groupPermissionsRoutes");
 const permissionsAccessRoutes = require("./routes/permissionsAccessRoutes");
 
 const userRoutes = require("./routes/userRoutes");
- const ldapRoutes = require("./routes/ldapRoutes"); // THIS IS THE LINE TO BE REMOVED/MOVED
+const ldapRoutes = require("./routes/ldapRoutes"); // THIS IS THE LINE TO BE REMOVED/MOVED
 const appRoutes = require("./routes/appRoutes");
 
 const suguanRoutes = require("./routes/suguanRoutes");
@@ -114,7 +116,7 @@ const uploadLocalRoute = require('./routes/uploadLocal');
 
 const proxySnipeitRoutes = require("./routes/proxySnipeitRoutes");
 
-app.use(express.json()); // Middleware to parse JSON request bodies
+// app.use(express.json()); // Removed to allow larger limits below
 
 app.use(cors({ origin: "*" }));
 
@@ -127,11 +129,11 @@ app.use(bodyParser.urlencoded({ limit: "100mb", extended: true }));
 
 
 app.get("/api/test-upload", (req, res) => {
-   res.send("✅ Upload route working!");
+  res.send("✅ Upload route working!");
 });
 
 // ✅ Register the route
-app.use("/api",uploadLocalRoute);
+app.use("/api", uploadLocalRoute);
 
 
 
@@ -145,7 +147,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // >>>>>>>>>> START OF LDAP FIX <<<<<<<<<<<<
 // Only load LDAP routes if LDAP is enabled
 //const ldapRoutes = require("./routes/ldapRoutes");
-  app.use(ldapRoutes);
+app.use(ldapRoutes);
 // >>>>>>>>>> END OF LDAP FIX <<<<<<<<<<<<
 
 
@@ -199,46 +201,44 @@ app.use("/api", importRoutes);
 app.use(districtsRoutes);
 app.use(localCongregationRoutes);
 
-//app.use(chatRoutes);
+app.use(chatRoutes);
 app.use(settingRoutes);
 app.use(authRoutes);
 
 app.use(lokalProfileRoutes);
 app.use(housingRoutes);
 app.use(fileRoutes);
+app.use(require("./routes/atgFileRoutes"));
+app.use(require("./routes/newsRoutes"));
+app.use("/api/news", require("./routes/proxyNews"));
 app.use(phoneDirectoryRoutes);
-app.use("/api",proxySnipeitRoutes);
+app.use("/api", proxySnipeitRoutes);
 
 // Ensure upload folder exists
 const uploadDir = path.join(__dirname, "uploads/avatar");
 fs.mkdirSync(uploadDir, { recursive: true });
 
-// FIX: Clean up the connection block
-const db = mysql.createConnection({
- host: process.env.MYSQL_HOST,
- user: process.env.MYSQL_USER,
- password: process.env.MYSQL_PASSWORD,
- database: process.env.MYSQL_DATABASE,
- port: process.env.MYSQL_PORT || 3306,
- authPlugins: {
-  mysql_native_password: () => () => ""
- }
-});
+/*
+// FIX: Use Connection String to bypass option validation issues
+const dbUrl = `mysql://${process.env.MYSQL_USER}:${encodeURIComponent(process.env.MYSQL_PASSWORD)}@${process.env.MYSQL_HOST}:${process.env.MYSQL_PORT || 3306}/${process.env.MYSQL_DATABASE}?allowPublicKeyRetrieval=true`;
+
+const db = mysql.createConnection(dbUrl);
 
 db.connect((err) => {
- if (err) {
-  console.error("❌ Error connecting to MySQL:", err);
- } else {
-  console.log("✅ Connected to MySQL Database");
- }
+  if (err) {
+    console.error("❌ Error connecting to MySQL:", err);
+  } else {
+    console.log("✅ Connected to MySQL Database");
+  }
 });
+*/
 
 // ✅ Middleware
 app.use(bodyParser.json());
 
 // Test route
 app.get("/api/test-upload", (req, res) => {
- res.send("✅ Upload route working!");
+  res.send("✅ Upload route working!");
 });
 
 // Example: Add your route imports here
@@ -247,19 +247,19 @@ app.get("/api/test-upload", (req, res) => {
 
 // Start HTTP server
 http.createServer(app).listen(PORT_HTTP, IP_BIND, () => {
- console.log(`✅ HTTP Server running at http://localhost:${PORT_HTTP}`);
+  console.log(`✅ HTTP Server running at http://localhost:${PORT_HTTP}`);
 });
 
 // Start HTTPS server if enabled
 if (sslOptions) {
- https.createServer(sslOptions, app).listen(PORT_HTTPS, IP_BIND, () => {
- console.log(`✅ HTTPS Server running at https://localhost:${PORT_HTTPS}`);
- });
+  https.createServer(sslOptions, app).listen(PORT_HTTPS, IP_BIND, () => {
+    console.log(`✅ HTTPS Server running at https://localhost:${PORT_HTTPS}`);
+  });
 }
 
 
 app.get("/health", (req, res) => {
- res.json({ status: "ok" });
+  res.json({ status: "ok" });
 });
 
 

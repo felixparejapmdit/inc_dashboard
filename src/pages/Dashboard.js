@@ -1,3 +1,4 @@
+// Dashboard Component
 import React, {
   useEffect,
   useState,
@@ -9,6 +10,7 @@ import React, {
 } from "react";
 import {
   Box,
+  Badge,
   Heading,
   SimpleGrid,
   VStack,
@@ -38,6 +40,8 @@ import {
   PopoverArrow,
   PopoverCloseButton,
   PopoverBody,
+  PopoverHeader,
+  List,
   Table,
   Thead,
   Tr,
@@ -46,6 +50,7 @@ import {
   Td,
   InputGroup,
   InputLeftElement,
+  Flex,
 } from "@chakra-ui/react";
 import {
   FiEdit,
@@ -56,10 +61,18 @@ import {
   FiSun,
   FiMoon,
   FiExternalLink,
+  FiActivity,
+  FiMonitor,
+  FiSmartphone,
+  FiGlobe,
+  FiClock,
+  FiCpu,
+  FiChevronLeft,
+  FiChevronRight
 } from "react-icons/fi";
 
 import { useDisclosure } from "@chakra-ui/react";
-import { PopoverHeader, List } from "@chakra-ui/react";
+
 
 import { SearchIcon } from "@chakra-ui/icons";
 import { useNavigate } from "react-router-dom";
@@ -68,11 +81,11 @@ import { getAuthHeaders } from "../utils/apiHeaders";
 import { fetchData } from "../utils/fetchData";
 import { usePermissionContext } from "../contexts/PermissionContext";
 import { useDebounce } from "use-debounce";
+import moment from "moment";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
-// Lazy-load heavy components
-const Tutorial = lazy(() => import("../components/Tutorial"));
+
 
 // Simple cache config for apps
 const APPS_CACHE_KEY = "categorizedApps";
@@ -114,12 +127,13 @@ export default function Dashboard() {
   const [hoveredEvent, setHoveredEvent] = useState(null);
   const [hoveredReminder, setHoveredReminder] = useState(null);
   const { colorMode, toggleColorMode } = useColorMode();
-  const [notifications, setNotifications] = useState([]);
+
   const [filteredApps, setFilteredApps] = useState([]);
 
   const navigate = useNavigate();
 
   const [isMobileDragEnabled, setIsMobileDragEnabled] = useState(false);
+  const isDragEnabled = false;
 
   const [compactGreeting, setCompactGreeting] = useState(false);
   const lastScrollTop = useRef(0);
@@ -129,6 +143,73 @@ export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showLogins, setShowLogins] = useState(false);
   const [hasLoadedLogins, setHasLoadedLogins] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 25;
+
+
+
+  // Hook values moved to top level to avoid conditional constraints
+  const inputBg = useColorModeValue("white", "gray.700");
+  const iconHoverBg = useColorModeValue("orange.100", "whiteAlpha.200");
+  const sectionTitleColor = useColorModeValue("gray.800", "gray.100");
+
+  const recentActivityInputBg = useColorModeValue("gray.100", "gray.700");
+  const recentActivityInputHoverBg = useColorModeValue("gray.200", "gray.600");
+  const recentActivityBoxBg = useColorModeValue("white", "gray.800");
+  const recentActivityBorderColor = useColorModeValue("gray.100", "gray.700");
+  const recentActivityTheadBg = useColorModeValue("gray.50/50", "gray.900/50");
+  const recentActivityTextColor = useColorModeValue("gray.700", "gray.200");
+  const recentActivityRowHoverBg = useColorModeValue("orange.50/30", "whiteAlpha.100");
+  const sectionSubText = useColorModeValue("gray.500", "gray.400");
+  const sectionBadgeBg = useColorModeValue("orange.100", "orange.700");
+  const sectionBadgeColor = useColorModeValue("orange.700", "orange.100");
+  const sectionIconBg = useColorModeValue("orange.200", "orange.600");
+
+  const renderSectionHeader = (title, count) => {
+    const badgeLabel = count ? `${count} apps` : "No apps";
+    return (
+      <HStack
+        justify="space-between"
+        align="center"
+        mb={4}
+        flexWrap="wrap"
+        spacing={3}
+      >
+        <HStack spacing={3}>
+          <Box
+            bg={sectionIconBg}
+            color="white"
+            p={2}
+            borderRadius="lg"
+            boxShadow="md"
+          >
+            <FiGrid />
+          </Box>
+          <VStack align="start" spacing={0}>
+            <Heading as="h2" size="md" color={sectionTitleColor}>
+              {title}
+            </Heading>
+            <Text fontSize="xs" color={sectionSubText}>
+              {count} {count === 1 ? "application" : "applications"}
+            </Text>
+          </VStack>
+        </HStack>
+        <Badge
+          px={3}
+          py={1}
+          borderRadius="full"
+          fontSize="xs"
+          textTransform="uppercase"
+          letterSpacing="wide"
+          bg={sectionBadgeBg}
+          color={sectionBadgeColor}
+        >
+          {badgeLabel}
+        </Badge>
+      </HStack>
+    );
+  };
+
 
   useEffect(() => {
     // We only need the date (not a ticking clock), so just set it once
@@ -136,19 +217,37 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
+    let ticking = false;
+
     const handleScroll = () => {
-      const scrollTop = window.scrollY || document.documentElement.scrollTop;
-      if (scrollTop > lastScrollTop.current && scrollTop > 10) {
-        setCompactGreeting(true);
-      } else if (scrollTop < lastScrollTop.current && scrollTop <= 10) {
-        setCompactGreeting(false);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const scrollTop = window.scrollY || document.documentElement.scrollTop;
+
+          // Hysteresis logic to prevent flickering
+          // Switch to compact mode if scrolled down significantly (> 80px)
+          if (scrollTop > 80 && scrollTop > lastScrollTop.current) {
+            setCompactGreeting(true);
+          }
+          // Switch back to full mode only if near the top (< 20px) and scrolling up
+          else if (scrollTop < lastScrollTop.current && scrollTop <= 20) {
+            setCompactGreeting(false);
+          }
+
+          lastScrollTop.current = scrollTop <= 0 ? 0 : scrollTop;
+          ticking = false;
+        });
+        ticking = true;
       }
-      lastScrollTop.current = scrollTop <= 0 ? 0 : scrollTop;
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+
+
+
 
   const isMobile = useBreakpointValue({
     base: true,
@@ -157,18 +256,19 @@ export default function Dashboard() {
     lg: false,
     xl: false,
   });
-  const shouldEnableDragDrop = !isMobile || isMobileDragEnabled;
+  const shouldEnableDragDrop =
+    isDragEnabled && (!isMobile || isMobileDragEnabled);
 
-  const colors = {
-    reminderBg: useColorModeValue("orange.100", "orange.700"),
-    eventBg: useColorModeValue("teal.100", "teal.700"),
-    appBg: useColorModeValue("gray.90", "gray.800"),
-    cardText: useColorModeValue("gray.700", "white"),
-    cardHeader: useColorModeValue("gray.600", "gray.300"),
-    cardBorder: useColorModeValue("gray.300", "gray.700"),
-    buttonBg: useColorModeValue("blue.600", "blue.500"),
-    buttonHoverBg: useColorModeValue("blue.700", "blue.600"),
-  };
+  const colors = useMemo(() => ({
+    reminderBg: colorMode === "light" ? "orange.100" : "orange.700",
+    eventBg: colorMode === "light" ? "teal.100" : "teal.700",
+    appBg: colorMode === "light" ? "transparent" : "gray.800",
+    cardText: colorMode === "light" ? "gray.600" : "gray.300",
+    cardHeader: colorMode === "light" ? "gray.800" : "gray.100",
+    cardBorder: colorMode === "light" ? "gray.200" : "gray.700",
+    buttonBg: colorMode === "light" ? "blue.600" : "blue.500",
+    buttonHoverBg: colorMode === "light" ? "blue.700" : "blue.600",
+  }), [colorMode]);
 
   const handleNextcloudLogin = () => {
     const username = localStorage.getItem("username");
@@ -241,6 +341,11 @@ export default function Dashboard() {
     setSearchQuery(e.target.value);
   };
 
+  // Reset pagination when filteredAudits changes (due to search)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   useEffect(() => {
     const username = localStorage.getItem("username");
 
@@ -262,7 +367,7 @@ export default function Dashboard() {
     const url = `${API_URL}/api/users/logged-in?username=${encodeURIComponent(
       username
     )}`;
-    console.log("Constructed Fetch URL:", url);
+    //console.log("Constructed Fetch URL:", url);
 
     fetch(url, {
       headers: getAuthHeaders(),
@@ -330,22 +435,9 @@ export default function Dashboard() {
   // Fetch applications with caching + TTL
   const fetchApplications = async () => {
     try {
-      const cacheRaw = localStorage.getItem(APPS_CACHE_KEY);
-      if (cacheRaw) {
-        try {
-          const { data, ts } = JSON.parse(cacheRaw);
-          if (data) {
-            // Show cached data immediately
-            setCategorizedApps(data);
-          }
-          if (ts && Date.now() - ts < APPS_CACHE_TTL) {
-            // Fresh enough, skip network
-            return;
-          }
-        } catch (e) {
-          console.warn("Invalid apps cache, ignoring", e);
-        }
-      }
+      // Client-side cache check DISABLED
+      // const cacheRaw = localStorage.getItem(APPS_CACHE_KEY);
+      // if (cacheRaw) { ... }
 
       if (!currentUser.id) {
         console.warn("Skipping fetchApplications: User ID not defined yet");
@@ -372,14 +464,17 @@ export default function Dashboard() {
       }
 
       setCategorizedApps(categorized);
-      localStorage.setItem(
-        APPS_CACHE_KEY,
-        JSON.stringify({ data: categorized, ts: Date.now() })
-      );
+      // Cache saving DISABLED
+      // localStorage.setItem(
+      //   APPS_CACHE_KEY,
+      //   JSON.stringify({ data: categorized, ts: Date.now() })
+      // );
     } catch (error) {
       console.error("Error fetching apps:", error);
     }
   };
+
+
 
   const handleSettingsClick = (app) => {
     setSelectedApp(app);
@@ -473,14 +568,14 @@ export default function Dashboard() {
   };
 
   return (
-    <Box bg={useColorModeValue("white.50", "white.500")} minH="100vh" p={6}>
+    <Box bg={useColorModeValue("white.50", "gray.900")} minH="100vh" p={6}>
       {/* Sticky Header Section */}
       <Box
         position="sticky"
         top="0"
         zIndex="1000"
         boxShadow="sm"
-        bg="white"
+        bg={useColorModeValue("white", "gray.800")}
         px={4}
         py={2}
       >
@@ -491,18 +586,16 @@ export default function Dashboard() {
           transition="all 0.4s ease"
           flexWrap="wrap"
         >
-          {/* Tutorial (lazy-loaded) */}
-          <Suspense fallback={null}>
-            <Tutorial />
-          </Suspense>
+
 
           {compactGreeting ? (
             <>
               <Input
+                data-tour="search-bar"
                 placeholder="Search"
                 size="md"
                 borderRadius="full"
-                bg="white"
+                bg={inputBg}
                 maxW="300px"
                 value={searchQuery}
                 onChange={handleSearchInput}
@@ -536,10 +629,11 @@ export default function Dashboard() {
               transition="all 0.4s ease"
             >
               <Input
+                data-tour="search-bar"
                 placeholder="Search"
                 size="md"
                 borderRadius="full"
-                bg="white"
+                bg={inputBg}
                 maxW="300px"
                 value={searchQuery}
                 onChange={handleSearchInput}
@@ -576,45 +670,26 @@ export default function Dashboard() {
             </VStack>
           )}
 
-          {/* Mode toggle & bell (currently hidden with display="none") */}
-          <IconButton
-            icon={colorMode === "light" ? <FiMoon /> : <FiSun />}
-            onClick={toggleColorMode}
-            isRound
-            display="none"
-            size="lg"
-            aria-label="Toggle color mode"
-          />
+          {/* Mode toggle & bell */}
+          <HStack spacing={2}>
+            <IconButton
+              icon={colorMode === "light" ? <FiMoon /> : <FiSun />}
+              onClick={toggleColorMode}
+              isRound
+              size="lg"
+              colorScheme="orange"
+              variant="ghost"
+              aria-label="Toggle color mode"
+              display="none"
+              _hover={{ transform: "rotate(20deg)", bg: iconHoverBg }}
+            />
 
-          <Popover>
-            <PopoverTrigger>
-              <IconButton
-                icon={<FiBell />}
-                isRound
-                size="lg"
-                aria-label="Notifications"
-                display="none"
-              />
-            </PopoverTrigger>
-            <PopoverContent>
-              <PopoverArrow />
-              <PopoverCloseButton />
-              <PopoverBody>
-                {notifications.length > 0 ? (
-                  notifications.map((notif) => (
-                    <Box key={notif.id} p={2}>
-                      <Text fontWeight="bold">{notif.title}</Text>
-                      <Text fontSize="sm">{notif.description}</Text>
-                    </Box>
-                  ))
-                ) : (
-                  <Text>No new notifications</Text>
-                )}
-              </PopoverBody>
-            </PopoverContent>
-          </Popover>
+
+          </HStack>
         </HStack>
       </Box>
+
+
 
       {/* Recently Opened Apps Section */}
       {recentApps.length > 0 && (
@@ -639,13 +714,11 @@ export default function Dashboard() {
       <>
         {/* Search Results vs Categorized Apps */}
         {searchQuery && filteredApps.length > 0 ? (
-          <Box mt={6}>
-            <Heading as="h2" size="lg" mb={4} color="gray.700">
-              Search Results
-            </Heading>
+          <Box mt={{ base: 5, md: 8 }}>
+            {renderSectionHeader("Search Results", filteredApps.length)}
             <SimpleGrid
               columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
-              spacing={6}
+              spacing={{ base: 4, md: 6 }}
             >
               {filteredApps.map((app) => (
                 <AppCard
@@ -670,360 +743,377 @@ export default function Dashboard() {
               >
                 {appTypes.map((type) => {
                   const appsForType = categorizedApps[type.name] || [];
-                  return (
-                    <Box key={type.id} mt={6}>
-                      <Heading
-                        as="h2"
-                        size="lg"
-                        mb={4}
-                        display="flex"
-                        alignItems="center"
-                      >
-                        <FiGrid
-                          style={{ marginRight: "8px", color: "#F3C847" }}
-                        />
-                        {type.name}
-                      </Heading>
+                  if (appsForType.length === 0) return null;
 
-                      {appsForType.length > 0 ? (
-                        <Droppable
-                          droppableId={type.name}
-                          direction="horizontal"
-                        >
-                          {(provided) => (
-                            <SimpleGrid
-                              columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
-                              spacing={6}
-                              ref={provided.innerRef}
-                              {...provided.droppableProps}
-                            >
-                              {appsForType.map((app, index) => (
-                                <Draggable
-                                  key={app.id}
-                                  draggableId={app.id.toString()}
-                                  index={index}
-                                >
-                                  {(provided) => (
-                                    <Box
-                                      ref={provided.innerRef}
-                                      {...provided.draggableProps}
-                                      {...provided.dragHandleProps}
-                                    >
-                                      <AppCard
-                                        key={app.id}
-                                        app={app}
-                                        colors={colors}
-                                        handleAppClick={handleAppClick}
-                                      />
-                                    </Box>
-                                  )}
-                                </Draggable>
-                              ))}
-                              {provided.placeholder}
-                            </SimpleGrid>
-                          )}
-                        </Droppable>
-                      ) : (
-                        <Text fontSize="sm" color="gray.500" ml={2}>
-                          No application assigned
-                        </Text>
-                      )}
+                  return (
+                    <Box key={type.id} mt={{ base: 5, md: 8 }}>
+                      {renderSectionHeader(type.name, appsForType.length)}
+
+                      <Droppable
+                        droppableId={type.name}
+                        direction="horizontal"
+                      >
+                        {(provided) => (
+                          <SimpleGrid
+                            columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
+                            spacing={{ base: 4, md: 6 }}
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                          >
+                            {appsForType.map((app, index) => (
+                              <Draggable
+                                key={app.id}
+                                draggableId={app.id.toString()}
+                                index={index}
+                              >
+                                {(provided) => (
+                                  <Box
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                  >
+                                    <AppCard
+                                      key={app.id}
+                                      app={app}
+                                      colors={colors}
+                                      handleAppClick={handleAppClick}
+                                    />
+                                  </Box>
+                                )}
+                              </Draggable>
+                            ))}
+                            {provided.placeholder}
+                          </SimpleGrid>
+                        )}
+                      </Droppable>
                     </Box>
                   );
                 })}
               </DragDropContext>
             ) : (
               <>
-                <Text fontSize="md" color="gray.500">
-                  Drag & Drop is disabled for mobile.
-                </Text>
-
                 {appTypes.map((type) => {
                   const appsForType = categorizedApps[type.name] || [];
-                  return (
-                    <Box key={type.id} mt={6}>
-                      <Heading
-                        as="h2"
-                        size="lg"
-                        mb={4}
-                        display="flex"
-                        alignItems="center"
-                      >
-                        <FiGrid
-                          style={{ marginRight: "8px", color: "#F3C847" }}
-                        />
-                        {type.name}
-                      </Heading>
+                  if (appsForType.length === 0) return null;
 
-                      {appsForType.length > 0 ? (
-                        <SimpleGrid
-                          columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
-                          spacing={6}
-                        >
-                          {appsForType.map((app) => (
-                            <AppCard
-                              key={app.id}
-                              app={app}
-                              colors={colors}
-                              handleAppClick={handleAppClick}
-                            />
-                          ))}
-                        </SimpleGrid>
-                      ) : (
-                        <Text fontSize="sm" color="gray.500" ml={2}>
-                          No application assigned
-                        </Text>
-                      )}
+                  return (
+                    <Box key={type.id} mt={{ base: 5, md: 8 }}>
+                      {renderSectionHeader(type.name, appsForType.length)}
+
+                      <SimpleGrid
+                        columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
+                        spacing={{ base: 4, md: 6 }}
+                      >
+                        {appsForType.map((app) => (
+                          <AppCard
+                            key={app.id}
+                            app={app}
+                            colors={colors}
+                            handleAppClick={handleAppClick}
+                          />
+                        ))}
+                      </SimpleGrid>
                     </Box>
                   );
                 })}
               </>
             )}
           </>
+
         )}
+
+        {/* 🛡️ Fallback: Explicitly Render "Others" if not in DB types */}
+        {!searchQuery && ["Others"].map((category) => {
+          const apps = categorizedApps[category];
+          if (!apps || apps.length === 0) return null;
+          // Skip if it was already rendered via appTypes
+          if (appTypes.find((t) => t.name === category)) return null;
+
+          return (
+            <Box key={category} mt={{ base: 5, md: 8 }}>
+              {renderSectionHeader(category, apps.length)}
+
+              <SimpleGrid
+                columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
+                spacing={{ base: 4, md: 6 }}
+              >
+                {apps.map((app) => (
+                  <AppCard
+                    key={app.id}
+                    app={app}
+                    colors={colors}
+                    handleAppClick={handleAppClick}
+                  />
+                ))}
+              </SimpleGrid>
+            </Box>
+          );
+        })}
       </>
 
       {/* Recent Login Logs Section (lazy-loaded) */}
-      {hasPermission("home.recent_activity") && (
-        <Box mt={6} mx="auto" px={{ base: 4, md: 8 }} width="100%" maxW="100%">
-          <HStack justify="space-between" align="center" mb={4}>
-            <Heading
-              as="h4"
-              size={{ base: "md", md: "lg" }}
-              bgGradient="linear(to-r, orange.400, yellow.300)"
-              bgClip="text"
-              fontWeight="extrabold"
-              userSelect="none"
-            >
-              Recent Login Activity
-            </Heading>
-            <Button
-              size="sm"
-              colorScheme="orange"
-              variant="outline"
-              onClick={() => setShowLogins((v) => !v)}
-            >
-              {showLogins ? "Hide" : "Show"} Recent Activity
-            </Button>
-          </HStack>
-
-          {showLogins && (
-            <>
-              <InputGroup mb={6} maxW={{ base: "100%", sm: "320px" }}>
-                <InputLeftElement pointerEvents="none">
-                  <SearchIcon color="gray.400" />
-                </InputLeftElement>
-                <Input
-                  type="text"
-                  placeholder="Search by username..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  _focus={{
-                    borderColor: "orange.400",
-                    boxShadow: "0 0 0 2px #ED8936",
-                  }}
-                  bg="white"
-                  borderRadius="md"
-                  boxShadow="sm"
-                  fontSize={{ base: "sm", md: "md" }}
-                  width="100%"
-                />
-              </InputGroup>
-
-              <Box
-                bg="white"
-                borderRadius="xl"
-                boxShadow="xl"
-                overflowX="auto"
-                p={{ base: 4, md: 6 }}
-                maxH="300px"
+      <Box mt={6} mx="auto" px={{ base: 4, md: 8 }} width="100%" maxW="100%">
+        <Flex
+          direction={{ base: "column", md: "row" }}
+          justify="space-between"
+          align={{ base: "start", md: "center" }}
+          mb={6}
+          gap={4}
+        >
+          <VStack align="start" spacing={1}>
+            <HStack spacing={2}>
+              <Icon as={FiActivity} color="orange.400" boxSize={5} />
+              <Heading
+                as="h4"
+                size="md"
+                color={sectionTitleColor}
+                fontWeight="bold"
               >
-                {filteredAudits.length === 0 ? (
-                  <Text
-                    color="gray.500"
-                    textAlign="center"
-                    py={10}
-                    fontSize={{ base: "sm", md: "md" }}
-                  >
-                    No login records found.
-                  </Text>
-                ) : (
-                  <Table
-                    variant="unstyled"
-                    size="sm"
-                    minWidth="700px"
-                    sx={{
-                      "thead tr": {
-                        backgroundColor: "orange.400",
-                      },
-                      "thead th": {
-                        color: "white",
-                        fontWeight: "bold",
-                        borderBottom: "none",
-                        userSelect: "none",
-                        position: "sticky",
-                        top: -7,
-                        zIndex: 10,
-                        px: { base: 3, md: 6 },
-                        py: { base: 2, md: 3 },
-                        fontSize: { base: "xs", md: "sm" },
-                        whiteSpace: "nowrap",
-                        backgroundColor: "orange.400",
-                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.06)",
-                      },
-                      "tbody tr": {
-                        bg: "white",
-                        transition: "background-color 0.3s ease",
-                      },
-                      "tbody tr:hover": {
-                        bg: "gray.50",
-                        cursor: "pointer",
-                      },
-                      "tbody td": {
-                        px: { base: 3, md: 6 },
-                        py: { base: 2, md: 3 },
-                        borderBottom: "1px solid #E2E8F0",
-                        color: "gray.700",
-                        fontSize: { base: "xs", md: "sm" },
-                        whiteSpace: "nowrap",
-                      },
-                    }}
-                  >
-                    <Thead>
+                Recent Activity
+              </Heading>
+            </HStack>
+            <Text fontSize="xs" color={sectionSubText}>
+              User access logs from the last 24 hours.
+            </Text>
+          </VStack>
+
+          <Button
+            size="sm"
+            leftIcon={<Icon as={showLogins ? FiMoon : FiActivity} />}
+            colorScheme="orange"
+            variant="subtitle"
+            bg={showLogins ? "orange.50" : "transparent"}
+            color={showLogins ? "orange.600" : "gray.500"}
+            fontSize="xs"
+            fontWeight="bold"
+            borderRadius="full"
+            onClick={() => setShowLogins((v) => !v)}
+            _hover={{ bg: "orange.50", color: "orange.600" }}
+          >
+            {showLogins ? "Hide" : "Show Recent Activity"}
+          </Button>
+        </Flex>
+
+        {showLogins && (
+          <>
+            <InputGroup size="sm" mb={6} maxW={{ base: "100%", sm: "320px" }}>
+              <InputLeftElement pointerEvents="none">
+                <FiSearch color="gray.400" />
+              </InputLeftElement>
+              <Input
+                placeholder="Filter by user..."
+                variant="filled"
+                bg={recentActivityInputBg}
+                _hover={{ bg: recentActivityInputHoverBg }}
+                _focus={{ bg: "white", borderColor: "orange.400", boxShadow: "0 0 0 1px #ED8936" }}
+                borderRadius="full"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </InputGroup>
+
+            <Box
+              bg={recentActivityBoxBg}
+              borderRadius="2xl"
+              boxShadow="xl"
+              border="1px solid"
+              borderColor={recentActivityBorderColor}
+              overflow="hidden"
+            >
+              {filteredAudits.length === 0 ? (
+                <Text
+                  color="gray.500"
+                  textAlign="center"
+                  py={10}
+                  fontSize={{ base: "sm", md: "md" }}
+                >
+                  No login records found.
+                </Text>
+              ) : (
+                <>
+                  <Table variant="simple" size="sm">
+                    <Thead bg={recentActivityTheadBg}>
                       <Tr>
-                        <Th>#</Th>
-                        <Th>User</Th>
-                        <Th>Device</Th>
-                        <Th>OS</Th>
-                        <Th>Browser</Th>
-                        <Th>Date</Th>
+                        <Th py={4} color="gray.400" fontSize="xs">User</Th>
+                        <Th py={4} color="gray.400" fontSize="xs">Device & OS</Th>
+                        <Th py={4} color="gray.400" fontSize="xs">Browser</Th>
+                        <Th py={4} color="gray.400" fontSize="xs" textAlign="right">Last Active</Th>
                       </Tr>
                     </Thead>
                     <Tbody>
-                      {filteredAudits.map((log, idx) => (
-                        <Tr key={log.id || idx}>
-                          <Td
-                            fontWeight="semibold"
-                            color="gray.600"
-                            whiteSpace="nowrap"
-                            fontSize={{ base: "xs", md: "sm" }}
+                      {filteredAudits
+                        .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                        .map((log, idx) => (
+                          <Tr
+                            key={log.id || idx}
+                            _hover={{ bg: recentActivityRowHoverBg }}
+                            transition="all 0.2s"
                           >
-                            {idx + 1}
-                          </Td>
-                          <Td>{log.user?.username || "—"}</Td>
-                          <Td>{log.device || "—"}</Td>
-                          <Td>{log.os || "—"}</Td>
-                          <Td>{log.browser || "—"}</Td>
-                          <Td>
-                            {log.login_time
-                              ? new Date(
-                                  log.login_time
-                                ).toLocaleDateString("en-US", {
-                                  year: "numeric",
-                                  month: "short",
-                                  day: "numeric",
-                                }) +
-                                " " +
-                                new Date(log.login_time)
-                                  .toLocaleTimeString("en-US", {
-                                    hour: "numeric",
-                                    minute: "2-digit",
-                                    hour12: true,
-                                  })
-                                  .toLowerCase()
-                              : "—"}
-                          </Td>
-                        </Tr>
-                      ))}
+                            <Td py={4}>
+                              <HStack spacing={3}>
+                                <Avatar size="xs" name={log.user?.username} src={log.user?.avatar ? `${API_URL}${log.user.avatar}` : ""} />
+                                <Text fontWeight="bold" color={recentActivityTextColor}>
+                                  {log.user?.username || "—"}
+                                </Text>
+                              </HStack>
+                            </Td>
+                            <Td py={4}>
+                              <HStack spacing={2}>
+                                <Icon
+                                  as={log.device?.toLowerCase().includes('mobile') ? FiSmartphone : FiMonitor}
+                                  color="blue.400"
+                                  boxSize={3}
+                                />
+                                <VStack align="start" spacing={0}>
+                                  <Text fontSize="xs" fontWeight="bold">{(log.device && log.device.length > 20) ? log.device.substring(0, 20) + "..." : log.device || "—"}</Text>
+                                  <Text fontSize="10px" color="gray.500">{log.os || "—"}</Text>
+                                </VStack>
+                              </HStack>
+                            </Td>
+                            <Td py={4}>
+                              <HStack spacing={2}>
+                                <Icon as={FiGlobe} color="teal.400" boxSize={3} />
+                                <Text fontSize="xs">{log.browser || "—"}</Text>
+                              </HStack>
+                            </Td>
+                            <Td py={4} textAlign="right">
+                              <VStack align="end" spacing={0}>
+                                <Text fontSize="xs" fontWeight="bold">
+                                  {log.login_time ? moment(log.login_time).format("MMM DD, h:mm a") : "—"}
+                                </Text>
+                                <Text fontSize="10px" color="gray.400">
+                                  {log.login_time ? moment(log.login_time).fromNow() : ""}
+                                </Text>
+                              </VStack>
+                            </Td>
+
+                          </Tr>
+                        ))}
                     </Tbody>
                   </Table>
-                )}
-              </Box>
-            </>
-          )}
-        </Box>
-      )}
+                  {filteredAudits.length > itemsPerPage && (
+                    <Flex
+                      justify="space-between"
+                      align="center"
+                      px={6}
+                      py={4}
+                      bg={recentActivityTheadBg}
+                      borderTop="1px solid"
+                      borderColor={recentActivityBorderColor}
+                    >
+                      <Text fontSize="xs" color={sectionSubText}>
+                        Page {currentPage} of {Math.ceil(filteredAudits.length / itemsPerPage)}
+                      </Text>
+                      <HStack spacing={2}>
+                        <IconButton
+                          icon={<FiChevronLeft />}
+                          size="sm"
+                          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                          isDisabled={currentPage === 1}
+                          aria-label="Previous Page"
+                          variant="ghost"
+                        />
+                        <IconButton
+                          icon={<FiChevronRight />}
+                          size="sm"
+                          onClick={() => setCurrentPage((p) => Math.min(Math.ceil(filteredAudits.length / itemsPerPage), p + 1))}
+                          isDisabled={currentPage === Math.ceil(filteredAudits.length / itemsPerPage)}
+                          aria-label="Next Page"
+                          variant="ghost"
+                        />
+                      </HStack>
+                    </Flex>
+                  )}
+                </>
+              )}
+            </Box>
+          </>
+        )}
+      </Box>
+
 
       {/* Modal for App Info */}
-      {selectedApp && (
-        <Modal isOpen={isOpen} onClose={onClose}>
-          <ModalOverlay />
-          <ModalContent>
-            <ModalHeader>Edit {selectedApp.name}</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              <Box>
-                <Text mb={2}>App Name</Text>
-                <Input
-                  name="name"
-                  value={updatedApp.name || ""}
-                  onChange={(e) =>
-                    setUpdatedApp((prev) => ({ ...prev, name: e.target.value }))
-                  }
-                  mb={4}
-                  placeholder="App Name"
-                />
+      {
+        selectedApp && (
+          <Modal isOpen={isOpen} onClose={onClose}>
+            <ModalOverlay />
+            <ModalContent>
+              <ModalHeader>Edit {selectedApp.name}</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+                <Box>
+                  <Text mb={2}>App Name</Text>
+                  <Input
+                    name="name"
+                    value={updatedApp.name || ""}
+                    onChange={(e) =>
+                      setUpdatedApp((prev) => ({ ...prev, name: e.target.value }))
+                    }
+                    mb={4}
+                    placeholder="App Name"
+                  />
 
-                <Text mb={2}>Description</Text>
-                <Input
-                  name="description"
-                  value={updatedApp.description || ""}
-                  onChange={(e) =>
-                    setUpdatedApp((prev) => ({
-                      ...prev,
-                      description: e.target.value,
-                    }))
-                  }
-                  mb={4}
-                  placeholder="App Description"
-                />
-
-                <Text mb={2}>URL</Text>
-                <Input
-                  name="url"
-                  value={updatedApp.url || ""}
-                  onChange={(e) =>
-                    setUpdatedApp((prev) => ({ ...prev, url: e.target.value }))
-                  }
-                  mb={4}
-                  placeholder="App URL"
-                />
-
-                <Text mb={2}>App Icon</Text>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
+                  <Text mb={2}>Description</Text>
+                  <Input
+                    name="description"
+                    value={updatedApp.description || ""}
+                    onChange={(e) =>
                       setUpdatedApp((prev) => ({
                         ...prev,
-                        icon: reader.result,
-                      }));
-                    };
-                    reader.readAsDataURL(file);
-                  }}
-                  mb={4}
-                />
-              </Box>
-            </ModalBody>
-            <ModalFooter>
-              <Button colorScheme="blue" mr={3} onClick={handleSaveChanges}>
-                Save Changes
-              </Button>
-              <Button onClick={onClose}>Cancel</Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
-      )}
-    </Box>
+                        description: e.target.value,
+                      }))
+                    }
+                    mb={4}
+                    placeholder="App Description"
+                  />
+
+                  <Text mb={2}>URL</Text>
+                  <Input
+                    name="url"
+                    value={updatedApp.url || ""}
+                    onChange={(e) =>
+                      setUpdatedApp((prev) => ({ ...prev, url: e.target.value }))
+                    }
+                    mb={4}
+                    placeholder="App URL"
+                  />
+
+                  <Text mb={2}>App Icon</Text>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setUpdatedApp((prev) => ({
+                          ...prev,
+                          icon: reader.result,
+                        }));
+                      };
+                      reader.readAsDataURL(file);
+                    }}
+                    mb={4}
+                  />
+                </Box>
+              </ModalBody>
+              <ModalFooter>
+                <Button colorScheme="blue" mr={3} onClick={handleSaveChanges}>
+                  Save Changes
+                </Button>
+                <Button onClick={onClose}>Cancel</Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
+        )
+      }
+    </Box >
   );
 }
 
 // Memoized AppCard to avoid unnecessary re-renders
-const AppCard1 = React.memo(function AppCard({
+const AppCard = React.memo(function AppCard({
   app,
   colors,
   handleAppClick,
@@ -1037,7 +1127,9 @@ const AppCard1 = React.memo(function AppCard({
     !isFileData || (hasPermission("atgfile.view") && !isPhoneDirectory);
 
   const handleClick = (e) => {
+
     if (!isClickable) return;
+
     e.preventDefault();
     if (handleAppClick) {
       handleAppClick(app);
@@ -1212,7 +1304,7 @@ const AppCard1 = React.memo(function AppCard({
 
 
 // Memoized AppCard for performance
-const AppCard = React.memo(function AppCard({
+const AppCard1 = React.memo(function AppCard({
   app,
   colors,
   handleAppClick,
@@ -1221,30 +1313,41 @@ const AppCard = React.memo(function AppCard({
   const isFileData = app.generated_code && app.filename;
   const isPhoneDirectory = app.name && app.extension;
   const { hasPermission } = usePermissionContext();
+  const cardShadow = useColorModeValue(
+    "0 10px 24px rgba(15, 23, 42, 0.08)",
+    "0 12px 24px rgba(0, 0, 0, 0.45)"
+  );
+  const activeBg = useColorModeValue("gray.50", "gray.700");
 
   // Define fixed dimensions for the card container
   const CARD_DIMENSIONS = {
-    // CRITICAL FIX: Ensure width is responsive but constrained
-    w: { base: "100%", sm: small ? "120px" : "200px" }, 
-    // CRITICAL FIX: Define fixed height for all cards
-    h: small ? "120px" : "200px", 
+    w: "100%",
+    h: small ? "120px" : { base: "180px", md: "200px" },
   };
-  
+
   // Define Icon/Avatar size
   const ICON_SIZE = small ? "40px" : "70px";
 
   const isClickable =
     !isFileData || (hasPermission("atgfile.view") && !isPhoneDirectory);
 
+  // Determine if this should be a link
+  const isLink = isClickable && app.url;
+
   const handleClick = (e) => {
-    if (!isClickable) return;
-    e.preventDefault();
+    if (!isClickable) {
+      e.preventDefault();
+      return;
+    }
+
+    // Track recent apps
     if (handleAppClick) {
       handleAppClick(app);
     }
-    const targetUrl = app.url;
-    if (targetUrl) {
-      window.open(targetUrl, "_blank");
+
+    // If it's a link, let the browser handle the navigation naturally.
+    if (!app.url) {
+      e.preventDefault();
     }
   };
 
@@ -1252,81 +1355,155 @@ const AppCard = React.memo(function AppCard({
   const renderIcon = () => {
     // 1. Phone Directory/Personnel Avatar
     if (isPhoneDirectory) {
-        return (
-            <Image
-                src={
-                    app.avatar
-                        ? `${process.env.REACT_APP_API_URL}${app.avatar}`
-                        : "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
-                }
-                alt={app.name}
-                boxSize={ICON_SIZE}
-                borderRadius="full"
-                mb={small ? 1 : 2}
-                boxShadow="md"
-            />
-        );
-    } 
+      return (
+        <Image
+          src={
+            app.avatar
+              ? `${process.env.REACT_APP_API_URL}${app.avatar}`
+              : "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+          }
+          alt={app.name}
+          boxSize={ICON_SIZE}
+          borderRadius="full"
+          mb={small ? 1 : 2}
+          boxShadow="md"
+          draggable={false}
+        />
+      );
+    }
     // 2. Thumbnail/Custom Icon/Default Icon (Unified Logic)
     if (app.thumbnail_url || app.icon) {
-        const src = app.thumbnail_url || app.icon;
-        return (
-            <Image
-                src={src}
-                alt={app.name}
-                boxSize={ICON_SIZE}
-                borderRadius="full"
-                mb={small ? 1 : 2}
-                boxShadow="md"
-                border="2px solid"
-                borderColor={colors.cardBorder}
-            />
-        );
+      const src = app.thumbnail_url || app.icon;
+      return (
+        <Image
+          src={src}
+          alt={app.name}
+          boxSize={ICON_SIZE}
+          borderRadius="full"
+          mb={small ? 1 : 2}
+          boxShadow="md"
+          border="2px solid"
+          borderColor={colors.cardBorder}
+          draggable={false}
+        />
+      );
     }
     return <Icon as={FiFile} boxSize={small ? 8 : 10} color={colors.cardHeader} mb={small ? 1 : 2} />;
   };
 
 
   // --- Unified Card Container ---
+  // --- Unified Card Container ---
+  // --- Unified Card Container ---
   const CardContainer = ({ children }) => (
-    <VStack
-      as="div"
-      bg={colors.appBg}
-      borderRadius="xl"
-      border={`3px solid ${colors.cardBorder}`}
-      p={small ? 2 : 4}
-      spacing={small ? 1 : 2}
-      boxShadow="md"
-      align="center"
-      textAlign="center"
-      justifyContent="center" // CRITICAL: Center content vertically
-      
-      // APPLY FIXED/MAX DIMENSIONS HERE
+    <Box
+      as={isLink ? "a" : "div"}
+      href={isLink ? app.url : undefined}
+      target={isLink ? "_blank" : undefined}
+      rel={isLink ? "noopener noreferrer" : undefined}
+
+      // APPLY FIXED/MAX DIMENSIONS
       width={CARD_DIMENSIONS.w}
-      minHeight={CARD_DIMENSIONS.h} 
-      maxHeight={CARD_DIMENSIONS.h}
-      flexShrink={0}
-      
-      // Fixes the zoom loop issue
-      transition="transform 0.2s ease-out" 
-      
-      _hover={
-        isClickable
-          ? { transform: "scale(1.02)", boxShadow: "xl" } 
-          : {}
-      }
-      onClick={handleClick}
+      height={CARD_DIMENSIONS.h}
+
+      // Interaction
+      role={isClickable ? "link" : undefined}
+      tabIndex={isClickable ? 0 : -1}
+      aria-disabled={!isClickable}
+
+      onClick={(e) => {
+        if (!isClickable) {
+          e.preventDefault();
+          return;
+        }
+
+        // 1. Track the click (State Update)
+        if (handleAppClick) {
+          handleAppClick(app);
+        }
+
+        // 2. Handle Navigation or Custom Logic
+        if (isLink) {
+          // Force manual navigation to ensure reliability.
+          // This avoids issues where state updates might unmount/change the link before it actuates.
+          e.preventDefault();
+          window.open(app.url, '_blank', 'noopener,noreferrer');
+        } else {
+          // Fallback for non-link cards
+          e.preventDefault();
+          handleClick(e);
+        }
+      }}
+
+      onKeyDown={(event) => {
+        if (!isClickable) return;
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault(); // Prevent default scrolling/action
+
+          if (handleAppClick) handleAppClick(app);
+
+          if (isLink) {
+            window.open(app.url, '_blank', 'noopener,noreferrer');
+          } else {
+            handleClick(event);
+          }
+        }
+      }}
       cursor={isClickable ? "pointer" : "not-allowed"}
+      style={{
+        textDecoration: 'none',
+        // Optimizations for touch
+        touchAction: 'manipulation',
+        WebkitTapHighlightColor: 'transparent',
+        // Prevent text selection on the card which can block clicks
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        display: 'block'
+      }}
+
+      // Hover styles
+      _hover={isClickable ? {
+        "& > div": {
+          borderColor: "orange.300",
+          boxShadow: "lg",
+        }
+      } : {}}
+
+      // Active state
+      _active={isClickable ? {
+        "& > div": {
+          borderColor: "orange.400",
+          bg: activeBg,
+          boxShadow: "sm"
+        }
+      } : {}}
     >
+      <VStack
+        // Visual Card
+        height="100%"
+        width="100%"
+        bg={colors.appBg}
+        borderRadius="xl"
+        border={`1px solid ${colors.cardBorder}`}
+        p={small ? 2 : 4}
+        spacing={small ? 1 : 2}
+        boxShadow={cardShadow}
+        align="center"
+        justify="center"
+        textAlign="center"
+        // Ignore pointer events on children to ensure single hit target
+        pointerEvents="none"
+      >
         {children}
-    </VStack>
+      </VStack>
+    </Box>
   );
 
-  
+
   // --- Final Rendering ---
   return (
     <CardContainer>
-      
+
       {renderIcon()}
 
       {/* Name and Primary Information */}
@@ -1340,25 +1517,25 @@ const AppCard = React.memo(function AppCard({
         >
           {app.name}
         </Text>
-        
+
         {/* --- Phone Directory Details --- */}
         {isPhoneDirectory && (
-            <VStack spacing={0} fontSize="xs" color={colors.cardText}>
-                {app.extension && (
-                    <Text>Ext: {app.extension}</Text>
-                )}
-                {app.dect_number && (
-                    <Text>DECT: {app.dect_number.trim() !== "" ? app.dect_number : "N/A"}</Text>
-                )}
-            </VStack>
+          <VStack spacing={0} fontSize="xs" color={colors.cardText}>
+            {app.extension && (
+              <Text>Ext: {app.extension}</Text>
+            )}
+            {app.dect_number && (
+              <Text>DECT: {app.dect_number.trim() !== "" ? app.dect_number : "N/A"}</Text>
+            )}
+          </VStack>
         )}
         {/* --- File Data Details --- */}
         {isFileData && hasPermission("atgfile.view") && (
-            <Text fontSize="xs" color="gray.600" mt={1} noOfLines={1}>
-              Code: {app.generated_code || 'N/A'}
-            </Text>
+          <Text fontSize="xs" color={colors.cardText} mt={1} noOfLines={1}>
+            Code: {app.generated_code || 'N/A'}
+          </Text>
         )}
-        
+
         {/* --- App Description --- */}
         {!isFileData && !isPhoneDirectory && !small && (
           <Text fontSize="sm" color={colors.cardText} noOfLines={2} mt={1}>

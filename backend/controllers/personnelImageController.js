@@ -49,7 +49,7 @@ exports.createImage = async (req, res) => {
       // Delete the old image file from the uploads/avatar folder safely
       const oldFilePath = path.join(
         __dirname,
-        "../../uploads/avatar",
+        "../uploads/avatar",
         path.basename(existingImage.image_url)
       );
 
@@ -122,7 +122,7 @@ exports.get2x2ImageByPersonnelId = async (req, res) => {
 
     if (!image) {
       return res
-        .status(404)
+        .status(200)
         .json({ success: false, message: "No 2x2 picture found" });
     }
 

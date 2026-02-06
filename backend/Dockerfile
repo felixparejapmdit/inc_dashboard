@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     iputils-ping \
     ldap-utils \
     netcat-traditional \
- && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy package.json and package-lock.json first (better caching)
 COPY package*.json ./
@@ -23,6 +23,9 @@ COPY . .
 
 # Ensure entrypoint is executable
 RUN chmod +x ./entrypoint.sh
+
+# Expose port (defaults to 80 in our setup)
+EXPOSE 80
 
 # This entrypoint will run our wait script
 ENTRYPOINT ["./entrypoint.sh"]

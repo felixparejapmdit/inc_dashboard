@@ -4,7 +4,6 @@ import {
   Button,
   IconButton,
   Input,
-  Stack,
   Table,
   Tbody,
   Td,
@@ -23,172 +22,90 @@ import {
   ModalOverlay,
   ModalContent,
   ModalHeader,
-  ModalCloseButton,
   ModalBody,
   ModalFooter,
-  Flex,
+  ModalCloseButton,
   FormControl,
-  Select,
-  Checkbox,
   FormLabel,
+  Checkbox,
+  Flex,
+  Badge,
+  Tooltip,
+  useDisclosure,
+  InputGroup,
+  InputLeftElement,
+  SimpleGrid,
+  Card,
+  CardBody,
+  CardHeader,
+  Heading,
+  VStack,
+  HStack,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Avatar,
 } from "@chakra-ui/react";
-import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
-import axios from "axios";
-//import Barcode from "react-qrcode";
+import {
+  AddIcon,
+  DeleteIcon,
+  EditIcon,
+  SearchIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  DownloadIcon,
+  ViewIcon,
+  LinkIcon,
+  CopyIcon,
+} from "@chakra-ui/icons";
+import { FaShareAlt, FaDownload, FaQrcode, FaEllipsisV } from "react-icons/fa";
 import { QRCodeCanvas } from "qrcode.react";
-import { FaDownload, FaShareAlt } from "react-icons/fa"; // Font Awesome download icon
 import { usePermissionContext } from "../../contexts/PermissionContext";
-
-import { getAuthHeaders } from "../../utils/apiHeaders"; // adjust path as needed
-
+import { getAuthHeaders } from "../../utils/apiHeaders";
 import {
   fetchData,
   postData,
-  putData,
   deleteData,
   putFileData,
 } from "../../utils/fetchData";
 
-const FileManagement = (qrcode) => {
+const FileManagement = ({ qrcode }) => {
   const [files, setFiles] = useState([]);
   const [filteredFiles, setFilteredFiles] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-
-  const { hasPermission } = usePermissionContext(); // Correct usage
-  const [currentUserId, setCurrentUserId] = useState(null);
-
-  const qrCodeRef = useRef(null);
-  const [selectedQrUrl, setSelectedQrUrl] = useState(null);
-  const [selectedGeneratedCode, setSelectedGeneratedCode] = useState("");
-
   const [newFile, setNewFile] = useState({
     filename: "",
     url: "",
     generated_code: "",
     qrcode: "",
-    user_id: null, // Start as null
+    thumbnailFile: null,
   });
-
-  const downloadQRCode = (url, generatedCode = "") => {
-    const tempWrapper = document.createElement("div");
-    document.body.appendChild(tempWrapper);
-
-    const tempQRCode = (
-      <QRCodeCanvas value={url} size={200} includeMargin={false} level="H" />
-    );
-
-    import("react-dom").then((ReactDOM) => {
-      ReactDOM.render(tempQRCode, tempWrapper);
-
-      setTimeout(() => {
-        const qrCanvas = tempWrapper.querySelector("canvas");
-
-        if (qrCanvas) {
-          const originalWidth = qrCanvas.width;
-          const originalHeight = qrCanvas.height;
-          const scale = 1.5;
-          const scaledWidth = originalWidth * scale;
-          const scaledHeight = originalHeight * scale;
-          const padding = 10; // Reduced padding to minimize space
-
-          const canvas = document.createElement("canvas");
-          const ctx = canvas.getContext("2d");
-
-          // Set the target width for the label (same as the QR code width)
-          const targetWidth = scaledWidth;
-
-          // Calculate font size to exactly fit the label within the targetWidth
-          let fontSize = 118; // Start with a large font size
-          let textWidth = 0;
-
-          // Decrease font size until the text width matches the target width
-          do {
-            ctx.font = `bold ${fontSize}px Calibri`;
-            textWidth = ctx.measureText(generatedCode).width;
-            fontSize--;
-          } while (textWidth > targetWidth && fontSize > 0); // Ensure label fits within the width of the QR code
-
-          // Measure final label height (approximate)
-          const textHeight = fontSize + 10;
-
-          canvas.width = scaledWidth + padding * 2;
-          canvas.height = scaledHeight + padding + textHeight + padding;
-
-          // Draw white background
-          ctx.fillStyle = "#ffffff";
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-          // Draw scaled QR code
-          ctx.imageSmoothingEnabled = false;
-          ctx.drawImage(qrCanvas, padding, padding, scaledWidth, scaledHeight);
-
-          // Draw a red border around the QR code area (for debugging)
-          //ctx.strokeStyle = "red";
-          //ctx.lineWidth = 5;
-          //ctx.strokeRect(padding, padding, scaledWidth, scaledHeight);
-
-          // Draw label below the QR code, matching its width
-          ctx.fillStyle = "#000000";
-          ctx.font = `bold ${fontSize}px Calibri`;
-          ctx.textAlign = "center";
-          ctx.textBaseline = "top";
-
-          // Position the label closer to the QR code
-          const labelTopPosition = scaledHeight + padding + 5; // minimal gap between QR and label
-          ctx.fillText(generatedCode, canvas.width / 2, labelTopPosition);
-
-          // Download the QR code with label
-          const dataUrl = canvas.toDataURL("image/png");
-          const link = document.createElement("a");
-          link.href = dataUrl;
-          link.download = "qrcode_with_code.png";
-          link.click();
-
-          toast({
-            title: "QR code downloaded successfully",
-            status: "success",
-            duration: 3000,
-          });
-
-          ReactDOM.unmountComponentAtNode(tempWrapper);
-          document.body.removeChild(tempWrapper);
-        } else {
-          toast({
-            title: "Failed to render QR code",
-            status: "error",
-            duration: 3000,
-          });
-          document.body.removeChild(tempWrapper);
-        }
-      }, 100);
-    });
-  };
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isModalPreviewOpen, setIsModalPreviewOpen] = useState(false);
   const [editingFile, setEditingFile] = useState(null);
   const [deletingFile, setDeletingFile] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [filesPerPage] = useState(10);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [selectedUserIds, setSelectedUserIds] = useState([]);
+  const [alreadySharedUserIds, setAlreadySharedUserIds] = useState([]);
+  const [alreadySharedUsers, setAlreadySharedUsers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedQrUrl, setSelectedQrUrl] = useState(null);
+  const [selectedGeneratedCode, setSelectedGeneratedCode] = useState("");
+  const [isVIP, setIsVIP] = useState(false);
+  const [viewMode, setViewMode] = useState("table"); // 'table' or 'grid'
+
+  const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
+  const { isOpen: isShareModalOpen, onOpen: onShareModalOpen, onClose: onShareModalClose } = useDisclosure();
+  const { isOpen: isModalPreviewOpen, onOpen: onModalPreviewOpen, onClose: onModalPreviewClose } = useDisclosure();
+  const { isOpen: isDeleteAlertOpen, onOpen: onDeleteAlertOpen, onClose: onDeleteAlertClose } = useDisclosure();
+
   const toast = useToast();
   const cancelRef = useRef();
+  const { hasPermission } = usePermissionContext();
 
-  const [users, setUsers] = useState([]);
-  const [alreadySharedUserIds, setAlreadySharedUserIds] = useState([]); // List of users who already have the file
-  const [alreadySharedUsers, setAlreadySharedUsers] = useState([]); // new
-
-  const [filteredUsers, setFilteredUsers] = useState([]);
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedUserIds, setSelectedUserIds] = useState([]);
-
-  const [file_id, setFileId] = useState(
-    editingFile ? editingFile.id : newFile.id
-  );
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const filesPerPage = 5;
-
-  const [isVIP, setIsVIP] = useState(false); // default to false
+  const [currentUserId, setCurrentUserId] = useState(null);
 
   useEffect(() => {
     const username = localStorage.getItem("username");
@@ -212,14 +129,7 @@ const FileManagement = (qrcode) => {
     }
   }, []);
 
-  useEffect(() => {
-    if (currentUserId) {
-      fetchFilesByUserId(currentUserId); // only fetch when we have a user ID
-      setNewFile((prev) => ({ ...prev, user_id: currentUserId }));
-    }
-  }, [currentUserId]);
-
-  const fetchFilesByUserId = async (userId) => {
+  const fetchFilesByUserId = React.useCallback(async (userId) => {
     try {
       const data = await fetchData(
         `files/user/${userId}`,
@@ -239,7 +149,6 @@ const FileManagement = (qrcode) => {
       if (data) {
         const { files, isVIP } = data;
         setFiles(files);
-        setFilteredFiles(files);
         setIsVIP(isVIP);
       }
     } catch (error) {
@@ -251,8 +160,77 @@ const FileManagement = (qrcode) => {
         isClosable: true,
       });
     }
-  };
+  }, [toast]);
 
+  useEffect(() => {
+    if (currentUserId) {
+      fetchFilesByUserId(currentUserId);
+      setNewFile((prev) => ({ ...prev, user_id: currentUserId }));
+    }
+  }, [currentUserId, fetchFilesByUserId]);
+
+  const downloadQRCode = (url, generatedCode = "") => {
+    const canvas = document.createElement("canvas");
+    const size = 512;
+    canvas.width = size;
+    canvas.height = size + 60;
+
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const qrCanvas = document.createElement("canvas");
+
+    import("qrcode").then((QRCode) => {
+      QRCode.toCanvas(
+        qrCanvas,
+        url,
+        {
+          width: size,
+          margin: 2,
+          color: {
+            dark: "#000000",
+            light: "#ffffff",
+          },
+          errorCorrectionLevel: "H",
+        },
+        (error) => {
+          if (error) {
+            console.error("QR Code generation error:", error);
+            toast({
+              title: "Error generating QR code",
+              status: "error",
+              duration: 3000,
+            });
+            return;
+          }
+
+          ctx.drawImage(qrCanvas, 0, 0, size, size);
+
+          if (generatedCode) {
+            ctx.fillStyle = "#000000";
+            ctx.font = "bold 28px Calibri, sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(generatedCode, size / 2, size + 40);
+          }
+
+          canvas.toBlob((blob) => {
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `qrcode_${generatedCode || "download"}.png`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+
+            toast({
+              title: "QR Code downloaded successfully!",
+              status: "success",
+              duration: 2000,
+            });
+          });
+        }
+      );
+    });
+  };
   useEffect(() => {
     if (!Array.isArray(files)) return;
 
@@ -274,7 +252,7 @@ const FileManagement = (qrcode) => {
     const currentFiles = filtered.slice(indexOfFirstFile, indexOfLastFile);
 
     setFilteredFiles(currentFiles);
-  }, [searchQuery, files, currentPage]);
+  }, [searchQuery, files, currentPage, filesPerPage]);
 
   const totalPages = Math.ceil(files.length / filesPerPage);
 
@@ -282,7 +260,6 @@ const FileManagement = (qrcode) => {
     setCurrentPage(pageNumber);
   };
 
-  // This Set will keep track of already generated codes in this session
   const generatedCodes = new Set();
 
   const generateCode = () => {
@@ -295,7 +272,7 @@ const FileManagement = (qrcode) => {
     };
 
     const getRandomDigits = () => {
-      return Math.floor(10 + Math.random() * 90); // Two-digit number: 10–99
+      return Math.floor(10 + Math.random() * 90);
     };
 
     let newCode = "";
@@ -304,41 +281,13 @@ const FileManagement = (qrcode) => {
       const letters = getRandomLetters();
       const digits = getRandomDigits();
       newCode = `${letters}${digits}`;
-    } while (generatedCodes.has(newCode)); // Regenerate if already exists
+    } while (generatedCodes.has(newCode));
 
-    generatedCodes.add(newCode); // Store to avoid duplication
+    generatedCodes.add(newCode);
     return newCode;
   };
 
-  const handleGenerateCode = () => {
-    // Check if filename and url are filled
-    if (!newFile.filename || !newFile.url) {
-      // Optionally show a message to prompt the user
-      alert(
-        "Please fill in both the filename and URL before generating the code."
-      );
 
-      // Prevent further execution if fields are still empty
-      return;
-    }
-
-    const generatedCode = generateCode();
-    const qrcode = generatedCode; // Rename qrcode to qrcode
-
-    if (editingFile) {
-      setEditingFile({
-        ...editingFile,
-        generated_code: generatedCode,
-        qrcode: qrcode, // Save qrcode instead of qrcode
-      });
-    } else {
-      setNewFile({
-        ...newFile,
-        generated_code: generatedCode,
-        qrcode: qrcode, // Save qrcode instead of qrcode
-      });
-    }
-  };
 
   const handleAddFile = async () => {
     const code = generateCode();
@@ -381,7 +330,7 @@ const FileManagement = (qrcode) => {
       formData.append("qrcode", qrcode);
       formData.append("user_id", user_id);
       if (thumbnailFile) {
-        formData.append("thumbnail", thumbnailFile); // ✅ KEY MUST BE "thumbnail"
+        formData.append("thumbnail", thumbnailFile);
       }
 
       await postData("add-file", formData, "Failed to upload file.");
@@ -395,13 +344,13 @@ const FileManagement = (qrcode) => {
         user_id,
         thumbnailFile: null,
       });
-      setIsModalOpen(false);
-      toast({ title: "File added", status: "success", duration: 3000 });
+      onModalClose();
+      toast({ title: "File added successfully!", status: "success", duration: 3000 });
     } catch (error) {
       toast({ title: "Error adding file", status: "error", duration: 3000 });
     }
   };
- 
+
   const handleUpdateFile = async () => {
     const updatedEditingFile = { ...editingFile };
 
@@ -424,8 +373,8 @@ const FileManagement = (qrcode) => {
 
       fetchFilesByUserId(user_id);
       setEditingFile(null);
-      setIsModalOpen(false);
-      toast({ title: "File updated", status: "success", duration: 3000 });
+      onModalClose();
+      toast({ title: "File updated successfully!", status: "success", duration: 3000 });
     } catch (error) {
       toast({
         title: "Error updating file",
@@ -443,7 +392,7 @@ const FileManagement = (qrcode) => {
       await deleteData("file-management", deletingFile.id);
       fetchFilesByUserId(currentUserId);
       toast({
-        title: "File deleted",
+        title: "File deleted successfully!",
         status: "success",
         duration: 3000,
       });
@@ -456,6 +405,7 @@ const FileManagement = (qrcode) => {
       });
     } finally {
       setDeletingFile(null);
+      onDeleteAlertClose();
     }
   };
 
@@ -465,7 +415,6 @@ const FileManagement = (qrcode) => {
       (data) => {
         setAlreadySharedUserIds(data.sharedUserIds);
 
-        // Match full user data from `users`
         const sharedUsers = users.filter((user) =>
           data.sharedUserIds.includes(user.user_id)
         );
@@ -493,24 +442,7 @@ const FileManagement = (qrcode) => {
     fetchUsers();
   }, []);
 
-  useEffect(() => {
-    const matches = users.filter((user) =>
-      `${user.givenName} ${user.sn} ${user.user_id}`
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
-    );
 
-    // Combine with alreadySharedUsers
-    const combined = [...matches, ...alreadySharedUsers];
-
-    // Deduplicate by user_id
-    const uniqueUsers = combined.filter(
-      (user, index, self) =>
-        index === self.findIndex((u) => u.user_id === user.user_id)
-    );
-
-    setFilteredUsers(uniqueUsers);
-  }, [searchTerm, users, alreadySharedUsers]);
 
   const handleCheckboxChange = (user_id) => {
     setSelectedUserIds((prevSelected) =>
@@ -535,41 +467,26 @@ const FileManagement = (qrcode) => {
 
     try {
       const payload = {
-        file_id: selectedFile.id, // The ID of the file being shared
-        user_ids: selectedUserIds || [], // Ensure user_ids is always an array
+        file_id: selectedFile.id,
+        user_ids: selectedUserIds || [],
       };
 
-      console.log("Sharing file with payload:", payload); // Debugging
-
-      const response = await postData(
+      const data = await postData(
         "files/share",
         payload,
         "Failed to share file."
       );
 
-      const data = await response.json();
-      // if (data.alreadySharedUserIds) {
-      //   setAlreadySharedUserIds(data.alreadySharedUserIds || []); // Update the already shared users safely
-      // }
-
       if (data.alreadySharedWith) {
         setAlreadySharedUserIds(data.alreadySharedWith || []);
       }
 
-      if (response.ok) {
-        toast({
-          title: "File shared successfully!",
-          status: "success",
-          duration: 3000,
-        });
-        setIsShareModalOpen(false);
-      } else {
-        toast({
-          title: data.message || "Failed to share file.",
-          status: "error",
-          duration: 3000,
-        });
-      }
+      toast({
+        title: "File shared successfully!",
+        status: "success",
+        duration: 3000,
+      });
+      onShareModalClose();
     } catch (error) {
       console.error("Error sharing file:", error);
       toast({
@@ -581,124 +498,428 @@ const FileManagement = (qrcode) => {
     }
   };
 
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copied to clipboard!",
+      status: "success",
+      duration: 2000,
+    });
+  };
+
   return (
-    <Box p={5}>
-      <Stack spacing={4}>
-        <Text fontSize="28px" fontWeight="bold">
-          Share a link
-        </Text>
-        <Flex justify="space-between" align="center">
-          <Input
-            placeholder="Search here..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            width="250px"
-          />
-
-          {hasPermission("link.newfile") && (
-            <Button
-              leftIcon={<AddIcon />}
-              colorScheme="orange"
-              onClick={() => {
-                setEditingFile(null); // Reset editing mode
-                setNewFile({
-                  filename: "",
-                  url: "",
-                  generated_code: "",
-                  qrcode: "",
-                }); // Optional: clear newFile state
-                setIsModalOpen(true);
-              }}
+    <Box
+      minH="100vh"
+      w="100%"
+      p={{ base: 4, md: 6 }}
+      bg="gray.50"
+    >
+      <Box
+        maxW="1400px"
+        mx="auto"
+        h="100%"
+      >
+        <VStack spacing={6} align="stretch">
+          {/* Header Section */}
+          <Box>
+            <Heading
+              as="h1"
+              size={{ base: "lg", md: "xl" }}
+              bgGradient="linear(to-r, orange.400, orange.600)"
+              bgClip="text"
+              mb={2}
             >
-              New File
-            </Button>
-          )}
-        </Flex>
-        {filteredFiles.length === 0 ? (
-          <p style={{ textAlign: "center", fontWeight: "bold", color: "gray" }}>
-            No data available
-          </p>
-        ) : (
-          <>
-            <Box display="flex" justifyContent="space-between" mt={4}>
-              <Button
-                onClick={() => handlePageChange(currentPage - 1)}
-                isDisabled={currentPage === 1}
+              Share a Link
+            </Heading>
+            <Text color="gray.600" fontSize={{ base: "sm", md: "md" }}>
+              Manage and share your files with QR codes
+            </Text>
+          </Box>
+
+          {/* Search and Actions Bar */}
+          <Flex
+            direction={{ base: "column", md: "row" }}
+            justify="space-between"
+            align={{ base: "stretch", md: "center" }}
+            gap={4}
+            bg="white"
+            p={4}
+            borderRadius="lg"
+            boxShadow="sm"
+          >
+            <InputGroup maxW={{ base: "100%", md: "350px" }}>
+              <InputLeftElement pointerEvents="none">
+                <SearchIcon color="gray.400" />
+              </InputLeftElement>
+              <Input
+                placeholder="Search files, codes, or URLs..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                borderRadius="full"
+                bg="gray.50"
+                _focus={{ bg: "white", borderColor: "orange.400" }}
+              />
+            </InputGroup>
+
+            <HStack spacing={3}>
+              {/* View Mode Toggle */}
+              <HStack
+                bg="gray.100"
+                borderRadius="full"
+                p={1}
+                display={{ base: "none", md: "flex" }}
               >
-                Previous
-              </Button>
+                <IconButton
+                  icon={<ViewIcon />}
+                  size="sm"
+                  borderRadius="full"
+                  colorScheme={viewMode === "table" ? "orange" : "gray"}
+                  variant={viewMode === "table" ? "solid" : "ghost"}
+                  onClick={() => setViewMode("table")}
+                  aria-label="Table view"
+                />
+                <IconButton
+                  icon={<FaQrcode />}
+                  size="sm"
+                  borderRadius="full"
+                  colorScheme={viewMode === "grid" ? "orange" : "gray"}
+                  variant={viewMode === "grid" ? "solid" : "ghost"}
+                  onClick={() => setViewMode("grid")}
+                  aria-label="Grid view"
+                />
+              </HStack>
 
-              <Text alignSelf="center">
-                Page {currentPage} of {totalPages}
-              </Text>
+              {hasPermission("link.newfile") && (
+                <Button
+                  leftIcon={<AddIcon />}
+                  colorScheme="orange"
+                  size={{ base: "md", md: "md" }}
+                  borderRadius="full"
+                  onClick={() => {
+                    setEditingFile(null);
+                    setNewFile({
+                      filename: "",
+                      url: "",
+                      generated_code: "",
+                      qrcode: "",
+                    });
+                    onModalOpen();
+                  }}
+                  boxShadow="md"
+                  _hover={{ transform: "translateY(-2px)", boxShadow: "lg" }}
+                  transition="all 0.2s"
+                >
+                  New File
+                </Button>
+              )}
+            </HStack>
+          </Flex>
 
-              <Button
-                onClick={() => handlePageChange(currentPage + 1)}
-                isDisabled={currentPage === totalPages}
-              >
-                Next
-              </Button>
-            </Box>
+          {/* Stats Cards */}
+          <SimpleGrid columns={{ base: 1, sm: 2, md: 4 }} spacing={4}>
+            <Card>
+              <CardBody>
+                <VStack align="start" spacing={1}>
+                  <Text fontSize="sm" color="gray.600">
+                    Total Files
+                  </Text>
+                  <Heading size="lg" color="orange.500">
+                    {files.length}
+                  </Heading>
+                </VStack>
+              </CardBody>
+            </Card>
+            <Card>
+              <CardBody>
+                <VStack align="start" spacing={1}>
+                  <Text fontSize="sm" color="gray.600">
+                    My Files
+                  </Text>
+                  <Heading size="lg" color="blue.500">
+                    {files.filter((f) => f.user_id === currentUserId).length}
+                  </Heading>
+                </VStack>
+              </CardBody>
+            </Card>
+            <Card>
+              <CardBody>
+                <VStack align="start" spacing={1}>
+                  <Text fontSize="sm" color="gray.600">
+                    Shared Files
+                  </Text>
+                  <Heading size="lg" color="green.500">
+                    {files.filter((f) => f.user_id !== currentUserId).length}
+                  </Heading>
+                </VStack>
+              </CardBody>
+            </Card>
+            <Card>
+              <CardBody>
+                <VStack align="start" spacing={1}>
+                  <Text fontSize="sm" color="gray.600">
+                    Current Page
+                  </Text>
+                  <Heading size="lg" color="purple.500">
+                    {currentPage}/{totalPages || 1}
+                  </Heading>
+                </VStack>
+              </CardBody>
+            </Card>
+          </SimpleGrid>
 
-            <Table variant="striped">
-              <Thead>
-                <Tr>
-                  <Th>#</Th>
-                  <Th>Filename</Th>
-                  <Th>Generated Code</Th>
+          {/* Content Area */}
+          {filteredFiles.length === 0 ? (
+            <Card>
+              <CardBody>
+                <VStack spacing={4} py={10}>
+                  <LinkIcon boxSize={12} color="gray.300" />
+                  <Text fontSize="lg" fontWeight="bold" color="gray.500">
+                    No files found
+                  </Text>
+                  <Text color="gray.400" textAlign="center">
+                    {searchQuery
+                      ? "Try adjusting your search terms"
+                      : "Get started by creating your first file"}
+                  </Text>
+                </VStack>
+              </CardBody>
+            </Card>
+          ) : viewMode === "grid" ? (
+            /* Grid View */
+            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={4}>
+              {filteredFiles.map((file, index) => (
+                <Card
+                  key={`${file.id}-${index}`}
+                  overflow="hidden"
+                  _hover={{ transform: "translateY(-4px)", boxShadow: "xl" }}
+                  transition="all 0.3s"
+                >
+                  <CardHeader bg="orange.50" pb={3}>
+                    <Flex justify="space-between" align="start">
+                      <VStack align="start" spacing={1} flex={1}>
+                        <Heading size="sm" noOfLines={1}>
+                          {file.filename}
+                        </Heading>
+                        <Badge colorScheme={file.user_id === currentUserId ? "orange" : "blue"}>
+                          {file.user_id === currentUserId ? "My File" : "Shared"}
+                        </Badge>
+                      </VStack>
+                      {hasPermission("link.action") && file.user_id === currentUserId && (
+                        <Menu>
+                          <MenuButton
+                            as={IconButton}
+                            icon={<FaEllipsisV />}
+                            variant="ghost"
+                            size="sm"
+                          />
+                          <MenuList>
+                            <MenuItem
+                              icon={<EditIcon />}
+                              onClick={() => {
+                                setEditingFile(file);
+                                onModalOpen();
+                              }}
+                            >
+                              Edit
+                            </MenuItem>
+                            <MenuItem
+                              icon={<FaShareAlt />}
+                              onClick={() => {
+                                setSelectedFile(file);
+                                fetchAlreadySharedUserIds(file);
+                                onShareModalOpen();
+                              }}
+                            >
+                              Share
+                            </MenuItem>
+                            <MenuItem
+                              icon={<DeleteIcon />}
+                              color="red.500"
+                              onClick={() => {
+                                setDeletingFile(file);
+                                onDeleteAlertOpen();
+                              }}
+                            >
+                              Delete
+                            </MenuItem>
+                          </MenuList>
+                        </Menu>
+                      )}
+                    </Flex>
+                  </CardHeader>
+                  <CardBody>
+                    <VStack spacing={4}>
+                      {/* QR Code */}
+                      <Box
+                        p={3}
+                        bg="white"
+                        borderRadius="md"
+                        border="2px"
+                        borderColor="gray.200"
+                        cursor="pointer"
+                        onClick={() => {
+                          setSelectedQrUrl(file.url);
+                          setSelectedGeneratedCode(file.generated_code);
+                          onModalPreviewOpen();
+                        }}
+                        _hover={{ borderColor: "orange.400" }}
+                        transition="all 0.2s"
+                      >
+                        <QRCodeCanvas
+                          value={file.url}
+                          size={120}
+                          bgColor="transparent"
+                          fgColor="#000000"
+                          level="H"
+                        />
+                        <Text
+                          mt={2}
+                          fontSize="sm"
+                          fontWeight="bold"
+                          textAlign="center"
+                          color="gray.700"
+                        >
+                          {file.generated_code}
+                        </Text>
+                      </Box>
 
-                  {hasPermission("link.qrcode") && <Th>QR Code</Th>}
-                  <Th>Sender</Th>
-                  <Th>Date Created</Th>
-                  {hasPermission("link.action") &&
-                    filteredFiles.some(
-                      (file) => file.user_id === currentUserId
-                    ) && (
-                      <Th width="20%" textAlign="right">
-                        Actions
-                      </Th>
-                    )}
-                </Tr>
-              </Thead>
-              <Tbody>
-                {filteredFiles.length > 0 ? (
-                  filteredFiles.map((file, index) => (
-                    // <Tr key={file.id}>
-                    <Tr key={`${file.id}-${index}`}>
-                      <Td>{index + 1}</Td>
-                      <Td>
-                        {file.filename
-                          ? file.filename.charAt(0).toUpperCase() +
-                            file.filename.slice(1)
-                          : "N/A"}
-                      </Td>
+                      {/* File Info */}
+                      <VStack spacing={2} w="100%" align="stretch">
+                        <HStack justify="space-between">
+                          <Text fontSize="xs" color="gray.500">
+                            Created
+                          </Text>
+                          <Text fontSize="xs" fontWeight="medium">
+                            {new Date(file.created_at).toLocaleDateString()}
+                          </Text>
+                        </HStack>
+                        <HStack justify="space-between">
+                          <Text fontSize="xs" color="gray.500">
+                            Sender
+                          </Text>
+                          <Text fontSize="xs" fontWeight="medium" noOfLines={1}>
+                            {file.user?.personnel
+                              ? `${file.user.personnel.givenname || ""} ${file.user.personnel.surname_husband || ""
+                              }`
+                              : "N/A"}
+                          </Text>
+                        </HStack>
+                      </VStack>
 
-                      <Td>
-                        {file.url ? (
-                          <a
+                      {/* Actions */}
+                      <HStack w="100%" spacing={2}>
+                        <Tooltip label="Copy Link">
+                          <IconButton
+                            icon={<CopyIcon />}
+                            size="sm"
+                            flex={1}
+                            colorScheme="gray"
+                            onClick={() => copyToClipboard(file.url)}
+                          />
+                        </Tooltip>
+                        <Tooltip label="Download QR">
+                          <IconButton
+                            icon={<DownloadIcon />}
+                            size="sm"
+                            flex={1}
+                            colorScheme="green"
+                            onClick={() =>
+                              downloadQRCode(file.url, file.generated_code)
+                            }
+                          />
+                        </Tooltip>
+                        <Tooltip label="Open Link">
+                          <IconButton
+                            as="a"
                             href={file.url}
                             target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                              color: "#1a73e8",
-                              textDecoration: "underline",
-                            }} // Styling the link
-                          >
-                            {file.generated_code}
-                          </a>
-                        ) : (
-                          "N/A"
-                        )}
-                      </Td>
-                      {hasPermission("link.qrcode") && (
+                            icon={<LinkIcon />}
+                            size="sm"
+                            flex={1}
+                            colorScheme="blue"
+                          />
+                        </Tooltip>
+                      </HStack>
+                    </VStack>
+                  </CardBody>
+                </Card>
+              ))}
+            </SimpleGrid>
+          ) : (
+            /* Table View */
+            <Card>
+              <CardBody p={0} overflowX="auto">
+                <Table variant="simple">
+                  <Thead bg="gray.50">
+                    <Tr>
+                      <Th>#</Th>
+                      <Th>Filename</Th>
+                      <Th>Code</Th>
+                      {hasPermission("link.qrcode") && <Th>QR Code</Th>}
+                      <Th display={{ base: "none", md: "table-cell" }}>Sender</Th>
+                      <Th display={{ base: "none", lg: "table-cell" }}>Date</Th>
+                      {hasPermission("link.action") && <Th textAlign="right">Actions</Th>}
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {filteredFiles.map((file, index) => (
+                      <Tr
+                        key={`${file.id}-${index}`}
+                        _hover={{ bg: "gray.50" }}
+                        transition="all 0.2s"
+                      >
+                        <Td fontWeight="medium">{index + 1}</Td>
                         <Td>
-                          {qrcode ? (
-                            <div
-                              style={{ display: "flex", alignItems: "center" }}
+                          <VStack align="start" spacing={0}>
+                            <Text fontWeight="semibold" noOfLines={1}>
+                              {file.filename}
+                            </Text>
+                            <Badge
+                              colorScheme={
+                                file.user_id === currentUserId ? "orange" : "blue"
+                              }
+                              fontSize="xs"
                             >
-                              <div
-                                ref={qrCodeRef}
-                                style={{ textAlign: "center" }}
+                              {file.user_id === currentUserId ? "My File" : "Shared"}
+                            </Badge>
+                          </VStack>
+                        </Td>
+                        <Td>
+                          <HStack>
+                            <a
+                              href={file.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                color: "#1a73e8",
+                                textDecoration: "none",
+                                fontWeight: "600",
+                              }}
+                            >
+                              {file.generated_code}
+                            </a>
+                            <Tooltip label="Copy Link">
+                              <IconButton
+                                icon={<CopyIcon />}
+                                size="xs"
+                                variant="ghost"
+                                onClick={() => copyToClipboard(file.url)}
+                              />
+                            </Tooltip>
+                          </HStack>
+                        </Td>
+                        {hasPermission("link.qrcode") && (
+                          <Td>
+                            <HStack spacing={2}>
+                              <Box
+                                cursor="pointer"
+                                onClick={() => {
+                                  setSelectedQrUrl(file.url);
+                                  setSelectedGeneratedCode(file.generated_code);
+                                  onModalPreviewOpen();
+                                }}
+                                _hover={{ opacity: 0.7 }}
+                                transition="opacity 0.2s"
                               >
                                 <QRCodeCanvas
                                   value={file.url}
@@ -706,495 +927,412 @@ const FileManagement = (qrcode) => {
                                   bgColor="transparent"
                                   fgColor="#000000"
                                   level="H"
-                                  style={{
-                                    width: "48px",
-                                    height: "48px",
-                                    cursor: "pointer",
-                                  }}
-                                  onClick={() => {
-                                    setSelectedQrUrl(file.url); // set selected QR
-                                    setSelectedGeneratedCode(
-                                      file.generated_code
-                                    ); // new
-                                    setIsModalPreviewOpen(true);
-                                  }}
                                 />
-                                <div
-                                  style={{
-                                    fontSize: "12px",
-                                    fontWeight: "bold",
-                                    fontFamily: "Calibri, sans-serif",
-                                    marginTop: "4px",
-                                    color: "#333",
-                                  }}
-                                >
-                                  {file.generated_code}
-                                </div>
-                              </div>
-                              <i
-                                onClick={() =>
-                                  downloadQRCode(file.url, file.generated_code)
-                                }
-                                style={{
-                                  marginLeft: "10px",
-                                  cursor: "pointer",
-                                  fontSize: "20px",
-                                  color: "#4CAF50",
-                                }}
-                              >
-                                <FaDownload />
-                              </i>
-                            </div>
-                          ) : (
-                            "N/A"
-                          )}
-
-                          {/* Modal Implementation */}
-                          {isModalPreviewOpen && (
-                            <div
-                              style={{
-                                position: "fixed",
-                                top: 0,
-                                left: 0,
-                                width: "100%",
-                                height: "100%",
-                                backgroundColor: "rgba(0,0,0,0.5)",
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
-                                zIndex: 1000,
-                              }}
-                              onClick={() => {
-                                setIsModalPreviewOpen(false);
-                                setSelectedQrUrl(null);
-                              }}
-                            >
-                              <div
-                                style={{
-                                  backgroundColor: "#fff",
-                                  padding: "20px",
-                                  borderRadius: "8px",
-                                  position: "relative",
-                                }}
-                                onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the modal
-                              >
-                                <QRCodeCanvas
-                                  value={selectedQrUrl}
-                                  size={256}
-                                  bgColor="#ffffff"
-                                  fgColor="#000000"
-                                  level="H"
-                                  style={{ width: "256px", height: "256px" }}
-                                />
-                                <p
-                                  style={{
-                                    textAlign: "center",
-                                    marginTop: "10px",
-                                    fontWeight: "bold",
-                                  }}
-                                >
-                                  {selectedGeneratedCode}
-                                </p>
-
-                                <button
-                                  onClick={() => {
-                                    setIsModalPreviewOpen(false);
-                                    setSelectedQrUrl(null);
-                                  }}
-                                  style={{
-                                    position: "absolute",
-                                    top: "10px",
-                                    right: "10px",
-                                    background: "none",
-                                    border: "none",
-                                    fontSize: "16px",
-                                    cursor: "pointer",
-                                  }}
-                                >
-                                  &times;
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </Td>
-                      )}
-                      <Td>
-                        {file.user?.personnel
-                          ? `${file.user.personnel.givenname || ""} ${
-                              file.user.personnel.middlename || ""
-                            } ${file.user.personnel.surname_husband || ""}`
-                          : "N/A"}
-                      </Td>
-
-                      <Td>
-                        {new Date(file.created_at).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
-                      </Td>
-
-                      {hasPermission("link.action") &&
-                      file.user_id === currentUserId ? (
-                        <Td textAlign="right">
-                          <IconButton
-                            icon={<EditIcon />}
-                            colorScheme="yellow"
-                            aria-label="Edit"
-                            onClick={() => {
-                              setEditingFile(file);
-                              setIsModalOpen(true);
-                            }}
-                            mr={2}
-                          />
-                          <IconButton
-                            icon={<DeleteIcon />}
-                            colorScheme="red"
-                            aria-label="Delete"
-                            onClick={() => setDeletingFile(file)}
-                            mr={2}
-                          />
-                          <IconButton
-                            icon={<FaShareAlt />}
-                            colorScheme="blue"
-                            aria-label="Share"
-                            onClick={() => {
-                              setSelectedFile(file);
-                              fetchAlreadySharedUserIds(file); // Fetch shared users here
-                              setIsShareModalOpen(true);
-                            }}
-                          />
-
-                          <Modal
-                            isOpen={isShareModalOpen}
-                            onClose={() => setIsShareModalOpen(false)}
-                            size="lg"
-                          >
-                            <ModalOverlay />
-                            <ModalContent>
-                              <ModalHeader>
-                                Select users to share this file with
-                              </ModalHeader>
-                              <ModalCloseButton />
-                              <ModalBody>
-                                <Input
-                                  placeholder="Search users..."
-                                  value={searchTerm}
-                                  onChange={(e) =>
-                                    setSearchTerm(e.target.value)
-                                  }
-                                  mb={4}
-                                />
-                                <Stack
-                                  spacing={3}
-                                  maxHeight="450px"
-                                  overflowY="auto"
-                                >
-                                  {users &&
-                                    users
-                                      .filter(
-                                        (user) =>
-                                          selectedUserIds.includes(
-                                            user.user_id
-                                          ) ||
-                                          user.givenName
-                                            .toLowerCase()
-                                            .includes(
-                                              searchTerm.toLowerCase()
-                                            ) ||
-                                          user.sn
-                                            .toLowerCase()
-                                            .includes(
-                                              searchTerm.toLowerCase()
-                                            ) ||
-                                          String(user.user_id)
-                                            .toLowerCase()
-                                            .includes(searchTerm.toLowerCase())
-                                      )
-                                      .filter(
-                                        (user, index, self) =>
-                                          index ===
-                                          self.findIndex(
-                                            (u) => u.user_id === user.user_id
-                                          )
-                                      )
-                                      .sort((a, b) =>
-                                        a.givenName.localeCompare(b.givenName)
-                                      )
-                                      .map((user) => (
-                                        <Checkbox
-                                          key={user.user_id}
-                                          isChecked={
-                                            selectedUserIds.includes(
-                                              user.user_id
-                                            ) ||
-                                            alreadySharedUserIds.includes(
-                                              user.user_id
-                                            )
-                                          }
-                                          onChange={() =>
-                                            handleCheckboxChange(user.user_id)
-                                          }
-                                        >
-                                          {user.givenName} {user.sn}{" "}
-                                          {alreadySharedUserIds.includes(
-                                            user.user_id
-                                          ) && (
-                                            <span
-                                              style={{
-                                                color: "green",
-                                                marginLeft: "8px",
-                                              }}
-                                            >
-                                              ✔
-                                            </span>
-                                          )}
-                                        </Checkbox>
-                                      ))}
-                                  {users.length === 0 && (
-                                    <Box>No users found.</Box>
-                                  )}
-                                </Stack>
-                              </ModalBody>
-                              <ModalFooter>
-                                <Button
-                                  colorScheme="blue"
-                                  onClick={handleShareFile}
-                                  isDisabled={selectedUserIds.length === 0}
-                                >
-                                  Share
-                                </Button>
-                                <Button
+                              </Box>
+                              <Tooltip label="Download QR Code">
+                                <IconButton
+                                  icon={<FaDownload />}
+                                  size="sm"
+                                  colorScheme="green"
                                   variant="ghost"
-                                  onClick={() => setIsShareModalOpen(false)}
-                                >
-                                  Cancel
-                                </Button>
-                              </ModalFooter>
-                            </ModalContent>
-                          </Modal>
-                        </Td>
-                      ) : (
-                        !isVIP && (
-                          <Td
-                            textAlign="right"
-                            fontWeight="bold"
-                            color="blue.600"
-                          >
-                            Shared link
+                                  onClick={() =>
+                                    downloadQRCode(file.url, file.generated_code)
+                                  }
+                                />
+                              </Tooltip>
+                            </HStack>
                           </Td>
-                        )
-                      )}
-                    </Tr>
-                  ))
-                ) : (
-                  <Tr>
-                    <Td
-                      colSpan={6}
-                      textAlign="center"
-                      fontWeight="bold"
-                      color="gray.600"
-                    >
-                      No files found.
-                    </Td>
-                  </Tr>
-                )}
-              </Tbody>
-            </Table>
-            <Box display="flex" justifyContent="space-between" mt={4}>
+                        )}
+                        <Td display={{ base: "none", md: "table-cell" }}>
+                          <Text fontSize="sm" noOfLines={1}>
+                            {file.user?.personnel
+                              ? `${file.user.personnel.givenname || ""} ${file.user.personnel.surname_husband || ""
+                              }`
+                              : "N/A"}
+                          </Text>
+                        </Td>
+                        <Td display={{ base: "none", lg: "table-cell" }}>
+                          <Text fontSize="sm">
+                            {new Date(file.created_at).toLocaleDateString()}
+                          </Text>
+                        </Td>
+                        {hasPermission("link.action") &&
+                          file.user_id === currentUserId ? (
+                          <Td textAlign="right">
+                            <HStack spacing={2} justify="flex-end">
+                              <Tooltip label="Edit">
+                                <IconButton
+                                  icon={<EditIcon />}
+                                  size="sm"
+                                  colorScheme="yellow"
+                                  onClick={() => {
+                                    setEditingFile(file);
+                                    onModalOpen();
+                                  }}
+                                />
+                              </Tooltip>
+                              <Tooltip label="Share">
+                                <IconButton
+                                  icon={<FaShareAlt />}
+                                  size="sm"
+                                  colorScheme="blue"
+                                  onClick={() => {
+                                    setSelectedFile(file);
+                                    fetchAlreadySharedUserIds(file);
+                                    onShareModalOpen();
+                                  }}
+                                />
+                              </Tooltip>
+                              <Tooltip label="Delete">
+                                <IconButton
+                                  icon={<DeleteIcon />}
+                                  size="sm"
+                                  colorScheme="red"
+                                  onClick={() => {
+                                    setDeletingFile(file);
+                                    onDeleteAlertOpen();
+                                  }}
+                                />
+                              </Tooltip>
+                            </HStack>
+                          </Td>
+                        ) : (
+                          !isVIP && (
+                            <Td textAlign="right">
+                              <Badge colorScheme="blue" fontSize="xs">
+                                Shared link
+                              </Badge>
+                            </Td>
+                          )
+                        )}
+                      </Tr>
+                    ))}
+                  </Tbody>
+                </Table>
+              </CardBody>
+            </Card>
+          )}
+
+          {/* Pagination */}
+          {filteredFiles.length > 0 && (
+            <Flex
+              justify="space-between"
+              align="center"
+              bg="white"
+              p={4}
+              borderRadius="lg"
+              boxShadow="sm"
+            >
               <Button
+                leftIcon={<ChevronLeftIcon />}
                 onClick={() => handlePageChange(currentPage - 1)}
                 isDisabled={currentPage === 1}
+                size={{ base: "sm", md: "md" }}
+                variant="outline"
+                colorScheme="orange"
               >
                 Previous
               </Button>
 
-              <Text alignSelf="center">
-                Page {currentPage} of {totalPages}
-              </Text>
+              <HStack spacing={2}>
+                <Text fontSize={{ base: "sm", md: "md" }} fontWeight="medium">
+                  Page {currentPage} of {totalPages}
+                </Text>
+              </HStack>
 
               <Button
+                rightIcon={<ChevronRightIcon />}
                 onClick={() => handlePageChange(currentPage + 1)}
                 isDisabled={currentPage === totalPages}
+                size={{ base: "sm", md: "md" }}
+                variant="outline"
+                colorScheme="orange"
               >
                 Next
               </Button>
-            </Box>
-          </>
-        )}
-      </Stack>
+            </Flex>
+          )}
+        </VStack>
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => {
-          // Check if any of the fields have values
-          if (!newFile.filename && !newFile.url && !newFile.generated_code) {
-            setIsModalOpen(false); // Close modal only if no field has a value
-          }
-        }}
-      >
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>
-            {editingFile ? "Edit File" : "Add New File"}
-          </ModalHeader>
-          <ModalCloseButton />
-          <ModalBody display="flex" flexDirection="column" gap={3}>
-            <FormControl isRequired>
-              <Input
-                placeholder="Filename"
-                value={
-                  editingFile ? editingFile.filename : newFile.filename || ""
-                }
-                onChange={(e) =>
-                  editingFile
-                    ? setEditingFile({
-                        ...editingFile,
-                        filename: e.target.value,
-                      })
-                    : setNewFile({ ...newFile, filename: e.target.value })
-                }
-              />
-            </FormControl>
+        {/* Add/Edit File Modal */}
+        <Modal isOpen={isModalOpen} onClose={onModalClose} size={{ base: "full", md: "lg" }}>
+          <ModalOverlay backdropFilter="blur(4px)" />
+          <ModalContent>
+            <ModalHeader>
+              {editingFile ? "Edit File" : "Add New File"}
+            </ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <VStack spacing={4}>
+                <FormControl isRequired>
+                  <FormLabel>Filename</FormLabel>
+                  <Input
+                    placeholder="Enter filename"
+                    value={
+                      editingFile ? editingFile.filename : newFile.filename || ""
+                    }
+                    onChange={(e) =>
+                      editingFile
+                        ? setEditingFile({
+                          ...editingFile,
+                          filename: e.target.value,
+                        })
+                        : setNewFile({ ...newFile, filename: e.target.value })
+                    }
+                  />
+                </FormControl>
 
-            <FormControl isRequired>
-              <Input
-                placeholder="URL"
-                value={editingFile ? editingFile.url : newFile.url || ""}
-                onChange={(e) =>
-                  editingFile
-                    ? setEditingFile({ ...editingFile, url: e.target.value })
-                    : setNewFile({ ...newFile, url: e.target.value })
-                }
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel>Thumbnail Image</FormLabel>
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (!file) return;
+                <FormControl isRequired>
+                  <FormLabel>URL</FormLabel>
+                  <Input
+                    placeholder="https://example.com"
+                    value={editingFile ? editingFile.url : newFile.url || ""}
+                    onChange={(e) =>
+                      editingFile
+                        ? setEditingFile({ ...editingFile, url: e.target.value })
+                        : setNewFile({ ...newFile, url: e.target.value })
+                    }
+                  />
+                </FormControl>
 
-                  if (!editingFile) {
-                    setNewFile((prev) => ({ ...prev, thumbnailFile: file }));
-                  } else {
-                    setEditingFile((prev) => ({
-                      ...prev,
-                      thumbnailFile: file,
-                    }));
-                  }
-                }}
-              />
-            </FormControl>
+                <FormControl>
+                  <FormLabel>Thumbnail Image (Optional)</FormLabel>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
 
-            {/* <FormControl isRequired>
-              <Input
-                placeholder="Generated Code"
-                value={
-                  editingFile
-                    ? editingFile.generated_code
-                    : newFile.generated_code || ""
-                }
-                onChange={(e) =>
-                  editingFile
-                    ? setEditingFile({
-                        ...editingFile,
-                        generated_code: e.target.value,
-                      })
-                    : setNewFile({ ...newFile, generated_code: e.target.value })
-                }
-                isReadOnly
-              />
-            </FormControl>
-            <Button onClick={handleGenerateCode} colorScheme="blue" mb={3}>
-              Generate Code
-            </Button> */}
-            {(editingFile?.qrcode || newFile?.qrcode) && (
-              <Box
-                style={{
-                  display: "flex",
-                  flexDirection: "column", // Stack text and QR code vertically
-                  justifyContent: "center", // Centers horizontally
-                  alignItems: "center", // Centers vertically
-                  marginTop: "5px", // Optional: Adjust spacing from the top
-                }}
+                      if (!editingFile) {
+                        setNewFile((prev) => ({ ...prev, thumbnailFile: file }));
+                      } else {
+                        setEditingFile((prev) => ({
+                          ...prev,
+                          thumbnailFile: file,
+                        }));
+                      }
+                    }}
+                  />
+                </FormControl>
+
+                {(editingFile?.qrcode || newFile?.qrcode) && (
+                  <Box
+                    p={4}
+                    bg="gray.50"
+                    borderRadius="md"
+                    w="100%"
+                  >
+                    <VStack spacing={3}>
+                      <Text fontWeight="bold">
+                        QR Code Preview
+                      </Text>
+                      <Box display="flex" justifyContent="center" alignItems="center">
+                        <QRCodeCanvas
+                          value={editingFile?.qrcode || newFile?.qrcode}
+                          size={128}
+                          bgColor="#ffffff"
+                          fgColor="#000000"
+                          level="H"
+                        />
+                      </Box>
+                      <Text fontSize="sm" fontWeight="semibold">
+                        {editingFile?.generated_code || newFile?.generated_code}
+                      </Text>
+                    </VStack>
+                  </Box>
+                )}
+              </VStack>
+            </ModalBody>
+
+            <ModalFooter>
+              <Button variant="ghost" mr={3} onClick={onModalClose}>
+                Cancel
+              </Button>
+              <Button
+                colorScheme="orange"
+                onClick={editingFile ? handleUpdateFile : handleAddFile}
               >
-                <Text
-                  fontWeight="bold"
-                  style={{ textAlign: "center", marginBottom: "10px" }}
+                {editingFile ? "Update" : "Add File"}
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        {/* Share Modal */}
+        <Modal isOpen={isShareModalOpen} onClose={onShareModalClose} size="lg">
+          <ModalOverlay backdropFilter="blur(4px)" />
+          <ModalContent>
+            <ModalHeader>Share File</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <VStack spacing={4} align="stretch">
+                <InputGroup>
+                  <InputLeftElement pointerEvents="none">
+                    <SearchIcon color="gray.400" />
+                  </InputLeftElement>
+                  <Input
+                    placeholder="Search users..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </InputGroup>
+
+                <Box
+                  maxH="400px"
+                  overflowY="auto"
+                  border="1px"
+                  borderColor="gray.200"
+                  borderRadius="md"
+                  p={3}
                 >
-                  QR Code Preview:
-                </Text>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "center", // Centers QR code horizontally
-                    alignItems: "center", // Centers QR code vertically
-                  }}
+                  <VStack spacing={2} align="stretch">
+                    {users &&
+                      users
+                        .filter(
+                          (user) =>
+                            selectedUserIds.includes(user.user_id) ||
+                            user.givenName
+                              .toLowerCase()
+                              .includes(searchTerm.toLowerCase()) ||
+                            user.sn
+                              .toLowerCase()
+                              .includes(searchTerm.toLowerCase()) ||
+                            String(user.user_id)
+                              .toLowerCase()
+                              .includes(searchTerm.toLowerCase())
+                        )
+                        .filter(
+                          (user, index, self) =>
+                            index ===
+                            self.findIndex((u) => u.user_id === user.user_id)
+                        )
+                        .sort((a, b) => a.givenName.localeCompare(b.givenName))
+                        .map((user) => (
+                          <Checkbox
+                            key={user.user_id}
+                            isChecked={
+                              selectedUserIds.includes(user.user_id) ||
+                              alreadySharedUserIds.includes(user.user_id)
+                            }
+                            onChange={() => handleCheckboxChange(user.user_id)}
+                            p={2}
+                            borderRadius="md"
+                            _hover={{ bg: "gray.50" }}
+                          >
+                            <HStack>
+                              <Avatar size="sm" name={`${user.givenName} ${user.sn}`} />
+                              <VStack align="start" spacing={0}>
+                                <Text fontWeight="medium">
+                                  {user.givenName} {user.sn}
+                                </Text>
+                                <Text fontSize="xs" color="gray.500">
+                                  ID: {user.user_id}
+                                </Text>
+                              </VStack>
+                              {alreadySharedUserIds.includes(user.user_id) && (
+                                <Badge colorScheme="green" ml="auto">
+                                  Shared
+                                </Badge>
+                              )}
+                            </HStack>
+                          </Checkbox>
+                        ))}
+                    {users.length === 0 && (
+                      <Text textAlign="center" color="gray.500" py={4}>
+                        No users found
+                      </Text>
+                    )}
+                  </VStack>
+                </Box>
+              </VStack>
+            </ModalBody>
+
+            <ModalFooter>
+              <Button variant="ghost" mr={3} onClick={onShareModalClose}>
+                Cancel
+              </Button>
+              <Button
+                colorScheme="blue"
+                onClick={handleShareFile}
+                isDisabled={selectedUserIds.length === 0}
+                leftIcon={<FaShareAlt />}
+              >
+                Share ({selectedUserIds.length})
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        {/* QR Code Preview Modal */}
+        <Modal isOpen={isModalPreviewOpen} onClose={onModalPreviewClose} size="md" isCentered>
+          <ModalOverlay backdropFilter="blur(8px)" bg="blackAlpha.600" />
+          <ModalContent>
+            <ModalHeader textAlign="center">QR Code</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <VStack spacing={4} pb={4}>
+                <Box
+                  p={6}
+                  bg="white"
+                  borderRadius="lg"
+                  boxShadow="xl"
+                  display="flex"
+                  justifyContent="center"
+                  alignItems="center"
                 >
                   <QRCodeCanvas
-                    value={editingFile?.qrcode || newFile?.qrcode}
-                    size={128}
+                    value={selectedQrUrl}
+                    size={256}
                     bgColor="#ffffff"
                     fgColor="#000000"
                     level="H"
                   />
-                </div>
-              </Box>
-            )}
+                </Box>
+                <Text fontSize="lg" fontWeight="bold" color="gray.700">
+                  {selectedGeneratedCode}
+                </Text>
+                <Button
+                  leftIcon={<DownloadIcon />}
+                  colorScheme="green"
+                  onClick={() => downloadQRCode(selectedQrUrl, selectedGeneratedCode)}
+                  w="100%"
+                >
+                  Download QR Code
+                </Button>
+              </VStack>
+            </ModalBody>
+          </ModalContent>
+        </Modal>
 
-            {currentUserId ? (
-              <Input
-                type="hidden"
-                value={currentUserId}
-                isReadOnly
-                placeholder="User ID"
-              />
-            ) : null}
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              colorScheme="blue"
-              onClick={editingFile ? handleUpdateFile : handleAddFile}
-            >
-              {editingFile ? "Update" : "Save"}
-            </Button>
-            <Button onClick={() => setIsModalOpen(false)} ml={3}>
-              Cancel
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog
-        isOpen={!!deletingFile}
-        leastDestructiveRef={cancelRef}
-        onClose={() => setDeletingFile(null)}
-      >
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Delete File
-            </AlertDialogHeader>
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog
+          isOpen={isDeleteAlertOpen}
+          leastDestructiveRef={cancelRef}
+          onClose={onDeleteAlertClose}
+        >
+          <AlertDialogOverlay backdropFilter="blur(4px)">
+            <AlertDialogContent>
+              <AlertDialogHeader fontSize="lg" fontWeight="bold">
+                Delete File
+              </AlertDialogHeader>
 
-            <AlertDialogBody>
-              Are you sure you want to delete "{deletingFile?.name}"? This
-              action cannot be undone.
-            </AlertDialogBody>
+              <AlertDialogBody>
+                Are you sure you want to delete this file? This action cannot be undone.
+              </AlertDialogBody>
 
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={() => setDeletingFile(null)}>
-                Cancel
-              </Button>
-              <Button colorScheme="red" onClick={handleDeleteFile} ml={3}>
-                Delete
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
+              <AlertDialogFooter>
+                <Button ref={cancelRef} onClick={onDeleteAlertClose}>
+                  Cancel
+                </Button>
+                <Button colorScheme="red" onClick={handleDeleteFile} ml={3}>
+                  Delete
+                </Button>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialogOverlay>
+        </AlertDialog>
+      </Box>
     </Box>
   );
 };
