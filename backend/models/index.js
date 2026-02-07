@@ -26,7 +26,7 @@ LoginAudit.belongsTo(User, { foreignKey: "user_id", as: "user" });
 
 // Define associations after all models are initialized
 Personnel.hasOne(User, { foreignKey: "personnel_id" });
-User.belongsTo(Personnel, { foreignKey: "personnel_id" });
+User.belongsTo(Personnel, { foreignKey: "personnel_id", as: "personnel" });
 
 // Define associations for groups and users
 Group.hasMany(UserGroupMapping, { foreignKey: "group_id" });

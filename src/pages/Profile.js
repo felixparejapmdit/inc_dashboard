@@ -91,7 +91,7 @@ const Profile = () => {
     const TARGET_CONTACT_TYPE_ID = 5;
     if (!personnelId) return;
 
-    const API_URL = process.env.REACT_APP_API_URL || "https://localhost";
+    const API_URL = process.env.REACT_APP_API_URL;
     try {
       const response = await fetch(
         `${API_URL}/api/personnel-contacts/pid/${personnelId}`,

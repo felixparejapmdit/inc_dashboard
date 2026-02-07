@@ -1,24 +1,60 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
+# Dependencies
 /node_modules
+/backend/node_modules
 /.pnp
 .pnp.js
 
-# testing
+# Testing
 /coverage
 
-# production
+# Production Build
 /build
+/dist
 
-# misc
-.DS_Store
+# Environment Variables & Secrets
+.env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-.env
+.env.docker
+*.pem
+*.key
+*.crt
 
+# Backend Uploads
+backend/uploads/
+backend/public/uploads/
+
+# Database Data (if local)
+db_data/
+db_data_prod/
+
+# Editor & System Files
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+*copy*
+*backup*
+*.bak
+*.tmp
+
+# Logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+logs/
+*.pid
+*.seed
+*.pid.lock
+
+# Docker
+.dockerignore
+
+# Temporary / Generated Files
+backend/models/index*copy*
+* copy.*
+* - Copy.*

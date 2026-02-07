@@ -43,7 +43,7 @@ import { BsUpload, BsCheckCircleFill } from "react-icons/bs";
 import { MdPhotoCamera, MdDelete, MdCloudUpload, MdSave } from "react-icons/md";
 import { fetchDataPhotoshoot, deleteData } from "../../utils/fetchData"; // Keeping original imports
 
-const API_URL = process.env.REACT_APP_API_URL || "https://localhost";
+const API_URL = process.env.REACT_APP_API_URL;
 
 const Photoshoot = ({ personnel, onSaveImage }) => {
   // --- State Management ---

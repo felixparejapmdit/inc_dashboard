@@ -33,7 +33,7 @@ const LdapLogin = () => {
     try {
       // Fetch user details from the backend using the username
       const res = await axios.get(
-        `http://localhost:5000/ldap/user/${username}`
+        `${process.env.REACT_APP_API_URL}/ldap/user/${username}`
       );
       const user = res.data;
 

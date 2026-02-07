@@ -11,7 +11,7 @@ const { generateToken } = require("../utils/jwt"); // Import the generateToken f
 
 // ✅ Build API_URL dynamically based on HTTPS flag in .env
 // ✅ Build API_URL dynamically based on HTTPS flag in .env
-const rawHost = process.env.REACT_APP_API_HOST || process.env.REACT_APP_API_URL || "localhost";
+const rawHost = process.env.REACT_APP_API_HOST || process.env.REACT_APP_API_URL;
 let API_URL;
 
 if (rawHost.startsWith("http://") || rawHost.startsWith("https://")) {

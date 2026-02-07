@@ -94,7 +94,7 @@ export default function ATGNewsSidebar() {
         setLoading(true);
         try {
             // Use the provided proxy endpoint logic
-            const proxyUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/news/proxy-news`;
+            const proxyUrl = `${process.env.REACT_APP_API_URL}/api/news/proxy-news`;
             const res = await axios.get(proxyUrl, {
                 params: { url: outlet.url }
             });
