@@ -8,34 +8,33 @@ if [ ! -f "docker-compose.prod.yml" ]; then
     exit 1
 fi
 
-# 2. Sync .env.docker to .env for the build process
+# 2. Sync .env.docker to .env
 if [ -f ".env.docker" ]; then
     echo "📄 Syncing .env.docker to .env..."
     cp .env.docker .env
 fi
 
-# 3. Stop existing containers
+# 3. Stop existing containers (Pinalitan ng 'docker compose')
 echo "🛑 Stopping existing containers..."
-docker-compose -f docker-compose.prod.yml down --remove-orphans
+docker compose -f docker-compose.prod.yml down --remove-orphans
 
-# 4. Deep Clean (Optional but recommended for Proxmox disk space)
+# 4. Deep Clean
 echo "🧹 Cleaning up unused Docker resources..."
 docker system prune -f
 
-# 5. Build and start containers
+# 5. Build and start containers (Pinalitan ng 'docker compose')
 echo "🏗️ Building and Starting services..."
-# --build ensures your React frontend gets the latest .env values
-docker-compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml up -d --build
 
 # 6. Check status
 echo "⏳ Waiting for services to initialize..."
-sleep 5 # Bigyan ng konting oras ang MySQL at Node bago i-check
+sleep 5
 echo "✅ Deployment complete! Status:"
-docker-compose -f docker-compose.prod.yml ps
+docker compose -f docker-compose.prod.yml ps
 
 echo "🌐 Dashboard: https://test-portal.pmdmc.net"
 echo "📡 API: https://test-api-portal.pmdmc.net"
 
-# 7. Show last 10 lines of backend logs to verify DB connection
+# 7. Show logs
 echo "📝 Recent Backend Logs:"
-docker-compose -f docker-compose.prod.yml logs --tail=10 backend
+docker compose -f docker-compose.prod.yml logs --tail=10 backend
