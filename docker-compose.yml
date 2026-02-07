@@ -14,6 +14,9 @@ services:
       - REACT_PORT_HTTP=80
     volumes:
       - ./backend/uploads:/usr/src/app/uploads
+      # Idagdag ang linyang ito para makita ng Docker ang certs mo:
+      - ./nginx/certs/cert.pem:/usr/src/app/cert.pem
+      - ./nginx/certs/key.pem:/usr/src/app/key.pem
     ports:
       - "${REACT_PORT_HTTP:-5000}:5000"
     networks:

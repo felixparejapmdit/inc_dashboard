@@ -13,6 +13,9 @@ services:
       - REDIS_HOST=redis
     volumes:
       - ./backend/uploads:/usr/src/app/uploads
+      # Idagdag ang linyang ito para makita ng Docker ang certs mo:
+      - ./nginx/certs/cert.pem:/usr/src/app/cert.pem
+      - ./nginx/certs/key.pem:/usr/src/app/key.pem
     expose:
       - "80"
     networks:
