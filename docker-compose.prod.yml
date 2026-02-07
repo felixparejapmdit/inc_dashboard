@@ -20,6 +20,9 @@ services:
       - "80"
     networks:
       - inc_prod_network
+    extra_hosts:
+      - "ldap.pmdmc.net:172.18.121.37"
+      - "host.docker.internal:host-gateway"
     depends_on:
       - redis
     restart: always

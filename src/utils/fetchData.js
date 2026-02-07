@@ -4,6 +4,23 @@ import { getAuthHeaders } from "./apiHeaders";
 
 const API_URL = process.env.REACT_APP_API_URL || "";
 
+// Global Axios Interceptor for 401 Unauthorized
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      const currentPath = window.location.pathname;
+      // Prevent redirect loop if already on login page
+      if (currentPath !== "/login") {
+        console.warn("Session expired or unauthorized. Redirecting to login...");
+        localStorage.removeItem("authToken"); // Clear invalid token
+        window.location.href = "/login";
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 /**
  * Reusable GET data function
  * @param {string} endpoint - API endpoint (e.g., "users")
@@ -417,7 +434,7 @@ export const putSetting = async (
   errorMsg = "Failed to update setting."
 ) => {
   try {
-    const url = `${API_URL}/api/${endpoint}/`;
+    const url = `${API_URL}/api/${endpoint}`;
 
     const response = await axios.put(url, payload, {
       headers: getAuthHeaders(),

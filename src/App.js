@@ -84,6 +84,7 @@ import SuguanNotifier from "./components/SuguanNotifier";
 import "./App.css"; // ✅ Import your global CSS
 
 import DragDropSettings from "./pages/settings/DragDropSettings";
+import SchemaSync from "./pages/settings/SchemaSync"; // Import SchemaSync Page
 
 import Maintenance from "./pages/Maintenance";
 import PersonnelStatistics from "./components/PersonnelStatistics";
@@ -864,6 +865,20 @@ function MainApp() {
               }}
             >
               <DragDropSettings />
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/settings/schema-sync"
+          element={
+            <Layout
+              currentUser={{
+                name: "John Doe",
+                avatarUrl: "/path/to/avatar.jpg",
+              }}
+            >
+              <SchemaSync />
             </Layout>
           }
         />

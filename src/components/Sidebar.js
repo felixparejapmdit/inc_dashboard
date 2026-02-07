@@ -626,6 +626,13 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   isActive={location.pathname === "/ldap-users"}
                 />
               )}
+              <SidebarItem
+                icon={FiArrowRight} // Use appropriate icon
+                label="Schema Sync"
+                isExpanded={isExpanded}
+                onClick={() => navigate("/settings/schema-sync")}
+                isActive={location.pathname === "/settings/schema-sync"}
+              />
             </VStack>
           </Collapse>
 

@@ -8,6 +8,11 @@ const PermissionDefinition = require("./PermissionDefinition");
 const PermissionCategory = require("./PermissionCategory");
 const GroupPermissionMapping = require("./GroupPermissionMapping");
 const PersonnelHistory = require("./PersonnelHistory");
+const Reminder = require("./Reminder");
+const File = require("./File");
+const FileShare = require("./FileShare");
+const Setting = require("./Setting");
+const Lists = require("./Lists");
 
 // Sync database
 sequelize
@@ -70,4 +75,9 @@ module.exports = {
   PermissionCategory,
   GroupPermissionMapping,
   LoginAudit,
+  Reminder,
+  File,
+  FileShare,
+  Setting,
+  Lists,
 };

@@ -27,8 +27,16 @@ import {
   ModalBody,
   ModalFooter,
   Flex,
+  HStack,
+  Badge,
+  InputGroup,
+  InputLeftElement,
+  Heading,
+  Card,
+  CardBody,
+  Divider,
 } from "@chakra-ui/react";
-import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
+import { AddIcon, DeleteIcon, EditIcon, SearchIcon } from "@chakra-ui/icons";
 
 import {
   fetchData,
@@ -72,6 +80,7 @@ const ApplicationTypeManagement = () => {
         description: error.message,
         status: "error",
         duration: 3000,
+        isClosable: true,
       });
     }
   };
@@ -79,7 +88,12 @@ const ApplicationTypeManagement = () => {
   // Add new application type
   const handleAddApplicationType = async () => {
     if (!newAppType.name) {
-      toast({ title: "Name is required", status: "warning", duration: 3000 });
+      toast({
+        title: "Name is required",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
       return;
     }
 
@@ -92,12 +106,14 @@ const ApplicationTypeManagement = () => {
         title: "Application type added",
         status: "success",
         duration: 3000,
+        isClosable: true,
       });
     } catch (error) {
       toast({
         title: "Error adding application type",
         status: "error",
         duration: 3000,
+        isClosable: true,
       });
     }
   };
@@ -105,7 +121,12 @@ const ApplicationTypeManagement = () => {
   // Update existing application type
   const handleUpdateApplicationType = async () => {
     if (!editingAppType.name) {
-      toast({ title: "Name is required", status: "warning", duration: 3000 });
+      toast({
+        title: "Name is required",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
       return;
     }
 
@@ -118,12 +139,14 @@ const ApplicationTypeManagement = () => {
         title: "Application type updated",
         status: "success",
         duration: 3000,
+        isClosable: true,
       });
     } catch (error) {
       toast({
         title: "Error updating application type",
         status: "error",
         duration: 3000,
+        isClosable: true,
       });
     }
   };
@@ -131,18 +154,20 @@ const ApplicationTypeManagement = () => {
   // Delete application type
   const handleDeleteApplicationType = async () => {
     try {
-      await deleteData(`application-types/${deletingAppType.id}`);
+      await deleteData("application-types", deletingAppType.id);
       fetchApplicationTypes();
       toast({
         title: "Application type deleted",
         status: "success",
         duration: 3000,
+        isClosable: true,
       });
     } catch (error) {
       toast({
         title: "Error deleting application type",
         status: "error",
         duration: 3000,
+        isClosable: true,
       });
     } finally {
       setDeletingAppType(null);
@@ -150,108 +175,195 @@ const ApplicationTypeManagement = () => {
   };
 
   return (
-    <Box p={5}>
-      <Stack spacing={4}>
-        <Text fontSize="28px" fontWeight="bold">
-          Application Type Management
-        </Text>
-
-        {/* Search Bar and Add Button Aligned */}
-        <Flex justify="space-between" align="center">
-          {/* Search Bar on the Right */}
-          <Input
-            placeholder="Search Application Types..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            width="250px"
-          />
-
-          {/* Add New Button on the Left */}
+    <Box p={{ base: 4, md: 6 }}>
+      <Stack spacing={6}>
+        {/* Header Section */}
+        <Flex
+          direction={{ base: "column", md: "row" }}
+          justify="space-between"
+          align={{ base: "stretch", md: "center" }}
+          gap={4}
+        >
+          <Heading size="lg" color="gray.700">
+            Application Type Management
+          </Heading>
           <Button
             leftIcon={<AddIcon />}
-            colorScheme="orange"
-            onClick={() => setIsModalOpen(true)}
+            colorScheme="blue"
+            size="md"
+            onClick={() => {
+              setEditingAppType(null);
+              setNewAppType({ name: "" });
+              setIsModalOpen(true);
+            }}
+            boxShadow="sm"
+            _hover={{ boxShadow: "md", transform: "translateY(-2px)" }}
+            transition="all 0.2s"
           >
             New Application Type
           </Button>
         </Flex>
 
+        {/* Search Bar */}
+        <Card variant="outline" boxShadow="sm">
+          <CardBody>
+            <InputGroup size="md">
+              <InputLeftElement pointerEvents="none">
+                <SearchIcon color="gray.400" />
+              </InputLeftElement>
+              <Input
+                placeholder="Search application types..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                bg="white"
+                borderColor="gray.300"
+                _hover={{ borderColor: "gray.400" }}
+                _focus={{ borderColor: "blue.400", boxShadow: "0 0 0 1px var(--chakra-colors-blue-400)" }}
+              />
+            </InputGroup>
+          </CardBody>
+        </Card>
+
+        {/* Results Summary */}
+        <Flex justify="space-between" align="center" px={2}>
+          <Text fontSize="sm" color="gray.600">
+            Showing {filteredAppTypes.length} of {appTypes.length} application types
+          </Text>
+          {searchQuery && (
+            <Badge colorScheme="blue" fontSize="xs" px={2} py={1} borderRadius="md">
+              Filtered
+            </Badge>
+          )}
+        </Flex>
+
         {/* Application Type Table */}
-        <Table variant="striped">
-          <Thead>
-            <Tr>
-              <Th>#</Th> {/* Row Number Column */}
-              <Th>Name</Th>
-              <Th width="20%" textAlign="right">
-                Actions
-              </Th>
-              {/* Actions Column - Aligned Right */}
-            </Tr>
-          </Thead>
-          <Tbody>
-            {filteredAppTypes.length > 0 ? (
-              filteredAppTypes.map((type, index) => (
-                // <Tr key={type.id}>
-                <Tr key={`${type.id}-${index}`}>
-                  <Td>{index + 1}</Td> {/* Row Number */}
-                  <Td>{type.name}</Td>
-                  <Td textAlign="right">
-                    {/* Align Actions to the Right */}
-                    <IconButton
-                      icon={<EditIcon />}
-                      colorScheme="yellow"
-                      aria-label="Edit"
-                      onClick={() => {
-                        setEditingAppType(type);
-                        setIsModalOpen(true);
-                      }}
-                      mr={2}
-                    />
-                    <IconButton
-                      icon={<DeleteIcon />}
-                      colorScheme="red"
-                      aria-label="Delete"
-                      onClick={() => setDeletingAppType(type)}
-                    />
-                  </Td>
+        <Card variant="outline" boxShadow="md" overflow="hidden">
+          <Box overflowX="auto">
+            <Table variant="simple" size="md">
+              <Thead bg="gray.50">
+                <Tr>
+                  <Th width="80px" color="gray.600" fontWeight="semibold">#</Th>
+                  <Th color="gray.600" fontWeight="semibold">Name</Th>
+                  <Th width="140px" textAlign="center" color="gray.600" fontWeight="semibold">
+                    Actions
+                  </Th>
                 </Tr>
-              ))
-            ) : (
-              <Tr>
-                <Td colSpan={3} textAlign="center">
-                  No application types found.
-                </Td>
-              </Tr>
-            )}
-          </Tbody>
-        </Table>
+              </Thead>
+              <Tbody>
+                {filteredAppTypes.length > 0 ? (
+                  filteredAppTypes.map((type, index) => (
+                    <Tr
+                      key={`${type.id}-${index}`}
+                      _hover={{ bg: "gray.50" }}
+                      transition="background-color 0.2s"
+                    >
+                      <Td color="gray.500" fontWeight="medium">
+                        {index + 1}
+                      </Td>
+                      <Td fontWeight="medium" color="gray.700">
+                        {type.name}
+                      </Td>
+                      <Td>
+                        <HStack spacing={2} justify="center" flexWrap="nowrap">
+                          <IconButton
+                            icon={<EditIcon />}
+                            colorScheme="orange"
+                            variant="ghost"
+                            size="md"
+                            aria-label="Edit"
+                            onClick={() => {
+                              setEditingAppType(type);
+                              setIsModalOpen(true);
+                            }}
+                            _hover={{ bg: "orange.50" }}
+                            flexShrink={0}
+                          />
+                          <IconButton
+                            icon={<DeleteIcon />}
+                            colorScheme="red"
+                            variant="ghost"
+                            size="md"
+                            aria-label="Delete"
+                            onClick={() => setDeletingAppType(type)}
+                            _hover={{ bg: "red.50" }}
+                            flexShrink={0}
+                          />
+                        </HStack>
+                      </Td>
+                    </Tr>
+                  ))
+                ) : (
+                  <Tr>
+                    <Td colSpan={3} textAlign="center" py={8}>
+                      <Text color="gray.500" fontSize="md">
+                        {searchQuery
+                          ? "No application types found matching your search."
+                          : "No application types available. Click 'New Application Type' to add one."}
+                      </Text>
+                    </Td>
+                  </Tr>
+                )}
+              </Tbody>
+            </Table>
+          </Box>
+        </Card>
       </Stack>
 
       {/* Add/Edit Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <ModalOverlay />
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingAppType(null);
+          setNewAppType({ name: "" });
+        }}
+        isCentered
+        size="md"
+      >
+        <ModalOverlay backdropFilter="blur(4px)" />
         <ModalContent>
-          <ModalHeader>
+          <ModalHeader borderBottomWidth="1px" pb={4}>
             {editingAppType
               ? "Edit Application Type"
               : "Add New Application Type"}
           </ModalHeader>
           <ModalCloseButton />
-          <ModalBody>
-            <Input
-              placeholder="Application Type Name"
-              value={editingAppType ? editingAppType.name : newAppType.name}
-              onChange={(e) =>
-                editingAppType
-                  ? setEditingAppType({
-                      ...editingAppType,
-                      name: e.target.value,
-                    })
-                  : setNewAppType({ name: e.target.value })
-              }
-            />
+          <ModalBody py={6}>
+            <Stack spacing={4}>
+              <Box>
+                <Text mb={2} fontSize="sm" fontWeight="medium" color="gray.600">
+                  Application Type Name
+                </Text>
+                <Input
+                  placeholder="Enter application type name"
+                  value={editingAppType ? editingAppType.name : newAppType.name}
+                  onChange={(e) =>
+                    editingAppType
+                      ? setEditingAppType({
+                        ...editingAppType,
+                        name: e.target.value,
+                      })
+                      : setNewAppType({ name: e.target.value })
+                  }
+                  size="md"
+                  autoFocus
+                  _focus={{ borderColor: "blue.400", boxShadow: "0 0 0 1px var(--chakra-colors-blue-400)" }}
+                />
+              </Box>
+            </Stack>
           </ModalBody>
-          <ModalFooter>
+          <Divider />
+          <ModalFooter gap={3}>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setIsModalOpen(false);
+                setEditingAppType(null);
+                setNewAppType({ name: "" });
+              }}
+            >
+              Cancel
+            </Button>
             <Button
               colorScheme="blue"
               onClick={
@@ -259,11 +371,10 @@ const ApplicationTypeManagement = () => {
                   ? handleUpdateApplicationType
                   : handleAddApplicationType
               }
+              boxShadow="sm"
+              _hover={{ boxShadow: "md" }}
             >
               {editingAppType ? "Update" : "Save"}
-            </Button>
-            <Button onClick={() => setIsModalOpen(false)} ml={3}>
-              Cancel
             </Button>
           </ModalFooter>
         </ModalContent>
@@ -274,26 +385,36 @@ const ApplicationTypeManagement = () => {
         isOpen={!!deletingAppType}
         leastDestructiveRef={cancelRef}
         onClose={() => setDeletingAppType(null)}
+        isCentered
       >
-        <AlertDialogOverlay>
+        <AlertDialogOverlay backdropFilter="blur(4px)">
           <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+            <AlertDialogHeader fontSize="lg" fontWeight="bold" borderBottomWidth="1px" pb={4}>
               Delete Application Type
             </AlertDialogHeader>
 
-            <AlertDialogBody>
-              Are you sure you want to delete "{deletingAppType?.name}"? This
-              action cannot be undone.
+            <AlertDialogBody py={6}>
+              <Text>
+                Are you sure you want to delete <strong>"{deletingAppType?.name}"</strong>?
+              </Text>
+              <Text mt={2} color="gray.600" fontSize="sm">
+                This action cannot be undone.
+              </Text>
             </AlertDialogBody>
 
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={() => setDeletingAppType(null)}>
+            <AlertDialogFooter borderTopWidth="1px" pt={4} gap={3}>
+              <Button
+                ref={cancelRef}
+                onClick={() => setDeletingAppType(null)}
+                variant="ghost"
+              >
                 Cancel
               </Button>
               <Button
                 colorScheme="red"
                 onClick={handleDeleteApplicationType}
-                ml={3}
+                boxShadow="sm"
+                _hover={{ boxShadow: "md" }}
               >
                 Delete
               </Button>

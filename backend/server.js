@@ -183,6 +183,7 @@ app.use(localCongregationRoutes);
 
 app.use(chatRoutes);
 app.use(settingRoutes);
+app.use("/api/schema", require("./routes/schemaRoutes")); // Register Schema Sync Routes
 app.use(authRoutes);
 
 app.use(lokalProfileRoutes);
