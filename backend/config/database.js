@@ -8,7 +8,7 @@ const sequelize = new Sequelize(
   process.env.MYSQL_PASSWORD, // Database password
   {
     host: process.env.MYSQL_HOST, // Database host
-    port: process.env.MYSQL_PORT || 3307, // Use a default port if not provided
+    port: process.env.MYSQL_PORT || 3306, // Use a default port if not provided
     dialect: "mysql", // Specify MySQL as the dialect
     dialectModule: require("mysql2"), // Force use of mysql2
     logging: process.env.NODE_ENV === "development" ? console.log : false, // Enable logging only in development
@@ -20,10 +20,15 @@ const sequelize = new Sequelize(
     pool: {
       max: 5, // Maximum number of connections in the pool
       min: 0, // Minimum number of connections in the pool
-      acquire: 30000, // Maximum time (ms) to acquire a connection before throwing an error
+      acquire: 60000, // Maximum time (ms) to acquire a connection before throwing an error
       idle: 10000, // Time (ms) a connection can be idle before being released
     },
   }
 );
+
+// Test connection function (Optional pero helpful para sa logs mo)
+sequelize.authenticate()
+  .then(() => console.log('✅ Sequelize: Connection has been established successfully.'))
+  .catch(err => console.error('❌ Sequelize: Unable to connect to the database:', err));
 
 module.exports = sequelize;

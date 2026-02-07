@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 5.2.3
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1:3306
--- Generation Time: Feb 06, 2026 at 06:28 AM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- Host: db:3306
+-- Generation Time: Feb 07, 2026 at 03:25 AM
+-- Server version: 8.0.45
+-- PHP Version: 8.3.26
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -28,10 +28,10 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `applicationtypes` (
-  `id` int(11) NOT NULL,
-  `name` varchar(150) NOT NULL,
-  `createdAt` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE current_timestamp(),
-  `updatedAt` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE current_timestamp()
+  `id` int NOT NULL,
+  `name` varchar(150) COLLATE utf8mb4_general_ci NOT NULL,
+  `createdAt` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
+  `updatedAt` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -53,12 +53,12 @@ INSERT INTO `applicationtypes` (`id`, `name`, `createdAt`, `updatedAt`) VALUES
 --
 
 CREATE TABLE `apps` (
-  `id` int(11) NOT NULL,
-  `name` varchar(50) NOT NULL,
-  `url` varchar(50) NOT NULL,
-  `description` varchar(150) DEFAULT NULL,
-  `icon` text DEFAULT NULL,
-  `app_type` int(11) NOT NULL DEFAULT 0
+  `id` int NOT NULL,
+  `name` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `url` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `description` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `icon` text COLLATE utf8mb4_general_ci,
+  `app_type` int NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -126,12 +126,12 @@ INSERT INTO `apps` (`id`, `name`, `url`, `description`, `icon`, `app_type`) VALU
 --
 
 CREATE TABLE `atg_files` (
-  `id` int(11) NOT NULL,
-  `filename` varchar(255) NOT NULL,
-  `file_path` varchar(1024) NOT NULL,
-  `file_type` varchar(50) DEFAULT NULL,
-  `category` varchar(50) DEFAULT 'General',
-  `uploaded_by` varchar(100) DEFAULT NULL,
+  `id` int NOT NULL,
+  `filename` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `file_path` varchar(1024) COLLATE utf8mb4_general_ci NOT NULL,
+  `file_type` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `category` varchar(50) COLLATE utf8mb4_general_ci DEFAULT 'General',
+  `uploaded_by` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -154,10 +154,10 @@ INSERT INTO `atg_files` (`id`, `filename`, `file_path`, `file_type`, `category`,
 --
 
 CREATE TABLE `available_apps` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `app_id` int(11) NOT NULL,
-  `ldap_group_cn` varchar(50) DEFAULT NULL
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `app_id` int NOT NULL,
+  `ldap_group_cn` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -535,14 +535,30 @@ INSERT INTO `available_apps` (`id`, `user_id`, `app_id`, `ldap_group_cn`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `ChatHistories`
+--
+
+CREATE TABLE `ChatHistories` (
+  `id` int NOT NULL,
+  `user_id` varchar(255) NOT NULL,
+  `sender` enum('user','bot') NOT NULL,
+  `message` text NOT NULL,
+  `timestamp` datetime DEFAULT NULL,
+  `createdAt` datetime NOT NULL,
+  `updatedAt` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `chathistories`
 --
 
 CREATE TABLE `chathistories` (
-  `id` int(11) NOT NULL,
-  `user_id` varchar(255) NOT NULL,
-  `sender` enum('user','bot') NOT NULL,
-  `message` text NOT NULL,
+  `id` int NOT NULL,
+  `user_id` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `sender` enum('user','bot') COLLATE utf8mb4_general_ci NOT NULL,
+  `message` text COLLATE utf8mb4_general_ci NOT NULL,
   `timestamp` datetime DEFAULT NULL,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL
@@ -555,13 +571,13 @@ CREATE TABLE `chathistories` (
 --
 
 CREATE TABLE `children` (
-  `id` bigint(20) NOT NULL,
-  `personnel_id` bigint(20) NOT NULL,
-  `firstname` varchar(50) NOT NULL,
-  `secondname` varchar(50) DEFAULT NULL,
-  `middlname` text DEFAULT NULL,
-  `lastname` varchar(50) NOT NULL,
-  `suffix` text DEFAULT NULL,
+  `id` bigint NOT NULL,
+  `personnel_id` bigint NOT NULL,
+  `firstname` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `secondname` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `middlname` text COLLATE utf8mb4_general_ci,
+  `lastname` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `suffix` text COLLATE utf8mb4_general_ci,
   `date_of_birth` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -572,11 +588,11 @@ CREATE TABLE `children` (
 --
 
 CREATE TABLE `citizenships` (
-  `id` int(11) NOT NULL,
-  `country_name` varchar(100) NOT NULL,
-  `citizenship` varchar(100) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `id` int NOT NULL,
+  `country_name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `citizenship` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -786,8 +802,8 @@ INSERT INTO `citizenships` (`id`, `country_name`, `citizenship`, `created_at`, `
 --
 
 CREATE TABLE `contact_type_info` (
-  `id` int(11) NOT NULL,
-  `name` varchar(100) NOT NULL
+  `id` int NOT NULL,
+  `name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -808,11 +824,11 @@ INSERT INTO `contact_type_info` (`id`, `name`) VALUES
 --
 
 CREATE TABLE `departments` (
-  `id` int(11) NOT NULL,
-  `name` varchar(50) NOT NULL,
-  `image_url` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `id` int NOT NULL,
+  `name` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `image_url` text COLLATE utf8mb4_general_ci,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -843,12 +859,12 @@ INSERT INTO `departments` (`id`, `name`, `image_url`, `created_at`, `updated_at`
 --
 
 CREATE TABLE `designations` (
-  `id` int(11) NOT NULL,
-  `section_id` int(11) DEFAULT NULL,
-  `subsection_id` int(11) DEFAULT NULL,
-  `name` varchar(50) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` int NOT NULL,
+  `section_id` int DEFAULT NULL,
+  `subsection_id` int DEFAULT NULL,
+  `name` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -867,12 +883,12 @@ INSERT INTO `designations` (`id`, `section_id`, `subsection_id`, `name`, `create
 --
 
 CREATE TABLE `districts` (
-  `id` int(11) NOT NULL,
-  `name` varchar(50) NOT NULL,
-  `code` varchar(10) DEFAULT NULL,
-  `region` varchar(20) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` int NOT NULL,
+  `name` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `code` varchar(10) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `region` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -974,19 +990,19 @@ INSERT INTO `districts` (`id`, `name`, `code`, `region`, `created_at`, `updated_
 --
 
 CREATE TABLE `educational_background` (
-  `id` bigint(20) NOT NULL,
-  `personnel_id` int(11) NOT NULL,
-  `level` varchar(50) NOT NULL,
-  `startfrom` int(11) DEFAULT NULL,
-  `completion_year` int(11) DEFAULT NULL,
-  `school` varchar(150) DEFAULT NULL,
-  `field_of_study` varchar(150) DEFAULT NULL,
-  `degree` varchar(150) DEFAULT NULL,
-  `institution` varchar(150) DEFAULT NULL,
-  `professional_licensure_examination` varchar(150) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `certificate_files` varchar(200) DEFAULT NULL
+  `id` bigint NOT NULL,
+  `personnel_id` int NOT NULL,
+  `level` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `startfrom` int DEFAULT NULL,
+  `completion_year` int DEFAULT NULL,
+  `school` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `field_of_study` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `degree` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `institution` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `professional_licensure_examination` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `certificate_files` varchar(200) COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1057,14 +1073,14 @@ INSERT INTO `educational_background` (`id`, `personnel_id`, `level`, `startfrom`
 --
 
 CREATE TABLE `events` (
-  `id` int(11) NOT NULL,
-  `eventName` varchar(50) NOT NULL,
+  `id` int NOT NULL,
+  `eventName` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
   `date` date NOT NULL,
   `time` time NOT NULL,
-  `location_id` int(11) NOT NULL,
-  `recurrence` varchar(20) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `location_id` int NOT NULL,
+  `recurrence` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1094,46 +1110,46 @@ INSERT INTO `events` (`id`, `eventName`, `date`, `time`, `location_id`, `recurre
 --
 
 CREATE TABLE `family_members` (
-  `id` bigint(20) NOT NULL,
-  `personnel_id` int(10) UNSIGNED NOT NULL,
-  `relationship_type` enum('Father','Mother','Sibling','Spouse','Child') NOT NULL,
-  `givenname` varchar(50) NOT NULL,
-  `middlename` text DEFAULT NULL,
-  `lastname` varchar(50) NOT NULL,
-  `suffix` text DEFAULT NULL,
-  `gender` enum('Male','Female') DEFAULT NULL,
-  `bloodtype` varchar(10) DEFAULT NULL,
-  `civil_status` varchar(10) DEFAULT NULL,
+  `id` bigint NOT NULL,
+  `personnel_id` int UNSIGNED NOT NULL,
+  `relationship_type` enum('Father','Mother','Sibling','Spouse','Child') COLLATE utf8mb4_general_ci NOT NULL,
+  `givenname` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `middlename` text COLLATE utf8mb4_general_ci,
+  `lastname` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `suffix` text COLLATE utf8mb4_general_ci,
+  `gender` enum('Male','Female') COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `bloodtype` varchar(10) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `civil_status` varchar(10) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `date_of_marriage` date DEFAULT NULL,
-  `place_of_marriage` varchar(50) DEFAULT NULL,
-  `citizenship` int(11) DEFAULT NULL,
-  `nationality` int(11) DEFAULT NULL,
+  `place_of_marriage` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `citizenship` int DEFAULT NULL,
+  `nationality` int DEFAULT NULL,
   `date_of_birth` date DEFAULT NULL,
-  `contact_number` varchar(50) DEFAULT NULL,
-  `church_duties` varchar(50) DEFAULT NULL,
-  `livelihood` varchar(50) DEFAULT NULL,
-  `district_id` int(11) DEFAULT NULL,
-  `local_congregation` int(11) DEFAULT NULL,
-  `minister_officiated` varchar(50) DEFAULT NULL,
-  `employment_type` varchar(50) DEFAULT NULL,
-  `company` varchar(50) DEFAULT NULL,
-  `address` varchar(150) DEFAULT NULL,
-  `position` varchar(50) DEFAULT NULL,
-  `department` varchar(50) DEFAULT NULL,
-  `section` varchar(50) DEFAULT NULL,
+  `contact_number` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `church_duties` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `livelihood` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `district_id` int DEFAULT NULL,
+  `local_congregation` int DEFAULT NULL,
+  `minister_officiated` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `employment_type` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `company` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `address` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `position` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `department` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `section` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `start_date` date DEFAULT NULL,
   `end_date` date DEFAULT NULL,
-  `reason_for_leaving` varchar(150) DEFAULT NULL,
-  `education_level` varchar(50) DEFAULT NULL,
-  `start_year` int(11) DEFAULT NULL,
-  `completion_year` int(11) DEFAULT NULL,
-  `school` varchar(50) DEFAULT NULL,
-  `field_of_study` varchar(50) DEFAULT NULL,
-  `degree` varchar(30) DEFAULT NULL,
-  `institution` varchar(50) DEFAULT NULL,
-  `professional_licensure_examination` varchar(50) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `reason_for_leaving` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `education_level` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `start_year` int DEFAULT NULL,
+  `completion_year` int DEFAULT NULL,
+  `school` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `field_of_study` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `degree` varchar(30) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `institution` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `professional_licensure_examination` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1254,15 +1270,15 @@ INSERT INTO `family_members` (`id`, `personnel_id`, `relationship_type`, `givenn
 --
 
 CREATE TABLE `files` (
-  `id` int(11) NOT NULL,
-  `filename` varchar(255) NOT NULL,
-  `url` varchar(255) NOT NULL,
-  `generated_code` varchar(50) NOT NULL,
-  `thumbnail` varchar(255) DEFAULT NULL,
-  `qrcode` varchar(50) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  `updated_at` datetime NOT NULL DEFAULT current_timestamp()
+  `id` int NOT NULL,
+  `filename` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `url` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `generated_code` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `thumbnail` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `qrcode` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `user_id` int NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1283,10 +1299,10 @@ INSERT INTO `files` (`id`, `filename`, `url`, `generated_code`, `thumbnail`, `qr
 --
 
 CREATE TABLE `file_shares` (
-  `id` int(11) NOT NULL,
-  `file_id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `shared_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `id` int NOT NULL,
+  `file_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `shared_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1306,8 +1322,8 @@ INSERT INTO `file_shares` (`id`, `file_id`, `user_id`, `shared_at`) VALUES
 --
 
 CREATE TABLE `government_issued_id` (
-  `id` int(11) NOT NULL,
-  `name` varchar(250) NOT NULL
+  `id` int NOT NULL,
+  `name` varchar(250) COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1341,10 +1357,10 @@ INSERT INTO `government_issued_id` (`id`, `name`) VALUES
 --
 
 CREATE TABLE `group_permission_mappings` (
-  `group_id` bigint(20) NOT NULL,
-  `permission_id` bigint(20) NOT NULL,
-  `category_id` bigint(20) NOT NULL,
-  `accessrights` int(11) NOT NULL
+  `group_id` bigint NOT NULL,
+  `permission_id` bigint NOT NULL,
+  `category_id` bigint NOT NULL,
+  `accessrights` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1604,11 +1620,11 @@ INSERT INTO `group_permission_mappings` (`group_id`, `permission_id`, `category_
 --
 
 CREATE TABLE `housings` (
-  `id` int(11) NOT NULL,
-  `building_name` varchar(255) NOT NULL,
-  `floor` varchar(255) NOT NULL,
-  `room` varchar(255) NOT NULL,
-  `description` text DEFAULT NULL,
+  `id` int NOT NULL,
+  `building_name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `floor` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `room` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `description` text COLLATE utf8mb4_general_ci,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -1629,11 +1645,11 @@ INSERT INTO `housings` (`id`, `building_name`, `floor`, `room`, `description`, `
 --
 
 CREATE TABLE `languages` (
-  `id` int(11) NOT NULL,
-  `country_name` varchar(255) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` int NOT NULL,
+  `country_name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1802,20 +1818,41 @@ INSERT INTO `languages` (`id`, `country_name`, `name`, `created_at`, `updated_at
 -- --------------------------------------------------------
 
 --
--- Table structure for table `ldap_users`
+-- Table structure for table `LDAP_Users`
 --
 
-CREATE TABLE `ldap_users` (
-  `id` int(11) NOT NULL,
+CREATE TABLE `LDAP_Users` (
+  `id` int NOT NULL,
   `cn` varchar(25) NOT NULL,
-  `gidNumber` int(11) DEFAULT NULL,
+  `gidNumber` int DEFAULT NULL,
   `givenName` varchar(25) NOT NULL,
   `homeDirectory` varchar(50) DEFAULT NULL,
   `mail` varchar(50) DEFAULT NULL,
   `sn` varchar(25) NOT NULL,
   `uid` varchar(25) NOT NULL,
-  `uidNumber` int(11) DEFAULT NULL,
+  `uidNumber` int DEFAULT NULL,
   `userPassword` varchar(255) NOT NULL,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `ldap_users`
+--
+
+CREATE TABLE `ldap_users` (
+  `id` int NOT NULL,
+  `cn` varchar(25) COLLATE utf8mb4_general_ci NOT NULL,
+  `gidNumber` int DEFAULT NULL,
+  `givenName` varchar(25) COLLATE utf8mb4_general_ci NOT NULL,
+  `homeDirectory` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `mail` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `sn` varchar(25) COLLATE utf8mb4_general_ci NOT NULL,
+  `uid` varchar(25) COLLATE utf8mb4_general_ci NOT NULL,
+  `uidNumber` int DEFAULT NULL,
+  `userPassword` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -1827,9 +1864,9 @@ CREATE TABLE `ldap_users` (
 --
 
 CREATE TABLE `local_congregation` (
-  `id` int(11) NOT NULL,
-  `district_id` int(11) NOT NULL,
-  `name` varchar(100) NOT NULL,
+  `id` int NOT NULL,
+  `district_id` int NOT NULL,
+  `name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -1841,10 +1878,10 @@ CREATE TABLE `local_congregation` (
 --
 
 CREATE TABLE `locations` (
-  `id` int(11) NOT NULL,
-  `name` varchar(50) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` int NOT NULL,
+  `name` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1863,10 +1900,10 @@ INSERT INTO `locations` (`id`, `name`, `created_at`, `updated_at`) VALUES
 --
 
 CREATE TABLE `login_attempts` (
-  `id` int(11) NOT NULL,
-  `username` varchar(191) NOT NULL,
-  `remote_ip` varchar(45) DEFAULT NULL,
-  `user_agent` varchar(191) DEFAULT NULL,
+  `id` int NOT NULL,
+  `username` varchar(191) COLLATE utf8mb4_general_ci NOT NULL,
+  `remote_ip` varchar(45) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `user_agent` varchar(191) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `successful` tinyint(1) NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
@@ -2046,12 +2083,12 @@ INSERT INTO `login_attempts` (`id`, `username`, `remote_ip`, `user_agent`, `succ
 --
 
 CREATE TABLE `login_audit` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `device` varchar(255) DEFAULT NULL,
-  `os` varchar(255) DEFAULT NULL,
-  `browser` varchar(255) DEFAULT NULL,
-  `login_time` datetime DEFAULT current_timestamp()
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `device` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `os` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `browser` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `login_time` datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -2639,32 +2676,32 @@ INSERT INTO `login_audit` (`id`, `user_id`, `device`, `os`, `browser`, `login_ti
 --
 
 CREATE TABLE `lokal_profiles` (
-  `id` int(11) NOT NULL,
-  `district` varchar(255) DEFAULT NULL,
-  `lokal` varchar(255) DEFAULT NULL,
+  `id` int NOT NULL,
+  `district` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `lokal` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `anniversary` datetime DEFAULT NULL,
-  `serialNumber` varchar(255) DEFAULT NULL,
-  `destinado` varchar(255) DEFAULT NULL,
-  `destinadoContact` varchar(255) DEFAULT NULL,
-  `districtChronicler` varchar(255) DEFAULT NULL,
-  `chroniclerContact` varchar(255) DEFAULT NULL,
-  `districtMinister` varchar(255) DEFAULT NULL,
-  `ministerContact` varchar(255) DEFAULT NULL,
-  `seatingCapacity` int(11) DEFAULT NULL,
-  `distanceFromCentral` varchar(255) DEFAULT NULL,
-  `travelTimeFromCentral` varchar(255) DEFAULT NULL,
-  `internetSpeed` varchar(255) DEFAULT NULL,
-  `ledWall` tinyint(1) DEFAULT 0,
-  `generator` tinyint(1) DEFAULT 0,
-  `preparedBy` varchar(255) DEFAULT NULL,
-  `signature` varchar(255) DEFAULT NULL,
+  `serialNumber` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `destinado` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `destinadoContact` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `districtChronicler` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `chroniclerContact` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `districtMinister` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `ministerContact` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `seatingCapacity` int DEFAULT NULL,
+  `distanceFromCentral` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `travelTimeFromCentral` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `internetSpeed` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `ledWall` tinyint(1) DEFAULT '0',
+  `generator` tinyint(1) DEFAULT '0',
+  `preparedBy` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `signature` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `datePrepared` datetime DEFAULT NULL,
-  `imageUrl` longtext DEFAULT NULL,
-  `scheduleMidweek` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`scheduleMidweek`)),
-  `scheduleWeekend` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`scheduleWeekend`)),
+  `imageUrl` longtext COLLATE utf8mb4_general_ci,
+  `scheduleMidweek` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
+  `scheduleWeekend` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ;
 
 --
 -- Dumping data for table `lokal_profiles`
@@ -2680,9 +2717,9 @@ INSERT INTO `lokal_profiles` (`id`, `district`, `lokal`, `anniversary`, `serialN
 --
 
 CREATE TABLE `nationalities` (
-  `id` int(11) NOT NULL,
-  `country_name` varchar(255) NOT NULL,
-  `nationality` varchar(255) NOT NULL
+  `id` int NOT NULL,
+  `country_name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `nationality` varchar(255) COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -2842,9 +2879,9 @@ INSERT INTO `nationalities` (`id`, `country_name`, `nationality`) VALUES
 --
 
 CREATE TABLE `navgroup` (
-  `groupid` int(11) DEFAULT NULL,
-  `navid` int(11) DEFAULT NULL,
-  `status` int(11) DEFAULT NULL
+  `groupid` int DEFAULT NULL,
+  `navid` int DEFAULT NULL,
+  `status` int DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -2867,12 +2904,12 @@ INSERT INTO `navgroup` (`groupid`, `navid`, `status`) VALUES
 --
 
 CREATE TABLE `navigationlist` (
-  `ID` int(11) NOT NULL,
-  `NavigationName` varchar(50) NOT NULL,
-  `PageName` varchar(50) NOT NULL,
-  `NavType` int(11) NOT NULL,
-  `ParentID` int(11) NOT NULL,
-  `Icon` varchar(50) NOT NULL
+  `ID` int NOT NULL,
+  `NavigationName` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `PageName` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `NavType` int NOT NULL,
+  `ParentID` int NOT NULL,
+  `Icon` varchar(50) COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -2897,14 +2934,14 @@ INSERT INTO `navigationlist` (`ID`, `NavigationName`, `PageName`, `NavType`, `Pa
 --
 
 CREATE TABLE `news_updates` (
-  `id` int(11) NOT NULL,
-  `title` varchar(255) NOT NULL,
-  `excerpt` text DEFAULT NULL,
-  `content` longtext DEFAULT NULL,
-  `author` varchar(100) DEFAULT 'Admin',
-  `category` varchar(50) DEFAULT 'Local',
-  `is_important` tinyint(1) DEFAULT 0,
-  `source_url` varchar(500) DEFAULT NULL,
+  `id` int NOT NULL,
+  `title` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `excerpt` text COLLATE utf8mb4_general_ci,
+  `content` longtext COLLATE utf8mb4_general_ci,
+  `author` varchar(100) COLLATE utf8mb4_general_ci DEFAULT 'Admin',
+  `category` varchar(50) COLLATE utf8mb4_general_ci DEFAULT 'Local',
+  `is_important` tinyint(1) DEFAULT '0',
+  `source_url` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `published_date` datetime DEFAULT NULL,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL
@@ -2924,11 +2961,11 @@ INSERT INTO `news_updates` (`id`, `title`, `excerpt`, `content`, `author`, `cate
 --
 
 CREATE TABLE `permission_categories` (
-  `id` bigint(20) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `description` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` bigint NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `description` text COLLATE utf8mb4_general_ci,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -2954,11 +2991,11 @@ INSERT INTO `permission_categories` (`id`, `name`, `description`, `created_at`, 
 --
 
 CREATE TABLE `permission_category_mappings` (
-  `id` bigint(20) NOT NULL,
-  `permission_id` bigint(20) NOT NULL,
-  `category_id` bigint(20) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` bigint NOT NULL,
+  `permission_id` bigint NOT NULL,
+  `category_id` bigint NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -3048,11 +3085,11 @@ INSERT INTO `permission_category_mappings` (`id`, `permission_id`, `category_id`
 --
 
 CREATE TABLE `permission_definitions` (
-  `id` bigint(20) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `description` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` bigint NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `description` text COLLATE utf8mb4_general_ci,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -3142,9 +3179,9 @@ INSERT INTO `permission_definitions` (`id`, `name`, `description`, `created_at`,
 --
 
 CREATE TABLE `permission_groups` (
-  `id` int(10) UNSIGNED NOT NULL,
-  `name` varchar(191) NOT NULL,
-  `permissions` text DEFAULT NULL,
+  `id` int UNSIGNED NOT NULL,
+  `name` varchar(191) COLLATE utf8mb4_general_ci NOT NULL,
+  `permissions` text COLLATE utf8mb4_general_ci,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -3166,52 +3203,52 @@ INSERT INTO `permission_groups` (`id`, `name`, `permissions`, `created_at`, `upd
 --
 
 CREATE TABLE `personnels` (
-  `personnel_id` bigint(20) NOT NULL,
-  `reference_number` varchar(25) NOT NULL,
-  `enrollment_progress` varchar(255) DEFAULT NULL,
-  `personnel_progress` varchar(255) DEFAULT NULL,
-  `gender` varchar(50) DEFAULT NULL,
-  `civil_status` varchar(50) DEFAULT NULL,
+  `personnel_id` bigint NOT NULL,
+  `reference_number` varchar(25) COLLATE utf8mb4_general_ci NOT NULL,
+  `enrollment_progress` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `personnel_progress` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `gender` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `civil_status` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `wedding_anniversary` date DEFAULT NULL,
-  `givenname` varchar(50) DEFAULT NULL,
-  `middlename` text DEFAULT NULL,
-  `surname_maiden` varchar(50) DEFAULT NULL,
-  `surname_husband` varchar(50) DEFAULT NULL,
-  `suffix` text DEFAULT NULL,
-  `nickname` varchar(50) DEFAULT NULL,
-  `registered_district_id` int(11) DEFAULT NULL,
-  `registered_local_congregation` int(11) DEFAULT NULL,
+  `givenname` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `middlename` text COLLATE utf8mb4_general_ci,
+  `surname_maiden` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `surname_husband` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `suffix` text COLLATE utf8mb4_general_ci,
+  `nickname` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `registered_district_id` int DEFAULT NULL,
+  `registered_local_congregation` int DEFAULT NULL,
   `date_of_birth` date DEFAULT NULL,
-  `place_of_birth` varchar(50) DEFAULT NULL,
+  `place_of_birth` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `datejoined` date DEFAULT NULL,
-  `language_id` varchar(255) DEFAULT NULL,
-  `bloodtype` varchar(10) DEFAULT NULL,
-  `work_email_address` varchar(50) DEFAULT NULL,
-  `email_address` varchar(50) DEFAULT NULL,
-  `citizenship` varchar(255) DEFAULT NULL,
-  `nationality` int(11) DEFAULT NULL,
-  `department_id` int(11) DEFAULT NULL,
-  `section_id` int(11) DEFAULT NULL,
-  `subsection_id` int(11) DEFAULT NULL,
-  `designation_id` int(11) DEFAULT NULL,
-  `district_id` int(11) DEFAULT NULL,
-  `local_congregation` int(11) DEFAULT NULL,
-  `is_offered` int(11) DEFAULT NULL,
-  `minister_officiated` varchar(50) DEFAULT NULL,
+  `language_id` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `bloodtype` varchar(10) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `work_email_address` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `email_address` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `citizenship` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nationality` int DEFAULT NULL,
+  `department_id` int DEFAULT NULL,
+  `section_id` int DEFAULT NULL,
+  `subsection_id` int DEFAULT NULL,
+  `designation_id` int DEFAULT NULL,
+  `district_id` int DEFAULT NULL,
+  `local_congregation` int DEFAULT NULL,
+  `is_offered` int DEFAULT NULL,
+  `minister_officiated` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `date_baptized` date DEFAULT NULL,
-  `place_of_baptism` varchar(50) DEFAULT NULL,
-  `local_first_registered` int(11) DEFAULT NULL,
-  `district_first_registered` int(11) DEFAULT NULL,
-  `personnel_type` varchar(50) DEFAULT NULL,
-  `district_assignment_id` int(11) DEFAULT NULL,
-  `local_congregation_assignment` int(11) DEFAULT NULL,
-  `assigned_number` int(11) DEFAULT NULL,
-  `m_status` varchar(50) DEFAULT NULL,
+  `place_of_baptism` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `local_first_registered` int DEFAULT NULL,
+  `district_first_registered` int DEFAULT NULL,
+  `personnel_type` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `district_assignment_id` int DEFAULT NULL,
+  `local_congregation_assignment` int DEFAULT NULL,
+  `assigned_number` int DEFAULT NULL,
+  `m_status` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `panunumpa_date` date DEFAULT NULL,
   `ordination_date` date DEFAULT NULL,
-  `rfid_code` varchar(100) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `rfid_code` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `deleted_at` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -3280,11 +3317,11 @@ INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progre
 --
 
 CREATE TABLE `personnel_activity_logs` (
-  `id` int(11) NOT NULL,
-  `personnel_id` bigint(20) NOT NULL,
-  `action` enum('In','Out') NOT NULL,
-  `reason` varchar(255) DEFAULT NULL,
-  `performed_by` varchar(100) DEFAULT NULL,
+  `id` int NOT NULL,
+  `personnel_id` bigint NOT NULL,
+  `action` enum('In','Out') COLLATE utf8mb4_general_ci NOT NULL,
+  `reason` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `performed_by` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `timestamp` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -3313,12 +3350,12 @@ INSERT INTO `personnel_activity_logs` (`id`, `personnel_id`, `action`, `reason`,
 --
 
 CREATE TABLE `personnel_address` (
-  `id` int(11) NOT NULL,
-  `personnel_id` int(11) NOT NULL,
-  `address_type` varchar(50) NOT NULL,
-  `name` varchar(250) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` int NOT NULL,
+  `personnel_id` int NOT NULL,
+  `address_type` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `name` varchar(250) COLLATE utf8mb4_general_ci NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -3384,11 +3421,11 @@ INSERT INTO `personnel_address` (`id`, `personnel_id`, `address_type`, `name`, `
 --
 
 CREATE TABLE `personnel_church_duties` (
-  `id` bigint(20) NOT NULL,
-  `personnel_id` bigint(20) NOT NULL,
-  `duty` varchar(50) DEFAULT NULL,
-  `start_year` int(11) DEFAULT NULL,
-  `end_year` int(11) DEFAULT NULL,
+  `id` bigint NOT NULL,
+  `personnel_id` bigint NOT NULL,
+  `duty` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `start_year` int DEFAULT NULL,
+  `end_year` int DEFAULT NULL,
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -3408,14 +3445,14 @@ INSERT INTO `personnel_church_duties` (`id`, `personnel_id`, `duty`, `start_year
 --
 
 CREATE TABLE `personnel_contacts` (
-  `id` bigint(20) NOT NULL,
-  `personnel_id` int(11) NOT NULL,
-  `contactype_id` int(11) NOT NULL,
-  `contact_info` varchar(30) DEFAULT NULL,
-  `contact_location` varchar(50) DEFAULT NULL,
-  `extension` varchar(50) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` bigint NOT NULL,
+  `personnel_id` int NOT NULL,
+  `contactype_id` int NOT NULL,
+  `contact_info` varchar(30) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `contact_location` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `extension` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -3502,17 +3539,17 @@ INSERT INTO `personnel_contacts` (`id`, `personnel_id`, `contactype_id`, `contac
 --
 
 CREATE TABLE `personnel_documents` (
-  `id` int(11) NOT NULL,
-  `document_id` int(11) NOT NULL,
-  `personnel_id` int(11) NOT NULL,
-  `document_type_id` int(11) DEFAULT NULL,
-  `file_name` varchar(255) DEFAULT NULL,
-  `file_path` varchar(255) DEFAULT NULL,
-  `uploaded_by` int(11) DEFAULT NULL,
-  `upload_date` timestamp NOT NULL DEFAULT current_timestamp(),
-  `description` text DEFAULT NULL,
+  `id` int NOT NULL,
+  `document_id` int NOT NULL,
+  `personnel_id` int NOT NULL,
+  `document_type_id` int DEFAULT NULL,
+  `file_name` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `file_path` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `uploaded_by` int DEFAULT NULL,
+  `upload_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `description` text COLLATE utf8mb4_general_ci,
   `expiration_date` date DEFAULT NULL,
-  `status` enum('active','expired') DEFAULT NULL
+  `status` enum('active','expired') COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -3522,10 +3559,10 @@ CREATE TABLE `personnel_documents` (
 --
 
 CREATE TABLE `personnel_gov_id` (
-  `id` int(11) NOT NULL,
-  `personnel_id` int(11) NOT NULL,
-  `gov_id` varchar(20) NOT NULL,
-  `gov_issued_id` varchar(50) NOT NULL
+  `id` int NOT NULL,
+  `personnel_id` int NOT NULL,
+  `gov_id` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
+  `gov_issued_id` varchar(50) COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -3566,18 +3603,18 @@ INSERT INTO `personnel_gov_id` (`id`, `personnel_id`, `gov_id`, `gov_issued_id`)
 --
 
 CREATE TABLE `personnel_history` (
-  `id` int(11) NOT NULL,
-  `personnel_id` int(11) NOT NULL,
-  `prepared_by` int(11) DEFAULT NULL,
-  `department_id` int(11) DEFAULT NULL,
-  `sec_id` int(11) DEFAULT NULL,
-  `subsection_id` int(11) DEFAULT NULL,
-  `designation_id` int(11) DEFAULT NULL,
-  `personnelstatus` varchar(25) NOT NULL,
+  `id` int NOT NULL,
+  `personnel_id` int NOT NULL,
+  `prepared_by` int DEFAULT NULL,
+  `department_id` int DEFAULT NULL,
+  `sec_id` int DEFAULT NULL,
+  `subsection_id` int DEFAULT NULL,
+  `designation_id` int DEFAULT NULL,
+  `personnelstatus` varchar(25) COLLATE utf8mb4_general_ci NOT NULL,
   `date` date NOT NULL,
-  `reason_for_leaving` varchar(150) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `reason_for_leaving` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -3587,12 +3624,12 @@ CREATE TABLE `personnel_history` (
 --
 
 CREATE TABLE `personnel_images` (
-  `id` int(11) NOT NULL,
-  `personnel_id` int(11) NOT NULL,
-  `type` varchar(25) NOT NULL,
-  `image_url` text NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` int NOT NULL,
+  `personnel_id` int NOT NULL,
+  `type` varchar(25) COLLATE utf8mb4_general_ci NOT NULL,
+  `image_url` text COLLATE utf8mb4_general_ci NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -3638,16 +3675,16 @@ INSERT INTO `personnel_images` (`id`, `personnel_id`, `type`, `image_url`, `crea
 --
 
 CREATE TABLE `phone_directories` (
-  `id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `location` varchar(255) NOT NULL,
-  `prefix` varchar(50) NOT NULL,
-  `extension` varchar(50) NOT NULL,
-  `dect_number` varchar(50) DEFAULT NULL,
-  `phone_name` varchar(255) NOT NULL,
-  `is_active` tinyint(1) DEFAULT 1,
-  `createdAt` datetime DEFAULT current_timestamp(),
-  `updatedAt` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` int NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `location` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `prefix` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `extension` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `dect_number` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `phone_name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `is_active` tinyint(1) DEFAULT '1',
+  `createdAt` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -3781,8 +3818,8 @@ INSERT INTO `phone_directories` (`id`, `name`, `location`, `prefix`, `extension`
 --
 
 CREATE TABLE `phone_locations` (
-  `id` int(11) NOT NULL,
-  `name` varchar(50) NOT NULL,
+  `id` int NOT NULL,
+  `name` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -3815,15 +3852,15 @@ INSERT INTO `phone_locations` (`id`, `name`, `created_at`, `updated_at`) VALUES
 --
 
 CREATE TABLE `reminders` (
-  `id` int(11) NOT NULL,
-  `title` varchar(50) DEFAULT NULL,
-  `description` varchar(100) DEFAULT NULL,
+  `id` int NOT NULL,
+  `title` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `description` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `reminder_date` date NOT NULL,
   `time` time NOT NULL,
-  `message` varchar(300) DEFAULT NULL,
-  `created_by` int(11) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `message` varchar(300) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_by` int NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -3842,12 +3879,12 @@ INSERT INTO `reminders` (`id`, `title`, `description`, `reminder_date`, `time`, 
 --
 
 CREATE TABLE `sections` (
-  `id` int(11) NOT NULL,
-  `department_id` int(11) NOT NULL,
-  `name` varchar(50) NOT NULL,
-  `image_url` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` int NOT NULL,
+  `department_id` int NOT NULL,
+  `name` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `image_url` text COLLATE utf8mb4_general_ci,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -4104,8 +4141,8 @@ INSERT INTO `sections` (`id`, `department_id`, `name`, `image_url`, `created_at`
 --
 
 CREATE TABLE `settings` (
-  `setting_key` varchar(255) NOT NULL,
-  `setting_value` varchar(255) NOT NULL
+  `setting_key` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `setting_value` varchar(255) COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -4115,13 +4152,13 @@ CREATE TABLE `settings` (
 --
 
 CREATE TABLE `subsections` (
-  `id` int(11) NOT NULL,
-  `department_id` int(11) NOT NULL,
-  `section_id` int(11) NOT NULL,
-  `name` varchar(50) NOT NULL,
-  `image_url` text NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` int NOT NULL,
+  `department_id` int NOT NULL,
+  `section_id` int NOT NULL,
+  `name` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `image_url` text COLLATE utf8mb4_general_ci NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -4144,13 +4181,13 @@ INSERT INTO `subsections` (`id`, `department_id`, `section_id`, `name`, `image_u
 --
 
 CREATE TABLE `suguan` (
-  `id` int(11) NOT NULL,
-  `name` varchar(50) NOT NULL,
-  `district_id` int(11) NOT NULL,
-  `local_congregation` varchar(50) NOT NULL,
+  `id` int NOT NULL,
+  `name` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `district_id` int NOT NULL,
+  `local_congregation` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
   `date` datetime NOT NULL,
   `time` time NOT NULL,
-  `gampanin_id` int(11) NOT NULL
+  `gampanin_id` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -4182,16 +4219,16 @@ INSERT INTO `suguan` (`id`, `name`, `district_id`, `local_congregation`, `date`,
 --
 
 CREATE TABLE `users` (
-  `ID` int(11) NOT NULL,
-  `uid` varchar(25) DEFAULT NULL,
-  `personnel_id` int(11) DEFAULT NULL,
-  `avatar` text DEFAULT NULL,
-  `username` varchar(25) DEFAULT NULL,
-  `password` varchar(150) NOT NULL,
-  `isLoggedIn` tinyint(4) DEFAULT NULL,
+  `ID` int NOT NULL,
+  `uid` varchar(25) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `personnel_id` int DEFAULT NULL,
+  `avatar` text COLLATE utf8mb4_general_ci,
+  `username` varchar(25) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `password` varchar(150) COLLATE utf8mb4_general_ci NOT NULL,
+  `isLoggedIn` tinyint DEFAULT NULL,
   `last_login` timestamp NULL DEFAULT NULL,
-  `auth_type` enum('LDAP','Local') NOT NULL,
-  `failed_attempts` int(11) DEFAULT NULL,
+  `auth_type` enum('LDAP','Local') COLLATE utf8mb4_general_ci NOT NULL,
+  `failed_attempts` int DEFAULT NULL,
   `last_failed_attempt` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
@@ -4356,9 +4393,9 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 --
 
 CREATE TABLE `user_appslist` (
-  `id` int(11) NOT NULL,
-  `groupid` int(11) DEFAULT NULL,
-  `appid` int(11) NOT NULL
+  `id` int NOT NULL,
+  `groupid` int DEFAULT NULL,
+  `appid` int NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -4421,11 +4458,11 @@ INSERT INTO `user_appslist` (`id`, `groupid`, `appid`) VALUES
 --
 
 CREATE TABLE `user_groups` (
-  `id` bigint(20) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `description` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` bigint NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `description` text COLLATE utf8mb4_general_ci,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -4452,8 +4489,8 @@ INSERT INTO `user_groups` (`id`, `name`, `description`, `created_at`, `updated_a
 --
 
 CREATE TABLE `user_group_mappings` (
-  `user_id` bigint(20) NOT NULL,
-  `group_id` bigint(20) NOT NULL
+  `user_id` bigint NOT NULL,
+  `group_id` bigint NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -4540,8 +4577,8 @@ INSERT INTO `user_group_mappings` (`user_id`, `group_id`) VALUES
 --
 
 CREATE TABLE `user_navlist` (
-  `groupid` int(11) NOT NULL,
-  `NavID` int(11) NOT NULL
+  `groupid` int NOT NULL,
+  `NavID` int NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -4589,19 +4626,19 @@ INSERT INTO `user_navlist` (`groupid`, `NavID`) VALUES
 --
 
 CREATE TABLE `work_experience` (
-  `id` bigint(20) NOT NULL,
-  `personnel_id` int(11) NOT NULL,
-  `employment_type` varchar(150) DEFAULT NULL,
-  `company` varchar(50) DEFAULT NULL,
-  `address` varchar(150) DEFAULT NULL,
-  `position` varchar(250) DEFAULT NULL,
-  `department` varchar(50) DEFAULT NULL,
-  `section` varchar(50) DEFAULT NULL,
+  `id` bigint NOT NULL,
+  `personnel_id` int NOT NULL,
+  `employment_type` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `company` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `address` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `position` varchar(250) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `department` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `section` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `start_date` date DEFAULT NULL,
   `end_date` date DEFAULT NULL,
-  `reason_for_leaving` varchar(150) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `reason_for_leaving` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -4673,6 +4710,12 @@ ALTER TABLE `available_apps`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_ua_user_id` (`user_id`),
   ADD KEY `idx_ua_app_id` (`app_id`);
+
+--
+-- Indexes for table `ChatHistories`
+--
+ALTER TABLE `ChatHistories`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `chathistories`
@@ -4775,6 +4818,13 @@ ALTER TABLE `housings`
 --
 ALTER TABLE `languages`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `LDAP_Users`
+--
+ALTER TABLE `LDAP_Users`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uid` (`uid`);
 
 --
 -- Indexes for table `ldap_users`
@@ -5006,307 +5056,319 @@ ALTER TABLE `work_experience`
 -- AUTO_INCREMENT for table `applicationtypes`
 --
 ALTER TABLE `applicationtypes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `apps`
 --
 ALTER TABLE `apps`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
 
 --
 -- AUTO_INCREMENT for table `atg_files`
 --
 ALTER TABLE `atg_files`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `available_apps`
 --
 ALTER TABLE `available_apps`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6110;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6110;
+
+--
+-- AUTO_INCREMENT for table `ChatHistories`
+--
+ALTER TABLE `ChatHistories`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `chathistories`
 --
 ALTER TABLE `chathistories`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `children`
 --
 ALTER TABLE `children`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `citizenships`
 --
 ALTER TABLE `citizenships`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=199;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=199;
 
 --
 -- AUTO_INCREMENT for table `contact_type_info`
 --
 ALTER TABLE `contact_type_info`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `departments`
 --
 ALTER TABLE `departments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `designations`
 --
 ALTER TABLE `designations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `districts`
 --
 ALTER TABLE `districts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=94;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=94;
 
 --
 -- AUTO_INCREMENT for table `educational_background`
 --
 ALTER TABLE `educational_background`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=95;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=95;
 
 --
 -- AUTO_INCREMENT for table `events`
 --
 ALTER TABLE `events`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT for table `family_members`
 --
 ALTER TABLE `family_members`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=360;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=360;
 
 --
 -- AUTO_INCREMENT for table `files`
 --
 ALTER TABLE `files`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `file_shares`
 --
 ALTER TABLE `file_shares`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `government_issued_id`
 --
 ALTER TABLE `government_issued_id`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `housings`
 --
 ALTER TABLE `housings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `languages`
 --
 ALTER TABLE `languages`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=160;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=160;
+
+--
+-- AUTO_INCREMENT for table `LDAP_Users`
+--
+ALTER TABLE `LDAP_Users`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `ldap_users`
 --
 ALTER TABLE `ldap_users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `local_congregation`
 --
 ALTER TABLE `local_congregation`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `locations`
 --
 ALTER TABLE `locations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `login_attempts`
 --
 ALTER TABLE `login_attempts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=162;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=162;
 
 --
 -- AUTO_INCREMENT for table `login_audit`
 --
 ALTER TABLE `login_audit`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=573;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=573;
 
 --
 -- AUTO_INCREMENT for table `lokal_profiles`
 --
 ALTER TABLE `lokal_profiles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `nationalities`
 --
 ALTER TABLE `nationalities`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=148;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=148;
 
 --
 -- AUTO_INCREMENT for table `navigationlist`
 --
 ALTER TABLE `navigationlist`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `ID` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `news_updates`
 --
 ALTER TABLE `news_updates`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `permission_categories`
 --
 ALTER TABLE `permission_categories`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `permission_category_mappings`
 --
 ALTER TABLE `permission_category_mappings`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75;
 
 --
 -- AUTO_INCREMENT for table `permission_definitions`
 --
 ALTER TABLE `permission_definitions`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75;
 
 --
 -- AUTO_INCREMENT for table `permission_groups`
 --
 ALTER TABLE `permission_groups`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `personnels`
 --
 ALTER TABLE `personnels`
-  MODIFY `personnel_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=116;
+  MODIFY `personnel_id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=116;
 
 --
 -- AUTO_INCREMENT for table `personnel_activity_logs`
 --
 ALTER TABLE `personnel_activity_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `personnel_address`
 --
 ALTER TABLE `personnel_address`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
 
 --
 -- AUTO_INCREMENT for table `personnel_church_duties`
 --
 ALTER TABLE `personnel_church_duties`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `personnel_contacts`
 --
 ALTER TABLE `personnel_contacts`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=93;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=93;
 
 --
 -- AUTO_INCREMENT for table `personnel_documents`
 --
 ALTER TABLE `personnel_documents`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `personnel_gov_id`
 --
 ALTER TABLE `personnel_gov_id`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- AUTO_INCREMENT for table `personnel_history`
 --
 ALTER TABLE `personnel_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `personnel_images`
 --
 ALTER TABLE `personnel_images`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
 
 --
 -- AUTO_INCREMENT for table `phone_directories`
 --
 ALTER TABLE `phone_directories`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=120;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=120;
 
 --
 -- AUTO_INCREMENT for table `phone_locations`
 --
 ALTER TABLE `phone_locations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `reminders`
 --
 ALTER TABLE `reminders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `sections`
 --
 ALTER TABLE `sections`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=252;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=252;
 
 --
 -- AUTO_INCREMENT for table `subsections`
 --
 ALTER TABLE `subsections`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `suguan`
 --
 ALTER TABLE `suguan`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=162;
+  MODIFY `ID` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=162;
 
 --
 -- AUTO_INCREMENT for table `user_appslist`
 --
 ALTER TABLE `user_appslist`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
 
 --
 -- AUTO_INCREMENT for table `user_groups`
 --
 ALTER TABLE `user_groups`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `work_experience`
 --
 ALTER TABLE `work_experience`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
 
 --
 -- Constraints for dumped tables
@@ -5348,13 +5410,13 @@ ALTER TABLE `permission_category_mappings`
 -- Constraints for table `personnel_activity_logs`
 --
 ALTER TABLE `personnel_activity_logs`
-  ADD CONSTRAINT `personnel_activity_logs_ibfk_1` FOREIGN KEY (`personnel_id`) REFERENCES `personnels` (`personnel_id`) ON DELETE NO ACTION ON UPDATE CASCADE;
+  ADD CONSTRAINT `personnel_activity_logs_ibfk_1` FOREIGN KEY (`personnel_id`) REFERENCES `personnels` (`personnel_id`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `personnel_church_duties`
 --
 ALTER TABLE `personnel_church_duties`
-  ADD CONSTRAINT `personnel_church_duties_ibfk_1` FOREIGN KEY (`personnel_id`) REFERENCES `personnels` (`personnel_id`) ON DELETE NO ACTION ON UPDATE CASCADE;
+  ADD CONSTRAINT `personnel_church_duties_ibfk_1` FOREIGN KEY (`personnel_id`) REFERENCES `personnels` (`personnel_id`) ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

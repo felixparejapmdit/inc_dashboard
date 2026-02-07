@@ -15,7 +15,7 @@ services:
     volumes:
       - ./backend/uploads:/usr/src/app/uploads
     ports:
-      - "${REACT_PORT_HTTP:-5000}:80"
+      - "${REACT_PORT_HTTP:-5000}:5000"
     networks:
       - inc_network
     depends_on:

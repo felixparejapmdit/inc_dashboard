@@ -5,6 +5,7 @@ const axios = require("axios"); // Added axios for API requests
 const User = require("../models/User"); // Your local user model
 const LDAP_Users = require("../models/LDAP_Users"); // Import LDAP_Users model
 const Personnel = require("../models/personnels"); // Import Personnel model
+const UserGroupMapping = require("../models/UserGroupMapping"); // Import UserGroupMapping model
 require("dotenv").config();
 const { generateToken } = require("../utils/jwt"); // Import the generateToken function
 
@@ -214,25 +215,23 @@ const authenticateLocal = async (username, password) => {
   return user;
 };
 
-// ✅ Fetch userId and groupId from API 
+// ✅ Fetch groupId directly from DB
 const getUserGroupId = async (username) => {
   try {
-    const userResponse = await axios.get(`${API_URL}/api/users_access/${username}`);
-    const userId = userResponse.data?.id || userResponse.data?.user_id;
-
-    if (!userId) {
-      console.error("❌ Error: User ID not found for", username);
+    const user = await User.findOne({ where: { username } });
+    if (!user) {
+      console.error("❌ Error: User not found for", username);
       return null;
     }
 
-    const groupResponse = await axios.get(`${API_URL}/api/groups/user/${userId}`);
-    const groupId =
-      groupResponse.data?.groupId ||
-      groupResponse.data?.id ||
-      groupResponse.data?.group_id ||
-      groupResponse.data?.[0]?.groupId;
+    const mapping = await UserGroupMapping.findOne({ where: { user_id: user.id } });
 
-    return groupId;
+    if (!mapping) {
+      // console.warn("⚠️ User has no group assigned:", username);
+      return null;
+    }
+
+    return mapping.group_id;
   } catch (error) {
     console.error("❌ Error fetching user groupId:", error.message);
     return null;

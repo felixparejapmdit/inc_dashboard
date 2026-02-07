@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 5.2.3
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Jul 18, 2025 at 10:23 AM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- Host: db:3306
+-- Generation Time: Feb 07, 2026 at 03:25 AM
+-- Server version: 8.0.45
+-- PHP Version: 8.3.26
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -28,10 +28,10 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `applicationtypes` (
-  `id` int(11) NOT NULL,
-  `name` varchar(150) NOT NULL,
-  `createdAt` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE current_timestamp(),
-  `updatedAt` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE current_timestamp()
+  `id` int NOT NULL,
+  `name` varchar(150) COLLATE utf8mb4_general_ci NOT NULL,
+  `createdAt` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
+  `updatedAt` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -39,7 +39,7 @@ CREATE TABLE `applicationtypes` (
 --
 
 INSERT INTO `applicationtypes` (`id`, `name`, `createdAt`, `updatedAt`) VALUES
-(1, 'PMD Applications', '2025-02-11 03:22:47', '2025-02-11 03:26:56'),
+(1, 'PMD Applications', '2025-07-25 04:01:52', '2025-07-25 04:01:52'),
 (2, 'Others', '2025-02-11 03:29:46', '2025-02-11 03:29:46'),
 (5, 'AI', '2025-02-12 06:32:33', '2025-02-12 06:32:33'),
 (6, 'Management Servers', '2025-03-20 11:03:57', '2025-03-20 11:03:57'),
@@ -53,12 +53,12 @@ INSERT INTO `applicationtypes` (`id`, `name`, `createdAt`, `updatedAt`) VALUES
 --
 
 CREATE TABLE `apps` (
-  `id` int(11) NOT NULL,
-  `name` varchar(50) NOT NULL,
-  `url` varchar(50) NOT NULL,
-  `description` varchar(150) DEFAULT NULL,
-  `icon` text DEFAULT NULL,
-  `app_type` int(11) NOT NULL DEFAULT 0
+  `id` int NOT NULL,
+  `name` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `url` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `description` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `icon` text COLLATE utf8mb4_general_ci,
+  `app_type` int NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -122,14 +122,42 @@ INSERT INTO `apps` (`id`, `name`, `url`, `description`, `icon`, `app_type`) VALU
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `atg_files`
+--
+
+CREATE TABLE `atg_files` (
+  `id` int NOT NULL,
+  `filename` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `file_path` varchar(1024) COLLATE utf8mb4_general_ci NOT NULL,
+  `file_type` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `category` varchar(50) COLLATE utf8mb4_general_ci DEFAULT 'General',
+  `uploaded_by` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `createdAt` datetime NOT NULL,
+  `updatedAt` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `atg_files`
+--
+
+INSERT INTO `atg_files` (`id`, `filename`, `file_path`, `file_type`, `category`, `uploaded_by`, `createdAt`, `updatedAt`) VALUES
+(1, 'groups_Image.png', '/uploads/files/1770184182717-groups_Image.png', 'png', 'OrgChart', 'felix.pareja', '2026-02-04 05:49:42', '2026-02-04 05:49:42'),
+(3, 'Lesson 1 - English.pdf', '/uploads/files/1770184217046-Lesson_1_-_English.pdf', 'pdf', 'General', 'felix.pareja', '2026-02-04 05:50:17', '2026-02-04 05:50:17'),
+(4, 'Lesson 2 - English.pdf', '/uploads/files/1770184222014-Lesson_2_-_English.pdf', 'pdf', 'General', 'felix.pareja', '2026-02-04 05:50:22', '2026-02-04 05:50:22'),
+(5, 'BonifacioDrive.jpg', '/uploads/files/1770184332871-BonifacioDrive.jpg', 'jpg', 'OrgChart', 'felix.pareja', '2026-02-04 05:52:12', '2026-02-04 05:52:12'),
+(6, 'groups_Image.png', '/uploads/files/1770185368866-groups_Image.png', 'png', 'OrgChart', 'felix.pareja', '2026-02-04 06:09:28', '2026-02-04 06:09:28');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `available_apps`
 --
 
 CREATE TABLE `available_apps` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `app_id` int(11) NOT NULL,
-  `ldap_group_cn` varchar(50) DEFAULT NULL
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `app_id` int NOT NULL,
+  `ldap_group_cn` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -137,10 +165,8 @@ CREATE TABLE `available_apps` (
 --
 
 INSERT INTO `available_apps` (`id`, `user_id`, `app_id`, `ldap_group_cn`) VALUES
-(3902, 6, 1, ''),
 (3903, 8, 1, ''),
 (3904, 12, 1, ''),
-(3905, 10, 1, ''),
 (3906, 11, 1, ''),
 (3907, 13, 1, ''),
 (3908, 5, 1, ''),
@@ -176,9 +202,6 @@ INSERT INTO `available_apps` (`id`, `user_id`, `app_id`, `ldap_group_cn`) VALUES
 (4589, 75, 26, NULL),
 (4590, 75, 29, NULL),
 (4591, 75, 32, NULL),
-(4596, 77, 24, NULL),
-(4597, 77, 26, NULL),
-(4598, 77, 29, NULL),
 (4603, 78, 32, NULL),
 (4604, 78, 29, NULL),
 (4605, 78, 26, NULL),
@@ -206,10 +229,6 @@ INSERT INTO `available_apps` (`id`, `user_id`, `app_id`, `ldap_group_cn`) VALUES
 (4638, 84, 29, NULL),
 (4639, 84, 26, NULL),
 (4640, 84, 24, NULL),
-(4641, 85, 32, NULL),
-(4642, 85, 29, NULL),
-(4643, 85, 26, NULL),
-(4644, 85, 24, NULL),
 (4645, 86, 26, NULL),
 (4646, 86, 29, NULL),
 (4647, 86, 24, NULL),
@@ -228,10 +247,6 @@ INSERT INTO `available_apps` (`id`, `user_id`, `app_id`, `ldap_group_cn`) VALUES
 (4663, 51, 26, NULL),
 (4664, 51, 32, NULL),
 (4665, 51, 29, NULL),
-(4666, 91, 24, NULL),
-(4667, 91, 26, NULL),
-(4668, 91, 29, NULL),
-(4669, 91, 32, NULL),
 (4670, 92, 24, NULL),
 (4671, 92, 26, NULL),
 (4672, 92, 29, NULL),
@@ -277,10 +292,6 @@ INSERT INTO `available_apps` (`id`, `user_id`, `app_id`, `ldap_group_cn`) VALUES
 (4722, 100, 26, NULL),
 (4723, 100, 29, NULL),
 (4724, 100, 32, NULL),
-(4725, 68, 2, NULL),
-(4726, 68, 26, NULL),
-(4727, 68, 24, NULL),
-(4728, 68, 29, NULL),
 (4729, 102, 24, NULL),
 (4730, 102, 29, NULL),
 (4731, 102, 32, NULL),
@@ -374,39 +385,6 @@ INSERT INTO `available_apps` (`id`, `user_id`, `app_id`, `ldap_group_cn`) VALUES
 (5382, 48, 44, NULL),
 (5383, 48, 45, NULL),
 (5384, 48, 51, NULL),
-(5385, 22, 6, NULL),
-(5386, 22, 4, NULL),
-(5387, 22, 46, NULL),
-(5388, 22, 34, NULL),
-(5389, 22, 24, NULL),
-(5390, 22, 47, NULL),
-(5391, 22, 48, NULL),
-(5392, 22, 49, NULL),
-(5393, 22, 50, NULL),
-(5394, 22, 35, NULL),
-(5395, 22, 2, NULL),
-(5396, 22, 40, NULL),
-(5397, 22, 23, NULL),
-(5398, 22, 8, NULL),
-(5399, 22, 3, NULL),
-(5400, 22, 26, NULL),
-(5401, 22, 25, NULL),
-(5402, 22, 27, NULL),
-(5403, 22, 33, NULL),
-(5404, 22, 51, NULL),
-(5405, 22, 44, NULL),
-(5406, 22, 45, NULL),
-(5407, 22, 36, NULL),
-(5408, 22, 5, NULL),
-(5409, 22, 37, NULL),
-(5410, 22, 29, NULL),
-(5411, 22, 32, NULL),
-(5412, 22, 43, NULL),
-(5413, 22, 42, NULL),
-(5414, 22, 41, NULL),
-(5415, 22, 39, NULL),
-(5416, 22, 38, NULL),
-(5417, 22, 53, NULL),
 (5418, 15, 25, NULL),
 (5419, 15, 34, NULL),
 (5420, 15, 36, NULL),
@@ -484,39 +462,91 @@ INSERT INTO `available_apps` (`id`, `user_id`, `app_id`, `ldap_group_cn`) VALUES
 (5539, 115, 29, NULL),
 (5540, 115, 26, NULL),
 (5541, 115, 24, NULL),
-(5575, 46, 50, NULL),
-(5576, 46, 25, NULL),
-(5577, 46, 37, NULL),
-(5578, 46, 3, NULL),
-(5579, 46, 4, NULL),
-(5580, 46, 5, NULL),
-(5581, 46, 6, NULL),
-(5582, 46, 8, NULL),
-(5583, 46, 23, NULL),
-(5584, 46, 44, NULL),
-(5585, 46, 43, NULL),
-(5586, 46, 42, NULL),
-(5587, 46, 41, NULL),
-(5588, 46, 40, NULL),
-(5589, 46, 38, NULL),
-(5590, 46, 39, NULL),
-(5591, 46, 49, NULL),
-(5592, 46, 51, NULL),
-(5593, 46, 45, NULL),
-(5594, 46, 27, NULL),
-(5595, 46, 29, NULL),
-(5596, 46, 33, NULL),
-(5597, 46, 34, NULL),
-(5598, 46, 35, NULL),
-(5599, 46, 36, NULL),
-(5600, 46, 32, NULL),
-(5601, 46, 2, NULL),
-(5602, 46, 24, NULL),
-(5603, 46, 46, NULL),
-(5604, 46, 47, NULL),
-(5605, 46, 48, NULL),
-(5606, 46, 26, NULL),
-(5607, 46, 53, NULL);
+(5608, 22, 6, NULL),
+(5609, 22, 4, NULL),
+(5610, 22, 46, NULL),
+(5611, 22, 34, NULL),
+(5612, 22, 24, NULL),
+(5613, 22, 47, NULL),
+(5614, 22, 48, NULL),
+(5615, 22, 49, NULL),
+(5616, 22, 50, NULL),
+(5617, 22, 35, NULL),
+(5618, 22, 40, NULL),
+(5619, 22, 23, NULL),
+(5620, 22, 8, NULL),
+(5621, 22, 3, NULL),
+(5622, 22, 26, NULL),
+(5623, 22, 25, NULL),
+(5624, 22, 27, NULL),
+(5625, 22, 33, NULL),
+(5626, 22, 51, NULL),
+(5627, 22, 44, NULL),
+(5628, 22, 45, NULL),
+(5629, 22, 36, NULL),
+(5630, 22, 5, NULL),
+(5631, 22, 37, NULL),
+(5632, 22, 29, NULL),
+(5633, 22, 32, NULL),
+(5634, 22, 43, NULL),
+(5635, 22, 42, NULL),
+(5636, 22, 41, NULL),
+(5637, 22, 39, NULL),
+(5638, 22, 38, NULL),
+(5639, 22, 53, NULL),
+(6016, 46, 4, NULL),
+(6017, 46, 45, NULL),
+(6018, 46, 51, NULL),
+(6019, 46, 46, NULL),
+(6020, 46, 47, NULL),
+(6021, 46, 48, NULL),
+(6022, 46, 49, NULL),
+(6023, 46, 50, NULL),
+(6024, 46, 39, NULL),
+(6025, 46, 38, NULL),
+(6026, 46, 40, NULL),
+(6027, 46, 41, NULL),
+(6028, 46, 42, NULL),
+(6029, 46, 43, NULL),
+(6030, 46, 44, NULL),
+(6031, 46, 33, NULL),
+(6032, 46, 34, NULL),
+(6033, 46, 26, NULL),
+(6034, 46, 24, NULL),
+(6035, 46, 2, NULL),
+(6036, 46, 29, NULL),
+(6037, 46, 8, NULL),
+(6038, 46, 3, NULL),
+(6039, 160, 2, NULL),
+(6040, 160, 29, NULL),
+(6098, 6, 2, NULL),
+(6099, 6, 4, NULL),
+(6100, 6, 29, NULL),
+(6101, 6, 26, NULL),
+(6102, 6, 33, NULL),
+(6103, 6, 51, NULL),
+(6104, 68, 2, NULL),
+(6105, 68, 26, NULL),
+(6106, 68, 24, NULL),
+(6107, 68, 29, NULL),
+(6108, 68, 4, NULL),
+(6109, 68, 3, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `ChatHistories`
+--
+
+CREATE TABLE `ChatHistories` (
+  `id` int NOT NULL,
+  `user_id` varchar(255) NOT NULL,
+  `sender` enum('user','bot') NOT NULL,
+  `message` text NOT NULL,
+  `timestamp` datetime DEFAULT NULL,
+  `createdAt` datetime NOT NULL,
+  `updatedAt` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -525,10 +555,10 @@ INSERT INTO `available_apps` (`id`, `user_id`, `app_id`, `ldap_group_cn`) VALUES
 --
 
 CREATE TABLE `chathistories` (
-  `id` int(11) NOT NULL,
-  `user_id` varchar(255) NOT NULL,
-  `sender` enum('user','bot') NOT NULL,
-  `message` text NOT NULL,
+  `id` int NOT NULL,
+  `user_id` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `sender` enum('user','bot') COLLATE utf8mb4_general_ci NOT NULL,
+  `message` text COLLATE utf8mb4_general_ci NOT NULL,
   `timestamp` datetime DEFAULT NULL,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL
@@ -541,13 +571,13 @@ CREATE TABLE `chathistories` (
 --
 
 CREATE TABLE `children` (
-  `id` bigint(20) NOT NULL,
-  `personnel_id` bigint(20) NOT NULL,
-  `firstname` varchar(50) NOT NULL,
-  `secondname` varchar(50) DEFAULT NULL,
-  `middlname` text DEFAULT NULL,
-  `lastname` varchar(50) NOT NULL,
-  `suffix` text DEFAULT NULL,
+  `id` bigint NOT NULL,
+  `personnel_id` bigint NOT NULL,
+  `firstname` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `secondname` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `middlname` text COLLATE utf8mb4_general_ci,
+  `lastname` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `suffix` text COLLATE utf8mb4_general_ci,
   `date_of_birth` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -558,11 +588,11 @@ CREATE TABLE `children` (
 --
 
 CREATE TABLE `citizenships` (
-  `id` int(11) NOT NULL,
-  `country_name` varchar(100) NOT NULL,
-  `citizenship` varchar(100) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `id` int NOT NULL,
+  `country_name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `citizenship` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -570,7 +600,7 @@ CREATE TABLE `citizenships` (
 --
 
 INSERT INTO `citizenships` (`id`, `country_name`, `citizenship`, `created_at`, `updated_at`) VALUES
-(1, 'Afghanistan', 'Afghan', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
+(1, 'Afghanista', 'Afghan', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
 (2, 'Albania', 'Albanian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
 (3, 'Algeria', 'Algerian', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
 (4, 'Andorra', 'Andorran', '2024-11-11 08:30:29', '2024-11-11 08:30:29'),
@@ -772,8 +802,8 @@ INSERT INTO `citizenships` (`id`, `country_name`, `citizenship`, `created_at`, `
 --
 
 CREATE TABLE `contact_type_info` (
-  `id` int(11) NOT NULL,
-  `name` varchar(100) NOT NULL
+  `id` int NOT NULL,
+  `name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -794,11 +824,11 @@ INSERT INTO `contact_type_info` (`id`, `name`) VALUES
 --
 
 CREATE TABLE `departments` (
-  `id` int(11) NOT NULL,
-  `name` varchar(50) NOT NULL,
-  `image_url` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `id` int NOT NULL,
+  `name` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `image_url` text COLLATE utf8mb4_general_ci,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -806,7 +836,7 @@ CREATE TABLE `departments` (
 --
 
 INSERT INTO `departments` (`id`, `name`, `image_url`, `created_at`, `updated_at`) VALUES
-(1, 'Administrative', NULL, '2024-11-12 01:31:23', '2025-04-12 00:42:02'),
+(1, 'Administrative', NULL, '2024-11-12 01:31:23', '2025-07-25 06:08:54'),
 (8, 'CEBSI', NULL, '2025-01-07 00:59:34', '2025-01-07 00:59:34'),
 (9, 'Legal', NULL, '2025-01-07 00:59:41', '2025-01-07 00:59:48'),
 (10, 'Finance', NULL, '2025-01-07 00:59:57', '2025-01-07 00:59:57'),
@@ -829,12 +859,12 @@ INSERT INTO `departments` (`id`, `name`, `image_url`, `created_at`, `updated_at`
 --
 
 CREATE TABLE `designations` (
-  `id` int(11) NOT NULL,
-  `section_id` int(11) DEFAULT NULL,
-  `subsection_id` int(11) DEFAULT NULL,
-  `name` varchar(50) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` int NOT NULL,
+  `section_id` int DEFAULT NULL,
+  `subsection_id` int DEFAULT NULL,
+  `name` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -842,7 +872,7 @@ CREATE TABLE `designations` (
 --
 
 INSERT INTO `designations` (`id`, `section_id`, `subsection_id`, `name`, `created_at`, `updated_at`) VALUES
-(5, NULL, NULL, 'Section Chief', '2025-03-06 08:33:04', '2025-03-06 08:33:04'),
+(5, NULL, NULL, 'Section Chief123', '2025-07-31 06:53:24', '2025-07-31 06:53:24'),
 (6, NULL, NULL, 'Team Leader', '2025-03-06 08:33:15', '2025-03-06 08:33:15'),
 (7, NULL, NULL, 'Staff', '2025-04-12 00:43:04', '2025-04-12 00:43:04');
 
@@ -853,12 +883,12 @@ INSERT INTO `designations` (`id`, `section_id`, `subsection_id`, `name`, `create
 --
 
 CREATE TABLE `districts` (
-  `id` int(11) NOT NULL,
-  `name` varchar(50) NOT NULL,
-  `code` varchar(10) DEFAULT NULL,
-  `region` varchar(20) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` int NOT NULL,
+  `name` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `code` varchar(10) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `region` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -910,7 +940,7 @@ INSERT INTO `districts` (`id`, `name`, `code`, `region`, `created_at`, `updated_
 (42, 'Cavite', 'cvn', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
 (43, 'Cavite South', 'cvs', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
 (44, 'Cebu City, Cebu', 'cbs', 'Visayas', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
-(45, 'Central', 'cen', 'Luzon', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
+(45, 'Central', 'cen', 'Luzon', '2025-07-25 06:38:46', '2025-07-25 06:38:45'),
 (46, 'Cotabato Norte', 'ctn', 'Mindanao', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
 (47, 'Cotabato South', 'cts', 'Mindanao', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
 (48, 'Davao City', 'dvc', 'Mindanao', '2024-11-29 02:34:44', '2024-11-29 02:34:44'),
@@ -960,19 +990,19 @@ INSERT INTO `districts` (`id`, `name`, `code`, `region`, `created_at`, `updated_
 --
 
 CREATE TABLE `educational_background` (
-  `id` bigint(20) NOT NULL,
-  `personnel_id` int(11) NOT NULL,
-  `level` varchar(50) NOT NULL,
-  `startfrom` int(11) DEFAULT NULL,
-  `completion_year` int(11) DEFAULT NULL,
-  `school` varchar(150) DEFAULT NULL,
-  `field_of_study` varchar(150) DEFAULT NULL,
-  `degree` varchar(150) DEFAULT NULL,
-  `institution` varchar(150) DEFAULT NULL,
-  `professional_licensure_examination` varchar(150) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `certificate_files` varchar(200) DEFAULT NULL
+  `id` bigint NOT NULL,
+  `personnel_id` int NOT NULL,
+  `level` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `startfrom` int DEFAULT NULL,
+  `completion_year` int DEFAULT NULL,
+  `school` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `field_of_study` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `degree` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `institution` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `professional_licensure_examination` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `certificate_files` varchar(200) COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -982,7 +1012,7 @@ CREATE TABLE `educational_background` (
 INSERT INTO `educational_background` (`id`, `personnel_id`, `level`, `startfrom`, `completion_year`, `school`, `field_of_study`, `degree`, `institution`, `professional_licensure_examination`, `created_at`, `updated_at`, `certificate_files`) VALUES
 (19, 68, 'Bachelor\'s Degree', 2010, 2014, 'Philippine Women\'s University', 'Painting', 'Fine Arts', '', '', '2025-01-16 09:58:22', '2025-01-16 09:58:22', '\"[]\"'),
 (20, 67, 'Bachelor\'s Degree', 2010, 2013, 'Kingston University', 'Computing with Business', 'Bachelor of Science', '', '', '2025-01-16 23:04:22', '2025-01-16 23:04:22', '\"[]\"'),
-(21, 10, 'Bachelor\'s Degree', 2007, 2011, 'New Era University', 'IT', 'BS Computer Science', '', '', '2025-01-16 23:47:43', '2025-03-07 04:21:07', '\"[]\"'),
+(21, 10, 'Bachelor\'s Degree', 2007, 2011, 'New Era University', 'IT', 'BS Computer Science', '', '', '2025-01-16 23:47:43', '2025-07-28 03:53:07', '\"[]\"'),
 (23, 71, 'Senior High School', 2016, 2018, 'San Francisco High School', '', '', '', '', '2025-01-21 01:06:32', '2025-01-21 01:06:32', '\"[]\"'),
 (24, 65, 'Senior High School', 2015, 2018, 'Liou-Jia Senior High School', '', '', '', '', '2025-01-21 01:15:08', '2025-01-21 01:15:08', '\"[]\"'),
 (25, 73, 'Senior High School', 2016, 2018, 'Piddig National High School', '', '', '', '', '2025-01-21 05:16:40', '2025-01-21 05:16:40', '\"[]\"'),
@@ -1043,14 +1073,14 @@ INSERT INTO `educational_background` (`id`, `personnel_id`, `level`, `startfrom`
 --
 
 CREATE TABLE `events` (
-  `id` int(11) NOT NULL,
-  `eventName` varchar(50) NOT NULL,
+  `id` int NOT NULL,
+  `eventName` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
   `date` date NOT NULL,
   `time` time NOT NULL,
-  `location_id` int(11) NOT NULL,
-  `recurrence` varchar(20) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `location_id` int NOT NULL,
+  `recurrence` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1058,7 +1088,7 @@ CREATE TABLE `events` (
 --
 
 INSERT INTO `events` (`id`, `eventName`, `date`, `time`, `location_id`, `recurrence`, `created_at`, `updated_at`) VALUES
-(11, 'PANATA', '2024-11-25', '08:30:00', 1, 'weekly', '2024-11-29 05:51:10', '2024-11-29 06:12:36'),
+(11, 'PANATA', '2024-11-25', '08:30:00', 1, 'none', '2024-11-29 05:51:10', '2026-01-30 07:03:28'),
 (19, 'PANATA', '2024-12-02', '16:00:00', 3, 'daily', '2024-12-05 03:47:50', '2024-12-05 03:47:50'),
 (20, 'PANATA', '2024-12-03', '16:00:00', 3, 'daily', '2024-12-05 03:47:50', '2024-12-05 03:47:50'),
 (21, 'PANATA', '2024-12-04', '16:00:00', 3, 'daily', '2024-12-05 03:47:50', '2024-12-05 03:47:50'),
@@ -1070,7 +1100,8 @@ INSERT INTO `events` (`id`, `eventName`, `date`, `time`, `location_id`, `recurre
 (27, 'TRG MEETING', '2024-12-09', '13:30:00', 1, 'weekly', '2024-12-05 03:48:34', '2024-12-05 03:48:34'),
 (28, 'TRG MEETING', '2024-12-16', '13:30:00', 1, 'weekly', '2024-12-05 03:48:34', '2024-12-05 03:48:34'),
 (29, 'TRG MEETING', '2024-12-23', '13:30:00', 1, 'weekly', '2024-12-05 03:48:34', '2024-12-05 03:48:34'),
-(30, 's', '2025-03-07', '12:49:00', 1, 'none', '2025-03-07 00:45:27', '2025-03-07 00:45:27');
+(30, 's', '2025-03-07', '12:49:00', 1, 'none', '2025-03-07 00:45:27', '2025-03-07 00:45:27'),
+(31, 'IT Meeting', '2026-01-30', '16:00:00', 1, 'none', '2026-01-30 07:02:51', '2026-01-30 07:02:51');
 
 -- --------------------------------------------------------
 
@@ -1079,46 +1110,46 @@ INSERT INTO `events` (`id`, `eventName`, `date`, `time`, `location_id`, `recurre
 --
 
 CREATE TABLE `family_members` (
-  `id` bigint(20) NOT NULL,
-  `personnel_id` int(10) UNSIGNED NOT NULL,
-  `relationship_type` enum('Father','Mother','Sibling','Spouse','Child') NOT NULL,
-  `givenname` varchar(50) NOT NULL,
-  `middlename` text DEFAULT NULL,
-  `lastname` varchar(50) NOT NULL,
-  `suffix` text DEFAULT NULL,
-  `gender` enum('Male','Female') DEFAULT NULL,
-  `bloodtype` varchar(10) DEFAULT NULL,
-  `civil_status` varchar(10) DEFAULT NULL,
+  `id` bigint NOT NULL,
+  `personnel_id` int UNSIGNED NOT NULL,
+  `relationship_type` enum('Father','Mother','Sibling','Spouse','Child') COLLATE utf8mb4_general_ci NOT NULL,
+  `givenname` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `middlename` text COLLATE utf8mb4_general_ci,
+  `lastname` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `suffix` text COLLATE utf8mb4_general_ci,
+  `gender` enum('Male','Female') COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `bloodtype` varchar(10) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `civil_status` varchar(10) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `date_of_marriage` date DEFAULT NULL,
-  `place_of_marriage` varchar(50) DEFAULT NULL,
-  `citizenship` int(11) DEFAULT NULL,
-  `nationality` int(11) DEFAULT NULL,
+  `place_of_marriage` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `citizenship` int DEFAULT NULL,
+  `nationality` int DEFAULT NULL,
   `date_of_birth` date DEFAULT NULL,
-  `contact_number` varchar(50) DEFAULT NULL,
-  `church_duties` varchar(50) DEFAULT NULL,
-  `livelihood` varchar(50) DEFAULT NULL,
-  `district_id` int(11) DEFAULT NULL,
-  `local_congregation` int(11) DEFAULT NULL,
-  `minister_officiated` varchar(50) DEFAULT NULL,
-  `employment_type` varchar(50) DEFAULT NULL,
-  `company` varchar(50) DEFAULT NULL,
-  `address` varchar(150) DEFAULT NULL,
-  `position` varchar(50) DEFAULT NULL,
-  `department` varchar(50) DEFAULT NULL,
-  `section` varchar(50) DEFAULT NULL,
+  `contact_number` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `church_duties` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `livelihood` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `district_id` int DEFAULT NULL,
+  `local_congregation` int DEFAULT NULL,
+  `minister_officiated` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `employment_type` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `company` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `address` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `position` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `department` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `section` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `start_date` date DEFAULT NULL,
   `end_date` date DEFAULT NULL,
-  `reason_for_leaving` varchar(150) DEFAULT NULL,
-  `education_level` varchar(50) DEFAULT NULL,
-  `start_year` int(11) DEFAULT NULL,
-  `completion_year` int(11) DEFAULT NULL,
-  `school` varchar(50) DEFAULT NULL,
-  `field_of_study` varchar(50) DEFAULT NULL,
-  `degree` varchar(30) DEFAULT NULL,
-  `institution` varchar(50) DEFAULT NULL,
-  `professional_licensure_examination` varchar(50) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `reason_for_leaving` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `education_level` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `start_year` int DEFAULT NULL,
+  `completion_year` int DEFAULT NULL,
+  `school` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `field_of_study` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `degree` varchar(30) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `institution` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `professional_licensure_examination` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1126,9 +1157,9 @@ CREATE TABLE `family_members` (
 --
 
 INSERT INTO `family_members` (`id`, `personnel_id`, `relationship_type`, `givenname`, `middlename`, `lastname`, `suffix`, `gender`, `bloodtype`, `civil_status`, `date_of_marriage`, `place_of_marriage`, `citizenship`, `nationality`, `date_of_birth`, `contact_number`, `church_duties`, `livelihood`, `district_id`, `local_congregation`, `minister_officiated`, `employment_type`, `company`, `address`, `position`, `department`, `section`, `start_date`, `end_date`, `reason_for_leaving`, `education_level`, `start_year`, `completion_year`, `school`, `field_of_study`, `degree`, `institution`, `professional_licensure_examination`, `created_at`, `updated_at`) VALUES
-(75, 10, 'Father', 'Nepthalie', 'Verano', 'Pareja', 'No Suffix', 'Male', 'A+', 'Married', '1989-11-11', 'San Francisco', 138, 103, '2024-12-18', '232', 'n/a', 'n/a', 90, 4391, '', 'Unemployed', 'test', 'test', 'test', '', '', '2025-04-15', '2025-04-15', 'test', 'Primary Education', 1980, 1986, 'Frisco', '', '', '', '', '2024-12-18 05:44:03', '2025-04-15 04:20:52'),
-(172, 10, 'Sibling', 'Christopher', 'Morales', 'Pareja', 'No Suffix', 'Male', 'B-', 'Married', '2023-11-06', 'Lokal ng Conception', 138, 103, '2024-12-18', '09083765961', 'Minister', 'n/a', 112, 5220, 'asd', 'Unemployed', 'n/a', 'n/a', 'n/a', 'asd', 'asd', NULL, NULL, 'asd', 'Bachelor\'s Degree', 2010, 2012, 'New Era University', 'Management', 'BS Management', 'asd', 'n/a', '2024-12-18 15:53:08', '2025-03-08 10:22:41'),
-(173, 10, 'Sibling', 'Lizbeth', 'Pareja', 'Flores', 'Jr.', 'Female', 'A+', 'Married', '2022-11-11', 'San Francisco', 138, 103, '1996-06-22', '09236925528', 'Finance', 'Business', 51, 2658, '', 'Self-Employed', 'n/a', 'n/a', 'n/a', 'asd', 'asd', NULL, NULL, '', 'Bachelor\'s Degree', 2012, 2016, 'New Era University', 'Management', 'BS Management', '', 'n/a', '2024-12-18 16:42:23', '2025-05-13 04:18:33'),
+(75, 10, 'Father', 'Nepthalie', 'Verano', 'Pareja', 'No Suffix', 'Male', 'A+', 'Married', '1989-11-11', 'San Francisco', 138, 103, '2024-12-18', '232', 'n/a', 'n/a', 2, 39, '', 'Unemployed', 'test', 'test', 'test', '', '', '2025-04-15', '2025-04-15', 'test', 'Primary Education', 1980, 1986, 'Frisco', '', '', '', '', '2024-12-18 05:44:03', '2026-02-01 18:30:46'),
+(172, 10, 'Sibling', 'Christopher12', 'Morales', 'Pareja', 'No Suffix', 'Male', 'B-', 'Married', '2023-11-06', 'Lokal ng Conception', 138, 103, '2024-12-18', '09083765961', 'Minister', 'n/a', 112, 5220, 'asd', 'Unemployed', 'n/a', 'n/a', 'n/a', 'asd', 'asd', NULL, NULL, 'asd', 'Bachelor\'s Degree', 2010, 2012, 'New Era University', 'Management', 'BS Management', 'asd', 'n/a', '2024-12-18 15:53:08', '2025-07-28 04:52:12'),
+(173, 10, 'Sibling', 'Lizbeth', 'Pareja', 'Flores', 'Jr.', 'Female', 'A+', 'Married', '2022-11-11', 'San Francisco', 138, 103, '1996-06-22', '09236925528', 'Finance', 'Business', 51, 2658, '', 'Self-Employed', 'n/a', 'n/a', 'n/a', 'asd', 'asd', NULL, NULL, '', 'Bachelor\'s Degree', 2012, 2016, 'New Era University', 'Management', 'BS Management', '', 'n/a', '2024-12-18 16:42:23', '2026-02-01 19:08:37'),
 (177, 10, 'Mother', 'Alicia', 'Luha', 'Morales', 'No Suffix', 'Female', 'A-', 'Married', NULL, '', 138, 0, '2024-12-20', '121', '', '', 51, 2658, '', 'Contract', 'test', 'test', 'test', '', '', NULL, NULL, '', '', 0, 0, '', '', '', '', '', '2024-12-19 16:10:01', '2025-04-24 05:20:03'),
 (195, 37, 'Father', 'Julianito', 'Nojara', 'Amaro', NULL, 'Male', 'O+', 'Married', '1993-11-19', 'INC Comp., Buluang, Baao, Camarines Sur', 138, 103, '1967-03-10', NULL, 'Deacon', 'Allowance', 77, 3668, NULL, 'Volunteer/Kawani', NULL, 'San Nicolas, Iriga City, Camarines Sur, Philippines', 'Volunteer Watchman', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-10 03:57:07', '2025-04-04 12:41:52'),
 (196, 37, 'Mother', 'Nora', 'Sato', 'Amaro', NULL, 'Female', 'O+', 'Married', '1963-11-19', NULL, NULL, NULL, '1968-08-29', '1234456576', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-10 03:57:28', '2025-04-04 12:42:59'),
@@ -1229,9 +1260,8 @@ INSERT INTO `family_members` (`id`, `personnel_id`, `relationship_type`, `givenn
 (349, 37, 'Mother', 'Nora', NULL, 'Amaro', NULL, 'Female', NULL, NULL, NULL, 'INC Comp., Buluang, Baao, Camarines Sur', NULL, 103, '1968-08-29', '09764987113', 'Deaconess', '', 77, 3668, NULL, 'Unemployed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-04-04 12:46:21', '2025-04-04 12:46:21'),
 (350, 37, 'Mother', 'Nora', NULL, 'Amaro', NULL, 'Female', NULL, NULL, NULL, NULL, NULL, NULL, '1968-08-29', NULL, NULL, NULL, 77, 3668, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-04-04 12:49:35', '2025-04-04 12:49:35'),
 (351, 37, 'Mother', 'Nora', NULL, 'Amaro', NULL, 'Female', NULL, NULL, '1963-11-19', NULL, NULL, NULL, '1968-08-29', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-04-04 12:50:50', '2025-04-04 12:50:50'),
-(352, 10, 'Spouse', 'Jai', NULL, 'Ramos', NULL, NULL, NULL, NULL, NULL, NULL, 138, 103, '2025-04-12', '0926 422 4006', NULL, NULL, 51, 2635, NULL, 'Casual', 'as', 'asd', 'test', NULL, NULL, NULL, NULL, NULL, 'Bachelor\'s Degree', 2007, 2011, 'asd', 'asd', 'dsa', NULL, 'asd', '2025-04-12 01:14:21', '2025-04-24 05:42:36'),
-(353, 10, 'Child', 'Kevin', 'Ramos', 'Pareja', 'No Suffix', 'Male', '', '', NULL, '', NULL, NULL, '2023-04-24', '123', '', '', NULL, NULL, '', '', '', '', 'Programmer', '', '', NULL, NULL, '', '', NULL, NULL, '', '', '', '', '', '2025-04-24 05:23:13', '2025-04-26 04:18:25'),
-(354, 10, 'Child', 'Jane', 'Ramos', 'Pareja', '', 'Female', '', '', NULL, '', NULL, NULL, '2024-04-26', '', '', '', NULL, NULL, '', '', '', '', 'Manager', '', '', NULL, NULL, '', '', NULL, NULL, '', '', '', '', '', '2025-04-26 06:25:53', '2025-04-26 06:25:53');
+(352, 10, 'Spouse', 'Jai', 'aasd', 'Ramos', NULL, NULL, NULL, 'Married', NULL, NULL, 138, 103, '2025-04-12', '0926 422 4006', NULL, NULL, 51, 2635, NULL, 'Casual', 'as', 'asd', 'test', NULL, NULL, NULL, NULL, NULL, 'Bachelor\'s Degree', 2007, 2011, 'asd', 'asd', 'dsa', NULL, 'asd', '2025-04-12 01:14:21', '2026-02-01 19:18:51'),
+(359, 10, 'Child', 'Kevin James', 'San Pedro', 'Pareja', '', 'Male', '', '', NULL, '', NULL, NULL, '2024-02-04', '', '', '', NULL, NULL, '', '', '', '', '', '', '', NULL, NULL, '', '', NULL, NULL, '', '', '', '', '', '2026-02-04 04:15:50', '2026-02-04 04:15:50');
 
 -- --------------------------------------------------------
 
@@ -1240,24 +1270,27 @@ INSERT INTO `family_members` (`id`, `personnel_id`, `relationship_type`, `givenn
 --
 
 CREATE TABLE `files` (
-  `id` int(11) NOT NULL,
-  `filename` varchar(255) NOT NULL,
-  `url` varchar(255) NOT NULL,
-  `generated_code` varchar(50) NOT NULL,
-  `qrcode` varchar(50) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  `updated_at` datetime NOT NULL DEFAULT current_timestamp()
+  `id` int NOT NULL,
+  `filename` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `url` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `generated_code` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `thumbnail` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `qrcode` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `user_id` int NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `files`
 --
 
-INSERT INTO `files` (`id`, `filename`, `url`, `generated_code`, `qrcode`, `user_id`, `created_at`, `updated_at`) VALUES
-(16, 'TEST', 'https://drive.pmdmc.net/s/wMSkEZENTNM45Qz', 'RF15', 'RF15', 46, '2025-04-11 06:58:01', '2025-04-11 06:58:01'),
-(17, 'TEST 1', 'https://www.google.com/', 'GB31', 'GB31', 46, '2025-04-12 00:46:49', '2025-04-12 00:46:49'),
-(18, 'TEST 2', 'http://localhost:8080/phpmyadmin/', 'FK37', 'FK37', 46, '2025-04-12 02:40:24', '2025-04-12 02:40:24');
+INSERT INTO `files` (`id`, `filename`, `url`, `generated_code`, `thumbnail`, `qrcode`, `user_id`, `created_at`, `updated_at`) VALUES
+(16, 'TEST', 'https://drive.pmdmc.net/s/wMSkEZENTNM45Qz', 'RF15', NULL, 'RF15', 46, '2025-04-11 06:58:01', '2025-04-11 06:58:01'),
+(17, 'TEST 1', 'https://www.google.com/', 'GB31', NULL, 'GB31', 46, '2025-04-12 00:46:49', '2025-04-12 00:46:49'),
+(18, 'TEST 2', 'http://localhost:8080/phpmyadmin/', 'FK37', NULL, 'FK37', 46, '2025-04-12 02:40:24', '2025-04-12 02:40:24'),
+(19, 'TEST 3', 'http://172.18.162.62:3307/admin/settings/flows', 'BD82', NULL, 'BD82', 46, '2025-08-01 03:28:42', '2025-08-01 03:28:42'),
+(20, 'TEST', 'https://www.espn.com/nba/', 'JF10', NULL, 'JF10', 68, '2026-02-02 02:56:43', '2026-02-02 02:56:43');
 
 -- --------------------------------------------------------
 
@@ -1266,10 +1299,10 @@ INSERT INTO `files` (`id`, `filename`, `url`, `generated_code`, `qrcode`, `user_
 --
 
 CREATE TABLE `file_shares` (
-  `id` int(11) NOT NULL,
-  `file_id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `shared_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `id` int NOT NULL,
+  `file_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `shared_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1277,7 +1310,10 @@ CREATE TABLE `file_shares` (
 --
 
 INSERT INTO `file_shares` (`id`, `file_id`, `user_id`, `shared_at`) VALUES
-(2, 16, 68, '2025-04-11 07:39:28');
+(2, 16, 68, '2025-04-11 07:39:28'),
+(3, 18, 68, '2026-02-02 02:49:30'),
+(4, 19, 68, '2026-02-02 07:45:30'),
+(5, 19, 6, '2026-02-05 07:22:05');
 
 -- --------------------------------------------------------
 
@@ -1286,8 +1322,8 @@ INSERT INTO `file_shares` (`id`, `file_id`, `user_id`, `shared_at`) VALUES
 --
 
 CREATE TABLE `government_issued_id` (
-  `id` int(11) NOT NULL,
-  `name` varchar(250) NOT NULL
+  `id` int NOT NULL,
+  `name` varchar(250) COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1321,10 +1357,10 @@ INSERT INTO `government_issued_id` (`id`, `name`) VALUES
 --
 
 CREATE TABLE `group_permission_mappings` (
-  `group_id` bigint(20) NOT NULL,
-  `permission_id` bigint(20) NOT NULL,
-  `category_id` bigint(20) NOT NULL,
-  `accessrights` int(11) NOT NULL
+  `group_id` bigint NOT NULL,
+  `permission_id` bigint NOT NULL,
+  `category_id` bigint NOT NULL,
+  `accessrights` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1358,6 +1394,7 @@ INSERT INTO `group_permission_mappings` (`group_id`, `permission_id`, `category_
 (1, 24, 5, 1),
 (1, 25, 5, 1),
 (1, 26, 5, 1),
+(1, 27, 6, 1),
 (1, 28, 4, 1),
 (1, 29, 4, 1),
 (1, 30, 7, 1),
@@ -1393,7 +1430,18 @@ INSERT INTO `group_permission_mappings` (`group_id`, `permission_id`, `category_
 (1, 60, 4, 1),
 (1, 61, 2, 1),
 (1, 62, 7, 1),
+(1, 63, 7, 1),
 (1, 64, 9, 1),
+(1, 65, 4, 1),
+(1, 66, 4, 1),
+(1, 67, 5, 1),
+(1, 68, 4, 1),
+(1, 69, 4, 1),
+(1, 70, 6, 1),
+(1, 71, 6, 1),
+(1, 72, 11, 1),
+(1, 73, 10, 0),
+(1, 74, 8, 1),
 (2, 1, 4, 1),
 (2, 14, 4, 1),
 (2, 15, 4, 0),
@@ -1422,6 +1470,38 @@ INSERT INTO `group_permission_mappings` (`group_id`, `permission_id`, `category_
 (3, 55, 4, 1),
 (3, 56, 4, 1),
 (3, 57, 4, 1),
+(5, 16, 3, 1),
+(5, 17, 3, 1),
+(5, 18, 3, 1),
+(5, 19, 2, 1),
+(5, 21, 3, 1),
+(5, 22, 2, 1),
+(5, 29, 7, 1),
+(5, 30, 7, 1),
+(5, 31, 7, 1),
+(5, 32, 7, 1),
+(5, 33, 7, 1),
+(5, 34, 7, 1),
+(5, 35, 7, 1),
+(5, 36, 7, 1),
+(5, 37, 7, 1),
+(5, 38, 7, 1),
+(5, 47, 3, 1),
+(5, 48, 3, 1),
+(5, 49, 8, 1),
+(5, 51, 4, 1),
+(5, 52, 2, 1),
+(5, 53, 4, 1),
+(5, 54, 4, 1),
+(5, 55, 4, 1),
+(5, 56, 4, 1),
+(5, 57, 4, 1),
+(5, 58, 4, 1),
+(5, 59, 4, 1),
+(5, 60, 4, 0),
+(5, 61, 2, 1),
+(5, 62, 7, 1),
+(5, 63, 7, 1),
 (13, 19, 2, 1),
 (13, 21, 3, 1),
 (13, 22, 2, 1),
@@ -1540,14 +1620,23 @@ INSERT INTO `group_permission_mappings` (`group_id`, `permission_id`, `category_
 --
 
 CREATE TABLE `housings` (
-  `id` int(11) NOT NULL,
-  `building_name` varchar(255) NOT NULL,
-  `floor` varchar(255) NOT NULL,
-  `room` varchar(255) NOT NULL,
-  `description` text DEFAULT NULL,
+  `id` int NOT NULL,
+  `building_name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `floor` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `room` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `description` text COLLATE utf8mb4_general_ci,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `housings`
+--
+
+INSERT INTO `housings` (`id`, `building_name`, `floor`, `room`, `description`, `createdAt`, `updatedAt`) VALUES
+(3, '121212', 'asasd', 'asdasd', 'asdasd', '2025-07-25 07:40:24', '2025-07-25 07:49:12'),
+(4, 'a', 'asd', 'asd', 'asd', '2025-07-25 07:49:36', '2025-07-25 07:49:36'),
+(5, 'asd', 'asd', 'asd', 'asd', '2025-07-25 07:49:47', '2025-07-25 07:49:47');
 
 -- --------------------------------------------------------
 
@@ -1556,11 +1645,11 @@ CREATE TABLE `housings` (
 --
 
 CREATE TABLE `languages` (
-  `id` int(11) NOT NULL,
-  `country_name` varchar(255) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` int NOT NULL,
+  `country_name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1568,7 +1657,7 @@ CREATE TABLE `languages` (
 --
 
 INSERT INTO `languages` (`id`, `country_name`, `name`, `created_at`, `updated_at`) VALUES
-(1, 'Afghanistan', 'Pashto', '2025-02-18 07:28:02', '2025-02-18 07:28:02'),
+(1, 'Afghanistan', 'Pashto', '2025-02-18 07:28:02', '2025-07-26 05:57:29'),
 (2, 'Afghanistan', 'Dari', '2025-02-18 07:28:02', '2025-02-18 07:28:02'),
 (3, 'Albania', 'Albanian', '2025-02-18 07:28:02', '2025-02-18 07:28:02'),
 (4, 'Algeria', 'Arabic', '2025-02-18 07:28:02', '2025-02-18 07:28:02'),
@@ -1723,7 +1812,29 @@ INSERT INTO `languages` (`id`, `country_name`, `name`, `created_at`, `updated_at
 (153, 'Spain', 'Spanish', '2025-02-18 07:28:02', '2025-02-18 07:28:02'),
 (154, 'United Kingdom', 'English', '2025-02-18 07:28:02', '2025-02-18 07:28:02'),
 (155, 'United States', 'English', '2025-02-18 07:28:02', '2025-02-18 07:28:02'),
-(156, 'Hongkong', 'Cantonese', '2025-03-07 02:01:58', '2025-03-07 02:01:58');
+(156, 'Hongkong', 'Cantonese', '2025-03-07 02:01:58', '2025-03-07 02:01:58'),
+(159, 'test111111', 'test222', '2025-07-25 08:09:49', '2025-07-25 08:13:04');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `LDAP_Users`
+--
+
+CREATE TABLE `LDAP_Users` (
+  `id` int NOT NULL,
+  `cn` varchar(25) NOT NULL,
+  `gidNumber` int DEFAULT NULL,
+  `givenName` varchar(25) NOT NULL,
+  `homeDirectory` varchar(50) DEFAULT NULL,
+  `mail` varchar(50) DEFAULT NULL,
+  `sn` varchar(25) NOT NULL,
+  `uid` varchar(25) NOT NULL,
+  `uidNumber` int DEFAULT NULL,
+  `userPassword` varchar(255) NOT NULL,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -1732,16 +1843,16 @@ INSERT INTO `languages` (`id`, `country_name`, `name`, `created_at`, `updated_at
 --
 
 CREATE TABLE `ldap_users` (
-  `id` int(11) NOT NULL,
-  `cn` varchar(25) NOT NULL,
-  `gidNumber` int(11) DEFAULT NULL,
-  `givenName` varchar(25) NOT NULL,
-  `homeDirectory` varchar(50) DEFAULT NULL,
-  `mail` varchar(50) DEFAULT NULL,
-  `sn` varchar(25) NOT NULL,
-  `uid` varchar(25) NOT NULL,
-  `uidNumber` int(11) DEFAULT NULL,
-  `userPassword` varchar(255) NOT NULL,
+  `id` int NOT NULL,
+  `cn` varchar(25) COLLATE utf8mb4_general_ci NOT NULL,
+  `gidNumber` int DEFAULT NULL,
+  `givenName` varchar(25) COLLATE utf8mb4_general_ci NOT NULL,
+  `homeDirectory` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `mail` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `sn` varchar(25) COLLATE utf8mb4_general_ci NOT NULL,
+  `uid` varchar(25) COLLATE utf8mb4_general_ci NOT NULL,
+  `uidNumber` int DEFAULT NULL,
+  `userPassword` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -1753,9 +1864,9 @@ CREATE TABLE `ldap_users` (
 --
 
 CREATE TABLE `local_congregation` (
-  `id` int(11) NOT NULL,
-  `district_id` int(11) NOT NULL,
-  `name` varchar(100) NOT NULL,
+  `id` int NOT NULL,
+  `district_id` int NOT NULL,
+  `name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -1767,10 +1878,10 @@ CREATE TABLE `local_congregation` (
 --
 
 CREATE TABLE `locations` (
-  `id` int(11) NOT NULL,
-  `name` varchar(50) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` int NOT NULL,
+  `name` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1789,10 +1900,10 @@ INSERT INTO `locations` (`id`, `name`, `created_at`, `updated_at`) VALUES
 --
 
 CREATE TABLE `login_attempts` (
-  `id` int(11) NOT NULL,
-  `username` varchar(191) NOT NULL,
-  `remote_ip` varchar(45) DEFAULT NULL,
-  `user_agent` varchar(191) DEFAULT NULL,
+  `id` int NOT NULL,
+  `username` varchar(191) COLLATE utf8mb4_general_ci NOT NULL,
+  `remote_ip` varchar(45) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `user_agent` varchar(191) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `successful` tinyint(1) NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
@@ -1972,12 +2083,12 @@ INSERT INTO `login_attempts` (`id`, `username`, `remote_ip`, `user_agent`, `succ
 --
 
 CREATE TABLE `login_audit` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `device` varchar(255) DEFAULT NULL,
-  `os` varchar(255) DEFAULT NULL,
-  `browser` varchar(255) DEFAULT NULL,
-  `login_time` datetime DEFAULT current_timestamp()
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `device` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `os` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `browser` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `login_time` datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -2040,7 +2151,523 @@ INSERT INTO `login_audit` (`id`, `user_id`, `device`, `os`, `browser`, `login_ti
 (53, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-07-16 03:42:11'),
 (54, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-07-17 06:12:40'),
 (55, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-07-18 04:25:18'),
-(56, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-07-18 04:55:03');
+(56, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-07-18 04:55:03'),
+(57, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-07-24 09:50:43'),
+(58, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-07-24 09:57:13'),
+(59, 46, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-07-24 10:01:42'),
+(60, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-07-24 10:56:54'),
+(61, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-07-24 10:57:10'),
+(62, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-07-24 10:57:56'),
+(63, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-07-24 10:59:19'),
+(64, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-07-24 10:59:24'),
+(65, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-07-24 10:59:25'),
+(66, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-07-24 10:59:26'),
+(67, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-07-24 10:59:27'),
+(68, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-07-24 10:59:28'),
+(69, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-07-24 10:59:29'),
+(70, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-07-24 10:59:30'),
+(71, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-07-24 10:59:31'),
+(72, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-07-24 10:59:32'),
+(73, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-07-24 10:59:33'),
+(74, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-07-24 11:01:23'),
+(75, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-07-24 11:01:33'),
+(76, 46, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-07-24 11:02:52'),
+(77, 46, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-07-24 11:03:54'),
+(78, 22, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-07-24 11:04:00'),
+(79, 22, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-07-24 11:04:55'),
+(80, 22, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-07-24 11:05:12'),
+(81, 22, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-07-24 11:05:31'),
+(82, 22, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-07-24 11:06:44'),
+(83, 22, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-07-24 11:07:36'),
+(84, 46, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-07-24 11:08:28'),
+(85, 46, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-07-24 11:13:47'),
+(86, 46, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-07-24 11:14:34'),
+(87, 46, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-07-24 11:16:54'),
+(88, 46, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-07-24 11:16:55'),
+(89, 46, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-07-24 11:16:56'),
+(90, 46, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-07-24 11:16:57'),
+(91, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-07-24 11:19:34'),
+(92, 46, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-07-24 11:20:23'),
+(93, 46, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-07-24 11:20:27'),
+(94, 46, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-07-24 11:21:45'),
+(95, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-07-24 11:26:19'),
+(96, 46, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-07-24 11:28:31'),
+(97, 46, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-07-24 11:42:58'),
+(98, 22, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-07-24 11:43:12'),
+(99, 22, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-07-24 11:43:33'),
+(100, 46, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-07-24 11:44:59'),
+(101, 22, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-07-24 11:45:10'),
+(102, 22, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-07-24 11:45:25'),
+(103, 46, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-07-24 11:52:06'),
+(104, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 00:45:03'),
+(105, 46, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-08-01 00:46:41'),
+(106, 22, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-08-01 00:47:22'),
+(107, 46, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-08-01 00:59:18'),
+(108, 22, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-08-01 00:59:33'),
+(109, 68, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-08-01 01:00:16'),
+(110, 68, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-08-01 01:00:32'),
+(111, 68, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-08-01 01:00:34'),
+(112, 68, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-08-01 01:00:35'),
+(113, 68, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-08-01 01:00:43'),
+(114, 68, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-08-01 01:00:44'),
+(115, 68, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-08-01 01:00:46'),
+(116, 68, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-08-01 01:01:06'),
+(117, 68, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-08-01 01:06:31'),
+(118, 68, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-08-01 01:06:48'),
+(119, 68, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-08-01 01:07:04'),
+(120, 68, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-08-01 01:10:57'),
+(121, 46, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-08-01 01:14:18'),
+(122, 68, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-08-01 01:16:22'),
+(123, 68, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-08-01 01:16:31'),
+(124, 68, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-08-01 01:16:34'),
+(125, 68, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-08-01 01:18:09'),
+(126, 46, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-08-01 01:21:41'),
+(127, 68, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-08-01 01:23:30'),
+(128, 22, 'desktop', 'macOS 10.15.7', 'Safari 16.0', '2025-08-01 01:23:39'),
+(129, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 01:24:19'),
+(130, 68, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 01:28:14'),
+(131, 68, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 01:32:21'),
+(132, 68, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 01:32:52'),
+(133, 68, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 01:33:06'),
+(134, 68, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 02:08:20'),
+(135, 68, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 02:12:14'),
+(136, 68, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 02:12:22'),
+(137, 68, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 02:15:55'),
+(138, 68, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 02:15:59'),
+(139, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 02:19:39'),
+(140, 68, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 02:21:42'),
+(141, 22, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 02:22:03'),
+(142, 22, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 02:22:21'),
+(143, 68, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 02:24:04'),
+(144, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 02:24:17'),
+(145, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 02:38:02'),
+(146, 68, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 02:38:22'),
+(147, 22, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 02:44:46'),
+(148, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 02:44:57'),
+(149, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 02:45:29'),
+(150, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 02:45:44'),
+(151, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 03:33:14'),
+(152, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 03:39:53'),
+(153, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 04:25:18'),
+(154, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 04:26:17'),
+(155, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 04:30:03'),
+(156, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 04:31:26'),
+(157, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 04:33:09'),
+(158, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 04:34:36'),
+(159, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 04:35:32'),
+(160, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 04:35:58'),
+(161, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 04:36:32'),
+(162, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 04:43:31'),
+(163, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 05:02:30'),
+(164, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 05:03:57'),
+(165, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 05:04:26'),
+(166, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 05:06:42'),
+(167, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 05:14:39'),
+(168, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 05:23:32'),
+(169, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 05:41:27'),
+(170, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 05:42:43'),
+(171, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 05:47:31'),
+(172, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 05:48:19'),
+(173, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 05:56:22'),
+(174, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 05:59:16'),
+(175, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 06:01:28'),
+(176, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 06:06:53'),
+(177, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 06:07:18'),
+(178, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 06:51:53'),
+(179, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-01 06:57:41'),
+(180, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-02 08:41:12'),
+(181, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-02 08:47:20'),
+(182, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-02 09:38:17'),
+(183, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-02 10:38:26'),
+(184, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-02 11:39:22'),
+(185, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-02 12:38:11'),
+(186, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-02 12:38:54'),
+(187, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-04 07:57:28'),
+(188, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-04 23:41:42'),
+(189, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-05 00:41:57'),
+(190, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-05 01:04:07'),
+(191, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-05 02:06:17'),
+(192, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-05 02:26:53'),
+(193, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-05 03:27:37'),
+(194, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-05 05:42:26'),
+(195, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-05 06:44:05'),
+(196, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-05 07:45:42'),
+(197, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-05 07:47:59'),
+(198, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-05 23:42:38'),
+(199, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-06 04:51:04'),
+(200, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-06 05:16:50'),
+(201, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-06 05:22:10'),
+(202, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-06 05:35:12'),
+(203, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-06 05:40:02'),
+(204, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-06 05:44:19'),
+(205, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-06 06:12:13'),
+(206, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-06 07:02:33'),
+(207, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-06 07:57:39'),
+(208, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-07 00:20:15'),
+(209, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-07 01:24:51'),
+(210, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-07 04:34:56'),
+(211, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-08 00:21:50'),
+(212, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-08 01:22:18'),
+(213, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-08 01:49:22'),
+(214, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-08 01:52:36'),
+(215, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-08 02:49:16'),
+(216, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-08 03:52:42'),
+(217, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-08 04:54:56'),
+(218, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-08 05:56:25'),
+(219, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-08 06:19:43'),
+(220, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-08 06:38:54'),
+(221, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-08 07:00:51'),
+(222, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-08 07:01:52'),
+(223, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-08 07:02:14'),
+(224, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-08 07:54:25'),
+(225, 15, 'desktop', 'Windows 10', 'Chrome 139.0.0.0', '2025-08-08 08:03:25'),
+(226, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-08 08:31:16'),
+(227, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-09 04:34:23'),
+(228, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-10 01:53:19'),
+(229, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-10 09:57:08'),
+(230, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-10 21:52:09'),
+(231, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-12 03:05:17'),
+(232, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-12 05:03:50'),
+(233, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-12 06:35:21'),
+(234, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-12 07:53:36'),
+(235, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-13 00:28:17'),
+(236, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-13 07:20:22'),
+(237, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-13 08:30:20'),
+(238, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-13 08:31:14'),
+(239, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-14 01:25:35'),
+(240, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-14 04:07:24'),
+(241, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-14 06:39:36'),
+(242, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-14 07:16:08'),
+(243, 46, 'desktop', 'Windows 10', 'Chrome 139.0.0.0', '2025-08-14 07:44:59'),
+(244, 15, 'desktop', 'macOS 10.15.7', 'Chrome 138.0.0.0', '2025-08-14 08:35:39'),
+(245, 15, 'desktop', 'macOS 10.15.7', 'Chrome 138.0.0.0', '2025-08-14 08:35:49'),
+(246, 15, 'desktop', 'macOS 10.15.7', 'Chrome 138.0.0.0', '2025-08-14 08:35:57'),
+(247, 46, 'desktop', 'Windows 10', 'Chrome 139.0.0.0', '2025-08-14 08:51:59'),
+(248, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-15 04:16:03'),
+(249, 46, 'desktop', 'Windows 10', 'Chrome 138.0.0.0', '2025-08-15 05:35:15'),
+(250, 46, 'desktop', 'Windows 10', 'Chrome 139.0.0.0', '2025-08-18 08:45:46'),
+(251, 46, 'desktop', 'Windows 10', 'Chrome 139.0.0.0', '2025-08-21 01:58:28'),
+(252, 46, 'desktop', 'Windows 10', 'Chrome 139.0.0.0', '2025-08-21 02:21:51'),
+(253, 22, 'desktop', 'Windows 10', 'Chrome 139.0.0.0', '2025-08-21 03:30:14'),
+(254, 22, 'desktop', 'Windows 10', 'Chrome 139.0.0.0', '2025-08-21 03:30:19'),
+(255, 46, 'desktop', 'Windows 10', 'Chrome 139.0.0.0', '2025-08-22 08:46:07'),
+(256, 46, 'desktop', 'Windows 10', 'Chrome 139.0.0.0', '2025-08-23 03:43:29'),
+(257, 46, 'desktop', 'Windows 10', 'Chrome 139.0.0.0', '2025-08-23 08:59:08'),
+(258, 46, 'desktop', 'Windows 10', 'Chrome 139.0.0.0', '2025-08-23 11:19:36'),
+(259, 46, 'desktop', 'Windows 10', 'Chrome 139.0.0.0', '2025-08-24 21:38:41'),
+(260, 46, 'desktop', 'Windows 10', 'Chrome 139.0.0.0', '2025-08-25 03:30:16'),
+(261, 46, 'desktop', 'Windows 10', 'Chrome 139.0.0.0', '2025-08-25 06:19:31'),
+(262, 46, 'desktop', 'Windows 10', 'Chrome 139.0.0.0', '2025-08-26 07:47:34'),
+(263, 46, 'desktop', 'Windows 10', 'Chrome 139.0.0.0', '2025-08-26 07:51:52'),
+(264, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 139.0.0.0', '2025-08-26 08:12:33'),
+(265, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-06 08:22:05'),
+(266, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-06 08:22:08'),
+(267, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-06 08:22:33'),
+(268, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-07 00:57:19'),
+(269, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-07 02:04:09'),
+(270, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-07 04:16:16'),
+(271, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-07 07:34:45'),
+(272, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-07 07:43:45'),
+(273, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-07 07:46:02'),
+(274, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-08 02:02:24'),
+(275, 46, 'desktop', 'Windows 10', 'Edge 141.0.0.0', '2025-10-08 02:16:00'),
+(276, 46, 'desktop', 'Windows 10', 'Edge 141.0.0.0', '2025-10-08 03:27:00'),
+(277, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-08 05:21:26'),
+(278, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 01:05:26'),
+(279, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 01:52:49'),
+(280, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 02:47:50'),
+(281, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 02:55:31'),
+(282, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 03:19:15'),
+(283, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 03:21:32'),
+(284, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 04:26:36'),
+(285, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 05:12:10'),
+(286, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 05:12:12'),
+(287, 100, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 05:16:15'),
+(288, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 05:19:28'),
+(289, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 05:26:33'),
+(290, 100, 'desktop', 'Windows 10', 'Edge 141.0.0.0', '2025-10-09 06:02:35'),
+(291, 60, 'desktop', 'Windows 10', 'Edge 141.0.0.0', '2025-10-09 06:03:55'),
+(292, 60, 'desktop', 'Windows 10', 'Edge 141.0.0.0', '2025-10-09 06:03:57'),
+(293, 60, 'desktop', 'Windows 10', 'Edge 141.0.0.0', '2025-10-09 06:04:00'),
+(294, 60, 'desktop', 'Windows 10', 'Edge 141.0.0.0', '2025-10-09 06:05:01'),
+(295, 60, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 06:09:01'),
+(296, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 06:09:21'),
+(297, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 06:44:35'),
+(298, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 06:58:31'),
+(299, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 06:59:11'),
+(300, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 07:00:14'),
+(301, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 07:07:42'),
+(302, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 07:09:28'),
+(303, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 07:17:04'),
+(304, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 07:22:30'),
+(305, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 07:28:20'),
+(306, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 07:32:59'),
+(307, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 07:39:22'),
+(308, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 07:39:41'),
+(309, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 07:40:41'),
+(310, 60, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 07:41:11'),
+(311, 60, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 07:41:29'),
+(312, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 07:41:40'),
+(313, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 07:50:57'),
+(314, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 07:51:44'),
+(315, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 07:52:13'),
+(316, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 07:56:57'),
+(317, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 08:05:27'),
+(318, 159, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 08:07:26'),
+(319, 159, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 08:07:33'),
+(320, 159, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 08:07:52'),
+(321, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-09 08:24:38'),
+(322, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-10 03:42:13'),
+(323, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-10 05:05:40'),
+(324, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-10 06:30:44'),
+(325, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-10 07:04:40'),
+(326, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-10 07:44:39'),
+(327, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-10 07:49:47'),
+(328, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-13 07:33:17'),
+(329, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-13 07:54:28'),
+(330, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-13 08:05:23'),
+(331, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-14 00:44:30'),
+(332, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-14 01:44:37'),
+(333, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-14 02:47:28'),
+(334, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-14 02:47:40'),
+(335, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-14 03:03:14'),
+(336, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-14 03:05:25'),
+(337, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-14 03:36:07'),
+(338, 46, 'desktop', 'Windows 10', 'Chrome 140.0.0.0', '2025-10-14 03:45:48'),
+(339, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-10-15 05:15:24'),
+(340, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-10-21 07:19:05'),
+(341, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-10-21 07:36:39'),
+(342, 108, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-10-21 07:39:26'),
+(343, 108, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-10-21 07:39:33'),
+(344, 108, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-10-21 07:40:09'),
+(345, 108, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-10-21 07:40:14'),
+(346, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-10-21 07:40:23'),
+(347, 108, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-10-21 07:49:11'),
+(348, 108, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-10-21 07:49:13'),
+(349, 108, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-10-21 07:49:14'),
+(350, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-10-21 07:49:19'),
+(351, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-10-21 08:13:04'),
+(352, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-21 08:18:57'),
+(353, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-22 00:48:37'),
+(354, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-22 01:49:16'),
+(355, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-10-22 03:22:52'),
+(356, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-22 03:23:55'),
+(357, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-22 03:26:14'),
+(358, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-22 04:44:46'),
+(359, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-22 04:50:22'),
+(360, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-22 04:50:38'),
+(361, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-22 04:52:37'),
+(362, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-22 04:53:33'),
+(363, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-22 04:58:40'),
+(364, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-22 05:05:15'),
+(365, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-22 05:06:04'),
+(366, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-22 05:06:24'),
+(367, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-22 05:07:02'),
+(368, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-22 05:12:32'),
+(369, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-22 05:13:57'),
+(370, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-22 05:33:02'),
+(371, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-22 05:50:05'),
+(372, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-22 05:54:28'),
+(373, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-22 07:43:25'),
+(374, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-22 07:46:23'),
+(375, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-22 07:50:13'),
+(376, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-22 07:53:48'),
+(377, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-22 07:56:10'),
+(378, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-10-23 02:45:11'),
+(379, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-23 02:52:02'),
+(380, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-23 03:58:47'),
+(381, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-10-23 05:27:58'),
+(382, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-10-23 06:03:20'),
+(383, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-10-24 03:12:49'),
+(384, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-24 03:50:34'),
+(385, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-24 04:36:37'),
+(386, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-24 04:37:36'),
+(387, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-24 04:38:37'),
+(388, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-24 04:41:58'),
+(389, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-24 04:42:40'),
+(390, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-24 04:51:39'),
+(391, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-24 04:56:53'),
+(392, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-24 04:58:00'),
+(393, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-24 04:59:15'),
+(394, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-24 05:00:45'),
+(395, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-24 05:06:38'),
+(396, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-24 06:16:53'),
+(397, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-24 06:28:47'),
+(398, 46, 'smarttv', 'Chromecast Linux 1.54.250320', 'Chrome 141.0.0.0', '2025-10-24 06:30:10'),
+(399, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-10-28 06:55:47'),
+(400, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-10-28 08:06:17'),
+(401, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-10-29 01:02:07'),
+(402, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-10-29 01:03:01'),
+(403, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-10-29 07:12:43'),
+(404, 46, 'desktop', 'Windows 10', 'Edge 141.0.0.0', '2025-10-29 07:21:54'),
+(405, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-10-29 07:30:09'),
+(406, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-10-29 07:50:46'),
+(407, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-10-30 02:52:27'),
+(408, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-07 05:24:19'),
+(409, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-07 06:05:44'),
+(410, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-07 06:31:21'),
+(411, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-07 06:34:49'),
+(412, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-07 06:37:57'),
+(413, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-07 07:04:53'),
+(414, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-07 07:09:05'),
+(415, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-07 07:10:35'),
+(416, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-07 07:10:56'),
+(417, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-07 07:38:39'),
+(418, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-07 08:22:03'),
+(419, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-07 08:28:49'),
+(420, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-11 01:54:03'),
+(421, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-11 04:27:56'),
+(422, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-11 06:12:08'),
+(423, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-11 06:17:41'),
+(424, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-11 06:17:45'),
+(425, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-11 06:51:53'),
+(426, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-11 07:31:10'),
+(427, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-11 08:06:18'),
+(428, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 141.0.0.0', '2025-11-11 08:20:12'),
+(429, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 141.0.0.0', '2025-11-11 23:44:12'),
+(430, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 141.0.0.0', '2025-11-12 00:05:54'),
+(431, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-12 00:24:31'),
+(432, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 141.0.0.0', '2025-11-12 00:33:17'),
+(433, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 141.0.0.0', '2025-11-12 00:46:33'),
+(434, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 141.0.0.0', '2025-11-12 00:47:17'),
+(435, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 141.0.0.0', '2025-11-12 00:50:09'),
+(436, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 141.0.0.0', '2025-11-12 00:55:09'),
+(437, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 141.0.0.0', '2025-11-12 01:00:51'),
+(438, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 141.0.0.0', '2025-11-12 01:09:08'),
+(439, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 141.0.0.0', '2025-11-12 01:16:11'),
+(440, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 141.0.0.0', '2025-11-12 01:21:27'),
+(441, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 141.0.0.0', '2025-11-12 01:26:24'),
+(442, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 141.0.0.0', '2025-11-12 01:28:12'),
+(443, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 141.0.0.0', '2025-11-12 01:31:40'),
+(444, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 141.0.0.0', '2025-11-12 01:35:38'),
+(445, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 141.0.0.0', '2025-11-12 01:39:54'),
+(446, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 141.0.0.0', '2025-11-12 01:55:32'),
+(447, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-12 03:04:16'),
+(448, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 141.0.0.0', '2025-11-12 03:11:15'),
+(449, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 141.0.0.0', '2025-11-12 03:12:10'),
+(450, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 141.0.0.0', '2025-11-12 03:16:14'),
+(451, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-12 03:16:52'),
+(452, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-12 04:18:19'),
+(453, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-13 02:32:07'),
+(454, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-13 02:33:12'),
+(455, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-13 04:00:24'),
+(456, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-13 04:09:29'),
+(457, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-13 04:11:01'),
+(458, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-13 04:11:06'),
+(459, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-13 05:41:28'),
+(460, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-13 05:45:46'),
+(461, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-13 05:49:53'),
+(462, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-13 05:50:23'),
+(463, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-13 05:55:57'),
+(464, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-13 06:00:29'),
+(465, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-13 06:00:51'),
+(466, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-13 06:02:12'),
+(467, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-13 06:05:29'),
+(468, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-13 06:11:47'),
+(469, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-13 06:46:46'),
+(470, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-13 06:47:19'),
+(471, 46, 'desktop', 'Windows 10', 'Chrome 141.0.0.0', '2025-11-13 07:00:04'),
+(472, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 142.0.0.0', '2025-11-13 08:05:49'),
+(473, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-13 08:21:29'),
+(474, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-13 08:21:57'),
+(475, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-13 08:24:45'),
+(476, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-13 08:28:04'),
+(477, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-14 02:24:45'),
+(478, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-14 03:37:23'),
+(479, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-14 05:43:43'),
+(480, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-14 07:46:48'),
+(481, 46, 'desktop', 'Windows 10', 'Edge 142.0.0.0', '2025-11-14 07:56:58'),
+(482, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-14 07:57:39'),
+(483, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-14 08:34:42'),
+(484, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-14 08:34:50'),
+(485, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-14 08:35:06'),
+(486, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-14 08:35:18'),
+(487, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-14 08:35:33'),
+(488, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-14 08:35:51'),
+(489, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 142.0.0.0', '2025-11-14 08:37:04'),
+(490, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-14 08:37:27'),
+(491, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-14 08:37:41'),
+(492, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-14 08:37:58'),
+(493, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-14 08:38:11'),
+(494, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-14 08:38:58'),
+(495, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-14 08:39:05'),
+(496, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 142.0.0.0', '2025-11-14 08:39:17'),
+(497, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 142.0.0.0', '2025-11-14 08:39:21'),
+(498, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 142.0.0.0', '2025-11-14 08:39:55'),
+(499, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 142.0.0.0', '2025-11-14 08:49:35'),
+(500, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 142.0.0.0', '2025-11-14 08:49:53'),
+(501, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 142.0.0.0', '2025-11-14 08:50:19'),
+(502, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-19 03:08:02'),
+(503, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-21 03:26:18'),
+(504, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-21 03:26:36'),
+(505, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-21 03:29:55'),
+(506, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 142.0.0.0', '2025-11-21 03:30:40'),
+(507, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 142.0.0.0', '2025-11-21 03:31:14'),
+(508, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 142.0.0.0', '2025-11-21 03:31:52'),
+(509, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 142.0.0.0', '2025-11-21 03:32:25'),
+(510, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 142.0.0.0', '2025-11-21 03:34:15'),
+(511, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 142.0.0.0', '2025-11-21 03:34:42'),
+(512, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-21 03:37:17'),
+(513, 46, 'tablet', 'Android 11.0', 'Mobile Chrome 142.0.0.0', '2025-11-21 03:37:31'),
+(514, 18, 'tablet', 'Android 11.0', 'Mobile Chrome 142.0.0.0', '2025-11-21 03:38:04'),
+(515, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-11-21 06:05:04'),
+(516, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-12-07 07:49:31'),
+(517, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-12-07 07:51:45'),
+(518, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-12-07 07:52:23'),
+(519, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-12-07 07:54:20'),
+(520, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-12-07 07:54:30'),
+(521, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-12-07 07:54:58'),
+(522, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-12-07 07:55:17'),
+(523, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-12-07 07:55:35'),
+(524, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-12-07 07:55:51'),
+(525, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-12-07 08:00:02'),
+(526, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-12-07 08:02:38'),
+(527, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-12-07 08:03:03'),
+(528, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-12-07 08:03:24'),
+(529, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-12-07 08:07:12'),
+(530, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-12-07 08:07:44'),
+(531, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-12-07 08:08:19'),
+(532, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-12-07 08:10:10'),
+(533, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-12-07 08:12:01'),
+(534, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-12-07 08:15:57'),
+(535, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-12-07 08:17:30'),
+(536, 46, 'desktop', 'Windows 10', 'Chrome 142.0.0.0', '2025-12-07 08:18:28'),
+(537, 46, 'desktop', 'Windows 10', 'Chrome 143.0.0.0', '2026-01-23 08:33:33'),
+(538, 46, 'mobile', 'iOS 18.5', 'Mobile Safari 18.5', '2026-01-23 08:33:35'),
+(539, 46, 'desktop', 'Windows 10', 'Chrome 143.0.0.0', '2026-01-26 02:43:20'),
+(540, 46, 'tablet', 'iOS 18.5', 'Mobile Safari 18.5', '2026-01-26 02:43:22'),
+(541, 46, 'desktop', 'Windows 10', 'Chrome 143.0.0.0', '2026-01-26 02:43:55'),
+(542, 46, 'tablet', 'iOS 18.5', 'Mobile Safari 18.5', '2026-01-26 02:44:04'),
+(543, 46, 'desktop', 'Windows 10', 'Chrome 143.0.0.0', '2026-01-26 02:44:39'),
+(544, 46, 'desktop', 'Windows 10', 'Chrome 143.0.0.0', '2026-01-26 02:44:47'),
+(545, 46, 'desktop', 'Windows 10', 'Chrome 143.0.0.0', '2026-01-26 02:44:51'),
+(546, 46, 'desktop', 'Windows 10', 'Chrome 143.0.0.0', '2026-01-26 02:47:14'),
+(547, 46, 'desktop', 'Windows 10', 'Chrome 143.0.0.0', '2026-01-26 03:21:41'),
+(548, 46, 'mobile', 'iOS 18.5', 'Mobile Safari 18.5', '2026-01-26 03:21:43'),
+(549, 46, 'desktop', 'Windows 10', 'Chrome 143.0.0.0', '2026-01-26 03:25:38'),
+(550, 46, 'desktop', 'Windows 10', 'Chrome 143.0.0.0', '2026-01-26 03:33:08'),
+(551, 46, 'desktop', 'Windows 10', 'Chrome 143.0.0.0', '2026-01-27 01:37:56'),
+(552, 46, 'desktop', 'Windows 10', 'Chrome 143.0.0.0', '2026-01-27 04:31:56'),
+(553, 46, 'tablet', 'iOS 18.5', 'Mobile Safari 18.5', '2026-01-27 04:36:06'),
+(554, 46, 'desktop', 'Windows 10', 'Chrome 144.0.0.0', '2026-01-29 05:48:38'),
+(555, 46, 'desktop', 'Windows 10', 'Chrome 144.0.0.0', '2026-01-29 23:44:31'),
+(556, 18, 'desktop', 'Windows 10', 'Chrome 144.0.0.0', '2026-01-30 00:22:48'),
+(557, 46, 'desktop', 'Windows 10', 'Chrome 144.0.0.0', '2026-02-01 14:32:29'),
+(558, 46, 'desktop', 'Windows 10', 'Chrome 144.0.0.0', '2026-02-01 16:12:04'),
+(559, 18, 'desktop', 'Windows 10', 'Chrome 144.0.0.0', '2026-02-02 02:38:32'),
+(560, 100, 'desktop', 'Windows 10', 'Chrome 144.0.0.0', '2026-02-02 02:47:35'),
+(561, 68, 'desktop', 'Windows 10', 'Chrome 144.0.0.0', '2026-02-02 02:56:11'),
+(562, 46, 'desktop', 'Windows 10', 'Chrome 144.0.0.0', '2026-02-03 01:14:35'),
+(563, 71, 'desktop', 'Windows 10', 'Chrome 144.0.0.0', '2026-02-03 07:36:51'),
+(564, 46, 'desktop', 'Windows 10', 'Chrome 144.0.0.0', '2026-02-03 20:50:41'),
+(565, 68, 'desktop', 'Windows 10', 'Chrome 144.0.0.0', '2026-02-04 07:30:02'),
+(566, 160, 'desktop', 'Windows 10', 'Chrome 144.0.0.0', '2026-02-04 09:27:42'),
+(567, 46, 'desktop', 'Windows 10', 'Chrome 144.0.0.0', '2026-02-05 01:50:22'),
+(568, 127, 'desktop', 'Windows 10', 'Chrome 144.0.0.0', '2026-02-05 05:31:56'),
+(569, 6, 'desktop', 'Windows 10', 'Chrome 144.0.0.0', '2026-02-05 05:35:41'),
+(570, 161, 'desktop', 'Windows 10', 'Edge 144.0.0.0', '2026-02-05 10:19:12'),
+(571, 46, 'desktop', 'Windows 10', 'Chrome 144.0.0.0', '2026-02-05 23:50:17'),
+(572, 68, 'desktop', 'Windows 10', 'Edge 144.0.0.0', '2026-02-05 23:53:10');
 
 -- --------------------------------------------------------
 
@@ -2049,32 +2676,39 @@ INSERT INTO `login_audit` (`id`, `user_id`, `device`, `os`, `browser`, `login_ti
 --
 
 CREATE TABLE `lokal_profiles` (
-  `id` int(11) NOT NULL,
-  `district` int(11) NOT NULL,
-  `lokal` int(11) NOT NULL,
+  `id` int NOT NULL,
+  `district` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `lokal` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `anniversary` datetime DEFAULT NULL,
-  `serialNumber` varchar(255) DEFAULT NULL,
-  `destinado` varchar(255) DEFAULT NULL,
-  `destinadoContact` varchar(255) DEFAULT NULL,
-  `districtChronicler` varchar(255) DEFAULT NULL,
-  `chroniclerContact` varchar(255) DEFAULT NULL,
-  `districtMinister` varchar(255) DEFAULT NULL,
-  `ministerContact` varchar(255) DEFAULT NULL,
-  `seatingCapacity` int(11) DEFAULT NULL,
-  `distanceFromCentral` varchar(255) DEFAULT NULL,
-  `travelTimeFromCentral` varchar(255) DEFAULT NULL,
-  `internetSpeed` varchar(255) DEFAULT NULL,
-  `ledWall` tinyint(1) DEFAULT 0,
-  `generator` tinyint(1) DEFAULT 0,
-  `preparedBy` varchar(255) DEFAULT NULL,
-  `signature` varchar(255) DEFAULT NULL,
+  `serialNumber` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `destinado` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `destinadoContact` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `districtChronicler` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `chroniclerContact` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `districtMinister` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `ministerContact` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `seatingCapacity` int DEFAULT NULL,
+  `distanceFromCentral` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `travelTimeFromCentral` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `internetSpeed` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `ledWall` tinyint(1) DEFAULT '0',
+  `generator` tinyint(1) DEFAULT '0',
+  `preparedBy` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `signature` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `datePrepared` datetime DEFAULT NULL,
-  `imageUrl` varchar(255) DEFAULT NULL,
-  `scheduleMidweek` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`scheduleMidweek`)),
-  `scheduleWeekend` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`scheduleWeekend`)),
+  `imageUrl` longtext COLLATE utf8mb4_general_ci,
+  `scheduleMidweek` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
+  `scheduleWeekend` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ;
+
+--
+-- Dumping data for table `lokal_profiles`
+--
+
+INSERT INTO `lokal_profiles` (`id`, `district`, `lokal`, `anniversary`, `serialNumber`, `destinado`, `destinadoContact`, `districtChronicler`, `chroniclerContact`, `districtMinister`, `ministerContact`, `seatingCapacity`, `distanceFromCentral`, `travelTimeFromCentral`, `internetSpeed`, `ledWall`, `generator`, `preparedBy`, `signature`, `datePrepared`, `imageUrl`, `scheduleMidweek`, `scheduleWeekend`, `createdAt`, `updatedAt`) VALUES
+(1, '51', 'Bonifacio Drive', '2016-05-09 00:00:00', '820', 'Mark Galves', '121', 'asd', '12', 'asd', '12', 220, '12', '12', '12', 0, 1, 'felix', '', '2026-01-30 00:00:00', '/uploads/local/1769763034595-530113040.jpg', '{\"Tuesday\":\"\",\"Wednesday\":\"as\",\"Thursday\":\"asd\"}', '{\"Friday\":\"\",\"Saturday\":\"asd\",\"Sunday\":\"asd\"}', '2026-01-30 08:45:07', '2026-01-30 09:06:46');
 
 -- --------------------------------------------------------
 
@@ -2083,9 +2717,9 @@ CREATE TABLE `lokal_profiles` (
 --
 
 CREATE TABLE `nationalities` (
-  `id` int(11) NOT NULL,
-  `country_name` varchar(255) NOT NULL,
-  `nationality` varchar(255) NOT NULL
+  `id` int NOT NULL,
+  `country_name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `nationality` varchar(255) COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -2245,9 +2879,9 @@ INSERT INTO `nationalities` (`id`, `country_name`, `nationality`) VALUES
 --
 
 CREATE TABLE `navgroup` (
-  `groupid` int(11) DEFAULT NULL,
-  `navid` int(11) DEFAULT NULL,
-  `status` int(11) DEFAULT NULL
+  `groupid` int DEFAULT NULL,
+  `navid` int DEFAULT NULL,
+  `status` int DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -2270,12 +2904,12 @@ INSERT INTO `navgroup` (`groupid`, `navid`, `status`) VALUES
 --
 
 CREATE TABLE `navigationlist` (
-  `ID` int(11) NOT NULL,
-  `NavigationName` varchar(50) NOT NULL,
-  `PageName` varchar(50) NOT NULL,
-  `NavType` int(11) NOT NULL,
-  `ParentID` int(11) NOT NULL,
-  `Icon` varchar(50) NOT NULL
+  `ID` int NOT NULL,
+  `NavigationName` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `PageName` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `NavType` int NOT NULL,
+  `ParentID` int NOT NULL,
+  `Icon` varchar(50) COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -2296,15 +2930,42 @@ INSERT INTO `navigationlist` (`ID`, `NavigationName`, `PageName`, `NavType`, `Pa
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `news_updates`
+--
+
+CREATE TABLE `news_updates` (
+  `id` int NOT NULL,
+  `title` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `excerpt` text COLLATE utf8mb4_general_ci,
+  `content` longtext COLLATE utf8mb4_general_ci,
+  `author` varchar(100) COLLATE utf8mb4_general_ci DEFAULT 'Admin',
+  `category` varchar(50) COLLATE utf8mb4_general_ci DEFAULT 'Local',
+  `is_important` tinyint(1) DEFAULT '0',
+  `source_url` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `published_date` datetime DEFAULT NULL,
+  `createdAt` datetime NOT NULL,
+  `updatedAt` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `news_updates`
+--
+
+INSERT INTO `news_updates` (`id`, `title`, `excerpt`, `content`, `author`, `category`, `is_important`, `source_url`, `published_date`, `createdAt`, `updatedAt`) VALUES
+(1, 'asd', 'das', NULL, 'Admin', 'dasdas', 0, NULL, '2026-02-04 05:08:35', '2026-02-04 05:08:35', '2026-02-04 05:08:35');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `permission_categories`
 --
 
 CREATE TABLE `permission_categories` (
-  `id` bigint(20) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `description` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` bigint NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `description` text COLLATE utf8mb4_general_ci,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -2316,10 +2977,12 @@ INSERT INTO `permission_categories` (`id`, `name`, `description`, `created_at`, 
 (3, 'Profile', 'View Profile', '2024-11-27 05:53:26', '2024-11-27 05:53:26'),
 (4, 'Settings', 'View Settings', '2024-11-27 05:55:38', '2024-11-27 05:55:38'),
 (5, 'Managements', 'View Managements', '2024-11-27 05:55:54', '2024-11-27 05:55:54'),
-(6, 'Global', 'View Global', '2024-11-28 02:05:52', '2024-11-28 02:05:52'),
+(6, 'Global', 'View Global', '2024-11-28 02:05:52', '2026-01-30 00:21:31'),
 (7, 'Progress', 'View Progress', '2025-01-03 02:34:49', '2025-01-03 02:34:49'),
 (8, 'Plugins', 'View Plugins', '2025-03-27 07:22:39', '2025-03-27 07:22:39'),
-(9, 'Statistics', 'View Statistics', '2025-07-12 06:51:08', '2025-07-12 06:51:08');
+(9, 'Statistics', 'View Statistics', '2025-07-12 06:51:08', '2025-07-12 06:51:08'),
+(10, 'Inv Dashboard', 'View Inv Dashboard', '2026-01-30 06:02:46', '2026-01-30 06:02:46'),
+(11, 'ATG Dashboard', 'View ATG Dasbboard', '2026-01-30 06:03:07', '2026-01-30 06:03:07');
 
 -- --------------------------------------------------------
 
@@ -2328,11 +2991,11 @@ INSERT INTO `permission_categories` (`id`, `name`, `description`, `created_at`, 
 --
 
 CREATE TABLE `permission_category_mappings` (
-  `id` bigint(20) NOT NULL,
-  `permission_id` bigint(20) NOT NULL,
-  `category_id` bigint(20) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` bigint NOT NULL,
+  `permission_id` bigint NOT NULL,
+  `category_id` bigint NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -2403,7 +3066,17 @@ INSERT INTO `permission_category_mappings` (`id`, `permission_id`, `category_id`
 (61, 61, 2, '2025-06-03 03:57:25', '2025-06-03 03:57:25'),
 (62, 62, 7, '2025-06-17 07:50:16', '2025-06-17 07:50:16'),
 (63, 63, 7, '2025-07-02 08:09:02', '2025-07-02 08:09:02'),
-(64, 64, 9, '2025-07-12 06:51:36', '2025-07-12 06:51:36');
+(64, 64, 9, '2025-07-12 06:51:36', '2025-07-12 06:51:36'),
+(65, 65, 4, '2025-07-24 09:58:33', '2025-07-24 09:58:33'),
+(66, 66, 4, '2025-07-24 10:07:24', '2025-07-24 10:07:24'),
+(67, 67, 5, '2025-07-25 06:57:58', '2025-07-25 06:57:58'),
+(68, 68, 4, '2025-07-26 03:58:52', '2025-07-26 03:58:52'),
+(69, 69, 4, '2025-07-26 08:47:48', '2025-07-26 08:47:48'),
+(70, 70, 6, '2025-08-01 04:57:43', '2025-08-01 04:57:43'),
+(71, 71, 6, '2025-08-01 05:02:47', '2025-08-01 05:02:47'),
+(72, 72, 11, '2026-01-30 06:04:13', '2026-01-30 06:04:13'),
+(73, 73, 10, '2026-01-30 06:05:06', '2026-01-30 06:05:06'),
+(74, 74, 8, '2026-02-03 20:56:21', '2026-02-03 20:56:21');
 
 -- --------------------------------------------------------
 
@@ -2412,11 +3085,11 @@ INSERT INTO `permission_category_mappings` (`id`, `permission_id`, `category_id`
 --
 
 CREATE TABLE `permission_definitions` (
-  `id` bigint(20) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `description` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` bigint NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `description` text COLLATE utf8mb4_general_ci,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -2450,7 +3123,7 @@ INSERT INTO `permission_definitions` (`id`, `name`, `description`, `created_at`,
 (24, 'language.view', 'View Language', '2024-11-30 07:24:05', '2024-11-30 07:24:05'),
 (25, 'contact.view', 'View Contact', '2024-11-30 07:24:33', '2024-11-30 07:24:33'),
 (26, 'issued_id.view', 'View Issued ID', '2024-11-30 07:24:58', '2024-11-30 07:24:58'),
-(27, 'test', '', '2024-12-02 03:20:54', '2024-12-02 03:20:54'),
+(27, 'test1212121', '', '2024-12-02 03:20:54', '2025-08-01 05:02:42'),
 (28, 'reminders.view', 'View Reminders', '2024-12-02 07:07:53', '2024-12-02 07:07:53'),
 (29, 'progresstracking.view', 'View Progress View', '2024-12-27 06:03:02', '2024-12-27 06:03:02'),
 (30, 'sectionchief.view', 'View Section Chief', '2025-01-03 02:35:39', '2025-01-03 02:35:39'),
@@ -2487,7 +3160,17 @@ INSERT INTO `permission_definitions` (`id`, `name`, `description`, `created_at`,
 (61, 'home.recent_activity', 'Recent Activity', '2025-06-03 03:57:25', '2025-06-03 03:57:25'),
 (62, 'progress.photoshoot_access', 'Photoshoot Access', '2025-06-17 07:50:16', '2025-06-17 07:50:16'),
 (63, 'progress.personnel_office', 'Personnel Office', '2025-07-02 08:09:02', '2025-07-02 08:09:02'),
-(64, 'statistics.view', 'View Statistics', '2025-07-12 06:51:36', '2025-07-12 06:51:36');
+(64, 'statistics.view', 'View Statistics', '2025-07-12 06:51:36', '2025-07-12 06:51:36'),
+(65, 'personnels.tempdeleted-users ', 'View Deleted Users', '2025-07-24 09:58:33', '2025-07-24 09:58:33'),
+(66, 'personnels.tempdeleted', 'View Temp Deleted', '2025-07-24 10:07:24', '2025-07-24 10:07:24'),
+(67, 'housing.view', 'View Housing', '2025-07-25 06:57:58', '2025-07-25 06:57:58'),
+(68, 'personnels.edit_rfid_code', 'View Edit RFID', '2025-07-26 03:58:52', '2025-07-26 03:58:52'),
+(69, 'dragdrop.view', 'View DrogDrop', '2025-07-26 08:47:48', '2025-07-26 08:47:48'),
+(70, 'test3', 'asd', '2025-08-01 04:57:43', '2025-08-01 04:57:43'),
+(71, 'test4', 'asdas', '2025-08-01 05:02:47', '2025-08-01 05:02:47'),
+(72, 'atg_dashboard.view', 'View ATG Dashboard', '2026-01-30 06:04:13', '2026-01-30 06:04:13'),
+(73, 'inv_dashboard.view', 'View Inv Dashboard', '2026-01-30 06:05:06', '2026-01-30 06:05:06'),
+(74, 'fileorganizer.view', 'View File Organizer', '2026-02-03 20:56:21', '2026-02-03 20:56:21');
 
 -- --------------------------------------------------------
 
@@ -2496,9 +3179,9 @@ INSERT INTO `permission_definitions` (`id`, `name`, `description`, `created_at`,
 --
 
 CREATE TABLE `permission_groups` (
-  `id` int(10) UNSIGNED NOT NULL,
-  `name` varchar(191) NOT NULL,
-  `permissions` text DEFAULT NULL,
+  `id` int UNSIGNED NOT NULL,
+  `name` varchar(191) COLLATE utf8mb4_general_ci NOT NULL,
+  `permissions` text COLLATE utf8mb4_general_ci,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -2520,110 +3203,145 @@ INSERT INTO `permission_groups` (`id`, `name`, `permissions`, `created_at`, `upd
 --
 
 CREATE TABLE `personnels` (
-  `personnel_id` bigint(20) NOT NULL,
-  `reference_number` varchar(25) NOT NULL,
-  `enrollment_progress` varchar(255) DEFAULT NULL,
-  `personnel_progress` varchar(255) DEFAULT NULL,
-  `gender` varchar(50) DEFAULT NULL,
-  `civil_status` varchar(50) DEFAULT NULL,
+  `personnel_id` bigint NOT NULL,
+  `reference_number` varchar(25) COLLATE utf8mb4_general_ci NOT NULL,
+  `enrollment_progress` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `personnel_progress` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `gender` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `civil_status` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `wedding_anniversary` date DEFAULT NULL,
-  `givenname` varchar(50) DEFAULT NULL,
-  `middlename` text DEFAULT NULL,
-  `surname_maiden` varchar(50) DEFAULT NULL,
-  `surname_husband` varchar(50) DEFAULT NULL,
-  `suffix` text DEFAULT NULL,
-  `nickname` varchar(50) DEFAULT NULL,
-  `registered_district_id` int(11) DEFAULT NULL,
-  `registered_local_congregation` int(11) DEFAULT NULL,
+  `givenname` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `middlename` text COLLATE utf8mb4_general_ci,
+  `surname_maiden` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `surname_husband` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `suffix` text COLLATE utf8mb4_general_ci,
+  `nickname` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `registered_district_id` int DEFAULT NULL,
+  `registered_local_congregation` int DEFAULT NULL,
   `date_of_birth` date DEFAULT NULL,
-  `place_of_birth` varchar(50) DEFAULT NULL,
+  `place_of_birth` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `datejoined` date DEFAULT NULL,
-  `language_id` varchar(255) DEFAULT NULL,
-  `bloodtype` varchar(10) DEFAULT NULL,
-  `work_email_address` varchar(50) DEFAULT NULL,
-  `email_address` varchar(50) DEFAULT NULL,
-  `citizenship` varchar(255) DEFAULT NULL,
-  `nationality` int(11) DEFAULT NULL,
-  `department_id` int(11) DEFAULT NULL,
-  `section_id` int(11) DEFAULT NULL,
-  `subsection_id` int(11) DEFAULT NULL,
-  `designation_id` int(11) DEFAULT NULL,
-  `district_id` int(11) DEFAULT NULL,
-  `local_congregation` int(11) DEFAULT NULL,
-  `is_offered` int(11) DEFAULT NULL,
-  `minister_officiated` varchar(50) DEFAULT NULL,
+  `language_id` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `bloodtype` varchar(10) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `work_email_address` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `email_address` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `citizenship` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nationality` int DEFAULT NULL,
+  `department_id` int DEFAULT NULL,
+  `section_id` int DEFAULT NULL,
+  `subsection_id` int DEFAULT NULL,
+  `designation_id` int DEFAULT NULL,
+  `district_id` int DEFAULT NULL,
+  `local_congregation` int DEFAULT NULL,
+  `is_offered` int DEFAULT NULL,
+  `minister_officiated` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `date_baptized` date DEFAULT NULL,
-  `place_of_baptism` varchar(50) DEFAULT NULL,
-  `local_first_registered` int(11) DEFAULT NULL,
-  `district_first_registered` int(11) DEFAULT NULL,
-  `personnel_type` varchar(50) DEFAULT NULL,
-  `district_assignment_id` int(11) DEFAULT NULL,
-  `local_congregation_assignment` int(11) DEFAULT NULL,
-  `assigned_number` int(11) DEFAULT NULL,
-  `m_status` varchar(50) DEFAULT NULL,
+  `place_of_baptism` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `local_first_registered` int DEFAULT NULL,
+  `district_first_registered` int DEFAULT NULL,
+  `personnel_type` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `district_assignment_id` int DEFAULT NULL,
+  `local_congregation_assignment` int DEFAULT NULL,
+  `assigned_number` int DEFAULT NULL,
+  `m_status` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `panunumpa_date` date DEFAULT NULL,
   `ordination_date` date DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `rfid_code` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `deleted_at` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `personnels`
 --
 
-INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progress`, `personnel_progress`, `gender`, `civil_status`, `wedding_anniversary`, `givenname`, `middlename`, `surname_maiden`, `surname_husband`, `suffix`, `nickname`, `registered_district_id`, `registered_local_congregation`, `date_of_birth`, `place_of_birth`, `datejoined`, `language_id`, `bloodtype`, `work_email_address`, `email_address`, `citizenship`, `nationality`, `department_id`, `section_id`, `subsection_id`, `designation_id`, `district_id`, `local_congregation`, `is_offered`, `minister_officiated`, `date_baptized`, `place_of_baptism`, `local_first_registered`, `district_first_registered`, `personnel_type`, `district_assignment_id`, `local_congregation_assignment`, `assigned_number`, `m_status`, `panunumpa_date`, `ordination_date`, `created_at`, `updated_at`) VALUES
-(10, 'ENR-2412-EP1-8972', '1', '0', 'Male', 'Married', '2025-04-29', 'Felix', 'Morales', '', 'Pareja', 'No Suffix', 'Chok', 51, 2625, '1990-11-09', 'San Francisco Delmonte, Quezon City', '2022-08-22', '145,10', 'O+', 'felixpareja07@gmail.com', 'felixpareja.pmdit07@gmail.com', '138', 103, 1, 2, 1, 5, 51, 2658, NULL, 'Manuel Santos', '2002-09-22', 'Templo Central', 2658, 51, 'Regular', 51, 2625, 20149, 'May Destino', '2022-09-16', NULL, '2024-12-09 04:43:34', '2025-06-04 09:12:44'),
-(36, 'ENR-2501-EP1-5540', '5', '0', 'Male', 'Single', NULL, 'Michael', 'Guillemer', NULL, 'Samir Shohdy', NULL, 'Miko', 104, 4884, '1992-04-27', 'Tripoli, Libya', '2024-11-28', '155,145', 'O+', NULL, 'shaowdy@gmail.com', '185,138,51', 0, 1, 11, 0, 0, 116, 5393, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', 104, 4884, 23013, 'May Destino', '2024-09-13', NULL, '2025-01-08 04:34:30', '2025-02-28 04:51:59'),
-(37, 'ENR-2501-EP1-3640', '1', '0', 'Male', 'Single', NULL, 'Roland Kim', 'Sato', NULL, 'Amaro', '', 'Roland, Kim', 51, 2659, '1996-08-09', 'Baao, Camarines Sur', '2022-04-20', '145,10', 'O+', NULL, 'amarorolandkim@gmail.com', '138', 103, 1, 2, 1, 6, 77, 3668, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', NULL, NULL, 17026, 'Fulltime', '2019-07-27', NULL, '2025-01-08 05:15:21', '2025-06-05 02:19:29'),
-(59, 'ENR-2501-EP1-9274', '5', '2', 'Male', 'Single', NULL, 'Policarpio', NULL, NULL, 'Sumbilong', NULL, NULL, NULL, NULL, '1996-01-09', NULL, NULL, '1', NULL, NULL, 'poli@pmdmc.net', '138', 138, 1, 2, 1, 5, 17, 1, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:52:47', '2025-07-14 04:49:58'),
-(60, 'ENR-2501-EP1-9003', '6', '8', 'Female', 'Married', NULL, 'Poncia', NULL, NULL, 'Plato', NULL, NULL, NULL, NULL, '1996-01-11', NULL, NULL, '1', NULL, NULL, 'poli@pmdmc.net', '138', 138, NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:56:16', '2025-03-28 07:51:07'),
-(61, 'ENR-2501-EP1-9018', '6', '8', 'Female', 'Married', NULL, 'Laarni', NULL, NULL, 'Eustaquio', NULL, '', NULL, NULL, '1996-01-11', NULL, NULL, '1', NULL, NULL, 'laitors19@gmail.com', '138', 138, NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:57:52', '2025-04-11 00:46:59'),
-(62, 'ENR-2501-EP1-1659', '5', '0', 'Female', 'Married', '2003-01-07', 'Joan', 'Villanueva', 'Endique', 'Solitario', NULL, NULL, NULL, 0, '1978-03-01', 'Legazpi City, Albay, Philippines', '2013-05-01', '2', 'B+', NULL, 'joan.solitario@gmail.com', '185', 138, 1, 9, 0, 0, 45, 0, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:59:58', '2025-04-21 07:15:01'),
-(63, 'ENR-2501-EP1-8509', '1', '8', 'Male', 'Single', NULL, 'Harvey Guy', NULL, NULL, 'Mackay', NULL, NULL, NULL, NULL, '1984-07-08', NULL, '2024-04-29', '1', '', NULL, 'harveyguy.mackay@gmail.com', '', NULL, 0, 0, 0, 0, NULL, NULL, 1, 'Arnel Tumanan', '2000-11-02', 'Templo, Central', 2633, 51, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 04:00:40', '2025-04-29 08:27:36'),
-(64, 'ENR-2501-EP1-7003', '1', '0', 'Male', 'Married', NULL, 'Ryan', NULL, NULL, 'Malabanan', NULL, NULL, NULL, NULL, '1987-11-19', NULL, NULL, NULL, NULL, NULL, 'ryan.malabanan@iglesianicristo.org', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, NULL, 'Fulltime', NULL, NULL, '2025-01-15 04:01:30', '2025-01-26 09:45:39'),
-(65, 'ENR-2501-EP1-7309', '1', '0', 'Male', 'Single', NULL, 'Chun-Wei', NULL, NULL, 'Kao', 'No Suffix', 'Aeron', NULL, 0, '2000-05-25', 'Taiwan', '2024-10-09', '3', 'A+', NULL, 'a5514585@icloud.com', '138', 170, 1, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', 45, 0, 21748, 'May Destino', '2024-09-13', NULL, '2025-01-15 04:02:55', '2025-01-26 09:45:39'),
-(67, 'ENR-2501-EP1-1914', '1', '0', 'Female', 'Married', NULL, 'Alexandra Nicole', NULL, 'Bernal', 'Dimatulac', NULL, 'Nicki', NULL, 0, '1991-12-31', 'Oslo, Norway', '2024-11-15', '2', NULL, NULL, 'anicolebdimatulac@gmail.com', '129', 129, 1, 9, NULL, NULL, 45, 0, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-16 08:10:27', '2025-01-26 09:45:39'),
-(68, 'ENR-2501-EP1-9034', '1', '0', 'Female', 'Married', '2015-11-16', 'Frances Nicole', 'Silva', 'Manzanero', 'Sanchez', NULL, 'Nicole', NULL, 0, '1992-10-05', 'San Pablo City Laguna', '2015-06-19', '2', 'O+', NULL, 'nicolemsanchez05@gmail.com', '138', 138, 1, 9, NULL, NULL, 61, 0, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-16 09:52:24', '2025-01-26 09:45:39'),
-(71, 'ENR-2501-EP1-9571', '1', '0', 'Male', 'Single', NULL, 'Rimmel', 'Magarso', NULL, 'Vispo', NULL, 'RV', NULL, 0, '1998-12-28', 'Maantol, Capiz', '2022-07-04', '1', 'O+', NULL, 'rimmelvispo28@gmail.com', '138', 138, 18, 0, 0, 0, 45, 0, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', NULL, 0, 20161, 'May Destino', '2022-09-16', NULL, '2025-01-21 01:03:45', '2025-01-26 09:45:39'),
-(73, 'ENR-2501-EP1-8672', '1', '0', 'Male', 'Single', NULL, 'Aldrin James', 'Santiago', NULL, 'Salvador', NULL, 'Aldrin', 39, 1979, '2000-04-06', 'Gov. Roquel Ablan Sr. Memorial Hospital', '2022-08-08', '1', 'O+', NULL, 'aldrinjamessalvador@gmail.com', '138', 138, 1, 11, 0, 7, 85, 0, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', 39, 1979, 20152, 'May Destino', '2022-09-16', NULL, '2025-01-21 03:49:27', '2025-06-05 03:18:51'),
-(77, 'ENR-2502-EP1-5752', '6', '0', 'Male', 'Married', '2015-11-14', 'Christian', 'Garcia', NULL, 'de Dios', NULL, NULL, 0, 2659, '1985-07-13', 'San Francisco', '2025-01-11', '', 'O+', NULL, 'christian.garcia.dedios@gmail.com', '', 33, 1, 11, 0, 0, 16, 835, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 12079, 'Fulltime', '0215-04-25', '0215-06-12', '2025-02-11 04:32:11', '2025-02-19 03:04:15'),
-(78, 'ENR-2502-EP1-5166', '6', '0', 'Male', 'Married', '2018-03-13', 'Jeff Cary', 'Nostrates', NULL, 'Yumul', 'No Suffix', 'Jeff', 51, 2659, '1990-03-14', 'Muntinlupa City', '2019-01-02', '145,155', 'B+', NULL, 'jeffyumulrn@gmail.com', '138', 103, 12, 19, 0, 0, 105, 4907, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 13480, 'Fulltime', '2017-08-06', '2020-12-26', '2025-02-18 03:34:13', '2025-02-26 03:34:38'),
-(79, 'ENR-2502-EP1-4815', '6', '0', 'Male', 'Married', '2018-09-04', 'June Volter', 'Ynot', NULL, 'Saligumba', NULL, 'June', 0, NULL, '1984-06-19', 'Butuan City, Agusan del Norte', NULL, '', 'A+', NULL, 'june.saligumba07@gmail.com', '', 33, 1, 16, 0, 0, 49, 2507, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 11895, 'Fulltime', '2015-07-27', '2016-11-19', '2025-02-18 03:37:44', '2025-02-18 04:15:03'),
-(80, 'ENR-2502-EP1-2277', '6', '0', 'Male', 'Married', '2023-01-24', 'Joel Albert', 'Rabara', NULL, 'Eusebio', 'No Suffix', 'Bruno', 0, 2633, '1990-02-25', 'Miami, Florida', '2017-09-17', '', 'O+', NULL, 'joel.euse@gmail.com', '', 100, 8, 43, 0, 0, 46, 2330, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', 139, 6427, 19601, 'May Destino', '2021-03-27', NULL, '2025-02-18 03:43:27', '2025-02-18 03:49:37'),
-(81, 'ENR-2502-EP1-1023', '6', '0', 'Male', 'Married', '2022-04-22', 'Jespher', 'Endaya', 'Maghirang', 'Maghirang', NULL, 'Jespher', 15, 789, '1995-11-29', 'Siniloan, Laguna', '2018-10-13', '', 'O+', NULL, 'jespher.maghirang@gmail.com', '138', 0, 1, 11, 0, 0, 15, 789, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', 39, 1979, 15041, 'May Destino', '2018-06-30', NULL, '2025-02-18 03:43:45', '2025-03-06 01:33:46'),
-(82, 'ENR-2502-EP1-1618', '6', '0', 'Male', 'Married', '2014-12-06', 'Edgardo', 'Adrao', '', 'Maisip', 'Jr.', 'Edgar or Ed', 51, 2659, '1986-03-17', 'Makati, Metro Manila', '2023-07-24', '155,145,135', 'A+', NULL, 'edgarmaisip@gmail.com', '138', 103, 1, 7, 0, 0, 14, 773, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 11357, 'Fulltime', '2013-03-19', '2014-04-19', '2025-02-18 03:45:11', '2025-02-23 08:43:53'),
-(83, 'ENR-2502-EP1-6073', '6', '8', 'Male', 'Married', '2019-11-19', 'Lee Jordan', 'Valencia', NULL, 'Umayam', NULL, 'Lee', 0, 2633, '1983-11-22', 'Tayabas, Quezon', '2025-12-26', '', 'AB+', NULL, 'umayamleejordan@gmail.com', '', 33, 1, 11, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 15580, 'Fulltime', '2018-06-30', '2020-10-31', '2025-02-18 03:45:45', '2025-04-11 01:20:25'),
-(84, 'ENR-2502-EP1-6594', '5', '0', 'Male', 'Single', NULL, 'Mhelmarck', 'Marabe', NULL, 'Edralin', NULL, 'Em', 0, 2659, '1990-03-06', 'Quezon City', '2023-02-06', '', 'O+', NULL, 'EmEdralin13@gmail.com', '', 33, 1, 8, 0, 0, 139, 6418, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-02-18 03:46:19', '2025-02-18 05:22:06'),
-(85, 'ENR-2502-EP1-4007', '6', '0', 'Male', 'Married', '2022-04-26', 'Christian Marco', 'Dagdag', NULL, 'Cervantes', 'No Suffix', 'Marco', 51, 2630, '1995-07-27', 'Quezon City', '2014-01-12', '', 'B+', NULL, 'christianmarcocervantes@gmail.com', '', 33, 1, 8, 0, 0, 51, 2649, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 12063, 'Fulltime', '2015-04-25', '2021-11-06', '2025-02-18 03:47:10', '2025-02-18 04:06:43'),
-(86, 'ENR-2502-EP1-1467', '6', '0', 'Male', 'Married', '2022-12-21', 'Sotero', 'Aguilan', NULL, 'Valera', 'Jr.', 'Jay', 51, 2630, '1996-05-29', 'Caminawit, San Jose, Occidental Mindoro', '2014-01-11', '145,155,146', 'A+', NULL, 'bjvalera06cmuseum@gmail.com', '138', 103, 1, 8, 0, 0, 143, 6640, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 15594, 'Fulltime', '2018-06-30', '2018-12-29', '2025-02-18 03:48:36', '2025-02-21 01:50:17'),
-(87, 'ENR-2502-EP1-8025', '6', '0', 'Male', 'Married', '2010-06-14', 'Gerald Neil', 'Olaes', NULL, 'Mallari', NULL, 'Gerald', 0, 2630, '1980-10-20', 'Cavite', '2007-04-05', '', 'O+', NULL, 'mallarigeraldneil@gmail.com', '', 33, 1, 11, 0, 0, 48, 2409, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 10147, 'Fulltime', '2007-04-07', '2013-06-13', '2025-02-18 03:48:56', '2025-02-18 04:16:19'),
-(88, 'ENR-2502-EP1-7386', '5', '0', 'Male', 'Single', NULL, 'Ramil', 'Sta. Maria', NULL, 'Palomar', 'No Suffix', 'Ramil', 0, 2659, '1999-06-20', 'Southern Leyte, Philippines', '2022-04-29', '', 'O+', NULL, 'rpalomar91@gmail.com', '', 33, 8, 43, 0, 0, 165, 7525, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', 51, 2622, 19608, 'May Destino', '2021-04-24', NULL, '2025-02-18 03:50:16', '2025-02-18 04:09:31'),
-(89, 'ENR-2502-EP1-1391', '6', '0', 'Male', 'Married', '2014-05-30', 'Carlo Jay', 'Ortega', NULL, 'Cuevas', 'No Suffix', 'Carlo', 0, 2659, '1986-08-20', 'Lipa City', '2022-08-11', '', NULL, NULL, 'carlocuevas.inc@gmail.com', '', 0, 1, 8, 0, 0, 15, 812, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-02-18 04:00:12', '2025-02-18 05:45:30'),
-(90, 'ENR-2502-EP1-5427', '1', '0', 'Male', 'Single', NULL, 'Marco', 'Rivera', NULL, 'Suarez', 'No Suffix', NULL, 0, 6418, '1998-06-08', 'Malolos, Bulacan', '2024-01-15', '', 'A+', NULL, 'mrcsrz08@gmail.com', '', 33, 1, 8, 0, 0, 51, 2659, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', 139, 6418, 20006, 'May Destino', '2022-07-16', NULL, '2025-02-18 04:04:34', '2025-02-18 04:04:34'),
-(91, 'ENR-2502-EP1-8502', '1', '0', 'Male', 'Married', '2018-11-09', 'Jake', 'Sayod', '', 'Alcantara', NULL, 'Yek', 0, 2659, '1985-07-19', 'Batangan, Valencia City, Bukidnon', '2022-08-14', '', 'O+', NULL, 'dadaalcantara1985@gmail.com', '', 35, 12, 23, 0, 0, 181, 8180, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 13924, 'Fulltime', '2017-08-06', '2022-09-16', '2025-02-18 04:32:39', '2025-04-22 04:57:13'),
-(92, 'ENR-2502-EP1-1495', '6', '0', 'Male', 'Married', '2019-11-11', 'Jan Melvin', 'Asuncion', NULL, 'Pastor', 'No Suffix', 'Melvin', 0, 2636, '1994-02-13', 'Brgy. San Roque, Guimba, Nueva Ecija', '2023-06-13', '', 'B+', NULL, 'dyeympastor@gmail.com', '', 0, 1, 16, 0, 0, 39, 1972, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 11865, 'Fulltime', '2015-04-25', '2020-12-26', '2025-02-18 05:12:01', '2025-02-18 05:25:39'),
-(93, 'ENR-2502-EP1-5710', '5', '0', 'Male', 'Married', '2015-05-26', 'Michael', 'Cantos', NULL, 'Enriquez', NULL, 'Mike', 0, 2659, '1980-02-21', 'San Pablo City', '2015-11-15', '', 'B+', NULL, 'michaelcenriquez21@gmail.com', '', 0, 1, 11, 0, 0, 155, 7235, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 11753, 'Fulltime', '2015-01-17', '2015-01-23', '2025-02-18 05:47:15', '2025-02-18 10:40:50'),
-(94, 'ENR-2502-EP1-3676', '5', '0', 'Male', 'Single', NULL, 'Erbil', 'Flores', NULL, 'Escaño', 'Jr.', 'Nonoy', 0, 4868, '1982-08-16', 'Makati City', NULL, '', 'AB+', NULL, 'monsterball41@gmail.com', '', 33, 1, 8, 0, 0, 104, 4868, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-02-18 06:08:32', '2025-02-18 06:43:22'),
-(95, 'ENR-2502-EP1-7406', '6', '0', 'Male', 'Married', '2014-01-19', 'Christopher Jay', 'Sanchez', NULL, 'Alignay', 'No Suffix', 'Chris', 0, 2659, '1980-09-23', 'Washington, D.C., USA', '2011-03-15', '', 'O+', NULL, 'chris.alignay@gmail.com', '', 0, 1, 16, 0, 0, 185, 8348, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 11294, 'Fulltime', '2013-03-19', '2013-11-29', '2025-02-18 07:16:37', '2025-02-18 07:36:48'),
-(96, 'ENR-2502-EP1-5330', '3', '0', 'Male', 'Married', '2020-07-14', 'Marvin', 'Rutao', NULL, 'Estrada', NULL, NULL, 0, NULL, '1992-05-12', 'MCU Caloocan', '2010-01-01', '', 'O+', NULL, 'marvinestrada.ofc@gmail.com', '', 139, 12, 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 14767, 'Fulltime', '2018-06-30', '2023-08-18', '2025-02-18 23:55:48', '2025-02-18 23:58:06'),
-(97, 'ENR-2502-EP1-4461', '5', '0', 'Male', 'Single', NULL, 'Kit', 'Morenes', NULL, 'Curilan', NULL, NULL, 0, 6424, '1995-08-09', 'Sta. Maria Bulacan', '2024-01-19', '', 'A+', NULL, 'kit.curilan09@gmail.com', '', 103, 1, 7, 0, 0, 28, 1398, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', 139, 6424, 20418, 'May Destino', '2023-09-17', NULL, '2025-02-19 06:53:30', '2025-02-19 07:18:47'),
-(98, 'ENR-2502-EP1-2806', '6', '0', 'Male', 'Married', '2016-06-20', 'Rushier Ivan', 'Dagdag', NULL, 'Cervantes', 'No Suffix', 'Ivan', 0, 2659, '1993-12-23', 'Quezon City', '2023-08-17', '', 'B+', NULL, 'rushier.ivan@gmail.com', '', 103, 1, 7, 0, 0, 36, 1911, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 11706, 'Fulltime', '2015-04-24', '2015-06-19', '2025-02-19 08:11:09', '2025-02-19 12:53:14'),
-(99, 'ENR-2502-EP1-5818', '1', '0', 'Male', 'Married', '2020-03-17', 'John Michael', 'Zita', NULL, 'Hizon', NULL, 'JM', 0, 2659, '1996-08-09', 'Guagua, Pampanga', NULL, '145,155', 'A+', NULL, 'jmzhzn@gmail.com', '138', 103, 1, 11, 0, 0, 40, 2010, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 13458, 'Fulltime', '2017-08-06', '2020-09-20', '2025-02-20 01:38:53', '2025-02-20 03:09:52'),
-(100, 'ENR-2502-EP1-2340', '5', '0', 'Male', 'Single', NULL, 'John Derick', 'Ureta', NULL, 'Cordial', NULL, 'Derick', 0, NULL, '1997-03-10', 'Camarin, Caloocan North', '2023-05-22', '', 'B+', NULL, 'johnderickuretacordial@gmail.com', '', 0, 1, 11, 0, 0, 35, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', 35, NULL, 19411, 'May Destino', '2021-03-27', NULL, '2025-02-20 01:43:55', '2025-04-21 07:14:29'),
-(101, 'ENR-2502-EP1-4566', '3', '0', 'Male', 'Married', '2020-05-28', 'Adrian', 'Palgan', NULL, 'Amado', NULL, 'Andy', 0, NULL, '1991-09-06', 'Don Andres, Ipil Zamboanga Sibugay', '2022-05-17', '', 'O+', NULL, 'adrianpalganamado@gmail.com', '', 103, 1, 13, 0, 0, 194, 8633, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', NULL, NULL, 14259, 'Fulltime', '2018-06-30', NULL, '2025-02-20 12:18:25', '2025-02-20 12:22:04'),
-(102, 'ENR-2502-EP1-4920', '4', '0', 'Male', 'Single', NULL, 'Joel Angelo', 'Ayuste', NULL, 'Valido', 'No Suffix', 'Joel', 51, 2659, '1996-10-05', 'Butuan City', '2016-02-05', '145,155,146', 'O+', NULL, 'jlnglvld@gmail.com', '138', 103, 1, 7, 0, 0, 2, 51, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', NULL, NULL, 16718, 'Fulltime', '2019-07-27', NULL, '2025-02-23 09:42:57', '2025-03-19 00:57:33'),
-(103, 'ENR-2502-EP1-8588', '6', '0', 'Male', 'Married', '2020-11-17', 'Petronilo', 'Alquiza', NULL, 'Catama', 'III', 'Nilo', 0, NULL, '1997-01-29', 'Manila', '2015-06-18', '', 'A+', NULL, 'catamanilo@gmail.com', '', 103, 1, 16, 0, 0, 139, 6432, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 13428, 'Fulltime', '2017-08-06', '2018-06-30', '2025-02-26 09:38:14', '2025-02-26 09:44:33'),
-(104, 'ENR-2502-EP1-3310', '5', '0', 'Male', 'Single', NULL, 'Adrian', 'Roa', NULL, 'Teñoso', 'No Suffix', 'Ian', 0, 2659, '1997-03-21', 'Alfonso, Cavite', '2022-03-16', '', 'O+', NULL, 'tenoso.adrian@gmail.com', '', 103, 1, 11, 0, 0, 21, 1102, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', NULL, NULL, 16716, 'Fulltime', '2019-07-27', NULL, '2025-02-26 09:42:25', '2025-02-26 10:04:20'),
-(105, 'ENR-2502-EP1-5905', '5', '0', 'Male', 'Single', NULL, 'Armel', 'Santos', NULL, 'Magbanua', 'No Suffix', 'none', 0, NULL, '1993-04-10', 'marikina city', '2022-08-24', '', 'A+', NULL, 'magbanuaa297@gmail.com', '', 103, 1, 11, 0, 0, 99, 4669, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', NULL, NULL, 19292, 'Fulltime', '2021-09-11', NULL, '2025-02-26 09:46:08', '2025-02-26 10:19:08'),
-(106, 'ENR-2502-EP1-9254', '1', '0', 'Male', 'Married', '2024-02-05', 'Lovel Oriel', 'Dela Cruz', NULL, 'Quinitio', NULL, 'Lovel', 0, 2659, '1999-02-03', 'Sampaloc, Manila', '2019-08-02', '', 'A+', NULL, 'elowkyu@gmail.com', '', 103, 1, 16, 0, 0, 51, 2659, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', 139, 6418, 17614, 'May Destino', '2019-07-27', '2025-02-21', '2025-02-27 02:03:35', '2025-02-28 03:07:43'),
-(107, 'ENR-2502-EP1-3023', '6', '0', 'Male', 'Married', '2016-06-14', 'Rey Walter', 'Tagalicod', NULL, 'Zamora', 'No Suffix', 'Rey', 0, 2659, '1991-12-16', 'Quezon City', '2013-12-01', '', 'B+', NULL, 'reywalterzamora@gmail.com', '', 103, 8, 43, 0, 0, 139, 6414, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 12445, 'Fulltime', '2015-04-15', '2016-01-23', '2025-02-27 03:20:16', '2025-02-27 03:27:03'),
-(108, 'ENR-2502-EP1-8099', '6', '0', 'Male', 'Married', NULL, 'Scott', 'Bryan', NULL, 'Katz', 'Jr.', 'Scotty', 51, 2633, '1995-10-10', 'Arizona, USA', '2023-01-16', '155,145', 'A-', NULL, 'scottykatz9@gmail.com', '185', 136, 8, 43, 0, 0, 102, 4820, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', NULL, NULL, 19604, 'Fulltime', '2021-09-11', NULL, '2025-02-28 13:08:18', '2025-03-01 07:28:30'),
-(109, 'ENR-2503-EP1-6565', '4', '0', 'Male', 'Married', '2023-10-23', 'Joon Francis', 'Villano', NULL, 'de Guia', 'No Suffix', 'Joon', 51, 2659, '1991-02-08', 'San Pablo City, Laguna', '2022-05-27', '145,155,148', 'O+', NULL, 'joonfrancis.jfdg@gmail.com', '138', 103, 12, 22, 0, 0, 155, 7200, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', NULL, NULL, 14628, 'Fulltime', '2018-06-30', NULL, '2025-03-01 03:27:39', '2025-03-06 01:22:05'),
-(110, 'ENR-2503-EP1-9931', '5', '0', 'Male', 'Single', NULL, 'Mark Arthur', 'Sion', NULL, 'Rivera', NULL, 'Mark', 0, 6427, '1997-11-01', 'Hong Kong', '2023-10-23', '', 'A+', NULL, 'markrivera.inc@icloud.com', '', 103, 1, 11, 0, 7, 72, 3426, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', 139, 6427, 202546, 'May Destino', '2023-09-17', NULL, '2025-03-07 00:04:31', '2025-03-07 00:18:56'),
-(111, 'ENR-2503-EP1-9759', '6', '0', 'Male', 'Married', '2019-09-13', 'Reniel', 'Gañola', NULL, 'Mariano', NULL, 'Reniel', 0, 2641, '1991-11-18', 'Quezon City', '2010-10-10', '', 'A+', NULL, 'mreniel25@gmail.com', '', 0, 12, 19, 0, 6, 139, 6432, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 12965, 'Fulltime', '2016-07-19', '2021-07-09', '2025-03-10 06:58:13', '2025-03-10 07:06:43'),
-(112, 'ENR-2503-EP1-3529', '1', '0', 'Male', 'Married', NULL, 'JOHN GIL', 'SALCEDO', NULL, 'REYES', NULL, 'GIL', 0, 3264, '1995-10-19', 'GENERAL SANTOS CITY', NULL, '', 'O+', NULL, 'REYESJOHNGIL@GMAIL.COM', '', 103, 1, 11, 0, 0, 67, 3264, NULL, NULL, NULL, NULL, NULL, NULL, 'Ministerial Student', 104, 4876, 24619, 'May Destino', NULL, NULL, '2025-03-19 06:12:37', '2025-06-04 07:37:29'),
-(113, 'ENR-2504-EP1-5379', '6', '7', 'Male', 'Married', '2025-04-04', 'Juan', 'Dela Peña', NULL, 'Dela Cruz', 'Sr.', 'Juan', 0, 4886, '1990-06-04', 'Baao, Camarines Sur', '2025-04-04', '', 'A+', NULL, 'juan.cruz@gmail.com', '', 136, 1, 16, 0, 7, 177, 8050, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', 105, 4886, 1777, 'May Destino', '2003-10-04', '2025-04-04', '2025-04-04 10:24:38', '2025-07-12 07:02:28'),
-(114, 'ENR-2504-EP1-1189', '1', '8', 'Female', 'Single', NULL, 'Bernadeth', 'Endozo', NULL, 'Serra', NULL, 'Badeth', 0, 2659, '1992-06-20', 'Pansol, Calamba Laguna', '2012-10-31', '', 'O+', NULL, 'badethendozo@gmail.com', '', 103, 1, 11, 0, 7, 51, 2659, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, '2025-04-11 00:48:51', '2025-04-29 01:46:38');
+INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progress`, `personnel_progress`, `gender`, `civil_status`, `wedding_anniversary`, `givenname`, `middlename`, `surname_maiden`, `surname_husband`, `suffix`, `nickname`, `registered_district_id`, `registered_local_congregation`, `date_of_birth`, `place_of_birth`, `datejoined`, `language_id`, `bloodtype`, `work_email_address`, `email_address`, `citizenship`, `nationality`, `department_id`, `section_id`, `subsection_id`, `designation_id`, `district_id`, `local_congregation`, `is_offered`, `minister_officiated`, `date_baptized`, `place_of_baptism`, `local_first_registered`, `district_first_registered`, `personnel_type`, `district_assignment_id`, `local_congregation_assignment`, `assigned_number`, `m_status`, `panunumpa_date`, `ordination_date`, `rfid_code`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(10, 'ENR-2412-EP1-8972', '1', '0', 'Male', 'Married', NULL, 'Felix', 'Morales', '', 'Pareja', 'No Suffix', 'Chok', 51, 2625, '1990-11-09', 'San Francisco Delmonte, Quezon City', '2022-08-22', '10,145,94', 'O+', 'felixpareja07@gmail.com', 'felixpareja.pmdit07@gmail.com', '138', 103, 1, 2, 1, 5, 51, 2658, NULL, 'Manuel Santos', '2002-09-22', 'Templo Central', 2658, 51, 'Regular', 51, 2625, 20149, 'May Destino', '2022-09-16', NULL, NULL, '2024-12-09 04:43:34', '2026-02-03 23:39:01', NULL),
+(36, 'ENR-2501-EP1-5540', '5', '0', 'Male', 'Single', NULL, 'Michael', 'Guillemer', NULL, 'Samir Shohdy', NULL, 'Miko', 104, 4884, '1992-04-27', 'Tripoli, Libya', '2024-11-28', '155,145', 'O+', NULL, 'shaowdy@gmail.com', '185,138,51', 0, 1, 11, 0, 0, 116, 5393, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', 104, 4884, 23013, 'May Destino', '2024-09-13', NULL, NULL, '2025-01-08 04:34:30', '2025-07-25 03:49:10', NULL),
+(37, 'ENR-2501-EP1-3640', '1', '0', 'Male', 'Single', NULL, 'Roland Kim', 'Sato', NULL, 'Amaro', '', 'Roland, Kim', 51, 2659, '1996-08-09', 'Baao, Camarines Sur', '2022-04-20', '145,10', 'O+', NULL, 'amarorolandkim@gmail.com', '138', 103, 1, 2, 1, 6, 77, 3668, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', NULL, NULL, 17026, 'Fulltime', '2019-07-27', NULL, NULL, '2025-01-08 05:15:21', '2026-01-29 07:27:41', NULL),
+(59, 'ENR-2501-EP1-9274', '5', '8', 'Male', 'Single', NULL, 'Policarpio', NULL, NULL, 'Sumbilong', NULL, NULL, NULL, NULL, '1996-01-09', NULL, NULL, '1', NULL, NULL, 'poli@pmdmc.net', '138', 138, 1, 2, 1, 5, 17, 1, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:52:47', '2026-02-05 10:15:01', NULL),
+(60, 'ENR-2501-EP1-9003', '6', '8', 'Female', 'Married', NULL, 'Poncia', NULL, NULL, 'Plato', NULL, NULL, NULL, NULL, '1996-01-11', NULL, NULL, '1', NULL, NULL, 'poli@pmdmc.net', '138', 138, NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:56:16', '2025-03-28 07:51:07', NULL),
+(61, 'ENR-2501-EP1-9018', '6', '8', 'Female', 'Married', NULL, 'Laarni', NULL, NULL, 'Eustaquio', NULL, '', NULL, NULL, '1996-01-11', NULL, NULL, '1', NULL, NULL, 'laitors19@gmail.com', '138', 138, NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:57:52', '2025-04-11 00:46:59', NULL),
+(62, 'ENR-2501-EP1-1659', '5', '5', 'Female', 'Married', '2003-01-07', 'Joan', 'Villanueva', 'Endique', 'Solitario', NULL, NULL, NULL, 0, '1978-03-01', 'Legazpi City, Albay, Philippines', '2013-05-01', '2', 'B+', NULL, 'joan.solitario@gmail.com', '185', 138, 1, 9, 0, 0, 45, 0, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 03:59:58', '2026-02-05 03:05:30', NULL),
+(63, 'ENR-2501-EP1-8509', '1', '8', 'Male', 'Single', NULL, 'Harvey Guy12', NULL, NULL, 'Mackay12', NULL, NULL, NULL, NULL, '1984-07-08', NULL, '2024-04-29', '1', '', NULL, 'harveyguy.mackay@gmail.com', '', NULL, 0, 0, 0, 0, NULL, NULL, 1, 'Arnel Tumanan', '2000-11-02', 'Templo, Central', 2620, 51, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-15 04:00:40', '2025-07-31 05:13:03', NULL),
+(64, 'ENR-2501-EP1-7003', '1', '0', 'Male', 'Married', NULL, 'Ryan', NULL, NULL, 'Malabanan', NULL, NULL, NULL, NULL, '1987-11-19', NULL, NULL, NULL, NULL, NULL, 'ryan.malabanan@iglesianicristo.org', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, NULL, 'Fulltime', NULL, NULL, NULL, '2025-01-15 04:01:30', '2025-01-26 09:45:39', NULL),
+(65, 'ENR-2501-EP1-7309', '1', '0', 'Male', 'Single', NULL, 'Chun-Wei', NULL, NULL, 'Kao', 'No Suffix', 'Aeron', NULL, 0, '2000-05-25', 'Taiwan', '2024-10-09', '3', 'A+', NULL, 'a5514585@icloud.com', '138', 170, 1, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', 45, 0, 21748, 'May Destino', '2024-09-13', NULL, NULL, '2025-01-15 04:02:55', '2025-07-24 13:08:11', NULL),
+(67, 'ENR-2501-EP1-1914', '1', '0', 'Female', 'Married', NULL, 'Alexandra Nicole', NULL, 'Bernal', 'Dimatulac', NULL, 'Nicki', NULL, 0, '1991-12-31', 'Oslo, Norway', '2024-11-15', '2', NULL, NULL, 'anicolebdimatulac@gmail.com', '129', 129, 1, 9, NULL, NULL, 45, 0, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-16 08:10:27', '2026-02-02 07:12:40', NULL),
+(68, 'ENR-2501-EP1-9034', '1', '0', 'Female', 'Married', '2015-11-16', 'Frances Nicole', 'Silva', 'Manzanero', 'Sanchez', NULL, 'Nicole', NULL, 0, '1992-10-05', 'San Pablo City Laguna', '2015-06-19', '2', 'O+', NULL, 'nicolemsanchez05@gmail.com', '138', 138, 1, 9, NULL, NULL, 61, 0, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister\'s Wife', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-16 09:52:24', '2025-01-26 09:45:39', NULL),
+(71, 'ENR-2501-EP1-9571', '1', '0', 'Male', 'Single', NULL, 'Rimmel', 'Magarso', NULL, 'Vispo', NULL, 'RV', NULL, 0, '1998-12-28', 'Maantol, Capiz', '2022-07-04', '1', 'O+', NULL, 'rimmelvispo28@gmail.com', '138', 138, 18, 0, 0, 0, 45, 0, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', NULL, 0, 20161, 'May Destino', '2022-09-16', NULL, NULL, '2025-01-21 01:03:45', '2025-01-26 09:45:39', NULL),
+(73, 'ENR-2501-EP1-8672', '1', '0', 'Male', 'Single', NULL, 'Aldrin James', 'Santiago', NULL, 'Salvador', NULL, 'Aldrin', 39, 1979, '2000-02-06', 'Gov. Roquel Ablan Sr. Memorial Hospital', '2022-08-08', '1', 'O+', NULL, 'aldrinjamessalvador@gmail.com', '138', 138, 1, 11, 0, 7, 85, 0, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', 39, 1979, 20152, 'May Destino', '2022-09-16', NULL, NULL, '2025-01-21 03:49:27', '2026-02-05 23:50:38', NULL),
+(77, 'ENR-2502-EP1-5752', '6', '0', 'Male', 'Married', '2015-11-14', 'Christian', 'Garcia', NULL, 'de Dios', NULL, NULL, 0, 2659, '1985-07-13', 'San Francisco', '2025-01-11', '', 'O+', NULL, 'christian.garcia.dedios@gmail.com', '', 33, 1, 11, 0, 0, 16, 835, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 12079, 'Fulltime', '0215-04-25', '0215-06-12', NULL, '2025-02-11 04:32:11', '2026-02-02 07:12:44', NULL),
+(78, 'ENR-2502-EP1-5166', '6', '0', 'Male', 'Married', '2018-03-13', 'Jeff Cary', 'Nostrates', NULL, 'Yumul', 'No Suffix', 'Jeff', 51, 2659, '1990-03-14', 'Muntinlupa City', '2019-01-02', '145,155', 'B+', NULL, 'jeffyumulrn@gmail.com', '138', 103, 12, 19, 0, 0, 105, 4907, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 13480, 'Fulltime', '2017-08-06', '2020-12-26', NULL, '2025-02-18 03:34:13', '2025-02-26 03:34:38', NULL),
+(79, 'ENR-2502-EP1-4815', '6', '0', 'Male', 'Married', '2018-09-04', 'June Volter', 'Ynot', NULL, 'Saligumba', NULL, 'June', 0, NULL, '1984-06-19', 'Butuan City, Agusan del Norte', NULL, '', 'A+', NULL, 'june.saligumba07@gmail.com', '', 33, 1, 16, 0, 0, 49, 2507, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 11895, 'Fulltime', '2015-07-27', '2016-11-19', NULL, '2025-02-18 03:37:44', '2025-02-18 04:15:03', NULL),
+(80, 'ENR-2502-EP1-2277', '6', '0', 'Male', 'Married', '2023-01-24', 'Joel Albert', 'Rabara', NULL, 'Eusebio', 'No Suffix', 'Bruno', 0, 2633, '1990-02-25', 'Miami, Florida', '2017-09-17', '', 'O+', NULL, 'joel.euse@gmail.com', '', 100, 8, 43, 0, 0, 46, 2330, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', 139, 6427, 19601, 'May Destino', '2021-03-27', NULL, NULL, '2025-02-18 03:43:27', '2025-02-18 03:49:37', NULL),
+(81, 'ENR-2502-EP1-1023', '1', '0', 'Male', 'Married', '2022-04-22', 'Jespher', 'Endaya', 'Maghirang', 'Maghirang', NULL, 'Jespher', 15, 789, '1995-11-29', 'Siniloan, Laguna', '2018-10-13', '', 'O+', NULL, 'jespher.maghirang@gmail.com', '138', 0, 1, 11, 0, 0, 15, 789, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', 39, 1979, 15041, 'May Destino', '2018-06-30', '2025-12-12', NULL, '2025-02-18 03:43:45', '2026-02-05 13:47:58', NULL),
+(82, 'ENR-2502-EP1-1618', '6', '0', 'Male', 'Married', '2014-12-06', 'Edgardo', 'Adrao', '', 'Maisip', 'Jr.', 'Edgar or Ed', 51, 2659, '1986-03-17', 'Makati, Metro Manila', '2023-07-24', '155,145,135', 'A+', NULL, 'edgarmaisip@gmail.com', '138', 103, 1, 7, 0, 0, 14, 773, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 11357, 'Fulltime', '2013-03-19', '2014-04-19', NULL, '2025-02-18 03:45:11', '2025-02-23 08:43:53', NULL),
+(83, 'ENR-2502-EP1-6073', '6', '8', 'Male', 'Married', '2019-11-19', 'Lee Jordan', 'Valencia', NULL, 'Umayam', NULL, 'Lee', 0, 2633, '1983-11-22', 'Tayabas, Quezon', '2025-12-26', '', 'AB+', NULL, 'umayamleejordan@gmail.com', '', 33, 1, 11, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 15580, 'Fulltime', '2018-06-30', '2020-10-31', NULL, '2025-02-18 03:45:45', '2025-04-11 01:20:25', NULL),
+(84, 'ENR-2502-EP1-6594', '5', '0', 'Male', 'Single', NULL, 'Mhelmarck', 'Marabe', NULL, 'Edralin', NULL, 'Em', 0, 2659, '1990-03-06', 'Quezon City', '2023-02-06', '', 'O+', NULL, 'EmEdralin13@gmail.com', '', 33, 1, 8, 0, 0, 139, 6418, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-02-18 03:46:19', '2025-02-18 05:22:06', NULL),
+(85, 'ENR-2502-EP1-4007', '6', '0', 'Male', 'Married', '2022-04-26', 'Christian Marco', 'Dagdag', NULL, 'Cervantes', 'No Suffix', 'Marco', 51, 2630, '1995-07-27', 'Quezon City', '2014-01-12', '', 'B+', NULL, 'christianmarcocervantes@gmail.com', '', 33, 1, 8, 0, 0, 51, 2649, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 12063, 'Fulltime', '2015-04-25', '2021-11-06', NULL, '2025-02-18 03:47:10', '2026-02-02 07:12:27', NULL),
+(86, 'ENR-2502-EP1-1467', '6', '0', 'Male', 'Married', '2022-12-21', 'Sotero', 'Aguilan', NULL, 'Valera', 'Jr.', 'Jay', 51, 2630, '1996-05-29', 'Caminawit, San Jose, Occidental Mindoro', '2014-01-11', '145,155,146', 'A+', NULL, 'bjvalera06cmuseum@gmail.com', '138', 103, 1, 8, 0, 0, 143, 6640, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 15594, 'Fulltime', '2018-06-30', '2018-12-29', NULL, '2025-02-18 03:48:36', '2025-02-21 01:50:17', NULL),
+(87, 'ENR-2502-EP1-8025', '6', '0', 'Male', 'Married', '2010-06-14', 'Gerald Neil', 'Olaes', NULL, 'Mallari', NULL, 'Gerald', 0, 2630, '1980-10-20', 'Cavite', '2007-04-05', '', 'O+', NULL, 'mallarigeraldneil@gmail.com', '', 33, 1, 11, 0, 0, 48, 2409, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 10147, 'Fulltime', '2007-04-07', '2013-06-13', NULL, '2025-02-18 03:48:56', '2025-02-18 04:16:19', NULL),
+(88, 'ENR-2502-EP1-7386', '5', '0', 'Male', 'Single', NULL, 'Ramil', 'Sta. Maria', NULL, 'Palomar', 'No Suffix', 'Ramil', 0, 2659, '1999-06-20', 'Southern Leyte, Philippines', '2022-04-29', '', 'O+', NULL, 'rpalomar91@gmail.com', '', 33, 8, 43, 0, 0, 165, 7525, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', 51, 2622, 19608, 'May Destino', '2021-04-24', NULL, NULL, '2025-02-18 03:50:16', '2025-02-18 04:09:31', NULL),
+(89, 'ENR-2502-EP1-1391', '6', '0', 'Male', 'Married', '2014-05-30', 'Carlo Jay', 'Ortega', NULL, 'Cuevas', 'No Suffix', 'Carlo', 0, 2659, '1986-08-20', 'Lipa City', '2022-08-11', '', NULL, NULL, 'carlocuevas.inc@gmail.com', '', 0, 1, 8, 0, 0, 15, 812, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-02-18 04:00:12', '2025-02-18 05:45:30', NULL),
+(90, 'ENR-2502-EP1-5427', '1', '0', 'Male', 'Single', NULL, 'Marco', 'Rivera', NULL, 'Suarez', 'No Suffix', NULL, 0, 6418, '1998-06-08', 'Malolos, Bulacan', '2024-01-15', '', 'A+', NULL, 'mrcsrz08@gmail.com', '', 33, 1, 8, 0, 0, 51, 2659, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', 139, 6418, 20006, 'May Destino', '2022-07-16', NULL, NULL, '2025-02-18 04:04:34', '2025-02-18 04:04:34', NULL),
+(91, 'ENR-2502-EP1-8502', '1', '0', 'Male', 'Married', '2018-11-09', 'Jake', 'Sayod', '', 'Alcantara', NULL, 'Yek', 0, 2659, '1985-07-19', 'Batangan, Valencia City, Bukidnon', '2022-08-14', '', 'O+', NULL, 'dadaalcantara1985@gmail.com', '', 35, 12, 23, 0, 0, 181, 8180, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 13924, 'Fulltime', '2017-08-06', '2022-09-16', NULL, '2025-02-18 04:32:39', '2026-02-02 07:12:48', NULL),
+(92, 'ENR-2502-EP1-1495', '6', '0', 'Male', 'Married', '2019-11-11', 'Jan Melvin', 'Asuncion', NULL, 'Pastor', 'No Suffix', 'Melvin', 0, 2636, '1994-02-13', 'Brgy. San Roque, Guimba, Nueva Ecija', '2023-06-13', '', 'B+', NULL, 'dyeympastor@gmail.com', '', 0, 1, 16, 0, 0, 39, 1972, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 11865, 'Fulltime', '2015-04-25', '2020-12-26', NULL, '2025-02-18 05:12:01', '2025-02-18 05:25:39', NULL),
+(93, 'ENR-2502-EP1-5710', '5', '0', 'Male', 'Married', '2015-05-26', 'Michael', 'Cantos', NULL, 'Enriquez', NULL, 'Mike', 0, 2659, '1980-02-21', 'San Pablo City', '2015-11-15', '', 'B+', NULL, 'michaelcenriquez21@gmail.com', '', 0, 1, 11, 0, 0, 155, 7235, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 11753, 'Fulltime', '2015-01-17', '2015-01-23', NULL, '2025-02-18 05:47:15', '2025-02-18 10:40:50', NULL),
+(94, 'ENR-2502-EP1-3676', '5', '0', 'Male', 'Single', NULL, 'Erbil', 'Flores', NULL, 'Escaño', 'Jr.', 'Nonoy', 0, 4868, '1982-08-16', 'Makati City', NULL, '', 'AB+', NULL, 'monsterball41@gmail.com', '', 33, 1, 8, 0, 0, 104, 4868, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-02-18 06:08:32', '2025-02-18 06:43:22', NULL),
+(95, 'ENR-2502-EP1-7406', '6', '0', 'Male', 'Married', '2014-01-19', 'Christopher Jay', 'Sanchez', NULL, 'Alignay', 'No Suffix', 'Chris', 0, 2659, '1980-09-23', 'Washington, D.C., USA', '2011-03-15', '', 'O+', NULL, 'chris.alignay@gmail.com', '', 0, 1, 16, 0, 0, 185, 8348, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 11294, 'Fulltime', '2013-03-19', '2013-11-29', NULL, '2025-02-18 07:16:37', '2025-02-18 07:36:48', NULL),
+(96, 'ENR-2502-EP1-5330', '3', '0', 'Male', 'Married', '2020-07-14', 'Marvin', 'Rutao', NULL, 'Estrada', NULL, NULL, 0, NULL, '1992-05-12', 'MCU Caloocan', '2010-01-01', '', 'O+', NULL, 'marvinestrada.ofc@gmail.com', '', 139, 12, 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 14767, 'Fulltime', '2018-06-30', '2023-08-18', NULL, '2025-02-18 23:55:48', '2025-02-18 23:58:06', NULL),
+(97, 'ENR-2502-EP1-4461', '5', '0', 'Male', 'Single', NULL, 'Kit', 'Morenes', NULL, 'Curilan', NULL, NULL, 0, 6424, '1995-08-09', 'Sta. Maria Bulacan', '2024-01-19', '', 'A+', NULL, 'kit.curilan09@gmail.com', '', 103, 1, 7, 0, 0, 28, 1398, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', 139, 6424, 20418, 'May Destino', '2023-09-17', NULL, NULL, '2025-02-19 06:53:30', '2025-02-19 07:18:47', NULL),
+(98, 'ENR-2502-EP1-2806', '6', '0', 'Male', 'Married', '2016-06-20', 'Rushier Ivan', 'Dagdag', NULL, 'Cervantes', 'No Suffix', 'Ivan', 0, 2659, '1993-12-23', 'Quezon City', '2023-08-17', '', 'B+', NULL, 'rushier.ivan@gmail.com', '', 103, 1, 7, 0, 0, 36, 1911, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 11706, 'Fulltime', '2015-04-24', '2015-06-19', NULL, '2025-02-19 08:11:09', '2025-02-19 12:53:14', NULL),
+(99, 'ENR-2502-EP1-5818', '1', '0', 'Male', 'Married', '2020-03-17', 'John Michael', 'Zita', NULL, 'Hizon', NULL, 'JM', 0, 2659, '1996-08-09', 'Guagua, Pampanga', NULL, '145,155', 'A+', NULL, 'jmzhzn@gmail.com', '138', 103, 1, 11, 0, 0, 40, 2010, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 13458, 'Fulltime', '2017-08-06', '2020-09-20', NULL, '2025-02-20 01:38:53', '2025-02-20 03:09:52', NULL),
+(100, 'ENR-2502-EP1-2340', '5', '0', 'Male', 'Single', NULL, 'John Derick', 'Ureta', NULL, 'Cordial', NULL, 'Derick', 0, NULL, '1997-03-10', 'Camarin, Caloocan North', '2023-05-22', '', 'B+', NULL, 'johnderickuretacordial@gmail.com', '', 0, 1, 11, 0, 0, 35, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', 35, NULL, 19411, 'May Destino', '2021-03-27', NULL, NULL, '2025-02-20 01:43:55', '2025-04-21 07:14:29', NULL),
+(101, 'ENR-2502-EP1-4566', '3', '0', 'Male', 'Married', '2020-05-28', 'Adrian', 'Palgan', NULL, 'Amado', NULL, 'Andy', 0, NULL, '1991-09-06', 'Don Andres, Ipil Zamboanga Sibugay', '2022-05-17', '', 'O+', NULL, 'adrianpalganamado@gmail.com', '', 103, 1, 13, 0, 0, 194, 8633, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', NULL, NULL, 14259, 'Fulltime', '2018-06-30', NULL, NULL, '2025-02-20 12:18:25', '2025-02-20 12:22:04', NULL),
+(102, 'ENR-2502-EP1-4920', '4', '0', 'Male', 'Single', NULL, 'Joel Angelo', 'Ayuste', NULL, 'Valido', 'No Suffix', 'Joel', 51, 2659, '1996-10-05', 'Butuan City', '2016-02-05', '145,155,146', 'O+', NULL, 'jlnglvld@gmail.com', '138', 103, 1, 7, 0, 0, 2, 51, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', NULL, NULL, 16718, 'Fulltime', '2019-07-27', NULL, NULL, '2025-02-23 09:42:57', '2025-03-19 00:57:33', NULL),
+(103, 'ENR-2502-EP1-8588', '6', '0', 'Male', 'Married', '2020-11-17', 'Petronilo', 'Alquiza', NULL, 'Catama', 'III', 'Nilo', 0, NULL, '1997-01-29', 'Manila', '2015-06-18', '', 'A+', NULL, 'catamanilo@gmail.com', '', 103, 1, 16, 0, 0, 139, 6432, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 13428, 'Fulltime', '2017-08-06', '2018-06-30', NULL, '2025-02-26 09:38:14', '2025-02-26 09:44:33', NULL),
+(104, 'ENR-2502-EP1-3310', '5', '0', 'Male', 'Single', NULL, 'Adrian', 'Roa', NULL, 'Teñoso', 'No Suffix', 'Ian', 0, 2659, '1997-03-21', 'Alfonso, Cavite', '2022-03-16', '', 'O+', NULL, 'tenoso.adrian@gmail.com', '', 103, 1, 11, 0, 0, 21, 1102, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', NULL, NULL, 16716, 'Fulltime', '2019-07-27', NULL, NULL, '2025-02-26 09:42:25', '2025-02-26 10:04:20', NULL),
+(105, 'ENR-2502-EP1-5905', '5', '0', 'Male', 'Single', NULL, 'Armel', 'Santos', NULL, 'Magbanua', 'No Suffix', 'none', 0, NULL, '1993-04-10', 'marikina city', '2022-08-24', '', 'A+', NULL, 'magbanuaa297@gmail.com', '', 103, 1, 11, 0, 0, 99, 4669, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', NULL, NULL, 19292, 'Fulltime', '2021-09-11', NULL, NULL, '2025-02-26 09:46:08', '2025-02-26 10:19:08', NULL),
+(106, 'ENR-2502-EP1-9254', '1', '0', 'Male', 'Married', '2024-02-05', 'Lovel Oriel', 'Dela Cruz', NULL, 'Quinitio', NULL, 'Lovel', 0, 2659, '1999-02-03', 'Sampaloc, Manila', '2019-08-02', '', 'A+', NULL, 'elowkyu@gmail.com', '', 103, 1, 16, 0, 0, 51, 2659, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', 139, 6418, 17614, 'May Destino', '2019-07-27', '2025-02-21', NULL, '2025-02-27 02:03:35', '2025-02-28 03:07:43', NULL),
+(107, 'ENR-2502-EP1-3023', '6', '0', 'Male', 'Married', '2016-06-14', 'Rey Walter', 'Tagalicod', NULL, 'Zamora', 'No Suffix', 'Rey', 0, 2659, '1991-12-16', 'Quezon City', '2013-12-01', '', 'B+', NULL, 'reywalterzamora@gmail.com', '', 103, 8, 43, 0, 0, 139, 6414, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 12445, 'Fulltime', '2015-04-15', '2016-01-23', NULL, '2025-02-27 03:20:16', '2025-02-27 03:27:03', NULL),
+(108, 'ENR-2502-EP1-8099', '6', '0', 'Male', 'Married', NULL, 'Scott', 'Bryan', NULL, 'Katz', 'Jr.', 'Scotty', 51, 2633, '1995-10-10', 'Arizona, USA', '2023-01-16', '155,145', 'A-', NULL, 'scottykatz9@gmail.com', '185', 136, 8, 43, 0, 0, 102, 4820, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', NULL, NULL, 19604, 'Fulltime', '2021-09-11', NULL, NULL, '2025-02-28 13:08:18', '2025-03-01 07:28:30', NULL),
+(109, 'ENR-2503-EP1-6565', '4', '0', 'Male', 'Married', '2023-10-23', 'Joon Francis', 'Villano', NULL, 'de Guia', 'No Suffix', 'Joon', 51, 2659, '1991-02-08', 'San Pablo City, Laguna', '2022-05-27', '145,155,148', 'O+', NULL, 'joonfrancis.jfdg@gmail.com', '138', 103, 12, 22, 0, 0, 155, 7200, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', NULL, NULL, 14628, 'Fulltime', '2018-06-30', NULL, NULL, '2025-03-01 03:27:39', '2025-03-06 01:22:05', NULL),
+(110, 'ENR-2503-EP1-9931', '5', '0', 'Male', 'Single', NULL, 'Mark Arthur', 'Sion', NULL, 'Rivera', NULL, 'Mark', 0, 6427, '1997-11-01', 'Hong Kong', '2023-10-23', '', 'A+', NULL, 'markrivera.inc@icloud.com', '', 103, 1, 11, 0, 7, 72, 3426, NULL, NULL, NULL, NULL, NULL, NULL, 'Regular', 139, 6427, 202546, 'May Destino', '2023-09-17', NULL, NULL, '2025-03-07 00:04:31', '2025-03-07 00:18:56', NULL),
+(111, 'ENR-2503-EP1-9759', '6', '0', 'Male', 'Married', '2019-09-13', 'Reniel', 'Gañola', NULL, 'Mariano', NULL, 'Reniel', 0, 2641, '1991-11-18', 'Quezon City', '2010-10-10', '', 'A+', NULL, 'mreniel25@gmail.com', '', 0, 12, 19, 0, 6, 139, 6432, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', NULL, NULL, 12965, 'Fulltime', '2016-07-19', '2021-07-09', NULL, '2025-03-10 06:58:13', '2025-03-10 07:06:43', NULL),
+(112, 'ENR-2503-EP1-3529', '1', '0', 'Male', 'Married', NULL, 'JOHN GIL', 'SALCEDO', NULL, 'REYES', NULL, 'GIL', 0, 3264, '1995-10-19', 'GENERAL SANTOS CITY', NULL, '', 'O+', NULL, 'REYESJOHNGIL@GMAIL.COM', '', 103, 1, 11, 0, 0, 67, 3264, NULL, NULL, NULL, NULL, NULL, NULL, 'Ministerial Student', 104, 4876, 24619, 'May Destino', NULL, NULL, NULL, '2025-03-19 06:12:37', '2025-06-04 07:37:29', NULL),
+(113, 'ENR-2504-EP1-5379', '6', '8', 'Male', 'Married', '2025-04-04', 'Juan', 'Dela Peña', NULL, 'Dela Cruz', 'Sr.', 'Juan', 0, 4886, '1990-06-04', 'Baao, Camarines Sur', '2025-04-04', '', 'A+', NULL, 'juan.cruz@gmail.com', '', 136, 1, 16, 0, 7, 177, 8050, NULL, NULL, NULL, NULL, NULL, NULL, 'Minister', 105, 4886, 1777, 'May Destino', '2003-10-04', '2025-04-04', '0006084177', '2025-04-04 10:24:38', '2026-02-05 05:15:18', NULL),
+(114, 'ENR-2504-EP1-1189', '1', '8', 'Female', 'Single', NULL, 'Bernadeth', 'Endozo', NULL, 'Serra', NULL, 'Badeth', 0, 2659, '1992-06-20', 'Pansol, Calamba Laguna', '2012-10-31', '', 'O+', NULL, 'badethendozo@gmail.com', '', 103, 1, 11, 0, 7, 51, 2659, NULL, NULL, NULL, NULL, NULL, NULL, 'Lay Member', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-04-11 00:48:51', '2025-04-29 01:46:38', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `personnel_activity_logs`
+--
+
+CREATE TABLE `personnel_activity_logs` (
+  `id` int NOT NULL,
+  `personnel_id` bigint NOT NULL,
+  `action` enum('In','Out') COLLATE utf8mb4_general_ci NOT NULL,
+  `reason` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `performed_by` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `timestamp` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `personnel_activity_logs`
+--
+
+INSERT INTO `personnel_activity_logs` (`id`, `personnel_id`, `action`, `reason`, `performed_by`, `timestamp`) VALUES
+(1, 73, 'In', 'Personnel restored from Temporarily Deleted list', 'felix.pareja', '2026-02-05 23:50:38'),
+(2, 73, 'Out', 'Personnel deleted directly', 'felix.pareja', '2026-02-06 00:17:04'),
+(3, 73, 'Out', 'Personnel deleted directly', 'felix.pareja', '2026-02-06 00:17:25'),
+(4, 91, 'Out', 'Personnel deleted directly', 'felix.pareja', '2026-02-06 00:17:50'),
+(5, 73, 'Out', 'Personnel deleted directly', 'felix.pareja', '2026-02-06 00:20:05'),
+(6, 73, 'Out', 'Personnel deleted directly', 'felix.pareja', '2026-02-06 00:23:31'),
+(7, 73, 'Out', 'Personnel deleted directly', 'felix.pareja', '2026-02-06 00:54:52'),
+(8, 73, 'Out', 'Personnel deleted directly', 'felix.pareja', '2026-02-06 00:55:02'),
+(9, 73, 'Out', 'Personnel deleted directly', 'felix.pareja', '2026-02-06 00:55:07'),
+(10, 73, 'Out', 'Personnel deleted directly', 'felix.pareja', '2026-02-06 00:57:59'),
+(11, 73, 'Out', 'Personnel deleted directly', 'felix.pareja', '2026-02-06 01:05:59'),
+(12, 73, 'Out', 'Personnel deleted directly', 'felix.pareja', '2026-02-06 03:37:33');
 
 -- --------------------------------------------------------
 
@@ -2632,12 +3350,12 @@ INSERT INTO `personnels` (`personnel_id`, `reference_number`, `enrollment_progre
 --
 
 CREATE TABLE `personnel_address` (
-  `id` int(11) NOT NULL,
-  `personnel_id` int(11) NOT NULL,
-  `address_type` varchar(50) NOT NULL,
-  `name` varchar(250) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` int NOT NULL,
+  `personnel_id` int NOT NULL,
+  `address_type` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `name` varchar(250) COLLATE utf8mb4_general_ci NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -2647,7 +3365,7 @@ CREATE TABLE `personnel_address` (
 INSERT INTO `personnel_address` (`id`, `personnel_id`, `address_type`, `name`, `created_at`, `updated_at`) VALUES
 (1, 20, 'Home Address', '160 Tandang Sora Avenue, Quezon City', '2024-12-05 07:51:56', '2024-12-20 04:45:24'),
 (2, 20, 'INC Housing', 'Green Condo', '2024-12-20 04:45:45', '2025-06-03 08:50:47'),
-(3, 10, 'Home Address', 'Bonifacio Drive, Quezon City', '2024-12-20 04:48:02', '2025-01-17 02:36:49'),
+(3, 10, 'Home Address', 'Bonifacio Drive, Quezon City', '2024-12-20 04:48:02', '2025-07-31 04:36:18'),
 (5, 20, 'Home Address', 'asd', '2024-12-20 06:58:59', '2025-06-05 03:52:03'),
 (6, 39, 'Home Address', '12werthhghgmnnm', '2025-01-10 00:28:46', '2025-01-10 00:28:46'),
 (7, 43, 'INC Housing', 'LIG, Morning Star', '2025-01-10 03:52:32', '2025-06-05 03:51:55'),
@@ -2693,7 +3411,8 @@ INSERT INTO `personnel_address` (`id`, `personnel_id`, `address_type`, `name`, `
 (47, 112, 'Provincial Address', 'DELA CUADRA ST ZONE 6 BULA GENERAL SANTOS CITY', '2025-03-19 06:13:13', '2025-03-19 06:13:24'),
 (48, 112, 'Home Address', 'INC COMPOUND PEMBO RIZAL TAGUIG CITY', '2025-03-19 06:13:36', '2025-03-19 06:13:36'),
 (49, 113, 'Home Address', 'Brgy. New Era, St. Joseph Street, Quezon City, Philipines', '2025-04-04 10:38:33', '2025-04-04 10:38:33'),
-(50, 113, 'Provincial Address', 'Pinaglabanan Street, Brgy. San Agustin, Iriga City, Camarines Sur, Philippines', '2025-04-04 10:39:51', '2025-04-04 10:39:51');
+(50, 113, 'Provincial Address', 'Pinaglabanan Street, Brgy. San Agustin, Iriga City, Camarines Sur, Philippines', '2025-04-04 10:39:51', '2025-04-04 10:39:51'),
+(51, 37, 'INC Housing', 'Green Condo', '2025-07-24 10:17:37', '2025-07-24 10:17:37');
 
 -- --------------------------------------------------------
 
@@ -2702,11 +3421,11 @@ INSERT INTO `personnel_address` (`id`, `personnel_id`, `address_type`, `name`, `
 --
 
 CREATE TABLE `personnel_church_duties` (
-  `id` bigint(20) NOT NULL,
-  `personnel_id` bigint(20) NOT NULL,
-  `duty` varchar(50) DEFAULT NULL,
-  `start_year` int(11) DEFAULT NULL,
-  `end_year` int(11) DEFAULT NULL,
+  `id` bigint NOT NULL,
+  `personnel_id` bigint NOT NULL,
+  `duty` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `start_year` int DEFAULT NULL,
+  `end_year` int DEFAULT NULL,
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -2726,14 +3445,14 @@ INSERT INTO `personnel_church_duties` (`id`, `personnel_id`, `duty`, `start_year
 --
 
 CREATE TABLE `personnel_contacts` (
-  `id` bigint(20) NOT NULL,
-  `personnel_id` int(11) NOT NULL,
-  `contactype_id` int(11) NOT NULL,
-  `contact_info` varchar(30) DEFAULT NULL,
-  `contact_location` varchar(50) DEFAULT NULL,
-  `extension` varchar(50) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` bigint NOT NULL,
+  `personnel_id` int NOT NULL,
+  `contactype_id` int NOT NULL,
+  `contact_info` varchar(30) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `contact_location` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `extension` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -2755,7 +3474,7 @@ INSERT INTO `personnel_contacts` (`id`, `personnel_id`, `contactype_id`, `contac
 (14, 37, 1, '09958434430', NULL, '', '2025-01-20 22:44:32', '2025-01-20 22:44:32'),
 (15, 65, 1, '09661925340', NULL, '', '2025-01-21 01:13:29', '2025-01-21 01:13:29'),
 (16, 73, 1, '09569218138', '0', '', '2025-01-21 03:52:00', '2025-04-18 05:00:28'),
-(17, 10, 1, '09063258273', NULL, '', '2025-01-21 04:42:26', '2025-01-21 04:42:26'),
+(17, 10, 1, '09063258273', NULL, NULL, '2025-01-21 04:42:26', '2025-07-31 04:34:15'),
 (18, 10, 2, '@felixmpareja', NULL, '', '2025-01-21 04:42:36', '2025-01-21 04:42:36'),
 (19, 10, 4, '@felixpareja', NULL, '', '2025-01-21 04:42:51', '2025-04-25 06:54:17'),
 (20, 76, 1, '911', NULL, '', '2025-01-30 05:05:52', '2025-01-30 05:05:52'),
@@ -2811,9 +3530,7 @@ INSERT INTO `personnel_contacts` (`id`, `personnel_id`, `contactype_id`, `contac
 (70, 113, 2, '@juandelacruz', NULL, '', '2025-04-04 10:25:53', '2025-04-04 10:25:53'),
 (71, 113, 2, '@juandelacruz', NULL, '', '2025-04-04 10:29:48', '2025-04-04 10:29:48'),
 (80, 73, 5, '-', 'SIXTH FLOOR Public', '3971', '2025-04-18 10:42:47', '2025-04-18 12:51:42'),
-(81, 10, 1, '09063258273', NULL, NULL, '2025-06-25 00:59:02', '2025-06-25 07:00:13'),
-(88, 10, 5, '-', 'Building Admin Office', '3881', '2025-07-01 07:12:32', '2025-07-01 07:13:01'),
-(89, 10, 2, '@parejafelix', NULL, NULL, '2025-07-01 07:13:35', '2025-07-01 07:13:35');
+(90, 10, 5, 'N/A', '5th Floor Private', '3924', '2025-10-09 03:20:51', '2026-02-01 19:41:44');
 
 -- --------------------------------------------------------
 
@@ -2822,17 +3539,17 @@ INSERT INTO `personnel_contacts` (`id`, `personnel_id`, `contactype_id`, `contac
 --
 
 CREATE TABLE `personnel_documents` (
-  `id` int(11) NOT NULL,
-  `document_id` int(11) NOT NULL,
-  `personnel_id` int(11) NOT NULL,
-  `document_type_id` int(11) DEFAULT NULL,
-  `file_name` varchar(255) DEFAULT NULL,
-  `file_path` varchar(255) DEFAULT NULL,
-  `uploaded_by` int(11) DEFAULT NULL,
-  `upload_date` timestamp NOT NULL DEFAULT current_timestamp(),
-  `description` text DEFAULT NULL,
+  `id` int NOT NULL,
+  `document_id` int NOT NULL,
+  `personnel_id` int NOT NULL,
+  `document_type_id` int DEFAULT NULL,
+  `file_name` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `file_path` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `uploaded_by` int DEFAULT NULL,
+  `upload_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `description` text COLLATE utf8mb4_general_ci,
   `expiration_date` date DEFAULT NULL,
-  `status` enum('active','expired') DEFAULT NULL
+  `status` enum('active','expired') COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -2842,10 +3559,10 @@ CREATE TABLE `personnel_documents` (
 --
 
 CREATE TABLE `personnel_gov_id` (
-  `id` int(11) NOT NULL,
-  `personnel_id` int(11) NOT NULL,
-  `gov_id` varchar(20) NOT NULL,
-  `gov_issued_id` varchar(50) NOT NULL
+  `id` int NOT NULL,
+  `personnel_id` int NOT NULL,
+  `gov_id` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
+  `gov_issued_id` varchar(50) COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -2882,16 +3599,37 @@ INSERT INTO `personnel_gov_id` (`id`, `personnel_id`, `gov_id`, `gov_issued_id`)
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `personnel_history`
+--
+
+CREATE TABLE `personnel_history` (
+  `id` int NOT NULL,
+  `personnel_id` int NOT NULL,
+  `prepared_by` int DEFAULT NULL,
+  `department_id` int DEFAULT NULL,
+  `sec_id` int DEFAULT NULL,
+  `subsection_id` int DEFAULT NULL,
+  `designation_id` int DEFAULT NULL,
+  `personnelstatus` varchar(25) COLLATE utf8mb4_general_ci NOT NULL,
+  `date` date NOT NULL,
+  `reason_for_leaving` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `personnel_images`
 --
 
 CREATE TABLE `personnel_images` (
-  `id` int(11) NOT NULL,
-  `personnel_id` int(11) NOT NULL,
-  `type` varchar(25) NOT NULL,
-  `image_url` text NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` int NOT NULL,
+  `personnel_id` int NOT NULL,
+  `type` varchar(25) COLLATE utf8mb4_general_ci NOT NULL,
+  `image_url` text COLLATE utf8mb4_general_ci NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -2900,12 +3638,12 @@ CREATE TABLE `personnel_images` (
 
 INSERT INTO `personnel_images` (`id`, `personnel_id`, `type`, `image_url`, `created_at`, `updated_at`) VALUES
 (10, 70, '2x2 Picture', '/uploads/avatar/1737078104334_1737078102556.png', '2025-01-17 01:41:44', '2025-01-17 01:41:44'),
-(11, 10, '2x2 Picture', '/uploads/avatar/1737081389093_1737081387295.png', '2025-01-17 02:36:29', '2025-01-17 02:36:29'),
-(12, 10, 'Full Body Picture', '/uploads/avatar/1737101893017_1737101891115.png', '2025-01-17 08:18:13', '2025-04-29 03:17:26'),
+(11, 10, '2x2 Picture', '/uploads/avatar/1769669311930_photo_2026-01-20_10-41-06.jpg', '2025-01-17 02:36:29', '2026-01-29 06:48:31'),
+(12, 10, 'Full Body Picture', '/uploads/avatar/1769669367988_1769669367795.png', '2025-01-17 08:18:13', '2026-01-29 06:49:27'),
 (13, 37, '2x2 Picture', '/uploads/avatar/1732955269835_KIM.jpg', '2025-01-20 22:40:59', '2025-04-18 02:34:27'),
 (14, 65, 'Half Body Picture', '/uploads/avatar/1737421977226_1737421977593.png', '2025-01-21 01:12:57', '2025-01-21 01:12:57'),
-(15, 73, '2x2 Picture', '', '2025-01-21 03:50:32', '2025-04-18 12:02:37'),
-(16, 10, 'Half Body Picture', '/uploads/avatar/1748313859340_1748313859328.png', '2025-01-21 05:32:02', '2025-05-27 02:44:20'),
+(15, 73, '2x2 Picture', '/uploads/avatar/1769675108993_1769675108972.png', '2025-01-21 03:50:32', '2026-01-29 08:25:09'),
+(16, 10, 'Half Body Picture', '/uploads/avatar/1769669347959_1769669347601.png', '2025-01-21 05:32:02', '2026-01-29 06:49:07'),
 (17, 59, '2x2 Picture', '/uploads/avatar/1742212676486_1742212666117.png', '2025-03-17 11:57:56', '2025-03-17 11:57:56'),
 (18, 59, '2x2 Picture', '/uploads/avatar/1742212883292_1742212872958.png', '2025-03-17 12:01:23', '2025-03-17 12:01:23'),
 (19, 59, 'Half Body Picture', '/uploads/avatar/1742213192102_1742213181743.png', '2025-03-17 12:06:32', '2025-03-17 12:06:32'),
@@ -2924,7 +3662,11 @@ INSERT INTO `personnel_images` (`id`, `personnel_id`, `type`, `image_url`, `crea
 (32, 83, 'Full Body Picture', '/uploads/avatar/1744334399777_1744334398557.png', '2025-04-11 01:19:59', '2025-04-11 01:19:59'),
 (33, 63, '2x2 Picture', '/uploads/avatar/1745893132394_1745893132368.png', '2025-04-29 02:18:52', '2025-04-29 02:18:52'),
 (34, 63, 'Half Body Picture', '/uploads/avatar/1745893145518_1745893145508.png', '2025-04-29 02:19:05', '2025-04-29 02:19:05'),
-(35, 63, 'Full Body Picture', '/uploads/avatar/1745893158846_1745893158838.png', '2025-04-29 02:19:18', '2025-04-29 02:19:18');
+(35, 63, 'Full Body Picture', '/uploads/avatar/1745893158846_1745893158838.png', '2025-04-29 02:19:18', '2025-04-29 02:19:18'),
+(39, 73, 'Half Body Picture', '/uploads/avatar/1753505066704_1753505066657.png', '2025-07-26 04:44:26', '2025-07-26 04:44:26'),
+(40, 73, 'Full Body Picture', '/uploads/avatar/1753505913139_1753505913118.png', '2025-07-26 04:58:33', '2025-07-26 04:58:33'),
+(41, 62, '2x2 Picture', '/uploads/avatar/1770263991775_1770263991734.png', '2026-02-05 03:05:22', '2026-02-05 03:59:51'),
+(42, 0, '2x2 Picture', '/uploads/avatar/1770274718806_1747797682134_DIAZ_Philippe_(white).jpg', '2026-02-05 06:58:38', '2026-02-05 06:58:38');
 
 -- --------------------------------------------------------
 
@@ -2933,16 +3675,16 @@ INSERT INTO `personnel_images` (`id`, `personnel_id`, `type`, `image_url`, `crea
 --
 
 CREATE TABLE `phone_directories` (
-  `id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `location` varchar(255) NOT NULL,
-  `prefix` varchar(50) NOT NULL,
-  `extension` varchar(50) NOT NULL,
-  `dect_number` varchar(50) DEFAULT NULL,
-  `phone_name` varchar(255) NOT NULL,
-  `is_active` tinyint(1) DEFAULT 1,
-  `createdAt` datetime DEFAULT current_timestamp(),
-  `updatedAt` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` int NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `location` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `prefix` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `extension` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `dect_number` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `phone_name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `is_active` tinyint(1) DEFAULT '1',
+  `createdAt` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -2950,7 +3692,7 @@ CREATE TABLE `phone_directories` (
 --
 
 INSERT INTO `phone_directories` (`id`, `name`, `location`, `prefix`, `extension`, `dect_number`, `phone_name`, `is_active`, `createdAt`, `updatedAt`) VALUES
-(1, 'Antonio T. de Guzman Jr.', 'VIP Area', '8632', '3999', NULL, 'Antonio T. de Guzman Jr.', 1, '2025-04-16 16:23:29', '2025-04-16 16:23:29'),
+(1, 'Antonio T. de Guzman Jr.', 'VIP Area', '8632', '3999', NULL, 'Antonio T. de Guzman Jr.', 1, '2025-04-16 16:23:29', '2025-07-26 03:20:58'),
 (2, 'Antonio T. de Guzman Jr.(formal office)', 'VIP Area', '8632', '3998', NULL, 'Antonio T. de Guzman Jr. (formal office)', 1, '2025-04-16 16:23:29', '2025-04-16 16:23:29'),
 (3, 'Gemma Minna M. de Guzman', 'VIP Area', '8632', '3997', NULL, 'Gemma Minna M. de Guzman', 1, '2025-04-16 16:23:29', '2025-04-16 16:23:29'),
 (4, 'VIP Receiving 6th floor', 'VIP Area', '8632', '3996', NULL, 'VIP Receiving 6th floor', 1, '2025-04-16 16:23:29', '2025-04-16 16:23:29'),
@@ -3076,8 +3818,8 @@ INSERT INTO `phone_directories` (`id`, `name`, `location`, `prefix`, `extension`
 --
 
 CREATE TABLE `phone_locations` (
-  `id` int(11) NOT NULL,
-  `name` varchar(50) NOT NULL,
+  `id` int NOT NULL,
+  `name` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -3095,7 +3837,7 @@ INSERT INTO `phone_locations` (`id`, `name`, `created_at`, `updated_at`) VALUES
 (6, '5th Floor Public', '2025-04-18 07:27:29', '2025-07-01 07:27:47'),
 (7, '4th Floor Private', '2025-04-18 07:27:38', '2025-07-01 07:27:57'),
 (8, '3rd Floor Private', '2025-04-18 07:27:53', '2025-07-01 07:28:46'),
-(9, '2nd Floor Private', '2025-04-18 07:28:05', '2025-07-01 07:28:19'),
+(9, '2nd Floor Private', '2025-04-18 07:28:05', '2025-07-26 03:05:10'),
 (10, '2nd Floor Public', '2025-04-18 07:28:23', '2025-07-01 07:28:27'),
 (11, 'Ground Floor', '2025-04-18 07:28:30', '2025-07-01 07:28:12'),
 (12, 'Building Admin Office', '2025-04-18 07:33:15', '2025-04-18 07:33:15'),
@@ -3110,15 +3852,15 @@ INSERT INTO `phone_locations` (`id`, `name`, `created_at`, `updated_at`) VALUES
 --
 
 CREATE TABLE `reminders` (
-  `id` int(11) NOT NULL,
-  `title` varchar(50) DEFAULT NULL,
-  `description` varchar(100) DEFAULT NULL,
+  `id` int NOT NULL,
+  `title` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `description` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `reminder_date` date NOT NULL,
   `time` time NOT NULL,
-  `message` varchar(300) DEFAULT NULL,
-  `created_by` int(11) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `message` varchar(300) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_by` int NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -3126,8 +3868,9 @@ CREATE TABLE `reminders` (
 --
 
 INSERT INTO `reminders` (`id`, `title`, `description`, `reminder_date`, `time`, `message`, `created_by`, `created_at`, `updated_at`) VALUES
-(3, 'MEETING', NULL, '2024-12-02', '19:00:00', 'TEST', 46, '2024-12-02 08:55:08', '2024-12-02 08:55:08'),
-(4, 'SEMINAR', NULL, '2024-12-02', '20:00:00', 'TEST', 46, '2024-12-02 08:56:10', '2024-12-02 08:56:10');
+(3, 'MEETING', '', '2026-02-06', '08:15:00', 'test', 46, '2026-02-06 00:12:08', '2026-02-06 00:12:08'),
+(4, 'SEMINAR', '', '2026-02-05', '21:45:00', 'TEST', 46, '2026-02-05 13:42:43', '2026-02-05 13:42:43'),
+(6, 'AUDIO SEMINAR', 'test', '2026-02-02', '07:00:00', 'asd', 46, '2026-02-05 12:22:16', '2026-02-05 12:22:16');
 
 -- --------------------------------------------------------
 
@@ -3136,12 +3879,12 @@ INSERT INTO `reminders` (`id`, `title`, `description`, `reminder_date`, `time`, 
 --
 
 CREATE TABLE `sections` (
-  `id` int(11) NOT NULL,
-  `department_id` int(11) NOT NULL,
-  `name` varchar(50) NOT NULL,
-  `image_url` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` int NOT NULL,
+  `department_id` int NOT NULL,
+  `name` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `image_url` text COLLATE utf8mb4_general_ci,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -3288,7 +4031,7 @@ INSERT INTO `sections` (`id`, `department_id`, `name`, `image_url`, `created_at`
 (144, 18, 'Records', NULL, '2025-01-17 05:33:15', '2025-01-17 05:33:15'),
 (145, 18, 'Registry', NULL, '2025-01-17 05:33:24', '2025-01-17 05:33:24'),
 (146, 18, 'Worship Service and Locale Officer', NULL, '2025-01-17 05:33:28', '2025-01-17 05:33:28'),
-(147, 9, 'ACQUISITION', NULL, '2025-01-17 05:33:49', '2025-01-17 05:33:49'),
+(147, 9, 'ACQUISITION', NULL, '2025-07-26 05:57:21', '2025-07-26 05:57:21'),
 (148, 9, 'ADMINISTRATIVE', NULL, '2025-01-17 05:35:02', '2025-01-17 05:35:02'),
 (149, 9, 'ARBITRATION', NULL, '2025-01-17 05:35:14', '2025-01-17 05:35:14'),
 (150, 9, 'ARCHIVES', NULL, '2025-01-17 05:35:20', '2025-01-17 05:35:20'),
@@ -3398,8 +4141,8 @@ INSERT INTO `sections` (`id`, `department_id`, `name`, `image_url`, `created_at`
 --
 
 CREATE TABLE `settings` (
-  `setting_key` varchar(255) NOT NULL,
-  `setting_value` varchar(255) NOT NULL
+  `setting_key` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `setting_value` varchar(255) COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -3409,13 +4152,13 @@ CREATE TABLE `settings` (
 --
 
 CREATE TABLE `subsections` (
-  `id` int(11) NOT NULL,
-  `department_id` int(11) NOT NULL,
-  `section_id` int(11) NOT NULL,
-  `name` varchar(50) NOT NULL,
-  `image_url` text NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` int NOT NULL,
+  `department_id` int NOT NULL,
+  `section_id` int NOT NULL,
+  `name` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `image_url` text COLLATE utf8mb4_general_ci NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -3438,13 +4181,13 @@ INSERT INTO `subsections` (`id`, `department_id`, `section_id`, `name`, `image_u
 --
 
 CREATE TABLE `suguan` (
-  `id` int(11) NOT NULL,
-  `name` varchar(50) NOT NULL,
-  `district_id` int(11) NOT NULL,
-  `local_congregation` varchar(50) NOT NULL,
+  `id` int NOT NULL,
+  `name` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `district_id` int NOT NULL,
+  `local_congregation` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
   `date` datetime NOT NULL,
   `time` time NOT NULL,
-  `gampanin_id` int(11) NOT NULL
+  `gampanin_id` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -3465,7 +4208,9 @@ INSERT INTO `suguan` (`id`, `name`, `district_id`, `local_congregation`, `date`,
 (17, 'Roland Kim Amaro', 45, 'Sagana', '2025-02-19 00:00:00', '19:00:00', 6),
 (18, 'Roland Kim Amaro', 45, 'Tagumpay 1', '2025-02-22 00:00:00', '06:00:00', 3),
 (19, 'Felix Pareja', 45, 'V. Luna', '2025-04-23 00:00:00', '18:45:00', 3),
-(20, 'Felix Pareja', 45, 'Tandang Sora', '2025-04-27 00:00:00', '10:00:00', 6);
+(20, 'Felix Pareja', 45, 'Tandang Sora', '2025-04-27 00:00:00', '10:00:00', 6),
+(21, 'Felix Pareja', 45, 'Templo: NEGH', '2026-02-05 00:00:00', '22:00:00', 3),
+(22, 'Felix Pareja', 45, 'BF Road', '2026-02-08 00:00:00', '06:00:00', 4);
 
 -- --------------------------------------------------------
 
@@ -3474,16 +4219,16 @@ INSERT INTO `suguan` (`id`, `name`, `district_id`, `local_congregation`, `date`,
 --
 
 CREATE TABLE `users` (
-  `ID` int(11) NOT NULL,
-  `uid` varchar(25) DEFAULT NULL,
-  `personnel_id` int(11) DEFAULT NULL,
-  `avatar` text DEFAULT NULL,
-  `username` varchar(25) DEFAULT NULL,
-  `password` varchar(150) NOT NULL,
-  `isLoggedIn` tinyint(4) DEFAULT NULL,
+  `ID` int NOT NULL,
+  `uid` varchar(25) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `personnel_id` int DEFAULT NULL,
+  `avatar` text COLLATE utf8mb4_general_ci,
+  `username` varchar(25) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `password` varchar(150) COLLATE utf8mb4_general_ci NOT NULL,
+  `isLoggedIn` tinyint DEFAULT NULL,
   `last_login` timestamp NULL DEFAULT NULL,
-  `auth_type` enum('LDAP','Local') NOT NULL,
-  `failed_attempts` int(11) DEFAULT NULL,
+  `auth_type` enum('LDAP','Local') COLLATE utf8mb4_general_ci NOT NULL,
+  `failed_attempts` int DEFAULT NULL,
   `last_failed_attempt` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
@@ -3499,7 +4244,7 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (3, 'amagpile', NULL, NULL, 'amagpile', '{MD5}3PbHEQTkbxTTefuWRiARAg==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (4, 'rmmalabanan', NULL, '', 'rmmalabanan', '{MD5}dDdpUA4QjNwSG35UEFTD9Q==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (5, 'mcenriquez', NULL, '', 'mcenriquez', '{SSHA}K5M+sv8gd5M7zoxTutWZWQlDBUgpU9uu', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(6, 'pcdiaz', NULL, '', 'pcdiaz', '{MD5}cRox3Dh47pUtklaRnQMF9w==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
+(6, 'pcdiaz', NULL, '', 'pcdiaz', '{MD5}cRox3Dh47pUtklaRnQMF9w==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (7, 'dvillamarzo', NULL, '', 'dvillamarzo', '{MD5}sUVO9gmCQXVMEGWc18MiVQ==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (8, 'jcabacungan', NULL, '', 'jcabacungan', '{MD5}ciPSWmnDFftvBezZ3JZR7Q==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (9, 'jsarmiento', NULL, '', 'jsarmiento', '{MD5}4xlkqIDIMJQNZdevSRDPkg==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
@@ -3539,9 +4284,9 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (43, 'executive.news', NULL, NULL, 'executive.news', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (44, 'pmd.it', NULL, '', 'pmd.it', '{SSHA}LYVyCEUbqbnRdJMh/NGuR38z6zbsDKG+', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
 (45, 'r.deguzman', NULL, '', 'r.deguzman', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-07 04:04:58'),
-(46, 'felix.pareja', 10, '/uploads/avatar/1744685888280_Untitled design.png', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-28 13:25:36'),
+(46, 'felix.pareja', 10, '/uploads/avatar/1759983102714_Untitled design.png', 'felix.pareja', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2024-11-07 04:04:58', '2024-11-28 13:25:36'),
 (48, NULL, NULL, '/uploads/avatar/1732867059276_icons8-fitbit-50.png', 'admin', '$2a$12$ZXhnczgjZG4QAa4oGMH5eOt0.a9urccMHJ0/FBYB5zCe2/zfh3dEO', 0, NULL, 'Local', NULL, NULL, NULL, NULL),
-(68, 'aldrin.salvador', 73, '', 'aldrin.salvador', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2025-01-08 03:16:34', '2025-01-08 03:16:34'),
+(68, 'aldrin.salvador', 73, 'https://172.18.125.129/uploads/avatar/1769675108993_1769675108972.png', 'aldrin.salvador', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2025-01-08 03:16:34', '2025-01-08 03:16:34'),
 (50, 'dalferez', NULL, NULL, 'dalferez', '{MD5}/DfLoL+7ApalWUrlZU0Q0Q==', 0, NULL, 'LDAP', 0, NULL, '2025-01-02 08:54:55', '2025-01-02 08:54:55'),
 (51, 'joel.cabacungan', NULL, '', 'joel.cabacungan', '{MD5}ZJ9NyhABEfZ4A2gX1oCndQ==', 0, NULL, 'LDAP', 0, NULL, '2025-01-02 08:54:55', '2025-01-02 08:54:55'),
 (52, 'mark.cresino', NULL, NULL, 'mark.cresino', '{MD5}U2OXW6l/7U1fjK+d+7MZGA==', 0, NULL, 'LDAP', 0, NULL, '2025-01-02 08:54:55', '2025-01-02 08:54:55'),
@@ -3558,8 +4303,7 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (69, 'mshohdy', 36, '', 'mshohdy', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2025-01-08 05:07:55', '2025-01-08 05:07:55'),
 (70, 'nsanchez', NULL, '', 'nsanchez', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2025-01-14 07:18:06', '2025-01-14 07:18:06'),
 (71, 'nicole.dimatulac', 67, '', 'nicole.dimatulac', '{MD5}jShANJIIW3KewfMYeLD0NQ==', 0, NULL, 'LDAP', 0, NULL, '2025-01-16 23:55:39', '2025-01-16 23:55:39'),
-(72, 'jcruz', 76, '', 'jcruz', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2025-02-18 03:16:04', '2025-02-18 03:16:04'),
-(73, 'bserra', NULL, NULL, 'bserra', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2025-02-18 03:37:25', '2025-02-18 03:37:25'),
+(160, 'poncia.plato', 60, 'https://172.18.125.129/uploads/avatar/1742385427743_1742385427117.png', 'poncia.plato', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 1, NULL, 'LDAP', 0, NULL, '2026-02-04 09:26:31', '2026-02-04 09:26:31'),
 (74, 'hmackay', NULL, NULL, 'hmackay', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2025-02-18 03:37:25', '2025-02-18 03:37:25'),
 (75, 'Christian.deDios', 77, '', 'Christian.deDios', '{MD5}Bv/LoorQSYYSVVTHAPeGEA==', 1, NULL, 'LDAP', 0, NULL, '2025-02-18 11:41:50', '2025-02-18 11:41:50'),
 (76, 'gerald.mallari', 87, '', 'gerald.mallari', '{MD5}gc6TaVLRkpMK/QIGXImC3g==', 0, NULL, 'LDAP', 0, NULL, '2025-02-19 05:57:06', '2025-02-19 05:57:06'),
@@ -3593,11 +4337,54 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 (104, 'mark.rivera', 110, '', 'mark.rivera', '{MD5}pE/pofSWnlfg40V3yDh/Ag==', 1, NULL, 'LDAP', 0, NULL, '2025-03-10 04:48:28', '2025-03-10 04:48:28'),
 (105, 'raniel.mariano', 111, '', 'raniel.mariano', '{MD5}ta48eLl9IwznTYge1nqNNw==', 1, NULL, 'LDAP', 0, NULL, '2025-03-10 12:58:41', '2025-03-10 12:58:41'),
 (106, 'ron.deguzman', NULL, '', 'ron.deguzman', '{MD5}rEIgKGmXbHa267DuTH7ORg==', 1, NULL, 'LDAP', 0, NULL, '2025-03-18 10:42:45', '2025-03-18 10:42:45'),
-(107, 'psumbilong', NULL, '', 'psumbilong', '{MD5}4vh3FhfOq3i3zcUJki6UBg==', 0, NULL, 'LDAP', 0, NULL, '2025-03-18 10:42:45', '2025-03-18 10:42:45'),
 (108, 'jreyes', 112, '', 'jreyes', '{MD5}Mo44VG5oZyexF0jNwGQNiQ==', 0, NULL, 'LDAP', 0, NULL, '2025-03-19 06:40:20', '2025-03-19 06:40:20'),
 (109, 'laarni.eustaquio', 61, '', 'laarni.eustaquio', '{MD5}4vh3FhfOq3i3zcUJki6UBg==', 0, NULL, 'LDAP', 0, NULL, '2025-04-11 01:01:40', '2025-04-11 01:01:40'),
 (110, 'bernadeth.serra', 114, '', 'bernadeth.serra', '{MD5}4vh3FhfOq3i3zcUJki6UBg==', 0, NULL, 'LDAP', 0, NULL, '2025-04-11 01:07:34', '2025-04-11 01:07:34'),
-(115, 'lee.umayam', 83, '', 'lee.umayam', '{MD5}4vh3FhfOq3i3zcUJki6UBg==', 0, NULL, 'LDAP', 0, NULL, '2025-04-11 01:36:59', '2025-04-11 01:36:59');
+(115, 'lee.umayam', 83, '', 'lee.umayam', '{MD5}4vh3FhfOq3i3zcUJki6UBg==', 0, NULL, 'LDAP', 0, NULL, '2025-04-11 01:36:59', '2025-04-11 01:36:59'),
+(117, 'music.pop', NULL, NULL, 'music.pop', '{MD5}i0f3oH6lJuYwnJaKK2JlxQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(118, 'music.arts', NULL, NULL, 'music.arts', '{MD5}7JsUm3XNTydEi4IQLKNMBQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(119, 'carmie.cleofas', NULL, NULL, 'carmie.cleofas', '{MD5}XmzAREMPbdlkK5AgqdOu9w==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(120, 'joan.solitario', NULL, NULL, 'joan.solitario', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(121, 'mhelmarck.edralin', NULL, NULL, 'mhelmarck.edralin', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(122, 'erbil.escano', NULL, NULL, 'erbil.escano', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(123, 'carlo.cuevas', NULL, NULL, 'carlo.cuevas', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(124, 'jim.pagatpatan', NULL, NULL, 'jim.pagatpatan', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(125, 'ralph.dizon', NULL, NULL, 'ralph.dizon', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(126, 'alexandra.villafuerte', NULL, NULL, 'alexandra.villafuerte', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(127, 'mark.silva', NULL, NULL, 'mark.silva', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(128, 'marco.lardizabal', NULL, NULL, 'marco.lardizabal', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(129, 'randolf.medrano', NULL, NULL, 'randolf.medrano', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(130, 'rommel.david', NULL, NULL, 'rommel.david', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(131, 'dandy.hina', NULL, NULL, 'dandy.hina', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(132, 'christian.dabu', NULL, NULL, 'christian.dabu', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(133, 'klyde.rumbaua', NULL, NULL, 'klyde.rumbaua', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(134, 'al.arboleda', NULL, NULL, 'al.arboleda', '{MD5}bYfWwQM0D+i2XmuzYpYRkQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(135, 'jeffrey.tasis', NULL, NULL, 'jeffrey.tasis', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(136, 'christian.barrera', NULL, NULL, 'christian.barrera', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(137, 'jeyvee.bidua', NULL, NULL, 'jeyvee.bidua', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(138, 'rex.pamatian', NULL, NULL, 'rex.pamatian', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(139, 'renz.coro', NULL, NULL, 'renz.coro', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(140, 'russel.capili', NULL, NULL, 'russel.capili', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(141, 'raymond.arceta', NULL, NULL, 'raymond.arceta', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(142, 'michael.avellano', NULL, NULL, 'michael.avellano', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(143, 'elmer.mayuga', NULL, NULL, 'elmer.mayuga', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(144, 'angel.panique', NULL, NULL, 'angel.panique', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(145, 'john.monoy', NULL, NULL, 'john.monoy', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(146, 'john.janson', NULL, NULL, 'john.janson', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(147, 'matthew.quiambao', NULL, NULL, 'matthew.quiambao', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(148, 'rommel.rodelas', NULL, NULL, 'rommel.rodelas', '{MD5}BU6WYFdGxcsEhm2gkjd73g==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(149, 'steven.mananes', NULL, NULL, 'steven.mananes', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(150, 'marjay.alarcon', NULL, NULL, 'marjay.alarcon', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(151, 'arichzel.estrella', NULL, NULL, 'arichzel.estrella', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(152, 'cristine.soriano', NULL, NULL, 'cristine.soriano', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(153, 'israel.regala', NULL, NULL, 'israel.regala', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(154, 'rose.panoncillo', NULL, NULL, 'rose.panoncillo', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(155, 'sweetheart.rivera', NULL, NULL, 'sweetheart.rivera', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(156, 'chiesa', NULL, NULL, 'chiesa', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(157, 'cladio.arro', NULL, NULL, 'cladio.arro', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(158, 'allan.valenzuela', NULL, NULL, 'allan.valenzuela', '{MD5}X03MO1qnZdYdgyfeuILPmQ==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(159, 'jl.canque', NULL, NULL, 'jl.canque', '{MD5}/V5DFRcj1NV0SBMJ7zv5+g==', 0, NULL, 'LDAP', 0, NULL, '2025-10-09 07:40:48', '2025-10-09 07:40:48'),
+(161, 'policarpio.sumbilong', 59, NULL, 'policarpio.sumbilong', '{MD5}cQyCormYGW8ZV0eHcil/tw==', 0, NULL, 'LDAP', 0, NULL, '2026-02-05 10:19:02', '2026-02-05 10:19:02');
 
 -- --------------------------------------------------------
 
@@ -3606,9 +4393,9 @@ INSERT INTO `users` (`ID`, `uid`, `personnel_id`, `avatar`, `username`, `passwor
 --
 
 CREATE TABLE `user_appslist` (
-  `id` int(11) NOT NULL,
-  `groupid` int(11) DEFAULT NULL,
-  `appid` int(11) NOT NULL
+  `id` int NOT NULL,
+  `groupid` int DEFAULT NULL,
+  `appid` int NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -3671,11 +4458,11 @@ INSERT INTO `user_appslist` (`id`, `groupid`, `appid`) VALUES
 --
 
 CREATE TABLE `user_groups` (
-  `id` bigint(20) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `description` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` bigint NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `description` text COLLATE utf8mb4_general_ci,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -3683,7 +4470,7 @@ CREATE TABLE `user_groups` (
 --
 
 INSERT INTO `user_groups` (`id`, `name`, `description`, `created_at`, `updated_at`) VALUES
-(1, 'Admin', 'Manages the entire system and user permissions.', '2024-11-26 07:27:46', '2024-11-28 09:40:38'),
+(1, 'Admin', 'Manages the entire system and user permissions.', '2024-11-26 07:27:46', '2025-08-01 05:03:18'),
 (2, 'VIP', 'Special user with additional privileges.', '2024-11-27 03:16:58', '2024-11-27 05:04:53'),
 (3, 'User', 'Has basic access to the system\'s features.', '2024-11-27 04:56:42', '2024-11-27 05:04:44'),
 (4, 'Section Chief', 'Oversees a specific section or department.', '2024-11-27 04:56:50', '2024-11-27 05:04:29'),
@@ -3702,8 +4489,8 @@ INSERT INTO `user_groups` (`id`, `name`, `description`, `created_at`, `updated_a
 --
 
 CREATE TABLE `user_group_mappings` (
-  `user_id` bigint(20) NOT NULL,
-  `group_id` bigint(20) NOT NULL
+  `user_id` bigint NOT NULL,
+  `group_id` bigint NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -3715,7 +4502,7 @@ INSERT INTO `user_group_mappings` (`user_id`, `group_id`) VALUES
 (2, 17),
 (4, 3),
 (5, 4),
-(6, 4),
+(6, 5),
 (7, 4),
 (8, 4),
 (9, 4),
@@ -3737,7 +4524,7 @@ INSERT INTO `user_group_mappings` (`user_id`, `group_id`) VALUES
 (49, 3),
 (51, 3),
 (63, 3),
-(68, 3),
+(68, 1),
 (69, 3),
 (70, 3),
 (71, 13),
@@ -3779,7 +4566,9 @@ INSERT INTO `user_group_mappings` (`user_id`, `group_id`) VALUES
 (109, 3),
 (110, 3),
 (113, 3),
-(115, 3);
+(115, 3),
+(160, 3),
+(161, 3);
 
 -- --------------------------------------------------------
 
@@ -3788,8 +4577,8 @@ INSERT INTO `user_group_mappings` (`user_id`, `group_id`) VALUES
 --
 
 CREATE TABLE `user_navlist` (
-  `groupid` int(11) NOT NULL,
-  `NavID` int(11) NOT NULL
+  `groupid` int NOT NULL,
+  `NavID` int NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -3837,19 +4626,19 @@ INSERT INTO `user_navlist` (`groupid`, `NavID`) VALUES
 --
 
 CREATE TABLE `work_experience` (
-  `id` bigint(20) NOT NULL,
-  `personnel_id` int(11) NOT NULL,
-  `employment_type` varchar(150) DEFAULT NULL,
-  `company` varchar(50) DEFAULT NULL,
-  `address` varchar(150) DEFAULT NULL,
-  `position` varchar(250) DEFAULT NULL,
-  `department` varchar(50) DEFAULT NULL,
-  `section` varchar(50) DEFAULT NULL,
+  `id` bigint NOT NULL,
+  `personnel_id` int NOT NULL,
+  `employment_type` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `company` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `address` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `position` varchar(250) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `department` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `section` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `start_date` date DEFAULT NULL,
   `end_date` date DEFAULT NULL,
-  `reason_for_leaving` varchar(150) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `reason_for_leaving` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -3859,7 +4648,7 @@ CREATE TABLE `work_experience` (
 INSERT INTO `work_experience` (`id`, `personnel_id`, `employment_type`, `company`, `address`, `position`, `department`, `section`, `start_date`, `end_date`, `reason_for_leaving`, `created_at`, `updated_at`) VALUES
 (3, 10, 'Private', 'SENCOR', 'Ayala Avenue', 'Programmer', 'Admin', 'Programming', '2011-05-20', '2015-06-20', 'Career Growth', '2024-12-20 08:14:26', '2025-01-08 01:50:06'),
 (4, 10, 'Private', 'SBOBET', 'Buendia', 'Web Developer', 'Admin', 'IT', '2015-06-24', '2017-07-11', 'For career growth', '2025-01-08 01:48:20', '2025-01-08 01:48:20'),
-(5, 10, 'Private', 'Shang Software', 'Ayala Avenue', 'Software Engineer', 'Admin', 'IT', '2017-07-15', '2017-12-30', 'Confidential', '2025-01-08 01:49:57', '2025-01-08 01:49:57'),
+(5, 10, 'Freelance', 'Shang Software12', 'Ayala Avenue', 'Software Engineer', 'Admin', 'IT', '2017-07-15', '2017-12-30', 'Confidential', '2025-01-08 01:49:57', '2025-07-28 03:42:11'),
 (14, 70, 'Full-Time', 'test', 'test', NULL, NULL, NULL, NULL, NULL, NULL, '2025-01-17 00:24:51', '2025-01-17 00:24:51'),
 (15, 67, 'Full-Time', 'Pandora', NULL, 'Sales Associate, Supervisor, Manager', NULL, NULL, '2017-06-12', '0023-11-30', 'Move to Italy', '2025-01-17 00:34:59', '2025-01-17 00:34:59'),
 (17, 76, 'Full-Time', 'UT Dallas', 'Richardson, TX', 'Program Coordinator', 'Office of Community Engagement', NULL, '2006-01-01', '2011-01-01', 'joined ministry', '2025-01-30 05:09:53', '2025-01-30 05:09:53'),
@@ -3909,12 +4698,24 @@ ALTER TABLE `apps`
   ADD KEY `idx_apps_id` (`id`);
 
 --
+-- Indexes for table `atg_files`
+--
+ALTER TABLE `atg_files`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `available_apps`
 --
 ALTER TABLE `available_apps`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_ua_user_id` (`user_id`),
   ADD KEY `idx_ua_app_id` (`app_id`);
+
+--
+-- Indexes for table `ChatHistories`
+--
+ALTER TABLE `ChatHistories`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `chathistories`
@@ -4019,6 +4820,13 @@ ALTER TABLE `languages`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `LDAP_Users`
+--
+ALTER TABLE `LDAP_Users`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uid` (`uid`);
+
+--
 -- Indexes for table `ldap_users`
 --
 ALTER TABLE `ldap_users`
@@ -4069,6 +4877,12 @@ ALTER TABLE `navigationlist`
   ADD PRIMARY KEY (`ID`);
 
 --
+-- Indexes for table `news_updates`
+--
+ALTER TABLE `news_updates`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `permission_categories`
 --
 ALTER TABLE `permission_categories`
@@ -4108,6 +4922,13 @@ ALTER TABLE `personnels`
   ADD KEY `idx_personnels_language_id` (`language_id`);
 
 --
+-- Indexes for table `personnel_activity_logs`
+--
+ALTER TABLE `personnel_activity_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `personnel_id` (`personnel_id`);
+
+--
 -- Indexes for table `personnel_address`
 --
 ALTER TABLE `personnel_address`
@@ -4137,6 +4958,12 @@ ALTER TABLE `personnel_documents`
 -- Indexes for table `personnel_gov_id`
 --
 ALTER TABLE `personnel_gov_id`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `personnel_history`
+--
+ALTER TABLE `personnel_history`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -4229,283 +5056,319 @@ ALTER TABLE `work_experience`
 -- AUTO_INCREMENT for table `applicationtypes`
 --
 ALTER TABLE `applicationtypes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `apps`
 --
 ALTER TABLE `apps`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
+
+--
+-- AUTO_INCREMENT for table `atg_files`
+--
+ALTER TABLE `atg_files`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `available_apps`
 --
 ALTER TABLE `available_apps`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5608;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6110;
+
+--
+-- AUTO_INCREMENT for table `ChatHistories`
+--
+ALTER TABLE `ChatHistories`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `chathistories`
 --
 ALTER TABLE `chathistories`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `children`
 --
 ALTER TABLE `children`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `citizenships`
 --
 ALTER TABLE `citizenships`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=195;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=199;
 
 --
 -- AUTO_INCREMENT for table `contact_type_info`
 --
 ALTER TABLE `contact_type_info`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `departments`
 --
 ALTER TABLE `departments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `designations`
 --
 ALTER TABLE `designations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `districts`
 --
 ALTER TABLE `districts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=87;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=94;
 
 --
 -- AUTO_INCREMENT for table `educational_background`
 --
 ALTER TABLE `educational_background`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=89;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=95;
 
 --
 -- AUTO_INCREMENT for table `events`
 --
 ALTER TABLE `events`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT for table `family_members`
 --
 ALTER TABLE `family_members`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=356;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=360;
 
 --
 -- AUTO_INCREMENT for table `files`
 --
 ALTER TABLE `files`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `file_shares`
 --
 ALTER TABLE `file_shares`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `government_issued_id`
 --
 ALTER TABLE `government_issued_id`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `housings`
 --
 ALTER TABLE `housings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `languages`
 --
 ALTER TABLE `languages`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=157;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=160;
+
+--
+-- AUTO_INCREMENT for table `LDAP_Users`
+--
+ALTER TABLE `LDAP_Users`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `ldap_users`
 --
 ALTER TABLE `ldap_users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `local_congregation`
 --
 ALTER TABLE `local_congregation`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `locations`
 --
 ALTER TABLE `locations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `login_attempts`
 --
 ALTER TABLE `login_attempts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=162;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=162;
 
 --
 -- AUTO_INCREMENT for table `login_audit`
 --
 ALTER TABLE `login_audit`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=573;
 
 --
 -- AUTO_INCREMENT for table `lokal_profiles`
 --
 ALTER TABLE `lokal_profiles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `nationalities`
 --
 ALTER TABLE `nationalities`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=145;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=148;
 
 --
 -- AUTO_INCREMENT for table `navigationlist`
 --
 ALTER TABLE `navigationlist`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `ID` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+
+--
+-- AUTO_INCREMENT for table `news_updates`
+--
+ALTER TABLE `news_updates`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `permission_categories`
 --
 ALTER TABLE `permission_categories`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `permission_category_mappings`
 --
 ALTER TABLE `permission_category_mappings`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75;
 
 --
 -- AUTO_INCREMENT for table `permission_definitions`
 --
 ALTER TABLE `permission_definitions`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75;
 
 --
 -- AUTO_INCREMENT for table `permission_groups`
 --
 ALTER TABLE `permission_groups`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `personnels`
 --
 ALTER TABLE `personnels`
-  MODIFY `personnel_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=116;
+  MODIFY `personnel_id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=116;
+
+--
+-- AUTO_INCREMENT for table `personnel_activity_logs`
+--
+ALTER TABLE `personnel_activity_logs`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `personnel_address`
 --
 ALTER TABLE `personnel_address`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
 
 --
 -- AUTO_INCREMENT for table `personnel_church_duties`
 --
 ALTER TABLE `personnel_church_duties`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `personnel_contacts`
 --
 ALTER TABLE `personnel_contacts`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=90;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=93;
 
 --
 -- AUTO_INCREMENT for table `personnel_documents`
 --
 ALTER TABLE `personnel_documents`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `personnel_gov_id`
 --
 ALTER TABLE `personnel_gov_id`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+
+--
+-- AUTO_INCREMENT for table `personnel_history`
+--
+ALTER TABLE `personnel_history`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `personnel_images`
 --
 ALTER TABLE `personnel_images`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
 
 --
 -- AUTO_INCREMENT for table `phone_directories`
 --
 ALTER TABLE `phone_directories`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=119;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=120;
 
 --
 -- AUTO_INCREMENT for table `phone_locations`
 --
 ALTER TABLE `phone_locations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `reminders`
 --
 ALTER TABLE `reminders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `sections`
 --
 ALTER TABLE `sections`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=249;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=252;
 
 --
 -- AUTO_INCREMENT for table `subsections`
 --
 ALTER TABLE `subsections`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `suguan`
 --
 ALTER TABLE `suguan`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=117;
+  MODIFY `ID` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=162;
 
 --
 -- AUTO_INCREMENT for table `user_appslist`
 --
 ALTER TABLE `user_appslist`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
 
 --
 -- AUTO_INCREMENT for table `user_groups`
 --
 ALTER TABLE `user_groups`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `work_experience`
 --
 ALTER TABLE `work_experience`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
 
 --
 -- Constraints for dumped tables
@@ -4544,10 +5407,16 @@ ALTER TABLE `permission_category_mappings`
   ADD CONSTRAINT `permission_category_mappings_ibfk_1` FOREIGN KEY (`permission_id`) REFERENCES `permission_definitions` (`id`) ON DELETE CASCADE;
 
 --
+-- Constraints for table `personnel_activity_logs`
+--
+ALTER TABLE `personnel_activity_logs`
+  ADD CONSTRAINT `personnel_activity_logs_ibfk_1` FOREIGN KEY (`personnel_id`) REFERENCES `personnels` (`personnel_id`) ON UPDATE CASCADE;
+
+--
 -- Constraints for table `personnel_church_duties`
 --
 ALTER TABLE `personnel_church_duties`
-  ADD CONSTRAINT `personnel_church_duties_ibfk_1` FOREIGN KEY (`personnel_id`) REFERENCES `personnels` (`personnel_id`) ON DELETE NO ACTION ON UPDATE CASCADE;
+  ADD CONSTRAINT `personnel_church_duties_ibfk_1` FOREIGN KEY (`personnel_id`) REFERENCES `personnels` (`personnel_id`) ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -1,29 +1,43 @@
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+// Restart trigger
+
 require("dotenv").config();
-const https = require("https");
 
 const fs = require("fs");
-
+const https = require("https");
+const http = require("http");
 const express = require("express");
-
+//const fileUpload = require("express-fileupload");
+const multer = require("multer");
 const path = require("path");
-
-const { Op } = require("sequelize");
-
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const mysql = require("mysql2"); // ✅ MySQL for querying personnel/family data
-const axios = require("axios"); // ✅ Axios to communicate with Ollama API
 
 const app = express();
 
+const { Op } = require("sequelize");
+const axios = require("axios"); // ✅ Axios to communicate with Ollama API
+
 const IP_BIND = "0.0.0.0";
-const PORT = process.env.REACT_PORT || 80;
+// FIX: Use environment variables for ports, falling back to current static values
+const PORT_HTTP = process.env.REACT_PORT_HTTP || 80;
+console.log("Basic Server Port Configuration - HTTP:", PORT_HTTP);
+const PORT_HTTPS = process.env.REACT_PORT_HTTPS || 443;
 
-const sslOptions = {
-  key: fs.readFileSync("./nginx/certs/key.pem"),
-  cert: fs.readFileSync("./nginx/certs/cert.pem"),
-};
-
+// SSL config
+let sslOptions = null;
+if (process.env.HTTPS === "true") {
+  try { // Use try/catch for file read to prevent crash
+    sslOptions = {
+      key: fs.readFileSync(process.env.SSL_KEY_FILE),
+      cert: fs.readFileSync(process.env.SSL_CRT_FILE),
+    };
+  } catch (err) {
+    console.error("❌ SSL CONFIG ERROR: Failed to read certificate files.", err.message);
+    sslOptions = null; // Disable HTTPS if files are missing
+  }
+}
 app.use(
   cors({
     origin: "*", // Allow all origins (update for production)
@@ -54,7 +68,7 @@ const groupPermissionsRoutes = require("./routes/groupPermissionsRoutes");
 const permissionsAccessRoutes = require("./routes/permissionsAccessRoutes");
 
 const userRoutes = require("./routes/userRoutes");
-const ldapRoutes = require("./routes/ldapRoutes");
+const ldapRoutes = require("./routes/ldapRoutes"); // THIS IS THE LINE TO BE REMOVED/MOVED
 const appRoutes = require("./routes/appRoutes");
 
 const suguanRoutes = require("./routes/suguanRoutes");
@@ -97,7 +111,12 @@ const phoneDirectoryRoutes = require("./routes/phoneDirectoryRoutes");
 
 const authRoutes = require("./routes/authRoutes");
 
-app.use(express.json()); // Middleware to parse JSON request bodies
+
+const uploadLocalRoute = require('./routes/uploadLocal');
+
+const proxySnipeitRoutes = require("./routes/proxySnipeitRoutes");
+
+// app.use(express.json()); // Removed to allow larger limits below
 
 app.use(cors({ origin: "*" }));
 
@@ -108,12 +127,30 @@ app.use(express.urlencoded({ limit: "100mb", extended: true }));
 app.use(bodyParser.json({ limit: "100mb" }));
 app.use(bodyParser.urlencoded({ limit: "100mb", extended: true }));
 
+
+app.get("/api/test-upload", (req, res) => {
+  res.send("✅ Upload route working!");
+});
+
+// ✅ Register the route
+app.use("/api", uploadLocalRoute);
+
+
+
+
 app.use(userRoutes);
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+
+// >>>>>>>>>> START OF LDAP FIX <<<<<<<<<<<<
+// Only load LDAP routes if LDAP is enabled
+//const ldapRoutes = require("./routes/ldapRoutes");
 app.use(ldapRoutes);
+// >>>>>>>>>> END OF LDAP FIX <<<<<<<<<<<<
+
+
 app.use(appRoutes);
 app.use(reminderRoutes);
 app.use(suguanRoutes);
@@ -169,153 +206,61 @@ app.use(settingRoutes);
 app.use(authRoutes);
 
 app.use(lokalProfileRoutes);
-//app.use(housingRoutes);
+app.use(housingRoutes);
 app.use(fileRoutes);
+app.use(require("./routes/atgFileRoutes"));
+app.use(require("./routes/newsRoutes"));
+app.use("/api/news", require("./routes/proxyNews"));
 app.use(phoneDirectoryRoutes);
+app.use("/api", proxySnipeitRoutes);
 
-// ✅ Connect to MySQL database
-const db = mysql.createConnection({
-  host: process.env.MYSQL_HOST,
-  user: process.env.MYSQL_USER,
-  password: process.env.MYSQL_PASSWORD,
-  database: process.env.MYSQL_DATABASE,
-});
+// Ensure upload folder exists
+const uploadDir = path.join(__dirname, "uploads/avatar");
+fs.mkdirSync(uploadDir, { recursive: true });
+
+/*
+// FIX: Use Connection String to bypass option validation issues
+const dbUrl = `mysql://${process.env.MYSQL_USER}:${encodeURIComponent(process.env.MYSQL_PASSWORD)}@${process.env.MYSQL_HOST}:${process.env.MYSQL_PORT || 3306}/${process.env.MYSQL_DATABASE}?allowPublicKeyRetrieval=true`;
+
+const db = mysql.createConnection(dbUrl);
 
 db.connect((err) => {
-  if (err) console.error("❌ Database connection failed:", err);
-  else console.log("✅ Connected to MySQL Database");
+  if (err) {
+    console.error("❌ Error connecting to MySQL:", err);
+  } else {
+    console.log("✅ Connected to MySQL Database");
+  }
 });
+*/
 
 // ✅ Middleware
-app.use(cors({ origin: "*" }));
 app.use(bodyParser.json());
 
-const Personnel = require("./models/personnels");
-const FamilyMember = require("./models/FamilyMember");
-
-// ✅ API Endpoint: Chatbot with Database Search
-// app.post("/api/chat", async (req, res) => {
-//   const userMessage = req.body.message.toLowerCase();
-//   const words = userMessage.split(" ");
-
-//   // 🔍 **Extract a potential name from the user input**
-//   const searchName = words.find((word) => word.length > 2); // Get a potential name
-
-//   if (searchName) {
-//     try {
-//       // 🔍 Search personnel using Sequelize
-//       const personnels = await Personnel.findAll({
-//         where: {
-//           [Op.or]: [
-//             { givenname: { [Op.like]: `%${searchName}%` } },
-//             { surname_husband: { [Op.like]: `%${searchName}%` } },
-//             { nickname: { [Op.like]: `%${searchName}%` } },
-//           ],
-//         },
-//         attributes: [
-//           "reference_number",
-//           "gender",
-//           "civil_status",
-//           "wedding_anniversary",
-//           "givenname",
-//           "surname_husband",
-//           "nickname",
-//           "date_of_birth",
-//           "place_of_birth",
-//         ],
-//       });
-
-//       // 🔍 Search family members using Sequelize
-//       const familyMembers = await FamilyMember.findAll({
-//         where: {
-//           givenname: { [Op.like]: `%${searchName}%` },
-//         },
-//         attributes: [
-//           "givenname",
-//           "lastname",
-//           "relationship_type",
-//           "date_of_birth",
-//           "gender",
-//         ],
-//       });
-
-//       if (personnels.length === 0 && familyMembers.length === 0) {
-//         return res.json({ reply: `No records found for "${searchName}".` });
-//       }
-
-//       // 📝 Format personnel details
-//       let personnelInfo = personnels
-//         .map(
-//           (p) =>
-//             `${p.givenname} ${p.surname_husband} (Nickname: ${
-//               p.nickname || "N/A"
-//             }) is a ${p.gender} with civil status ${p.civil_status}. Born on ${
-//               p.date_of_birth
-//             }, in ${p.place_of_birth}. Reference Number: ${
-//               p.reference_number
-//             }. Wedding Anniversary: ${p.wedding_anniversary || "N/A"}.`
-//         )
-//         .join("\n");
-
-//       // 📝 Format family member details
-//       let familyInfo = familyMembers
-//         .map(
-//           (f) =>
-//             `${f.givenname} ${f.lastname} is a ${f.relationship_type}. Gender: ${f.gender}. Born on ${f.date_of_birth}.`
-//         )
-//         .join("\n");
-
-//       // 🧠 **Send structured response to Ollama**
-//       const ollamaPrompt = `
-//       User asked about "${searchName}". Here is the information:
-
-//       **Personnel Details:**
-//       ${personnelInfo || "No personnel found."}
-
-//       **Family Member Details:**
-//       ${familyInfo || "No family members found."}
-//       `;
-
-//       const ollamaResponse = await generateOllamaResponse(ollamaPrompt);
-//       res.json({ reply: ollamaResponse });
-//     } catch (error) {
-//       console.error("❌ Database query error:", error);
-//       res.json({ reply: "Sorry, I couldn't retrieve the data." });
-//     }
-//     return;
-//   }
-
-//   // 🟢 **Default response if no match**
-//   const ollamaResponse = await generateOllamaResponse(userMessage);
-//   res.json({ reply: ollamaResponse });
-// });
-
-// ✅ Function to Call Ollama API
-// async function generateOllamaResponse(prompt) {
-//   try {
-//     const response = await axios.post(
-//       "http://172.18.121.50/api/generate", // ✅ Replace with your Ollama IP
-//       {
-//         model: "llama3.1", // or your chosen model
-//         prompt,
-//         stream: false,
-//       }
-//     );
-//     return response.data.response;
-//   } catch (error) {
-//     console.error("❌ Ollama API error:", error);
-//     return "I'm having trouble processing your request.";
-//   }
-// }
-
-// --- Start server ---
-// app.listen(PORT, "0.0.0.0", () => {
-//   console.log(`Server is running on ${IP_Address}:${PORT}`);
-// });
-
-// Start HTTPS server
-https.createServer(sslOptions, app).listen(PORT, IP_BIND, () => {
-  // For logging, use the API URL to show the full public access URL
-  const publicURL = process.env.REACT_APP_API_URL || `https://localhost`;
-  console.log(`✅ HTTPS Server running at ${publicURL}:${PORT}`);
+// Test route
+app.get("/api/test-upload", (req, res) => {
+  res.send("✅ Upload route working!");
 });
+
+// Example: Add your route imports here
+// const userRoutes = require("./routes/userRoutes");
+// app.use(userRoutes);
+
+// Start HTTP server
+http.createServer(app).listen(PORT_HTTP, IP_BIND, () => {
+  console.log(`✅ HTTP Server running at http://localhost:${PORT_HTTP}`);
+});
+
+// Start HTTPS server if enabled
+if (sslOptions) {
+  https.createServer(sslOptions, app).listen(PORT_HTTPS, IP_BIND, () => {
+    console.log(`✅ HTTPS Server running at https://localhost:${PORT_HTTPS}`);
+  });
+}
+
+
+app.get("/health", (req, res) => {
+  res.json({ status: "ok" });
+});
+
+
+

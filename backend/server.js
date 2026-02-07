@@ -19,12 +19,6 @@ const app = express();
 const { Op } = require("sequelize");
 const axios = require("axios"); // ✅ Axios to communicate with Ollama API
 
-const IP_BIND = "0.0.0.0";
-// FIX: Use environment variables for ports, falling back to current static values
-const PORT_HTTP = process.env.REACT_PORT_HTTP || 80;
-console.log("Basic Server Port Configuration - HTTP:", PORT_HTTP);
-const PORT_HTTPS = process.env.REACT_PORT_HTTPS || 443;
-
 // SSL config
 let sslOptions = null;
 if (process.env.HTTPS === "true") {
@@ -134,23 +128,12 @@ app.get("/api/test-upload", (req, res) => {
 
 // ✅ Register the route
 app.use("/api", uploadLocalRoute);
-
-
-
-
 app.use(userRoutes);
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-
-// >>>>>>>>>> START OF LDAP FIX <<<<<<<<<<<<
-// Only load LDAP routes if LDAP is enabled
-//const ldapRoutes = require("./routes/ldapRoutes");
 app.use(ldapRoutes);
-// >>>>>>>>>> END OF LDAP FIX <<<<<<<<<<<<
-
-
 app.use(appRoutes);
 app.use(reminderRoutes);
 app.use(suguanRoutes);
@@ -158,13 +141,11 @@ app.use(eventsRoutes);
 app.use(locationRoutes);
 app.use(phonelocationRoutes);
 app.use(applicationTypeRoutes);
-
 app.use(personnelsRoutes);
 app.use(personnelContactsRoutes);
 app.use(personnelAddressesRoutes);
 app.use(personnelGovIDsRoutes);
 app.use(familyMembersRoutes);
-
 app.use(personnelImageRoutes);
 
 // Management
@@ -175,7 +156,6 @@ app.use(designationsRoutes);
 app.use(citizenshipsRoutes);
 app.use(nationalitiesRoutes);
 app.use(languagesRoutes);
-
 app.use(contactTypeInfoRoutes);
 app.use(governmentIssuedIdRoutes);
 app.use(personnelDocumentsRoutes);
@@ -218,21 +198,6 @@ app.use("/api", proxySnipeitRoutes);
 const uploadDir = path.join(__dirname, "uploads/avatar");
 fs.mkdirSync(uploadDir, { recursive: true });
 
-/*
-// FIX: Use Connection String to bypass option validation issues
-const dbUrl = `mysql://${process.env.MYSQL_USER}:${encodeURIComponent(process.env.MYSQL_PASSWORD)}@${process.env.MYSQL_HOST}:${process.env.MYSQL_PORT || 3306}/${process.env.MYSQL_DATABASE}?allowPublicKeyRetrieval=true`;
-
-const db = mysql.createConnection(dbUrl);
-
-db.connect((err) => {
-  if (err) {
-    console.error("❌ Error connecting to MySQL:", err);
-  } else {
-    console.log("✅ Connected to MySQL Database");
-  }
-});
-*/
-
 // ✅ Middleware
 app.use(bodyParser.json());
 
@@ -246,6 +211,11 @@ app.get("/api/test-upload", (req, res) => {
 // app.use(userRoutes);
 
 // Start HTTP server
+const PORT_HTTP = process.env.REACT_PORT_HTTP || 5000;
+const PORT_HTTPS = process.env.REACT_PORT_HTTPS || 8443;
+
+const IP_BIND = "0.0.0.0";
+
 http.createServer(app).listen(PORT_HTTP, IP_BIND, () => {
   console.log(`✅ HTTP Server running at http://localhost:${PORT_HTTP}`);
 });
@@ -256,7 +226,6 @@ if (sslOptions) {
     console.log(`✅ HTTPS Server running at https://localhost:${PORT_HTTPS}`);
   });
 }
-
 
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });

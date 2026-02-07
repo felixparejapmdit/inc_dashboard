@@ -2,26 +2,40 @@
 
 echo "🚀 Deploying Production Build to Proxmox (172.18.121.18)..."
 
-# Ensure docker-compose.prod.yml exists
+# 1. Check for docker-compose file
 if [ ! -f "docker-compose.prod.yml" ]; then
     echo "❌ Error: docker-compose.prod.yml not found!"
     exit 1
 fi
 
-# Stop existing containers
+# 2. Sync .env.docker to .env for the build process
+if [ -f ".env.docker" ]; then
+    echo "📄 Syncing .env.docker to .env..."
+    cp .env.docker .env
+fi
+
+# 3. Stop existing containers
 echo "🛑 Stopping existing containers..."
 docker-compose -f docker-compose.prod.yml down --remove-orphans
 
-# Prune unused images to save space (optional)
-echo "🧹 Cleaning up unused images..."
-docker image prune -f
+# 4. Deep Clean (Optional but recommended for Proxmox disk space)
+echo "🧹 Cleaning up unused Docker resources..."
+docker system prune -f
 
-# Build and start containers
+# 5. Build and start containers
 echo "🏗️ Building and Starting services..."
+# --build ensures your React frontend gets the latest .env values
 docker-compose -f docker-compose.prod.yml up -d --build
 
-# Check status
-echo "✅ Deployment complete! Checking status..."
+# 6. Check status
+echo "⏳ Waiting for services to initialize..."
+sleep 5 # Bigyan ng konting oras ang MySQL at Node bago i-check
+echo "✅ Deployment complete! Status:"
 docker-compose -f docker-compose.prod.yml ps
 
-echo "🌐 App should be accessible at http://172.18.121.18 or https://172.18.121.18"
+echo "🌐 Dashboard: https://test-portal.pmdmc.net"
+echo "📡 API: https://test-api-portal.pmdmc.net"
+
+# 7. Show last 10 lines of backend logs to verify DB connection
+echo "📝 Recent Backend Logs:"
+docker-compose -f docker-compose.prod.yml logs --tail=10 backend
