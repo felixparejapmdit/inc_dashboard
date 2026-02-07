@@ -1,0 +1,105 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: inc_backend_prod
+    env_file:
+      - .env.docker
+    environment:
+      - PORT=80
+      - REDIS_HOST=redis
+    volumes:
+      - ./backend/uploads:/usr/src/app/uploads
+    expose:
+      - "80"
+    networks:
+      - inc_prod_network
+    depends_on:
+      - redis
+    restart: always
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        ENV_FILE: .env.docker
+    container_name: inc_frontend_prod
+    command: sh -c "cp -r /app/build/* /frontend_build && tail -f /dev/null"
+    volumes:
+      - frontend_build:/frontend_build
+    networks:
+      - inc_prod_network
+    restart: "no"
+
+  nginx:
+    image: nginx:alpine
+    container_name: inc_nginx_prod
+    ports:
+      - "80:80"
+      # - "443:443" # Disabled as SSL is handled by external proxy
+    volumes:
+      - ./nginx/prod.conf:/etc/nginx/conf.d/default.conf
+      # - ./nginx/certs:/etc/nginx/certs # Certs handled by proxy
+      - frontend_build:/usr/share/nginx/html
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - inc_prod_network
+    restart: always
+
+  redis:
+    image: redis:alpine
+    container_name: inc_redis_prod
+    restart: always
+    expose:
+      - "6379"
+    networks:
+      - inc_prod_network
+
+  # Optional local DB container (Used if env configured to localhost/db)
+  db:
+    image: mysql:8.0
+    container_name: inc_mysql_prod
+    restart: always
+    env_file:
+      - .env.docker
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data_prod:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - inc_prod_network
+
+  # phpMyAdmin linked to the local db service
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: inc_phpmyadmin_prod
+    restart: always
+    env_file:
+      - .env.docker
+    environment:
+      - PMA_HOST=db
+      - PMA_PORT=3306
+    ports:
+      - "8082:80"
+    depends_on:
+      - db
+    networks:
+      - inc_prod_network
+
+volumes:
+  db_data_prod:
+  frontend_build:
+
+
+networks:
+  inc_prod_network:
+    driver: bridge

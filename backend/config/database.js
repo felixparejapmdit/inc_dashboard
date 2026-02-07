@@ -10,6 +10,7 @@ const sequelize = new Sequelize(
     host: process.env.MYSQL_HOST, // Database host
     port: process.env.MYSQL_PORT || 3307, // Use a default port if not provided
     dialect: "mysql", // Specify MySQL as the dialect
+    dialectModule: require("mysql2"), // Force use of mysql2
     logging: process.env.NODE_ENV === "development" ? console.log : false, // Enable logging only in development
     dialectOptions:
     {

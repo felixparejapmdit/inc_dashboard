@@ -4,6 +4,7 @@ node_modules
 
 # Ignore build output (frontend will rebuild inside container)
 build
+dist
 
 # Ignore Docker-related files
 .dockerignore
@@ -11,6 +12,7 @@ Dockerfile
 Dockerfile.backend
 Dockerfile.frontend
 docker-compose.yml
+docker-compose.*.yml
 
 # Ignore Git files
 .git
@@ -20,3 +22,9 @@ docker-compose.yml
 *.env.local
 npm-debug.log
 yarn-error.log
+
+# Ignore sensitive/large folders not needed for build
+letsencrypt
+nginx/certs
+backend/uploads
+db_data

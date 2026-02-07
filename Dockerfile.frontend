@@ -1,6 +1,6 @@
 # Stage 1: Build React app
 # Use a specific Node.js version to ensure consistent builds
-FROM node:18 as build
+FROM node:18 AS build
 
 # Set the working directory for the application
 WORKDIR /app
@@ -16,8 +16,9 @@ RUN npm install
 COPY . .
 
 # Ensure we use the docker environment config for the build
-# This replaces the local .env with .env.docker to set REACT_APP_API_URL=/api
-COPY .env.docker .env
+# This replaces the local .env with the specified environment file (default .env)
+ARG ENV_FILE=.env
+COPY ${ENV_FILE} .env
 
 # Run the build script defined in your package.json
 # This will generate the production-ready static files
