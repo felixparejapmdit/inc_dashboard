@@ -576,7 +576,7 @@ router.put("/api/users/update-login-status", (req, res) => {
 // Function to fetch external API data
 const fetchApiData = async (url) => {
   try {
-    const response = await axios.get(url);
+    const response = await axios.get(url, { timeout: 3000 }); // 3 second timeout
     return response.data || [];
   } catch (error) {
     console.error(`Error fetching data from ${url}:`, error.message);
