@@ -42,8 +42,8 @@ services:
     image: nginx:alpine
     container_name: inc_nginx_prod
     ports:
-      - "8080:80"
-      - "8443:443"
+      - "80:80"
+      - "443:443"
     volumes:
       - ./nginx/prod.conf:/etc/nginx/conf.d/default.conf
       - frontend_build:/usr/share/nginx/html
