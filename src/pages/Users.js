@@ -1942,11 +1942,11 @@ const Users = ({ personnelId }) => {
                               <Avatar
                                 size="md"
                                 name={`${personnel.givenname} ${personnel.surname_husband}`}
-                                src={avatars[personnel.personnel_id] || `${API_URL}/uploads/avatar/${personnel.personnel_id}.jpg` || ""}
+                                src={avatars[personnel.personnel_id] || undefined}
                                 border="2px solid white"
                                 boxShadow="sm"
                                 cursor="pointer"
-                                onClick={() => handleAvatarClick(avatars[personnel.personnel_id] || `${API_URL}/uploads/avatar/${personnel.personnel_id}.jpg`)}
+                                onClick={() => avatars[personnel.personnel_id] && handleAvatarClick(avatars[personnel.personnel_id])}
                               />
                             </Tooltip>
                             <Box>
