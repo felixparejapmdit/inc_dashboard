@@ -54,7 +54,7 @@ import { getAuthHeaders } from "../../utils/apiHeaders";
 
 const API_URL = process.env.REACT_APP_API_URL || "";
 
-const MotionTr = motion(Tr);
+const MotionTr = motion.create(Tr);
 
 const UsersProgress = () => {
     const [personnels, setPersonnels] = useState([]);

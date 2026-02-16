@@ -104,6 +104,7 @@ const fileRoutes = require("./routes/fileRoutes.js");
 const phoneDirectoryRoutes = require("./routes/phoneDirectoryRoutes");
 
 const authRoutes = require("./routes/authRoutes");
+const faceRecognitionRoutes = require("./routes/faceRecognition");
 
 
 const uploadLocalRoute = require('./routes/uploadLocal');
@@ -185,6 +186,7 @@ app.use(chatRoutes);
 app.use(settingRoutes);
 app.use("/api/schema", require("./routes/schemaRoutes")); // Register Schema Sync Routes
 app.use(authRoutes);
+app.use("/api/face-recognition", faceRecognitionRoutes);
 
 app.use(lokalProfileRoutes);
 app.use(housingRoutes);

@@ -3,25 +3,23 @@ const { Sequelize } = require("sequelize");
 
 // Create a new Sequelize instance with environment variables
 const sequelize = new Sequelize(
-  process.env.MYSQL_DATABASE, // Database name
-  process.env.MYSQL_USER, // Database user
-  process.env.MYSQL_PASSWORD, // Database password
+  process.env.MYSQL_DATABASE,
+  process.env.MYSQL_USER,
+  process.env.MYSQL_PASSWORD,
   {
-    host: process.env.MYSQL_HOST, // Database host
-    port: process.env.MYSQL_PORT || 3306, // Use a default port if not provided
-    dialect: "mysql", // Specify MySQL as the dialect
-    dialectModule: require("mysql2"), // Force use of mysql2
-    logging: process.env.NODE_ENV === "development" ? console.log : false, // Enable logging only in development
-    dialectOptions:
-    {
-      connectTimeout: 10000, // Set a timeout for the connection
-      allowPublicKeyRetrieval: true
+    host: process.env.MYSQL_HOST,
+    port: parseInt(process.env.MYSQL_PORT) || 3306,
+    dialect: "mysql",
+    dialectModule: require("mysql2"),
+    logging: process.env.NODE_ENV === "development" ? console.log : false,
+    dialectOptions: {
+      connectTimeout: 10000,
     },
     pool: {
-      max: 5, // Maximum number of connections in the pool
-      min: 0, // Minimum number of connections in the pool
-      acquire: 60000, // Maximum time (ms) to acquire a connection before throwing an error
-      idle: 10000, // Time (ms) a connection can be idle before being released
+      max: 5,
+      min: 0,
+      acquire: 60000,
+      idle: 10000,
     },
   }
 );

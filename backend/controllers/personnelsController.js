@@ -6,6 +6,7 @@ const Section = require("../models/Section");
 const sequelize = require("../config/database"); // Ensure Sequelize instance is imported
 const PersonnelChurchDuties = require("../models/PersonnelChurchDuties");
 const PersonnelHistory = require("../models/PersonnelHistory");
+const PersonnelImage = require("../models/PersonnelImage");
 
 const moment = require("moment");
 // Controller: Get soft-deleted personnels
@@ -65,9 +66,16 @@ exports.getAllNewPersonnels = async (req, res) => {
         },
         {
           model: User,
-          attributes: ["username"], // Fetch the username from User model
+          attributes: ["username", "avatar"], // Fetch the username from User model
           as: "user", // Use the alias defined in the User model
           required: false, // Include personnels even if they have no user
+        },
+        {
+          model: PersonnelImage,
+          as: "images",
+          where: { type: "2x2 Picture" },
+          required: false,
+          attributes: ["image_url"],
         },
       ],
       where: {
@@ -85,6 +93,7 @@ exports.getAllNewPersonnels = async (req, res) => {
       username: personnel.user ? personnel.user.username : "No Username",
       section: personnel.Section ? personnel.Section.name : "No Section", // Show section name or "No Section"
       personnel_progress: personnel.personnel_progress || "Not Started", // ✅ Include for frontend use
+      image: personnel.images && personnel.images.length > 0 ? personnel.images[0].image_url : null, // ✅ Include image
     }));
 
     res.status(200).json(formattedResults);
@@ -125,6 +134,13 @@ exports.getMonitoringPersonnels = async (req, res) => {
           model: Section,
           as: "Section",
           attributes: ["name"]
+        },
+        {
+          model: PersonnelImage,
+          as: "images",
+          where: { type: "2x2 Picture" },
+          required: false,
+          attributes: ["image_url"],
         }
       ],
       // Filter to only those without users, matching ProgressTracking's "New" list
@@ -150,7 +166,8 @@ exports.getMonitoringPersonnels = async (req, res) => {
         section: p.Section ? p.Section.name : "N/A",
         user_created: !!p.user,
         username: p.user ? p.user.username : null,
-        groups: userGroups
+        groups: userGroups,
+        image: p.images && p.images.length > 0 ? p.images[0].image_url : null // ✅ Include image
       };
     });
 
@@ -165,13 +182,20 @@ exports.getMonitoringPersonnels = async (req, res) => {
 exports.getPersonnelsWithUsers = async (req, res) => {
   try {
     const personnels = await Personnel.findAll({
-      attributes: ["personnel_id", "personnel_type"], // Only fetch necessary fields
+      attributes: ["personnel_id", "personnel_type", "givenname", "surname_husband"], // Include name fields
       include: [
         {
           model: User,
           as: "user",
-          attributes: ["id"],
+          attributes: ["id", "avatar"],
           required: true, // Inner Join: Only return personnel who have an associated user
+        },
+        {
+          model: PersonnelImage,
+          as: "images",
+          where: { type: "2x2 Picture" },
+          required: false,
+          attributes: ["image_url"],
         },
       ],
       where: {
@@ -255,8 +279,15 @@ exports.getPersonnelsByProgress = async (req, res) => {
         {
           model: User,
           as: "user",
-          attributes: [],
+          attributes: ["avatar"], // Include avatar
           required: false,
+        },
+        {
+          model: PersonnelImage,
+          as: "images",
+          where: { type: "2x2 Picture" },
+          required: false,
+          attributes: ["image_url"],
         },
       ],
       where: whereCondition,

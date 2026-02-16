@@ -13,6 +13,10 @@ const File = require("./File");
 const FileShare = require("./FileShare");
 const Setting = require("./Setting");
 const Lists = require("./Lists");
+const FaceRecognition = require("./FaceRecognition");
+const FaceRecognitionLog = require("./FaceRecognitionLog");
+const LokalProfile = require("./LokalProfile");
+const PersonnelImage = require("./PersonnelImage");
 
 // Sync database
 sequelize
@@ -64,6 +68,16 @@ GroupPermissionMapping.belongsTo(PermissionCategory, {
   as: "category",
 });
 
+// FaceRecognition associations
+Personnel.hasOne(FaceRecognition, { foreignKey: "personnel_id", as: "faceRecognition" });
+FaceRecognition.belongsTo(Personnel, { foreignKey: "personnel_id", as: "personnel" });
+
+Personnel.hasMany(FaceRecognitionLog, { foreignKey: "personnel_id", as: "faceRecognitionLogs" });
+FaceRecognitionLog.belongsTo(Personnel, { foreignKey: "personnel_id", as: "personnel" });
+
+Personnel.hasMany(PersonnelImage, { foreignKey: "personnel_id", as: "images" });
+PersonnelImage.belongsTo(Personnel, { foreignKey: "personnel_id", as: "personnel" });
+
 // Export all models
 module.exports = {
   sequelize, // Optional if needed elsewhere
@@ -80,4 +94,8 @@ module.exports = {
   FileShare,
   Setting,
   Lists,
+  FaceRecognition,
+  FaceRecognitionLog,
+  LokalProfile,
+  PersonnelImage,
 };

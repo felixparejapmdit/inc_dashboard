@@ -18,6 +18,15 @@ import {
   HStack,
   Divider,
   useBreakpointValue,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverBody,
+  PopoverArrow,
+  List,
+  ListItem,
+  Avatar,
+  Portal,
 } from "@chakra-ui/react";
 import {
   FiUserCheck,
@@ -59,6 +68,15 @@ const PersonnelStatistics = () => {
   });
 
   const [trackingStats, setTrackingStats] = useState({});
+  const [trackingDetails, setTrackingDetails] = useState({}); // Store arrays of personnel for tracking
+  const [personnelByType, setPersonnelByType] = useState({
+    All: [],
+    Minister: [],
+    Regular: [],
+    "Minister's Wife": [],
+    "Ministerial Student": [],
+    "Lay Member": [],
+  });
   const [totalProgress, setTotalProgress] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -149,12 +167,23 @@ const PersonnelStatistics = () => {
           "Ministerial Student": 0,
           "Lay Member": 0,
         };
+        const byType = {
+          All: data,
+          Minister: [],
+          Regular: [],
+          "Minister's Wife": [],
+          "Ministerial Student": [],
+          "Lay Member": [],
+        };
+
         data.forEach((p) => {
           if (count[p.personnel_type] !== undefined) {
             count[p.personnel_type]++;
+            byType[p.personnel_type].push(p);
           }
         });
         setStats(count);
+        setPersonnelByType(byType);
       })
       .catch((err) => console.error("Error fetching personnels:", err))
       .finally(() => setLoading(false));
@@ -180,12 +209,16 @@ const PersonnelStatistics = () => {
     Promise.all([fetchBreakdown, fetchTotalNew])
       .then(([breakdownResponses, totalNewData]) => {
         const result = {};
+        const details = {};
         // Map breakdown steps
         breakdownResponses.forEach((data, i) => {
-          result[trackingSteps[i]] = data.length;
+          const stepName = trackingSteps[i];
+          result[stepName] = data.length;
+          details[stepName] = data;
         });
 
         setTrackingStats(result);
+        setTrackingDetails(details);
         // Use the total from the 'new' endpoint to match ProgressTracking page exactly
         setTotalProgress(totalNewData.length);
       })
@@ -202,7 +235,62 @@ const PersonnelStatistics = () => {
     navigate(route);
   };
 
+
+
+  const PersonnelListPopover = ({ items, label, children }) => {
+    if (!items || items.length === 0) {
+      return children; // No popover if empty
+    }
+
+    return (
+      <Popover trigger="hover" placement="top" isLazy>
+        <PopoverTrigger>
+          <Box display="inline-block">{children}</Box>
+        </PopoverTrigger>
+        <Portal>
+          <PopoverContent w="300px" boxShadow="xl" _focus={{ outline: "none" }}>
+            <PopoverArrow />
+            <PopoverBody maxH="300px" overflowY="auto" p={0}>
+              <Box p={2} bg="gray.50" borderBottom="1px solid" borderColor="gray.100">
+                <Text fontSize="xs" fontWeight="bold" color="gray.500">{label} ({items.length})</Text>
+              </Box>
+              <List spacing={0}>
+                {items.map((p, idx) => {
+                  // Try to resolve avatar URL. Assuming p has personnel_id or image path.
+                  // If p.image is relative path like "uploads/avatar/..."
+                  // p.image or p.avatar_url? Need to check structure.
+                  // User mentions "uploads/avatar".
+                  // Most likely: `${API_URL}/${p.image}` or `${API_URL}/uploads/avatar/${p.image}`
+                  // I will check if p.image starts with 'http' or '/'.
+
+                  const rawImage = p.image || (p.images && p.images.length > 0 ? p.images[0].image_url : null);
+                  const avatarSrc = rawImage
+                    ? (rawImage.startsWith('http') ? rawImage : `${API_URL}/${rawImage.startsWith('/') ? rawImage.slice(1) : rawImage}`)
+                    : null;
+
+                  // Fallback name construction using fields from Personnel model
+                  const name = p.fullname || `${p.givenname || ""} ${p.surname_husband || ""}`.trim() || "Unknown";
+
+                  return (
+                    <ListItem key={p.personnel_id || idx} p={2} _hover={{ bg: "gray.50" }}>
+                      <HStack>
+                        <Avatar size="sm" src={avatarSrc} name={name} />
+                        <Text fontSize="sm" noOfLines={1}>{name}</Text>
+                      </HStack>
+                    </ListItem>
+                  );
+                })}
+              </List>
+            </PopoverBody>
+          </PopoverContent>
+        </Portal>
+      </Popover>
+    );
+  };
+
   const renderPersonnelCard = (label, value, icon, gradient, onClick, progressPercent) => {
+    const listItems = personnelByType[label] || [];
+
     return (
       <Tooltip
         label={`Click to view ${label === "All" ? "all personnel" : label + " personnel"}`}
@@ -252,14 +340,19 @@ const PersonnelStatistics = () => {
                   {label === "All" ? "Total Personnel" : label}
                 </Text>
               </HStack>
-              <Text
-                fontSize={{ base: "3xl", md: "4xl" }}
-                fontWeight="black"
-                color="gray.800"
-                lineHeight="1"
-              >
-                {value}
-              </Text>
+
+              <PersonnelListPopover items={listItems} label={label}>
+                <Text
+                  fontSize={{ base: "3xl", md: "4xl" }}
+                  fontWeight="black"
+                  color="gray.800"
+                  lineHeight="1"
+                  _hover={{ color: "teal.600" }} // Indicate interactivity
+                >
+                  {value}
+                </Text>
+              </PersonnelListPopover>
+
               <HStack spacing={2} mt={2}>
                 <Badge colorScheme="teal" fontSize="xs" borderRadius="full" px={2}>
                   {progressPercent.toFixed(1)}%
@@ -304,6 +397,8 @@ const PersonnelStatistics = () => {
   };
 
   const renderTrackingCard = (label, value, icon, gradient, onClick, progressPercent) => {
+    const listItems = trackingDetails[label] || [];
+
     return (
       <Tooltip label={`Navigate to ${label}`} hasArrow placement="top">
         <Box
@@ -353,14 +448,18 @@ const PersonnelStatistics = () => {
                 >
                   {label}
                 </Text>
-                <Text
-                  fontSize={{ base: "2xl", md: "3xl" }}
-                  fontWeight="black"
-                  color="gray.800"
-                  lineHeight="1"
-                >
-                  {value}
-                </Text>
+
+                <PersonnelListPopover items={listItems} label={label}>
+                  <Text
+                    fontSize={{ base: "2xl", md: "3xl" }}
+                    fontWeight="black"
+                    color="gray.800"
+                    lineHeight="1"
+                    _hover={{ color: "purple.600" }}
+                  >
+                    {value}
+                  </Text>
+                </PersonnelListPopover>
               </VStack>
             </HStack>
 
@@ -432,13 +531,17 @@ const PersonnelStatistics = () => {
           >
             {Object.entries(stats).map(([label, value]) => {
               const percent = (value / totalPersonnel) * 100;
-              return renderPersonnelCard(
-                label,
-                value,
-                typeIcons[label],
-                gradientMap[label],
-                () => handlePersonnelClick(label === "All" ? null : label),
-                percent
+              return (
+                <React.Fragment key={label}>
+                  {renderPersonnelCard(
+                    label,
+                    value,
+                    typeIcons[label],
+                    gradientMap[label],
+                    () => handlePersonnelClick(label === "All" ? null : label),
+                    percent
+                  )}
+                </React.Fragment>
               );
             })}
           </SimpleGrid>
@@ -474,13 +577,17 @@ const PersonnelStatistics = () => {
 
             {Object.entries(trackingStats).map(([label, value]) => {
               const percent = totalProgress > 0 ? (value / totalProgress) * 100 : 0;
-              return renderTrackingCard(
-                label,
-                value,
-                trackingIcons[label],
-                "linear(to-br, blue.400, blue.700)",
-                () => handleProgressClick(trackingRoutes[label]),
-                percent
+              return (
+                <React.Fragment key={label}>
+                  {renderTrackingCard(
+                    label,
+                    value,
+                    trackingIcons[label],
+                    "linear(to-br, blue.400, blue.700)",
+                    () => handleProgressClick(trackingRoutes[label]),
+                    percent
+                  )}
+                </React.Fragment>
               );
             })}
           </SimpleGrid>

@@ -59,7 +59,7 @@ import moment from "moment";
 import { fetchData, postData, putData, deleteData } from "../utils/fetchData";
 
 const API_URL = process.env.REACT_APP_API_URL;
-const MotionBox = motion(Box);
+const MotionBox = motion.create(Box);
 
 const Suguan = () => {
   const [suguan, setSuguan] = useState([]);

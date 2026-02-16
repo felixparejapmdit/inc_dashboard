@@ -51,6 +51,8 @@ import {
 } from "react-icons/fi";
 import { usePermissionContext } from "../contexts/PermissionContext";
 import { fetchData } from "../utils/fetchData";
+import FaceRecognitionLogin from "../components/FaceRecognitionLogin";
+import { FaCamera } from "react-icons/fa";
 
 const API_URL = process.env.REACT_APP_API_URL || "";
 
@@ -64,6 +66,7 @@ const Login = () => {
   const [retrievedReference, setRetrievedReference] = useState("");
   const [error, setError] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: isFaceLoginOpen, onOpen: onFaceLoginOpen, onClose: onFaceLoginClose } = useDisclosure();
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -350,6 +353,51 @@ const Login = () => {
     }
   };
 
+  const handleFaceLoginSuccess = async (faceData) => {
+    try {
+      setIsLoading(true);
+
+      // Save session data from face recognition
+      const user = faceData.user;
+      const personnel = faceData.personnel;
+
+      // Save session data
+      localStorage.setItem("authToken", "face-auth-token"); // Temporary token
+      localStorage.setItem("username", user.username);
+      localStorage.setItem("userFullName", `${personnel.givenname} ${personnel.surname_husband}`);
+      localStorage.setItem("groupId", user.group_id);
+      localStorage.setItem("userId", user.id);
+      localStorage.setItem("user_id", user.personnel_id);
+      localStorage.setItem("isLoggingIn", "true");
+
+      // Fetch permissions
+      if (user.group_id) {
+        fetchPermissions(user.group_id);
+      }
+
+      // Update login status
+      await axios.put(
+        `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
+        {
+          ID: user.username,
+          isLoggedIn: true,
+        }
+      );
+
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Face login error:", error);
+      toast({
+        title: "Login Error",
+        description: "Failed to complete face recognition login",
+        status: "error",
+        duration: 5000,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Flex
       minH="100vh"
@@ -528,6 +576,36 @@ const Login = () => {
               Log In
             </Button>
 
+            {/* HIDDEN: Face Recognition Login
+            <Divider borderColor="orange.200" />
+
+            <Button
+              width="100%"
+              size="md"
+              variant="outline"
+              colorScheme="purple"
+              leftIcon={<Icon as={FaCamera} />}
+              onClick={onFaceLoginOpen}
+              borderRadius="lg"
+              fontWeight="bold"
+              fontSize="md"
+              h="48px"
+              borderWidth="2px"
+              _hover={{
+                bg: "purple.50",
+                borderColor: "purple.500",
+                transform: "translateY(-2px)",
+                boxShadow: "0 8px 20px rgba(128,90,213,0.3)",
+              }}
+              _active={{
+                transform: "translateY(0)",
+              }}
+              transition="all 0.3s ease-in-out"
+            >
+              Login with Face Recognition
+            </Button>
+            */}
+
             <Divider borderColor="orange.200" />
 
             {/* Action Links */}
@@ -686,6 +764,13 @@ const Login = () => {
           </ModalFooter>
         </ModalContent>
       </Modal>
+
+      {/* Face Recognition Login Modal */}
+      <FaceRecognitionLogin
+        isOpen={isFaceLoginOpen}
+        onClose={onFaceLoginClose}
+        onLoginSuccess={handleFaceLoginSuccess}
+      />
     </Flex>
   );
 };

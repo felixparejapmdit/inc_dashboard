@@ -436,13 +436,13 @@ router.get("/api/users/logged-in", verifyToken, async (req, res) => {
   LEFT JOIN available_apps ua ON u.ID = ua.user_id
   LEFT JOIN personnels p ON p.personnel_id = u.personnel_id
   LEFT JOIN apps a ON ua.app_id = a.id
-  WHERE u.username = '${username}'
+  WHERE u.username = ?
     GROUP BY u.ID`;
 
-    db.query(query, async (err, results) => {
+    db.query(query, [username], async (err, results) => {
       if (err) {
         console.error("Error fetching logged-in user:", err);
-        return res.status(500).json({ message: "Database error" });
+        return res.status(500).json({ message: "Database error", error: err.message, code: err.code });
       }
 
       if (results.length > 0) {

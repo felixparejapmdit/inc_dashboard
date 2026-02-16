@@ -44,6 +44,14 @@ import {
   DrawerOverlay,
   DrawerContent,
   DrawerCloseButton,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverBody,
+  PopoverArrow,
+  List,
+  ListItem,
+  Portal,
 } from "@chakra-ui/react";
 import {
   CheckIcon,
@@ -71,6 +79,56 @@ const stages = [
   "Submit forms to ATG Office for Approval",
   "Report to the Personnel Office to get the ID",
 ];
+
+
+
+const PersonnelListPopover = ({ items, label, children }) => {
+  if (!items || items.length === 0) {
+    return children;
+  }
+
+  // Helper to get image if available in user object
+  // Note: users in this file might not have 'image' property populated by default API.
+  // We use what we have, or fallback to name initials.
+
+  return (
+    <Popover trigger="hover" placement="bottom" isLazy>
+      <PopoverTrigger>
+        <Box display="inline-block" cursor="pointer">{children}</Box>
+      </PopoverTrigger>
+      <Portal>
+        <PopoverContent w="300px" boxShadow="xl" _focus={{ outline: "none" }}>
+          <PopoverArrow />
+          <PopoverBody maxH="300px" overflowY="auto" p={0}>
+            <Box p={2} bg="gray.50" borderBottom="1px solid" borderColor="gray.100">
+              <Text fontSize="xs" fontWeight="bold" color="gray.500">{label} ({items.length})</Text>
+            </Box>
+            <List spacing={0}>
+              {items.map((p, idx) => {
+                const API_URL = process.env.REACT_APP_API_URL;
+                const rawImage = p.image || (p.images && p.images.length > 0 ? p.images[0].image_url : null);
+                const avatarSrc = rawImage
+                  ? (rawImage.startsWith('http') ? rawImage : `${API_URL}/${rawImage.startsWith('/') ? rawImage.slice(1) : rawImage}`)
+                  : null;
+
+                const name = p.fullname || `${p.givenname || ""} ${p.surname_husband || ""}`.trim() || "Unknown";
+
+                return (
+                  <ListItem key={p.personnel_id || idx} p={2} _hover={{ bg: "gray.50" }}>
+                    <HStack>
+                      <Avatar size="sm" src={avatarSrc} name={name} />
+                      <Text fontSize="sm" noOfLines={1}>{name}</Text>
+                    </HStack>
+                  </ListItem>
+                );
+              })}
+            </List>
+          </PopoverBody>
+        </PopoverContent>
+      </Portal>
+    </Popover>
+  );
+};
 
 const ProgressTracking = () => {
   const [users, setUsers] = useState([]);
@@ -383,7 +441,11 @@ const ProgressTracking = () => {
               borderColor="orange.400"
             >
               <StatLabel color="gray.500" fontSize="xs" fontWeight="bold">PENDING REQUESTS</StatLabel>
-              <StatNumber fontSize="2xl" fontWeight="bold">{totalRequests}</StatNumber>
+              <PersonnelListPopover items={pendingUsersAll} label="Pending Requests">
+                <StatNumber fontSize="2xl" fontWeight="bold" _hover={{ color: "orange.500", transition: "color 0.2s" }}>
+                  {totalRequests}
+                </StatNumber>
+              </PersonnelListPopover>
             </Stat>
 
             <Stat
@@ -395,7 +457,11 @@ const ProgressTracking = () => {
               borderColor="green.400"
             >
               <StatLabel color="gray.500" fontSize="xs" fontWeight="bold">COMPLETED</StatLabel>
-              <StatNumber fontSize="2xl" fontWeight="bold">{totalCompleted}</StatNumber>
+              <PersonnelListPopover items={completedUsersAll} label="Completed Personnel">
+                <StatNumber fontSize="2xl" fontWeight="bold" _hover={{ color: "green.500", transition: "color 0.2s" }}>
+                  {totalCompleted}
+                </StatNumber>
+              </PersonnelListPopover>
             </Stat>
           </SimpleGrid>
         </VStack>

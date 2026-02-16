@@ -48,7 +48,9 @@ import {
   MenuList,
   MenuItem,
   Tooltip,
+  useDisclosure,
 } from "@chakra-ui/react";
+import { motion } from "framer-motion";
 import {
   AddIcon,
   EditIcon,
@@ -77,7 +79,9 @@ const API_URL = process.env.REACT_APP_API_URL;
 const DISTRICT_API_URL = process.env.REACT_APP_DISTRICT_API_URL;
 const LOCAL_CONGREGATION_API_URL = process.env.REACT_APP_LOCAL_CONGREGATION_API_URL;
 
+const MotionCard = motion.create(Card);
 const LokalProfile = () => {
+
   // --- State ---
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -88,6 +92,10 @@ const LokalProfile = () => {
   // --- Printing ---
   const [profileToPrint, setProfileToPrint] = useState(null);
   const printRef = useRef(null);
+
+  // --- Image Zoom State ---
+  const [selectedImage, setSelectedImage] = useState(null);
+  const { isOpen: isImageOpen, onOpen: onImageOpen, onClose: onImageClose } = useDisclosure();
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
@@ -358,7 +366,16 @@ const LokalProfile = () => {
     const lokalName = localCongregations.find(l => l.id == profile.lokal)?.name || profile.lokal;
 
     return (
-      <Card bg={cardBg} borderRadius="xl" shadow="md" _hover={{ shadow: "xl", transform: "translateY(-2px)" }} transition="all 0.2s" overflow="hidden">
+      <MotionCard
+        bg={cardBg}
+        borderRadius="xl"
+        shadow="md"
+        whileHover={{ y: -8, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.2 }}
+        overflow="hidden"
+      >
         <Box h="150px" bg="gray.100" position="relative">
           {profile.imageUrl ? (
             <Image
@@ -367,6 +384,13 @@ const LokalProfile = () => {
               w="100%"
               h="100%"
               objectFit="cover"
+              transition="transform 0.3s ease"
+              _hover={{ transform: "scale(1.1)" }}
+              cursor="zoom-in"
+              onClick={() => {
+                setSelectedImage(profile.imageUrl?.startsWith('/') ? `${API_URL}${profile.imageUrl}` : profile.imageUrl);
+                onImageOpen();
+              }}
             />
           ) : (
             <Flex w="100%" h="100%" align="center" justify="center" bg="teal.50" color="teal.300">
@@ -419,7 +443,7 @@ const LokalProfile = () => {
             </HStack>
           </Flex>
         </CardFooter>
-      </Card>
+      </MotionCard>
     );
   };
 
@@ -428,7 +452,7 @@ const LokalProfile = () => {
       {/* Header Section */}
       <Flex direction={{ base: "column", md: "row" }} justify="space-between" align="center" mb={6} gap={4}>
         <Box textAlign={{ base: "center", md: "left" }}>
-          <Heading size="lg" color="teal.700">Lokal Profiles</Heading>
+          <Heading size="xl" bgGradient="linear(to-r, teal.500, blue.600)" bgClip="text" fontWeight="extrabold">Lokal Profiles</Heading>
           <Text color="gray.500" fontSize="sm">Manage congregation information and facilities</Text>
         </Box>
 
@@ -462,9 +486,23 @@ const LokalProfile = () => {
             />
           </HStack>
 
-          <Button leftIcon={<AddIcon />} colorScheme="teal" onClick={() => openModal()} shadow="md">
-            Add New
-          </Button>
+          <Tooltip label="Add New Profile" hasArrow>
+            <IconButton
+              icon={<AddIcon boxSize={6} />}
+              colorScheme="teal"
+              size="lg"
+              isRound
+              onClick={() => openModal()}
+              shadow="lg"
+              bgGradient="linear(to-r, teal.400, teal.600)"
+              _hover={{
+                transform: "scale(1.1)",
+                shadow: "xl",
+                bgGradient: "linear(to-r, teal.500, teal.700)"
+              }}
+              transition="all 0.2s"
+            />
+          </Tooltip>
         </HStack>
       </Flex>
 
@@ -532,6 +570,25 @@ const LokalProfile = () => {
       <div style={{ visibility: "hidden", position: "absolute", top: "-10000px", left: "-10000px" }}>
         <PrintableLokalProfile innerRef={printRef} profile={profileToPrint} />
       </div>
+
+      {/* Image Zoom Modal */}
+      <Modal isOpen={isImageOpen} onClose={onImageClose} size="4xl" isCentered>
+        <ModalOverlay backdropFilter="blur(5px)" bg="blackAlpha.600" />
+        <ModalContent bg="transparent" boxShadow="none">
+          <ModalBody p={0} display="flex" justifyContent="center">
+            {selectedImage && (
+              <Image
+                src={selectedImage}
+                maxH="90vh"
+                maxW="90vw"
+                objectFit="contain"
+                borderRadius="md"
+                boxShadow="2xl"
+              />
+            )}
+          </ModalBody>
+        </ModalContent>
+      </Modal>
 
       {/* Add/Edit Modal */}
       <Modal isOpen={isModalOpen} onClose={closeModal} size="5xl" scrollBehavior="inside" isCentered>

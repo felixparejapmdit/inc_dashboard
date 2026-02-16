@@ -24,18 +24,173 @@ const BIND_DN = process.env.BIND_DN;
 const BIND_PASSWORD = process.env.BIND_PASSWORD;
 const BASE_DN = process.env.BASE_DN;
 
-// Utility function to create an LDAP client
-const createLdapClient = () => {
-  const client = ldap.createClient({ url: LDAP_URL });
+// Persistent Client Variable
+let adminClient = null;
+let bindingPromise = null;
 
-  // THIS IS THE FIX: Add an error handler to prevent crashing
-  client.on('error', (err) => {
-    console.error('❌ LDAP client error:', err);
-    // You can add more logic here, but for now, just logging is enough to prevent the crash.
+// Helper: Get or Create Persistent LDAP Client
+const getAdminClient = async () => {
+  if (adminClient && adminClient.connected) {
+    return adminClient;
+  }
+
+  if (bindingPromise) {
+    return bindingPromise;
+  }
+
+  bindingPromise = new Promise((resolve, reject) => {
+    console.log("🔵 Initializing new persistent LDAP client...");
+    const client = ldap.createClient({
+      url: LDAP_URL,
+      reconnect: true, // Enable auto-reconnect
+      timeout: 5000,
+      connectTimeout: 5000,
+    });
+
+    client.on("error", (err) => {
+      console.error("❌ LDAP Client Error:", err.message);
+      if (adminClient === client) {
+        adminClient = null;
+        bindingPromise = null;
+      }
+    });
+
+    client.on("connect", () => {
+      console.log("✅ LDAP Client Connected");
+    });
+
+    client.bind(BIND_DN, BIND_PASSWORD, (err) => {
+      if (err) {
+        console.error("❌ LDAP Bind Error:", err.message);
+        client.unbind(() => { }); // Attempt generic unbind
+        adminClient = null;
+        bindingPromise = null;
+        reject(err);
+      } else {
+        console.log("✅ LDAP Bind Successful");
+        adminClient = client;
+        adminClient.connected = true; // Mark as connected
+        resolve(client);
+      }
+    });
   });
 
+  try {
+    const client = await bindingPromise;
+    return client;
+  } catch (err) {
+    bindingPromise = null; // Reset promise on failure
+    throw err;
+  }
+};
+
+// Kept for backward compatibility with other internal functions if they use it strictly locally
+const createLdapClient = () => {
+  const client = ldap.createClient({ url: LDAP_URL });
+  client.on('error', (err) => console.error('❌ LDAP client error:', err));
   return client;
 };
+
+// ... (other functions remain unchanged)
+
+// Refactored: Find LDAP user and log audit using Persistent Client
+exports.findLdapUserAndAudit = async (username, userAgent) => {
+  // console.log("Looking up LDAP user (internal):", username);
+
+  try {
+    const client = await getAdminClient();
+
+    const searchOptions = {
+      filter: `(uid=${username})`,
+      scope: "sub",
+      attributes: ["cn", "sn", "mail", "uid", "userPassword"],
+    };
+
+    return new Promise((resolve, reject) => {
+      client.search(BASE_DN, searchOptions, (err, result) => {
+        if (err) {
+          console.error("❌ LDAP search error:", err.message);
+          // Do not destroy the persistent client on search error, usually just a query error
+          // specific retry logic could go here
+          return reject(err);
+        }
+
+        const user = {};
+        let found = false;
+
+        result.on("searchEntry", (entry) => {
+          found = true;
+          entry.attributes.forEach((attribute) => {
+            if (attribute.type === "userPassword") {
+              user[attribute.type] = attribute.values[0];
+            } else {
+              user[attribute.type] = attribute.values;
+            }
+          });
+        });
+
+        result.on("end", async () => {
+          if (found && Object.keys(user).length > 0) {
+            // --- Login Audit Logic (Preserved) ---
+            if (userAgent) {
+              // Async audit logging detached from the main response flow to prevent delays
+              logAudit(username, userAgent).catch(e => console.error("Audit Log Error:", e));
+            }
+            resolve(user);
+          } else {
+            console.warn(`⚠️ User not found in LDAP: ${username}`);
+            reject(new Error("User not found"));
+          }
+        });
+
+        result.on("error", (err) => {
+          console.error("❌ LDAP Result Stream Error:", err.message);
+          reject(err);
+        });
+      });
+    });
+
+  } catch (error) {
+    console.error("Error during LDAP search wrapped:", error.message);
+    throw new Error("LDAP search failed: " + error.message);
+  }
+};
+
+// Helper for Audit Logging (Extracted for cleanliness)
+async function logAudit(username, userAgent) {
+  const parser = new UAParser(userAgent);
+  const deviceData = parser.getResult();
+  const device = deviceData.device?.type || "desktop";
+  const os = `${deviceData.os?.name || "Unknown OS"} ${deviceData.os?.version || ""}`.trim();
+  const browser = `${deviceData.browser?.name || "Unknown Browser"} ${deviceData.browser?.version || ""}`.trim();
+
+  if (!os.startsWith("Unknown OS") && !browser.startsWith("Unknown Browser")) {
+    const localUser = await User.findOne({ where: { username } });
+    if (localUser) {
+      const now = new Date();
+      const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+      const endOfDay = new Date(now.setHours(23, 59, 59, 999));
+
+      const existingAudit = await LoginAudit.findOne({
+        where: {
+          user_id: localUser.id,
+          login_time: { [Op.between]: [startOfDay, endOfDay] }
+        },
+      });
+
+      if (!existingAudit) {
+        await LoginAudit.create({
+          user_id: localUser.id,
+          device,
+          os,
+          browser,
+        });
+        console.log(`✅ Login audit recorded for user_id ${localUser.id}`);
+      }
+    }
+  }
+}
+
 
 // exports.changePassword = async (req, res) => {
 //   const { username, oldPassword, newPassword } = req.body;
@@ -659,141 +814,7 @@ exports.getUsersNotLoggedInToday = async (req, res) => {
   }
 };
 
-// Login using PMD LDAP credentials by username
-// Refactored: Find LDAP user and log audit (Internal use)
-exports.findLdapUserAndAudit = async (username, userAgent) => {
-  console.log("Looking up LDAP user (internal):", username);
 
-  const client = createLdapClient();
-
-  const bindClient = () =>
-    new Promise((resolve, reject) => {
-      client.bind(BIND_DN, BIND_PASSWORD, (err) => {
-        if (err) {
-          client.unbind((unbindErr) => {
-            if (unbindErr) console.error("LDAP unbind error:", unbindErr);
-          });
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
-    });
-
-  const searchLDAP = () =>
-    new Promise((resolve, reject) => {
-      const searchOptions = {
-        filter: `(uid=${username})`,
-        scope: "sub",
-        attributes: ["cn", "sn", "mail", "uid", "userPassword"],
-      };
-
-      const user = {};
-
-      client.search(BASE_DN, searchOptions, (err, result) => {
-        if (err) {
-          client.unbind((unbindErr) => {
-            if (unbindErr) console.error("LDAP unbind error:", unbindErr);
-          });
-          reject(err);
-          return;
-        }
-
-        result.on("searchEntry", (entry) => {
-          entry.attributes.forEach((attribute) => {
-            if (attribute.type === "userPassword") {
-              user[attribute.type] = attribute.values[0];
-            } else {
-              user[attribute.type] = attribute.values;
-            }
-          });
-        });
-
-        result.on("end", async () => {
-          client.unbind((unbindErr) => {
-            if (unbindErr) console.error("LDAP unbind error:", unbindErr);
-          });
-
-          if (Object.keys(user).length > 0) {
-            // --- Login Audit Logic ---
-            if (userAgent) {
-              const parser = new UAParser(userAgent);
-              const deviceData = parser.getResult();
-              const device = deviceData.device?.type || "desktop";
-              const os = `${deviceData.os?.name || "Unknown OS"} ${deviceData.os?.version || ""
-                }`.trim();
-              const browser = `${deviceData.browser?.name || "Unknown Browser"} ${deviceData.browser?.version || ""
-                }`.trim();
-
-              if (
-                !os.startsWith("Unknown OS") &&
-                !browser.startsWith("Unknown Browser")
-              ) {
-                try {
-                  const localUser = await User.findOne({ where: { username } });
-
-                  if (localUser) {
-                    const now = new Date();
-                    const startOfDay = new Date(now.setHours(0, 0, 0, 0));
-                    const endOfDay = new Date(now.setHours(23, 59, 59, 999));
-
-                    const existingAudit = await LoginAudit.findOne({
-                      where: {
-                        user_id: localUser.id,
-                        login_time: {
-                          [Op.between]: [startOfDay, endOfDay]
-                        }
-                      },
-                    });
-
-                    if (!existingAudit) {
-                      await LoginAudit.create({
-                        user_id: localUser.id,
-                        device,
-                        os,
-                        browser,
-                      });
-                      console.log(`✅ Login audit recorded for user_id ${localUser.id}`);
-                    } else {
-                      console.log(`🔁 Login audit already exists today for user_id ${localUser.id}`);
-                    }
-                  } else {
-                    console.warn(`⚠️ No local user found for username: ${username}, skipping login audit`);
-                  }
-                } catch (auditErr) {
-                  console.error("❌ Failed to log login audit:", auditErr);
-                }
-              } else {
-                console.warn("⛔ Skipping login audit due to unknown OS or browser.");
-              }
-            }
-            // --- End Audit Logic ---
-
-            resolve(user);
-          } else {
-            console.warn(`⚠️ User not found in LDAP: ${username}`);
-            reject(new Error("User not found"));
-          }
-        });
-
-        result.on("error", (err) => {
-          client.unbind((unbindErr) => {
-            if (unbindErr) console.error("LDAP unbind error:", unbindErr);
-          });
-          reject(err);
-        });
-      });
-    });
-
-  try {
-    await bindClient();
-    const user = await searchLDAP();
-    return user;
-  } catch (error) {
-    console.error("Error during LDAP search:", error.message);
-    throw new Error("LDAP search failed: " + error.message);
-  }
-};
 
 // Login using PMD LDAP credentials by username
 exports.getUserByUsername = async (req, res) => {

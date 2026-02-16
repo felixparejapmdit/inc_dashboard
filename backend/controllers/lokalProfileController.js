@@ -18,8 +18,11 @@ exports.getAllProfiles = async (req, res) => {
         axios.get(DISTRICT_API_URL),
         axios.get(LOCAL_CONGREGATION_API_URL),
       ]);
-      districts = districtRes.data || [];
-      lokals = lokalRes.data || [];
+      const dData = districtRes.data;
+      districts = Array.isArray(dData) ? dData : [];
+
+      const lData = lokalRes.data;
+      lokals = Array.isArray(lData) ? lData : [];
     } catch (apiError) {
       console.warn(
         "Warning: Failed to fetch district/lokal info",
@@ -37,9 +40,14 @@ exports.getAllProfiles = async (req, res) => {
       lokalName: lokals.find((l) => l.id == profile.lokal)?.name || profile.lokal,
     }));
 
+    // console.log("Enriched profiles:", enrichedProfiles);
     res.json(enrichedProfiles);
   } catch (error) {
-    res.status(500).json({ message: "Error fetching lokal profiles", error });
+    console.error("CRITICAL ERROR in getAllProfiles:", error);
+    if (error.original) {
+      console.error("Original DB Error:", error.original);
+    }
+    res.status(500).json({ message: "Error fetching lokal profiles", error: error.message, stack: error.stack });
   }
 };
 

@@ -2,6 +2,8 @@ const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
 const ChatHistory = require("../models/ChatHistory");
+const { Personnel, File, Department, Section, Designation } = require("../models");
+const { Op } = require("sequelize");
 
 const EXPORT_PATH = path.join(__dirname, "..", "scripts", "database_export.json");
 const EMBEDDINGS_PATH = path.join(__dirname, "..", "scripts", "database_embeddings.json");
@@ -306,6 +308,87 @@ function buildContextFromRecords(records, mode) {
   return formatSearchResults(resultsByTable);
 }
 
+// ✅ LIVE DATABASE SEARCH IMPLEMENTATION
+async function searchLiveDatabase(query) {
+  const lowerQuery = query.toLowerCase();
+  const results = [];
+  const limit = 5;
+
+  // 1. Check if asking for FILES
+  if (
+    lowerQuery.includes("file") ||
+    lowerQuery.includes("report") ||
+    lowerQuery.includes("document") ||
+    lowerQuery.includes("form") ||
+    lowerQuery.includes("pdf") ||
+    lowerQuery.includes("excel")
+  ) {
+    try {
+      const files = await File.findAll({
+        where: {
+          [Op.or]: [
+            { filename: { [Op.like]: `%${query}%` } },
+            { description: { [Op.like]: `%${query}%` } }
+          ]
+        },
+        limit: limit,
+        attributes: ['id', 'filename', 'description', 'created_at']
+      });
+
+      if (files.length > 0) {
+        results.push({
+          source: 'Live Database (Files)',
+          data: files.map(f => `File: ${f.filename} (${f.description || 'No description'}) - Created: ${f.created_at}`).join('\n')
+        });
+      }
+    } catch (error) {
+      console.error("Error searching files:", error);
+    }
+  }
+
+  // 2. Check if asking for PERSONNEL / CONTACTS
+  if (
+    lowerQuery.includes("who") ||
+    lowerQuery.includes("personnel") ||
+    lowerQuery.includes("staff") ||
+    lowerQuery.includes("contact") ||
+    lowerQuery.includes("name") ||
+    !lowerQuery.includes("file") // Default to personnel if not file
+  ) {
+    try {
+      // Extract potential name (simple heuristic)
+      const excludeWords = ["who", "is", "the", "contact", "for", "personnel", "staff", "show", "me", "all", "list", "name"];
+      const searchTerms = lowerQuery.split(" ").filter(w => !excludeWords.includes(w) && w.length > 2);
+
+      if (searchTerms.length > 0) {
+        const personnel = await Personnel.findAll({
+          where: {
+            [Op.or]: [
+              { givenname: { [Op.like]: `%${searchTerms[0]}%` } },
+              { surname_husband: { [Op.like]: `%${searchTerms[0]}%` } },
+              { surname_maiden: { [Op.like]: `%${searchTerms[0]}%` } },
+              { nickname: { [Op.like]: `%${searchTerms[0]}%` } }
+            ]
+          },
+          limit: limit,
+          attributes: ['personnel_id', 'givenname', 'surname_husband', 'nickname'] // Add specific fields
+        });
+
+        if (personnel.length > 0) {
+          results.push({
+            source: 'Live Database (Personnel)',
+            data: personnel.map(p => `Name: ${p.givenname} ${p.surname_husband} (ID: ${p.personnel_id})`).join('\n')
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error searching personnel:", error);
+    }
+  }
+
+  return results;
+}
+
 function searchDbData(query, tables, mode = "default") {
   const keywords = query
     .split(/[^a-z0-9_]+/)
@@ -526,6 +609,13 @@ exports.chatbotHandler = async (req, res) => {
     }
   }
 
+  // ✅ Try Live Search first
+  const liveResults = await searchLiveDatabase(query);
+  let liveContext = "";
+  if (liveResults.length > 0) {
+    liveContext = liveResults.map(r => `[${r.source}]\n${r.data}`).join("\n\n");
+  }
+
   if (!searchResult.matches) {
     searchResult = searchDbData(query, effectiveTables, responseMode);
   }
@@ -548,7 +638,7 @@ Model info:
 ${modelContext || "No specific model matched the query."}
 
 Relevant records:
-${contextData || "No direct records found."}
+${liveContext || contextData || "No direct records found."}
 `.trim();
 
   const buildFallbackReply = () => {
@@ -582,6 +672,7 @@ ${contextData || "No direct records found."}
     return res.json({
       reply:
         "Llama service is not reachable right now. Showing local data only.\n\n" +
+        (liveContext ? `**Live Search Results:**\n${liveContext}\n\n` : "") +
         buildFallbackReply(),
     });
   }
@@ -618,6 +709,10 @@ ${contextData || "No direct records found."}
     responseParts.push(
       "You can ask follow-up questions, or say `details` to see more fields."
     );
+  }
+
+  if (liveContext) {
+    responseParts.unshift("**Live Search Results:**\n" + liveContext);
   }
   if (!responseParts.length) {
     responseParts.push(

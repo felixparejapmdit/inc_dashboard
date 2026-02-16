@@ -37,6 +37,7 @@ import { FaEdit, FaCamera, FaUser, FaEnvelope, FaPhone, FaBuilding, FaEye, FaLoc
 import { getAuthHeaders } from "../utils/apiHeaders";
 import { usePermissionContext } from "../contexts/PermissionContext";
 import { fetchData, putDataContact } from "../utils/fetchData";
+import FaceEnrollment from "../components/FaceEnrollment";
 
 const Profile = () => {
   const { hasPermission } = usePermissionContext();
@@ -46,6 +47,7 @@ const Profile = () => {
 
   // State for the 2x2 Picture
   const [profileImage, setProfileImage] = useState(null);
+  const [imageLoading, setImageLoading] = useState(false);
 
   const [editUser, setEditUser] = useState({
     name: "",
@@ -75,6 +77,13 @@ const Profile = () => {
     isOpen: isChangePassOpen,
     onOpen: onChangePassOpen,
     onClose: onChangePassClose,
+  } = useDisclosure();
+
+  // Face Enrollment Modal State
+  const {
+    isOpen: isFaceEnrollOpen,
+    onOpen: onFaceEnrollOpen,
+    onClose: onFaceEnrollClose,
   } = useDisclosure();
 
   const [currentPassword, setCurrentPassword] = useState("");
@@ -134,6 +143,7 @@ const Profile = () => {
   // --- 2. Fetch User Profile Image (2x2) ---
   const fetchProfileImage = async (personnelId) => {
     if (!personnelId) return;
+    setImageLoading(true);
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/personnel_images/2x2/${personnelId}`, {
         headers: getAuthHeaders()
@@ -147,6 +157,8 @@ const Profile = () => {
       }
     } catch (error) {
       console.error("Error fetching profile image:", error);
+    } finally {
+      setImageLoading(false);
     }
   }
 
@@ -331,12 +343,26 @@ const Profile = () => {
                       transition="transform 0.3s ease"
                       _hover={{ transform: "scale(1.1)", boxShadow: "2xl" }}
                       onClick={onAvatarOpen}
+                      position="relative"
                     >
-                      <Avatar
-                        size="2xl"
-                        src={profileImage || "/default-avatar.png"}
-                        name={user.name}
-                      />
+                      {imageLoading ? (
+                        <Flex
+                          w="150px"
+                          h="150px"
+                          borderRadius="full"
+                          align="center"
+                          justify="center"
+                          bg="gray.100"
+                        >
+                          <Spinner size="lg" color="#FFD559" thickness="4px" />
+                        </Flex>
+                      ) : (
+                        <Avatar
+                          size="2xl"
+                          src={profileImage || "/default-avatar.png"}
+                          name={user.name}
+                        />
+                      )}
                     </Box>
                     <Heading size="lg" mt={4} textAlign="center">{user.name || "User"}</Heading>
                     <Text color="gray.500" fontWeight="medium">{user.username}</Text>
@@ -390,6 +416,19 @@ const Profile = () => {
                         size="lg"
                       />
                     </Tooltip>
+
+                    {/* HIDDEN: Face Recognition Button
+                    <Tooltip label="Face Recognition" hasArrow>
+                      <IconButton
+                        icon={<FaCamera />}
+                        colorScheme="purple"
+                        onClick={onFaceEnrollOpen}
+                        borderRadius="lg"
+                        aria-label="Face Recognition"
+                        size="lg"
+                      />
+                    </Tooltip>
+                    */}
                   </HStack>
                 </Flex>
 
@@ -527,6 +566,13 @@ const Profile = () => {
           </ModalBody>
         </ModalContent>
       </Modal>
+
+      {/* --- Face Enrollment Modal --- */}
+      <FaceEnrollment
+        personnelId={user.personnel_id}
+        isOpen={isFaceEnrollOpen}
+        onClose={onFaceEnrollClose}
+      />
 
     </Box>
   );
