@@ -130,10 +130,10 @@ const Step1 = ({
 
   // Filter sections based on department
   useEffect(() => {
-    if (personnelData.department_id) {
+    if (personnelData.department_id && Array.isArray(sections)) {
       const filtered = sections.filter(
         (section) =>
-          section.department_id === parseInt(personnelData.department_id)
+          String(section.department_id) === String(personnelData.department_id)
       );
       setFilteredSections(filtered);
     } else {
@@ -143,10 +143,10 @@ const Step1 = ({
 
   // Filter subsections based on section
   useEffect(() => {
-    if (personnelData.section_id) {
+    if (personnelData.section_id && Array.isArray(subsections)) {
       const filtered = subsections.filter(
         (subsection) =>
-          subsection.section_id === parseInt(personnelData.section_id)
+          String(subsection.section_id) === String(personnelData.section_id)
       );
       setFilteredSubsections(filtered);
     } else {
@@ -155,11 +155,10 @@ const Step1 = ({
   }, [personnelData.section_id, subsections]);
 
   useEffect(() => {
-    if (personnelData.registered_district_id) {
+    if (personnelData.registered_district_id && Array.isArray(localCongregations)) {
       const filtered = localCongregations.filter(
         (congregation) =>
-          congregation.district_id ===
-          parseInt(personnelData.registered_district_id)
+          String(congregation.district_id) === String(personnelData.registered_district_id)
       );
       setFilteredLocalCongregations(filtered);
     } else {
@@ -168,10 +167,10 @@ const Step1 = ({
   }, [personnelData.registered_district_id, localCongregations]);
 
   useEffect(() => {
-    if (personnelData.district_id) {
+    if (personnelData.district_id && Array.isArray(localCongregations)) {
       const filtered = localCongregations.filter(
         (congregation) =>
-          congregation.district_id === parseInt(personnelData.district_id)
+          String(congregation.district_id) === String(personnelData.district_id)
       );
       setFilteredLocalCongregationsOrigin(filtered);
     } else {
@@ -180,11 +179,10 @@ const Step1 = ({
   }, [personnelData.district_id, localCongregations]);
 
   useEffect(() => {
-    if (personnelData.district_assignment_id) {
+    if (personnelData.district_assignment_id && Array.isArray(localCongregations)) {
       const filtered = localCongregations.filter(
         (congregation) =>
-          congregation.district_id ===
-          parseInt(personnelData.district_assignment_id)
+          String(congregation.district_id) === String(personnelData.district_assignment_id)
       );
       setFilteredLocalCongregationsAssignment(filtered);
     } else {
@@ -193,11 +191,10 @@ const Step1 = ({
   }, [personnelData.district_assignment_id, localCongregations]);
 
   useEffect(() => {
-    if (personnelData.district_first_registered) {
+    if (personnelData.district_first_registered && Array.isArray(localCongregations)) {
       const filtered = localCongregations.filter(
         (congregation) =>
-          congregation.district_id ===
-          parseInt(personnelData.district_first_registered)
+          String(congregation.district_id) === String(personnelData.district_first_registered)
       );
       setFilteredFirstLocalCongregations(filtered);
     } else {
@@ -335,7 +332,7 @@ const Step1 = ({
                     placeholder="Wedding Anniversary"
                     name="wedding_anniversary"
                     type="date"
-                    value={personnelData.wedding_anniversary}
+                    value={personnelData.wedding_anniversary || ""}
                     onChange={(e) =>
                       setPersonnelData((prevData) => ({
                         ...prevData,
@@ -356,7 +353,7 @@ const Step1 = ({
                 <Input
                   placeholder="Given Name"
                   name="givenname"
-                  value={personnelData.givenname}
+                  value={personnelData.givenname || ""}
                   onChange={handleChange}
                   isDisabled={!isEditing}
                 />
@@ -367,7 +364,7 @@ const Step1 = ({
                 <Input
                   placeholder="Middle Name"
                   name="middlename"
-                  value={personnelData.middlename}
+                  value={personnelData.middlename || ""}
                   onChange={handleChange}
                   isDisabled={!isEditing}
                 />
@@ -382,7 +379,7 @@ const Step1 = ({
                     personnelData.surname_maiden_placeholder || "Surname (Maiden)"
                   }
                   name="surname_maiden"
-                  value={personnelData.surname_maiden}
+                  value={personnelData.surname_maiden || ""}
                   onChange={handleChange}
                   isDisabled={personnelData.surname_maiden_disabled}
                 />
@@ -398,7 +395,7 @@ const Step1 = ({
                     "Surname (Husband)"
                   }
                   name="surname_husband"
-                  value={personnelData.surname_husband}
+                  value={personnelData.surname_husband || ""}
                   onChange={handleChange}
                   isDisabled={!isEditing}
                 />
@@ -446,7 +443,7 @@ const Step1 = ({
                 <Input
                   placeholder="Nickname"
                   name="nickname"
-                  value={personnelData.nickname}
+                  value={personnelData.nickname || ""}
                   onChange={handleChange}
                   isDisabled={!isEditing}
                 />
@@ -540,7 +537,7 @@ const Step1 = ({
                   placeholder="Date of Birth"
                   name="date_of_birth"
                   type="date"
-                  value={personnelData.date_of_birth}
+                  value={personnelData.date_of_birth || ""}
                   onChange={(e) =>
                     handleChange({
                       target: { name: "date_of_birth", value: e.target.value },
@@ -556,7 +553,7 @@ const Step1 = ({
                 <Input
                   placeholder="0"
                   name="age"
-                  value={age}
+                  value={age || ""}
                   readOnly
                   width="100%"
                   isDisabled={!isEditing}
@@ -568,7 +565,7 @@ const Step1 = ({
                 <Input
                   placeholder="Place of Birth"
                   name="place_of_birth"
-                  value={personnelData.place_of_birth}
+                  value={personnelData.place_of_birth || ""}
                   onChange={(e) =>
                     handleChange({
                       target: { name: "place_of_birth", value: e.target.value },
@@ -585,7 +582,7 @@ const Step1 = ({
                   placeholder="Date Joined"
                   name="datejoined"
                   type="date"
-                  value={personnelData.datejoined}
+                  value={personnelData.datejoined || ""}
                   onChange={(e) =>
                     handleChange({
                       target: { name: "datejoined", value: e.target.value },
@@ -667,7 +664,7 @@ const Step1 = ({
                 <Input
                   placeholder="Enter Email Address"
                   name="email_address"
-                  value={personnelData.email_address}
+                  value={personnelData.email_address || ""}
                   onChange={handleChange}
                   isInvalid={!!emailError}
                   errorBorderColor="red.300"
@@ -687,7 +684,7 @@ const Step1 = ({
                 <Input
                   placeholder="Enter Work Email Address"
                   name="work_email_address"
-                  value={personnelData.work_email_address}
+                  value={personnelData.work_email_address || ""}
                   onChange={handleChange}
                 />
               </FormControl>
@@ -1205,7 +1202,7 @@ const Step1 = ({
                           </Td>
                           <Td>
                             <Input
-                              value={duty.duty}
+                              value={duty.duty || ""}
                               onChange={(e) =>
                                 handleDutyChange(index, "duty", e.target.value)
                               }
@@ -1222,7 +1219,7 @@ const Step1 = ({
                           <Td>
                             <Input
                               type="number"
-                              value={duty.start_year}
+                              value={duty.start_year || ""}
                               onChange={(e) =>
                                 handleDutyChange(
                                   index,
@@ -1243,7 +1240,7 @@ const Step1 = ({
                           <Td>
                             <Input
                               type="number"
-                              value={duty.end_year}
+                              value={duty.end_year || ""}
                               onChange={(e) =>
                                 handleDutyChange(
                                   index,
@@ -1306,7 +1303,7 @@ const Step1 = ({
                     type="number"
                     placeholder="Enter Assigned Number"
                     name="assigned_number"
-                    value={personnelData.assigned_number}
+                    value={personnelData.assigned_number || ""}
                     onChange={(e) =>
                       handleChange({
                         target: {
@@ -1472,7 +1469,7 @@ const Step1 = ({
                   placeholder="Panunumpa Date"
                   name="panunumpa_date"
                   type="date"
-                  value={personnelData.panunumpa_date}
+                  value={personnelData.panunumpa_date || ""}
                   onChange={(e) =>
                     handleChange({
                       target: { name: "panunumpa_date", value: e.target.value },

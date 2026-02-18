@@ -495,7 +495,6 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
         <Box
           key={idx}
           p={4}
-          p={4}
           bg="white"
           borderRadius="lg"
           mb={4}
@@ -541,7 +540,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
               </Text>
               <Input
                 placeholder="School"
-                value={edu.school}
+                value={edu.school || ""}
                 isDisabled={!edu.isEditing}
                 onChange={(e) =>
                   handleEducationChange(idx, "school", e.target.value)
@@ -561,7 +560,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
               <Input
                 placeholder="Start Year"
                 type="number"
-                value={edu.startfrom}
+                value={edu.startfrom || ""}
                 isDisabled={!edu.isEditing}
                 onChange={(e) =>
                   handleEducationChange(idx, "startfrom", e.target.value)
@@ -581,7 +580,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
               <Input
                 placeholder="Completion Year"
                 type="number"
-                value={edu.completion_year}
+                value={edu.completion_year || ""}
                 isDisabled={!edu.isEditing}
                 onChange={(e) =>
                   handleEducationChange(idx, "completion_year", e.target.value)
@@ -600,7 +599,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
               </Text>
               <Input
                 placeholder="Field of Study"
-                value={edu.field_of_study}
+                value={edu.field_of_study || ""}
                 isDisabled={
                   !edu.isEditing ||
                   edu.level === "No Formal Education" ||
@@ -625,7 +624,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
               </Text>
               <Input
                 placeholder="Degree"
-                value={edu.degree}
+                value={edu.degree || ""}
                 isDisabled={
                   !edu.isEditing ||
                   edu.level === "No Formal Education" ||
@@ -650,7 +649,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
               </Text>
               <Input
                 placeholder="Institution"
-                value={edu.institution}
+                value={edu.institution || ""}
                 isDisabled={
                   !edu.isEditing ||
                   edu.level === "No Formal Education" ||
@@ -675,7 +674,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
               </Text>
               <Input
                 placeholder="Professional Licensure"
-                value={edu.professional_licensure_examination}
+                value={edu.professional_licensure_examination || ""}
                 isDisabled={
                   !edu.isEditing ||
                   edu.level === "No Formal Education" ||
@@ -776,7 +775,6 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
         <Box
           key={idx}
           p={4}
-          p={4}
           bg="white"
           borderRadius="lg"
           mb={4}
@@ -826,7 +824,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
               </Text>
               <Input
                 placeholder="Company"
-                value={work.company}
+                value={work.company || ""}
                 isDisabled={
                   !work.isEditing ||
                   ["Volunteer/Kawani"].includes(work.employment_type)
@@ -848,7 +846,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
               </Text>
               <Input
                 placeholder="Address"
-                value={work.address}
+                value={work.address || ""}
                 isDisabled={!work.isEditing}
                 onChange={(e) =>
                   handleWorkExperienceChange(idx, "address", e.target.value)
@@ -867,7 +865,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
               </Text>
               <Input
                 placeholder="Position"
-                value={work.position}
+                value={work.position || ""}
                 isDisabled={!work.isEditing}
                 onChange={(e) =>
                   handleWorkExperienceChange(idx, "position", e.target.value)
@@ -886,7 +884,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
               </Text>
               <Input
                 placeholder="Department"
-                value={work.department}
+                value={work.department || ""}
                 isDisabled={!work.isEditing}
                 onChange={(e) =>
                   handleWorkExperienceChange(idx, "department", e.target.value)
@@ -905,7 +903,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
               </Text>
               <Input
                 placeholder="Section"
-                value={work.section}
+                value={work.section || ""}
                 isDisabled={!work.isEditing}
                 onChange={(e) =>
                   handleWorkExperienceChange(idx, "section", e.target.value)
@@ -924,7 +922,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
               </Text>
               <Textarea
                 placeholder="Enter description..."
-                value={work.position}
+                value={work.position || ""}
                 isDisabled={!work.isEditing}
                 onChange={(e) =>
                   handleWorkExperienceChange(idx, "position", e.target.value)
@@ -943,7 +941,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
               </Text>
               <Input
                 type="date"
-                value={work.start_date}
+                value={work.start_date || ""}
                 isDisabled={!work.isEditing}
                 onChange={(e) =>
                   handleWorkExperienceChange(idx, "start_date", e.target.value)
@@ -962,7 +960,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
               </Text>
               <Input
                 type="date"
-                value={work.end_date}
+                value={work.end_date || ""}
                 isDisabled={!work.isEditing}
                 onChange={(e) =>
                   handleWorkExperienceChange(idx, "end_date", e.target.value)
@@ -981,7 +979,7 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
               </Text>
               <Input
                 placeholder="Reason for Leaving"
-                value={work.reason_for_leaving}
+                value={work.reason_for_leaving || ""}
                 isDisabled={!work.isEditing}
                 onChange={(e) =>
                   handleWorkExperienceChange(

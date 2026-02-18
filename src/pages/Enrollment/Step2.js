@@ -597,7 +597,7 @@ const Step2 = () => {
                                   ? "Enter (@username)"
                                   : "Enter Contact Info"
                             }
-                            value={contact.contact_info}
+                            value={contact.contact_info || ""}
                             isReadOnly={
                               !contact.isEditing ||
                               selectedType?.name.toLowerCase() === "telephone"
@@ -713,7 +713,7 @@ const Step2 = () => {
                         <Td>
                           <Input
                             placeholder={selectedType?.name.toLowerCase() === "telephone" ? "-" : "Enter Info"}
-                            value={contact.contact_info}
+                            value={contact.contact_info || ""}
                             isDisabled={!contact.isEditing || isTelephone}
                             onChange={(e) => handleContactChange(idx, "contact_info", e.target.value)}
                             size="sm"
@@ -848,7 +848,7 @@ const Step2 = () => {
                         <FormLabel fontSize="sm" fontWeight="bold">Address</FormLabel>
                         <Input
                           placeholder="Street, Zone, Barangay, Town/City, Province, Country"
-                          value={address.name}
+                          value={address.name || ""}
                           isDisabled={!address.isEditing} // Disable unless editing
                           onChange={(e) =>
                             handleAddressChange(idx, "name", e.target.value)
@@ -897,7 +897,7 @@ const Step2 = () => {
                       <Td>
                         <Input
                           placeholder="Street, Zone..."
-                          value={address.name}
+                          value={address.name || ""}
                           isDisabled={!address.isEditing}
                           onChange={(e) => handleAddressChange(idx, "name", e.target.value)}
                           size="sm"
@@ -961,7 +961,7 @@ const Step2 = () => {
                       <Td>
                         <Input
                           placeholder="ID Number"
-                          value={id.gov_issued_id}
+                          value={id.gov_issued_id || ""}
                           isDisabled={!id.isEditing} // Disable if not in editing mode
                           onChange={(e) =>
                             handleGovIDChange(

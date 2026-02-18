@@ -52,6 +52,12 @@ import {
   List,
   ListItem,
   Portal,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
 } from "@chakra-ui/react";
 import {
   CheckIcon,
@@ -176,40 +182,53 @@ const ProgressTracking = () => {
     );
   }, []);
 
-  const handleDelete = (personnelId) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this personnel?"
-    );
-    if (!confirmDelete) return;
+  // Delete Confirmation State
+  const {
+    isOpen: isDeleteOpen,
+    onOpen: onDeleteOpen,
+    onClose: onDeleteClose
+  } = useDisclosure();
+  const [personnelToDelete, setPersonnelToDelete] = useState(null);
+  const cancelRef = React.useRef();
 
-    deleteData(
-      "personnels",
-      personnelId,
-      () => {
-        toast({
-          title: "Deleted",
-          description: "Personnel record deleted successfully.",
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
-        const updatedUsers = users.filter(
-          (user) => user.personnel_id !== personnelId
-        );
-        setUsers(updatedUsers);
-        setFilteredUsers(updatedUsers);
-      },
-      (err) => {
-        toast({
-          title: "Error",
-          description: err,
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      },
-      "Failed to delete personnel"
-    );
+  const initiateDelete = (personnelId) => {
+    setPersonnelToDelete(personnelId);
+    onDeleteOpen();
+  };
+
+  const handleDelete = async () => {
+    if (!personnelToDelete) return;
+
+    try {
+      await deleteData(
+        "personnels",
+        personnelToDelete,
+        "Failed to delete personnel"
+      );
+
+      toast({
+        title: "Deleted",
+        description: "Personnel record deleted successfully.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+
+      const updatedUsers = users.filter(
+        (user) => user.personnel_id !== personnelToDelete
+      );
+      setUsers(updatedUsers);
+      setFilteredUsers(updatedUsers);
+      onDeleteClose();
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err.message || "Failed to delete personnel",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
   const handleUserSelect = (user) => {
@@ -561,7 +580,7 @@ const ProgressTracking = () => {
                               <IconButton
                                 icon={<DeleteIcon />}
                                 variant="ghost" colorScheme="red" size="xs"
-                                onClick={() => handleDelete(user.personnel_id)}
+                                onClick={() => initiateDelete(user.personnel_id)}
                               />
                             </Tooltip>
                           </HStack>
@@ -605,7 +624,7 @@ const ProgressTracking = () => {
                                 </Button>
                                 <IconButton icon={<ViewIcon />} size="sm" colorScheme="yellow" onClick={() => window.open(`/personnel-preview/${user.personnel_id}`, "_blank")} />
                                 <IconButton icon={<ExternalLinkIcon />} size="sm" colorScheme="teal" onClick={() => window.location.href = user.personnel_id ? `/enroll?personnel_id=${user.personnel_id}&type=editprogress` : `/enroll?not_enrolled=${user.username}&type=editprogress`} />
-                                <IconButton icon={<DeleteIcon />} size="sm" colorScheme="red" onClick={() => handleDelete(user.personnel_id)} />
+                                <IconButton icon={<DeleteIcon />} size="sm" colorScheme="red" onClick={() => initiateDelete(user.personnel_id)} />
                               </HStack>
                             </Td>
                           </Tr>
@@ -731,7 +750,7 @@ const ProgressTracking = () => {
                               <IconButton
                                 icon={<DeleteIcon />}
                                 variant="ghost" colorScheme="red" size="xs"
-                                onClick={() => handleDelete(user.personnel_id)}
+                                onClick={() => initiateDelete(user.personnel_id)}
                               />
                             </Tooltip>
                             <Tooltip label="Proceed to Personnel Page">
@@ -782,7 +801,7 @@ const ProgressTracking = () => {
                                 </Button>
                                 <IconButton icon={<ViewIcon />} size="sm" colorScheme="yellow" onClick={() => window.open(`/personnel-preview/${user.personnel_id}`, "_blank")} />
                                 <IconButton icon={<ExternalLinkIcon />} size="sm" colorScheme="teal" onClick={() => window.location.href = user.personnel_id ? `/enroll?personnel_id=${user.personnel_id}&type=editprogress` : `/enroll?not_enrolled=${user.username}&type=editprogress`} />
-                                <IconButton icon={<DeleteIcon />} size="sm" colorScheme="red" onClick={() => handleDelete(user.personnel_id)} />
+                                <IconButton icon={<DeleteIcon />} size="sm" colorScheme="red" onClick={() => initiateDelete(user.personnel_id)} />
                                 <Tooltip label="Proceed to Personnel Page">
                                   <IconButton icon={<ArrowForwardIcon />} size="sm" colorScheme="blue" onClick={() => navigate(`/user?new_enroll_search=${encodeURIComponent(user.fullname)}`)} />
                                 </Tooltip>
@@ -823,6 +842,34 @@ const ProgressTracking = () => {
           </VStack>
         )}
       </Box> {/* End Main Box */}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        isOpen={isDeleteOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={onDeleteClose}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Delete Personnel Record
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              Are you sure you want to delete this personnel? This action cannot be undone.
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onDeleteClose}>
+                Cancel
+              </Button>
+              <Button colorScheme="red" onClick={handleDelete} ml={3}>
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
 
       {/* Sidebar Drawer */}
       <Drawer isOpen={isOpen} placement="right" onClose={onClose} size="md">

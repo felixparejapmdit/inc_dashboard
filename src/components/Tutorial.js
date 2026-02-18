@@ -517,20 +517,18 @@ const Tutorial = ({ isSidebarExpanded, onExpandSidebar }) => {
 
   return (
     <Portal>
-      <Box position="fixed" top="24px" right="24px" zIndex={99999}>
-        <Tooltip label="Need help? Click for a Tour" placement="left" hasArrow>
-          <IconButton
-            aria-label="Start Tutorial"
-            icon={<FiHelpCircle />}
-            colorScheme="orange"
-            borderRadius="full"
-            boxShadow="dark-lg"
-            size="lg"
-            onClick={handleStartTour}
-            _hover={{ transform: "scale(1.1)", bg: "orange.400" }}
-            transition="all 0.2s"
-          />
-        </Tooltip>
+      <Box position="fixed" top="24px" right="24px" zIndex={100001}>
+        <IconButton
+          aria-label="Start Tutorial"
+          icon={<FiHelpCircle />}
+          colorScheme="orange"
+          borderRadius="full"
+          boxShadow="dark-lg"
+          size="lg"
+          onClick={handleStartTour}
+          _hover={{ transform: "scale(1.1)", bg: "orange.400" }}
+          transition="all 0.2s"
+        />
       </Box>
 
       <AnimatePresence>

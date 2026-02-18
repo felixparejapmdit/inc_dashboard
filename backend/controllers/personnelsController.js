@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const Personnel = require("../models/personnels"); // Ensure the correct path.
 
 const User = require("../models/User"); // Ensure this model is correctly defined
@@ -449,7 +450,7 @@ exports.getUserCredentials = async (req, res) => {
       return res.status(400).json({ message: "Personnel ID is required" });
     }
 
-    // Fetch user credentials using Sequelize
+    // 1. Try to fetch user credentials with associated personnel info
     const user = await User.findOne({
       where: { personnel_id },
       attributes: ["username", "password"],
@@ -462,22 +463,39 @@ exports.getUserCredentials = async (req, res) => {
       ],
     });
 
-    if (!user) {
-      return res.status(404).json({ message: "User credentials not found" });
+    if (user) {
+      // If the password is encrypted, decrypt it (Assuming AES encryption exists)
+      let decryptedPassword = user.password;
+      if (user.password && user.password.startsWith("{AES}")) {
+        decryptedPassword = decryptPassword(user.password.replace("{AES}", ""));
+      }
+
+      return res.status(200).json({
+        username: user.username,
+        password: decryptedPassword,
+        reference_number: user.personnel?.reference_number || "N/A",
+        givenname: user.personnel?.givenname || "N/A",
+        surname_husband: user.personnel?.surname_husband || "N/A",
+      });
     }
 
-    // If the password is encrypted, decrypt it (Assuming AES encryption)
-    let decryptedPassword = user.password;
-    if (user.password.startsWith("{AES}")) {
-      decryptedPassword = decryptPassword(user.password.replace("{AES}", ""));
+    // 2. If no User record found, fallback to just Personnel info
+    const personnel = await Personnel.findOne({
+      where: { personnel_id },
+      attributes: ["reference_number", "givenname", "surname_husband"],
+    });
+
+    if (!personnel) {
+      return res.status(404).json({ message: "Personnel record not found" });
     }
 
+    // Return personnel info with placeholders for credentials
     res.status(200).json({
-      username: user.username,
-      password: decryptedPassword, // Ensure password is securely hashed
-      reference_number: user.personnel.reference_number,
-      givenname: user.personnel.givenname,
-      surname_husband: user.personnel.surname_husband,
+      username: "NOT YET CREATED",
+      password: "NOT YET CREATED",
+      reference_number: personnel.reference_number,
+      givenname: personnel.givenname,
+      surname_husband: personnel.surname_husband,
     });
   } catch (error) {
     console.error("Error fetching user credentials:", error);

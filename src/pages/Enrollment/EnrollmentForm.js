@@ -16,6 +16,11 @@ import {
   ModalFooter,
   Text,
   IconButton,
+  Center,
+  HStack,
+  Badge,
+  SimpleGrid,
+  Stack,
 } from "@chakra-ui/react";
 import axios from "axios";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -57,8 +62,34 @@ const EnrollmentForm = ({ referenceNumber }) => {
   const [progress, setProgress] = useState(0); // Update this based on API response
   const personnelProgress = Number(searchParams.get("personnel_progress"));
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
+  const toast = useToast();
 
   const [id, setPersonnelId] = useState(null);
+
+  const getLabelById = (list, id, labelKey = "name") => {
+    if (!id) return "N/A";
+    const item = list.find((item) => String(item.id) === String(id));
+    return item ? item[labelKey] : "N/A";
+  };
+
+  const getLabelsByIds = (list, ids, labelKey = "name") => {
+    if (!Array.isArray(ids) || ids.length === 0) return "N/A";
+    return list
+      .filter((item) => ids.includes(item.id))
+      .map((item) => item[labelKey])
+      .join(", ");
+  };
+
+  const SummaryItem = ({ label, value }) => (
+    <Flex direction="column" p={3} bg="gray.50" borderRadius="md" borderLeft="4px solid" borderLeftColor="teal.400">
+      <Text fontSize="2xs" fontWeight="bold" color="teal.600" textTransform="uppercase" letterSpacing="wider" mb={1}>
+        {label}
+      </Text>
+      <Text fontSize="sm" color="gray.800" fontWeight="bold" noOfLines={2}>
+        {value || "N/A"}
+      </Text>
+    </Flex>
+  );
 
   //const [searchParams] = useSearchParams();
   //const personnelId = searchParams.get("personnel_id");
@@ -244,6 +275,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
     district_assignment_id: "",
     local_congregation_assignment: "",
     assigned_number: "",
+    m_status: "",
     m_type: "",
     panunumpa_date: "",
     ordination_date: "",
@@ -438,12 +470,6 @@ const EnrollmentForm = ({ referenceNumber }) => {
     fetchAll("sections", setSections, "Sections");
     fetchAll("subsections", setSubsections, "Subsections");
     fetchAll("designations", setDesignations, "Designations");
-    fetchAll("districts", setDistricts, "Districts");
-    fetchAll(
-      "local-congregations",
-      setLocalCongregations,
-      "Local Congregations"
-    );
   }, []);
 
   const [contacts, setContacts] = useState([]);
@@ -493,7 +519,6 @@ const EnrollmentForm = ({ referenceNumber }) => {
     isEditing: true,
   };
 
-  const toast = useToast();
   const [family, setFamily] = useState({
     parents: [
       { ...initialFamilyMember, relationship_type: "Father", gender: "Male" },
@@ -741,6 +766,30 @@ const EnrollmentForm = ({ referenceNumber }) => {
         updatedData = {
           ...updatedData,
           designation_id: "",
+        };
+      } else if (name === "registered_district_id") {
+        // When current district changes, reset current local
+        updatedData = {
+          ...updatedData,
+          registered_local_congregation: "",
+        };
+      } else if (name === "district_id") {
+        // When district origin changes, reset local origin
+        updatedData = {
+          ...updatedData,
+          local_congregation: "",
+        };
+      } else if (name === "district_assignment_id") {
+        // When district assignment changes, reset local assignment
+        updatedData = {
+          ...updatedData,
+          local_congregation_assignment: "",
+        };
+      } else if (name === "district_first_registered") {
+        // When district first registered changes, reset local first registered
+        updatedData = {
+          ...updatedData,
+          local_first_registered: "",
         };
       }
 
@@ -1157,7 +1206,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
         } // passed as params object
       );
 
-      if (existingCheckResponse.data.exists) {
+      if (existingCheckResponse && existingCheckResponse.exists) {
         // Show error toast if the combination already exists
         toast({
           title: "Duplicate Entry",
@@ -1211,6 +1260,11 @@ const EnrollmentForm = ({ referenceNumber }) => {
         ordination_date: ordination_date || null,
       });
 
+      // Extract the personnel_id from the response
+      // Note: fetchData/postData already returns the unwrapped data (data.success ? data.data : data)
+      const personnel = response.personnel || response;
+      const { personnel_id, reference_number } = personnel;
+
       // After saving personnel and getting personnel_id
       if (
         personnelData.church_duties &&
@@ -1227,10 +1281,6 @@ const EnrollmentForm = ({ referenceNumber }) => {
           await postData("personnel_church_duties", payload);
         }
       }
-
-      // Extract the personnel_id from the response
-      const { personnel } = response.data;
-      const { personnel_id, reference_number } = personnel;
 
       // Create a downloadable file
       const fileContent = `Reference Number: ${reference_number}\nDate: ${new Date().toLocaleString()}`;
@@ -2041,34 +2091,132 @@ const EnrollmentForm = ({ referenceNumber }) => {
         isOpen={isVerifyModalOpen}
         onClose={() => setIsVerifyModalOpen(false)}
         isCentered
-        size="lg"
+        size="4xl"
+        scrollBehavior="inside"
       >
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Personnel Summary</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <Text mb={2}>
-              <strong>Name:</strong> {personnelData.givenname}{" "}
-              {personnelData.surname_husband}
-            </Text>
-            <Text mb={2}>
-              <strong>Personnel Type:</strong> {personnelData.personnel_type}
-            </Text>
-            <Text mb={2}>
-              <strong>Department:</strong>{" "}
-              {departments.find((d) => d.id === personnelData.department_id)
-                ?.name || "N/A"}
-            </Text>
-            <Text mb={2}>
-              <strong>Designation:</strong>{" "}
-              {designations.find((d) => d.id === personnelData.designation_id)
-                ?.name || "N/A"}
-            </Text>
+        <ModalOverlay backdropFilter="blur(10px)" bg="blackAlpha.600" />
+        <ModalContent borderRadius="2xl" overflow="hidden" boxShadow="2xl">
+          <ModalHeader
+            bgGradient="linear(to-r, teal.500, blue.600)"
+            color="white"
+            fontSize="2xl"
+            fontWeight="bold"
+            py={6}
+          >
+            Personnel Summary
+          </ModalHeader>
+          <ModalCloseButton color="white" top={6} />
+          <ModalBody p={8}>
+            <VStack spacing={8} align="stretch">
+              {/* Header Info */}
+              <VStack spacing={4} align="center" pb={6} borderBottom="1px solid" borderColor="gray.100">
+                <Heading size="lg" color="gray.800" textAlign="center">
+                  {`${personnelData.givenname || ""} ${personnelData.middlename || ""} ${personnelData.surname_husband || personnelData.surname_maiden || ""}`.trim()}
+                </Heading>
+                <Flex gap={3} wrap="wrap" justify="center">
+                  <Box bg="teal.500" color="white" px={4} py={1} borderRadius="full" fontSize="xs" fontWeight="bold">
+                    {personnelData.personnel_type || "N/A"}
+                  </Box>
+                  <Box bg="blue.100" color="blue.700" px={4} py={1} borderRadius="full" fontSize="xs" fontWeight="bold">
+                    {getLabelById(departments, personnelData.department_id)}
+                  </Box>
+                </Flex>
+              </VStack>
+
+              <Flex wrap="wrap" gap={4}>
+                <Box flex={{ base: "1 1 100%", sm: "1 1 45%", md: "1 1 30%" }}>
+                  <SummaryItem label="Nickname" value={personnelData.nickname} />
+                </Box>
+                <Box flex={{ base: "1 1 100%", sm: "1 1 45%", md: "1 1 30%" }}>
+                  <SummaryItem label="Gender" value={personnelData.gender} />
+                </Box>
+                <Box flex={{ base: "1 1 100%", sm: "1 1 45%", md: "1 1 30%" }}>
+                  <SummaryItem label="Civil Status" value={personnelData.civil_status} />
+                </Box>
+                {personnelData.civil_status === "Married" && (
+                  <Box flex={{ base: "1 1 100%", sm: "1 1 45%", md: "1 1 30%" }}>
+                    <SummaryItem label="Wedding Date" value={personnelData.wedding_anniversary} />
+                  </Box>
+                )}
+                <Box flex={{ base: "1 1 100%", sm: "1 1 45%", md: "1 1 30%" }}>
+                  <SummaryItem label="Birthday" value={personnelData.date_of_birth} />
+                </Box>
+                <Box flex={{ base: "1 1 100%", sm: "1 1 45%", md: "1 1 30%" }}>
+                  <SummaryItem label="Age" value={age} />
+                </Box>
+                <Box flex={{ base: "1 1 100%", sm: "1 1 45%", md: "1 1 30%" }}>
+                  <SummaryItem label="Place of Birth" value={personnelData.place_of_birth} />
+                </Box>
+                <Box flex={{ base: "1 1 100%", sm: "1 1 45%", md: "1 1 30%" }}>
+                  <SummaryItem label="Date Started (Office)" value={personnelData.datejoined} />
+                </Box>
+                <Box flex={{ base: "1 1 100%", sm: "1 1 45%", md: "1 1 30%" }}>
+                  <SummaryItem label="Blood Type" value={personnelData.bloodtype} />
+                </Box>
+                <Box flex={{ base: "1 1 100%", sm: "1 1 45%", md: "1 1 30%" }}>
+                  <SummaryItem label="Email Address" value={personnelData.email_address} />
+                </Box>
+                <Box flex={{ base: "1 1 100%", sm: "1 1 45%", md: "1 1 30%" }}>
+                  <SummaryItem
+                    label="Languages"
+                    value={getLabelsByIds(languages, personnelData.language_id)}
+                  />
+                </Box>
+                <Box flex={{ base: "1 1 100%", sm: "1 1 45%", md: "1 1 30%" }}>
+                  <SummaryItem
+                    label="Citizenship"
+                    value={getLabelsByIds(citizenships, personnelData.citizenship, "citizenship")}
+                  />
+                </Box>
+                <Box flex={{ base: "1 1 100%", sm: "1 1 45%", md: "1 1 30%" }}>
+                  <SummaryItem
+                    label="Current District"
+                    value={getLabelById(districts, personnelData.registered_district_id)}
+                  />
+                </Box>
+                <Box flex={{ base: "1 1 100%", sm: "1 1 45%", md: "1 1 30%" }}>
+                  <SummaryItem
+                    label="Current Local"
+                    value={getLabelById(localCongregations, personnelData.registered_local_congregation)}
+                  />
+                </Box>
+                <Box flex={{ base: "1 1 100%", sm: "1 1 45%", md: "1 1 30%" }}>
+                  <SummaryItem
+                    label="Section"
+                    value={getLabelById(sections, personnelData.section_id)}
+                  />
+                </Box>
+                <Box flex={{ base: "1 1 100%", sm: "1 1 45%", md: "1 1 30%" }}>
+                  <SummaryItem
+                    label="Role"
+                    value={getLabelById(designations, personnelData.designation_id)}
+                  />
+                </Box>
+                <Box flex={{ base: "1 1 100%", sm: "1 1 45%", md: "1 1 30%" }}>
+                  <SummaryItem
+                    label="Classification"
+                    value={personnelData.is_offered === "1" ? "Offered" : personnelData.is_offered === "0" ? "Convert" : "N/A"}
+                  />
+                </Box>
+                <Box flex={{ base: "1 1 100%", sm: "1 1 45%", md: "1 1 30%" }}>
+                  <SummaryItem label="Date Baptized" value={personnelData.date_baptized} />
+                </Box>
+                <Box flex={{ base: "1 1 100%", sm: "1 1 45%", md: "1 1 30%" }}>
+                  <SummaryItem label="Place of Baptism" value={personnelData.place_of_baptism} />
+                </Box>
+                <Box flex={{ base: "1 1 100%", sm: "1 1 45%", md: "1 1 30%" }}>
+                  <SummaryItem label="Minister Officiated" value={personnelData.minister_officiated} />
+                </Box>
+              </Flex>
+            </VStack>
           </ModalBody>
-          <ModalFooter>
+          <ModalFooter bg="gray.50" py={4}>
             <Button
               colorScheme="teal"
+              size="lg"
+              px={10}
+              boxShadow="lg"
+              _hover={{ transform: "translateY(-2px)", boxShadow: "xl" }}
               onClick={async () => {
                 try {
                   // Update progress before redirecting
@@ -2100,331 +2248,276 @@ const EnrollmentForm = ({ referenceNumber }) => {
               ml={3}
               onClick={() => setIsVerifyModalOpen(false)}
             >
-              Cancel
+              Go Back & Edit
             </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
 
-      {/* ✅ Congratulatory Modal (Always Open on Page Load) */}
+      {/* ✅ Congratulatory Modal (Responsive & Enhanced Layout) */}
       <Modal
         isOpen={isCongratulatoryModalOpen}
         onClose={() => setIsCongratulatoryModalOpen(false)}
         isCentered
-        size="xl"
+        size={{ base: "full", md: "xl" }}
       >
-        <ModalOverlay bg="blackAlpha.600" backdropFilter="blur(10px)" />
-        <ModalContent maxWidth={{ base: "95%", md: "900px" }} borderRadius="2xl" overflow="hidden">
+        <ModalOverlay bg="blackAlpha.700" backdropFilter="blur(8px)" />
+        <ModalContent
+          maxWidth={{ base: "98%", md: "900px" }}
+          borderRadius={{ base: "none", md: "2xl" }}
+          overflow="hidden"
+          m={{ base: 0, md: 4 }}
+        >
           <ModalHeader
-            bgGradient="linear(to-r, yellow.400, orange.400)"
+            bgGradient="linear(to-r, yellow.400, orange.500)"
             color="white"
             textAlign="center"
-            py={6}
-            fontSize={{ base: "lg", md: "2xl" }}
+            py={{ base: 4, md: 8 }}
+            fontSize={{ base: "xl", md: "3xl" }}
             fontWeight="extrabold"
-            textShadow="2px 2px 4px rgba(0,0,0,0.2)"
+            textShadow="2px 2px 4px rgba(0,0,0,0.3)"
           >
-            🎉 Congratulations! You are now enrolled! 🎉
+            🎉 Enrollment Complete! 🎉
           </ModalHeader>
-          <ModalCloseButton color="white" size="lg" />
-          <ModalBody>
-            <Text
-              textAlign="center"
-              fontSize={{ base: "md", md: "lg" }}
-              fontWeight="semibold"
-              mb={4}
-              color="gray.700"
-              px={{ base: 2, md: 4 }}
-            >
-              Please download and keep your reference number from the folder for
-              future tracking of your application.
-            </Text>
-            <Box
-              bgGradient="linear(to-br, yellow.50, orange.50)"
-              borderRadius="xl"
-              p={{ base: 4, md: 6 }}
-              boxShadow="xl"
-              textAlign="center"
-              border="2px solid"
-              borderColor="orange.200"
-            >
+          <ModalCloseButton color="white" size="lg" top={{ base: 2, md: 4 }} />
+
+          <ModalBody p={{ base: 4, md: 8 }}>
+            <VStack spacing={6} align="stretch">
               <Text
-                fontSize={{ base: "md", md: "lg" }}
-                fontWeight="extrabold"
-                mb={6}
-                bgGradient="linear(to-r, orange.600, yellow.600)"
-                bgClip="text"
+                textAlign="center"
+                fontSize={{ base: "md", md: "xl" }}
+                fontWeight="bold"
+                color="gray.800"
+                lineHeight="tall"
               >
-                📋 Progress Guide:
+                Congratulations! You have successfully completed the enrollment process.
+                <br />
+                <Text as="span" color="orange.600" fontSize={{ base: "sm", md: "lg" }}>
+                  Keep your reference number safe for future tracking.
+                </Text>
               </Text>
-              {/* Progress Bar */}
-              <Flex
-                justifyContent="space-between"
-                alignItems="center"
-                mt={6}
-                position="relative"
-                px={{ base: 2, md: 4 }}
+
+              <Box
+                bgGradient="linear(to-br, orange.50, yellow.50)"
+                borderRadius="2xl"
+                p={{ base: 4, md: 8 }}
+                boxShadow="inner"
+                border="1px solid"
+                borderColor="orange.100"
               >
-                {steps.map((step, index) => {
-                  const progressNumber = Number(progress);
+                <Heading
+                  size="md"
+                  textAlign="center"
+                  mb={8}
+                  color="orange.700"
+                  textTransform="uppercase"
+                  letterSpacing="wider"
+                >
+                  📋 Application Journey
+                </Heading>
 
-                  const isCompleted = Array.isArray(step.progressValue)
-                    ? step.progressValue.includes(progressNumber)
-                    : progressNumber >= step.progressValue;
+                {/* Multi-mode Progress Tracker */}
+                <Box
+                  maxHeight={{ base: "50vh", md: "auto" }}
+                  overflowY={{ base: "auto", md: "visible" }}
+                  px={{ base: 2, md: 0 }}
+                >
+                  <Flex
+                    direction={{ base: "column", lg: "row" }}
+                    justifyContent="space-between"
+                    alignItems={{ base: "flex-start", lg: "center" }}
+                    position="relative"
+                    gap={{ base: 4, lg: 0 }}
+                  >
+                    {steps.map((step, index) => {
+                      const progressNumber = Number(progress);
+                      const isCompleted = Array.isArray(step.progressValue)
+                        ? step.progressValue.includes(progressNumber)
+                        : progressNumber >= step.progressValue;
+                      const isActive = Array.isArray(step.progressValue)
+                        ? step.progressValue.includes(progressNumber)
+                        : progressNumber === step.progressValue;
+                      const isNextCompleted =
+                        index < steps.length - 1 &&
+                        (Array.isArray(steps[index + 1].progressValue)
+                          ? steps[index + 1].progressValue.includes(progressNumber)
+                          : progressNumber >= steps[index + 1].progressValue);
 
-                  const isActive = Array.isArray(step.progressValue)
-                    ? step.progressValue.includes(progressNumber)
-                    : progressNumber === step.progressValue;
-
-                  const isNextCompleted =
-                    index < steps.length - 1 &&
-                    (Array.isArray(steps[index + 1].progressValue)
-                      ? steps[index + 1].progressValue.includes(progressNumber)
-                      : progressNumber >= steps[index + 1].progressValue);
-
-                  return (
-                    <Flex
-                      key={index}
-                      direction="column"
-                      alignItems="center"
-                      flex="1"
-                      position="relative"
-                    >
-                      {/* Connecting Line */}
-                      {index !== steps.length - 1 && (
-                        <Box
-                          position="absolute"
-                          top={{ base: "17px", md: "22px" }}
-                          left="50%"
-                          width="100%"
-                          height={{ base: "3px", md: "4px" }}
-                          zIndex="0"
-                          overflow="hidden"
-                          borderRadius="full"
+                      return (
+                        <Flex
+                          key={index}
+                          direction={{ base: "row", lg: "column" }}
+                          alignItems="center"
+                          flex="1"
+                          position="relative"
+                          w={{ base: "full", lg: "auto" }}
                         >
-                          {/* Background line */}
-                          <Box
-                            position="absolute"
-                            width="100%"
-                            height="100%"
-                            bg="gray.200"
-                          />
-                          {/* Progress line with animation */}
-                          <Box
-                            position="absolute"
-                            width={isNextCompleted ? "100%" : "0%"}
-                            height="100%"
-                            bgGradient="linear(to-r, blue.400, teal.400)"
-                            transition="width 0.6s cubic-bezier(0.4, 0, 0.2, 1)"
-                            boxShadow="0 0 10px rgba(66, 153, 225, 0.5)"
-                          />
-                        </Box>
-                      )}
+                          {/* Connecting Line - Responsive */}
+                          {index !== steps.length - 1 && (
+                            <Box
+                              position="absolute"
+                              // Vertical line for mobile, Horizontal for desktop
+                              top={{ base: "36px", lg: "23px" }}
+                              left={{ base: "18px", lg: "50%" }}
+                              width={{ base: "4px", lg: "100%" }}
+                              height={{ base: "calc(100% - 24px)", lg: "4px" }}
+                              zIndex="0"
+                              bg="gray.100"
+                              borderRadius="full"
+                              overflow="hidden"
+                            >
+                              <Box
+                                width="100%"
+                                height="100%"
+                                bg={isNextCompleted ? "blue.400" : "gray.200"}
+                                bgGradient={isNextCompleted ? "linear(to-r, blue.400, teal.400)" : "none"}
+                                transition="all 0.6s"
+                              />
+                            </Box>
+                          )}
 
-                      {/* Step circle */}
-                      <Box
-                        bg={
-                          isCompleted
-                            ? "linear-gradient(135deg, #4299e1 0%, #3182ce 100%)"
-                            : "linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%)"
-                        }
-                        borderRadius="full"
-                        w={{ base: "36px", md: "46px" }}
-                        h={{ base: "36px", md: "46px" }}
-                        display="flex"
-                        justifyContent="center"
-                        alignItems="center"
-                        mb={2}
-                        zIndex={1}
-                        border={isCompleted ? "3px solid" : "2px solid"}
-                        borderColor={isCompleted ? "blue.300" : "gray.300"}
-                        boxShadow={
-                          isActive
-                            ? "0 0 0 4px rgba(66, 153, 225, 0.2), 0 8px 20px rgba(66, 153, 225, 0.4)"
-                            : isCompleted
-                              ? "0 4px 15px rgba(66, 153, 225, 0.4)"
-                              : "0 2px 8px rgba(0,0,0,0.1)"
-                        }
-                        transform={isActive ? "scale(1.1)" : "scale(1)"}
-                        transition="all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)"
-                        animation={isActive ? "modalPulse 2s ease-in-out infinite" : "none"}
-                        _hover={{
-                          transform: "scale(1.15)",
-                          boxShadow: isCompleted
-                            ? "0 6px 25px rgba(66, 153, 225, 0.5)"
-                            : "0 6px 20px rgba(0,0,0,0.15)",
-                        }}
-                        sx={{
-                          "@keyframes modalPulse": {
-                            "0%, 100%": {
-                              boxShadow:
-                                "0 0 0 4px rgba(66, 153, 225, 0.2), 0 8px 20px rgba(66, 153, 225, 0.4)",
-                            },
-                            "50%": {
-                              boxShadow:
-                                "0 0 0 8px rgba(66, 153, 225, 0.3), 0 12px 30px rgba(66, 153, 225, 0.6)",
-                            },
-                          },
-                        }}
-                      >
-                        {isCompleted ? (
-                          <CheckIcon
-                            boxSize={{ base: 3, md: 4 }}
-                            color="white"
-                          />
-                        ) : (
-                          <Text
-                            fontSize={{ base: "sm", md: "md" }}
-                            fontWeight="extrabold"
-                            color="gray.500"
+                          {/* Step Badge */}
+                          <Center
+                            bg={isCompleted ? "blue.500" : "white"}
+                            color={isCompleted ? "white" : "gray.400"}
+                            borderRadius="full"
+                            w={{ base: "36px", md: "46px" }}
+                            h={{ base: "36px", md: "46px" }}
+                            zIndex={1}
+                            border="3px solid"
+                            borderColor={isCompleted ? "blue.200" : "gray.200"}
+                            transition="all 0.3s"
+                            boxShadow={isActive ? "0 0 15px rgba(66, 153, 225, 0.6)" : "sm"}
+                            transform={isActive ? "scale(1.2)" : "scale(1)"}
+                            mr={{ base: 4, lg: 0 }}
+                            mb={{ base: 0, lg: 3 }}
                           >
-                            {index + 1}
-                          </Text>
-                        )}
-                      </Box>
+                            {isCompleted ? <CheckIcon fontSize="xs" /> : <Text fontWeight="bold">{index + 1}</Text>}
+                          </Center>
 
-                      {/* Step label */}
-                      <Text
-                        fontSize={{ base: "2xs", sm: "xs", md: "sm" }}
-                        fontWeight={isActive ? "bold" : isCompleted ? "semibold" : "medium"}
-                        textAlign="center"
-                        maxWidth={{ base: "65px", md: "95px" }}
-                        color={
-                          isActive
-                            ? "blue.700"
-                            : isCompleted
-                              ? "blue.600"
-                              : "gray.500"
-                        }
-                        transition="all 0.3s"
-                        lineHeight="1.2"
-                        noOfLines={2}
-                      >
-                        {step.label}
-                      </Text>
-                    </Flex>
-                  );
-                })}
-              </Flex>
-            </Box>
+                          <VStack align={{ base: "start", lg: "center" }} spacing={0}>
+                            <Text
+                              fontSize={{ base: "sm", md: "xs" }}
+                              fontWeight={isActive ? "900" : "bold"}
+                              color={isActive ? "blue.600" : isCompleted ? "gray.700" : "gray.400"}
+                              textAlign={{ base: "left", lg: "center" }}
+                              lineHeight="shorter"
+                              maxW={{ base: "200px", lg: "80px" }}
+                            >
+                              {step.label}
+                            </Text>
+                          </VStack>
+                        </Flex>
+                      );
+                    })}
+                  </Flex>
+                </Box>
+              </Box>
+            </VStack>
           </ModalBody>
-          <ModalFooter>
-            {/* If type=evaluation, show only the Okay button */}
-            {typeParam === "evaluation" ? (
-              <Button
-                colorScheme="blue"
-                width="full"
-                onClick={async () => {
-                  toast({
-                    title: "Enrollment Process Completed",
-                    description:
-                      "Redirecting you to the login page. Make sure to keep your reference number safe.",
-                    status: "success",
-                    duration: 3000,
-                    isClosable: true,
-                    position: "bottom-left",
-                  });
 
-                  // Update progress
-                  await putData("users/update-progress", {
-                    personnel_id: personnelId,
-                    personnel_progress: "0",
-                  });
+          <ModalFooter
+            bg="gray.50"
+            p={{ base: 6, md: 8 }}
+            borderTop="1px solid"
+            borderColor="gray.100"
+          >
+            <Flex
+              direction={{ base: "column", md: "row" }}
+              gap={4}
+              w="full"
+              justify="center"
+            >
+              {typeParam === "evaluation" ? (
+                <Button
+                  colorScheme="blue"
+                  size="lg"
+                  w="full"
+                  h="60px"
+                  fontSize="xl"
+                  onClick={async () => {
+                    toast({
+                      title: "Success",
+                      description: "Redirecting to login...",
+                      status: "success",
+                      duration: 2000,
+                    });
+                    await putData("users/update-progress", {
+                      personnel_id: personnelId,
+                      personnel_progress: "0",
+                    });
+                    setTimeout(() => navigate("/login"), 1000);
+                  }}
+                >
+                  Complete Process
+                </Button>
+              ) : (
+                <>
+                  {personnelProgress < 7 ? (
+                    <Button
+                      bgGradient="linear(to-r, blue.600, blue.400)"
+                      color="white"
+                      size="lg"
+                      w={{ base: "full", md: "auto" }}
+                      px={12}
+                      h="56px"
+                      _hover={{ bgGradient: "linear(to-r, blue.700, blue.500)", transform: "scale(1.02)" }}
+                      onClick={handleEdit}
+                    >
+                      Edit Enrollment
+                    </Button>
+                  ) : (
+                    <Button
+                      colorScheme="green"
+                      size="lg"
+                      w={{ base: "full", md: "auto" }}
+                      px={12}
+                      h="56px"
+                      isLoading={isDownloading}
+                      loadingText="Fetching..."
+                      leftIcon={<span>📥</span>}
+                      onClick={async () => {
+                        setIsDownloading(true);
+                        try {
+                          const response = await fetchData(
+                            "get-user-credentials",
+                            null,
+                            null,
+                            null,
+                            { personnel_id: personnelId }
+                          );
 
-                  // Redirect to login
-                  setTimeout(() => {
-                    navigate("/login");
-                  }, 1000);
-                }}
-              >
-                Okay
-              </Button>
-            ) : (
-              <>
-                {personnelProgress < 7 ? (
-                  <Button
-                    bgGradient="linear(to-r, blue.500, teal.500)"
-                    color="white"
-                    _hover={{
-                      bgGradient: "linear(to-r, teal.500, blue.500)",
-                      transform: "translateY(-2px)",
-                      boxShadow: "lg",
-                    }}
-                    size={{ base: "md", md: "lg" }}
-                    px={8}
-                    onClick={handleEdit}
-                  >
-                    Edit Enrollment
-                  </Button>
-                ) : (
-                  <Button
-                    colorScheme="green"
-                    onClick={async () => {
-                      setIsDownloading(true);
-                      try {
-                        const response = await fetchData(
-                          "get-user-credentials",
-                          null,
-                          null,
-                          {
-                            personnel_id: personnelId,
-                          }
-                        );
+                          if (!response) throw new Error("No response");
 
-                        const {
-                          username,
-                          password,
-                          reference_number,
-                          givenname,
-                          surname_husband,
-                        } = response.data;
+                          const { username, reference_number, givenname, surname_husband } = response;
+                          const fileContent = `Reference Number: ${reference_number}\nName: ${givenname} ${surname_husband}\nUsername: ${username}\nPassword: Please contact PMD-IT.`;
+                          const blob = new Blob([fileContent], { type: "text/plain" });
+                          const link = document.createElement("a");
+                          link.href = window.URL.createObjectURL(blob);
+                          link.download = `PMD_Credentials_${reference_number}.txt`;
+                          link.click();
 
-                        // Prepare the file content
-                        const fileContent = `Reference Number: ${reference_number}\nName: ${givenname} ${surname_husband}\nUsername: ${username}\nPassword: ${"Please contact the PMD-IT or Section Chief regarding your password."}`;
-                        const blob = new Blob([fileContent], {
-                          type: "text/plain",
-                        });
-                        const link = document.createElement("a");
-                        link.href = window.URL.createObjectURL(blob);
-                        link.download = `User_Credentials_${reference_number}.txt`;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
+                          toast({
+                            title: "Downloaded!",
+                            status: "success",
+                            position: "top",
+                          });
 
-                        // Success toast message
-                        toast({
-                          title: "Download Successful",
-                          description: "Your credentials have been downloaded.",
-                          status: "success",
-                          duration: 3000,
-                          isClosable: true,
-                          position: "bottom-left",
-                        });
-
-                        // Redirect to login
-                        setTimeout(() => {
-                          navigate("/login");
-                        }, 1000);
-                      } catch (error) {
-                        console.error("Error downloading credentials:", error);
-                        toast({
-                          title: "Error",
-                          description: "Failed to download credentials.",
-                          status: "error",
-                          duration: 3000,
-                          isClosable: true,
-                        });
-                      } finally {
-                        setIsDownloading(false);
-                      }
-                    }}
-                    isLoading={isDownloading}
-                  >
-                    Download Credentials
-                  </Button>
-                )}
-              </>
-            )}
+                          setTimeout(() => navigate("/login"), 1500);
+                        } catch (error) {
+                          console.error(error);
+                          toast({ title: "Check ID", description: "Failed to download", status: "error" });
+                        } finally {
+                          setIsDownloading(false);
+                        }
+                      }}
+                    >
+                      Download & Finish
+                    </Button>
+                  )}
+                </>
+              )}
+            </Flex>
           </ModalFooter>
         </ModalContent>
       </Modal>

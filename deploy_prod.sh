@@ -18,9 +18,10 @@ fi
 echo "🛑 Stopping existing containers..."
 docker compose -f docker-compose.prod.yml down --remove-orphans
 
-# 4. Deep Clean
+# 4. Deep Clean (Non-interactive)
 echo "🧹 Cleaning up unused Docker resources..."
-docker system prune -f
+docker system prune -f || true
+echo "✅ Clean up complete. Proceeding to build..."
 
 # 5. Build and start containers (Pinalitan ng 'docker compose')
 echo "🏗️ Building and Starting services..."
