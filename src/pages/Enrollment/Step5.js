@@ -15,7 +15,10 @@ import {
   SimpleGrid,
   FormControl,
   FormLabel,
-  Flex
+  Flex,
+  Checkbox,
+  Textarea,
+  Divider
 } from "@chakra-ui/react";
 import { EditIcon, DeleteIcon, CheckIcon } from "@chakra-ui/icons";
 import axios from "axios";
@@ -143,6 +146,7 @@ const Step5 = ({
         ? String(sibling.contact_number)
         : null, // Ensure it is a string
     };
+
     console.log("Formatted Data:", formattedData);
     // Validate required fields
     const requiredFields = [
@@ -263,258 +267,303 @@ const Step5 = ({
       </Heading>
       <VStack align="start" spacing={4} mb={8} w="100%">
         {data.map((sibling, index) => (
-          <Box key={sibling.id || `sibling-${index}`} w="100%" p={4} bg="white" shadow="sm" border="1px" borderColor="gray.100" borderRadius="lg">
-            <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={4}>
-              {/* Personal Info Group */}
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Gender</FormLabel>
-                <Select
-                  placeholder="Select Gender"
-                  value={sibling.gender ? { value: sibling.gender, label: sibling.gender } : null}
-                  onChange={(selectedOption) => onChange(index, "gender", selectedOption?.value || "")}
-                  options={[{ value: "Male", label: "Male" }, { value: "Female", label: "Female" }]}
-                  isDisabled={!sibling.isEditing}
-                  isClearable
-                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Given Name</FormLabel>
-                <Input placeholder="Given Name" value={sibling.givenname || ""} onChange={(e) => onChange(index, "givenname", e.target.value)} isDisabled={!sibling.isEditing} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Middle Name</FormLabel>
-                <Input placeholder="Middle Name" value={sibling.middlename || ""} onChange={(e) => onChange(index, "middlename", e.target.value)} isDisabled={!sibling.isEditing} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Last Name</FormLabel>
-                <Input placeholder="Last Name" value={sibling.lastname || ""} onChange={(e) => onChange(index, "lastname", e.target.value)} isDisabled={!sibling.isEditing} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Suffix</FormLabel>
-                <Select
-                  placeholder="Select Suffix"
-                  name="suffix"
-                  value={sibling.suffix ? { value: sibling.suffix, label: sibling.suffix } : null}
-                  onChange={(selectedOption) => onChange(index, "suffix", selectedOption?.value || "")}
-                  options={suffixOptions.map((suffix) => ({ value: suffix, label: suffix }))}
-                  isDisabled={!sibling.isEditing || sibling.gender === "Female"}
-                  isClearable
-                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Date of Birth</FormLabel>
-                <Input type="date" value={sibling.date_of_birth || ""} onChange={(e) => onChange(index, "date_of_birth", e.target.value)} isDisabled={!sibling.isEditing} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Contact Number</FormLabel>
-                <Input placeholder="Contact Number" value={sibling.contact_number || ""} onChange={(e) => onChange(index, "contact_number", e.target.value)} isDisabled={!sibling.isEditing} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Blood Type</FormLabel>
-                <Select
-                  placeholder="Select Blood Type"
-                  name="bloodtype"
-                  value={sibling.bloodtype ? { value: sibling.bloodtype, label: sibling.bloodtype } : null}
-                  onChange={(selectedOption) => onChange(index, "bloodtype", selectedOption?.value || "")}
-                  options={bloodtypes.map((type) => ({ value: type, label: type }))}
-                  isDisabled={!sibling.isEditing}
-                  isClearable
-                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Civil Status</FormLabel>
-                <Select
-                  placeholder="Select Civil Status"
-                  name="civil_status"
-                  value={sibling.civil_status ? { value: sibling.civil_status, label: sibling.civil_status } : null}
-                  onChange={(selectedOption) => onChange(index, "civil_status", selectedOption?.value || "")}
-                  options={civilStatusOptions.map((status) => ({ value: status, label: status }))}
-                  isDisabled={!sibling.isEditing}
-                  isClearable
-                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Date of Marriage</FormLabel>
-                <Input type="date" value={sibling.date_of_marriage || ""} onChange={(e) => onChange(index, "date_of_marriage", e.target.value)} isDisabled={!sibling.isEditing || sibling.civil_status === "Single"} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Place of Marriage</FormLabel>
-                <Input placeholder="Place of Marriage" value={sibling.place_of_marriage || ""} onChange={(e) => onChange(index, "place_of_marriage", e.target.value)} isDisabled={!sibling.isEditing || sibling.civil_status === "Single"} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Citizenship</FormLabel>
-                <Select
-                  placeholder="Select Citizenship"
-                  value={sibling.citizenship ? citizenships.map(c => ({ value: c.id, label: c.citizenship })).find(opt => opt.value === sibling.citizenship) : null}
-                  onChange={(opt) => onChange(index, "citizenship", opt?.value || "")}
-                  options={citizenships.map(c => ({ value: c.id, label: c.citizenship }))}
-                  isDisabled={!sibling.isEditing}
-                  isClearable
-                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Ethnicity</FormLabel>
-                <Select
-                  placeholder="Select Ethnicity"
-                  value={sibling.nationality ? nationalities.map(n => ({ value: n.id, label: n.nationality })).find(opt => opt.value === sibling.nationality) : null}
-                  onChange={(opt) => onChange(index, "nationality", opt?.value || "")}
-                  options={nationalities.map(n => ({ value: n.id, label: n.nationality }))}
-                  isDisabled={!sibling.isEditing}
-                  isClearable
-                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Livelihood</FormLabel>
-                <Input placeholder="Livelihood" value={sibling.livelihood || ""} onChange={(e) => onChange(index, "livelihood", e.target.value)} isDisabled={!sibling.isEditing} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">District</FormLabel>
-                <Select
-                  placeholder="Select District"
-                  value={districts.map(d => ({ value: d.id, label: d.name })).find(opt => opt.value === sibling.district_id) || null}
-                  onChange={(opt) => {
-                    onChange(index, "district_id", opt?.value || "");
-                    onChange(index, "local_congregation", "");
+          <Box key={sibling.id || `sibling-${index}`} w="100%" pb={4} bg="white" shadow="sm" border="1px" borderColor="gray.100" borderRadius="lg">
+
+            {/* Header with Buttons */}
+            <Flex justifyContent="flex-end" px={4} py={2} mb={2}>
+              <Flex gap={2}>
+                <IconButton
+                  icon={sibling.isEditing ? <CheckIcon /> : <EditIcon />}
+                  onClick={async () => {
+                    if (sibling.isEditing) {
+                      await handleSaveOrUpdate(index);
+                      // handleSaveOrUpdate toggles edit mode inside it if successful? 
+                      // actually handleSaveOrUpdate calls onToggleEdit(index) which should toggle it.
+                      // But the original onClick also had onChange(index, "isEditing", false/true).
+                      // handleSaveOrUpdate in Step5 calls onToggleEdit(index).
+                    } else {
+                      onToggleEdit(index);
+                    }
                   }}
-                  options={districts.map(d => ({ value: d.id, label: d.name }))}
-                  isClearable
-                  isDisabled={!sibling.isEditing}
-                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                  colorScheme={sibling.isEditing ? "green" : "blue"}
+                  size="sm"
+                  aria-label={sibling.isEditing ? "Save" : "Edit"}
                 />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Local Congregation</FormLabel>
-                <Select
-                  placeholder="Select Local Congregation"
-                  value={(filteredCongregations[sibling.district_id] || []).map(c => ({ value: c.id, label: c.name })).find(opt => opt.value === sibling.local_congregation) || null}
-                  onChange={(opt) => onChange(index, "local_congregation", opt?.value || "")}
-                  options={(filteredCongregations[sibling.district_id] || []).map(c => ({ value: c.id, label: c.name }))}
-                  isClearable
-                  isDisabled={!sibling.isEditing || !sibling.district_id}
-                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                <IconButton
+                  icon={<DeleteIcon />}
+                  colorScheme="red"
+                  onClick={() => handleRemoveSibling(index)}
+                  size="sm"
+                  aria-label="Delete"
                 />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Church Duties</FormLabel>
-                <Input placeholder="Church Duties" value={sibling.church_duties || ""} onChange={(e) => onChange(index, "church_duties", e.target.value)} isDisabled={!sibling.isEditing} />
-              </FormControl>
-              <FormControl display="none">
-                <Input placeholder="Evangelist" value={sibling.minister_officiated || ""} onChange={(e) => onChange(index, "minister_officiated", e.target.value)} />
-              </FormControl>
-
-              {/* Work Info */}
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Employment Type</FormLabel>
-                <Select
-                  placeholder="Select Employment Type"
-                  value={sibling.employment_type ? employmentTypeOptions.map(t => ({ value: t, label: t })).find(opt => opt.value === sibling.employment_type) : null}
-                  onChange={(opt) => onChange(index, "employment_type", opt?.value || "")}
-                  options={employmentTypeOptions.map(t => ({ value: t, label: t }))}
-                  isClearable
-                  isDisabled={!sibling.isEditing}
-                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Company</FormLabel>
-                <Input placeholder="Company" value={sibling.company || ""} onChange={(e) => onChange(index, "company", e.target.value)} isDisabled={!sibling.isEditing || ["Volunteer/Kawani"].includes(sibling.employment_type)} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Address</FormLabel>
-                <Input placeholder="Address" value={sibling.address || ""} onChange={(e) => onChange(index, "address", e.target.value)} isDisabled={!sibling.isEditing} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Brief Description of Responsibilities</FormLabel>
-                <Input placeholder="Brief Description" value={sibling.position || ""} onChange={(e) => onChange(index, "position", e.target.value)} isDisabled={!sibling.isEditing} />
-              </FormControl>
-              <FormControl display="none">
-                <Input placeholder="Department" value={sibling.department || ""} onChange={(e) => onChange(index, "department", e.target.value)} />
-              </FormControl>
-              <FormControl display="none">
-                <Input placeholder="Section" value={sibling.section || ""} onChange={(e) => onChange(index, "section", e.target.value)} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Start Date</FormLabel>
-                <Input type="date" value={sibling.start_date || ""} onChange={(e) => onChange(index, "start_date", e.target.value)} isDisabled={!sibling.isEditing} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">End Date</FormLabel>
-                <Input type="date" value={sibling.end_date || ""} onChange={(e) => onChange(index, "end_date", e.target.value)} isDisabled={!sibling.isEditing} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Reason for Leaving</FormLabel>
-                <Input placeholder="Reason for Leaving" value={sibling.reason_for_leaving || ""} onChange={(e) => onChange(index, "reason_for_leaving", e.target.value)} isDisabled={!sibling.isEditing} />
-              </FormControl>
-
-              {/* Edu Info */}
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Educational Level</FormLabel>
-                <Select
-                  placeholder="Select Educational Level"
-                  value={sibling.education_level ? educationalLevelOptions.map(l => ({ value: l, label: l })).find(opt => opt.value === sibling.education_level) : null}
-                  onChange={(opt) => onChange(index, "education_level", opt?.value || "")}
-                  options={educationalLevelOptions.map(l => ({ value: l, label: l }))}
-                  isClearable
-                  isDisabled={!sibling.isEditing}
-                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Start Year</FormLabel>
-                <Input placeholder="Start Year" type="number" value={sibling.start_year || ""} onChange={(e) => onChange(index, "start_year", e.target.value)} isDisabled={!sibling.isEditing} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Completion Year</FormLabel>
-                <Input placeholder="Completion Year" type="number" value={sibling.completion_year || ""} onChange={(e) => onChange(index, "completion_year", e.target.value)} isDisabled={!sibling.isEditing} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">School</FormLabel>
-                <Input placeholder="School" value={sibling.school || ""} onChange={(e) => onChange(index, "school", e.target.value)} isDisabled={!sibling.isEditing} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Field of Study</FormLabel>
-                <Input placeholder="Field of Study" value={sibling.field_of_study || ""} onChange={(e) => onChange(index, "field_of_study", e.target.value)} isDisabled={!sibling.isEditing || ["No Formal Education", "Primary Education", "Secondary Education", "Senior High School"].includes(sibling.education_level)} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Degree</FormLabel>
-                <Input placeholder="Degree" value={sibling.degree || ""} onChange={(e) => onChange(index, "degree", e.target.value)} isDisabled={!sibling.isEditing || ["No Formal Education", "Primary Education", "Secondary Education", "Senior High School"].includes(sibling.education_level)} />
-              </FormControl>
-              <FormControl display="none">
-                <Input placeholder="Institution" value={sibling.institution || ""} onChange={(e) => onChange(index, "institution", e.target.value)} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Professional Licensure</FormLabel>
-                <Input placeholder="Licensure" value={sibling.professional_licensure_examination || ""} onChange={(e) => onChange(index, "professional_licensure_examination", e.target.value)} isDisabled={!sibling.isEditing || ["No Formal Education", "Primary Education", "Secondary Education", "Senior High School"].includes(sibling.education_level)} />
-              </FormControl>
-            </SimpleGrid>
-
-            <Flex justify="center" mt={6} gap={2}>
-              <IconButton
-                icon={sibling.isEditing ? <CheckIcon /> : <EditIcon />}
-                onClick={async () => {
-                  if (sibling.isEditing) {
-                    await handleSaveOrUpdate(index);
-                    onChange(index, "isEditing", false);
-                  } else {
-                    onChange(index, "isEditing", true);
-                  }
-                }}
-                colorScheme={sibling.isEditing ? "green" : "blue"}
-              />
-              <IconButton
-                icon={<DeleteIcon />}
-                colorScheme="red"
-                onClick={() => handleRemoveSibling(index)}
-              />
+              </Flex>
             </Flex>
+
+            {/* Deceased Toggle */}
+            <FormControl display="flex" alignItems="center" mb={4} px={4}>
+              <Checkbox
+                isChecked={sibling.is_deceased || false}
+                onChange={(e) => onChange(index, "is_deceased", e.target.checked)}
+                colorScheme="red"
+                isDisabled={!sibling.isEditing}
+              >
+                <Text fontWeight="bold" color="red.500">
+                  Deceased (Check if applicable)
+                </Text>
+              </Checkbox>
+            </FormControl>
+
+            {/* Personal Information Group */}
+            <Box mb={6} px={4}>
+              <Heading as="h4" size="sm" mb={4} color="teal.500" borderBottom="1px" borderColor="gray.200" pb={2}>
+                Personal Information
+              </Heading>
+              <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={4}>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Gender <Text as="span" color="red.500" ml={1}>*</Text></FormLabel>
+                  <Select
+                    placeholder="Select Gender"
+                    value={sibling.gender ? { value: sibling.gender, label: sibling.gender } : null}
+                    onChange={(selectedOption) => onChange(index, "gender", selectedOption?.value || "")}
+                    options={[{ value: "Male", label: "Male" }, { value: "Female", label: "Female" }]}
+                    isDisabled={!sibling.isEditing}
+                    isClearable
+                    styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Given Name <Text as="span" color="red.500" ml={1}>*</Text></FormLabel>
+                  <Input placeholder="Given Name" value={sibling.givenname || ""} onChange={(e) => onChange(index, "givenname", e.target.value)} isDisabled={!sibling.isEditing} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Middle Name</FormLabel>
+                  <Input placeholder="Middle Name" value={sibling.middlename || ""} onChange={(e) => onChange(index, "middlename", e.target.value)} isDisabled={!sibling.isEditing} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Last Name <Text as="span" color="red.500" ml={1}>*</Text></FormLabel>
+                  <Input placeholder="Last Name" value={sibling.lastname || ""} onChange={(e) => onChange(index, "lastname", e.target.value)} isDisabled={!sibling.isEditing} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Suffix</FormLabel>
+                  <Select
+                    placeholder="Select Suffix"
+                    name="suffix"
+                    value={sibling.suffix ? { value: sibling.suffix, label: sibling.suffix } : null}
+                    onChange={(selectedOption) => onChange(index, "suffix", selectedOption?.value || "")}
+                    options={suffixOptions.map((suffix) => ({ value: suffix, label: suffix }))}
+                    isDisabled={!sibling.isEditing || sibling.gender === "Female"}
+                    isClearable
+                    styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Date of Birth <Text as="span" color="red.500" ml={1}>*</Text></FormLabel>
+                  <Input type="date" value={sibling.date_of_birth || ""} onChange={(e) => onChange(index, "date_of_birth", e.target.value)} isDisabled={!sibling.isEditing} max={new Date().toISOString().split("T")[0]} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Contact Number</FormLabel>
+                  <Input placeholder="Contact Number" value={sibling.contact_number || ""} onChange={(e) => onChange(index, "contact_number", e.target.value)} isDisabled={!sibling.isEditing} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Blood Type</FormLabel>
+                  <Select
+                    placeholder="Select Blood Type"
+                    name="bloodtype"
+                    value={sibling.bloodtype ? { value: sibling.bloodtype, label: sibling.bloodtype } : null}
+                    onChange={(selectedOption) => onChange(index, "bloodtype", selectedOption?.value || "")}
+                    options={bloodtypes.map((type) => ({ value: type, label: type }))}
+                    isDisabled={!sibling.isEditing}
+                    isClearable
+                    styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Civil Status</FormLabel>
+                  <Select
+                    placeholder="Select Civil Status"
+                    name="civil_status"
+                    value={sibling.civil_status ? { value: sibling.civil_status, label: sibling.civil_status } : null}
+                    onChange={(selectedOption) => onChange(index, "civil_status", selectedOption?.value || "")}
+                    options={civilStatusOptions.map((status) => ({ value: status, label: status }))}
+                    isDisabled={!sibling.isEditing}
+                    isClearable
+                    styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Date of Marriage</FormLabel>
+                  <Input type="date" value={sibling.date_of_marriage || ""} onChange={(e) => onChange(index, "date_of_marriage", e.target.value)} isDisabled={!sibling.isEditing || sibling.civil_status === "Single"} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Place of Marriage</FormLabel>
+                  <Input placeholder="Place of Marriage" value={sibling.place_of_marriage || ""} onChange={(e) => onChange(index, "place_of_marriage", e.target.value)} isDisabled={!sibling.isEditing || sibling.civil_status === "Single"} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Citizenship</FormLabel>
+                  <Select
+                    placeholder="Select Citizenship"
+                    value={sibling.citizenship ? citizenships.map(c => ({ value: c.id, label: c.citizenship })).find(opt => opt.value === sibling.citizenship) : null}
+                    onChange={(opt) => onChange(index, "citizenship", opt?.value || "")}
+                    options={citizenships.map(c => ({ value: c.id, label: c.citizenship }))}
+                    isDisabled={!sibling.isEditing}
+                    isClearable
+                    styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Ethnicity</FormLabel>
+                  <Select
+                    placeholder="Select Ethnicity"
+                    value={sibling.nationality ? nationalities.map(n => ({ value: n.id, label: n.nationality })).find(opt => opt.value === sibling.nationality) : null}
+                    onChange={(opt) => onChange(index, "nationality", opt?.value || "")}
+                    options={nationalities.map(n => ({ value: n.id, label: n.nationality }))}
+                    isDisabled={!sibling.isEditing}
+                    isClearable
+                    styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Livelihood</FormLabel>
+                  <Input placeholder="Livelihood" value={sibling.livelihood || ""} onChange={(e) => onChange(index, "livelihood", e.target.value)} isDisabled={!sibling.isEditing} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">District</FormLabel>
+                  <Select
+                    placeholder="Select District"
+                    value={districts.map(d => ({ value: d.id, label: d.name })).find(opt => opt.value === sibling.district_id) || null}
+                    onChange={(opt) => {
+                      onChange(index, "district_id", opt?.value || "");
+                      onChange(index, "local_congregation", "");
+                    }}
+                    options={districts.map(d => ({ value: d.id, label: d.name }))}
+                    isClearable
+                    isDisabled={!sibling.isEditing}
+                    styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Local Congregation</FormLabel>
+                  <Select
+                    placeholder="Select Local Congregation"
+                    value={(filteredCongregations[sibling.district_id] || []).map(c => ({ value: c.id, label: c.name })).find(opt => opt.value === sibling.local_congregation) || null}
+                    onChange={(opt) => onChange(index, "local_congregation", opt?.value || "")}
+                    options={(filteredCongregations[sibling.district_id] || []).map(c => ({ value: c.id, label: c.name }))}
+                    isClearable
+                    isDisabled={!sibling.isEditing || !sibling.district_id}
+                    styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Church Duties</FormLabel>
+                  <Input placeholder="Church Duties" value={sibling.church_duties || ""} onChange={(e) => onChange(index, "church_duties", e.target.value)} isDisabled={!sibling.isEditing} />
+                </FormControl>
+                <FormControl display="none">
+                  <Input placeholder="Evangelist" value={sibling.minister_officiated || ""} onChange={(e) => onChange(index, "minister_officiated", e.target.value)} />
+                </FormControl>
+              </SimpleGrid>
+            </Box>
+
+            {/* Employment Details Group */}
+            <Box mb={6} px={4} opacity={sibling.is_deceased ? 0.5 : 1} pointerEvents={sibling.is_deceased ? "none" : "auto"}>
+              <Heading as="h4" size="sm" mb={4} color="teal.500" borderBottom="1px" borderColor="gray.200" pb={2}>
+                Employment Details
+              </Heading>
+              <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={4}>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Employment Type</FormLabel>
+                  <Select
+                    placeholder="Select Employment Type"
+                    value={sibling.employment_type ? employmentTypeOptions.map(t => ({ value: t, label: t })).find(opt => opt.value === sibling.employment_type) : null}
+                    onChange={(opt) => onChange(index, "employment_type", opt?.value || "")}
+                    options={employmentTypeOptions.map(t => ({ value: t, label: t }))}
+                    isClearable
+                    isDisabled={!sibling.isEditing}
+                    styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Company</FormLabel>
+                  <Input placeholder="Company" value={sibling.company || ""} onChange={(e) => onChange(index, "company", e.target.value)} isDisabled={!sibling.isEditing || ["Volunteer/Kawani", "Unemployed", "Retired"].includes(sibling.employment_type)} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Address</FormLabel>
+                  <Textarea rows={1} placeholder="Address" value={sibling.address || ""} onChange={(e) => onChange(index, "address", e.target.value)} isDisabled={!sibling.isEditing} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Brief Description of Responsibilities</FormLabel>
+                  <Input placeholder="Brief Description" value={sibling.position || ""} onChange={(e) => onChange(index, "position", e.target.value)} isDisabled={!sibling.isEditing} />
+                </FormControl>
+                <FormControl display="none">
+                  <Input placeholder="Department" value={sibling.department || ""} onChange={(e) => onChange(index, "department", e.target.value)} />
+                </FormControl>
+                <FormControl display="none">
+                  <Input placeholder="Section" value={sibling.section || ""} onChange={(e) => onChange(index, "section", e.target.value)} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Start Date</FormLabel>
+                  <Input type="date" value={sibling.start_date || ""} onChange={(e) => onChange(index, "start_date", e.target.value)} isDisabled={!sibling.isEditing} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">End Date</FormLabel>
+                  <Input type="date" value={sibling.end_date || ""} onChange={(e) => onChange(index, "end_date", e.target.value)} isDisabled={!sibling.isEditing} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Reason for Leaving</FormLabel>
+                  <Input placeholder="Reason for Leaving" value={sibling.reason_for_leaving || ""} onChange={(e) => onChange(index, "reason_for_leaving", e.target.value)} isDisabled={!sibling.isEditing} />
+                </FormControl>
+              </SimpleGrid>
+            </Box>
+
+            {/* Educational Background Group */}
+            <Box mb={6} px={4}>
+              <Heading as="h4" size="sm" mb={4} color="teal.500" borderBottom="1px" borderColor="gray.200" pb={2}>
+                Educational Background
+              </Heading>
+              <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={4}>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Educational Level</FormLabel>
+                  <Select
+                    placeholder="Select Educational Level"
+                    value={sibling.education_level ? educationalLevelOptions.map(l => ({ value: l, label: l })).find(opt => opt.value === sibling.education_level) : null}
+                    onChange={(opt) => onChange(index, "education_level", opt?.value || "")}
+                    options={educationalLevelOptions.map(l => ({ value: l, label: l }))}
+                    isClearable
+                    isDisabled={!sibling.isEditing}
+                    styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Start Year</FormLabel>
+                  <Input placeholder="Start Year" type="number" value={sibling.start_year || ""} onChange={(e) => onChange(index, "start_year", e.target.value)} isDisabled={!sibling.isEditing} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Completion Year</FormLabel>
+                  <Input placeholder="Completion Year" type="number" value={sibling.completion_year || ""} onChange={(e) => onChange(index, "completion_year", e.target.value)} isDisabled={!sibling.isEditing} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">School</FormLabel>
+                  <Input placeholder="School" value={sibling.school || ""} onChange={(e) => onChange(index, "school", e.target.value)} isDisabled={!sibling.isEditing} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Field of Study</FormLabel>
+                  <Input placeholder="Field of Study" value={sibling.field_of_study || ""} onChange={(e) => onChange(index, "field_of_study", e.target.value)} isDisabled={!sibling.isEditing || ["No Formal Education", "Primary Education", "Secondary Education", "Senior High School"].includes(sibling.education_level)} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Degree</FormLabel>
+                  <Input placeholder="Degree" value={sibling.degree || ""} onChange={(e) => onChange(index, "degree", e.target.value)} isDisabled={!sibling.isEditing || ["No Formal Education", "Primary Education", "Secondary Education", "Senior High School"].includes(sibling.education_level)} />
+                </FormControl>
+                <FormControl display="none">
+                  <Input placeholder="Institution" value={sibling.institution || ""} onChange={(e) => onChange(index, "institution", e.target.value)} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Professional Licensure</FormLabel>
+                  <Input placeholder="Licensure" value={sibling.professional_licensure_examination || ""} onChange={(e) => onChange(index, "professional_licensure_examination", e.target.value)} isDisabled={!sibling.isEditing || ["No Formal Education", "Primary Education", "Secondary Education", "Senior High School"].includes(sibling.education_level)} />
+                </FormControl>
+              </SimpleGrid>
+            </Box>
           </Box>
         ))}
+
         <Button onClick={onAdd} colorScheme="teal">Add Sibling</Button>
       </VStack>
     </Box>

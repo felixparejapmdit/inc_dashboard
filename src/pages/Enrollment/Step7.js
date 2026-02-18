@@ -14,7 +14,10 @@ import {
   SimpleGrid,
   FormControl,
   FormLabel,
-  Flex
+  Flex,
+  Checkbox,
+  Textarea,
+  Divider
 } from "@chakra-ui/react";
 import { EditIcon, DeleteIcon, CheckIcon } from "@chakra-ui/icons";
 import axios from "axios";
@@ -261,255 +264,295 @@ const Step7 = ({
       </Heading>
       <VStack align="start" spacing={4} mb={8} w="100%">
         {data.map((child, index) => (
-          <Box key={child.id || child.generatedId} w="100%" p={4} bg="white" shadow="sm" border="1px" borderColor="gray.100" borderRadius="lg">
-            <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={4}>
-              {/* Personal Info */}
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Gender</FormLabel>
-                <Select
-                  placeholder="Select Gender"
-                  value={child.gender ? { value: child.gender, label: child.gender } : null}
-                  onChange={(selectedOption) => onChange(index, "gender", selectedOption?.value || "")}
-                  options={[{ value: "Male", label: "Male" }, { value: "Female", label: "Female" }]}
-                  isDisabled={!child.isEditing}
-                  isClearable
-                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Given Name</FormLabel>
-                <Input placeholder="Given Name" value={child.givenname} onChange={(e) => onChange(index, "givenname", e.target.value)} isDisabled={!child.isEditing} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Middle Name</FormLabel>
-                <Input placeholder="Middle Name" value={child.middlename} onChange={(e) => onChange(index, "middlename", e.target.value)} isDisabled={!child.isEditing} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Last Name</FormLabel>
-                <Input placeholder="Last Name" value={child.lastname} onChange={(e) => onChange(index, "lastname", e.target.value)} isDisabled={!child.isEditing} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Suffix</FormLabel>
-                <Select
-                  placeholder="Select Suffix"
-                  name="suffix"
-                  value={child.suffix ? { value: child.suffix, label: child.suffix } : null}
-                  onChange={(selectedOption) => onChange(index, "suffix", selectedOption?.value || "")}
-                  options={suffixOptions.map((suffix) => ({ value: suffix, label: suffix }))}
-                  isDisabled={!child.isEditing || child.gender === "Female"}
-                  isClearable
-                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Date of Birth</FormLabel>
-                <Input type="date" value={child.date_of_birth} onChange={(e) => onChange(index, "date_of_birth", e.target.value)} isDisabled={!child.isEditing} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Contact Number</FormLabel>
-                <Input placeholder="Contact Number" value={child.contact_number} onChange={(e) => onChange(index, "contact_number", e.target.value)} isDisabled={!child.isEditing} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Blood Type</FormLabel>
-                <Select
-                  placeholder="Select Blood Type"
-                  value={child.bloodtype ? { value: child.bloodtype, label: child.bloodtype } : null}
-                  onChange={(opt) => onChange(index, "bloodtype", opt?.value || "")}
-                  options={bloodtypes.map(t => ({ value: t, label: t }))}
-                  isDisabled={!child.isEditing}
-                  isClearable
-                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Civil Status</FormLabel>
-                <Select
-                  placeholder="Select Civil Status"
-                  value={child.civil_status ? { value: child.civil_status, label: child.civil_status } : null}
-                  onChange={(opt) => onChange(index, "civil_status", opt?.value || "")}
-                  options={civilStatusOptions.map(s => ({ value: s, label: s }))}
-                  isDisabled={!child.isEditing}
-                  isClearable
-                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Date of Marriage</FormLabel>
-                <Input type="date" value={child.date_of_marriage} onChange={(e) => onChange(index, "date_of_marriage", e.target.value)} isDisabled={!child.isEditing || child.civil_status === "Single"} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Place of Marriage</FormLabel>
-                <Input placeholder="Place of Marriage" value={child.place_of_marriage} onChange={(e) => onChange(index, "place_of_marriage", e.target.value)} isDisabled={!child.isEditing || child.civil_status === "Single"} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Citizenship</FormLabel>
-                <Select
-                  placeholder="Select Citizenship"
-                  value={child.citizenship ? citizenships.map(c => ({ value: c.id, label: c.citizenship })).find(opt => opt.value === child.citizenship) : null}
-                  onChange={(opt) => onChange(index, "citizenship", opt?.value || "")}
-                  options={citizenships.map(c => ({ value: c.id, label: c.citizenship }))}
-                  isDisabled={!child.isEditing}
-                  isClearable
-                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Ethnicity</FormLabel>
-                <Select
-                  placeholder="Select Ethnicity"
-                  value={child.nationality ? nationalities.map(n => ({ value: n.id, label: n.nationality })).find(opt => opt.value === child.nationality) : null}
-                  onChange={(opt) => onChange(index, "nationality", opt?.value || "")}
-                  options={nationalities.map(n => ({ value: n.id, label: n.nationality }))}
-                  isDisabled={!child.isEditing}
-                  isClearable
-                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Livelihood</FormLabel>
-                <Input placeholder="Livelihood" value={child.livelihood} onChange={(e) => onChange(index, "livelihood", e.target.value)} isDisabled={!child.isEditing} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">District</FormLabel>
-                <Select
-                  placeholder="Select District"
-                  value={districts.map(d => ({ value: d.id, label: d.name })).find(opt => opt.value === child.district_id) || null}
-                  onChange={(opt) => {
-                    onChange(index, "district_id", opt?.value || "");
-                    onChange(index, "local_congregation", "");
+          <Box key={child.id || child.generatedId || `child-${index}`} w="100%" pb={4} bg="white" shadow="sm" border="1px" borderColor="gray.100" borderRadius="lg">
+
+            {/* Header with Buttons */}
+            <Flex justifyContent="flex-end" px={4} py={2} mb={2}>
+              <Flex gap={2}>
+                <IconButton
+                  icon={child.isEditing ? <CheckIcon /> : <EditIcon />}
+                  onClick={async () => {
+                    if (child.isEditing) {
+                      await handleSaveOrUpdate(index);
+                      // handleSaveOrUpdate calls onToggleEdit(index)
+                    } else {
+                      onToggleEdit(index);
+                    }
                   }}
-                  options={districts.map(d => ({ value: d.id, label: d.name }))}
-                  isClearable
-                  isDisabled={!child.isEditing}
-                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                  colorScheme={child.isEditing ? "green" : "blue"}
+                  size="sm"
+                  aria-label={child.isEditing ? "Save" : "Edit"}
                 />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Local Congregation</FormLabel>
-                <Select
-                  placeholder="Select Local Congregation"
-                  value={(filteredCongregations[child.district_id] || []).map(c => ({ value: c.id, label: c.name })).find(opt => opt.value === child.local_congregation) || null}
-                  onChange={(opt) => onChange(index, "local_congregation", opt?.value || "")}
-                  options={(filteredCongregations[child.district_id] || []).map(c => ({ value: c.id, label: c.name }))}
-                  isClearable
-                  isDisabled={!child.isEditing || !child.district_id}
-                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                <IconButton
+                  icon={<DeleteIcon />}
+                  colorScheme="red"
+                  onClick={() => handleRemoveChild(index)}
+                  size="sm"
+                  aria-label="Delete"
                 />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Church Duties</FormLabel>
-                <Input placeholder="Church Duties" value={child.church_duties} onChange={(e) => onChange(index, "church_duties", e.target.value)} isDisabled={!child.isEditing} />
-              </FormControl>
-              <FormControl display="none">
-                <Input placeholder="Evangelist" value={child.minister_officiated} onChange={(e) => onChange(index, "minister_officiated", e.target.value)} />
-              </FormControl>
-
-              {/* Work Info */}
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Employment Type</FormLabel>
-                <Select
-                  placeholder="Select Employment Type"
-                  value={child.employment_type ? employmentTypeOptions.map(t => ({ value: t, label: t })).find(opt => opt.value === child.employment_type) : null}
-                  onChange={(opt) => onChange(index, "employment_type", opt?.value || "")}
-                  options={employmentTypeOptions.map(t => ({ value: t, label: t }))}
-                  isClearable
-                  isDisabled={!child.isEditing}
-                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Company</FormLabel>
-                <Input placeholder="Company" value={child.company} onChange={(e) => onChange(index, "company", e.target.value)} isDisabled={!child.isEditing || ["Volunteer/Kawani"].includes(child.employment_type)} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Address</FormLabel>
-                <Input placeholder="Address" value={child.address} onChange={(e) => onChange(index, "address", e.target.value)} isDisabled={!child.isEditing} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Brief Description of Responsibilities</FormLabel>
-                <Input placeholder="Brief Description" value={child.position} onChange={(e) => onChange(index, "position", e.target.value)} isDisabled={!child.isEditing} />
-              </FormControl>
-              <FormControl display="none">
-                <Input placeholder="Department" value={child.department} onChange={(e) => onChange(index, "department", e.target.value)} />
-              </FormControl>
-              <FormControl display="none">
-                <Input placeholder="Section" value={child.section} onChange={(e) => onChange(index, "section", e.target.value)} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Start Date</FormLabel>
-                <Input type="date" value={child.start_date} onChange={(e) => onChange(index, "start_date", e.target.value)} isDisabled={!child.isEditing} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">End Date</FormLabel>
-                <Input type="date" value={child.end_date} onChange={(e) => onChange(index, "end_date", e.target.value)} isDisabled={!child.isEditing} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Reason for Leaving</FormLabel>
-                <Input placeholder="Reason for Leaving" value={child.reason_for_leaving} onChange={(e) => onChange(index, "reason_for_leaving", e.target.value)} isDisabled={!child.isEditing} />
-              </FormControl>
-
-              {/* Edu Info */}
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Educational Level</FormLabel>
-                <Select
-                  placeholder="Select Educational Level"
-                  value={child.education_level ? educationalLevelOptions.map(l => ({ value: l, label: l })).find(opt => opt.value === child.education_level) : null}
-                  onChange={(opt) => onChange(index, "education_level", opt?.value || "")}
-                  options={educationalLevelOptions.map(l => ({ value: l, label: l }))}
-                  isClearable
-                  isDisabled={!child.isEditing}
-                  styles={{ container: (base) => ({ ...base, width: "100%" }) }}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Start Year</FormLabel>
-                <Input placeholder="Start Year" type="number" value={child.start_year} onChange={(e) => onChange(index, "start_year", e.target.value)} isDisabled={!child.isEditing} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Completion Year</FormLabel>
-                <Input placeholder="Completion Year" type="number" value={child.completion_year} onChange={(e) => onChange(index, "completion_year", e.target.value)} isDisabled={!child.isEditing} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">School</FormLabel>
-                <Input placeholder="School" value={child.school} onChange={(e) => onChange(index, "school", e.target.value)} isDisabled={!child.isEditing} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Field of Study</FormLabel>
-                <Input placeholder="Field of Study" value={child.field_of_study} onChange={(e) => onChange(index, "field_of_study", e.target.value)} isDisabled={!child.isEditing || ["No Formal Education", "Primary Education", "Secondary Education", "Senior High School"].includes(child.education_level)} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Degree</FormLabel>
-                <Input placeholder="Degree" value={child.degree} onChange={(e) => onChange(index, "degree", e.target.value)} isDisabled={!child.isEditing || ["No Formal Education", "Primary Education", "Secondary Education", "Senior High School"].includes(child.education_level)} />
-              </FormControl>
-              <FormControl display="none">
-                <Input placeholder="Institution" value={child.institution} onChange={(e) => onChange(index, "institution", e.target.value)} />
-              </FormControl>
-              <FormControl>
-                <FormLabel color="#0a5856" fontWeight="bold">Professional Licensure</FormLabel>
-                <Input placeholder="Licensure" value={child.professional_licensure_examination} onChange={(e) => onChange(index, "professional_licensure_examination", e.target.value)} isDisabled={!child.isEditing || ["No Formal Education", "Primary Education", "Secondary Education", "Senior High School"].includes(child.education_level)} />
-              </FormControl>
-            </SimpleGrid>
-
-            <Flex justify="center" mt={6} gap={2}>
-              <IconButton
-                icon={child.isEditing ? <CheckIcon /> : <EditIcon />}
-                onClick={async () => {
-                  if (child.isEditing) {
-                    await handleSaveOrUpdate(index);
-                    onChange(index, "isEditing", false);
-                  } else {
-                    onChange(index, "isEditing", true);
-                  }
-                }}
-                colorScheme={child.isEditing ? "green" : "blue"}
-              />
-              <IconButton
-                icon={<DeleteIcon />}
-                colorScheme="red"
-                onClick={() => handleRemoveChild(index)}
-              />
+              </Flex>
             </Flex>
 
+            {/* Deceased Toggle */}
+            <FormControl display="flex" alignItems="center" mb={4} px={4}>
+              <Checkbox
+                isChecked={child.is_deceased || false}
+                onChange={(e) => onChange(index, "is_deceased", e.target.checked)}
+                colorScheme="red"
+                isDisabled={!child.isEditing}
+              >
+                <Text fontWeight="bold" color="red.500">
+                  Deceased (Check if applicable)
+                </Text>
+              </Checkbox>
+            </FormControl>
+
+            {/* Personal Information Group */}
+            <Box mb={6} px={4}>
+              <Heading as="h4" size="sm" mb={4} color="teal.500" borderBottom="1px" borderColor="gray.200" pb={2}>
+                Personal Information
+              </Heading>
+              <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={4}>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Gender <Text as="span" color="red.500" ml={1}>*</Text></FormLabel>
+                  <Select
+                    placeholder="Select Gender"
+                    value={child.gender ? { value: child.gender, label: child.gender } : null}
+                    onChange={(selectedOption) => onChange(index, "gender", selectedOption?.value || "")}
+                    options={[{ value: "Male", label: "Male" }, { value: "Female", label: "Female" }]}
+                    isDisabled={!child.isEditing}
+                    isClearable
+                    styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Given Name <Text as="span" color="red.500" ml={1}>*</Text></FormLabel>
+                  <Input placeholder="Given Name" value={child.givenname || ""} onChange={(e) => onChange(index, "givenname", e.target.value)} isDisabled={!child.isEditing} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Middle Name</FormLabel>
+                  <Input placeholder="Middle Name" value={child.middlename || ""} onChange={(e) => onChange(index, "middlename", e.target.value)} isDisabled={!child.isEditing} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Last Name <Text as="span" color="red.500" ml={1}>*</Text></FormLabel>
+                  <Input placeholder="Last Name" value={child.lastname || ""} onChange={(e) => onChange(index, "lastname", e.target.value)} isDisabled={!child.isEditing} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Suffix</FormLabel>
+                  <Select
+                    placeholder="Select Suffix"
+                    name="suffix"
+                    value={child.suffix ? { value: child.suffix, label: child.suffix } : null}
+                    onChange={(selectedOption) => onChange(index, "suffix", selectedOption?.value || "")}
+                    options={suffixOptions.map((suffix) => ({ value: suffix, label: suffix }))}
+                    isDisabled={!child.isEditing || child.gender === "Female"}
+                    isClearable
+                    styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Date of Birth <Text as="span" color="red.500" ml={1}>*</Text></FormLabel>
+                  <Input type="date" value={child.date_of_birth || ""} onChange={(e) => onChange(index, "date_of_birth", e.target.value)} isDisabled={!child.isEditing} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Contact Number</FormLabel>
+                  <Input placeholder="Contact Number" value={child.contact_number || ""} onChange={(e) => onChange(index, "contact_number", e.target.value)} isDisabled={!child.isEditing} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Blood Type</FormLabel>
+                  <Select
+                    placeholder="Select Blood Type"
+                    value={child.bloodtype ? { value: child.bloodtype, label: child.bloodtype } : null}
+                    onChange={(opt) => onChange(index, "bloodtype", opt?.value || "")}
+                    options={bloodtypes.map(t => ({ value: t, label: t }))}
+                    isDisabled={!child.isEditing}
+                    isClearable
+                    styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Civil Status</FormLabel>
+                  <Select
+                    placeholder="Select Civil Status"
+                    value={child.civil_status ? { value: child.civil_status, label: child.civil_status } : null}
+                    onChange={(opt) => onChange(index, "civil_status", opt?.value || "")}
+                    options={civilStatusOptions.map(s => ({ value: s, label: s }))}
+                    isDisabled={!child.isEditing}
+                    isClearable
+                    styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Date of Marriage</FormLabel>
+                  <Input type="date" value={child.date_of_marriage || ""} onChange={(e) => onChange(index, "date_of_marriage", e.target.value)} isDisabled={!child.isEditing || child.civil_status === "Single"} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Place of Marriage</FormLabel>
+                  <Input placeholder="Place of Marriage" value={child.place_of_marriage || ""} onChange={(e) => onChange(index, "place_of_marriage", e.target.value)} isDisabled={!child.isEditing || child.civil_status === "Single"} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Citizenship</FormLabel>
+                  <Select
+                    placeholder="Select Citizenship"
+                    value={child.citizenship ? citizenships.map(c => ({ value: c.id, label: c.citizenship })).find(opt => opt.value === child.citizenship) : null}
+                    onChange={(opt) => onChange(index, "citizenship", opt?.value || "")}
+                    options={citizenships.map(c => ({ value: c.id, label: c.citizenship }))}
+                    isDisabled={!child.isEditing}
+                    isClearable
+                    styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Ethnicity</FormLabel>
+                  <Select
+                    placeholder="Select Ethnicity"
+                    value={child.nationality ? nationalities.map(n => ({ value: n.id, label: n.nationality })).find(opt => opt.value === child.nationality) : null}
+                    onChange={(opt) => onChange(index, "nationality", opt?.value || "")}
+                    options={nationalities.map(n => ({ value: n.id, label: n.nationality }))}
+                    isDisabled={!child.isEditing}
+                    isClearable
+                    styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Livelihood</FormLabel>
+                  <Input placeholder="Livelihood" value={child.livelihood || ""} onChange={(e) => onChange(index, "livelihood", e.target.value)} isDisabled={!child.isEditing} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">District</FormLabel>
+                  <Select
+                    placeholder="Select District"
+                    value={districts.map(d => ({ value: d.id, label: d.name })).find(opt => opt.value === child.district_id) || null}
+                    onChange={(opt) => {
+                      onChange(index, "district_id", opt?.value || "");
+                      onChange(index, "local_congregation", "");
+                    }}
+                    options={districts.map(d => ({ value: d.id, label: d.name }))}
+                    isClearable
+                    isDisabled={!child.isEditing}
+                    styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Local Congregation</FormLabel>
+                  <Select
+                    placeholder="Select Local Congregation"
+                    value={(filteredCongregations[child.district_id] || []).map(c => ({ value: c.id, label: c.name })).find(opt => opt.value === child.local_congregation) || null}
+                    onChange={(opt) => onChange(index, "local_congregation", opt?.value || "")}
+                    options={(filteredCongregations[child.district_id] || []).map(c => ({ value: c.id, label: c.name }))}
+                    isClearable
+                    isDisabled={!child.isEditing || !child.district_id}
+                    styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Church Duties</FormLabel>
+                  <Input placeholder="Church Duties" value={child.church_duties || ""} onChange={(e) => onChange(index, "church_duties", e.target.value)} isDisabled={!child.isEditing} />
+                </FormControl>
+                <FormControl display="none">
+                  <Input placeholder="Evangelist" value={child.minister_officiated || ""} onChange={(e) => onChange(index, "minister_officiated", e.target.value)} />
+                </FormControl>
+              </SimpleGrid>
+            </Box>
+
+            {/* Employment Details Group */}
+            <Box mb={6} px={4} opacity={child.is_deceased ? 0.5 : 1} pointerEvents={child.is_deceased ? "none" : "auto"}>
+              <Heading as="h4" size="sm" mb={4} color="teal.500" borderBottom="1px" borderColor="gray.200" pb={2}>
+                Employment Details
+              </Heading>
+              <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={4}>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Employment Type</FormLabel>
+                  <Select
+                    placeholder="Select Employment Type"
+                    value={child.employment_type ? employmentTypeOptions.map(t => ({ value: t, label: t })).find(opt => opt.value === child.employment_type) : null}
+                    onChange={(opt) => onChange(index, "employment_type", opt?.value || "")}
+                    options={employmentTypeOptions.map(t => ({ value: t, label: t }))}
+                    isClearable
+                    isDisabled={!child.isEditing}
+                    styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Company</FormLabel>
+                  <Input placeholder="Company" value={child.company || ""} onChange={(e) => onChange(index, "company", e.target.value)} isDisabled={!child.isEditing || ["Volunteer/Kawani"].includes(child.employment_type)} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Address</FormLabel>
+                  <Textarea rows={1} placeholder="Address" value={child.address || ""} onChange={(e) => onChange(index, "address", e.target.value)} isDisabled={!child.isEditing} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Brief Description of Responsibilities</FormLabel>
+                  <Input placeholder="Brief Description" value={child.position || ""} onChange={(e) => onChange(index, "position", e.target.value)} isDisabled={!child.isEditing} />
+                </FormControl>
+                <FormControl display="none">
+                  <Input placeholder="Department" value={child.department || ""} onChange={(e) => onChange(index, "department", e.target.value)} />
+                </FormControl>
+                <FormControl display="none">
+                  <Input placeholder="Section" value={child.section || ""} onChange={(e) => onChange(index, "section", e.target.value)} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Start Date</FormLabel>
+                  <Input type="date" value={child.start_date || ""} onChange={(e) => onChange(index, "start_date", e.target.value)} isDisabled={!child.isEditing} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">End Date</FormLabel>
+                  <Input type="date" value={child.end_date || ""} onChange={(e) => onChange(index, "end_date", e.target.value)} isDisabled={!child.isEditing} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Reason for Leaving</FormLabel>
+                  <Input placeholder="Reason for Leaving" value={child.reason_for_leaving || ""} onChange={(e) => onChange(index, "reason_for_leaving", e.target.value)} isDisabled={!child.isEditing} />
+                </FormControl>
+              </SimpleGrid>
+            </Box>
+
+            {/* Edu Info */}
+            <Box mb={6} px={4}>
+              <Heading as="h4" size="sm" mb={4} color="teal.500" borderBottom="1px" borderColor="gray.200" pb={2}>
+                Educational Background
+              </Heading>
+              <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={4}>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Educational Level</FormLabel>
+                  <Select
+                    placeholder="Select Educational Level"
+                    value={child.education_level ? educationalLevelOptions.map(l => ({ value: l, label: l })).find(opt => opt.value === child.education_level) : null}
+                    onChange={(opt) => onChange(index, "education_level", opt?.value || "")}
+                    options={educationalLevelOptions.map(l => ({ value: l, label: l }))}
+                    isClearable
+                    isDisabled={!child.isEditing}
+                    styles={{ container: (base) => ({ ...base, width: "100%" }) }}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Start Year</FormLabel>
+                  <Input placeholder="Start Year" type="number" value={child.start_year || ""} onChange={(e) => onChange(index, "start_year", e.target.value)} isDisabled={!child.isEditing} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Completion Year</FormLabel>
+                  <Input placeholder="Completion Year" type="number" value={child.completion_year || ""} onChange={(e) => onChange(index, "completion_year", e.target.value)} isDisabled={!child.isEditing} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">School</FormLabel>
+                  <Input placeholder="School" value={child.school || ""} onChange={(e) => onChange(index, "school", e.target.value)} isDisabled={!child.isEditing} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Field of Study</FormLabel>
+                  <Input placeholder="Field of Study" value={child.field_of_study || ""} onChange={(e) => onChange(index, "field_of_study", e.target.value)} isDisabled={!child.isEditing || ["No Formal Education", "Primary Education", "Secondary Education", "Senior High School"].includes(child.education_level)} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Degree</FormLabel>
+                  <Input placeholder="Degree" value={child.degree || ""} onChange={(e) => onChange(index, "degree", e.target.value)} isDisabled={!child.isEditing || ["No Formal Education", "Primary Education", "Secondary Education", "Senior High School"].includes(child.education_level)} />
+                </FormControl>
+                <FormControl display="none">
+                  <Input placeholder="Institution" value={child.institution || ""} onChange={(e) => onChange(index, "institution", e.target.value)} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="#0a5856" fontWeight="bold">Professional Licensure</FormLabel>
+                  <Input placeholder="Licensure" value={child.professional_licensure_examination || ""} onChange={(e) => onChange(index, "professional_licensure_examination", e.target.value)} isDisabled={!child.isEditing || ["No Formal Education", "Primary Education", "Secondary Education", "Senior High School"].includes(child.education_level)} />
+                </FormControl>
+              </SimpleGrid>
+            </Box>
           </Box>
         ))}
         <Button onClick={onAdd} colorScheme="teal">

@@ -24,7 +24,8 @@ import {
   FormLabel,
   Divider,
 } from "@chakra-ui/react";
-import { DeleteIcon } from "@chakra-ui/icons";
+import { DeleteIcon, EditIcon, CheckIcon } from "@chakra-ui/icons";
+import StepProgressTracker from "../../components/StepProgressTracker"; // ✅ Import StepProgressTracker
 import axios from "axios";
 
 import { fetchData, postData, putData, deleteData } from "../../utils/fetchData";
@@ -275,11 +276,23 @@ const Step1 = ({
             Step 1: Primary Information
           </Heading>
 
+          <Flex justifyContent="flex-end" mb={4} px={4}>
+            <IconButton
+              icon={isEditing ? <CheckIcon /> : <EditIcon />}
+              onClick={toggleEdit}
+              colorScheme={isEditing ? "green" : "blue"}
+              aria-label={isEditing ? "Save" : "Edit"}
+              size="sm"
+            />
+          </Flex>
+
+
+
           <Box mb={6} p={4} borderRadius="lg" bg="white" shadow="sm" border="1px" borderColor="gray.100">
 
             <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={5} mb={4}>
               <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Gender</FormLabel>
+                <FormLabel fontWeight="bold" color="#0a5856">Gender <Text as="span" color="red.500" ml={1}>*</Text></FormLabel>
                 <RadioGroup
                   name="gender"
                   onChange={(value) =>
@@ -301,7 +314,7 @@ const Step1 = ({
               </FormControl>
 
               <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Civil Status</FormLabel>
+                <FormLabel fontWeight="bold" color="#0a5856">Civil Status <Text as="span" color="red.500" ml={1}>*</Text></FormLabel>
                 <RadioGroup
                   name="civil_status"
                   onChange={(value) =>
@@ -349,7 +362,7 @@ const Step1 = ({
             {/* Names Grid */}
             <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={5}>
               <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Given Name</FormLabel>
+                <FormLabel fontWeight="bold" color="#0a5856">Given Name <Text as="span" color="red.500" ml={1}>*</Text></FormLabel>
                 <Input
                   placeholder="Given Name"
                   name="givenname"
@@ -372,7 +385,7 @@ const Step1 = ({
 
               <FormControl>
                 <FormLabel fontWeight="bold" color="#0a5856">
-                  {personnelData.surname_maiden_label || "Surname (Maiden)"}
+                  {personnelData.surname_maiden_label || "Surname (Maiden)"} <Text as="span" color="red.500" ml={1}>*</Text>
                 </FormLabel>
                 <Input
                   placeholder={
@@ -387,7 +400,7 @@ const Step1 = ({
 
               <FormControl>
                 <FormLabel fontWeight="bold" color="#0a5856">
-                  {personnelData.surname_husband_label || "Surname (Husband)"}
+                  {personnelData.surname_husband_label || "Surname (Husband)"} <Text as="span" color="red.500" ml={1}>*</Text>
                 </FormLabel>
                 <Input
                   placeholder={
@@ -532,7 +545,7 @@ const Step1 = ({
 
             <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={5}>
               <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Birthday</FormLabel>
+                <FormLabel fontWeight="bold" color="#0a5856">Birthday <Text as="span" color="red.500" ml={1}>*</Text></FormLabel>
                 <Input
                   placeholder="Date of Birth"
                   name="date_of_birth"
@@ -577,7 +590,7 @@ const Step1 = ({
               </FormControl>
 
               <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Date Started in the office</FormLabel>
+                <FormLabel fontWeight="bold" color="#0a5856">Date Started in the office <Text as="span" color="red.500" ml={1}>*</Text></FormLabel>
                 <Input
                   placeholder="Date Joined"
                   name="datejoined"
@@ -760,7 +773,7 @@ const Step1 = ({
                 />
               </FormControl>
               <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Department</FormLabel>
+                <FormLabel fontWeight="bold" color="#0a5856">Department <Text as="span" color="red.500" ml={1}>*</Text></FormLabel>
                 <Select
                   placeholder="Select Department"
                   name="department_id"
@@ -1120,7 +1133,7 @@ const Step1 = ({
           <Box mb={6} p={4} borderRadius="lg" bg="white" shadow="sm" border="1px" borderColor="gray.100">
 
             <FormControl>
-              <FormLabel fontWeight="bold" color="#0a5856">Personnel Type</FormLabel>
+              <FormLabel fontWeight="bold" color="#0a5856">Personnel Type <Text as="span" color="red.500" ml={1}>*</Text></FormLabel>
               <RadioGroup
                 name="personnel_type"
                 onChange={(value) => {

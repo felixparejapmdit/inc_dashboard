@@ -63,23 +63,45 @@ module.exports = {
       certificate_files,
     } = req.body;
 
-    if (!personnel_id || !level || !school) {
+    const normalizedLevel =
+      typeof level === "string" ? level.trim() : String(level || "").trim();
+    const normalizedSchool = typeof school === "string" ? school.trim() : "";
+    const isNoFormalEducation = String(level ?? "").trim() === "No Formal Education";
+
+    if (!personnel_id || !level || (!isNoFormalEducation && !school)) {
       return res.status(400).json({
-        message: "Personnel ID, level, and school are required fields.",
+        message: isNoFormalEducation
+          ? "Personnel ID and level are required fields."
+          : "Personnel ID, level, and school are required fields.",
       });
     }
+
+    const parseNullableInt = (value) => {
+      if (value === null || value === undefined || value === "") {
+        return null;
+      }
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    };
+
+    const toNullableText = (value) => {
+      const trimmed = typeof value === "string" ? value.trim() : value;
+      return trimmed === "" || trimmed === undefined ? null : trimmed;
+    };
 
     try {
       const newRecord = await EducationalBackground.create({
         personnel_id,
-        level,
-        startfrom,
-        completion_year,
-        school,
-        field_of_study,
-        degree,
-        institution,
-        professional_licensure_examination,
+        level: normalizedLevel,
+        startfrom: parseNullableInt(startfrom),
+        completion_year: parseNullableInt(completion_year),
+        school: normalizedSchool || null,
+        field_of_study: toNullableText(field_of_study),
+        degree: toNullableText(degree),
+        institution: toNullableText(institution),
+        professional_licensure_examination: toNullableText(
+          professional_licensure_examination
+        ),
         certificate_files: certificate_files
           ? JSON.stringify(certificate_files)
           : null, // Save as JSON
@@ -129,7 +151,7 @@ module.exports = {
         existingRecord.degree === degree &&
         existingRecord.institution === institution &&
         existingRecord.professional_licensure_examination ===
-          professional_licensure_examination;
+        professional_licensure_examination;
 
       if (isUnchanged) {
         return res.status(200).json({

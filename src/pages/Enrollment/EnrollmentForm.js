@@ -28,6 +28,7 @@ import { CheckIcon, EditIcon } from "@chakra-ui/icons";
 import Step1 from "./Step1";
 import Step2 from "./Step2";
 import Step3 from "./Step3";
+import StepProgressTracker from "../../components/StepProgressTracker"; // ✅ Import StepProgressTracker
 import Step4 from "./Step4"; // Import Step4 component
 import Step5 from "./Step5"; // Import Step5 component for siblings
 import Step6 from "./Step6"; // Import Step6 component for spouse
@@ -1794,6 +1795,112 @@ const EnrollmentForm = ({ referenceNumber }) => {
             {/* Spacer - Right Side (for balance) */}
             <Box flexShrink={0} width={{ base: "36px", md: "40px" }} />
           </Flex>
+
+          {/* Add StepProgressTracker here for sticky slim progress bar */}
+          <Box mt={2}>
+            {step === 1 && <StepProgressTracker
+              data={personnelData}
+              totalFields={[
+                "gender", "civil_status", "givenname", "middlename", "surname_maiden",
+                "surname_husband", "suffix", "nickname", "date_of_birth", "place_of_birth",
+                "datejoined", "language_id", "bloodtype", "email_address",
+                "citizenship", "nationality", "department_id", "section_id", "subsection_id",
+                "designation_id", "personnel_type", "is_offered", "minister_officiated",
+                "date_baptized", "place_of_baptism", "registered_district_id",
+                "registered_local_congregation", "district_first_registered",
+                "local_first_registered", "date_first_registered", "church_duties",
+                "wedding_anniversary", "m_status", "m_type", "panunumpa_date", "ordination_date"
+              ]}
+            />}
+
+            {step === 4 && <StepProgressTracker
+              data={(Array.isArray(family?.parents) ? family.parents : []).reduce((acc, parent, index) => {
+                Object.keys(parent || {}).forEach(key => {
+                  acc[`${key}_${index}`] = parent[key];
+                });
+                return acc;
+              }, {})}
+              totalFields={
+                (Array.isArray(family?.parents) && family.parents.length > 0) ? family.parents.flatMap((_, index) => [
+                  `gender_${index}`, `givenname_${index}`, `middlename_${index}`, `lastname_${index}`, `suffix_${index}`,
+                  `date_of_birth_${index}`, `contact_number_${index}`, `bloodtype_${index}`,
+                  `civil_status_${index}`, `date_of_marriage_${index}`, `place_of_marriage_${index}`,
+                  `citizenship_${index}`, `nationality_${index}`, `livelihood_${index}`,
+                  `district_id_${index}`, `local_congregation_${index}`, `church_duties_${index}`,
+                  `employment_type_${index}`, `company_${index}`, `address_${index}`, `position_${index}`,
+                  `start_date_${index}`, `end_date_${index}`, `reason_for_leaving_${index}`,
+                  `education_level_${index}`, `start_year_${index}`, `completion_year_${index}`,
+                  `school_${index}`, `field_of_study_${index}`, `degree_${index}`, `professional_licensure_examination_${index}`
+                ]) : []
+              }
+            />}
+
+            {step === 5 && <StepProgressTracker
+              data={(Array.isArray(family?.siblings) ? family.siblings : []).reduce((acc, sibling, index) => {
+                Object.keys(sibling || {}).forEach(key => {
+                  acc[`${key}_${index}`] = sibling[key];
+                });
+                return acc;
+              }, {})}
+              totalFields={
+                (Array.isArray(family?.siblings) && family.siblings.length > 0) ? family.siblings.flatMap((_, index) => [
+                  `gender_${index}`, `givenname_${index}`, `middlename_${index}`, `lastname_${index}`, `suffix_${index}`,
+                  `date_of_birth_${index}`, `contact_number_${index}`, `bloodtype_${index}`,
+                  `civil_status_${index}`, `date_of_marriage_${index}`, `place_of_marriage_${index}`,
+                  `citizenship_${index}`, `nationality_${index}`, `livelihood_${index}`,
+                  `district_id_${index}`, `local_congregation_${index}`, `church_duties_${index}`,
+                  `employment_type_${index}`, `company_${index}`, `address_${index}`, `position_${index}`,
+                  `start_date_${index}`, `end_date_${index}`, `reason_for_leaving_${index}`,
+                  `education_level_${index}`, `start_year_${index}`, `completion_year_${index}`,
+                  `school_${index}`, `field_of_study_${index}`, `degree_${index}`, `professional_licensure_examination_${index}`
+                ]) : []
+              }
+            />}
+
+            {step === 6 && <StepProgressTracker
+              data={(Array.isArray(family?.spouses) ? family.spouses : []).reduce((acc, spouse, index) => {
+                Object.keys(spouse || {}).forEach(key => {
+                  acc[`${key}_${index}`] = spouse[key];
+                });
+                return acc;
+              }, {})}
+              totalFields={
+                (Array.isArray(family?.spouses) && family.spouses.length > 0) ? family.spouses.flatMap((_, index) => [
+                  `gender_${index}`, `givenname_${index}`, `middlename_${index}`, `lastname_${index}`, `suffix_${index}`,
+                  `date_of_birth_${index}`, `contact_number_${index}`, `bloodtype_${index}`,
+                  `civil_status_${index}`, `date_of_marriage_${index}`, `place_of_marriage_${index}`,
+                  `citizenship_${index}`, `nationality_${index}`, `livelihood_${index}`,
+                  `district_id_${index}`, `local_congregation_${index}`, `church_duties_${index}`,
+                  `employment_type_${index}`, `company_${index}`, `address_${index}`, `position_${index}`,
+                  `start_date_${index}`, `end_date_${index}`, `reason_for_leaving_${index}`,
+                  `education_level_${index}`, `start_year_${index}`, `completion_year_${index}`,
+                  `school_${index}`, `field_of_study_${index}`, `degree_${index}`, `professional_licensure_examination_${index}`
+                ]) : []
+              }
+            />}
+
+            {step === 7 && <StepProgressTracker
+              data={(Array.isArray(family?.children) ? family.children : []).reduce((acc, child, index) => {
+                Object.keys(child || {}).forEach(key => {
+                  acc[`${key}_${index}`] = child[key];
+                });
+                return acc;
+              }, {})}
+              totalFields={
+                (Array.isArray(family?.children) && family.children.length > 0) ? family.children.flatMap((_, index) => [
+                  `gender_${index}`, `givenname_${index}`, `middlename_${index}`, `lastname_${index}`, `suffix_${index}`,
+                  `date_of_birth_${index}`, `contact_number_${index}`, `bloodtype_${index}`,
+                  `civil_status_${index}`, `date_of_marriage_${index}`, `place_of_marriage_${index}`,
+                  `citizenship_${index}`, `nationality_${index}`, `livelihood_${index}`,
+                  `district_id_${index}`, `local_congregation_${index}`, `church_duties_${index}`,
+                  `employment_type_${index}`, `company_${index}`, `address_${index}`, `position_${index}`,
+                  `start_date_${index}`, `end_date_${index}`, `reason_for_leaving_${index}`,
+                  `education_level_${index}`, `start_year_${index}`, `completion_year_${index}`,
+                  `school_${index}`, `field_of_study_${index}`, `degree_${index}`, `professional_licensure_examination_${index}`
+                ]) : []
+              }
+            />}
+          </Box>
         </Box>
       </Box>
 
@@ -2579,7 +2686,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
         </ModalContent>
       </Modal>
       {step === 1 && ( // ✅ Only show on Step 1
-        <Flex justify="center" align="center" mt={2} mb={2}>
+        <Flex w="100%" justify="flex-end" align="center" mt={2} mb={2} px={4}>
           <IconButton
             icon={isEditing ? <CheckIcon /> : <EditIcon />}
             // onClick={toggleEdit}

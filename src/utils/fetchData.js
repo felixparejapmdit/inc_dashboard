@@ -419,8 +419,13 @@ export const postData = async (
 
     return response.data;
   } catch (error) {
-    console.error(`POST error on ${endpoint}:`, error);
-    throw new Error(errorMsg);
+    const serverMessage =
+      error?.response?.data?.message ||
+      error?.response?.data?.error ||
+      error?.response?.data?.details;
+
+    console.error(`POST error on ${endpoint}:`, error?.response?.data || error);
+    throw new Error(serverMessage || errorMsg);
   }
 };
 
@@ -599,8 +604,13 @@ export const putData = async (
 
     return response.data;
   } catch (error) {
-    console.error(`PUT error on ${endpoint}:`, error?.response || error);
-    throw new Error(errorMsg);
+    const serverMessage =
+      error?.response?.data?.message ||
+      error?.response?.data?.error ||
+      error?.response?.data?.details;
+
+    console.error(`PUT error on ${endpoint}:`, error?.response?.data || error);
+    throw new Error(serverMessage || errorMsg);
   }
 };
 

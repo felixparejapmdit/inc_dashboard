@@ -21,7 +21,19 @@ import {
   FormControl,
   FormLabel,
   Divider,
-  ButtonGroup
+  ButtonGroup,
+  InputGroup,
+  InputLeftElement,
+  InputRightElement,
+  Tooltip,
+  VStack,
+  Textarea, // Added Textarea for address
+  InputRightAddon,
+  InputLeftAddon,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
 } from "@chakra-ui/react";
 import {
   EditIcon,
@@ -29,6 +41,10 @@ import {
   CheckIcon,
   AttachmentIcon,
   CloseIcon,
+  EmailIcon,
+  PhoneIcon,
+  CopyIcon,
+  InfoIcon,
 } from "@chakra-ui/icons";
 import axios from "axios";
 
@@ -174,15 +190,21 @@ const Step2 = () => {
       if (i === idx) {
         let newValue = value;
 
-        // Find the selected contact type
+        // Find the selected contact type to apply specific formatting rules
         const contactType = contactTypes.find(
           (type) => type.id == contact.contactype_id
         );
+        const typeName = contactType?.name.toLowerCase() || "";
 
-        // If the contact type is Telegram, enforce username format
-        if (contactType?.name.toLowerCase() === "telegram") {
-          if (!newValue.startsWith("@")) {
-            newValue = "@" + newValue.replace(/^@/, ""); // Ensure @ is present
+        if (field === "contact_info") {
+          if (typeName === "telegram") {
+            // Telegram: Auto-prepend @
+            if (newValue && !newValue.startsWith("@")) {
+              newValue = "@" + newValue;
+            }
+          } else if (typeName.includes("mobile") || typeName.includes("phone")) {
+            // Phone: Allow only numbers, spaces, dashes but preserve "+" for international formatting
+            // newValue = newValue.replace(/[^\d\s\-+]/g, ""); // Optionally restrict characters
           }
         }
 
@@ -588,29 +610,75 @@ const Step2 = () => {
                         </FormControl>
 
                         <FormControl>
-                          <FormLabel fontSize="sm" fontWeight="bold">Contact Info</FormLabel>
-                          <Input
-                            placeholder={
-                              selectedType?.name.toLowerCase() === "telephone"
-                                ? "-"
-                                : selectedType?.name.toLowerCase() === "telegram"
-                                  ? "Enter (@username)"
-                                  : "Enter Contact Info"
-                            }
-                            value={contact.contact_info || ""}
-                            isReadOnly={
-                              !contact.isEditing ||
-                              selectedType?.name.toLowerCase() === "telephone"
-                            }
-                            onChange={(e) =>
-                              handleContactChange(
-                                idx,
-                                "contact_info",
-                                e.target.value
-                              )
-                            }
-                            size="sm"
-                          />
+                          <FormLabel fontSize="sm" fontWeight="bold">
+                            Contact Info
+                          </FormLabel>
+                          <InputGroup size="sm">
+                            {(() => {
+                              const typeName =
+                                selectedType?.name.toLowerCase() || "";
+
+                              if (typeName.includes("email")) {
+                                return (
+                                  <InputLeftElement pointerEvents="none">
+                                    <EmailIcon color="gray.400" />
+                                  </InputLeftElement>
+                                );
+                              }
+                              if (typeName.includes("mobile")) {
+                                return (
+                                  <InputLeftElement pointerEvents="none">
+                                    <PhoneIcon color="gray.400" />
+                                  </InputLeftElement>
+                                );
+                              }
+                              if (typeName.includes("telegram")) {
+                                return (
+                                  <InputLeftElement
+                                    pointerEvents="none"
+                                    color="blue.400"
+                                    fontWeight="bold"
+                                    fontSize="xs"
+                                  >
+                                    @
+                                  </InputLeftElement>
+                                );
+                              }
+                              return null;
+                            })()}
+
+                            <Input
+                              pl={
+                                ["email", "mobile", "phone", "telegram"].some(
+                                  (t) =>
+                                    (selectedType?.name.toLowerCase() || "").includes(t)
+                                )
+                                  ? 8
+                                  : 3
+                              }
+                              placeholder={
+                                selectedType?.name.toLowerCase() === "telephone"
+                                  ? "-"
+                                  : selectedType?.name.toLowerCase() === "telegram"
+                                    ? "username"
+                                    : selectedType?.name.toLowerCase().includes("email")
+                                      ? "user@example.com"
+                                      : "Enter Contact Info"
+                              }
+                              value={contact.contact_info || ""}
+                              isReadOnly={
+                                !contact.isEditing ||
+                                selectedType?.name.toLowerCase() === "telephone"
+                              }
+                              onChange={(e) =>
+                                handleContactChange(
+                                  idx,
+                                  "contact_info",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </InputGroup>
                         </FormControl>
 
                         {isTelephone && (
@@ -764,11 +832,22 @@ const Step2 = () => {
           )}
 
 
-          <Button onClick={handleAddContact} colorScheme="teal" mt={4} size="md" mb={8}>
+          <Button
+            onClick={handleAddContact}
+            colorScheme="teal"
+            mt={4}
+            size="md"
+            mb={8}
+            leftIcon={<PhoneIcon />}
+          >
             Add Contact
           </Button>
 
           {/* Addresses Section */}
+          <Divider my={6} />
+          <Heading as="h3" size="md" mb={4} color="#0a5856">
+            Addresses
+          </Heading>
           {viewMode === "grid" ? (
             <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={4} w="100%">
               {addresses.length > 0 ? (
@@ -787,6 +866,38 @@ const Step2 = () => {
                         Address #{idx + 1}
                       </Text>
                       <Flex>
+                        {/* Copy From Buttons */}
+                        {address.isEditing && (
+                          <Menu>
+                            <Tooltip label="Copy address from other entry">
+                              <MenuButton
+                                as={IconButton}
+                                icon={<CopyIcon />}
+                                size="sm"
+                                colorScheme="cyan"
+                                variant="ghost"
+                                mr={2}
+                              />
+                            </Tooltip>
+                            <MenuList>
+                              {addresses
+                                .filter((a, k) => k !== idx && a.name)
+                                .map((other, k) => (
+                                  <MenuItem
+                                    key={k}
+                                    onClick={() =>
+                                      handleAddressChange(idx, "name", other.name)
+                                    }
+                                  >
+                                    Copy from {other.address_type || "Address #" + (k + 1)}
+                                  </MenuItem>
+                                ))}
+                              {addresses.filter((a, k) => k !== idx && a.name).length === 0 && (
+                                <MenuItem isDisabled>No other addresses available</MenuItem>
+                              )}
+                            </MenuList>
+                          </Menu>
+                        )}
                         {/* Save/Edit Button */}
                         <IconButton
                           icon={
