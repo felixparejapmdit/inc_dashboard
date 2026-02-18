@@ -29,6 +29,7 @@ import {
   Flex,
   Checkbox,
   Select,
+  HStack,
   useDisclosure,
 } from "@chakra-ui/react";
 import {
@@ -317,11 +318,11 @@ const PhoneDirectory = () => {
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
 
   const renderPagination = () => (
-    <Flex justifyContent="space-between" alignItems="center" my={3}>
+    <HStack justifyContent="center" alignItems="center" my={3} spacing={4}>
       <Button onClick={handlePrev} isDisabled={currentPage === 1}>
         Previous
       </Button>
-      <Text>
+      <Text fontWeight="bold">
         Page {currentPage} of {totalPages || 1}
       </Text>
       <Button
@@ -330,7 +331,7 @@ const PhoneDirectory = () => {
       >
         Next
       </Button>
-    </Flex>
+    </HStack>
   );
 
   return (
@@ -527,9 +528,9 @@ const PhoneDirectory = () => {
                       onChange={(e) =>
                         editingEntry
                           ? setEditingEntry({
-                              ...editingEntry,
-                              name: e.target.value,
-                            })
+                            ...editingEntry,
+                            name: e.target.value,
+                          })
                           : setNewEntry({ ...newEntry, name: e.target.value })
                       }
                       border="1px solid #ccc"
@@ -659,9 +660,9 @@ const PhoneDirectory = () => {
                 onChange={(e) =>
                   editingEntry
                     ? setEditingEntry({
-                        ...editingEntry,
-                        location: e.target.value,
-                      })
+                      ...editingEntry,
+                      location: e.target.value,
+                    })
                     : setNewEntry({ ...newEntry, location: e.target.value })
                 }
               />
@@ -673,9 +674,9 @@ const PhoneDirectory = () => {
                 onChange={(e) =>
                   editingEntry
                     ? setEditingEntry({
-                        ...editingEntry,
-                        prefix: e.target.value,
-                      })
+                      ...editingEntry,
+                      prefix: e.target.value,
+                    })
                     : setNewEntry({ ...newEntry, prefix: e.target.value })
                 }
               />
@@ -689,9 +690,9 @@ const PhoneDirectory = () => {
                 onChange={(e) =>
                   editingEntry
                     ? setEditingEntry({
-                        ...editingEntry,
-                        extension: e.target.value,
-                      })
+                      ...editingEntry,
+                      extension: e.target.value,
+                    })
                     : setNewEntry({ ...newEntry, extension: e.target.value })
                 }
               />
@@ -705,9 +706,9 @@ const PhoneDirectory = () => {
                 onChange={(e) =>
                   editingEntry
                     ? setEditingEntry({
-                        ...editingEntry,
-                        dect_number: e.target.value,
-                      })
+                      ...editingEntry,
+                      dect_number: e.target.value,
+                    })
                     : setNewEntry({ ...newEntry, dect_number: e.target.value })
                 }
               />
@@ -721,9 +722,9 @@ const PhoneDirectory = () => {
                 onChange={(e) =>
                   editingEntry
                     ? setEditingEntry({
-                        ...editingEntry,
-                        phone_name: e.target.value,
-                      })
+                      ...editingEntry,
+                      phone_name: e.target.value,
+                    })
                     : setNewEntry({ ...newEntry, phone_name: e.target.value })
                 }
               />
@@ -736,9 +737,9 @@ const PhoneDirectory = () => {
                 onChange={(e) =>
                   editingEntry
                     ? setEditingEntry({
-                        ...editingEntry,
-                        is_active: e.target.checked,
-                      })
+                      ...editingEntry,
+                      is_active: e.target.checked,
+                    })
                     : setNewEntry({ ...newEntry, is_active: e.target.checked })
                 }
               >

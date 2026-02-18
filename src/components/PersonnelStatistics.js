@@ -502,7 +502,7 @@ const PersonnelStatistics = () => {
 
   return (
     <Box bg={bgColor} minH="100vh" py={{ base: 4, md: 8 }} px={{ base: 2, md: 4 }} overflow="hidden" w="100%">
-      <Box maxW="1400px" mx="auto" w="100%">
+      <Box maxW="100%" mx="auto" w="100%">
         {/* Header Section */}
         <VStack spacing={2} mb={8} textAlign="center" px={{ base: 0, md: 0 }} w="100%">
           <HStack spacing={3}>

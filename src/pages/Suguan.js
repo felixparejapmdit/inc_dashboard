@@ -242,7 +242,7 @@ const Suguan = () => {
 
   return (
     <Box bg={bg} minH="100vh">
-      <Container maxW="container.xl" py={8}>
+      <Container maxW="100%" py={8}>
 
         {/* Header Section */}
         <Flex

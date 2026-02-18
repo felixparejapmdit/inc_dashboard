@@ -405,7 +405,7 @@ const Applications = () => {
                   onOpen();
                 }}
               >
-                Add Application
+                Application
               </Button>
             </HStack>
           </Flex>
@@ -752,7 +752,7 @@ const Applications = () => {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <Flex justify="space-between" align="center" mt={6} flexWrap="wrap" gap={4}>
+          <Flex justify="center" align="center" mt={6} flexWrap="wrap" gap={8}>
             <Button
               onClick={() => handlePageChange("previous")}
               isDisabled={currentPage === 1}
@@ -776,7 +776,7 @@ const Applications = () => {
                   {page}
                 </Button>
               ))}
-              <Text fontSize="sm" color="gray.600" display={{ base: "block", md: "none" }}>
+              <Text fontSize="sm" fontWeight="bold" color="gray.600" display={{ base: "block", md: "none" }}>
                 Page {currentPage} of {totalPages}
               </Text>
             </HStack>

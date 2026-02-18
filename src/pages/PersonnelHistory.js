@@ -107,7 +107,7 @@ const PersonnelHistory = () => {
     };
 
     return (
-        <Box p={{ base: 4, md: 8 }} maxW="1600px" mx="auto">
+        <Box p={{ base: 4, md: 8 }} maxW="100%" mx="auto">
             <VStack align="stretch" spacing={8}>
                 {/* Header Section */}
                 <Flex

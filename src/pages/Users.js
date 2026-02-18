@@ -1737,7 +1737,7 @@ const Users = ({ personnelId }) => {
                   </Tbody>
                 </Table>
               </Box>
-              <Flex justify="space-between" align="center" mt={6} borderTop="1px solid" borderColor="gray.100" pt={4}>
+              <Flex justify="center" align="center" mt={6} borderTop="1px solid" borderColor="gray.100" pt={4} gap={4}>
                 <Button size="sm" onClick={() => handlePageChangePersonnel("previous")} isDisabled={currentPagePersonnel === 1} variant="outline">Previous</Button>
                 <Text fontSize="sm" fontWeight="bold">Page {currentPagePersonnel} of {totalPagesPersonnel}</Text>
                 <Button size="sm" onClick={() => handlePageChangePersonnel("next")} isDisabled={currentPagePersonnel === totalPagesPersonnel} variant="outline">Next</Button>
@@ -1842,7 +1842,7 @@ const Users = ({ personnelId }) => {
                   </Tbody>
                 </Table>
               </Box>
-              <Flex justify="space-between" align="center" mt={6} borderTop="1px solid" borderColor="gray.100" pt={4}>
+              <Flex justify="center" align="center" mt={6} borderTop="1px solid" borderColor="gray.100" pt={4} gap={4}>
                 <Button size="sm" onClick={() => handlePageChangeLdapOnly("previous")} isDisabled={currentPageLdapOnly === 1} variant="outline">Previous</Button>
                 <Text fontSize="sm" fontWeight="bold">Page {currentPageLdapOnly} of {totalPagesLdapOnly}</Text>
                 <Button size="sm" onClick={() => handlePageChangeLdapOnly("next")} isDisabled={currentPageLdapOnly === totalPagesLdapOnly} variant="outline">Next</Button>
@@ -2042,7 +2042,7 @@ const Users = ({ personnelId }) => {
             </Table>
           </Box>
 
-          <Flex justify="space-between" align="center" mt={6} borderTop="1px solid" borderColor="gray.100" pt={4} w="100%">
+          <Flex justify="center" align="center" mt={6} borderTop="1px solid" borderColor="gray.100" pt={4} w="100%" gap={4}>
             <Button
               size="sm"
               onClick={() => handlePageChangeNewPersonnel("previous")}

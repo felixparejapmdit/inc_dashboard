@@ -370,7 +370,7 @@ const Tutorial = ({ isSidebarExpanded, onExpandSidebar }) => {
       content: <StepContent
         title="Your Account"
         img="/images/hand-pointer.png"
-        text="Customization starts here. Manage your personal information, security preferences, and user avatar."
+        text="Manage your personal information, security preferences, and profile picture."
       />,
       placement: "right",
     },
@@ -380,7 +380,7 @@ const Tutorial = ({ isSidebarExpanded, onExpandSidebar }) => {
       content: <StepContent
         title="External Resources"
         img="/images/hand-pointer.png"
-        text="Quickly access and share important links, documentation, and external tools within your group."
+        text="Quickly access and share important links, documents, and external tools within your group."
       />,
       placement: "right",
     },
@@ -439,7 +439,7 @@ const Tutorial = ({ isSidebarExpanded, onExpandSidebar }) => {
       content: <StepContent
         title="Secure Logout"
         img="/images/hand-pointer.png"
-        text="Protects your session and sensitive data. Always remember to logout when you're done for the day!"
+        text="Always remember to logout when you're done for the day to protect your session and sensitive data."
       />,
       alwaysShow: true,
       placement: "top",

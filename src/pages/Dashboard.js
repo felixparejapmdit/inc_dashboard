@@ -82,6 +82,7 @@ import { fetchData } from "../utils/fetchData";
 import { usePermissionContext } from "../contexts/PermissionContext";
 import { useDebounce } from "use-debounce";
 import moment from "moment";
+import { motion, AnimatePresence } from "framer-motion";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -217,27 +218,15 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    let ticking = false;
-
     const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
 
-          // Hysteresis logic to prevent flickering
-          // Switch to compact mode if scrolled down significantly (> 80px)
-          if (scrollTop > 80 && scrollTop > lastScrollTop.current) {
-            setCompactGreeting(true);
-          }
-          // Switch back to full mode only if near the top (< 20px) and scrolling up
-          else if (scrollTop < lastScrollTop.current && scrollTop <= 20) {
-            setCompactGreeting(false);
-          }
-
-          lastScrollTop.current = scrollTop <= 0 ? 0 : scrollTop;
-          ticking = false;
-        });
-        ticking = true;
+      // Use a single threshold with a buffer to prevent flickering
+      // Switch to compact if > 80px, switch back if < 30px
+      if (scrollTop > 80) {
+        setCompactGreeting(true);
+      } else if (scrollTop < 30) {
+        setCompactGreeting(false);
       }
     };
 
@@ -587,91 +576,96 @@ export default function Dashboard() {
           flexWrap="wrap"
         >
 
-
-          {compactGreeting ? (
-            <>
-              <Input
-                data-tour="search-bar"
-                placeholder="Search"
-                size="md"
-                borderRadius="full"
-                bg={inputBg}
-                maxW="300px"
-                value={searchQuery}
-                onChange={handleSearchInput}
-                boxShadow="md"
-                transition="all 0.4s ease"
-              />
-
-              <Box
-                bgGradient="linear(to-r, orange.400, yellow.300)"
-                borderRadius="xl"
-                px={4}
-                py={2}
-                textAlign="left"
-                boxShadow="xl"
-                transition="all 0.4s ease"
-                display="flex"
-                alignItems="center"
-                minW="250px"
-                h="100%"
-              >
-                <Heading as="h1" size="md" color="white">
-                  {getTimeBasedGreeting()}
-                </Heading>
-              </Box>
-            </>
-          ) : (
-            <VStack
-              spacing={4}
-              align="start"
-              width="100%"
+          <Flex
+            direction={compactGreeting ? "row" : "column"}
+            align={compactGreeting ? "center" : "start"}
+            justify={compactGreeting ? "center" : "flex-start"}
+            flex="1"
+            transition="all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
+            gap={4}
+            width="100%"
+          >
+            <Input
+              data-tour="search-bar"
+              placeholder="Search"
+              size="md"
+              borderRadius="full"
+              bg={inputBg}
+              maxW="300px"
+              value={searchQuery}
+              onChange={handleSearchInput}
+              boxShadow="md"
               transition="all 0.4s ease"
-            >
-              <Input
-                data-tour="search-bar"
-                placeholder="Search"
-                size="md"
-                borderRadius="full"
-                bg={inputBg}
-                maxW="300px"
-                value={searchQuery}
-                onChange={handleSearchInput}
-                boxShadow="md"
-                transition="all 0.4s ease"
-              />
+            />
 
+            <motion.div
+              layout
+              style={{ width: compactGreeting ? "auto" : "100%" }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+            >
               <Box
                 bgGradient="linear(to-r, orange.400, yellow.300)"
                 borderRadius="xl"
-                p={6}
+                p={compactGreeting ? 3 : 6}
+                px={compactGreeting ? 5 : 6}
                 textAlign="left"
                 boxShadow="xl"
                 width="100%"
-                transition="all 0.4s ease"
+                display="flex"
+                flexDirection="column"
+                justifyContent="center"
+                minH={compactGreeting ? "48px" : "auto"}
               >
-                <Text fontSize="sm" color="whiteAlpha.900">
-                  {currentDate.toLocaleDateString("en-US", {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </Text>
+                <AnimatePresence mode="wait">
+                  {!compactGreeting && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <Text fontSize="sm" color="whiteAlpha.900" mb={1}>
+                        {currentDate.toLocaleDateString("en-US", {
+                          weekday: "long",
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </Text>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-                <Heading as="h1" size="lg" color="white">
+                <Heading
+                  as="h1"
+                  size={compactGreeting ? "sm" : "lg"}
+                  color="white"
+                  transition="all 0.3s ease"
+                  noOfLines={1}
+                >
                   {getTimeBasedGreeting()}
                 </Heading>
 
-                <Text fontSize="md" color="whiteAlpha.800">
-                  Have a nice day.
-                </Text>
+                <AnimatePresence mode="wait">
+                  {!compactGreeting && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Text fontSize="md" color="whiteAlpha.800" mt={1}>
+                        Have a nice day.
+                      </Text>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </Box>
-            </VStack>
-          )}
+            </motion.div>
+          </Flex>
 
           {/* Mode toggle & bell */}
-          <HStack spacing={2}>
+          <HStack spacing={2} alignSelf={compactGreeting ? "center" : "start"} pt={compactGreeting ? 0 : 2}>
             <IconButton
               icon={colorMode === "light" ? <FiMoon /> : <FiSun />}
               onClick={toggleColorMode}

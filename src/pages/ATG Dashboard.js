@@ -392,7 +392,7 @@ export default function ATGDashboard() {
 
   return (
     <Box minH="100vh" bg={bg} p={{ base: 4, md: 6, lg: 8 }}>
-      <Stack spacing={6} maxW="1800px" mx="auto">
+      <Stack spacing={6} maxW="100%" mx="auto">
 
         {/* Compact Premium Header */}
         <Center

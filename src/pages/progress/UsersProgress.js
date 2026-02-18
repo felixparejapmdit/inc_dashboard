@@ -158,7 +158,7 @@ const UsersProgress = () => {
     };
 
     return (
-        <Container maxW="container.xl" py={8}>
+        <Container maxW="100%" py={8}>
             {/* Premium Header Section */}
             <VStack align="start" spacing={1} mb={8}>
                 <Heading
@@ -354,25 +354,25 @@ const UsersProgress = () => {
 
                     {/* Enhanced Pagination */}
                     {personnels.length > 0 && (
-                        <Flex bg="gray.50" p={4} justify="space-between" align="center" borderTop="1px" borderColor="gray.100">
+                        <Flex bg="gray.50" p={4} justify="center" align="center" borderTop="1px" borderColor="gray.100" gap={6}>
                             <Button
-                                leftIcon={<FiChevronRight style={{ transform: 'rotate(180deg)' }} />}
                                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                                 isDisabled={currentPage === 1}
-                                variant="ghost" size="sm" colorScheme="gray"
+                                variant="outline" size="sm" colorScheme="gray"
+                                leftIcon={<Icon as={props => <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>} />}
                             >
                                 Previous
                             </Button>
-                            <HStack spacing={2}>
+                            <HStack spacing={2} px={4}>
                                 <Text fontSize="sm" fontWeight="800" color="gray.700">Page {currentPage}</Text>
                                 <Text fontSize="sm" color="gray.400">/</Text>
                                 <Text fontSize="sm" color="gray.500">{totalPages}</Text>
                             </HStack>
                             <Button
-                                rightIcon={<FiChevronRight />}
                                 onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                                 isDisabled={currentPage === totalPages}
-                                variant="ghost" size="sm" colorScheme="gray"
+                                variant="outline" size="sm" colorScheme="gray"
+                                rightIcon={<Icon as={props => <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>} />}
                             >
                                 Next
                             </Button>

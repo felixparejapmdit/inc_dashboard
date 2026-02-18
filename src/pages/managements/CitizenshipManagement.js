@@ -14,6 +14,7 @@ import {
   useToast,
   IconButton,
   Text,
+  HStack,
   AlertDialog,
   AlertDialogOverlay,
   AlertDialogContent,
@@ -112,9 +113,8 @@ const CitizenshipManagement = () => {
       setEditingCitizenship(null);
     } catch (error) {
       toast({
-        title: `Error ${
-          editingCitizenship ? "updating" : "adding"
-        } citizenship`,
+        title: `Error ${editingCitizenship ? "updating" : "adding"
+          } citizenship`,
         description: error.message,
         status: "error",
         duration: 3000,
@@ -192,14 +192,14 @@ const CitizenshipManagement = () => {
         />
 
         {/* Pagination Controls - Top */}
-        <Flex justify="space-between" align="center" mb={4}>
+        <HStack justify="center" align="center" mb={4} spacing={4}>
           <Button
             onClick={() => handlePageChange("previous")}
             disabled={currentPage === 1}
           >
             Previous
           </Button>
-          <Text>
+          <Text fontWeight="bold">
             Page {currentPage} of {totalPages}
           </Text>
           <Button
@@ -208,7 +208,7 @@ const CitizenshipManagement = () => {
           >
             Next
           </Button>
-        </Flex>
+        </HStack>
 
         <Table variant="striped">
           <Thead>
@@ -323,14 +323,14 @@ const CitizenshipManagement = () => {
         </Table>
 
         {/* Pagination Controls - Bottom */}
-        <Flex justify="space-between" align="center" mt={4}>
+        <HStack justify="center" align="center" mt={4} spacing={4}>
           <Button
             onClick={() => handlePageChange("previous")}
             disabled={currentPage === 1}
           >
             Previous
           </Button>
-          <Text>
+          <Text fontWeight="bold">
             Page {currentPage} of {totalPages}
           </Text>
           <Button
@@ -339,7 +339,7 @@ const CitizenshipManagement = () => {
           >
             Next
           </Button>
-        </Flex>
+        </HStack>
       </Stack>
 
       {/* Delete Confirmation Dialog */}

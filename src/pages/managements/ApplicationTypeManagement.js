@@ -200,7 +200,7 @@ const ApplicationTypeManagement = () => {
             _hover={{ boxShadow: "md", transform: "translateY(-2px)" }}
             transition="all 0.2s"
           >
-            New Application Type
+            Application Type
           </Button>
         </Flex>
 

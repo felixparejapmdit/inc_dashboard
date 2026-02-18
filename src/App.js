@@ -892,7 +892,7 @@ function MainApp() {
           <Notifications />
           <ReminderNotifier />
           <SuguanNotifier />
-          <Chatbot />
+          {/* <Chatbot /> */}
         </div>
       )}
     </>

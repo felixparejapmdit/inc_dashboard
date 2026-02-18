@@ -303,7 +303,7 @@ const DistrictManagement = () => {
         </Table>
 
         {totalPages > 1 && (
-          <HStack justify="center" mt={4}>
+          <HStack justify="center" mt={4} spacing={4}>
             <Button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               isDisabled={currentPage === 1}

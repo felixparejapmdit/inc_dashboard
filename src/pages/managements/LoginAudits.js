@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-  Box, Button, Flex, HStack, Input, Table, Tbody, Td, Th, Thead, Tr, Text,
+  Box, Button, Flex, HStack, VStack, Input, Table, Tbody, Td, Th, Thead, Tr, Text,
   Stat, StatLabel, StatNumber, SimpleGrid, Switch, useToast, Avatar, Badge,
   Skeleton, Stack, IconButton, Tooltip, Select
 } from "@chakra-ui/react";
@@ -282,7 +282,7 @@ const LoginAudits = () => {
       </SimpleGrid>
 
       {/* Search + Pagination Top */}
-      <Flex justify="space-between" align="center" mb={3} flexWrap="wrap" gap={3}>
+      <HStack justify="center" align="center" mb={3} flexWrap="wrap" gap={3}>
         <Input
           placeholder="Search username, device, OS..."
           value={searchQuery}
@@ -290,12 +290,12 @@ const LoginAudits = () => {
           bg="white"
           maxW="360px"
         />
-        <HStack>
-          <Select size="sm" value={limit} onChange={e => setLimit(Number(e.target.value))}>
-            {[10, 15, 25, 50].map(size => (
-              <option key={size} value={size}>{size} / page</option>
-            ))}
-          </Select>
+        <Select size="sm" w="130px" value={limit} onChange={e => setLimit(Number(e.target.value))}>
+          {[10, 15, 25, 50].map(size => (
+            <option key={size} value={size}>{size} / page</option>
+          ))}
+        </Select>
+        <HStack spacing={2}>
           <IconButton icon={<ChevronLeftIcon />} size="sm" onClick={() => handleGotoPage(page - 1)} isDisabled={page === 1} />
           {getPageNumbers().map(p => (
             <Button key={p} size="sm" variant={p === page ? "solid" : "ghost"} colorScheme={p === page ? "blue" : "gray"} onClick={() => handleGotoPage(p)}>
@@ -304,7 +304,7 @@ const LoginAudits = () => {
           ))}
           <IconButton icon={<ChevronRightIcon />} size="sm" onClick={() => handleGotoPage(page + 1)} isDisabled={page === totalPages} />
         </HStack>
-      </Flex>
+      </HStack>
 
       {/* Table */}
       <Box bg="white" borderRadius="md" p={4} shadow="sm" minH="320px">
@@ -336,13 +336,13 @@ const LoginAudits = () => {
                         <Text>{log.user?.username || "Unknown"}</Text>
                       </HStack>
                     </Td>
-                <Td>
-  {log.user?.isLoggedIn === 1 || log.user?.status === "Online" ? (
-    <Badge colorScheme="green">Online</Badge>
-  ) : (
-    <Badge colorScheme="gray">Offline</Badge>
-  )}
-</Td>
+                    <Td>
+                      {log.user?.isLoggedIn === 1 || log.user?.status === "Online" ? (
+                        <Badge colorScheme="green">Online</Badge>
+                      ) : (
+                        <Badge colorScheme="gray">Offline</Badge>
+                      )}
+                    </Td>
 
                     <Td>{log.device || "—"}</Td>
                     <Td>{log.os || "—"}</Td>
@@ -354,11 +354,11 @@ const LoginAudits = () => {
             </Table>
 
             {/* Bottom Pagination */}
-            <Flex justify="space-between" align="center" mt={4} flexWrap="wrap" gap={3}>
-              <Text fontSize="sm" color="gray.600">
+            <VStack mt={4} spacing={3} align="center">
+              <Text fontSize="sm" color="gray.600" fontWeight="bold">
                 Showing {(page - 1) * limit + 1} - {Math.min(page * limit, filtered.length)} of {filtered.length}
               </Text>
-              <HStack>
+              <HStack spacing={2}>
                 <IconButton icon={<ChevronLeftIcon />} size="sm" onClick={() => handleGotoPage(page - 1)} isDisabled={page === 1} />
                 {getPageNumbers().map(p => (
                   <Button key={`bottom-${p}`} size="sm" variant={p === page ? "solid" : "ghost"} colorScheme={p === page ? "blue" : "gray"} onClick={() => handleGotoPage(p)}>
@@ -367,7 +367,7 @@ const LoginAudits = () => {
                 ))}
                 <IconButton icon={<ChevronRightIcon />} size="sm" onClick={() => handleGotoPage(page + 1)} isDisabled={page === totalPages} />
               </HStack>
-            </Flex>
+            </VStack>
           </>
         )}
       </Box>
