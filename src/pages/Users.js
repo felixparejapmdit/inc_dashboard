@@ -164,8 +164,12 @@ const Users = ({ personnelId }) => {
   const { isOpen: isSyncModalOpen, onOpen: onSyncModalOpen, onClose: onSyncModalClose } = useDisclosure();
 
   // For select all
-  const allKeys =
-    existingPersonnel.length > 0 ? Object.keys(existingPersonnel[0]) : [];
+  const allKeys = useMemo(() => {
+    if (existingPersonnel.length === 0) return [];
+    // Prioritize a record with personnel_id to ensure we get all relevant columns
+    const record = existingPersonnel.find(u => u.personnel_id) || existingPersonnel[0];
+    return Object.keys(record);
+  }, [existingPersonnel]);
   const allVisible = allKeys.every((key) => columnVisibility[key]);
 
   const [categorizedApps, setCategorizedApps] = useState({});
@@ -1233,40 +1237,69 @@ const Users = ({ personnelId }) => {
   };
 
   useEffect(() => {
-    //console.log("existingPersonnel:", existingPersonnel); // ✅ Debug log
-
     if (existingPersonnel.length > 0) {
-      const sample = existingPersonnel[0];
+      setColumnVisibility((prev) => {
+        // If state is already populated (e.g., during pagination), preserve it to prevent reset
+        if (Object.keys(prev).length > 0) return prev;
 
-      // Define your default selected columns here
-      const defaultColumns = [
-        "username",
-        "avatar",
-        "personnel_givenname",
-        "personnel_surname_husband",
-      ];
+        const sample = existingPersonnel[0];
+        const keys = Object.keys(sample);
 
-      const defaultVisibility = Object.keys(sample).reduce((acc, key) => {
-        acc[key] = defaultColumns.includes(key); // true only for default columns
-        return acc;
-      }, {});
-      setColumnVisibility(defaultVisibility);
+        // Try to load from localStorage
+        const savedVisibility = localStorage.getItem("userColumnVisibility");
+        if (savedVisibility) {
+          try {
+            const parsed = JSON.parse(savedVisibility);
+            if (parsed && Object.keys(parsed).length > 0) {
+              // Optional: Merge with current keys to handle new columns in data? 
+              // For now, just use saved. 
+              return parsed;
+            }
+          } catch (error) {
+            console.error("Error parsing localStorage userColumnVisibility:", error);
+          }
+        }
+
+        // 2. Fallback to Default columns
+        const defaultColumns = [
+          "username",
+          "avatar",
+          "personnel_givenname",
+          "personnel_surname_husband",
+        ];
+
+        const defaultVisibility = keys.reduce((acc, key) => {
+          acc[key] = defaultColumns.includes(key);
+          return acc;
+        }, {});
+
+        // Save default to localStorage
+        localStorage.setItem("userColumnVisibility", JSON.stringify(defaultVisibility));
+
+        return defaultVisibility;
+      });
     }
   }, [existingPersonnel]);
 
   const toggleSelectAll = () => {
+    const newValue = !allVisible;
     const updated = {};
     allKeys.forEach((key) => {
-      updated[key] = !allVisible;
+      updated[key] = newValue;
     });
     setColumnVisibility(updated);
+    localStorage.setItem("userColumnVisibility", JSON.stringify(updated));
   };
 
   const toggleColumn = (key) => {
-    setColumnVisibility((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
+    setColumnVisibility((prev) => {
+      const newState = {
+        ...prev,
+        [key]: !prev[key],
+      };
+      localStorage.setItem("userColumnVisibility", JSON.stringify(newState));
+      return newState;
+    });
   };
 
   const exportAsCSV = () => {
@@ -1523,8 +1556,8 @@ const Users = ({ personnelId }) => {
           </Button>
         )}
 
-        {/* Sync ES Button */}
-        <Button
+        {/* Sync ES Button - HIDDEN for now */}
+        {/* <Button
           colorScheme="purple"
           leftIcon={<Icon as={RepeatIcon} />}
           isLoading={isSyncingES}
@@ -1534,7 +1567,7 @@ const Users = ({ personnelId }) => {
           ml={2}
         >
           Sync Search Index
-        </Button>
+        </Button> */}
 
       </Flex>
 
@@ -1551,12 +1584,12 @@ const Users = ({ personnelId }) => {
           />
         </InputGroup>
 
-        <FormControl display="flex" alignItems="center" w="auto">
+        {/* <FormControl display="flex" alignItems="center" w="auto">
           <FormLabel htmlFor="es-mode" mb="0" fontSize="sm">
             ES Search
           </FormLabel>
           <Switch id="es-mode" isChecked={useElasticsearch} onChange={() => setUseElasticsearch(!useElasticsearch)} />
-        </FormControl>
+        </FormControl> */}
 
         <Tooltip label="Reload List / Clear Search" hasArrow>
           <IconButton
@@ -1711,8 +1744,11 @@ const Users = ({ personnelId }) => {
                   <Thead bg="gray.50">
                     <Tr>
                       <Th py={3} color="gray.600">#</Th>
-                      <Th py={3} color="gray.600">Full Name</Th>
-                      <Th py={3} color="gray.600">Personnel Type</Th>
+                      {allKeys.map((key) => columnVisibility[key] && (
+                        <Th key={`th-${key}`} py={3} color="gray.600">
+                          {key.replace("personnel_", "").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
+                        </Th>
+                      ))}
                       <Th py={3} color="gray.600">Action</Th>
                     </Tr>
                   </Thead>
@@ -1720,7 +1756,7 @@ const Users = ({ personnelId }) => {
                     {isLoading ? (
                       Array.from({ length: 5 }).map((_, i) => (
                         <Tr key={i}>
-                          <Td colSpan={4}>
+                          <Td colSpan={allKeys.filter(k => columnVisibility[k]).length + 2}>
                             <HStack>
                               <SkeletonCircle size="10" />
                               <SkeletonText mt="4" noOfLines={1} spacing="4" skeletonHeight="4" width="100%" />
@@ -1734,38 +1770,39 @@ const Users = ({ personnelId }) => {
                           (item.avatar
                             ? (item.avatar.startsWith("http") ? item.avatar : `${API_URL}${item.avatar.startsWith("/") ? "" : "/"}${item.avatar}`)
                             : "");
+
                         return (
                           <Tr key={item.ID} _hover={{ bg: "blue.50" }} transition="background 0.2s">
                             <Td fontWeight="bold" color="blue.500">{(currentPagePersonnel - 1) * ITEMS_PER_PAGE + index + 1}</Td>
-                            <Td>
-                              <HStack spacing={3}>
-                                <Tooltip label="Click to zoom" placement="top">
-                                  <Avatar
-                                    size="md"
-                                    src={avatarSrc}
-                                    name={`${item.givenName || item.personnel_givenname || "N/A"} ${item.sn || item.personnel_surname_husband || "N/A"}`}
-                                    cursor="pointer"
-                                    border="2px solid white"
-                                    boxShadow="sm"
-                                    _hover={{ transform: "scale(1.5)", zIndex: 10, borderColor: "blue.400" }}
-                                    transition="all 0.2s"
-                                    onClick={() => handleAvatarClick(avatarSrc)}
-                                  />
-                                </Tooltip>
-                                <Text fontWeight="bold" fontSize="sm" color="gray.700" whiteSpace="nowrap">
-                                  {`${item.givenName || item.personnel_givenname || "N/A"} ${item.sn || item.personnel_surname_husband || "N/A"}`}
-                                </Text>
-                              </HStack>
-                            </Td>
-                            <Td>
-                              <Badge colorScheme={
-                                item.personnel_type === "Minister" ? "purple" :
-                                  item.personnel_type === "Regular" ? "green" :
-                                    "gray"
-                              }>
-                                {item.personnel_type || "N/A"}
-                              </Badge>
-                            </Td>
+
+                            {allKeys.map((key) => columnVisibility[key] && (
+                              <Td key={`td-${key}`}>
+                                {key === 'avatar' ? (
+                                  <Tooltip label="Click to zoom" placement="top">
+                                    <Avatar
+                                      size="md"
+                                      src={avatarSrc}
+                                      name={`${item.givenName || item.personnel_givenname || "N/A"} ${item.sn || item.personnel_surname_husband || "N/A"}`}
+                                      cursor="pointer"
+                                      border="2px solid white"
+                                      boxShadow="sm"
+                                      _hover={{ transform: "scale(1.5)", zIndex: 10, borderColor: "blue.400" }}
+                                      transition="all 0.2s"
+                                      onClick={() => handleAvatarClick(avatarSrc)}
+                                      onError={(e) => {
+                                        e.target.onerror = null;
+                                        e.target.src = "/default-avatar.png";
+                                      }}
+                                    />
+                                  </Tooltip>
+                                ) : (
+                                  <Text fontSize="sm" color="gray.700">
+                                    {item[key] !== null && item[key] !== undefined ? String(item[key]) : ""}
+                                  </Text>
+                                )}
+                              </Td>
+                            ))}
+
                             <Td>
                               <HStack spacing={2}>
                                 {hasPermission("personnels.edit") && (

@@ -22,6 +22,7 @@ import {
   SimpleGrid,
   FormControl,
   FormLabel,
+  FormErrorMessage,
   Divider,
 } from "@chakra-ui/react";
 import { DeleteIcon, EditIcon, CheckIcon } from "@chakra-ui/icons";
@@ -53,6 +54,7 @@ const Step1 = ({
   toggleEdit, // ✅ Receive toggleEdit function as a prop
   dutiesToDelete, // 🔥 ADD THIS
   setDutiesToDelete, // 🔥 AND THIS
+  formErrors = {}, // ✅ Receive formErrors
 }) => {
   const [step, setStep] = useState(1);
 
@@ -210,21 +212,7 @@ const Step1 = ({
     field === undefined || field === null || field.trim() === "";
 
   // Function to validate the entire form
-  const validateForm = (data, requiredFields) => {
-    const errors = {};
 
-    requiredFields.forEach((field) => {
-      if (isRequiredFieldMissing(data[field])) {
-        errors[field] = "This field is required.";
-      }
-    });
-
-    if (data.email_address && !validateEmail(data.email_address)) {
-      errors.email_address = "Invalid email format.";
-    }
-
-    return errors;
-  };
 
   const handleAddDuty = () => {
     if (duties.length >= 5) {
@@ -279,7 +267,7 @@ const Step1 = ({
           <Flex justifyContent="flex-end" mb={4} px={4}>
             <IconButton
               icon={isEditing ? <CheckIcon /> : <EditIcon />}
-              onClick={toggleEdit}
+              onClick={toggleEdit} // ✅ Use the updated toggleEdit that includes handleSave validation
               colorScheme={isEditing ? "green" : "blue"}
               aria-label={isEditing ? "Save" : "Edit"}
               size="sm"
@@ -291,8 +279,8 @@ const Step1 = ({
           <Box mb={6} p={4} borderRadius="lg" bg="white" shadow="sm" border="1px" borderColor="gray.100">
 
             <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={5} mb={4}>
-              <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Gender <Text as="span" color="red.500" ml={1}>*</Text></FormLabel>
+              <FormControl isRequired isInvalid={!!formErrors.gender}>
+                <FormLabel fontWeight="bold" color="#0a5856">Gender</FormLabel>
                 <RadioGroup
                   name="gender"
                   onChange={(value) =>
@@ -311,10 +299,11 @@ const Step1 = ({
                     <Radio value="Female">Female</Radio>
                   </Stack>
                 </RadioGroup>
+                <FormErrorMessage>{formErrors.gender}</FormErrorMessage>
               </FormControl>
 
-              <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Civil Status <Text as="span" color="red.500" ml={1}>*</Text></FormLabel>
+              <FormControl isRequired isInvalid={!!formErrors.civil_status}>
+                <FormLabel fontWeight="bold" color="#0a5856">Civil Status</FormLabel>
                 <RadioGroup
                   name="civil_status"
                   onChange={(value) =>
@@ -336,6 +325,7 @@ const Step1 = ({
                     ))}
                   </Stack>
                 </RadioGroup>
+                <FormErrorMessage>{formErrors.civil_status}</FormErrorMessage>
               </FormControl>
 
               {personnelData.civil_status === "Married" && (
@@ -361,8 +351,8 @@ const Step1 = ({
 
             {/* Names Grid */}
             <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={5}>
-              <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Given Name <Text as="span" color="red.500" ml={1}>*</Text></FormLabel>
+              <FormControl isRequired isInvalid={!!formErrors.givenname}>
+                <FormLabel fontWeight="bold" color="#0a5856">Given Name</FormLabel>
                 <Input
                   placeholder="Given Name"
                   name="givenname"
@@ -370,6 +360,7 @@ const Step1 = ({
                   onChange={handleChange}
                   isDisabled={!isEditing}
                 />
+                <FormErrorMessage>{formErrors.givenname}</FormErrorMessage>
               </FormControl>
 
               <FormControl>
@@ -383,9 +374,9 @@ const Step1 = ({
                 />
               </FormControl>
 
-              <FormControl>
+              <FormControl isInvalid={!!formErrors.surname_maiden}>
                 <FormLabel fontWeight="bold" color="#0a5856">
-                  {personnelData.surname_maiden_label || "Surname (Maiden)"} <Text as="span" color="red.500" ml={1}>*</Text>
+                  {personnelData.surname_maiden_label || "Surname (Maiden)"}
                 </FormLabel>
                 <Input
                   placeholder={
@@ -396,11 +387,12 @@ const Step1 = ({
                   onChange={handleChange}
                   isDisabled={personnelData.surname_maiden_disabled}
                 />
+                <FormErrorMessage>{formErrors.surname_maiden}</FormErrorMessage>
               </FormControl>
 
-              <FormControl>
+              <FormControl isRequired isInvalid={!!formErrors.surname_husband}>
                 <FormLabel fontWeight="bold" color="#0a5856">
-                  {personnelData.surname_husband_label || "Surname (Husband)"} <Text as="span" color="red.500" ml={1}>*</Text>
+                  {personnelData.surname_husband_label || "Surname (Husband)"}
                 </FormLabel>
                 <Input
                   placeholder={
@@ -412,6 +404,7 @@ const Step1 = ({
                   onChange={handleChange}
                   isDisabled={!isEditing}
                 />
+                <FormErrorMessage>{formErrors.surname_husband}</FormErrorMessage>
               </FormControl>
 
               <FormControl>
@@ -544,8 +537,8 @@ const Step1 = ({
           <Box mb={6} p={4} borderRadius="lg" bg="white" shadow="sm" border="1px" borderColor="gray.100">
 
             <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={5}>
-              <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Birthday <Text as="span" color="red.500" ml={1}>*</Text></FormLabel>
+              <FormControl isRequired isInvalid={!!formErrors.date_of_birth}>
+                <FormLabel fontWeight="bold" color="#0a5856">Birthday</FormLabel>
                 <Input
                   placeholder="Date of Birth"
                   name="date_of_birth"
@@ -559,6 +552,7 @@ const Step1 = ({
                   width="100%"
                   isDisabled={!isEditing}
                 />
+                <FormErrorMessage>{formErrors.date_of_birth}</FormErrorMessage>
               </FormControl>
 
               <FormControl>
@@ -589,8 +583,8 @@ const Step1 = ({
                 />
               </FormControl>
 
-              <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Date Started in the office <Text as="span" color="red.500" ml={1}>*</Text></FormLabel>
+              <FormControl isRequired isInvalid={!!formErrors.datejoined}>
+                <FormLabel fontWeight="bold" color="#0a5856">Date Started in the office</FormLabel>
                 <Input
                   placeholder="Date Joined"
                   name="datejoined"
@@ -604,6 +598,7 @@ const Step1 = ({
                   width="100%"
                   isDisabled={!isEditing}
                 />
+                <FormErrorMessage>{formErrors.datejoined}</FormErrorMessage>
               </FormControl>
             </SimpleGrid>
           </Box>
@@ -672,24 +667,16 @@ const Step1 = ({
                 />
               </FormControl>
 
-              <FormControl>
+              <FormControl isRequired isInvalid={!!formErrors.email_address}>
                 <FormLabel fontWeight="bold" color="#0a5856">Personal Email Address</FormLabel>
                 <Input
                   placeholder="Enter Email Address"
                   name="email_address"
                   value={personnelData.email_address || ""}
                   onChange={handleChange}
-                  isInvalid={!!emailError}
-                  errorBorderColor="red.300"
-                  borderColor={emailError ? "red.500" : "gray.300"}
-                  focusBorderColor={emailError ? "red.500" : "teal.400"}
                   isDisabled={!isEditing}
                 />
-                {emailError && (
-                  <Box mt={1} color="red.500" fontSize="sm">
-                    {emailError}
-                  </Box>
-                )}
+                <FormErrorMessage>{formErrors.email_address}</FormErrorMessage>
               </FormControl>
 
               <FormControl display="none">
@@ -772,8 +759,8 @@ const Step1 = ({
                   styles={{ container: (base) => ({ ...base, width: "100%" }) }}
                 />
               </FormControl>
-              <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Department <Text as="span" color="red.500" ml={1}>*</Text></FormLabel>
+              <FormControl isRequired isInvalid={!!formErrors.department_id}>
+                <FormLabel fontWeight="bold" color="#0a5856">Department</FormLabel>
                 <Select
                   placeholder="Select Department"
                   name="department_id"
@@ -801,6 +788,7 @@ const Step1 = ({
                   isDisabled={!isEditing}
                   styles={{ container: (base) => ({ ...base, width: "100%" }) }}
                 />
+                <FormErrorMessage>{formErrors.department_id}</FormErrorMessage>
               </FormControl>
 
               <FormControl>
@@ -1132,8 +1120,8 @@ const Step1 = ({
           {/* Personnel Classification Section */}
           <Box mb={6} p={4} borderRadius="lg" bg="white" shadow="sm" border="1px" borderColor="gray.100">
 
-            <FormControl>
-              <FormLabel fontWeight="bold" color="#0a5856">Personnel Type <Text as="span" color="red.500" ml={1}>*</Text></FormLabel>
+            <FormControl isRequired isInvalid={!!formErrors.personnel_type}>
+              <FormLabel fontWeight="bold" color="#0a5856">Personnel Type</FormLabel>
               <RadioGroup
                 name="personnel_type"
                 onChange={(value) => {
@@ -1157,6 +1145,7 @@ const Step1 = ({
                   ))}
                 </Stack>
               </RadioGroup>
+              <FormErrorMessage>{formErrors.personnel_type}</FormErrorMessage>
             </FormControl>
           </Box>
 

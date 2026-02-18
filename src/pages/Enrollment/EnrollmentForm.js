@@ -97,9 +97,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
   const [isEditing, setIsEditing] = useState(!personnelId); // Enabled if personnel_id exists
   const [dutiesToDelete, setDutiesToDelete] = useState([]);
 
-  const toggleEdit = () => {
-    setIsEditing((prev) => !prev);
-  };
+
 
   const steps = [
     { label: "District Office", progressValue: 0 },
@@ -284,6 +282,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
   });
 
   const [emailError, setEmailError] = useState("");
+  const [formErrors, setFormErrors] = useState({});
   const [age, setAge] = useState("");
 
   // Update the age whenever date_of_birth changes
@@ -861,105 +860,66 @@ const EnrollmentForm = ({ referenceNumber }) => {
     });
   };
 
+  const validateEmail = (email) => {
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailPattern.test(email);
+  };
+
   const handleSave = async () => {
     setIsLoading(true);
+    setFormErrors({}); // Reset previous errors
+
+    // Define required fields for Step 1
+    const errors = {};
+    if (!personnelData.givenname) errors.givenname = "Given Name is required.";
+    if (!personnelData.surname_husband) {
+      errors.surname_husband = (personnelData.gender === "Male" || personnelData.civil_status === "Single")
+        ? "Surname is required."
+        : "Surname (Husband) is required.";
+    }
+
+    // Condition for surname_maiden - Only required for Married Females
+    if (personnelData.gender === "Female" && personnelData.civil_status === "Married" && !personnelData.surname_maiden) {
+      errors.surname_maiden = "Surname (Maiden) is required.";
+    }
+
+    if (!personnelData.gender) errors.gender = "Gender is required.";
+    if (!personnelData.civil_status) errors.civil_status = "Civil Status is required.";
+    if (!personnelData.date_of_birth) errors.date_of_birth = "Birthday is required.";
+    if (!personnelData.datejoined) errors.datejoined = "Date Started is required.";
+    if (!personnelData.department_id) errors.department_id = "Department is required.";
+    if (!personnelData.personnel_type) errors.personnel_type = "Personnel Type is required.";
+
+    if (!personnelData.email_address) {
+      errors.email_address = "Email Address is required.";
+    } else if (!validateEmail(personnelData.email_address)) {
+      errors.email_address = "Please enter a valid email address.";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast({
+        title: "Missing Information",
+        description: "Please correctly fill in all required fields indicated in red.",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+        position: "bottom-left",
+      });
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      // Email validation before proceeding
-      if (!personnelData.email_address) {
-        toast({
-          title: "Validation Error",
-          description: "Email Address is required.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-          position: "bottom-left",
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailPattern.test(personnelData.email_address)) {
-        toast({
-          title: "Validation Error",
-          description: "Please enter a valid email address.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-          position: "bottom-left",
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      // Ensure step is derived from URL for accurate calculations
-      //const currentStep = parseInt(searchParams.get("step"), 10) || 1;
-
-      // Ensure step is derived from URL
       const currentStep = parseInt(searchParams.get("step"), 10) || step;
-      let nextStep = currentStep + 1;
-
-      // Skip Step 6 if civil_status is Single
-      if (personnelData.civil_status === "Single" && nextStep === 6) {
-        nextStep = 7;
-      }
-      // Check if we are on the first step for new personnel
-      //if (step === 1) {
 
       if (!personnelId) {
-        const missingFields = [];
-        if (!personnelData.givenname) missingFields.push("Given Name");
-        if (!personnelData.date_of_birth) missingFields.push("Date of Birth");
-        if (!personnelData.civil_status) missingFields.push("Civil Status");
-        if (!personnelData.email_address) missingFields.push("Email Address");
-        if (!personnelData.personnel_type) missingFields.push("Personnel Type");
-
-        if (missingFields.length > 0) {
-          toast({
-            title: "Validation Error",
-            description: `The following fields are required: ${missingFields.join(
-              ", "
-            )}.`,
-            duration: 3000,
-            isClosable: true,
-            position: "bottom-left", // Position the toast on the bottom-left
-            render: () => (
-              <Box
-                color="black"
-                p={3}
-                bg="yellow.300"
-                borderRadius="md"
-                boxShadow="lg"
-              >
-                <strong>Validation Error:</strong> <br />
-                The following fields are required: {missingFields.join(", ")}.
-              </Box>
-            ),
-          });
-          setIsLoading(false);
-          return;
-        }
-
         // Show confirmation modal for new enrollment
         setIsModalOpen(true);
         setIsLoading(false);
-
         return;
       } else {
         // If personnel_id exists, update the data directly
-        if (!personnelData.email_address) {
-          toast({
-            title: "Validation Error",
-            description: "Email Address is required for updating data.",
-            status: "error",
-            duration: 3000,
-            isClosable: true,
-            position: "bottom-left", // Position the toast on the bottom-left
-          });
-          setIsLoading(false);
-          return;
-        }
-
         try {
           await putData("personnels", personnelId, {
             ...personnelData,
@@ -977,9 +937,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
         } catch (error) {
           toast({
             title: "Update Failed",
-            description:
-              error.message ||
-              "Something went wrong while updating enrollment.",
+            description: error.message || "Something went wrong while updating enrollment.",
             status: "error",
             duration: 3000,
             isClosable: true,
@@ -987,24 +945,15 @@ const EnrollmentForm = ({ referenceNumber }) => {
           });
         }
 
-        //updating personnel church duties
-
-        // Delete the duties first
+        // Handle church duties
         if (dutiesToDelete.length > 0) {
           for (const dutyId of dutiesToDelete) {
-            // await axios.delete(
-            //   `${API_URL}/api/personnel_church_duties/${dutyId}`
-            // );
             await deleteData("personnel_church_duties", dutyId);
           }
-          setDutiesToDelete([]); // Clear after deletion
+          setDutiesToDelete([]);
         }
 
-        // Assuming you can send updated duties via PUT or PATCH request
-        if (
-          personnelData.church_duties &&
-          personnelData.church_duties.length > 0
-        ) {
+        if (personnelData.church_duties && personnelData.church_duties.length > 0) {
           for (const duty of personnelData.church_duties) {
             const payload = {
               duty: duty.duty || null,
@@ -1023,34 +972,33 @@ const EnrollmentForm = ({ referenceNumber }) => {
               }
             } catch (error) {
               console.error("Error saving duty:", error);
-              toast({
-                title: "Error",
-                description: error.message || "Failed to save the duty.",
-                status: "error",
-                duration: 3000,
-                isClosable: true,
-              });
             }
           }
         }
 
-        // 🔥 After saving duties, refresh the duties list
-        await fetchChurchDuties(); // <-- ADD THIS
-        // ✅ After saving, switch icon to `EditIcon`
-        setIsEditing(false);
+        await fetchChurchDuties();
+        setIsEditing(false); // Successfully saved, exit edit mode
       }
     } catch (error) {
-      console.error("Error handling next step:", error);
+      console.error("Error handling save:", error);
       toast({
         title: "Error",
         description: "Failed to save enrollment data. Please try again.",
         status: "error",
         duration: 3000,
         isClosable: true,
-        position: "bottom-left", // Position the toast on the bottom-left
+        position: "bottom-left",
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const toggleEdit = async () => {
+    if (isEditing) {
+      await handleSave();
+    } else {
+      setIsEditing(true);
     }
   };
 
@@ -1928,6 +1876,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
           toggleEdit={toggleEdit} // ✅ Pass toggleEdit function
           dutiesToDelete={dutiesToDelete} // 🔥 ADD THIS
           setDutiesToDelete={setDutiesToDelete} // 🔥 ADD THIS
+          formErrors={formErrors} // ✅ Pass formErrors
         />
       )}
 
@@ -2689,9 +2638,10 @@ const EnrollmentForm = ({ referenceNumber }) => {
         <Flex w="100%" justify="flex-end" align="center" mt={2} mb={2} px={4}>
           <IconButton
             icon={isEditing ? <CheckIcon /> : <EditIcon />}
-            // onClick={toggleEdit}
-            onClick={isEditing ? handleSave : () => setIsEditing(true)} // ✅ Save before disabling fields
+            onClick={toggleEdit} // ✅ Use the updated toggleEdit that includes handleSave validation
             colorScheme={isEditing ? "green" : "blue"}
+            aria-label={isEditing ? "Save" : "Edit"}
+            size="sm"
           />
         </Flex>
       )}

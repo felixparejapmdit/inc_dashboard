@@ -218,7 +218,11 @@ const PersonnelStatistics = () => {
         });
 
         setTrackingStats(result);
+
+        // Add Total On Progress details
+        details["Total On Progress"] = totalNewData;
         setTrackingDetails(details);
+
         // Use the total from the 'new' endpoint to match ProgressTracking page exactly
         setTotalProgress(totalNewData.length);
       })
@@ -245,7 +249,7 @@ const PersonnelStatistics = () => {
     return (
       <Popover trigger="hover" placement="top" isLazy>
         <PopoverTrigger>
-          <Box display="inline-block">{children}</Box>
+          <Box w="100%" h="100%">{children}</Box>
         </PopoverTrigger>
         <Portal>
           <PopoverContent w="300px" boxShadow="xl" _focus={{ outline: "none" }}>
@@ -256,25 +260,26 @@ const PersonnelStatistics = () => {
               </Box>
               <List spacing={0}>
                 {items.map((p, idx) => {
-                  // Try to resolve avatar URL. Assuming p has personnel_id or image path.
-                  // If p.image is relative path like "uploads/avatar/..."
-                  // p.image or p.avatar_url? Need to check structure.
-                  // User mentions "uploads/avatar".
-                  // Most likely: `${API_URL}/${p.image}` or `${API_URL}/uploads/avatar/${p.image}`
-                  // I will check if p.image starts with 'http' or '/'.
-
-                  const rawImage = p.image || (p.images && p.images.length > 0 ? p.images[0].image_url : null);
+                  const rawImage = p.avatar || p.image || (p.images && p.images.length > 0 ? p.images[0].image_url : null);
                   const avatarSrc = rawImage
                     ? (rawImage.startsWith('http') ? rawImage : `${API_URL}/${rawImage.startsWith('/') ? rawImage.slice(1) : rawImage}`)
                     : null;
 
-                  // Fallback name construction using fields from Personnel model
+                  // Fallback name construction
                   const name = p.fullname || `${p.givenname || ""} ${p.surname_husband || ""}`.trim() || "Unknown";
 
                   return (
                     <ListItem key={p.personnel_id || idx} p={2} _hover={{ bg: "gray.50" }}>
                       <HStack>
-                        <Avatar size="sm" src={avatarSrc} name={name} />
+                        <Avatar
+                          size="sm"
+                          src={avatarSrc}
+                          name={name}
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "/default-avatar.png";
+                          }}
+                        />
                         <Text fontSize="sm" noOfLines={1}>{name}</Text>
                       </HStack>
                     </ListItem>
@@ -292,11 +297,7 @@ const PersonnelStatistics = () => {
     const listItems = personnelByType[label] || [];
 
     return (
-      <Tooltip
-        label={`Click to view ${label === "All" ? "all personnel" : label + " personnel"}`}
-        hasArrow
-        placement="top"
-      >
+      <PersonnelListPopover items={listItems} label={label}>
         <Box
           key={label}
           bg={cardBgColor}
@@ -315,6 +316,7 @@ const PersonnelStatistics = () => {
           overflow="hidden"
           border="1px solid"
           borderColor={cardBorderColor}
+          h="100%"
         >
           {/* Background Gradient Overlay */}
           <Box
@@ -341,17 +343,14 @@ const PersonnelStatistics = () => {
                 </Text>
               </HStack>
 
-              <PersonnelListPopover items={listItems} label={label}>
-                <Text
-                  fontSize={{ base: "3xl", md: "4xl" }}
-                  fontWeight="black"
-                  color="gray.800"
-                  lineHeight="1"
-                  _hover={{ color: "teal.600" }} // Indicate interactivity
-                >
-                  {value}
-                </Text>
-              </PersonnelListPopover>
+              <Text
+                fontSize={{ base: "3xl", md: "4xl" }}
+                fontWeight="black"
+                color="gray.800"
+                lineHeight="1"
+              >
+                {value}
+              </Text>
 
               <HStack spacing={2} mt={2}>
                 <Badge colorScheme="teal" fontSize="xs" borderRadius="full" px={2}>
@@ -392,7 +391,7 @@ const PersonnelStatistics = () => {
             </HStack>
           </Flex>
         </Box>
-      </Tooltip>
+      </PersonnelListPopover>
     );
   };
 
@@ -400,7 +399,7 @@ const PersonnelStatistics = () => {
     const listItems = trackingDetails[label] || [];
 
     return (
-      <Tooltip label={`Navigate to ${label}`} hasArrow placement="top">
+      <PersonnelListPopover items={listItems} label={label}>
         <Box
           key={label}
           bg={cardBgColor}
@@ -419,6 +418,7 @@ const PersonnelStatistics = () => {
           overflow="hidden"
           border="1px solid"
           borderColor={cardBorderColor}
+          h="100%"
         >
           {/* Top Gradient Bar */}
           <Box
@@ -449,17 +449,14 @@ const PersonnelStatistics = () => {
                   {label}
                 </Text>
 
-                <PersonnelListPopover items={listItems} label={label}>
-                  <Text
-                    fontSize={{ base: "2xl", md: "3xl" }}
-                    fontWeight="black"
-                    color="gray.800"
-                    lineHeight="1"
-                    _hover={{ color: "purple.600" }}
-                  >
-                    {value}
-                  </Text>
-                </PersonnelListPopover>
+                <Text
+                  fontSize={{ base: "2xl", md: "3xl" }}
+                  fontWeight="black"
+                  color="gray.800"
+                  lineHeight="1"
+                >
+                  {value}
+                </Text>
               </VStack>
             </HStack>
 
@@ -480,7 +477,7 @@ const PersonnelStatistics = () => {
             </Box>
           </Flex>
         </Box>
-      </Tooltip>
+      </PersonnelListPopover>
     );
   };
 

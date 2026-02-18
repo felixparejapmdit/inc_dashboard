@@ -46,6 +46,8 @@ import {
     MenuList,
     MenuItem,
     Avatar,
+    Icon,
+    Select,
 } from "@chakra-ui/react";
 import {
     AddIcon,
@@ -60,6 +62,7 @@ import {
     CopyIcon,
 } from "@chakra-ui/icons";
 import { FaShareAlt, FaDownload, FaQrcode, FaEllipsisV } from "react-icons/fa";
+import { FiUser } from "react-icons/fi";
 import { QRCodeCanvas } from "qrcode.react";
 import { usePermissionContext } from "../../contexts/PermissionContext";
 import { getAuthHeaders } from "../../utils/apiHeaders";
@@ -74,6 +77,7 @@ const FileManagement = ({ qrcode }) => {
     const [files, setFiles] = useState([]);
     const [filteredFiles, setFilteredFiles] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
+    const [senderQuery, setSenderQuery] = useState("");
     const [newFile, setNewFile] = useState({
         filename: "",
         url: "",
@@ -235,16 +239,19 @@ const FileManagement = ({ qrcode }) => {
         if (!Array.isArray(files)) return;
 
         const filtered = files.filter((file) => {
-            return (
-                file?.filename
-                    ?.toLowerCase()
-                    .includes(searchQuery?.toLowerCase() || "") ||
+            const senderName = file.user?.personnel
+                ? `${file.user.personnel.givenname || ""} ${file.user.personnel.surname_husband || ""}`.trim()
+                : (file.user?.username || "Unknown");
+
+            const matchesSearch =
+                file?.filename?.toLowerCase().includes(searchQuery?.toLowerCase() || "") ||
                 file?.url?.toLowerCase().includes(searchQuery?.toLowerCase() || "") ||
-                file?.generated_code
-                    ?.toLowerCase()
-                    .includes(searchQuery?.toLowerCase() || "") ||
-                file?.qrcode?.toLowerCase().includes(searchQuery?.toLowerCase() || "")
-            );
+                file?.generated_code?.toLowerCase().includes(searchQuery?.toLowerCase() || "") ||
+                file?.qrcode?.toLowerCase().includes(searchQuery?.toLowerCase() || "");
+
+            const matchesSender = senderQuery ? senderName === senderQuery : true;
+
+            return matchesSearch && matchesSender;
         });
 
         const indexOfLastFile = currentPage * filesPerPage;
@@ -252,7 +259,17 @@ const FileManagement = ({ qrcode }) => {
         const currentFiles = filtered.slice(indexOfFirstFile, indexOfLastFile);
 
         setFilteredFiles(currentFiles);
-    }, [searchQuery, files, currentPage, filesPerPage]);
+    }, [searchQuery, senderQuery, files, currentPage, filesPerPage]);
+
+    // Extract unique senders for the dropdown
+    const uniqueSenders = React.useMemo(() => {
+        const senders = files.map(file => {
+            return file.user?.personnel
+                ? `${file.user.personnel.givenname || ""} ${file.user.personnel.surname_husband || ""}`.trim()
+                : (file.user?.username || "Unknown");
+        });
+        return [...new Set(senders)].filter(Boolean).sort();
+    }, [files]);
 
     const totalPages = Math.ceil(files.length / filesPerPage);
 
@@ -515,8 +532,7 @@ const FileManagement = ({ qrcode }) => {
             bg="gray.50"
         >
             <Box
-                maxW="1400px"
-                mx="auto"
+                w="100%"
                 h="100%"
             >
                 <VStack spacing={6} align="stretch">
@@ -559,6 +575,22 @@ const FileManagement = ({ qrcode }) => {
                                 bg="gray.50"
                                 _focus={{ bg: "white", borderColor: "orange.400" }}
                             />
+                        </InputGroup>
+
+                        <InputGroup maxW={{ base: "100%", md: "350px" }}>
+                            <Select
+                                placeholder="Filter by sender"
+                                value={senderQuery}
+                                onChange={(e) => setSenderQuery(e.target.value)}
+                                borderRadius="full"
+                                bg="gray.50"
+                                _focus={{ bg: "white", borderColor: "orange.400" }}
+                                icon={<Icon as={FiUser} color="gray.400" />}
+                            >
+                                {uniqueSenders.map((sender, index) => (
+                                    <option key={index} value={sender}>{sender}</option>
+                                ))}
+                            </Select>
                         </InputGroup>
 
                         <HStack spacing={3}>
