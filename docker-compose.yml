@@ -90,6 +90,27 @@ services:
     networks:
       - inc_network
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.13
+    container_name: inc_elasticsearch
+    environment:
+      - node.name=inc_elasticsearch
+      - cluster.name=es-docker-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - inc_network
+    restart: always
+
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: inc_phpmyadmin
@@ -111,6 +132,7 @@ services:
 
 volumes:
   db_data:
+  es_data:
 
 
 networks:

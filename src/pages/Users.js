@@ -63,6 +63,7 @@ import {
   AlertDialogHeader,
   AlertDialogBody,
   AlertDialogFooter,
+  Switch,
 } from "@chakra-ui/react";
 import {
   AddIcon,
@@ -149,6 +150,13 @@ const Users = ({ personnelId }) => {
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [personnelImages, setPersonnelImages] = useState([]);
+
+
+  // Elasticsearch State
+  const [useElasticsearch, setUseElasticsearch] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSyncingES, setIsSyncingES] = useState(false);
+
 
   // Sync Modal State
   const [selectedSyncPersonnel, setSelectedSyncPersonnel] = useState(null);
@@ -485,6 +493,9 @@ const Users = ({ personnelId }) => {
   };
 
   const filteredUsers = useMemo(() => {
+    if (useElasticsearch) {
+      return searchResults; // Return ES results directly (ignoring other filters for now)
+    }
     return existingPersonnel.filter((user) => {
       const personnelFields = [
         user.personnel_givenname || "",
@@ -577,7 +588,7 @@ const Users = ({ personnelId }) => {
         matchesAdvancedFilters
       );
     });
-  }, [existingPersonnel, appliedFilters, searchPersonnelList]);
+  }, [existingPersonnel, appliedFilters, searchPersonnelList, useElasticsearch, searchResults]);
 
   const personnelUsers = useMemo(() => {
     return filteredUsers.filter((user) => user.personnel_id !== null);
@@ -1166,9 +1177,41 @@ const Users = ({ personnelId }) => {
       setLoadingSyncUsers(false);
     }
   };
-  const handleSearchChangePersonnel = (e) => {
-    setSearchPersonnelList(e.target.value);
-    setCurrentPagePersonnel(1); // Reset to first page on new search
+
+  const handleSyncES = async () => {
+    setIsSyncingES(true);
+    try {
+      const response = await axios.post(`${API_URL}/api/users/sync-es`, {}, { headers: getAuthHeaders() });
+      toast({ title: "Elasticsearch Sync", description: response.data.message, status: "success", duration: 3000, isClosable: true });
+    } catch (error) {
+      console.error("Sync Error Details:", error.response?.data || error.message);
+      const errorDetail = error.response?.data?.error || error.response?.data?.message || error.message;
+      toast({
+        title: "Sync Failed",
+        description: `Error: ${errorDetail}`,
+        status: "error",
+        duration: 5000,
+        isClosable: true
+      });
+    } finally {
+      setIsSyncingES(false);
+    }
+  };
+  const handleSearchChangePersonnel = async (e) => {
+    const val = e.target.value;
+    setSearchPersonnelList(val);
+    setCurrentPagePersonnel(1);
+
+    if (useElasticsearch && val.length > 2) {
+      try {
+        const res = await axios.get(`${API_URL}/api/users/search?q=${val}`, { headers: getAuthHeaders() });
+        setSearchResults(res.data);
+      } catch (err) {
+        console.error(err);
+      }
+    } else if (useElasticsearch && val.length === 0) {
+      setSearchResults([]);
+    }
   };
 
   const handleViewUser = (personnelId) => {
@@ -1479,6 +1522,20 @@ const Users = ({ personnelId }) => {
             Sync Users
           </Button>
         )}
+
+        {/* Sync ES Button */}
+        <Button
+          colorScheme="purple"
+          leftIcon={<Icon as={RepeatIcon} />}
+          isLoading={isSyncingES}
+          onClick={handleSyncES}
+          size="sm"
+          shadow="md"
+          ml={2}
+        >
+          Sync Search Index
+        </Button>
+
       </Flex>
 
       {/* Controls Bar */}
@@ -1493,6 +1550,13 @@ const Users = ({ personnelId }) => {
             variant="filled"
           />
         </InputGroup>
+
+        <FormControl display="flex" alignItems="center" w="auto">
+          <FormLabel htmlFor="es-mode" mb="0" fontSize="sm">
+            ES Search
+          </FormLabel>
+          <Switch id="es-mode" isChecked={useElasticsearch} onChange={() => setUseElasticsearch(!useElasticsearch)} />
+        </FormControl>
 
         <Tooltip label="Reload List / Clear Search" hasArrow>
           <IconButton
@@ -1854,219 +1918,221 @@ const Users = ({ personnelId }) => {
 
       <Divider my={8} borderColor="gray.200" borderStyle="dashed" />
 
-      {hasPermission("personnels.newly_enrolled_personnel") && (
-        <Box
-          ref={newPersonnelRef}
-          bg="white"
-          p={6}
-          borderRadius="xl"
-          shadow="lg"
-          border="1px solid"
-          borderColor="gray.100"
-          className="new-personnel-section"
-        >
-          <Flex
-            justify="space-between"
-            align={{ base: "start", md: "center" }}
-            mb={6}
-            direction={{ base: "column", md: "row" }}
-            gap={4}
+      {
+        hasPermission("personnels.newly_enrolled_personnel") && (
+          <Box
+            ref={newPersonnelRef}
+            bg="white"
+            p={6}
+            borderRadius="xl"
+            shadow="lg"
+            border="1px solid"
+            borderColor="gray.100"
+            className="new-personnel-section"
           >
-            <Box>
-              <Heading size="md" color="blue.600" mb={1}>
-                Newly Enrolled Personnel
-              </Heading>
-              <Text fontSize="sm" color="gray.500">
-                Manage and review the latest personnel enrollments ready for syncing.
-              </Text>
-            </Box>
+            <Flex
+              justify="space-between"
+              align={{ base: "start", md: "center" }}
+              mb={6}
+              direction={{ base: "column", md: "row" }}
+              gap={4}
+            >
+              <Box>
+                <Heading size="md" color="blue.600" mb={1}>
+                  Newly Enrolled Personnel
+                </Heading>
+                <Text fontSize="sm" color="gray.500">
+                  Manage and review the latest personnel enrollments ready for syncing.
+                </Text>
+              </Box>
 
-            <InputGroup maxW="350px" size="md">
-              <InputLeftElement pointerEvents="none" children={<Search2Icon color="gray.400" />} />
-              <Input
-                placeholder="Search name, email, or section..."
-                value={searchNewPersonnels}
-                onChange={(e) => setSearchNewPersonnels(e.target.value)}
-                borderRadius="full"
-                focusBorderColor="blue.500"
-                bg="gray.50"
-                _focus={{ bg: "white", shadow: "md" }}
-              />
-            </InputGroup>
-          </Flex>
+              <InputGroup maxW="350px" size="md">
+                <InputLeftElement pointerEvents="none" children={<Search2Icon color="gray.400" />} />
+                <Input
+                  placeholder="Search name, email, or section..."
+                  value={searchNewPersonnels}
+                  onChange={(e) => setSearchNewPersonnels(e.target.value)}
+                  borderRadius="full"
+                  focusBorderColor="blue.500"
+                  bg="gray.50"
+                  _focus={{ bg: "white", shadow: "md" }}
+                />
+              </InputGroup>
+            </Flex>
 
-          <Box overflowX="auto" borderRadius="lg" border="1px solid" borderColor="gray.100">
-            <Table variant="simple" size="md">
-              <Thead bg="gray.50">
-                <Tr>
-                  <Th py={4} color="gray.600">#</Th>
-                  <Th py={4} color="gray.600">Personnel Details</Th>
-                  <Th py={4} color="gray.600">Section</Th>
-                  <Th py={4} color="gray.600">Action</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {isLoading ? (
-                  Array.from({ length: 5 }).map((_, i) => (
-                    <Tr key={i}>
-                      <Td colSpan={5} py={4}>
-                        <SkeletonText noOfLines={1} spacing="4" skeletonHeight="20px" />
-                      </Td>
-                    </Tr>
-                  ))
-                ) : filteredNewPersonnels.length === 0 ? (
+            <Box overflowX="auto" borderRadius="lg" border="1px solid" borderColor="gray.100">
+              <Table variant="simple" size="md">
+                <Thead bg="gray.50">
                   <Tr>
-                    <Td colSpan={5} textAlign="center" py={8} color="gray.500">
-                      <VStack spacing={2}>
-                        <InfoIcon boxSize={6} color="gray.300" />
-                        <Text>No newly enrolled personnel found.</Text>
-                      </VStack>
-                    </Td>
+                    <Th py={4} color="gray.600">#</Th>
+                    <Th py={4} color="gray.600">Personnel Details</Th>
+                    <Th py={4} color="gray.600">Section</Th>
+                    <Th py={4} color="gray.600">Action</Th>
                   </Tr>
-                ) : (
-                  currentItemsNew.map((personnel, index) => {
-                    const rowNumber = (currentPageNew - 1) * ITEMS_PER_PAGE + index + 1;
-                    return (
-                      <Tr
-                        key={personnel.personnel_id}
-                        _hover={{ bg: "blue.50", transition: "all 0.2s" }}
-                      >
-                        <Td>
-                          <HStack spacing={2}>
-                            <Text fontWeight="bold" color="blue.500" minW="20px">{rowNumber}</Text>
-                            <Badge colorScheme="purple" variant="subtle" px={2} borderRadius="md" fontSize="xs">
-                              {personnel.personnel_id}
-                            </Badge>
-                          </HStack>
-                        </Td>
-                        <Td>
-                          <HStack spacing={3}>
-                            <Tooltip label="Click to zoom" placement="top">
-                              <Avatar
-                                size="md"
-                                name={`${personnel.givenname} ${personnel.surname_husband}`}
-                                src={avatars[personnel.personnel_id] || undefined}
-                                border="2px solid white"
-                                boxShadow="sm"
-                                cursor="pointer"
-                                onClick={() => avatars[personnel.personnel_id] && handleAvatarClick(avatars[personnel.personnel_id])}
-                              />
-                            </Tooltip>
-                            <Box>
-                              <Text fontWeight="bold" fontSize="sm" color="gray.700" whiteSpace="nowrap">
-                                {`${personnel.givenname} ${personnel.surname_husband}`}
-                              </Text>
-                              <Text fontSize="xs" color="gray.500">
-                                {personnel.email_address}
-                              </Text>
-                            </Box>
-                          </HStack>
-                        </Td>
-                        <Td color="gray.600">{personnel.section || "N/A"}</Td>
-                        {/* Actions will continue below... */}
-                        <Td>
-                          <HStack spacing={2}>
-                            <Tooltip label="View Full Profile">
-                              <IconButton
-                                size="sm"
-                                icon={<ViewIcon />}
-                                colorScheme="purple"
-                                onClick={() => window.open(`/personnel-preview/${personnel.personnel_id}`, "_blank")}
-                                aria-label="View Profile"
-                              />
-                            </Tooltip>
-
-                            <Tooltip label="View Enrollment Info">
-                              <IconButton
-                                size="sm"
-                                icon={<InfoIcon />}
-                                colorScheme="orange"
-                                onClick={() => window.location.href = `/enroll?personnel_id=${personnel.personnel_id}&type=edituser`}
-                                aria-label="View Enrollment Info"
-                              />
-                            </Tooltip>
-
-                            {hasPermission("personnels.photo") && (
-                              <Tooltip label="Photoshoot">
-                                <IconButton
-                                  size="sm"
-                                  icon={<FaCamera />}
-                                  colorScheme="teal"
-                                  onClick={() => {
-                                    setSelectedUser(personnel);
-                                    setIsPhotoModalOpen(true);
-                                  }}
-                                  aria-label="Photoshoot"
-                                />
-                              </Tooltip>
-                            )}
-
-                            {hasPermission("personnels.edit_rfid_code") && (
-                              <Tooltip label="Update RFID">
-                                <IconButton
-                                  size="sm"
-                                  icon={<FaIdCard />}
-                                  colorScheme="blue"
-                                  onClick={() => {
-                                    setSelectedUserForRfid(personnel.personnel_id);
-                                    setRfidCode(personnel.rfid_code || "");
-                                    onRfidModalOpen();
-                                  }}
-                                  aria-label="Update RFID"
-                                />
-                              </Tooltip>
-                            )}
-
-                            {hasPermission("personnels.sync_to_users") && (
-                              <Tooltip label="Sync to Users Table">
-                                <IconButton
-                                  size="sm"
-                                  icon={<Icon as={FiRefreshCw} boxSize={4} />}
-                                  colorScheme="green"
-                                  variant="solid"
-                                  onClick={() => openSyncModal(personnel.personnel_id, `${personnel.givenname} ${personnel.surname_husband}`)}
-                                  isLoading={loadingSyncPersonnel && loadingSyncPersonnel[personnel.personnel_id]}
-                                  isDisabled={personnel.personnel_progress !== "8"}
-                                  aria-label="Sync User"
-                                  boxShadow="sm"
-                                />
-                              </Tooltip>
-                            )}
-                          </HStack>
+                </Thead>
+                <Tbody>
+                  {isLoading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <Tr key={i}>
+                        <Td colSpan={5} py={4}>
+                          <SkeletonText noOfLines={1} spacing="4" skeletonHeight="20px" />
                         </Td>
                       </Tr>
-                    );
-                  })
-                )}
-              </Tbody>
-            </Table>
-          </Box>
+                    ))
+                  ) : filteredNewPersonnels.length === 0 ? (
+                    <Tr>
+                      <Td colSpan={5} textAlign="center" py={8} color="gray.500">
+                        <VStack spacing={2}>
+                          <InfoIcon boxSize={6} color="gray.300" />
+                          <Text>No newly enrolled personnel found.</Text>
+                        </VStack>
+                      </Td>
+                    </Tr>
+                  ) : (
+                    currentItemsNew.map((personnel, index) => {
+                      const rowNumber = (currentPageNew - 1) * ITEMS_PER_PAGE + index + 1;
+                      return (
+                        <Tr
+                          key={personnel.personnel_id}
+                          _hover={{ bg: "blue.50", transition: "all 0.2s" }}
+                        >
+                          <Td>
+                            <HStack spacing={2}>
+                              <Text fontWeight="bold" color="blue.500" minW="20px">{rowNumber}</Text>
+                              <Badge colorScheme="purple" variant="subtle" px={2} borderRadius="md" fontSize="xs">
+                                {personnel.personnel_id}
+                              </Badge>
+                            </HStack>
+                          </Td>
+                          <Td>
+                            <HStack spacing={3}>
+                              <Tooltip label="Click to zoom" placement="top">
+                                <Avatar
+                                  size="md"
+                                  name={`${personnel.givenname} ${personnel.surname_husband}`}
+                                  src={avatars[personnel.personnel_id] || undefined}
+                                  border="2px solid white"
+                                  boxShadow="sm"
+                                  cursor="pointer"
+                                  onClick={() => avatars[personnel.personnel_id] && handleAvatarClick(avatars[personnel.personnel_id])}
+                                />
+                              </Tooltip>
+                              <Box>
+                                <Text fontWeight="bold" fontSize="sm" color="gray.700" whiteSpace="nowrap">
+                                  {`${personnel.givenname} ${personnel.surname_husband}`}
+                                </Text>
+                                <Text fontSize="xs" color="gray.500">
+                                  {personnel.email_address}
+                                </Text>
+                              </Box>
+                            </HStack>
+                          </Td>
+                          <Td color="gray.600">{personnel.section || "N/A"}</Td>
+                          {/* Actions will continue below... */}
+                          <Td>
+                            <HStack spacing={2}>
+                              <Tooltip label="View Full Profile">
+                                <IconButton
+                                  size="sm"
+                                  icon={<ViewIcon />}
+                                  colorScheme="purple"
+                                  onClick={() => window.open(`/personnel-preview/${personnel.personnel_id}`, "_blank")}
+                                  aria-label="View Profile"
+                                />
+                              </Tooltip>
 
-          <Flex justify="center" align="center" mt={6} borderTop="1px solid" borderColor="gray.100" pt={4} w="100%" gap={4}>
-            <Button
-              size="sm"
-              onClick={() => handlePageChangeNewPersonnel("previous")}
-              isDisabled={currentPageNew === 1}
-              variant="outline"
-              leftIcon={<Icon as={props => <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>} />}
-            >
-              Previous
-            </Button>
-            <Text fontSize="sm" fontWeight="bold" color="gray.600">
-              Page {currentPageNew} of {totalPagesNew || 1}
-            </Text>
-            <Button
-              size="sm"
-              onClick={() => handlePageChangeNewPersonnel("next")}
-              isDisabled={currentPageNew === totalPagesNew}
-              variant="outline"
-              rightIcon={<Icon as={props => <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>} />}
-            >
-              Next
-            </Button>
-          </Flex>
-        </Box>
-      )}
+                              <Tooltip label="View Enrollment Info">
+                                <IconButton
+                                  size="sm"
+                                  icon={<InfoIcon />}
+                                  colorScheme="orange"
+                                  onClick={() => window.location.href = `/enroll?personnel_id=${personnel.personnel_id}&type=edituser`}
+                                  aria-label="View Enrollment Info"
+                                />
+                              </Tooltip>
+
+                              {hasPermission("personnels.photo") && (
+                                <Tooltip label="Photoshoot">
+                                  <IconButton
+                                    size="sm"
+                                    icon={<FaCamera />}
+                                    colorScheme="teal"
+                                    onClick={() => {
+                                      setSelectedUser(personnel);
+                                      setIsPhotoModalOpen(true);
+                                    }}
+                                    aria-label="Photoshoot"
+                                  />
+                                </Tooltip>
+                              )}
+
+                              {hasPermission("personnels.edit_rfid_code") && (
+                                <Tooltip label="Update RFID">
+                                  <IconButton
+                                    size="sm"
+                                    icon={<FaIdCard />}
+                                    colorScheme="blue"
+                                    onClick={() => {
+                                      setSelectedUserForRfid(personnel.personnel_id);
+                                      setRfidCode(personnel.rfid_code || "");
+                                      onRfidModalOpen();
+                                    }}
+                                    aria-label="Update RFID"
+                                  />
+                                </Tooltip>
+                              )}
+
+                              {hasPermission("personnels.sync_to_users") && (
+                                <Tooltip label="Sync to Users Table">
+                                  <IconButton
+                                    size="sm"
+                                    icon={<Icon as={FiRefreshCw} boxSize={4} />}
+                                    colorScheme="green"
+                                    variant="solid"
+                                    onClick={() => openSyncModal(personnel.personnel_id, `${personnel.givenname} ${personnel.surname_husband}`)}
+                                    isLoading={loadingSyncPersonnel && loadingSyncPersonnel[personnel.personnel_id]}
+                                    isDisabled={personnel.personnel_progress !== "8"}
+                                    aria-label="Sync User"
+                                    boxShadow="sm"
+                                  />
+                                </Tooltip>
+                              )}
+                            </HStack>
+                          </Td>
+                        </Tr>
+                      );
+                    })
+                  )}
+                </Tbody>
+              </Table>
+            </Box>
+
+            <Flex justify="center" align="center" mt={6} borderTop="1px solid" borderColor="gray.100" pt={4} w="100%" gap={4}>
+              <Button
+                size="sm"
+                onClick={() => handlePageChangeNewPersonnel("previous")}
+                isDisabled={currentPageNew === 1}
+                variant="outline"
+                leftIcon={<Icon as={props => <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>} />}
+              >
+                Previous
+              </Button>
+              <Text fontSize="sm" fontWeight="bold" color="gray.600">
+                Page {currentPageNew} of {totalPagesNew || 1}
+              </Text>
+              <Button
+                size="sm"
+                onClick={() => handlePageChangeNewPersonnel("next")}
+                isDisabled={currentPageNew === totalPagesNew}
+                variant="outline"
+                rightIcon={<Icon as={props => <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>} />}
+              >
+                Next
+              </Button>
+            </Flex>
+          </Box>
+        )
+      }
 
       <Modal isOpen={isRfidModalOpen} onClose={onRfidModalClose}>
         <ModalOverlay />
@@ -2568,7 +2634,7 @@ const Users = ({ personnelId }) => {
           </ModalFooter>
         </ModalContent>
       </Modal>
-    </Box>
+    </Box >
   );
 };
 

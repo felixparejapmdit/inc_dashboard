@@ -1,8 +1,63 @@
-# Getting Started with Create React App
+# INC Dashboard
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A comprehensive dashboard application for managing personnel, enrollment, and reporting within the organization.
 
-## Available Scripts
+## Project Overview
+
+The INC Dashboard is designed to streamline administrative tasks, specifically focusing on personnel management, enrollment processes, and data reporting. It provides a robust interface for handling complex data structures such as family backgrounds, educational history, and church-related information.
+
+## Key Features
+
+### 📝 Enrollment System
+The core of the application is the multi-step Enrollment Form, designed to capture detailed personnel information:
+- **Step 1: Personal Information** - Basic details, church registration, and baptism data.
+- **Step 4: Parents Information** - Detailed records for father and mother.
+- **Step 5: Siblings Information** - Comprehensive list of siblings.
+- **Step 6: Spouse Information** - Details for married personnel.
+- **Step 7: Children Information** - Records of children.
+- **Progress Tracking**: A dynamic `StepProgressTracker` is integrated across all steps. It visualizes the completion percentage based on the number of required fields filled, supporting complex array-based data (multiple siblings, children, etc.).
+
+### 👥 User Management
+- **Role-Based Access Control**: Supports multiple roles including `Admin`, `Team Leader`, `User`, and the newly added `Encoder` role.
+- **User Administration**: Create, edit, and manage user accounts and permissions.
+- **Student Roles**: Specialized handling for segregated student roles (`student_plenary`, `student_production`).
+
+### 📊 Reporting & Analytics
+- **Summary Reports**: Generate and view summarized data reports.
+- **Personnel Statistics**: View real-time statistics on active personnel and user accounts.
+
+### 🏢 Organization Management
+- **District & Congregation Management**: Tools to manage the structural hierarchy of districts and local congregations.
+
+## Technology Stack
+
+- **Frontend**: React.js
+- **UI Framework**: Chakra UI (for components and styling), Framer Motion (for animations)
+- **Routing**: React Router DOM
+- **Backend**: Node.js / Express (implied)
+- **State Management**: React Hooks (useState, useEffect, useContext)
+
+## Getting Started
+
+### Prerequisites
+- Node.js installed on your local machine.
+
+### Installation
+
+1.  Clone the repository:
+    ```bash
+    git clone <repository-url>
+    ```
+2.  Navigate to the project directory:
+    ```bash
+    cd inc_dashboard
+    ```
+3.  Install dependencies:
+    ```bash
+    npm install
+    ```
+
+### Running the Application
 
 In the project directory, you can run:
 
@@ -14,57 +69,57 @@ Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 The page will reload when you make changes.\
 You may also see any lint errors in the console.
 
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
 ### `npm run build`
 
 Builds the app for production to the `build` folder.\
 It correctly bundles React in production mode and optimizes the build for the best performance.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Deployment
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+The project includes automated scripts for both local development and production deployment.
 
-### `npm run eject`
+### 🏠 Local Deployment
+To run the application locally using Docker:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+1.  Ensure Docker and Docker Compose are installed.
+2.  Run the deployment script:
+    ```bash
+    ./deploy_local.sh
+    ```
+    This script will:
+    - Sync `.env.docker` to `.env`.
+    - Stop and remove existing containers.
+    - Clean up unused Docker resources.
+    - Build and start the services using `docker-compose.yml`.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+    **Access:**
+    - App: [http://localhost:8081](http://localhost:8081)
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### 🚀 Production Deployment
+To deploy the application to the production server (Proxmox):
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+1.  Ensure you have access to the server environment.
+2.  Run the production deployment script:
+    ```bash
+    ./deploy_prod.sh
+    ```
+    This script will:
+    - Sync `.env.docker` to `.env`.
+    - Stop existing containers using `docker-compose.prod.yml`.
+    - Perform a deep clean of Docker resources.
+    - Build and start the production services.
+    - Display the status and recent backend logs.
 
-## Learn More
+    **Access:**
+    - Dashboard: [https://test-portal.pmdmc.net](https://test-portal.pmdmc.net)
+    - API: [https://test-api-portal.pmdmc.net](https://test-api-portal.pmdmc.net)
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Recent Updates
 
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- **Enrollment Form Enhancement**:
+    - Integrated `StepProgressTracker` for Steps 4-7.
+    - Implemented robust handling for array-based data (Parents, Siblings, Spouses, Children) to ensure accurate progress calculation.
+    - Resolved data persistence issues in Step 4 by optimizing state updates and API feedback loops.
+- **Bug Fixes**:
+    - Fixed "reduce is not a function" errors by implementing defensive coding for family data arrays.
+    - Corrected functional state update patterns in `EnrollmentForm.js`.

@@ -23,6 +23,7 @@ const UserGroupMapping = require("../models/UserGroupMapping");
 const Group = require("../models/Group");
 const UserController = require("../controllers/userController");
 const ldapController = require("../controllers/ldapController");
+const { client: esClient, connectElasticsearch } = require("../config/elasticsearchClient");
 
 const verifyToken = require("../middlewares/authMiddleware");
 
@@ -753,7 +754,11 @@ router.get("/api/users", verifyToken, async (req, res) => {
     res.json(combinedUsers);
   } catch (err) {
     console.error("Error in fetching users:", err);
-    res.status(500).json({ message: "Error fetching users data", details: err.message });
+    res.status(500).json({
+      message: "Error fetching users data",
+      error: err.message,
+      stack: err.stack
+    });
   }
 });
 
@@ -1072,6 +1077,203 @@ router.put("/api/users_profile/:id", upload.single("avatar"), (req, res) => {
   } catch (error) {
     console.error("Error handling file upload:", error);
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
+// ==========================================
+// Elasticsearch Integration
+// ==========================================
+
+const syncSqlQuery = `
+  SELECT 
+    u.ID, u.personnel_id, u.username, u.password, MAX(ug.id) AS groupId, u.avatar, 
+    MAX(ug.name) as groupname, GROUP_CONCAT(a.name) AS availableApps,
+    p.givenname AS personnel_givenname, p.middlename AS personnel_middlename,
+    p.surname_husband AS personnel_surname_husband, p.surname_maiden AS personnel_surname_maiden,
+    p.suffix AS personnel_suffix, p.nickname AS personnel_nickname,
+    dreg.name As personnel_registered_district_id, lc.name AS personnel_registered_local_congregation,
+    p.date_of_birth AS personnel_date_of_birth, p.place_of_birth AS personnel_place_of_birth,
+    p.datejoined AS personnel_datejoined, p.gender AS personnel_gender,
+    p.civil_status AS personnel_civil_status, p.wedding_anniversary AS personnel_wedding_anniversary,
+    p.email_address AS personnel_email, p.bloodtype AS personnel_bloodtype,
+    p.local_congregation AS personnel_local_congregation, p.personnel_type AS personnel_type,
+    p.district_assignment_id AS personnel_district_assignment_id,
+    p.local_congregation_assignment AS personnel_local_congregation_assignment,
+    p.assigned_number AS personnel_assigned_number, p.panunumpa_date AS personnel_panunumpa_date,
+    p.ordination_date AS personnel_ordination_date, d.name AS personnel_department_name,
+    s.name AS personnel_section_name, s.id AS personnel_section_id,
+    ss.name AS personnel_subsection_name, ss.id AS personnel_subsection_id,
+    dg.name AS personnel_designation_name, dt.name AS personnel_district_name,
+    l.name AS personnel_language_name, u.id as user_id, p.citizenship,
+    p.designation_id, p.language_id, edu.educational_levels AS personnel_educational_level,
+    addr.address_types AS INC_Housing
+  FROM users u 
+  LEFT JOIN user_group_mappings ugm ON ugm.user_id = u.ID 
+  LEFT JOIN user_groups ug ON ug.id = ugm.group_id 
+  LEFT JOIN available_apps ua ON u.ID = ua.user_id 
+  LEFT JOIN apps a ON ua.app_id = a.id 
+  LEFT JOIN personnels p ON u.personnel_id = p.personnel_id
+  LEFT JOIN departments d ON p.department_id = d.id
+  LEFT JOIN sections s ON p.section_id = s.id
+  LEFT JOIN subsections ss ON p.subsection_id = ss.id
+  LEFT JOIN designations dg ON p.designation_id = dg.id
+  LEFT JOIN districts dreg ON p.registered_district_id = dreg.id
+  LEFT JOIN local_congregation lc ON p.registered_local_congregation = lc.id
+  LEFT JOIN districts dt ON p.district_assignment_id = dt.id
+  LEFT JOIN languages l ON p.language_id = l.id
+  LEFT JOIN (
+      SELECT personnel_id, GROUP_CONCAT(level SEPARATOR '; ') AS educational_levels
+      FROM educational_background GROUP BY personnel_id
+  ) AS edu ON edu.personnel_id = p.personnel_id
+  LEFT JOIN (
+      SELECT personnel_id, pa.name AS address_types
+      FROM personnel_address pa
+      JOIN (
+          SELECT personnel_id, MAX(id) AS max_id FROM personnel_address
+          WHERE address_type = 'INC Housing' GROUP BY personnel_id
+      ) latest ON pa.personnel_id = latest.personnel_id AND pa.id = latest.max_id
+  ) AS addr ON addr.personnel_id = u.personnel_id
+  WHERE u.uid IS NOT NULL AND (p.deleted_at IS NULL OR u.personnel_id IS NULL)
+  GROUP BY 
+    u.ID, u.personnel_id, u.username, u.password, u.avatar, 
+    p.givenname, p.middlename, p.surname_husband, p.surname_maiden, p.suffix, p.nickname, 
+    p.registered_district_id, p.registered_local_congregation, p.date_of_birth, 
+    p.place_of_birth, p.datejoined, p.gender, p.civil_status, p.wedding_anniversary, 
+    p.email_address, p.bloodtype, p.local_congregation, p.personnel_type, 
+    p.district_assignment_id, p.local_congregation_assignment, p.assigned_number, 
+    p.panunumpa_date, p.ordination_date, d.name, s.name, s.id, ss.name, ss.id, 
+    dg.name, dt.name, l.name, u.id, p.citizenship, p.designation_id, p.language_id,
+    dreg.name, lc.name, edu.educational_levels, addr.address_types;
+
+`;
+
+// Sync Users to Elasticsearch
+router.post("/api/users/sync-es", verifyToken, async (req, res) => {
+  const esNode = process.env.ELASTICSEARCH_NODE || 'http://inc_elasticsearch:9200';
+  console.log("🔄 Starting Elasticsearch Sync on node:", esNode);
+
+  // Check ES connection first
+  try {
+    const health = await esClient.cluster.health();
+    console.log("🟢 ES Health Status:", health.status);
+  } catch (esErr) {
+    console.error("❌ ES Connection Check Failed:", esErr.message);
+    return res.status(503).json({
+      message: "Elasticsearch service is unavailable",
+      error: esErr.message,
+      node: process.env.ELASTICSEARCH_NODE || 'http://inc_elasticsearch:9200'
+    });
+  }
+
+  try {
+    // 1. Fetch Data from DB
+    const users = await new Promise((resolve, reject) => {
+      db.query(syncSqlQuery, (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+
+    if (users.length === 0) {
+      return res.status(200).json({ message: "No users to sync." });
+    }
+
+    // 2. Transform Data
+    const dataset = users.map(user => {
+      const fullname = `${user.personnel_givenname || ''} ${user.personnel_surname_husband || ''}`.trim() || user.username;
+      return {
+        id: user.ID,
+        username: user.username,
+        fullname: fullname,
+        email: user.personnel_email,
+        personnel_givenname: user.personnel_givenname,
+        personnel_surname_husband: user.personnel_surname_husband,
+        personnel_district_name: user.personnel_district_name,
+        personnel_local_congregation: user.personnel_registered_local_congregation,
+        personnel_type: user.personnel_type,
+        availableApps: user.availableApps ? user.availableApps.split(",") : [],
+        ...user // Include all other fields for flexibility
+      };
+    });
+
+    // 3. Bulk Index
+    const body = dataset.flatMap(doc => [
+      { index: { _index: 'users', _id: doc.id } },
+      doc
+    ]);
+
+    const { body: bulkResponse } = await esClient.bulk({ refresh: true, body });
+
+    if (bulkResponse.errors) {
+      const erroredDocuments = [];
+      bulkResponse.items.forEach((action, i) => {
+        const operation = Object.keys(action)[0];
+        if (action[operation].error) {
+          erroredDocuments.push({
+            status: action[operation].status,
+            error: action[operation].error,
+            operation: body[i * 2],
+            document: body[i * 2 + 1]
+          });
+        }
+      });
+      console.error("❌ Stats Sync Errors:", erroredDocuments);
+      return res.status(500).json({ message: "Sync finished with errors", errors: erroredDocuments });
+    }
+
+    const count = await esClient.count({ index: 'users' });
+    console.log(`✅ Synced ${dataset.length} users. Total in ES: ${count.body.count}`);
+
+    res.json({ message: `Successfully synced ${dataset.length} users to Elasticsearch.` });
+
+  } catch (error) {
+    console.error("❌ Sync Error:", error);
+    res.status(500).json({
+      message: "Error syncing to Elasticsearch",
+      error: error.message,
+      stack: error.stack
+    });
+  }
+});
+
+// Search Users via Elasticsearch
+router.get("/api/users/search", verifyToken, async (req, res) => {
+  const { q } = req.query;
+
+  if (!q) {
+    return res.status(400).json({ message: "Query parameter 'q' is required." });
+  }
+
+  try {
+    const { body } = await esClient.search({
+      index: 'users',
+      body: {
+        query: {
+          multi_match: {
+            query: q,
+            fields: [
+              'username^3',
+              'fullname^2',
+              'personnel_givenname',
+              'personnel_surname_husband',
+              'personnel_district_name',
+              'personnel_local_congregation',
+              'personnel_email'
+            ],
+            fuzziness: 'AUTO'
+          }
+        }
+      }
+    });
+
+    const hits = body.hits.hits.map(hit => hit._source);
+    res.json(hits);
+
+  } catch (error) {
+    console.error("❌ Search Error:", error);
+    // Fallback? Or just error.
+    res.status(500).json({ message: "Search failed", error: error.message });
   }
 });
 

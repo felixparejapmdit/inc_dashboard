@@ -16,7 +16,7 @@ fi
 
 # 3. Stop existing containers
 echo "🛑 Stopping existing containers..."
-docker compose down --remove-orphans
+docker-compose down --remove-orphans
 
 # 4. Deep Clean
 echo "🧹 Cleaning up unused Docker resources..."
@@ -24,10 +24,10 @@ docker system prune -f
 
 # 5. Build and start containers
 echo "🏗️ Building and Starting services (Locally)..."
-docker compose up -d --build
+docker-compose up -d --build
 
 # 6. Check status
 echo "✅ Local Deployment complete! Checking status..."
-docker compose ps
+docker-compose ps
 
 echo "🌐 App should be accessible at http://localhost:8081"
