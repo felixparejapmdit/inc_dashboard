@@ -64,7 +64,7 @@ import moment from "moment";
 
 import { fetchData, postData, putData, deleteData } from "../utils/fetchData";
 
-const MotionBox = motion(Box);
+const MotionBox = motion.create(Box);
 
 const Reminders = () => {
   const [reminders, setReminders] = useState([]);

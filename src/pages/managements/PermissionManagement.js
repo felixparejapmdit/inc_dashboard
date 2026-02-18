@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Button,
@@ -14,6 +14,12 @@ import {
   Flex,
   Select,
   Text,
+  AlertDialog,
+  AlertDialogOverlay,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogBody,
+  AlertDialogFooter,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import axios from "axios";
@@ -36,6 +42,7 @@ const PermissionManagement = () => {
   const [editingPermission, setEditingPermission] = useState(null);
   const [deletingPermission, setDeletingPermission] = useState(null);
   const toast = useToast();
+  const cancelRef = useRef();
 
   useEffect(() => {
     fetchPermissions();
@@ -276,7 +283,7 @@ const PermissionManagement = () => {
                     <Td>{index + 1}</Td>
                     <Td>
                       {editingPermission &&
-                      editingPermission.id === permission.id ? (
+                        editingPermission.id === permission.id ? (
                         <Input
                           value={editingPermission.name}
                           onChange={(e) =>
@@ -292,7 +299,7 @@ const PermissionManagement = () => {
                     </Td>
                     <Td>
                       {editingPermission &&
-                      editingPermission.id === permission.id ? (
+                        editingPermission.id === permission.id ? (
                         <Input
                           value={editingPermission.description}
                           onChange={(e) =>
@@ -308,7 +315,7 @@ const PermissionManagement = () => {
                     </Td>
                     <Td>
                       {editingPermission &&
-                      editingPermission.id === permission.id ? (
+                        editingPermission.id === permission.id ? (
                         <Select
                           placeholder="Select Category"
                           value={editingPermission.categoryId || ""}
@@ -332,7 +339,7 @@ const PermissionManagement = () => {
                     <Td>
                       <Flex justify="center">
                         {editingPermission &&
-                        editingPermission.id === permission.id ? (
+                          editingPermission.id === permission.id ? (
                           <>
                             <Button
                               onClick={handleUpdatePermission}
@@ -379,6 +386,34 @@ const PermissionManagement = () => {
           </Table>
         </Box>
       ))}
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        isOpen={!!deletingPermission}
+        leastDestructiveRef={cancelRef}
+        onClose={() => setDeletingPermission(null)}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Delete Permission
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              Are you sure you want to delete the permission "
+              {deletingPermission?.name}"? This action cannot be undone.
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={() => setDeletingPermission(null)}>
+                Cancel
+              </Button>
+              <Button colorScheme="red" onClick={handleDeletePermission} ml={3}>
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </Box>
   );
 };

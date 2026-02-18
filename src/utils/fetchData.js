@@ -41,6 +41,11 @@ export const fetchData = async (
   try {
     let url = `${baseUrl}/api/${endpoint}`;
 
+    // Log API request in development
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`🌐 API Request: ${url}`);
+    }
+
     // Handle parameters
     if (typeof params === "string") {
       url += `/${params}`;
@@ -98,9 +103,13 @@ export const fetchPermissionData = async (groupId, setPermissions, onError) => {
     return;
   }
 
-  try {
-    const url = `${API_URL}/api/permissions_access/${groupId}`;
+  console.log(`📡 Fetching permissions for group ID: ${groupId}`);
 
+  try {
+    const cleanApiUrl = API_URL.endsWith("/") ? API_URL.slice(0, -1) : API_URL;
+    const url = `${cleanApiUrl}/api/permissions_access/${groupId}`;
+
+    console.log(`🔍 Request URL: ${url}`);
     const response = await axios.get(url, {
       headers: getAuthHeaders(),
       timeout: 10000, // Prevent hanging requests
@@ -127,7 +136,12 @@ export const fetchPermissionData = async (groupId, setPermissions, onError) => {
     }
 
   } catch (error) {
-    console.error(`❌ Error fetching permissions for group ${groupId}:`, error);
+    console.error(`❌ Network Error fetching permissions for group ${groupId}:`, {
+      message: error.message,
+      url: `${API_URL}/api/permissions_access/${groupId}`,
+      code: error.code,
+      stack: error.stack
+    });
 
     // Handle specific network errors
     if (error.code === "ECONNABORTED") {

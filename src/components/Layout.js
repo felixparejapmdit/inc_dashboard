@@ -27,13 +27,15 @@ const Layout = ({ children, currentUser }) => {
   const INACTIVITY_LIMIT = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
   //const INACTIVITY_LIMIT = 1 * 60 * 1000; // 1 minute in milliseconds
 
-  let inactivityTimer;
+  const inactivityTimerRef = useRef();
 
   // Reset the inactivity timer and define logout behavior
   const resetInactivityTimer = useCallback(() => {
-    clearTimeout(inactivityTimer);
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+    }
 
-    inactivityTimer = setTimeout(async () => {
+    inactivityTimerRef.current = setTimeout(async () => {
       onOpen(); // Show alert modal first
 
       try {
@@ -41,7 +43,7 @@ const Layout = ({ children, currentUser }) => {
 
         if (userId) {
           await axios.put(
-            `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
+            `/api/users/update-login-status`,
             {
               ID: userId,
               isLoggedIn: false,
@@ -78,50 +80,33 @@ const Layout = ({ children, currentUser }) => {
           return;
         }
 
+        // Use relative path to leverage the proxy and avoid hardcoded URLs
         const userResponse = await axios.get(
-          `${process.env.REACT_APP_API_URL}/api/users_access/${username}`,
+          `/api/users_access/${username}`,
           {
             headers: getAuthHeaders(),
+            timeout: 5000,
           }
         );
 
         const user = userResponse.data;
 
-        if (!user || user.isLoggedIn === false || user.isLoggedIn === 0) {
+        // Only redirect if we have a definitive answer that the user is NOT logged in
+        if (user && (user.isLoggedIn === false || user.isLoggedIn === 0)) {
+          console.warn("User session invalid on server. Redirecting to login.");
           navigate("/login");
         }
       } catch (error) {
-        console.error("Login status check failed:", error);
-        navigate("/login"); // fallback redirect on error
-      }
-    };
+        // Do NOT redirect to login on network errors (timeouts, 500s, etc.)
+        // The global 401 interceptor in fetchData.js will handle session expiration.
+        // Redirecting on every error causes "auto-logout" when the server is slow.
+        console.error("🔍 Background login check encountered an issue (not necessarily logged out):", {
+          message: error.message,
+          code: error.code
+        });
 
-    const checkLoginStatus1 = async () => {
-      try {
-        if (!username) {
-          navigate("/login");
-          return;
-        }
-
-        await fetchLoginData(
-          "users_access", // endpoint
-          (data) => {
-            // ✅ Handle valid login data
-            const user = data?.data || data; // handle both wrapped and direct data
-            if (!user || user.isLoggedIn === false || user.isLoggedIn === 0) {
-              navigate("/login");
-            }
-          },
-          (errorMsg) => {
-            console.error("❌ Login fetch error:", errorMsg);
-            navigate("/login");
-          },
-          "Failed to verify login status",
-          username // ✅ param passed to /users_access/:username
-        );
-      } catch (error) {
-        console.error("Login status check failed:", error);
-        navigate("/login"); // fallback redirect on error
+        // Only if it's a definitive 401/403 should we maybe consider it a logout
+        // but it's better handled by the global interceptor.
       }
     };
 
@@ -140,7 +125,9 @@ const Layout = ({ children, currentUser }) => {
 
     // Cleanup on component unmount
     return () => {
-      clearTimeout(inactivityTimer);
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
       events.forEach((event) =>
         window.removeEventListener(event, handleActivity)
       );

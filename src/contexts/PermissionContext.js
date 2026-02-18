@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useCallback } from "react";
 import { fetchData, fetchPermissionData } from "../utils/fetchData";
 
 const PermissionContext = createContext();
@@ -11,7 +11,7 @@ export const PermissionProvider = ({ children }) => {
    * @param {number|string} groupId
    */
 
-  const fetchPermissions = async (groupId) => {
+  const fetchPermissions = useCallback(async (groupId) => {
     if (!groupId) {
       console.error("Group ID is required to fetch permissions.");
       return;
@@ -26,7 +26,7 @@ export const PermissionProvider = ({ children }) => {
     } catch (error) {
       console.error("❌ Error in fetchPermissions:", error);
     }
-  };
+  }, []);
 
 
 

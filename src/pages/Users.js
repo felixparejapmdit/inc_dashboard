@@ -1666,7 +1666,10 @@ const Users = ({ personnelId }) => {
                       ))
                     ) : (
                       currentItemsPersonnel.map((item, index) => {
-                        const avatarSrc = avatars[item.personnel_id] || (item.avatar ? `${API_URL}${item.avatar}` : "");
+                        const avatarSrc = avatars[item.personnel_id] ||
+                          (item.avatar
+                            ? (item.avatar.startsWith("http") ? item.avatar : `${API_URL}${item.avatar.startsWith("/") ? "" : "/"}${item.avatar}`)
+                            : "");
                         return (
                           <Tr key={item.ID} _hover={{ bg: "blue.50" }} transition="background 0.2s">
                             <Td fontWeight="bold" color="blue.500">{(currentPagePersonnel - 1) * ITEMS_PER_PAGE + index + 1}</Td>

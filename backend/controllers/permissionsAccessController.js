@@ -6,8 +6,10 @@ const { QueryTypes } = require("sequelize");
 // Fetch permissions for a specific group
 exports.getPermissionsByGroup = async (req, res) => {
   const groupId = req.params.groupId;
+  console.log(`📡 [Backend] Received request for permissions of group: ${groupId}`);
 
   try {
+    const startTime = Date.now();
     const permissions = await sequelize.query(
       `
       SELECT 
@@ -30,6 +32,9 @@ exports.getPermissionsByGroup = async (req, res) => {
         type: QueryTypes.SELECT,
       }
     );
+
+    const duration = Date.now() - startTime;
+    console.log(`✅ [Backend] Permissions for group ${groupId} fetched in ${duration}ms (${permissions.length} items)`);
 
     res.status(200).json(permissions); // Send fetched permissions
   } catch (error) {

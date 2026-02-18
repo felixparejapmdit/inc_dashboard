@@ -45,6 +45,12 @@ const agent = new https.Agent({
 const DISTRICT_API_URL = `${process.env.REACT_APP_DISTRICT_API_URL}/api/districts`;
 const LOCAL_CONGREGATION_API_URL = `${process.env.REACT_APP_LOCAL_CONGREGATION_API_URL}/api/all-congregations`;
 
+const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes cache for API data
+let externalApiCache = {
+  districts: { data: [], timestamp: 0 },
+  locals: { data: [], timestamp: 0 }
+};
+
 // Utility to create an LDAP client
 const createLdapClient = () => {
   const ldap = require("ldapjs");
@@ -53,11 +59,7 @@ const createLdapClient = () => {
     url: process.env.LDAP_URL,
     timeout: 5000, // 5 seconds timeout for operations
     connectTimeout: 5000, // 5 seconds for connection timeout
-    reconnect: {
-      initialDelay: 1000, // Start with a 1-second delay
-      maxDelay: 60000, // Maximum delay of 1 minute
-      failAfter: 5, // Fail after 5 attempts
-    },
+    reconnect: true, // Enable reconnect
   });
 
   // Catch any connection errors and prevent crashing
@@ -155,7 +157,7 @@ router.put(
       }
 
       // Update the user's avatar column
-      user.avatar = `/uploads/${req.file.filename}`;
+      user.avatar = `/uploads/avatar/${req.file.filename}`;
       await user.save();
 
       res
@@ -573,148 +575,58 @@ router.put("/api/users/update-login-status", (req, res) => {
   });
 });
 
-// Function to fetch external API data
-const fetchApiData = async (url) => {
+// Function to fetch external API data with caching
+const fetchApiDataCached = async (url, type) => {
+  const now = Date.now();
+  if (externalApiCache[type].data.length > 0 && (now - externalApiCache[type].timestamp < CACHE_DURATION)) {
+    return externalApiCache[type].data;
+  }
+
   try {
-    const response = await axios.get(url, { timeout: 3000 }); // 3 second timeout
-    return response.data || [];
+    const response = await axios.get(url, { timeout: 3000 });
+    const data = response.data || [];
+    externalApiCache[type] = { data, timestamp: now };
+    return data;
   } catch (error) {
     console.error(`Error fetching data from ${url}:`, error.message);
-    return [];
+    return externalApiCache[type].data; // Return stale data on error if possible
   }
 };
 
 // Get all users with their available apps and LDAP attributes
 router.get("/api/users", verifyToken, async (req, res) => {
-  // 1️⃣ CACHE REMOVED: Fetch fresh data from DB every time
-  // const cachedData = await redisClient.get(cacheKey);
-  // if (cachedData) { ... }
-
   console.log("🧠 Fetching fresh user data...");
-
-  // Fetch external API data
-  const districts = await fetchApiData(DISTRICT_API_URL);
-  const localCongregations = await fetchApiData(LOCAL_CONGREGATION_API_URL);
-
-  const query = `
-  SELECT 
-  u.ID,
-  u.personnel_id, 
-  u.username, 
-  u.password,
-  MAX(ug.id) AS groupId,  
-  u.avatar, 
-  MAX(ug.name) as groupname, 
-  GROUP_CONCAT(a.name) AS availableApps,
-  p.givenname AS personnel_givenname,
-  p.middlename AS personnel_middlename,
-  p.surname_husband AS personnel_surname_husband,
-  p.surname_maiden AS personnel_surname_maiden,
-  p.suffix AS personnel_suffix,
-  p.nickname AS personnel_nickname,
-  dreg.name As personnel_registered_district_id,
-  lc.name AS personnel_registered_local_congregation,
-  p.date_of_birth AS personnel_date_of_birth,
-  p.place_of_birth AS personnel_place_of_birth,
-  p.datejoined AS personnel_datejoined,
-  p.gender AS personnel_gender,
-  p.civil_status AS personnel_civil_status,
-  p.wedding_anniversary AS personnel_wedding_anniversary,
-  p.email_address AS personnel_email,
-  p.bloodtype AS personnel_bloodtype,
-  p.local_congregation AS personnel_local_congregation,
-  p.personnel_type AS personnel_type,
-  p.district_assignment_id AS personnel_district_assignment_id,
-  p.local_congregation_assignment AS personnel_local_congregation_assignment,
-  p.assigned_number AS personnel_assigned_number,
-  p.panunumpa_date AS personnel_panunumpa_date,
-  p.ordination_date AS personnel_ordination_date,
-  d.name AS personnel_department_name,
-  s.name AS personnel_section_name,
-  s.id AS personnel_section_id,
-  ss.name AS personnel_subsection_name,
-  ss.id AS personnel_subsection_id,
-  dg.name AS personnel_designation_name,
-  dt.name AS personnel_district_name,
-  l.name AS personnel_language_name,
-  u.id as user_id,
-  p.citizenship,
-  p.designation_id,
-  p.language_id,
-  edu.educational_levels AS personnel_educational_level,
-  addr.address_types AS INC_Housing
-FROM users u 
-LEFT JOIN user_group_mappings ugm ON ugm.user_id = u.ID 
-LEFT JOIN user_groups ug ON ug.id = ugm.group_id 
-LEFT JOIN available_apps ua ON u.ID = ua.user_id 
-LEFT JOIN apps a ON ua.app_id = a.id 
-LEFT JOIN personnels p ON u.personnel_id = p.personnel_id
-LEFT JOIN departments d ON p.department_id = d.id
-LEFT JOIN sections s ON p.section_id = s.id
-LEFT JOIN subsections ss ON p.subsection_id = ss.id
-LEFT JOIN designations dg ON p.designation_id = dg.id
-LEFT JOIN districts dreg ON p.registered_district_id = dreg.id
-LEFT JOIN local_congregation lc ON p.registered_local_congregation = lc.id
-LEFT JOIN districts dt ON p.district_assignment_id = dt.id
-LEFT JOIN languages l ON p.language_id = l.id
-
-LEFT JOIN (
-    SELECT personnel_id, GROUP_CONCAT(level SEPARATOR '; ') AS educational_levels
-    FROM educational_background
-    GROUP BY personnel_id
-) AS edu ON edu.personnel_id = p.personnel_id
-
-LEFT JOIN (
-    SELECT pa.personnel_id, pa.name AS address_types
-    FROM personnel_address pa
-    JOIN (
-        SELECT personnel_id, MAX(id) AS max_id
-        FROM personnel_address
-        WHERE address_type = 'INC Housing'
-        GROUP BY personnel_id
-    ) latest ON pa.personnel_id = latest.personnel_id AND pa.id = latest.max_id
-    WHERE pa.address_type = 'INC Housing'
-) AS addr ON addr.personnel_id = u.personnel_id
-WHERE u.uid IS NOT NULL AND (p.deleted_at IS NULL OR u.personnel_id IS NULL)
-GROUP BY 
-  u.ID, u.personnel_id, u.username, u.password, u.avatar, 
-  p.givenname, p.middlename, p.surname_husband, p.surname_maiden, p.suffix, p.nickname, 
-  p.registered_district_id, p.registered_local_congregation, p.date_of_birth, 
-  p.place_of_birth, p.datejoined, p.gender, p.civil_status, p.wedding_anniversary, 
-  p.email_address, p.bloodtype, p.local_congregation, p.personnel_type, 
-  p.local_congregation_assignment, p.assigned_number, p.panunumpa_date, p.ordination_date, 
-  d.name, s.name, s.id, ss.name, ss.id, dg.name, dt.name, l.name, 
-  u.id, p.citizenship, p.designation_id, p.language_id;
-`;
 
   // Function to fetch users from LDAP
   const fetchLdapUsers = () => {
     return new Promise((resolve, reject) => {
       const client = createLdapClient();
       client.bind(process.env.BIND_DN, process.env.BIND_PASSWORD, (err) => {
-        if (err) return reject("LDAP bind error");
+        if (err) {
+          console.error("LDAP bind error:", err);
+          return resolve([]); // Resolve with empty instead of reject to allow DB data to show
+        }
 
         const searchOptions = {
           filter: "(objectClass=inetOrgPerson)",
           scope: "sub",
+          attributes: ["uid", "givenName", "sn", "mail"]
         };
         const users = [];
 
         client.search(process.env.BASE_DN, searchOptions, (err, result) => {
-          if (err) return reject("LDAP search error");
+          if (err) {
+            console.error("LDAP search error:", err);
+            client.unbind();
+            return resolve([]);
+          }
 
           result.on("searchEntry", (entry) => {
-            const ldapUser = {
-              uid: entry.attributes.find((attr) => attr.type === "uid")
-                ?.vals[0],
-              givenName: entry.attributes.find(
-                (attr) => attr.type === "givenName"
-              )?.vals[0],
-              sn: entry.attributes.find((attr) => attr.type === "sn")?.vals[0],
-              mail: entry.attributes.find((attr) => attr.type === "mail")
-                ?.vals[0],
-            };
-            users.push(ldapUser);
+            const attrs = {};
+            entry.attributes.forEach(attr => {
+              attrs[attr.type] = attr.vals[0];
+            });
+            users.push(attrs);
           });
 
           result.on("end", () => {
@@ -723,8 +635,9 @@ GROUP BY
           });
 
           result.on("error", (err) => {
+            console.error("LDAP search result error:", err);
             client.unbind();
-            reject(err);
+            resolve(users);
           });
         });
       });
@@ -735,81 +648,112 @@ GROUP BY
   const readLdapFromFile = () => {
     try {
       const filePath = path.join(__dirname, "../data/ldap_users.json");
+      if (!fs.existsSync(filePath)) return [];
       const data = fs.readFileSync(filePath, "utf-8");
-      return JSON.parse(data);
+      const parsed = JSON.parse(data);
+      return Array.isArray(parsed) ? parsed : (parsed.LDAP_Users || []);
     } catch (err) {
       console.error("Error reading LDAP data from file:", err);
       return [];
     }
   };
 
-  // Fetch users from database
+  // SQL Query for DB users
+  const sqlQuery = `
+  SELECT 
+    u.ID, u.personnel_id, u.username, u.password, MAX(ug.id) AS groupId, u.avatar, 
+    MAX(ug.name) as groupname, GROUP_CONCAT(a.name) AS availableApps,
+    p.givenname AS personnel_givenname, p.middlename AS personnel_middlename,
+    p.surname_husband AS personnel_surname_husband, p.surname_maiden AS personnel_surname_maiden,
+    p.suffix AS personnel_suffix, p.nickname AS personnel_nickname,
+    dreg.name As personnel_registered_district_id, lc.name AS personnel_registered_local_congregation,
+    p.date_of_birth AS personnel_date_of_birth, p.place_of_birth AS personnel_place_of_birth,
+    p.datejoined AS personnel_datejoined, p.gender AS personnel_gender,
+    p.civil_status AS personnel_civil_status, p.wedding_anniversary AS personnel_wedding_anniversary,
+    p.email_address AS personnel_email, p.bloodtype AS personnel_bloodtype,
+    p.local_congregation AS personnel_local_congregation, p.personnel_type AS personnel_type,
+    p.district_assignment_id AS personnel_district_assignment_id,
+    p.local_congregation_assignment AS personnel_local_congregation_assignment,
+    p.assigned_number AS personnel_assigned_number, p.panunumpa_date AS personnel_panunumpa_date,
+    p.ordination_date AS personnel_ordination_date, d.name AS personnel_department_name,
+    s.name AS personnel_section_name, s.id AS personnel_section_id,
+    ss.name AS personnel_subsection_name, ss.id AS personnel_subsection_id,
+    dg.name AS personnel_designation_name, dt.name AS personnel_district_name,
+    l.name AS personnel_language_name, u.id as user_id, p.citizenship,
+    p.designation_id, p.language_id, edu.educational_levels AS personnel_educational_level,
+    addr.address_types AS INC_Housing
+  FROM users u 
+  LEFT JOIN user_group_mappings ugm ON ugm.user_id = u.ID 
+  LEFT JOIN user_groups ug ON ug.id = ugm.group_id 
+  LEFT JOIN available_apps ua ON u.ID = ua.user_id 
+  LEFT JOIN apps a ON ua.app_id = a.id 
+  LEFT JOIN personnels p ON u.personnel_id = p.personnel_id
+  LEFT JOIN departments d ON p.department_id = d.id
+  LEFT JOIN sections s ON p.section_id = s.id
+  LEFT JOIN subsections ss ON p.subsection_id = ss.id
+  LEFT JOIN designations dg ON p.designation_id = dg.id
+  LEFT JOIN districts dreg ON p.registered_district_id = dreg.id
+  LEFT JOIN local_congregation lc ON p.registered_local_congregation = lc.id
+  LEFT JOIN districts dt ON p.district_assignment_id = dt.id
+  LEFT JOIN languages l ON p.language_id = l.id
+  LEFT JOIN (
+      SELECT personnel_id, GROUP_CONCAT(level SEPARATOR '; ') AS educational_levels
+      FROM educational_background GROUP BY personnel_id
+  ) AS edu ON edu.personnel_id = p.personnel_id
+  LEFT JOIN (
+      SELECT pa.personnel_id, pa.name AS address_types
+      FROM personnel_address pa
+      JOIN (
+          SELECT personnel_id, MAX(id) AS max_id FROM personnel_address
+          WHERE address_type = 'INC Housing' GROUP BY personnel_id
+      ) latest ON pa.personnel_id = latest.personnel_id AND pa.id = latest.max_id
+  ) AS addr ON addr.personnel_id = u.personnel_id
+  WHERE u.uid IS NOT NULL AND (p.deleted_at IS NULL OR u.personnel_id IS NULL)
+  GROUP BY 
+    u.ID, u.personnel_id, u.username, u.password, u.avatar, 
+    p.givenname, p.middlename, p.surname_husband, p.surname_maiden, p.suffix, p.nickname, 
+    p.registered_district_id, p.registered_local_congregation, p.date_of_birth, 
+    p.place_of_birth, p.datejoined, p.gender, p.civil_status, p.wedding_anniversary, 
+    p.email_address, p.bloodtype, p.local_congregation, p.personnel_type, 
+    p.local_congregation_assignment, p.assigned_number, p.panunumpa_date, p.ordination_date, 
+    d.name, s.name, s.id, ss.name, ss.id, dg.name, dt.name, l.name, 
+    u.id, p.citizenship, p.designation_id, p.language_id;
+  `;
+
   try {
-    const dbUsers = await new Promise((resolve, reject) => {
-      db.query(query, (err, results) => {
-        if (err) {
-          console.error("Error fetching users from database:", err);
-          return reject("Database error");
-        }
+    // 🚀 Parallel Execution of all high-latency operations
+    const [districts, localCongregations, dbResults, ldapUsersRaw] = await Promise.all([
+      fetchApiDataCached(DISTRICT_API_URL, 'districts'),
+      fetchApiDataCached(LOCAL_CONGREGATION_API_URL, 'locals'),
+      new Promise((resolve, reject) => {
+        db.query(sqlQuery, (err, results) => (err ? reject(err) : resolve(results)));
+      }),
+      fetchLdapUsers().catch(() => readLdapFromFile())
+    ]);
 
-        const formattedResults = Array.isArray(results)
-          ? results.map((user) => ({
-            ...user,
-            availableApps: user.availableApps
-              ? user.availableApps.split(",")
-              : [],
-            // Convert ID to Name using fetched API data
-            personnel_district_assignment_name:
-              districts.find(
-                (d) => d.id === user.personnel_district_assignment_id
-              )?.name || "N/A",
-            personnel_local_congregation_assignment_name:
-              localCongregations.find(
-                (lc) => lc.id === user.personnel_local_congregation_assignment
-              )?.name || "N/A",
-          }))
-          : [];
-        resolve(formattedResults);
-      });
-    });
+    // Optimize lookups with Maps
+    const districtMap = new Map(districts.map(d => [d.id, d.name]));
+    const localMap = new Map(localCongregations.map(lc => [lc.id, lc.name]));
+    const ldapMap = new Map(ldapUsersRaw.map(u => [u.uid, u]));
 
-    // Fetch users from LDAP
-    //const ldapUsers = await fetchLdapUsers();
-
-    let ldapUsers = [];
-    try {
-      // Attempt to fetch users from LDAP
-      ldapUsers = await fetchLdapUsers();
-    } catch (ldapError) {
-      console.error(
-        "LDAP fetch failed, falling back to local file:",
-        ldapError
-      );
-      ldapUsers = readLdapFromFile(); // Use fallback data
-    }
-
-    // Combine the database users with LDAP attributes
-    const combinedUsers = dbUsers.map((dbUser) => {
-      // Find the matching LDAP user by username (or another unique field)
-      const ldapUser = ldapUsers.find((lu) => lu.uid === dbUser.username);
-
+    // Format and combine data
+    const combinedUsers = (dbResults || []).map((user) => {
+      const ldapUser = ldapMap.get(user.username);
       return {
-        ...dbUser,
+        ...user,
+        availableApps: user.availableApps ? user.availableApps.split(",") : [],
+        personnel_district_assignment_name: districtMap.get(user.personnel_district_assignment_id) || "N/A",
+        personnel_local_congregation_assignment_name: localMap.get(user.personnel_local_congregation_assignment) || "N/A",
         givenName: ldapUser?.givenName || "N/A",
         sn: ldapUser?.sn || "N/A",
         mail: ldapUser?.mail || "N/A",
       };
     });
 
-    // 7️⃣ Cache in Redis (DISABLED)
-    // await redisClient.set(cacheKey, JSON.stringify(combinedUsers), { EX: 3600 });
-
-
-    // Send combined users data as JSON response
     res.json(combinedUsers);
   } catch (err) {
     console.error("Error in fetching users:", err);
-    res.status(500).json({ message: "Error fetching users data" });
+    res.status(500).json({ message: "Error fetching users data", details: err.message });
   }
 });
 
@@ -1081,7 +1025,7 @@ const fs = require("fs");
 router.put("/api/users_profile/:id", upload.single("avatar"), (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: "No file uploaded" });
+      return res.status(200).json({ message: "No file uploaded. Proceeding without avatar update." });
     }
 
     // Get user ID and new avatar path

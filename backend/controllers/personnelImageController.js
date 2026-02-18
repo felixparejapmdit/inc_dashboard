@@ -36,8 +36,14 @@ exports.createImage = async (req, res) => {
     const { personnel_id, type } = req.body;
 
     // Validate required fields
-    if (!personnel_id || !type || !req.file) {
-      return res.status(400).json({ message: "Missing required fields." });
+    if (!personnel_id || !type) {
+      return res.status(400).json({ message: "Missing required fields: personnel_id and type." });
+    }
+
+    // If no file is provided, return success as requested by the user
+    if (!req.file) {
+      console.log(`ℹ️ No image file provided for personnel ${personnel_id}. Skipping upload.`);
+      return res.status(200).json({ message: "No image provided. Field is empty.", success: true });
     }
 
     // Check if an image already exists for this personnel_id and type

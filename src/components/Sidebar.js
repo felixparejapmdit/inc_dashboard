@@ -110,7 +110,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
     const fetchProfileImage = async (personnelId) => {
       if (!personnelId) return null;
       try {
-        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/personnel_images/2x2/${personnelId}`, {
+        const response = await fetch(`/api/personnel_images/2x2/${personnelId}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("authToken")}`,
           }
@@ -118,7 +118,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
         if (response.ok) {
           const json = await response.json();
           if (json.success && json.data && json.data.image_url) {
-            return `${process.env.REACT_APP_API_URL}${json.data.image_url}`;
+            return json.data.image_url;
           }
         }
       } catch (error) {
@@ -139,7 +139,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
 
       try {
         const response = await fetch(
-          `${process.env.REACT_APP_API_URL}/api/users/logged-in?username=${username}`,
+          `/api/users/logged-in?username=${username}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -161,14 +161,14 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
             if (profileImg) {
               avatarUrl = profileImg;
             } else if (data["2x2 Picture"]) {
-              avatarUrl = `${process.env.REACT_APP_API_URL}/uploads/avatar/${data["2x2 Picture"]}`;
+              avatarUrl = `/uploads/avatar/${data["2x2 Picture"]}`;
             } else if (data.avatar) {
               avatarUrl = data.avatar;
             }
           } else {
             // Fallback if no personnel_id associated
             if (data["2x2 Picture"]) {
-              avatarUrl = `${process.env.REACT_APP_API_URL}/uploads/avatar/${data["2x2 Picture"]}`;
+              avatarUrl = `/uploads/avatar/${data["2x2 Picture"]}`;
             } else if (data.avatar) {
               avatarUrl = data.avatar;
             }
@@ -235,7 +235,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
   const handleLogout = () => {
     const username = localStorage.getItem("username");
 
-    fetch(`${process.env.REACT_APP_API_URL}/api/logout`, {
+    fetch(`/api/logout`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
