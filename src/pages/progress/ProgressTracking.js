@@ -71,6 +71,7 @@ import {
 } from "@chakra-ui/icons";
 import { MdTrackChanges, MdPerson, MdEmail, MdTimeline, MdCheckCircle, MdCancel, MdGridView, MdViewList } from "react-icons/md";
 import { fetchEnrollData, fetchProgressData, deleteData, putData } from "../../utils/fetchData";
+import { filterPersonnelData } from "../../utils/filterUtils";
 import { usePermissionContext } from "../../contexts/PermissionContext";
 
 const API_URL = process.env.REACT_APP_API_URL;
@@ -170,6 +171,9 @@ const ProgressTracking = () => {
     fetchEnrollData(
       "personnels/new",
       (data) => {
+        // ✅ Apply RBAC Filter
+        data = filterPersonnelData(data);
+
         const formattedUsers = data.map((user) => ({
           ...user,
           fullname: `${user.givenname || ""} ${user.surname_husband || ""}`.trim(),

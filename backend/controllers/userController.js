@@ -239,7 +239,14 @@ exports.getAllLoginUsers = async (req, res) => {
     }
 
     const users = await User.findAll({
-      attributes: ["id", "username", "avatar", "isLoggedIn", "last_login"],
+      attributes: ["id", "username", "avatar", "isLoggedIn", "last_login", "personnel_id"],
+      include: [
+        {
+          model: Personnel,
+          as: "personnel",
+          attributes: ["department_id", "section_id", "subsection_id", "designation_id"],
+        },
+      ],
     });
 
     // ✅ Format data to include readable online status
@@ -250,6 +257,10 @@ exports.getAllLoginUsers = async (req, res) => {
       last_login: user.last_login,
       isLoggedIn: user.isLoggedIn,
       status: user.isLoggedIn === 1 ? "Online" : "Offline",
+      department_id: user.personnel?.department_id,
+      section_id: user.personnel?.section_id,
+      subsection_id: user.personnel?.subsection_id,
+      designation_id: user.personnel?.designation_id,
     }));
 
     const responseData = {

@@ -15,14 +15,6 @@ import {
   Text,
   Flex,
   Select,
-  Radio,
-  RadioGroup,
-  AlertDialog,
-  AlertDialogOverlay,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogBody,
-  AlertDialogFooter,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -33,17 +25,42 @@ import {
   Checkbox,
   Switch,
   Icon,
+  Container,
+  Heading,
+  VStack,
+  HStack,
+  SimpleGrid,
+  useColorModeValue,
+  Avatar,
+  Badge,
+  Tooltip,
+  Spinner,
+  Center,
+  FormControl,
+  FormLabel
 } from "@chakra-ui/react";
-import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  FaUserShield,
-  FaUsers,
-  FaUserTie,
-  FaUser,
-  FaStar,
-  FaRegIdBadge,
-} from "react-icons/fa"; // Import icons
-import axios from "axios";
+  Users,
+  Plus,
+  Edit2,
+  Trash2,
+  Save,
+  X,
+  Shield,
+  ShieldCheck,
+  UserCog,
+  User,
+  Star,
+  FileBadge,
+  CheckCircle2,
+  AlertCircle,
+  Briefcase,
+  Layers,
+  Unlock,
+  RefreshCw
+} from "lucide-react";
+
 import {
   fetchData,
   postData,
@@ -51,38 +68,50 @@ import {
   deleteData,
 } from "../../utils/fetchData";
 import { usePermissionContext } from "../../contexts/PermissionContext";
+
+const MotionBox = motion.create(Box);
+
 const GroupManagement = () => {
+  // State from original file
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
-  const [isAddingOrEditing, setIsAddingOrEditing] = useState(false); // To handle Add/Edit mode
+  const [isAddingOrEditing, setIsAddingOrEditing] = useState(false); // 'add', 'edit', or null
   const [isUserGroupModalOpen, setIsUserGroupModalOpen] = useState(false);
-
   const [groupUsers, setGroupUsers] = useState([]);
   const [permissions, setPermissions] = useState([]);
   const [newGroup, setNewGroup] = useState({ name: "", description: "" });
-  const [isAdding, setIsAdding] = useState(false);
   const [editingGroup, setEditingGroup] = useState(null);
-  const [deletingGroup, setDeletingGroup] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
   const toast = useToast();
-  const cancelRef = useRef();
   const { fetchPermissions: refreshGlobalPermissions } = usePermissionContext();
+
+  // Colors & Theme
+  const bg = useColorModeValue("gray.50", "#0f172a");
+  const cardBg = useColorModeValue("white", "gray.800");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
+  const headerGradient = useColorModeValue(
+    "linear(to-r, cyan.600, blue.600)",
+    "linear(to-r, cyan.400, blue.400)"
+  );
 
   useEffect(() => {
     fetchGroups();
-    console.log("Permissions state updated:", permissions);
-  }, [permissions]);
+  }, []);
 
+  // Fetch logic preserved
   const fetchGroups = () => {
+    setIsLoading(true);
     fetchData(
       "groups",
-      (data) => setGroups(data),
-      (err) =>
-        toast({
-          title: "Error loading groups",
-          description: err,
-          status: "error",
-          duration: 3000,
-        }),
+      (data) => {
+        setGroups(data);
+        setIsLoading(false);
+      },
+      (err) => {
+        toast({ title: "Error loading groups", description: err, status: "error" });
+        setIsLoading(false);
+      },
       "Failed to load groups"
     );
   };
@@ -91,8 +120,6 @@ const GroupManagement = () => {
     fetchData(
       `groups/${groupId}/permissions`,
       (data) => {
-        console.log("Fetched Permissions:", data);
-
         const groupedPermissions = data.map((category) => ({
           categoryId: category.categoryId,
           categoryName: category.categoryName,
@@ -103,18 +130,9 @@ const GroupManagement = () => {
             accessrights: permission.accessrights,
           })),
         }));
-
         setPermissions(groupedPermissions);
       },
-      (err) => {
-        console.error("Error fetching permissions:", err);
-        toast({
-          title: "Error loading permissions",
-          description: err,
-          status: "error",
-          duration: 3000,
-        });
-      },
+      (err) => toast({ title: "Error loading permissions", description: err, status: "error" }),
       "Failed to load permissions"
     );
   };
@@ -123,21 +141,16 @@ const GroupManagement = () => {
     fetchData(
       `groups/${groupId}/users`,
       (data) => setGroupUsers(data),
-      (err) =>
-        toast({
-          title: "Error loading users",
-          description: err,
-          status: "error",
-          duration: 3000,
-        }),
+      (err) => toast({ title: "Error loading users", description: err, status: "error" }),
       "Failed to load group users"
     );
   };
 
+  // Handlers preserved
   const handleShowUsers = (group) => {
     setSelectedGroup(group);
     fetchGroupUsers(group.id);
-    setIsUserGroupModalOpen(true); // Open modal when a group row is clicked
+    setIsUserGroupModalOpen(true);
   };
 
   const handleSelectGroup = (group) => {
@@ -145,17 +158,7 @@ const GroupManagement = () => {
     fetchGroupUsers(group.id);
   };
 
-  /* 
-   * Updated handlePermissionChange to accept skipRefresh
-   * This prevents spamming the global refresh when batch updating
-   */
-  const handlePermissionChange = async (
-    groupId,
-    permissionId,
-    categoryId,
-    accessrights,
-    skipRefresh = false
-  ) => {
+  const handlePermissionChange = async (groupId, permissionId, categoryId, accessrights, skipRefresh = false) => {
     try {
       await putData(
         `groups/${groupId}/permissions`,
@@ -165,647 +168,546 @@ const GroupManagement = () => {
       );
 
       if (!skipRefresh) {
-        toast({
-          title: "Permission updated successfully",
-          status: "success",
-          duration: 3000,
-        });
-
-        // Refresh global permissions if we edited the current user's group
+        toast({ title: "Permission updated successfully", status: "success", duration: 2000 });
         const currentGroupId = localStorage.getItem("groupId");
         if (currentGroupId && String(currentGroupId) === String(groupId)) {
           refreshGlobalPermissions(currentGroupId);
         }
       }
     } catch (error) {
-      toast({
-        title: "Error updating permission",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
+      toast({ title: "Error updating permission", description: error.message, status: "error" });
     }
   };
 
   const handleAddGroup = async () => {
     if (!newGroup.name) {
-      toast({
-        title: "Group name is required",
-        status: "warning",
-        duration: 3000,
-      });
+      toast({ title: "Group name is required", status: "warning" });
       return;
     }
-
     try {
       await postData("groups", newGroup, "Failed to add group");
-
       fetchGroups();
       setNewGroup({ name: "", description: "" });
-      setIsAdding(false);
-
-      toast({
-        title: "Group added successfully",
-        status: "success",
-        duration: 3000,
-      });
+      setIsAddingOrEditing(null);
+      toast({ title: "Group added successfully", status: "success" });
     } catch (error) {
-      toast({
-        title: "Error adding group",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
+      toast({ title: "Error adding group", description: error.message, status: "error" });
     }
   };
 
   const handleGroupChange = async (userId, newGroupId) => {
     try {
-      console.log("Updating user group:", { userId, newGroupId });
-
-      await putData(
-        "user-groups", // endpoint
-        userId, // userId becomes part of the URL like /user-groups/:id
-        { group_id: newGroupId },
-        "Failed to update group"
-      );
-
-      toast({
-        title: "Group updated successfully",
-        status: "success",
-        duration: 3000,
-      });
-
-      if (selectedGroup) {
-        fetchGroupUsers(selectedGroup.id);
-      }
+      await putData("user-groups", userId, { group_id: newGroupId }, "Failed to update group");
+      toast({ title: "Group updated successfully", status: "success" });
+      if (selectedGroup) fetchGroupUsers(selectedGroup.id);
     } catch (error) {
-      console.error("Error updating group:", error.message || error);
-      toast({
-        title: "Error updating group",
-        description: error.message || "Something went wrong",
-        status: "error",
-        duration: 3000,
-      });
+      toast({ title: "Error updating group", description: error.message, status: "error" });
     }
   };
 
   const handleUpdateGroup = async () => {
     try {
-      await putData(
-        "groups",
-        editingGroup.id,
-        editingGroup,
-        "Failed to update group"
-      );
-
+      await putData("groups", editingGroup.id, editingGroup, "Failed to update group");
       fetchGroups();
       setEditingGroup(null);
-
-      toast({
-        title: "Group updated successfully",
-        status: "success",
-        duration: 3000,
-      });
+      setIsAddingOrEditing(null); // Close edit mode
+      setSelectedGroup(null); // Close panel
+      toast({ title: "Group updated successfully", status: "success" });
     } catch (error) {
-      toast({
-        title: "Error updating group",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
+      toast({ title: "Error updating group", description: error.message, status: "error" });
     }
   };
 
   const handleDeleteGroup = async (group) => {
+    if (!window.confirm(`Are you sure you want to delete the group "${group.name}"?`)) return;
     try {
-      const confirmDelete = window.confirm(
-        `Are you sure you want to delete the group "${group.name}"?`
-      );
-      if (!confirmDelete) return;
-
       await deleteData("groups", group.id, "Failed to delete group");
-
       fetchGroups();
-
-      toast({
-        title: "Group deleted successfully",
-        status: "success",
-        duration: 3000,
-      });
+      toast({ title: "Group deleted successfully", status: "success" });
     } catch (error) {
-      toast({
-        title: "Error deleting group",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
+      toast({ title: "Error deleting group", description: error.message, status: "error" });
+    }
+  };
+
+  // Helper for icons map
+  const getGroupIcon = (name) => {
+    switch (name) {
+      case "Admin": return ShieldCheck;
+      case "Section Chief": return Users;
+      case "Team Leader": return UserCog;
+      case "User": return User;
+      case "VIP": return Star;
+      default: return FileBadge;
     }
   };
 
   return (
-    <Box p={{ base: 2, md: 4 }} maxW="100%" mx="auto">
-      <Stack spacing={6}>
+    <Box bg={bg} minH="100vh">
+      <Container maxW="100%" py={8} px={{ base: 4, md: 8 }}>
         {/* Header Section */}
-        <Flex justify="space-between" align="center" direction={{ base: "column", sm: "row" }} gap={4}>
-          <Box>
-            <Text fontSize={{ base: "xl", md: "2xl" }} fontWeight="bold" color="gray.700">
-              Group Management
-            </Text>
-            <Text fontSize="sm" color="gray.500">
-              Manage user groups and their system access permissions.
-            </Text>
-          </Box>
-          {!isAddingOrEditing && (
-            <Button
-              leftIcon={<AddIcon />}
-              colorScheme="blue"
-              onClick={() => {
-                setIsAddingOrEditing("add");
-                setNewGroup({ name: "", description: "" });
-                setPermissions([]);
-              }}
-            >
-              Add New Group
-            </Button>
-          )}
+        <Flex
+          direction={{ base: "column", md: "row" }}
+          justify="space-between"
+          align={{ base: "stretch", md: "center" }}
+          mb={8}
+          gap={4}
+        >
+          <VStack align="start" spacing={1}>
+            <HStack>
+              <Icon as={Layers} boxSize={8} color="cyan.500" />
+              <Heading size="xl" bgGradient={headerGradient} bgClip="text" fontWeight="black" letterSpacing="tight">
+                Group Management
+              </Heading>
+            </HStack>
+            <Text color="gray.500" fontWeight="medium">Configure user groups, roles, and system access permissions</Text>
+          </VStack>
+
+          <HStack spacing={3}>
+            {!isAddingOrEditing && (
+              <Button
+                leftIcon={<Plus size={18} />}
+                colorScheme="cyan"
+                color="white"
+                onClick={() => {
+                  setIsAddingOrEditing("add");
+                  setNewGroup({ name: "", description: "" });
+                  setPermissions([]);
+                  setSelectedGroup(null);
+                }}
+                size="lg"
+                borderRadius="xl"
+                boxShadow="lg"
+                _hover={{ transform: "translateY(-2px)", boxShadow: "xl" }}
+              >
+                Add Group
+              </Button>
+            )}
+            <IconButton
+              icon={<RefreshCw size={20} />}
+              onClick={fetchGroups}
+              isLoading={isLoading}
+              variant="outline"
+              size="lg"
+              borderRadius="xl"
+              aria-label="Refresh Data"
+            />
+          </HStack>
         </Flex>
 
-        {/* Groups Table Container */}
+        {/* Stats Grid (Design Addition) */}
+        {!isLoading && (
+          <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6} mb={8}>
+            {[
+              { label: "Total Groups", value: groups.length, icon: Layers, color: "cyan" },
+              { label: "Admin Roles", value: groups.filter(g => g.name.toLowerCase().includes('admin')).length, icon: Shield, color: "purple" },
+              { label: "System Roles", value: groups.length, icon: Briefcase, color: "blue" }
+            ].map((stat, idx) => (
+              <MotionBox
+                key={idx}
+                whileHover={{ y: -4 }}
+                bg={cardBg}
+                p={5}
+                borderRadius="2xl"
+                boxShadow="sm"
+                border="1px solid"
+                borderColor={borderColor}
+              >
+                <HStack justify="space-between">
+                  <VStack align="start" spacing={0}>
+                    <Text fontSize="xs" fontWeight="black" color="gray.500" textTransform="uppercase" letterSpacing="widest">
+                      {stat.label}
+                    </Text>
+                    <Text fontSize="3xl" fontWeight="black" color={`${stat.color}.500`}>
+                      {stat.value}
+                    </Text>
+                  </VStack>
+                  <Box p={3} bg={`${stat.color}.50`} borderRadius="xl">
+                    <Icon as={stat.icon} boxSize={6} color={`${stat.color}.500`} />
+                  </Box>
+                </HStack>
+              </MotionBox>
+            ))}
+          </SimpleGrid>
+        )}
+
+        {/* Main Content Card */}
         <Box
-          bg="white"
-          shadow="md"
-          rounded="lg"
+          bg={cardBg}
+          borderRadius="3xl"
+          shadow="sm"
+          border="1px solid"
+          borderColor={borderColor}
           overflow="hidden"
-          border="1px"
-          borderColor="gray.200"
-          w="100%"
-          overflowX="auto"
         >
-          <Table variant="simple" size={{ base: "sm", md: "md" }} w="100%">
-            <Thead bg="gray.50">
-              <Tr>
-                <Th width="50px">#</Th>
-                <Th minW="150px">Group Name</Th>
-                <Th minW="200px" display={{ base: "none", md: "table-cell" }}>Description</Th>
-                <Th width="140px" textAlign="center">Actions</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {/* Add Group Row (Input Mode) */}
-              {isAddingOrEditing === "add" && (
-                <Tr bg="blue.50">
-                  <Td></Td>
-                  <Td>
-                    <Input
-                      autoFocus
-                      bg="white"
-                      size={{ base: "sm", md: "md" }}
-                      placeholder="Enter group name..."
-                      value={newGroup.name}
-                      onChange={(e) =>
-                        setNewGroup({ ...newGroup, name: e.target.value })
-                      }
-                    />
-                  </Td>
-                  <Td display={{ base: "none", md: "table-cell" }}>
-                    <Input
-                      bg="white"
-                      size={{ base: "sm", md: "md" }}
-                      placeholder="Enter description..."
-                      value={newGroup.description}
-                      onChange={(e) =>
-                        setNewGroup({
-                          ...newGroup,
-                          description: e.target.value,
-                        })
-                      }
-                    />
-                  </Td>
-                  <Td>
-                    <Flex justify="center" gap={2}>
-                      <Button
-                        size="sm"
-                        colorScheme="green"
-                        onClick={handleAddGroup}
-                      >
-                        Save
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          setIsAddingOrEditing(null);
-                          setNewGroup({ name: "", description: "" });
-                          setPermissions([]);
-                        }}
-                      >
-                        Cancel
-                      </Button>
-                    </Flex>
-                  </Td>
-                </Tr>
-              )}
-
-              {/* Group Rows */}
-              {groups.map((group, index) => {
-                const groupIcon = (() => {
-                  switch (group.name) {
-                    case "Admin": return <FaUserShield />;
-                    case "Section Chief": return <FaUsers />;
-                    case "Team Leader": return <FaUserTie />;
-                    case "User": return <FaUser />;
-                    case "VIP": return <FaStar />;
-                    default: return <FaRegIdBadge />;
-                  }
-                })();
-
-                const isSelected = selectedGroup?.id === group.id;
-                const isEditingThis = editingGroup?.id === group.id;
-
-                return (
-                  <React.Fragment key={group.id}>
-                    <Tr
-                      onClick={() => !isEditingThis && handleShowUsers(group)}
-                      cursor="pointer"
-                      bg={isSelected ? "blue.50" : "white"}
-                      _hover={{ bg: isSelected ? "blue.50" : "gray.50" }}
-                      transition="background 0.2s"
-                      borderLeft={isSelected ? "4px solid" : "4px solid transparent"}
-                      borderColor="blue.500"
-                    >
-                      <Td fontWeight="medium" color="gray.500">{index + 1}</Td>
-                      <Td>
-                        {isEditingThis ? (
+          {isLoading ? (
+            <Center p={20} flexDir="column">
+              <Spinner size="xl" color="cyan.500" thickness="4px" />
+              <Text mt={4} fontWeight="bold" color="gray.500">Loading Groups...</Text>
+            </Center>
+          ) : (
+            <Box overflowX="auto">
+              <Table variant="simple">
+                <Thead bg="gray.50">
+                  <Tr>
+                    <Th p={6} width="50px">#</Th>
+                    <Th p={6} minW="200px">Group Identity</Th>
+                    <Th p={6} display={{ base: "none", md: "table-cell" }}>Description</Th>
+                    <Th p={6} textAlign="center">Actions</Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {/* Add Group Row */}
+                  {isAddingOrEditing === "add" && (
+                    <Tr bg="cyan.50">
+                      <Td p={6}></Td>
+                      <Td p={6}>
+                        <FormControl>
                           <Input
-                            size="sm"
-                            value={editingGroup.name}
-                            onClick={(e) => e.stopPropagation()}
-                            onChange={(e) =>
-                              setEditingGroup({ ...editingGroup, name: e.target.value })
-                            }
+                            autoFocus
+                            bg="white"
+                            placeholder="Group Name"
+                            value={newGroup.name}
+                            onChange={(e) => setNewGroup({ ...newGroup, name: e.target.value })}
+                            borderRadius="lg"
+                            borderColor="cyan.300"
+                            focusBorderColor="cyan.500"
                           />
-                        ) : (
-                          <Flex align="center" gap={3}>
-                            <Box
-                              p={2}
-                              bg={isSelected ? "blue.100" : "gray.100"}
-                              rounded="full"
-                              color={isSelected ? "blue.600" : "gray.500"}
-                            >
-                              {groupIcon}
-                            </Box>
-                            <Text fontWeight="semibold" color="gray.700">
-                              {group.name}
-                            </Text>
-                          </Flex>
-                        )}
+                        </FormControl>
                       </Td>
-                      <Td display={{ base: "none", md: "table-cell" }}>
-                        {isEditingThis ? (
+                      <Td p={6} display={{ base: "none", md: "table-cell" }}>
+                        <FormControl>
                           <Input
-                            size="sm"
-                            value={editingGroup.description}
-                            onClick={(e) => e.stopPropagation()}
-                            onChange={(e) => setEditingGroup({ ...editingGroup, description: e.target.value })}
+                            bg="white"
+                            placeholder="Description (Optional)"
+                            value={newGroup.description}
+                            onChange={(e) => setNewGroup({ ...newGroup, description: e.target.value })}
+                            borderRadius="lg"
+                            borderColor="cyan.300"
+                            focusBorderColor="cyan.500"
                           />
-                        ) : (
-                          <Text color="gray.600" fontSize="sm" noOfLines={1}>
-                            {group.description || "No description provided."}
-                          </Text>
-                        )}
+                        </FormControl>
                       </Td>
-                      <Td>
+                      <Td p={6}>
                         <Flex justify="center" gap={2}>
-                          {isEditingThis ? (
-                            <>
-                              <Button
-                                size="sm"
-                                colorScheme="green"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleUpdateGroup();
-                                }}
-                              >
-                                Save
-                              </Button>
-                              <Button
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setEditingGroup(null);
-                                }}
-                              >
-                                Cancel
-                              </Button>
-                            </>
-                          ) : (
-                            <>
-                              <IconButton
-                                icon={<EditIcon />}
-                                size="sm"
-                                colorScheme="blue"
-                                variant="ghost"
-                                aria-label="Edit group"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedGroup(group);
-                                  setIsAddingOrEditing("edit");
-                                  setEditingGroup(group);
-                                  fetchPermissions(group.id);
-                                }}
-                              />
-                              <IconButton
-                                icon={<DeleteIcon />}
-                                size="sm"
-                                colorScheme="red"
-                                variant="ghost"
-                                aria-label="Delete group"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteGroup(group);
-                                }}
-                              />
-                            </>
-                          )}
+                          <Button size="sm" colorScheme="cyan" color="white" onClick={handleAddGroup} leftIcon={<Save size={16} />}>
+                            Save
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => setIsAddingOrEditing(null)} leftIcon={<X size={16} />}>
+                            Cancel
+                          </Button>
                         </Flex>
                       </Td>
                     </Tr>
+                  )}
 
-                    {/* Expandable Permissions Section */}
-                    {isAddingOrEditing && selectedGroup?.id === group.id && (
-                      <Tr bg="gray.50">
-                        <Td colSpan={4} p={0}>
-                          <Box p={6} borderTop="1px" borderBottom="1px" borderColor="gray.200">
-                            <Flex justify="space-between" align="center" mb={6}>
-                              <Box>
-                                <Text fontSize="lg" fontWeight="bold" color="blue.700">
-                                  {isAddingOrEditing === "add"
-                                    ? "Add Permissions"
-                                    : `Permissions for ${group.name}`}
-                                </Text>
-                                <Text fontSize="sm" color="gray.500">
-                                  Define what this group can access within the system.
-                                </Text>
-                              </Box>
-                              <Button
-                                size="sm"
-                                onClick={() => {
-                                  setIsAddingOrEditing(null);
-                                  setSelectedGroup(null);
-                                }}
-                              >
-                                Close Editor
-                              </Button>
+                  {groups.map((group, index) => {
+                    const isSelected = selectedGroup?.id === group.id && isAddingOrEditing !== "add";
+                    const isEditingThis = editingGroup?.id === group.id;
+                    const IconComp = getGroupIcon(group.name);
+
+                    return (
+                      <React.Fragment key={group.id}>
+                        <MotionBox
+                          as="tr"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          _hover={{ bg: isSelected ? "cyan.50" : "gray.50" }}
+                          bg={isSelected ? "cyan.50" : "transparent"}
+                          cursor="pointer"
+                          onClick={() => {
+                            if (!isEditingThis) {
+                              if (isSelected) {
+                                // Toggle off if already selected and not editing
+                                setSelectedGroup(null);
+                                setIsAddingOrEditing(null);
+                              } else {
+                                setSelectedGroup(group);
+                                setIsAddingOrEditing("edit"); // Show permissions view
+                                fetchPermissions(group.id);
+                              }
+                            }
+                          }}
+                          borderLeft={isSelected ? "4px solid" : "4px solid transparent"}
+                          borderColor="cyan.500"
+                          transition="all 0.2s"
+                        >
+                          <Td p={6} fontWeight="medium" color="gray.500">{index + 1}</Td>
+                          <Td p={6}>
+                            {isEditingThis ? (
+                              <Input
+                                value={editingGroup.name}
+                                onClick={(e) => e.stopPropagation()}
+                                onChange={(e) => setEditingGroup({ ...editingGroup, name: e.target.value })}
+                                borderRadius="lg"
+                                bg="white"
+                              />
+                            ) : (
+                              <HStack spacing={4}>
+                                <Avatar
+                                  icon={<Icon as={IconComp} size={20} />}
+                                  bg={isSelected ? "cyan.500" : "gray.100"}
+                                  color={isSelected ? "white" : "gray.500"}
+                                  size="sm"
+                                  borderRadius="lg"
+                                />
+                                <VStack align="start" spacing={0}>
+                                  <Text fontWeight="bold" color={isSelected ? "cyan.700" : "gray.800"}>
+                                    {group.name}
+                                  </Text>
+                                  <Text fontSize="xs" color={isSelected ? "cyan.500" : "gray.500"}>
+                                    Click to view permissions
+                                  </Text>
+                                </VStack>
+                              </HStack>
+                            )}
+                          </Td>
+                          <Td p={6} display={{ base: "none", md: "table-cell" }}>
+                            {isEditingThis ? (
+                              <Input
+                                value={editingGroup.description}
+                                onClick={(e) => e.stopPropagation()}
+                                onChange={(e) => setEditingGroup({ ...editingGroup, description: e.target.value })}
+                                borderRadius="lg"
+                                bg="white"
+                              />
+                            ) : (
+                              <Text color="gray.600" fontSize="sm" noOfLines={1}>
+                                {group.description || "No description provided"}
+                              </Text>
+                            )}
+                          </Td>
+                          <Td p={6}>
+                            <Flex justify="center" gap={2}>
+                              {isEditingThis ? (
+                                <>
+                                  <IconButton icon={<Save size={16} />} colorScheme="green" size="sm" onClick={(e) => { e.stopPropagation(); handleUpdateGroup(); }} />
+                                  <IconButton icon={<X size={16} />} size="sm" onClick={(e) => { e.stopPropagation(); setEditingGroup(null); setIsAddingOrEditing(null); setSelectedGroup(null); }} />
+                                </>
+                              ) : (
+                                <>
+                                  <Tooltip label="View Users">
+                                    <IconButton
+                                      icon={<Users size={16} />}
+                                      size="sm"
+                                      variant="ghost"
+                                      colorScheme="purple"
+                                      onClick={(e) => { e.stopPropagation(); handleShowUsers(group); }}
+                                    />
+                                  </Tooltip>
+                                  <Tooltip label="Edit Details">
+                                    <IconButton
+                                      icon={<Edit2 size={16} />}
+                                      size="sm"
+                                      variant="ghost"
+                                      colorScheme="cyan"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedGroup(group);
+                                        setEditingGroup(group);
+                                        setIsAddingOrEditing("edit");
+                                        fetchPermissions(group.id);
+                                      }}
+                                    />
+                                  </Tooltip>
+                                  <Tooltip label="Delete Group">
+                                    <IconButton
+                                      icon={<Trash2 size={16} />}
+                                      size="sm"
+                                      variant="ghost"
+                                      colorScheme="red"
+                                      onClick={(e) => { e.stopPropagation(); handleDeleteGroup(group); }}
+                                    />
+                                  </Tooltip>
+                                </>
+                              )}
                             </Flex>
+                          </Td>
+                        </MotionBox>
 
-                            <Box bg="white" shadow="sm" rounded="md" border="1px" borderColor="gray.200" overflow="hidden">
-                              <Table variant="simple" size="sm">
-                                <Thead bg="gray.100">
-                                  <Tr>
-                                    <Th py={3}>Category / Permission</Th>
-                                    <Th py={3}>Description</Th>
-                                    <Th py={3} textAlign="center" width="150px">Grant Access</Th>
-                                  </Tr>
-                                </Thead>
-                                <Tbody>
-                                  {permissions.map((category) => {
-                                    // Helper for category-level operations
-                                    const allGranted = category.permissions.every(p => p.accessrights === 1);
+                        {/* Expandable Permissions Panel */}
+                        {isSelected && (
+                          <Tr bg="gray.50">
+                            <Td colSpan={5} p={0}>
+                              <AnimatePresence>
+                                <MotionBox
+                                  initial={{ opacity: 0, height: 0 }}
+                                  animate={{ opacity: 1, height: "auto" }}
+                                  exit={{ opacity: 0, height: 0 }}
+                                  overflow="hidden"
+                                >
+                                  <Box p={8} bg="gray.50" borderBottom="1px solid" borderColor="gray.200">
+                                    <Flex justify="space-between" align="center" mb={6} bg="white" p={4} borderRadius="xl" shadow="sm">
+                                      <HStack>
+                                        <Icon as={Unlock} color="cyan.500" boxSize={6} />
+                                        <Box>
+                                          <Text fontSize="lg" fontWeight="bold" color="gray.800">
+                                            Permissions: {group.name}
+                                          </Text>
+                                          <Text fontSize="xs" color="gray.500">
+                                            Manage access rights for this group
+                                          </Text>
+                                        </Box>
+                                      </HStack>
+                                    </Flex>
 
-                                    return (
-                                      <React.Fragment key={category.categoryId}>
-                                        {/* Category Header Row */}
-                                        <Tr bg="gray.50">
-                                          <Td colSpan={2}>
-                                            <Flex align="center" gap={2}>
-                                              <Icon as={FaUsers} color="gray.400" />
-                                              <Text fontWeight="bold" color="gray.700">
-                                                {category.categoryName}
-                                              </Text>
-                                            </Flex>
-                                          </Td>
-                                          <Td textAlign="center">
-                                            <Flex justify="center" align="center">
+                                    <Stack spacing={4}>
+                                      {permissions.map((category) => {
+                                        const allGranted = category.permissions.every(p => p.accessrights === 1);
+                                        return (
+                                          <Box key={category.categoryId} bg="white" borderRadius="xl" shadow="sm" overflow="hidden" border="1px solid" borderColor="gray.100">
+                                            <Flex bg="gray.50" p={4} justify="space-between" align="center" borderBottom="1px solid" borderColor="gray.100">
+                                              <HStack>
+                                                <Badge colorScheme={allGranted ? "green" : "gray"} variant="solid" borderRadius="md">
+                                                  CATEGORY
+                                                </Badge>
+                                                <Text fontWeight="bold" color="gray.700">{category.categoryName}</Text>
+                                              </HStack>
                                               <Checkbox
-                                                size="sm"
+                                                colorScheme="cyan"
                                                 isChecked={allGranted}
-                                                onChange={async () => {
+                                                onChange={() => {
                                                   const newAccess = allGranted ? 0 : 1;
-
-                                                  // 1. Optimistic UI Update
+                                                  // Optimistic UI
                                                   setPermissions(prev => prev.map(cat =>
                                                     cat.categoryId === category.categoryId
                                                       ? { ...cat, permissions: cat.permissions.map(p => ({ ...p, accessrights: newAccess })) }
                                                       : cat
                                                   ));
-
-                                                  // 2. Batch API Calls
-                                                  try {
-                                                    const promises = category.permissions.map(perm =>
-                                                      handlePermissionChange(selectedGroup.id, perm.id, category.categoryId, newAccess, true)
-                                                    );
-
-                                                    await Promise.all(promises);
-
-                                                    // 3. Single Global Refresh & Toast
-                                                    toast({
-                                                      title: "Permissions updated successfully",
-                                                      status: "success",
-                                                      duration: 3000,
-                                                    });
-
+                                                  // Batch Update
+                                                  Promise.all(category.permissions.map(perm =>
+                                                    handlePermissionChange(group.id, perm.id, category.categoryId, newAccess, true)
+                                                  )).then(() => {
+                                                    toast({ title: "Permissions updated", status: "success", duration: 2000 });
                                                     const currentGroupId = localStorage.getItem("groupId");
-                                                    if (currentGroupId && String(currentGroupId) === String(selectedGroup.id)) {
+                                                    if (currentGroupId && String(currentGroupId) === String(group.id)) {
                                                       refreshGlobalPermissions(currentGroupId);
                                                     }
-
-                                                  } catch (error) {
-                                                    console.error("Batch update failed", error);
-                                                  }
+                                                  });
                                                 }}
                                               >
-                                                <Text fontSize="xs" fontWeight="semibold" ml={1}>
+                                                <Text fontSize="xs" fontWeight="bold" color="cyan.600">
                                                   {allGranted ? "REVOKE ALL" : "GRANT ALL"}
                                                 </Text>
                                               </Checkbox>
                                             </Flex>
-                                          </Td>
-                                        </Tr>
-
-                                        {/* Individual Permissions */}
-                                        {category.permissions.map((perm) => (
-                                          <Tr key={perm.id} _hover={{ bg: "gray.50" }}>
-                                            <Td pl={10}>
-                                              <Text fontSize="sm" fontWeight="medium">
-                                                {perm.name}
-                                              </Text>
-                                            </Td>
-                                            <Td color="gray.500" fontSize="sm">
-                                              {perm.description || "—"}
-                                            </Td>
-                                            <Td textAlign="center">
-                                              <Flex justify="center" align="center">
-                                                <Switch
-                                                  colorScheme="green"
-                                                  isChecked={perm.accessrights === 1}
-                                                  onChange={(e) => {
-                                                    const newValue = e.target.checked ? 1 : 0;
-
-                                                    // Optimistic UI update
-                                                    setPermissions(prev => prev.map(cat =>
-                                                      cat.categoryId === category.categoryId
-                                                        ? { ...cat, permissions: cat.permissions.map(p => p.id === perm.id ? { ...p, accessrights: newValue } : p) }
-                                                        : cat
-                                                    ));
-
-                                                    handlePermissionChange(selectedGroup.id, perm.id, category.categoryId, newValue);
-                                                  }}
-                                                />
-                                              </Flex>
-                                            </Td>
-                                          </Tr>
-                                        ))}
-                                      </React.Fragment>
-                                    );
-                                  })}
-                                </Tbody>
-                              </Table>
-                            </Box>
-                          </Box>
-                        </Td>
-                      </Tr>
-                    )}
-                  </React.Fragment>
-                );
-              })}
-            </Tbody>
-          </Table>
-        </Box>
-      </Stack>    <Modal
-        isOpen={isUserGroupModalOpen}
-        onClose={() => setIsUserGroupModalOpen(false)}
-        isCentered
-        size={{ base: "full", md: "xl", lg: "3xl" }} // Dynamic sizing
-      >
-        <ModalOverlay />
-        <ModalContent
-          maxWidth={{ base: "90vw", md: "80vw", lg: "60vw" }} // Responsive width
-          overflow="hidden"
-          p={4}
-        >
-          {/* Fixed Modal Header */}
-          <ModalHeader>Users in Group: {selectedGroup?.name}</ModalHeader>
-          <ModalCloseButton />
-
-          <ModalBody>
-            <Box maxHeight="400px" overflowY="auto">
-              {" "}
-              {/* Scrollable tbody */}
-              <Table variant="simple">
-                <Thead
-                  position="sticky"
-                  top="0"
-                  zIndex="1"
-                  backgroundColor="white"
-                  boxShadow="md"
-                >
-                  <Tr>
-                    <Th>#</Th>
-                    <Th>Fullname</Th>
-                    <Th>Username</Th>
-                    <Th>Email</Th>
-                    <Th>Group</Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {groupUsers.map((user, index) => (
-                    // <Tr key={user.id}>
-                    <Tr key={`${user.id}-${index}`}>
-                      <Td>{index + 1}</Td> {/* Row number */}
-                      <Td>{user.fullname || "N/A"}</Td>
-                      <Td>{user.username}</Td>
-                      <Td>{user.email || "N/A"}</Td>
-                      <Td>
-                        <Select
-                          placeholder="Select Group"
-                          value={user.group_id || selectedGroup?.id || ""}
-                          onChange={(e) =>
-                            handleGroupChange(user.id, e.target.value)
-                          }
-                        >
-                          {groups.map((group) => (
-                            <option key={group.id} value={group.id}>
-                              {group.name}
-                            </option>
-                          ))}
-                        </Select>
-                      </Td>
-                    </Tr>
-                  ))}
+                                            <Table variant="simple" size="sm">
+                                              <Tbody>
+                                                {category.permissions.map((perm) => (
+                                                  <Tr key={perm.id} _hover={{ bg: "gray.50" }}>
+                                                    <Td pl={8} py={3} fontWeight="medium" color="gray.600" width="30%">{perm.name}</Td>
+                                                    <Td py={3} color="gray.400" fontSize="xs">{perm.description || "No description"}</Td>
+                                                    <Td py={3} isNumeric width="10%">
+                                                      <Switch
+                                                        colorScheme="cyan"
+                                                        isChecked={perm.accessrights === 1}
+                                                        onChange={(e) => {
+                                                          const newValue = e.target.checked ? 1 : 0;
+                                                          setPermissions(prev => prev.map(cat =>
+                                                            cat.categoryId === category.categoryId
+                                                              ? { ...cat, permissions: cat.permissions.map(p => p.id === perm.id ? { ...p, accessrights: newValue } : p) }
+                                                              : cat
+                                                          ));
+                                                          handlePermissionChange(group.id, perm.id, category.categoryId, newValue);
+                                                        }}
+                                                      />
+                                                    </Td>
+                                                  </Tr>
+                                                ))}
+                                              </Tbody>
+                                            </Table>
+                                          </Box>
+                                        );
+                                      })}
+                                    </Stack>
+                                  </Box>
+                                </MotionBox>
+                              </AnimatePresence>
+                            </Td>
+                          </Tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
                 </Tbody>
               </Table>
             </Box>
-          </ModalBody>
+          )}
+        </Box>
+      </Container>
 
-          <ModalFooter>
-            <Button
-              colorScheme="blue"
-              onClick={() => setIsUserGroupModalOpen(false)}
-            >
-              Close
-            </Button>
+      {/* Users Modal */}
+      <Modal
+        isOpen={isUserGroupModalOpen}
+        onClose={() => setIsUserGroupModalOpen(false)}
+        isCentered
+        size="xl"
+      >
+        <ModalOverlay backdropFilter="blur(8px)" />
+        <ModalContent borderRadius="3xl" overflow="hidden">
+          <ModalHeader bgGradient={headerGradient} color="white" borderTopRadius="3xl">
+            Group Members: {selectedGroup?.name}
+          </ModalHeader>
+          <ModalCloseButton color="white" />
+          <ModalBody p={6}>
+            {groupUsers.length === 0 ? (
+              <Center p={10} flexDir="column">
+                <Icon as={AlertCircle} color="gray.300" boxSize={10} mb={3} />
+                <Text color="gray.500">No users found in this group.</Text>
+              </Center>
+            ) : (
+              <Box maxHeight="400px" overflowY="auto" borderRadius="xl" border="1px solid" borderColor="gray.100">
+                <Table variant="simple" size="sm">
+                  <Thead bg="gray.50" position="sticky" top={0} zIndex={1}>
+                    <Tr>
+                      <Th>Name</Th>
+                      <Th>Username / Email</Th>
+                      <Th>Group Assignment</Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {groupUsers.map((user) => {
+                      const displayName = user.personnel ? `${user.personnel.surname_husband}, ${user.personnel.givenname}` : user.fullname || "N/A";
+                      return (
+                        <Tr key={user.id}>
+                          <Td>
+                            <HStack>
+                              <Avatar size="xs" name={displayName} bg="blue.100" color="blue.600" />
+                              <Text fontSize="sm" fontWeight="bold">{displayName}</Text>
+                            </HStack>
+                          </Td>
+                          <Td>
+                            <VStack align="start" spacing={0}>
+                              <Text fontSize="xs" fontWeight="bold">{user.username}</Text>
+                              <Text fontSize="xs" color="gray.500">{user.email || "No Email"}</Text>
+                            </VStack>
+                          </Td>
+                          <Td>
+                            <Select
+                              size="xs"
+                              value={user.group_id || selectedGroup?.id || ""}
+                              onChange={(e) => handleGroupChange(user.id, e.target.value)}
+                              borderRadius="md"
+                              focusBorderColor="cyan.500"
+                            >
+                              {groups.map((g) => (
+                                <option key={g.id} value={g.id}>{g.name}</option>
+                              ))}
+                            </Select>
+                          </Td>
+                        </Tr>
+                      );
+                    })}
+                  </Tbody>
+                </Table>
+              </Box>
+            )}
+          </ModalBody>
+          <ModalFooter bg="gray.50" p={4}>
+            <Button onClick={() => setIsUserGroupModalOpen(false)} borderRadius="xl">Close</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
-
-      {/* {selectedGroup && (
-          <Box mt={5}>
-            <Text fontSize="xl" fontWeight="bold" mb={3}>
-              Users in Group: {selectedGroup.name}
-            </Text>
-            <Table variant="simple">
-              <Thead>
-                <Tr>
-                  <Th>Fullname</Th>
-                  <Th>Username</Th>
-                  <Th>Email</Th>
-                  <Th>Group</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {groupUsers.map((user, index) => {
-                  if (!user || !user.id) {
-                    console.warn(`Invalid user data at index ${index}:`, user);
-                    return null; // Skip invalid rows
-                  }
-                  return (
-                    <Tr key={user.id}>
-                      <Td>{user.fullname || "N/A"}</Td>
-                      <Td>{user.username}</Td>
-                      <Td>{user.email || "N/A"}</Td>
-                      <Td>
-                        <Select
-                          placeholder="Select Group"
-                          value={user.group_id || selectedGroup?.id || ""} // Default to selected group ID if user.group_id is undefined
-                          onChange={(e) =>
-                            handleGroupChange(user.id, e.target.value)
-                          }
-                        >
-                          {groups.map((group) => (
-                            <option key={group.id} value={group.id}>
-                              {group.name}
-                            </option>
-                          ))}
-                        </Select>
-                      </Td>
-                    </Tr>
-                  );
-                })}
-              </Tbody>
-            </Table>
-          </Box>
-        )} */}
-    </Box >
+    </Box>
   );
 };
 

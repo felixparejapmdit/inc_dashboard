@@ -183,7 +183,7 @@ const Profile = () => {
         }));
         setLoading(false);
 
-        if (data.personnel_id) {
+        if (data.personnel_id && data.personnel_id !== "null") {
           fetchUserContacts(data.personnel_id);
           fetchProfileImage(data.personnel_id);
         }
@@ -202,7 +202,7 @@ const Profile = () => {
 
   const handleViewUser = () => {
     // Logic for previewing user public profile
-    if (user.personnel_id) {
+    if (user.personnel_id && user.personnel_id !== "null") {
       window.open(`/personnel-preview/${user.personnel_id}`, "_blank");
     }
   };
@@ -366,21 +366,27 @@ const Profile = () => {
                     </Box>
                     <Heading size="lg" mt={4} textAlign="center">{user.name || "User"}</Heading>
                     <Text color="gray.500" fontWeight="medium">{user.username}</Text>
-                    <Badge colorScheme="green" mt={2} borderRadius="full" px={3} py={1}>Active Personnel</Badge>
+                    {user.personnel_id && user.personnel_id !== "null" ? (
+                      <Badge colorScheme="green" mt={2} borderRadius="full" px={3} py={1}>Active Personnel</Badge>
+                    ) : (
+                      <Badge colorScheme="orange" mt={2} borderRadius="full" px={3} py={1}>LDAP User (Not Enrolled)</Badge>
+                    )}
                   </Flex>
 
                   {/* Actions */}
                   <HStack spacing={4} mt={{ base: 6, md: 0 }} alignSelf={{ base: "center", md: "flex-end" }} mb={4}>
-                    <Tooltip label="View Profile" hasArrow>
-                      <IconButton
-                        icon={<FaEye />}
-                        colorScheme="yellow"
-                        onClick={handleViewUser}
-                        borderRadius="lg"
-                        aria-label="View Profile"
-                        size="lg"
-                      />
-                    </Tooltip>
+                    {user.personnel_id && user.personnel_id !== "null" && (
+                      <Tooltip label="View Profile" hasArrow>
+                        <IconButton
+                          icon={<FaEye />}
+                          colorScheme="yellow"
+                          onClick={handleViewUser}
+                          borderRadius="lg"
+                          aria-label="View Profile"
+                          size="lg"
+                        />
+                      </Tooltip>
+                    )}
 
                     <Tooltip label="Edit Details" hasArrow>
                       <IconButton
@@ -404,15 +410,19 @@ const Profile = () => {
                       />
                     </Tooltip>
 
-                    <Tooltip label="Edit Personnel" hasArrow>
+                    <Tooltip label={user.personnel_id && user.personnel_id !== "null" ? "Edit Personnel" : "Enroll Now / Register Personnel"} hasArrow>
                       <IconButton
-                        icon={<FaExternalLinkAlt />}
-                        colorScheme="teal"
+                        icon={user.personnel_id && user.personnel_id !== "null" ? <FaExternalLinkAlt /> : <FaEdit />}
+                        colorScheme={user.personnel_id && user.personnel_id !== "null" ? "teal" : "blue"}
                         onClick={() => {
-                          window.location.href = `/enroll?personnel_id=${user.personnel_id}&type=editpersonnel`;
+                          if (user.personnel_id && user.personnel_id !== "null") {
+                            window.location.href = `/enroll?personnel_id=${user.personnel_id}&type=editpersonnel`;
+                          } else {
+                            window.location.href = `/enroll?type=new`;
+                          }
                         }}
                         borderRadius="lg"
-                        aria-label="Edit Personnel"
+                        aria-label={user.personnel_id && user.personnel_id !== "null" ? "Edit Personnel" : "Enroll Now"}
                         size="lg"
                       />
                     </Tooltip>

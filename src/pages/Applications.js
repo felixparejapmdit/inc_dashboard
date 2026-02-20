@@ -1,10 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Box,
   Button,
-  FormControl,
-  FormLabel,
-  Input,
   Heading,
   VStack,
   Table,
@@ -35,6 +32,7 @@ import {
   Textarea,
   InputGroup,
   InputLeftElement,
+  Input,
   useColorModeValue,
   Badge,
   Tooltip,
@@ -43,281 +41,116 @@ import {
   Card,
   CardBody,
   Icon,
-  Stack,
   Divider,
   useToast,
+  Container,
+  FormControl,
+  FormLabel,
+  Image,
+  Center,
   Stat,
   StatLabel,
   StatNumber,
   StatHelpText,
-  Container,
-  useBreakpointValue,
-  Image,
+  Stack,
 } from "@chakra-ui/react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  AddIcon,
-  EditIcon,
-  DeleteIcon,
-  SearchIcon,
-  ExternalLinkIcon,
-  ViewIcon,
-} from "@chakra-ui/icons";
-import {
-  FiGrid,
-  FiList,
-  FiFilter,
-  FiRefreshCw,
-  FiDownload,
-  FiUpload,
-} from "react-icons/fi";
-
+  Plus,
+  Edit3,
+  Trash2,
+  Search,
+  ExternalLink,
+  Grid,
+  List,
+  Filter,
+  RefreshCw,
+  AppWindow,
+  Download,
+  AlertCircle,
+  MoreVertical,
+  UploadCloud,
+  X,
+  CheckCircle2,
+  Layers,
+  Database,
+  Activity
+} from "lucide-react";
 import { fetchData, postData, putData, deleteData } from "../utils/fetchData";
 
 const API_URL = process.env.REACT_APP_API_URL;
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 12;
+const MotionBox = motion.create(Box);
 
 const Applications = () => {
   const [apps, setApps] = useState([]);
   const [appTypes, setAppTypes] = useState([]);
-  const [filteredApps, setFilteredApps] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("");
+  const [viewMode, setViewMode] = useState("table"); // grid or table
+
+  // Form State
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [description, setDescription] = useState("");
   const [icon, setIcon] = useState(null);
   const [app_type, setAppType] = useState("");
-  const [status, setStatus] = useState("");
-  const [fileError, setFileError] = useState("");
-  const [viewMode, setViewMode] = useState("table"); // table or grid
-  const [loading, setLoading] = useState(true);
-
   const [editingApp, setEditingApp] = useState(null);
+  const [fileError, setFileError] = useState("");
+
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const {
-    isOpen: isDeleteOpen,
-    onOpen: onDeleteOpen,
-    onClose: onDeleteClose,
-  } = useDisclosure();
-  const [appToDelete, setAppToDelete] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [deletingApp, setDeletingApp] = useState(null);
   const cancelRef = React.useRef();
   const toast = useToast();
 
-  // Color mode values
-  const bgColor = useColorModeValue("gray.50", "gray.900");
+  const [page, setPage] = useState(1);
+
+  // Colors
+  const bg = useColorModeValue("gray.50", "#0f172a");
   const cardBg = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
-  const hoverBg = useColorModeValue("gray.50", "gray.700");
-
-  // Responsive values
-  const isMobile = useBreakpointValue({ base: true, md: false });
+  const headerGradient = useColorModeValue(
+    "linear(to-r, orange.500, red.600)",
+    "linear(to-r, orange.400, red.500)"
+  );
 
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      console.error("No auth token found. User may not be logged in.");
-      setLoading(false);
-      return;
-    }
-
-    Promise.all([
-      fetchData(
-        "apps",
-        (data) => {
-          setApps(data);
-          setFilteredApps(data);
-        },
-        null,
-        "Failed to fetch apps"
-      ),
-      fetchData(
-        "application-types",
-        setAppTypes,
-        null,
-        "Failed to fetch application types"
-      ),
-    ]).finally(() => setLoading(false));
+    loadData();
   }, []);
 
-  // Combined search and filter logic
-  useEffect(() => {
-    let filtered = apps;
-
-    // Filter by search query
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (app) =>
-          app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          app.url.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          app.description?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const [appsData, typesData] = await Promise.all([
+        fetchData("apps"),
+        fetchData("application-types"),
+      ]);
+      setApps(appsData || []);
+      setAppTypes(typesData || []);
+    } catch (error) {
+      toast({
+        title: "Error loading data",
+        description: error.message,
+        status: "error",
+      });
+    } finally {
+      setIsLoading(false);
     }
-
-    // Filter by type
-    if (filterType) {
-      filtered = filtered.filter((app) => app.app_type == filterType);
-    }
-
-    setFilteredApps(filtered);
-    setCurrentPage(1);
-  }, [searchQuery, filterType, apps]);
+  };
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 102400) {
-        setFileError("The image size should be less than 100 KB.");
-        setIcon(null);
+        setFileError("Image size must be less than 100 KB.");
         return;
-      } else {
-        setFileError("");
       }
-
+      setFileError("");
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setIcon(reader.result);
-      };
+      reader.onloadend = () => setIcon(reader.result);
       reader.readAsDataURL(file);
     }
-  };
-
-  const handleAddOrUpdateApp = (e) => {
-    e.preventDefault();
-    if (!name.trim() || !url.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Name and URL fields are required.",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    if (icon === null) {
-      toast({
-        title: "Icon Required",
-        description: "Please upload a valid icon (less than 100KB).",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    const newApp = {
-      name,
-      url,
-      description: description.trim() === "" ? null : description.trim(),
-      icon,
-      app_type,
-    };
-
-    if (editingApp) {
-      if (editingApp.url !== url) {
-        const recentApps = JSON.parse(localStorage.getItem("recentApps")) || [];
-        const updatedRecentApps = recentApps.filter(
-          (app) => app.url !== editingApp.url
-        );
-        localStorage.setItem("recentApps", JSON.stringify(updatedRecentApps));
-      }
-
-      putData("apps", editingApp.id, newApp)
-        .then(() => {
-          const typeName =
-            appTypes.find((t) => t.id === parseInt(app_type))?.name ||
-            "Unknown";
-
-          setApps((prevApps) =>
-            prevApps.map((app) =>
-              app.id === editingApp.id
-                ? { ...newApp, id: editingApp.id, app_type_name: typeName }
-                : app
-            )
-          );
-
-          toast({
-            title: "Success",
-            description: `App "${name}" updated successfully.`,
-            status: "success",
-            duration: 3000,
-            isClosable: true,
-          });
-          resetForm();
-        })
-        .catch(() => {
-          toast({
-            title: "Error",
-            description: "Error updating app. Please try again.",
-            status: "error",
-            duration: 3000,
-            isClosable: true,
-          });
-        });
-    } else {
-      postData("apps", newApp)
-        .then((data) => {
-          setApps((prevApps) => [...prevApps, { ...newApp, id: data.id }]);
-          toast({
-            title: "Success",
-            description: `App "${name}" added successfully.`,
-            status: "success",
-            duration: 3000,
-            isClosable: true,
-          });
-          resetForm();
-        })
-        .catch(() => {
-          toast({
-            title: "Error",
-            description: "Error adding app. Please try again.",
-            status: "error",
-            duration: 3000,
-            isClosable: true,
-          });
-        });
-    }
-  };
-
-  const handleDeleteApp = () => {
-    deleteData("apps", appToDelete)
-      .then(() => {
-        setApps((prevApps) => prevApps.filter((app) => app.id !== appToDelete));
-        toast({
-          title: "Deleted",
-          description: "App deleted successfully.",
-          status: "info",
-          duration: 3000,
-          isClosable: true,
-        });
-        onDeleteClose();
-      })
-      .catch((err) => {
-        console.error("Error deleting app:", err);
-        toast({
-          title: "Error",
-          description: "Failed to delete app.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      });
-  };
-
-  const handleEditApp = (app) => {
-    setEditingApp(app);
-    setName(app.name);
-    setUrl(app.url);
-    setDescription(app.description || "");
-    setIcon(app.icon);
-    setAppType(app.app_type);
-    onOpen();
-  };
-
-  const handleOpenDeleteDialog = (appId) => {
-    setAppToDelete(appId);
-    onDeleteOpen();
   };
 
   const resetForm = () => {
@@ -328,616 +161,467 @@ const Applications = () => {
     setAppType("");
     setEditingApp(null);
     setFileError("");
-    onClose();
   };
 
-  const handleClearFilters = () => {
-    setSearchQuery("");
-    setFilterType("");
+  const handleSave = async () => {
+    if (!name.trim() || !url.trim() || !app_type) {
+      toast({ title: "Required fields missing", status: "warning" });
+      return;
+    }
+
+    if (!icon && !editingApp) {
+      toast({ title: "Icon is required", status: "warning" });
+      return;
+    }
+
+    const payload = {
+      name,
+      url,
+      description,
+      icon,
+      app_type,
+    };
+
+    try {
+      if (editingApp) {
+        await putData("apps", editingApp.id, payload);
+        toast({ title: "Application updated", status: "success" });
+      } else {
+        await postData("apps", payload);
+        toast({ title: "Application added", status: "success" });
+      }
+      resetForm();
+      onClose();
+      loadData();
+    } catch (error) {
+      toast({ title: "Error saving application", description: error.message, status: "error" });
+    }
   };
 
-  const handleOpenApp = (url) => {
-    window.open(url, "_blank", "noopener,noreferrer");
+  const handleDelete = async () => {
+    try {
+      await deleteData("apps", deletingApp.id);
+      toast({ title: "Application deleted", status: "success" });
+      setDeletingApp(null);
+      loadData();
+    } catch (error) {
+      toast({ title: "Error deleting", description: error.message, status: "error" });
+    }
   };
 
-  const totalPages = Math.ceil(filteredApps.length / ITEMS_PER_PAGE);
-  const currentItems = filteredApps.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+  const filteredApps = useMemo(() => {
+    let data = [...apps];
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      data = data.filter(
+        (app) =>
+          app.name.toLowerCase().includes(q) ||
+          app.url.toLowerCase().includes(q) ||
+          app.description?.toLowerCase().includes(q)
+      );
+    }
+    if (filterType) {
+      data = data.filter((app) => String(app.app_type) === String(filterType));
+    }
+    return data;
+  }, [apps, searchQuery, filterType]);
 
-  const handlePageChange = (direction) => {
-    setCurrentPage((prev) =>
-      direction === "next"
-        ? Math.min(prev + 1, totalPages)
-        : Math.max(prev - 1, 1)
-    );
-  };
+  const stats = useMemo(() => {
+    return {
+      total: apps.length,
+      types: appTypes.length,
+      active: filteredApps.length,
+    };
+  }, [apps, appTypes, filteredApps]);
 
-  const hasUnsavedInput =
-    name.trim() !== "" ||
-    url.trim() !== "" ||
-    app_type !== "" ||
-    description.trim() !== "" ||
-    icon !== null;
-
-  // Stats
-  const totalApps = apps.length;
-  const appsByType = appTypes.reduce((acc, type) => {
-    acc[type.name] = apps.filter((app) => app.app_type == type.id).length;
-    return acc;
-  }, {});
-
-  if (loading) {
-    return (
-      <Container maxW="container.xl" py={8}>
-        <Flex justify="center" align="center" minH="50vh">
-          <VStack spacing={4}>
-            <Icon as={FiRefreshCw} boxSize={12} color="orange.500" className="spin" />
-            <Text color="gray.500">Loading applications...</Text>
-          </VStack>
-        </Flex>
-      </Container>
-    );
-  }
+  const totalPages = Math.ceil(filteredApps.length / ITEMS_PER_PAGE) || 1;
+  const paginatedData = filteredApps.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   return (
-    <Box bg={bgColor} minH="100vh" py={{ base: 4, md: 8 }} px={{ base: 2, md: 4 }}>
-      <Box maxW="100%" mx="auto">
-        {/* Header Section */}
-        <VStack spacing={4} align="stretch" mb={8} px={{ base: 2, md: 0 }}>
-          <Flex justify="space-between" direction={{ base: "column", sm: "row" }} gap={4}>
-            <VStack align="start" spacing={1}>
-              <Heading size={{ base: "md", md: "lg" }}>
-                Application Management
-              </Heading>
-              <Text color="gray.600" fontSize={{ base: "sm", md: "md" }}>
-                Manage your applications and their configurations
-              </Text>
-            </VStack>
-            <HStack>
-              <Button
-                leftIcon={<AddIcon />}
-                colorScheme="orange"
-                size={{ base: "sm", md: "md" }}
-                onClick={() => {
-                  resetForm();
-                  onOpen();
-                }}
-              >
-                Application
-              </Button>
-            </HStack>
-          </Flex>
-
-          {/* Stats Cards */}
-          <SimpleGrid columns={{ base: 1, sm: 2, md: 4 }} spacing={4}>
-            <Card bg={cardBg} boxShadow="sm">
-              <CardBody>
-                <Stat>
-                  <StatLabel fontSize="sm" color="gray.600">
-                    Total Applications
-                  </StatLabel>
-                  <StatNumber color="orange.600">{totalApps}</StatNumber>
-                  <StatHelpText fontSize="xs">All registered apps</StatHelpText>
-                </Stat>
-              </CardBody>
-            </Card>
-            <Card bg={cardBg} boxShadow="sm">
-              <CardBody>
-                <Stat>
-                  <StatLabel fontSize="sm" color="gray.600">
-                    Filtered Results
-                  </StatLabel>
-                  <StatNumber color="blue.600">{filteredApps.length}</StatNumber>
-                  <StatHelpText fontSize="xs">Currently showing</StatHelpText>
-                </Stat>
-              </CardBody>
-            </Card>
-            <Card bg={cardBg} boxShadow="sm">
-              <CardBody>
-                <Stat>
-                  <StatLabel fontSize="sm" color="gray.600">
-                    App Types
-                  </StatLabel>
-                  <StatNumber color="purple.600">{appTypes.length}</StatNumber>
-                  <StatHelpText fontSize="xs">Categories</StatHelpText>
-                </Stat>
-              </CardBody>
-            </Card>
-            <Card bg={cardBg} boxShadow="sm">
-              <CardBody>
-                <Stat>
-                  <StatLabel fontSize="sm" color="gray.600">
-                    Current Page
-                  </StatLabel>
-                  <StatNumber color="teal.600">
-                    {currentPage} / {totalPages || 1}
-                  </StatNumber>
-                  <StatHelpText fontSize="xs">Pagination</StatHelpText>
-                </Stat>
-              </CardBody>
-            </Card>
-          </SimpleGrid>
-        </VStack>
-
-        {/* Filters and Search */}
-        <Box bg={cardBg} p={4} borderRadius="xl" boxShadow="sm" mb={6}>
-          <VStack spacing={4} align="stretch">
-            <HStack spacing={2}>
-              <Icon as={FiFilter} color="gray.500" />
-              <Text fontWeight="semibold" fontSize="sm">
-                Filters & Search
-              </Text>
-            </HStack>
-            <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
-              <InputGroup>
-                <InputLeftElement pointerEvents="none">
-                  <SearchIcon color="gray.400" />
-                </InputLeftElement>
-                <Input
-                  placeholder="Search by name, URL, or description..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </InputGroup>
-              <Select
-                placeholder="Filter by Type"
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-              >
-                {appTypes.map((type) => (
-                  <option key={type.id} value={type.id}>
-                    {type.name} ({appsByType[type.name] || 0})
-                  </option>
-                ))}
-              </Select>
-              <HStack>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  leftIcon={<Icon as={FiRefreshCw} />}
-                  onClick={handleClearFilters}
-                  flex={1}
-                >
-                  Clear
-                </Button>
-                <Tooltip label={viewMode === "table" ? "Switch to Grid View" : "Switch to Table View"}>
-                  <IconButton
-                    icon={<Icon as={viewMode === "table" ? FiGrid : FiList} />}
-                    onClick={() => setViewMode(viewMode === "table" ? "grid" : "table")}
-                    variant="outline"
-                    aria-label="Toggle view"
-                  />
-                </Tooltip>
-              </HStack>
-            </SimpleGrid>
-          </VStack>
-        </Box>
-
-        {/* Results Info */}
-        <HStack justify="space-between" mb={4} flexWrap="wrap">
-          <Text fontSize="sm" color="gray.600">
-            Showing {currentItems.length} of {filteredApps.length} application(s)
-          </Text>
-          {(searchQuery || filterType) && (
-            <Badge colorScheme="orange" fontSize="xs">
-              Filters Active
-            </Badge>
-          )}
-        </HStack>
-
-        {/* Grid View */}
-        {viewMode === "grid" && (
-          <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={6} mb={6}>
-            {currentItems.map((app) => (
-              <Card
-                key={app.id}
-                bg={cardBg}
-                boxShadow="md"
-                borderRadius="xl"
-                overflow="hidden"
-                transition="all 0.3s"
-                _hover={{
-                  transform: "translateY(-4px)",
-                  boxShadow: "xl",
-                }}
-              >
-                <CardBody>
-                  <VStack spacing={3} align="stretch">
-                    <Flex justify="center">
-                      <Avatar
-                        src={app.icon || ""}
-                        name={app.name}
-                        size="xl"
-                        borderRadius="lg"
-                      />
-                    </Flex>
-                    <VStack spacing={1} align="center">
-                      <Tooltip label={app.name}>
-                        <Text
-                          fontWeight="bold"
-                          fontSize="md"
-                          textAlign="center"
-                          isTruncated
-                          maxW="200px"
-                        >
-                          {app.name}
-                        </Text>
-                      </Tooltip>
-                      <Badge colorScheme="purple" fontSize="xs">
-                        {app.app_type_name || "Unknown"}
-                      </Badge>
-                    </VStack>
-                    <Divider />
-                    <Tooltip label={app.url}>
-                      <Text
-                        fontSize="xs"
-                        color="blue.600"
-                        textAlign="center"
-                        isTruncated
-                      >
-                        {app.url}
-                      </Text>
-                    </Tooltip>
-                    {app.description && (
-                      <Text
-                        fontSize="xs"
-                        color="gray.600"
-                        textAlign="center"
-                        noOfLines={2}
-                        minH="32px"
-                      >
-                        {app.description}
-                      </Text>
-                    )}
-                    <HStack spacing={2} justify="center" mt={2}>
-                      <Tooltip label="Open Application">
-                        <IconButton
-                          icon={<ExternalLinkIcon />}
-                          aria-label="Open"
-                          size="sm"
-                          colorScheme="green"
-                          onClick={() => handleOpenApp(app.url)}
-                        />
-                      </Tooltip>
-                      <Tooltip label="Edit Application">
-                        <IconButton
-                          icon={<EditIcon />}
-                          aria-label="Edit"
-                          size="sm"
-                          colorScheme="blue"
-                          onClick={() => handleEditApp(app)}
-                        />
-                      </Tooltip>
-                      <Tooltip label="Delete Application">
-                        <IconButton
-                          icon={<DeleteIcon />}
-                          aria-label="Delete"
-                          size="sm"
-                          colorScheme="red"
-                          onClick={() => handleOpenDeleteDialog(app.id)}
-                        />
-                      </Tooltip>
-                    </HStack>
-                  </VStack>
-                </CardBody>
-              </Card>
-            ))}
-          </SimpleGrid>
-        )}
-
-        {/* Table View */}
-        {viewMode === "table" && (
-          <Box
-            overflowX="auto"
-            bg={cardBg}
-            borderRadius="xl"
-            boxShadow="sm"
-            w="100%"
-            maxW="100%"
-          >
-            <Table variant="simple" size={isMobile ? "sm" : "md"} w="100%">
-              <Thead bg="gray.50">
-                <Tr>
-                  <Th width="50px">#</Th>
-                  <Th minW="150px">Name</Th>
-                  <Th minW="120px">Type</Th>
-                  <Th minW="200px">URL</Th>
-                  <Th minW="180px" display={{ base: "none", lg: "table-cell" }}>Description</Th>
-                  <Th width="120px" textAlign="center">Actions</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {currentItems.map((app, index) => (
-                  <Tr key={app.id} _hover={{ bg: hoverBg, transition: "0.2s" }}>
-                    <Td>{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</Td>
-                    <Td>
-                      <Flex align="center" gap={2}>
-                        <Avatar src={app.icon || ""} name={app.name} size="sm" />
-                        <Tooltip label={app.name}>
-                          <Text fontSize="sm" isTruncated maxW={{ base: "100px", md: "150px" }}>
-                            {app.name}
-                          </Text>
-                        </Tooltip>
-                      </Flex>
-                    </Td>
-                    <Td>
-                      <Badge colorScheme="purple" fontSize="xs">
-                        {app.app_type_name || "Unknown"}
-                      </Badge>
-                    </Td>
-                    <Td>
-                      <Tooltip label={app.url}>
-                        <Text
-                          fontSize="sm"
-                          color="blue.600"
-                          isTruncated
-                          maxW={{ base: "150px", md: "200px" }}
-                          cursor="pointer"
-                          _hover={{ textDecor: "underline" }}
-                          onClick={() => handleOpenApp(app.url)}
-                        >
-                          {app.url}
-                        </Text>
-                      </Tooltip>
-                    </Td>
-                    <Td display={{ base: "none", lg: "table-cell" }}>
-                      <Tooltip label={app.description}>
-                        <Text fontSize="sm" color="gray.600" isTruncated maxW="180px">
-                          {app.description || "—"}
-                        </Text>
-                      </Tooltip>
-                    </Td>
-                    <Td>
-                      <Flex gap={1} justify="center">
-                        <Tooltip label="Open">
-                          <IconButton
-                            icon={<ExternalLinkIcon />}
-                            aria-label="Open"
-                            size="xs"
-                            variant="ghost"
-                            colorScheme="green"
-                            onClick={() => handleOpenApp(app.url)}
-                          />
-                        </Tooltip>
-                        <Tooltip label="Edit">
-                          <IconButton
-                            icon={<EditIcon />}
-                            aria-label="Edit"
-                            size="xs"
-                            variant="ghost"
-                            colorScheme="blue"
-                            onClick={() => handleEditApp(app)}
-                          />
-                        </Tooltip>
-                        <Tooltip label="Delete">
-                          <IconButton
-                            icon={<DeleteIcon />}
-                            aria-label="Delete"
-                            size="xs"
-                            variant="ghost"
-                            colorScheme="red"
-                            onClick={() => handleOpenDeleteDialog(app.id)}
-                          />
-                        </Tooltip>
-                      </Flex>
-                    </Td>
-                  </Tr>
-                ))}
-              </Tbody>
-            </Table>
-          </Box>
-        )}
-
-        {/* Empty State */}
-        {filteredApps.length === 0 && (
-          <Box textAlign="center" py={12}>
-            <Icon as={FiGrid} boxSize={16} color="gray.300" mb={4} />
-            <Text fontSize="lg" fontWeight="medium" color="gray.600" mb={2}>
-              No applications found
-            </Text>
-            <Text fontSize="sm" color="gray.500" mb={4}>
-              {searchQuery || filterType
-                ? "Try adjusting your filters"
-                : "Get started by adding your first application"}
-            </Text>
-            {(searchQuery || filterType) && (
-              <Button size="sm" onClick={handleClearFilters}>
-                Clear Filters
-              </Button>
-            )}
-          </Box>
-        )}
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <Flex justify="center" align="center" mt={6} flexWrap="wrap" gap={8}>
-            <Button
-              onClick={() => handlePageChange("previous")}
-              isDisabled={currentPage === 1}
-              colorScheme="gray"
-              variant="outline"
-              size="sm"
-            >
-              Previous
-            </Button>
-
-            <HStack spacing={2}>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <Button
-                  key={page}
-                  size="sm"
-                  variant={currentPage === page ? "solid" : "ghost"}
-                  colorScheme={currentPage === page ? "orange" : "gray"}
-                  onClick={() => setCurrentPage(page)}
-                  display={{ base: "none", md: "inline-flex" }}
-                >
-                  {page}
-                </Button>
-              ))}
-              <Text fontSize="sm" fontWeight="bold" color="gray.600" display={{ base: "block", md: "none" }}>
-                Page {currentPage} of {totalPages}
-              </Text>
-            </HStack>
-
-            <Button
-              onClick={() => handlePageChange("next")}
-              isDisabled={currentPage === totalPages}
-              colorScheme="gray"
-              variant="outline"
-              size="sm"
-            >
-              Next
-            </Button>
-          </Flex>
-        )}
-
-        {/* Add/Edit Modal */}
-        <Modal
-          isOpen={isOpen}
-          onClose={onClose}
-          closeOnOverlayClick={!hasUnsavedInput}
-          size={{ base: "full", md: "xl" }}
+    <Box bg={bg} minH="100vh">
+      <Container maxW="100%" py={8} px={{ base: 4, md: 8 }}>
+        {/* Header */}
+        <Flex
+          direction={{ base: "column", md: "row" }}
+          justify="space-between"
+          align={{ base: "stretch", md: "center" }}
+          mb={8}
+          gap={4}
         >
-          <ModalOverlay />
-          <ModalContent>
-            <ModalHeader>
-              {editingApp ? "Edit Application" : "Add New Application"}
-            </ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              <VStack spacing={4}>
-                {/* Icon Preview */}
-                {icon && (
-                  <Flex justify="center" mb={2}>
-                    <Avatar src={icon} size="xl" borderRadius="lg" />
-                  </Flex>
-                )}
+          <VStack align="start" spacing={1}>
+            <HStack>
+              <Icon as={AppWindow} boxSize={8} color="orange.500" />
+              <Heading size="xl" bgGradient={headerGradient} bgClip="text" fontWeight="black" letterSpacing="tight">
+                Application Portal
+              </Heading>
+            </HStack>
+            <Text color="gray.500" fontWeight="medium">Manage all tools and software</Text>
+          </VStack>
 
-                <FormControl isRequired>
-                  <FormLabel>Application Name</FormLabel>
-                  <Input
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Enter application name"
-                  />
-                </FormControl>
+          <HStack spacing={3}>
+            <Button
+              leftIcon={<Plus size={18} />}
+              colorScheme="orange"
+              onClick={() => { resetForm(); onOpen(); }}
+              size="lg"
+              borderRadius="xl"
+              boxShadow="lg"
+              _hover={{ transform: "translateY(-2px)", boxShadow: "xl" }}
+            >
+              Add Application
+            </Button>
+            <IconButton
+              icon={<RefreshCw size={20} />}
+              onClick={() => { setSearchQuery(""); setFilterType(""); setPage(1); loadData(); }}
+              isLoading={isLoading}
+              variant="outline"
+              size="lg"
+              borderRadius="xl"
+              aria-label="Refresh Data"
+            />
+          </HStack>
+        </Flex>
 
-                <FormControl isRequired>
-                  <FormLabel>Application URL</FormLabel>
-                  <Input
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    placeholder="https://example.com"
-                    type="url"
-                  />
-                </FormControl>
+        {/* Stats Grid */}
+        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6} mb={8}>
+          {[
+            { label: "Total Applications", value: stats.total, icon: Layers, color: "blue" },
+            { label: "App Categories", value: stats.types, icon: Database, color: "purple" },
+            { label: "Visible Apps", value: stats.active, icon: Activity, color: "orange" }
+          ].map((stat) => (
+            <MotionBox
+              key={stat.label}
+              whileHover={{ y: -4 }}
+              bg={cardBg}
+              p={5}
+              borderRadius="2xl"
+              boxShadow="sm"
+              border="1px solid"
+              borderColor={borderColor}
+            >
+              <HStack justify="space-between">
+                <VStack align="start" spacing={0}>
+                  <Text fontSize="xs" fontWeight="black" color="gray.500" textTransform="uppercase" letterSpacing="widest">
+                    {stat.label}
+                  </Text>
+                  <Text fontSize="3xl" fontWeight="black" color={`${stat.color}.500`}>
+                    {stat.value}
+                  </Text>
+                </VStack>
+                <Box p={3} bg={`${stat.color}.50`} borderRadius="xl">
+                  <Icon as={stat.icon} boxSize={6} color={`${stat.color}.500`} />
+                </Box>
+              </HStack>
+            </MotionBox>
+          ))}
+        </SimpleGrid>
 
-                <FormControl isRequired>
-                  <FormLabel>Application Type</FormLabel>
-                  <Select
-                    value={app_type}
-                    onChange={(e) => setAppType(e.target.value)}
-                    placeholder="Select application type"
-                  >
-                    {appTypes.map((type) => (
-                      <option key={type.id} value={type.id}>
-                        {type.name}
-                      </option>
+        {/* Action Toolbar */}
+        <Stack direction={{ base: "column", md: "row" }} spacing={4} mb={6}>
+          <InputGroup maxW={{ base: "full", md: "400px" }} size="lg">
+            <InputLeftElement pointerEvents="none">
+              <Search size={18} color="gray" />
+            </InputLeftElement>
+            <Input
+              placeholder="Search applications..."
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
+              borderRadius="xl"
+              bg={cardBg}
+              focusBorderColor="orange.400"
+            />
+          </InputGroup>
+          <Select
+            placeholder="Filter by Type"
+            value={filterType}
+            onChange={(e) => { setFilterType(e.target.value); setPage(1); }}
+            maxW={{ base: "full", md: "250px" }}
+            size="lg"
+            borderRadius="xl"
+            bg={cardBg}
+            focusBorderColor="orange.400"
+          >
+            {appTypes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+          </Select>
+          <HStack ml="auto">
+            <IconButton
+              icon={<Grid size={20} />}
+              onClick={() => setViewMode("grid")}
+              variant={viewMode === "grid" ? "solid" : "ghost"}
+              colorScheme="orange"
+              aria-label="Grid View"
+            />
+            <IconButton
+              icon={<List size={20} />}
+              onClick={() => setViewMode("table")}
+              variant={viewMode === "table" ? "solid" : "ghost"}
+              colorScheme="orange"
+              aria-label="Table View"
+            />
+          </HStack>
+        </Stack>
+
+        {/* Content Area */}
+        {isLoading ? (
+          <Center p={20} flexDir="column">
+            <Icon as={RefreshCw} boxSize={12} color="orange.500" className="spin" />
+            <Text mt={4} color="gray.500">Loading applications...</Text>
+          </Center>
+        ) : filteredApps.length === 0 ? (
+          <Center p={20} flexDir="column" bg={cardBg} borderRadius="3xl" border="1px solid" borderColor={borderColor}>
+            <Icon as={AlertCircle} boxSize={12} color="gray.300" />
+            <Heading size="md" mt={4} color="gray.500">No applications found</Heading>
+            <Text color="gray.400">Try adjusting search or filters.</Text>
+          </Center>
+        ) : (
+          <>
+            {viewMode === "grid" ? (
+              <SimpleGrid columns={{ base: 1, sm: 2, lg: 3, xl: 4 }} spacing={6}>
+                <AnimatePresence>
+                  {paginatedData.map((app) => (
+                    <MotionBox
+                      key={app.id}
+                      layout
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                      whileHover={{ y: -8 }}
+                      bg={cardBg}
+                      p={0}
+                      borderRadius="2xl"
+                      boxShadow="md"
+                      border="1px solid"
+                      borderColor={borderColor}
+                      overflow="hidden"
+                    >
+                      <Box h="120px" bgGradient="linear(to-br, orange.50, red.50)" position="relative">
+                        <Flex justify="center" align="center" h="full" pt={6}>
+                          <Avatar
+                            src={app.icon}
+                            name={app.name}
+                            size="xl"
+                            borderRadius="2xl"
+                            border="4px solid white"
+                            itemShadow="lg"
+                            bg="white"
+                          />
+                        </Flex>
+                        <Badge
+                          position="absolute"
+                          top={3}
+                          right={3}
+                          colorScheme="purple"
+                          variant="solid"
+                          borderRadius="full"
+                          px={2}
+                        >
+                          {app.app_type_name || "App"}
+                        </Badge>
+                      </Box>
+                      <VStack p={6} pt={8} spacing={3}>
+                        <VStack spacing={0}>
+                          <Heading size="md" textAlign="center" color="gray.800" noOfLines={1}>{app.name}</Heading>
+                          <Text fontSize="xs" color="blue.500" fontWeight="bold" noOfLines={1}>{app.url}</Text>
+                        </VStack>
+                        <Text fontSize="sm" color="gray.500" textAlign="center" noOfLines={2} minH="40px">
+                          {app.description || "No description provided."}
+                        </Text>
+                        <Divider />
+                        <HStack spacing={2} w="full" justify="center">
+                          <Tooltip label="Launch">
+                            <IconButton
+                              icon={<ExternalLink size={18} />}
+                              size="sm"
+                              colorScheme="green"
+                              variant="ghost"
+                              onClick={() => window.open(app.url, "_blank")}
+                            />
+                          </Tooltip>
+                          <Tooltip label="Edit">
+                            <IconButton
+                              icon={<Edit3 size={18} />}
+                              size="sm"
+                              colorScheme="blue"
+                              variant="ghost"
+                              onClick={() => {
+                                setEditingApp(app);
+                                setName(app.name);
+                                setUrl(app.url);
+                                setDescription(app.description || "");
+                                setIcon(app.icon);
+                                setAppType(app.app_type);
+                                onOpen();
+                              }}
+                            />
+                          </Tooltip>
+                          <Tooltip label="Delete">
+                            <IconButton
+                              icon={<Trash2 size={18} />}
+                              size="sm"
+                              colorScheme="red"
+                              variant="ghost"
+                              onClick={() => setDeletingApp(app)}
+                            />
+                          </Tooltip>
+                        </HStack>
+                      </VStack>
+                    </MotionBox>
+                  ))}
+                </AnimatePresence>
+              </SimpleGrid>
+            ) : (
+              <Box bg={cardBg} borderRadius="3xl" shadow="sm" border="1px solid" borderColor={borderColor} overflow="hidden">
+                <Table variant="simple">
+                  <Thead bg="gray.50">
+                    <Tr>
+                      <Th>Application</Th>
+                      <Th>Category</Th>
+                      <Th>URL Endpoint</Th>
+                      <Th>Status</Th>
+                      <Th textAlign="right">Actions</Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {paginatedData.map((app) => (
+                      <Tr key={app.id} _hover={{ bg: "gray.50" }}>
+                        <Td>
+                          <HStack>
+                            <Avatar src={app.icon} name={app.name} size="sm" borderRadius="md" />
+                            <VStack align="start" spacing={0}>
+                              <Text fontWeight="bold">{app.name}</Text>
+                              <Text fontSize="xs" color="gray.500" noOfLines={1}>{app.description}</Text>
+                            </VStack>
+                          </HStack>
+                        </Td>
+                        <Td>
+                          <Badge colorScheme="purple" variant="subtle" borderRadius="full" px={2}>
+                            {app.app_type_name || "General"}
+                          </Badge>
+                        </Td>
+                        <Td>
+                          <Text fontSize="sm" color="blue.500" fontWeight="medium" textDecor="underline" cursor="pointer" onClick={() => window.open(app.url, "_blank")}>
+                            {app.url}
+                          </Text>
+                        </Td>
+                        <Td>
+                          <Badge colorScheme="green" variant="solid" borderRadius="full" px={2} fontSize="xs"> Active </Badge>
+                        </Td>
+                        <Td textAlign="right">
+                          <HStack justify="flex-end">
+                            <IconButton icon={<Edit3 size={16} />} size="sm" variant="ghost" onClick={() => {
+                              setEditingApp(app);
+                              setName(app.name);
+                              setUrl(app.url);
+                              setDescription(app.description || "");
+                              setIcon(app.icon);
+                              setAppType(app.app_type);
+                              onOpen();
+                            }} />
+                            <IconButton icon={<Trash2 size={16} />} size="sm" colorScheme="red" variant="ghost" onClick={() => setDeletingApp(app)} />
+                          </HStack>
+                        </Td>
+                      </Tr>
                     ))}
+                  </Tbody>
+                </Table>
+              </Box>
+            )}
+
+            {/* Pagination */}
+            <Flex justify="center" mt={8} gap={2}>
+              <Button onClick={() => setPage(p => Math.max(1, p - 1))} isDisabled={page === 1} size="sm" variant="outline">Previous</Button>
+              <Text alignSelf="center" fontSize="sm" color="gray.500">Page {page} of {totalPages}</Text>
+              <Button onClick={() => setPage(p => Math.min(totalPages, p + 1))} isDisabled={page === totalPages} size="sm" variant="outline">Next</Button>
+            </Flex>
+          </>
+        )}
+      </Container>
+
+
+      {/* Add/Edit Modal */}
+      <Modal isOpen={isOpen} onClose={onClose} size="xl" isCentered>
+        <ModalOverlay backdropFilter="blur(8px)" />
+        <ModalContent borderRadius="3xl">
+          <ModalHeader bgGradient={headerGradient} color="white" borderTopRadius="3xl">
+            {editingApp ? "Edit Application" : "New Application"}
+          </ModalHeader>
+          <ModalCloseButton color="white" />
+          <ModalBody p={8}>
+            <VStack spacing={6}>
+              <Box w="full" textAlign="center">
+                <Box
+                  position="relative"
+                  w="100px"
+                  h="100px"
+                  mx="auto"
+                  borderRadius="2xl"
+                  border="2px dashed"
+                  borderColor="gray.300"
+                  bg="gray.50"
+                  overflow="hidden"
+                  _hover={{ borderColor: "orange.400" }}
+                  cursor="pointer"
+                  onClick={() => document.getElementById("icon-upload").click()}
+                >
+                  {icon ? (
+                    <Image src={icon} w="full" h="full" objectFit="cover" />
+                  ) : (
+                    <Center w="full" h="full" flexDirection="column">
+                      <Icon as={UploadCloud} color="gray.400" boxSize={8} />
+                      <Text fontSize="xs" color="gray.500" mt={1}>Upload Icon</Text>
+                    </Center>
+                  )}
+                  <Input type="file" id="icon-upload" display="none" accept="image/*" onChange={handleImageUpload} />
+                </Box>
+                {fileError && <Text color="red.500" fontSize="xs" mt={1}>{fileError}</Text>}
+              </Box>
+
+              <SimpleGrid columns={2} spacing={4} w="full">
+                <FormControl isRequired>
+                  <FormLabel fontWeight="bold" fontSize="sm">Application Name</FormLabel>
+                  <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Dashboard" borderRadius="xl" />
+                </FormControl>
+                <FormControl isRequired>
+                  <FormLabel fontWeight="bold" fontSize="sm">Category</FormLabel>
+                  <Select value={app_type} onChange={(e) => setAppType(e.target.value)} placeholder="Select Type" borderRadius="xl">
+                    {appTypes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                   </Select>
                 </FormControl>
+              </SimpleGrid>
 
-                <FormControl>
-                  <FormLabel>Description (Optional)</FormLabel>
-                  <VStack align="stretch" spacing={1}>
-                    <Textarea
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Brief description of the application"
-                      resize="vertical"
-                      size="md"
-                      maxLength={50}
-                    />
-                    <Text
-                      fontSize="xs"
-                      color={description.length >= 40 ? "red.500" : "gray.500"}
-                      textAlign="right"
-                    >
-                      {50 - description.length} characters remaining
-                    </Text>
-                  </VStack>
-                </FormControl>
+              <FormControl isRequired>
+                <FormLabel fontWeight="bold" fontSize="sm">URL Endpoint</FormLabel>
+                <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..." borderRadius="xl" />
+              </FormControl>
 
-                <FormControl isRequired>
-                  <FormLabel>Application Icon</FormLabel>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    p={1}
-                  />
-                  <Text fontSize="xs" color="gray.500" mt={1}>
-                    Maximum file size: 100 KB
-                  </Text>
-                  {fileError && (
-                    <Text fontSize="sm" color="red.500" mt={1}>
-                      {fileError}
-                    </Text>
-                  )}
-                </FormControl>
-              </VStack>
-            </ModalBody>
-            <ModalFooter>
-              <Button colorScheme="blue" onClick={handleAddOrUpdateApp} mr={3}>
-                {editingApp ? "Save Changes" : "Add Application"}
-              </Button>
-              <Button onClick={resetForm}>Cancel</Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
+              <FormControl>
+                <FormLabel fontWeight="bold" fontSize="sm">Description</FormLabel>
+                <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Brief description..." borderRadius="xl" />
+              </FormControl>
+            </VStack>
+          </ModalBody>
+          <ModalFooter bg="gray.50" borderBottomRadius="3xl" p={6}>
+            <Button variant="ghost" onClick={onClose} mr={3} borderRadius="xl">Cancel</Button>
+            <Button colorScheme="orange" onClick={handleSave} borderRadius="xl" px={8}>Save Application</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
 
-        {/* Delete Confirmation Dialog */}
-        <AlertDialog
-          isOpen={isDeleteOpen}
-          leastDestructiveRef={cancelRef}
-          onClose={onDeleteClose}
-        >
-          <AlertDialogOverlay>
-            <AlertDialogContent>
-              <AlertDialogHeader fontSize="lg" fontWeight="bold">
-                Delete Application
-              </AlertDialogHeader>
-              <AlertDialogBody>
-                Are you sure you want to delete this application? This action cannot be
-                undone.
-              </AlertDialogBody>
-              <AlertDialogFooter>
-                <Button ref={cancelRef} onClick={onDeleteClose}>
-                  Cancel
-                </Button>
-                <Button colorScheme="red" onClick={handleDeleteApp} ml={3}>
-                  Delete
-                </Button>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialogOverlay>
-        </AlertDialog>
-      </Box>
+      {/* Delete Confirmation */}
+      <AlertDialog isOpen={!!deletingApp} leastDestructiveRef={cancelRef} onClose={() => setDeletingApp(null)} isCentered>
+        <AlertDialogOverlay backdropFilter="blur(5px)" />
+        <AlertDialogContent borderRadius="2xl">
+          <AlertDialogHeader fontSize="lg" fontWeight="bold">Delete Application</AlertDialogHeader>
+          <AlertDialogBody>
+            Are you sure you want to delete <b>{deletingApp?.name}</b>? This action cannot be undone.
+          </AlertDialogBody>
+          <AlertDialogFooter>
+            <Button ref={cancelRef} onClick={() => setDeletingApp(null)} borderRadius="xl">Cancel</Button>
+            <Button colorScheme="red" onClick={handleDelete} ml={3} borderRadius="xl">Delete</Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-      {/* Spinner animation */}
-      <style>
-        {`
-          @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-          }
-          .spin {
-            animation: spin 2s linear infinite;
-          }
-        `}
-      </style>
     </Box>
   );
 };

@@ -3,6 +3,7 @@
 const Group = require("../models/Group");
 const UserGroupMapping = require("../models/UserGroupMapping");
 const User = require("../models/User");
+const Personnel = require("../models/personnels");
 const axios = require("axios"); // Ensure Axios is installed and available
 
 const Permission = require("../models/PermissionDefinition");
@@ -46,7 +47,14 @@ exports.getGroupUsers = async (req, res) => {
         {
           model: User,
           as: "User",
-          attributes: ["id", "username"],
+          attributes: ["id", "username", "personnel_id"],
+          include: [
+            {
+              model: Personnel,
+              as: "personnel",
+              attributes: ["givenname", "surname_husband"],
+            },
+          ],
         },
       ],
       order: [["User", "username", "ASC"]],
@@ -84,6 +92,7 @@ exports.getGroupUsers = async (req, res) => {
         username: mapping.User.username,
         fullname: ldapUser ? `${ldapUser.givenName} ${ldapUser.sn}` : "N/A",
         email: ldapUser ? ldapUser.mail : "N/A",
+        personnel: mapping.User.personnel,
       };
     });
 

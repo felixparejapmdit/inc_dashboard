@@ -134,7 +134,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
   useEffect(() => {
     const fetchPersonnelDetails = async () => {
-      if (!personnelId) return;
+      if (!personnelId || personnelId === "null") return;
 
       fetchData(
         "personnels", // endpoint
@@ -161,7 +161,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
   // Put fetchChurchDuties outside useEffect so you can call it manually
   const fetchChurchDuties = () => {
-    if (!personnelId) return;
+    if (!personnelId || personnelId === "null") return;
 
     fetchData(
       "church-duties", // API endpoint
@@ -1293,7 +1293,20 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
   useEffect(() => {
     const fetchEnrollmentData = async () => {
-      if (!personnelId) return;
+      // ✅ 0. Early check for missing or invalid personnel_id
+      if (!personnelId || personnelId === "null") {
+        console.warn("⚠️ EnrollmentForm: No valid personnelId provided.");
+        if (personnelId === "null" && typeParam !== "new") {
+          toast({
+            title: "Not Enrolled",
+            description: "You are logged in as an LDAP user but have not yet completed the enrollment process. Please start a new enrollment.",
+            status: "info",
+            duration: 5000,
+            isClosable: true,
+          });
+        }
+        return;
+      }
 
       // ✅ 1. Fetch personnel
       await fetchData(

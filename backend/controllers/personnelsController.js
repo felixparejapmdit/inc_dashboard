@@ -58,6 +58,10 @@ exports.getAllNewPersonnels = async (req, res) => {
         "surname_husband", // Include surname husband
         "email_address", // Include email address
         "personnel_progress", // ✅ Include progress
+        "department_id",
+        "section_id",
+        "subsection_id",
+        "designation_id"
       ],
       include: [
         {
@@ -95,6 +99,10 @@ exports.getAllNewPersonnels = async (req, res) => {
       section: personnel.Section ? personnel.Section.name : "No Section", // Show section name or "No Section"
       personnel_progress: personnel.personnel_progress || "Not Started", // ✅ Include for frontend use
       image: personnel.images && personnel.images.length > 0 ? personnel.images[0].image_url : null, // ✅ Include image
+      department_id: personnel.department_id,
+      section_id: personnel.section_id,
+      subsection_id: personnel.subsection_id,
+      designation_id: personnel.designation_id,
     }));
 
     res.status(200).json(formattedResults);
@@ -318,9 +326,20 @@ exports.getAllPersonnels1 = async (req, res) => {
   }
 };
 
+// Get all personnels
 exports.getAllPersonnels = async (req, res) => {
   try {
-    const personnels = await Personnel.findAll();
+    const personnels = await Personnel.findAll({
+      include: [
+        {
+          model: PersonnelImage,
+          as: "images",
+          where: { type: "2x2 Picture" },
+          required: false,
+          attributes: ["image_url"],
+        },
+      ],
+    });
     res.status(200).json(personnels);
   } catch (error) {
     console.error(
@@ -948,7 +967,9 @@ exports.getTodaysCelebrants = async (req, res) => {
         "surname_husband",
         "date_of_birth",
         "wedding_anniversary",
-        "personnel_type"
+        "personnel_type",
+        "section_id",
+        "subsection_id"
       ],
       where: {
         deleted_at: null,
@@ -973,7 +994,9 @@ exports.getTodaysCelebrants = async (req, res) => {
             type: "birthday",
             date: day,
             isToday: isToday,
-            timestamp: new Date(today.getFullYear(), currentMonth - 1, day).getTime()
+            timestamp: new Date(today.getFullYear(), currentMonth - 1, day).getTime(),
+            section_id: p.section_id,
+            subsection_id: p.subsection_id
           });
         }
       }
@@ -991,7 +1014,9 @@ exports.getTodaysCelebrants = async (req, res) => {
             type: "anniversary",
             date: day,
             isToday: isToday,
-            timestamp: new Date(today.getFullYear(), currentMonth - 1, day).getTime()
+            timestamp: new Date(today.getFullYear(), currentMonth - 1, day).getTime(),
+            section_id: p.section_id,
+            subsection_id: p.subsection_id
           });
         }
       }
@@ -1018,7 +1043,7 @@ exports.getPersonnelHistory = async (req, res) => {
         {
           model: Personnel,
           as: "personnel",
-          attributes: ["givenname", "surname_husband"],
+          attributes: ["givenname", "surname_husband", "department_id", "section_id", "subsection_id", "designation_id"],
           paranoid: false, // Include names even for currently deleted personnel
         },
       ],
@@ -1031,6 +1056,10 @@ exports.getPersonnelHistory = async (req, res) => {
       fullname: h.personnel
         ? `${h.personnel.givenname} ${h.personnel.surname_husband}`
         : "Unknown Personnel",
+      department_id: h.personnel?.department_id,
+      section_id: h.personnel?.section_id,
+      subsection_id: h.personnel?.subsection_id,
+      designation_id: h.personnel?.designation_id,
       action: h.action,
       reason: h.reason,
       performed_by: h.performed_by,

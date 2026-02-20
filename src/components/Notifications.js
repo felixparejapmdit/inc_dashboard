@@ -17,47 +17,96 @@ import {
     List,
     Portal,
     useColorModeValue,
+    Badge,
+    Divider,
 } from "@chakra-ui/react";
 import { FiBell } from "react-icons/fi";
 import { getAuthHeaders } from "../utils/apiHeaders";
+import moment from "moment";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Notifications = () => {
     const location = useLocation();
     const [notifications, setNotifications] = useState([]);
-
-
+    const [loading, setLoading] = useState(false);
 
     const notifHoverBg = useColorModeValue("gray.50", "whiteAlpha.100");
     const notifDescColor = useColorModeValue("gray.600", "gray.300");
     const popoverBg = useColorModeValue("white", "gray.700");
-    const iconHoverBg = useColorModeValue("orange.100", "whiteAlpha.200");
     const sectionHeaderBg = useColorModeValue("gray.50", "whiteAlpha.100");
 
     useEffect(() => {
         const fetchNotifications = async () => {
+            setLoading(true);
             try {
-                const [newResponse, celebrantsResponse] = await Promise.all([
+                const userSectionId = localStorage.getItem("section_id");
+                const userGroupName = localStorage.getItem("groupName");
+                const isAdmin = userGroupName === "Admin" || userGroupName === "VIP";
+
+                const [newResponse, celebrantsResponse, remindersResponse, suguanResponse] = await Promise.all([
                     fetch(`${API_URL}/api/personnels/new`, { headers: getAuthHeaders() }),
-                    fetch(`${API_URL}/api/personnels/celebrants`, { headers: getAuthHeaders() })
+                    fetch(`${API_URL}/api/personnels/celebrants`, { headers: getAuthHeaders() }),
+                    fetch(`${API_URL}/api/reminders`, { headers: getAuthHeaders() }),
+                    fetch(`${API_URL}/api/suguan`, { headers: getAuthHeaders() })
                 ]);
 
                 let combined = [];
 
-                // Prioritize celebrants
+                // 1. Celebrants (Birthdays/Anniversaries)
                 if (celebrantsResponse.ok) {
                     const celebrants = await celebrantsResponse.json();
-                    combined = [...celebrants];
+                    const filteredCelebrants = celebrants.filter(c => {
+                        return isAdmin || (userSectionId && String(c.section_id) === String(userSectionId));
+                    });
+                    combined = [...combined, ...filteredCelebrants];
                 }
 
+                // 2. Reminders (Today Only)
+                if (remindersResponse.ok) {
+                    const remindersData = await remindersResponse.json();
+                    const todayReminders = remindersData.filter(r => {
+                        const isToday = moment(r.reminder_date).isSame(moment(), 'day');
+                        const isSectionMatch = isAdmin || (userSectionId && String(r.section_id) === String(userSectionId));
+                        return isToday && isSectionMatch;
+                    }).map(r => ({
+                        id: `reminder-${r.id}`,
+                        title: r.title,
+                        description: `${moment(r.time, "HH:mm:ss").format("hh:mm A")} - ${r.description || r.message || 'Task for today'}`,
+                        type: 'reminder',
+                        isToday: true,
+                        priority: 2
+                    }));
+                    combined = [...combined, ...todayReminders];
+                }
+
+                // 3. Suguan Assignments (Today Only)
+                if (suguanResponse.ok) {
+                    const suguanData = await suguanResponse.json();
+                    const todaySuguan = suguanData.filter(s => {
+                        const isToday = moment(s.date).isSame(moment(), 'day');
+                        const isSectionMatch = isAdmin || (userSectionId && String(s.section_id) === String(userSectionId));
+                        return isToday && isSectionMatch;
+                    }).map(s => ({
+                        id: `suguan-${s.id}`,
+                        title: `Suguan: ${s.name}`,
+                        description: `${moment(s.time, "HH:mm:ss").format("hh:mm A")} - ${s.local_congregation} (${s.gampanin_id})`,
+                        type: 'suguan',
+                        isToday: true,
+                        priority: 1
+                    }));
+                    combined = [...combined, ...todaySuguan];
+                }
+
+                // 4. New Enrollments
                 if (newResponse.ok) {
                     const newData = await newResponse.json();
                     const newEnrollments = newData.map(person => ({
-                        id: person.id || Math.random(),
+                        id: `new-${person.personnel_id || Math.random()}`,
                         title: "New Enrollment",
-                        description: `${person.givenname || ''} ${person.surname_husband || ''} - ${person.personnel_type || 'Personnel'} ${person.current_step ? `(Step: ${person.current_step})` : ''}`,
-                        type: 'new'
+                        description: `${person.givenname || ''} ${person.surname_husband || ''} - ${person.personnel_type || 'Personnel'}`,
+                        type: 'new',
+                        priority: 3
                     }));
                     combined = [...combined, ...newEnrollments];
                 }
@@ -65,15 +114,29 @@ const Notifications = () => {
                 setNotifications(combined);
             } catch (error) {
                 console.error("Error fetching notifications:", error);
+            } finally {
+                setLoading(false);
             }
         };
+
         fetchNotifications();
+
+        // Listen for refresh events
+        window.addEventListener("sync-reminders", fetchNotifications);
+        window.addEventListener("sync-suguan", fetchNotifications);
+
+        return () => {
+            window.removeEventListener("sync-reminders", fetchNotifications);
+            window.removeEventListener("sync-suguan", fetchNotifications);
+        };
     }, []);
 
     const getNotifIcon = (type) => {
         switch (type) {
             case 'birthday': return "🎂";
             case 'anniversary': return "💍";
+            case 'reminder': return "⏰";
+            case 'suguan': return "🏢";
             default: return "👋";
         }
     };
@@ -82,6 +145,8 @@ const Notifications = () => {
         switch (type) {
             case 'birthday': return "purple.500";
             case 'anniversary': return "pink.500";
+            case 'reminder': return "blue.500";
+            case 'suguan': return "teal.500";
             default: return "orange.500";
         }
     };
@@ -89,6 +154,56 @@ const Notifications = () => {
     if (location.pathname !== "/dashboard") {
         return null;
     }
+
+    const renderNotifItem = (notif) => (
+        <Box
+            key={notif.id}
+            px={5}
+            py={3}
+            _hover={{ bg: notifHoverBg }}
+            transition="all 0.2s"
+            cursor="pointer"
+            borderBottom="1px solid"
+            borderColor="gray.50"
+        >
+            <HStack align="start" spacing={4}>
+                <Box
+                    w="40px"
+                    h="40px"
+                    borderRadius="full"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    bg={notif.type === 'new' ? "orange.100" : (getNotifColor(notif.type) + (notif.isToday ? "" : "20"))}
+                    color={notif.isToday ? "white" : getNotifColor(notif.type)}
+                >
+                    <Text fontSize="lg">{getNotifIcon(notif.type)}</Text>
+                </Box>
+                <VStack align="start" spacing={1} flex={1}>
+                    <HStack justify="space-between" width="100%">
+                        <Text fontWeight="bold" fontSize="sm" color="gray.800" noOfLines={1}>
+                            {notif.title}
+                        </Text>
+                        {notif.isToday && (
+                            <Badge colorScheme="red" variant="solid" fontSize="2xs" borderRadius="full">
+                                TODAY
+                            </Badge>
+                        )}
+                    </HStack>
+                    <Text fontSize="xs" color={notifDescColor} lineHeight="1.4" noOfLines={2}>
+                        {notif.description}
+                    </Text>
+                </VStack>
+            </HStack>
+        </Box>
+    );
+
+    const sections = [
+        { title: "Reminders", icon: "⏰", filter: n => n.type === 'reminder' },
+        { title: "Suguan Assignments", icon: "🏢", filter: n => n.type === 'suguan' },
+        { title: "Celebrations", icon: "🎉", filter: n => n.type === 'birthday' || n.type === 'anniversary' },
+        { title: "New Personnel", icon: "👤", filter: n => n.type === 'new' },
+    ];
 
     return (
         <Portal>
@@ -132,133 +247,44 @@ const Notifications = () => {
                         <PopoverArrow />
                         <PopoverCloseButton />
                         <PopoverHeader borderBottom="1px solid" borderColor="gray.100" pt={4} px={5} pb={3}>
-                            <Heading size="sm" color="gray.700">Notifications</Heading>
+                            <HStack justify="space-between">
+                                <Heading size="sm" color="gray.700">Notifications</Heading>
+                                <Badge colorScheme="orange" variant="outline">{notifications.length}</Badge>
+                            </HStack>
                             <Text fontSize="xs" color="gray.500" mt={1}>
-                                Updates for {new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}
+                                Daily updates and tracking
                             </Text>
                         </PopoverHeader>
                         <PopoverBody p={0} maxH="500px" overflowY="auto">
                             {notifications.length > 0 ? (
                                 <VStack align="stretch" spacing={0}>
-                                    {/* Celebrations Section */}
-                                    {notifications.some(n => n.type !== 'new') && (
-                                        <Box>
-                                            <Text
-                                                px={5}
-                                                py={2}
-                                                fontSize="xs"
-                                                fontWeight="bold"
-                                                textTransform="uppercase"
-                                                color="gray.500"
-                                                bg={sectionHeaderBg}
-                                            >
-                                                🎉 Celebrations
-                                            </Text>
-                                            <List spacing={0}>
-                                                {notifications.filter(n => n.type !== 'new').map((notif) => (
-                                                    <Box
-                                                        key={notif.id}
-                                                        px={5}
-                                                        py={3}
-                                                        _hover={{ bg: notifHoverBg }}
-                                                        transition="all 0.2s"
-                                                        cursor="pointer"
-                                                        borderBottom="1px solid"
-                                                        borderColor="gray.50"
-                                                    >
-                                                        <HStack align="start" spacing={4}>
-                                                            <Box
-                                                                w="40px"
-                                                                h="40px"
-                                                                borderRadius="full"
-                                                                display="flex"
-                                                                alignItems="center"
-                                                                justifyContent="center"
-                                                                bg={getNotifColor(notif.type) + (notif.isToday ? "" : "20")}
-                                                                color={notif.isToday ? "white" : getNotifColor(notif.type)}
-                                                            >
-                                                                <Text fontSize="lg">{getNotifIcon(notif.type)}</Text>
-                                                            </Box>
-                                                            <VStack align="start" spacing={1} flex={1}>
-                                                                <HStack justify="space-between" width="100%">
-                                                                    <Text fontWeight="bold" fontSize="sm" color="gray.800">
-                                                                        {notif.title}
-                                                                    </Text>
-                                                                    {notif.isToday && (
-                                                                        <Box px={2} py={0.5} bg="red.500" color="white" borderRadius="full" fontSize="xx-small" fontWeight="bold">
-                                                                            TODAY
-                                                                        </Box>
-                                                                    )}
-                                                                </HStack>
-                                                                <Text fontSize="xs" color={notifDescColor} lineHeight="1.4">
-                                                                    {notif.description}
-                                                                </Text>
-                                                            </VStack>
-                                                        </HStack>
-                                                    </Box>
-                                                ))}
-                                            </List>
-                                        </Box>
-                                    )}
-
-                                    {/* New Enrollments Section */}
-                                    {notifications.some(n => n.type === 'new') && (
-                                        <Box>
-                                            <Text
-                                                px={5}
-                                                py={2}
-                                                fontSize="xs"
-                                                fontWeight="bold"
-                                                textTransform="uppercase"
-                                                color="gray.500"
-                                                bg={sectionHeaderBg}
-                                            >
-                                                👤 New Personnel
-                                            </Text>
-                                            <List spacing={0}>
-                                                {notifications.filter(n => n.type === 'new').map((notif) => (
-                                                    <Box
-                                                        key={notif.id}
-                                                        px={5}
-                                                        py={3}
-                                                        _hover={{ bg: notifHoverBg }}
-                                                        transition="all 0.2s"
-                                                        cursor="pointer"
-                                                        borderBottom="1px solid"
-                                                        borderColor="gray.50"
-                                                    >
-                                                        <HStack align="start" spacing={4}>
-                                                            <Box
-                                                                w="40px"
-                                                                h="40px"
-                                                                borderRadius="full"
-                                                                display="flex"
-                                                                alignItems="center"
-                                                                justifyContent="center"
-                                                                bg="orange.100"
-                                                                color="orange.500"
-                                                            >
-                                                                <Text fontSize="lg">👋</Text>
-                                                            </Box>
-                                                            <VStack align="start" spacing={1}>
-                                                                <Text fontWeight="bold" fontSize="sm" color="gray.800">
-                                                                    {notif.title}
-                                                                </Text>
-                                                                <Text fontSize="xs" color={notifDescColor} lineHeight="1.4">
-                                                                    {notif.description}
-                                                                </Text>
-                                                            </VStack>
-                                                        </HStack>
-                                                    </Box>
-                                                ))}
-                                            </List>
-                                        </Box>
-                                    )}
+                                    {sections.map(section => {
+                                        const items = notifications.filter(section.filter);
+                                        if (items.length === 0) return null;
+                                        return (
+                                            <Box key={section.title}>
+                                                <Text
+                                                    px={5}
+                                                    py={2}
+                                                    fontSize="xs"
+                                                    fontWeight="bold"
+                                                    textTransform="uppercase"
+                                                    color="gray.500"
+                                                    bg={sectionHeaderBg}
+                                                >
+                                                    {section.icon} {section.title}
+                                                </Text>
+                                                <List spacing={0}>
+                                                    {items.map(renderNotifItem)}
+                                                </List>
+                                            </Box>
+                                        );
+                                    })}
                                 </VStack>
                             ) : (
                                 <VStack p={8} spacing={3} align="center" justify="center" minH="150px">
                                     <Text fontSize="4xl">☕</Text>
-                                    <Text fontSize="sm" color="gray.500" fontWeight="medium">All caught up for {new Date().toLocaleString('default', { month: 'long' })}!</Text>
+                                    <Text fontSize="sm" color="gray.500" fontWeight="medium">All caught up for now!</Text>
                                 </VStack>
                             )}
                         </PopoverBody>

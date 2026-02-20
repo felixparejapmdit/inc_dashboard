@@ -45,6 +45,7 @@ import {
 } from "react-icons/fi";
 import { FaFemale } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { filterPersonnelData } from "../utils/filterUtils";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -159,6 +160,9 @@ const PersonnelStatistics = () => {
         return res.json();
       })
       .then((data) => {
+        // ✅ Apply RBAC Filter
+        data = filterPersonnelData(data);
+
         const count = {
           All: data.length,
           Minister: 0,
@@ -196,6 +200,7 @@ const PersonnelStatistics = () => {
             if (!res.ok) throw new Error(`Failed to fetch progress for step ${i}`);
             return res.json();
           })
+          .then((data) => filterPersonnelData(data)) // ✅ Apply Filter
       )
     );
 
@@ -204,7 +209,8 @@ const PersonnelStatistics = () => {
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch new personnels");
         return res.json();
-      });
+      })
+      .then((data) => filterPersonnelData(data)); // ✅ Apply Filter
 
     Promise.all([fetchBreakdown, fetchTotalNew])
       .then(([breakdownResponses, totalNewData]) => {

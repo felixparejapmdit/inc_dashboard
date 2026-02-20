@@ -29,7 +29,8 @@ exports.getReminderById = async (req, res) => {
 // Create a new reminder
 exports.createReminder = async (req, res) => {
   try {
-    const { title, description, reminder_date, time, message, created_by } = req.body;
+    const { title, description, reminder_date, time, message, created_by, section_id, subsection_id } = req.body;
+    const personnel_id = req.user?.personnel_id;
     const newReminder = await Reminder.create({
       title,
       description,
@@ -37,6 +38,9 @@ exports.createReminder = async (req, res) => {
       time,
       message,
       created_by,
+      section_id,
+      subsection_id,
+      personnel_id,
     });
     res
       .status(201)
@@ -51,13 +55,13 @@ exports.createReminder = async (req, res) => {
 exports.updateReminder = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, reminder_date, time, message, created_by } = req.body;
+    const { title, description, reminder_date, time, message, created_by, section_id, subsection_id, personnel_id } = req.body;
 
     const reminder = await Reminder.findByPk(id);
     if (!reminder)
       return res.status(404).json({ message: "Reminder not found" });
 
-    await reminder.update({ title, description, reminder_date, time, message, created_by });
+    await reminder.update({ title, description, reminder_date, time, message, created_by, section_id, subsection_id, personnel_id });
     res
       .status(200)
       .json({ message: "Reminder updated successfully", reminder });

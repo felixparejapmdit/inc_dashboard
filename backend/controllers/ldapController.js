@@ -377,6 +377,93 @@ exports.changePassword = async (req, res) => {
   });
 };
 
+// Admin: Reset LDAP User Password without old password
+exports.adminResetPassword = async (req, res) => {
+  const { username, newPassword } = req.body;
+
+  if (!username || !newPassword) {
+    return res.status(400).json({ message: "Username and new password are required." });
+  }
+
+  const client = ldap.createClient({ url: LDAP_URL });
+
+  console.log(`🔍 Admin resetting password for user: ${username}`);
+
+  // Step 1: Search for User DN Dynamically
+  const opts = {
+    filter: `(uid=${username})`,
+    scope: "sub",
+    attributes: ["dn"],
+  };
+
+  client.bind(BIND_DN, BIND_PASSWORD, (bindErr) => {
+    if (bindErr) {
+      console.error("❌ LDAP Admin Bind Failed:", bindErr);
+      return res.status(500).json({ message: "LDAP Admin Bind Failed", error: bindErr });
+    }
+
+    client.search(BASE_DN, opts, (searchErr, searchRes) => {
+      if (searchErr) {
+        console.error("❌ LDAP Search Failed:", searchErr);
+        client.unbind();
+        return res.status(500).json({ message: "LDAP Search Failed", error: searchErr });
+      }
+
+      let userDN = null;
+
+      searchRes.on("searchEntry", (entry) => {
+        userDN = entry.pojo.objectName;
+      });
+
+      searchRes.on("end", async () => {
+        if (!userDN) {
+          client.unbind();
+          return res.status(404).json({ message: "User not found in LDAP." });
+        }
+
+        // Step 2: Hash the New Password (MD5 + Base64)
+        const hashedNewPassword = `{MD5}` + crypto.createHash("md5").update(newPassword).digest("base64");
+
+        // Step 3: Modify the Password (Admin Level)
+        const change = new ldap.Change({
+          operation: "replace",
+          modification: new Attribute({
+            type: "userPassword",
+            values: [hashedNewPassword],
+          }),
+        });
+
+        client.modify(userDN, change, async (modErr) => {
+          if (modErr) {
+            console.error("❌ Failed to Update Password:", modErr);
+            client.unbind();
+            return res.status(500).json({ message: "Failed to reset password in LDAP", error: modErr });
+          }
+
+          console.log("✅ LDAP Password Reset Successfully for:", userDN);
+
+          // Step 4: Sync with local users table if exists
+          try {
+            await User.update({ password: hashedNewPassword }, { where: { username } });
+            console.log("✅ Local users table updated for:", username);
+          } catch (dbErr) {
+            console.warn("⚠️ LDAP updated, but local DB update failed:", dbErr.message);
+          }
+
+          client.unbind();
+          res.json({ success: true, message: "Password reset successfully." });
+        });
+      });
+
+      searchRes.on("error", (err) => {
+        console.error("❌ LDAP Search Error:", err);
+        client.unbind();
+        res.status(500).json({ message: "LDAP search error", error: err });
+      });
+    });
+  });
+};
+
 // Test LDAP connection
 exports.testLdapConnection = (req, res) => {
   const client = createLdapClient();
@@ -608,6 +695,13 @@ exports.getRecentLoginAudits = async (req, res) => {
           model: User,
           as: "user", // ✅ important
           attributes: ["id", "username", "personnel_id", "avatar"], // Add any user fields you need
+          include: [
+            {
+              model: Personnel,
+              as: "personnel",
+              attributes: ["department_id", "section_id", "subsection_id", "designation_id"],
+            },
+          ],
         },
       ],
     });

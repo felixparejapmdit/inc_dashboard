@@ -34,6 +34,26 @@ const Suguan = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    section_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    subsection_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    personnel_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    created_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+    updated_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
   },
   {
     tableName: "suguan", // Ensure this matches your actual table name

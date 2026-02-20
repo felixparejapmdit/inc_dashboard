@@ -74,6 +74,7 @@ import {
   DownloadIcon,
   Search2Icon,
   RepeatIcon,
+  ViewOffIcon,
 } from "@chakra-ui/icons";
 import axios from "axios";
 import { FaCamera, FaIdCard } from "react-icons/fa";
@@ -88,6 +89,7 @@ import { getAuthHeaders } from "../utils/apiHeaders"; // adjust path as needed
 import { useUserFormData, suffixOptions } from "../hooks/userFormOptions";
 
 import { fetchData, fetchDataPhotoshoot, postData, putData, deleteData } from "../utils/fetchData";
+import { filterPersonnelData } from "../utils/filterUtils";
 
 const API_URL = process.env.REACT_APP_API_URL || "";
 const ITEMS_PER_PAGE = 5;
@@ -162,6 +164,69 @@ const Users = ({ personnelId }) => {
   const [selectedSyncPersonnel, setSelectedSyncPersonnel] = useState(null);
   const [selectedSyncGroup, setSelectedSyncGroup] = useState("");
   const { isOpen: isSyncModalOpen, onOpen: onSyncModalOpen, onClose: onSyncModalClose } = useDisclosure();
+
+  // Password Visibility State
+  const [showPasswords, setShowPasswords] = useState({});
+
+  const togglePasswordVisibility = (userId) => {
+    setShowPasswords((prev) => ({
+      ...prev,
+      [userId]: !prev[userId],
+    }));
+  };
+
+  // LDAP Password Reset State
+  const {
+    isOpen: isResetPasswordModalOpen,
+    onOpen: onResetPasswordModalOpen,
+    onClose: onResetPasswordModalClose,
+  } = useDisclosure();
+  const [selectedLdapUser, setSelectedLdapUser] = useState(null);
+  const [newLdapPassword, setNewLdapPassword] = useState("");
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+
+  const handleLdapPasswordReset = async () => {
+    if (!selectedLdapUser || !newLdapPassword) return;
+
+    setIsResettingPassword(true);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${API_URL}/api/ldap/admin-reset-password`,
+        {
+          username: selectedLdapUser.username,
+          newPassword: newLdapPassword,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      toast({
+        title: "Password reset successful.",
+        description: response.data.message,
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+
+      onResetPasswordModalClose();
+      setNewLdapPassword("");
+      setSelectedLdapUser(null);
+      fetchUsers(); // Refresh the list
+    } catch (error) {
+      console.error("LDAP Password Reset Error:", error);
+      toast({
+        title: "Password reset failed.",
+        description: error.response?.data?.message || "Unknown error occurred",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
+    } finally {
+      setIsResettingPassword(false);
+    }
+  };
 
   // For select all
   const allKeys = useMemo(() => {
@@ -477,7 +542,11 @@ const Users = ({ personnelId }) => {
       const response = await axios.get(`${API_URL}/api/users`, {
         headers: getAuthHeaders(),
       });
-      const userData = Array.isArray(response.data) ? response.data : [];
+      let userData = Array.isArray(response.data) ? response.data : [];
+
+      // ✅ Apply RBAC Filter
+      userData = filterPersonnelData(userData);
+
       setExistingPersonnel(userData);
       setUsers(userData);
     } catch (error) {
@@ -490,7 +559,10 @@ const Users = ({ personnelId }) => {
       const response = await axios.get(`${API_URL}/api/personnels/new`, {
         headers: getAuthHeaders(), // ✅ Apply authorization headers here
       });
-      setNewPersonnels(response.data || []);
+      let data = response.data || [];
+      // ✅ Apply RBAC Filter
+      data = filterPersonnelData(data);
+      setNewPersonnels(data);
     } catch (error) {
       console.error("Failed to load new personnels:", error);
     }
@@ -1860,6 +1932,7 @@ const Users = ({ personnelId }) => {
                       <Th py={3} color="gray.600">Username/UID</Th>
                       <Th py={3} color="gray.600">Full Name (from LDAP)</Th>
                       <Th py={3} color="gray.600">Group Name</Th>
+                      <Th py={3} color="gray.600">Password</Th>
                       <Th py={3} color="gray.600">Action</Th>
                     </Tr>
                   </Thead>
@@ -1898,6 +1971,26 @@ const Users = ({ personnelId }) => {
                             <Badge colorScheme={item.groupId ? "blue" : "gray"}>
                               {groups.find(g => g.id === item.groupId)?.name || "N/A"}
                             </Badge>
+                          </Td>
+                          <Td>
+                            <HStack spacing={2}>
+                              <Text fontSize="sm" fontFamily="monospace">
+                                ••••••••
+                              </Text>
+                              <Tooltip label="Reset Password">
+                                <IconButton
+                                  size="xs"
+                                  icon={<Icon as={FiRefreshCw} />}
+                                  colorScheme="blue"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedLdapUser(item);
+                                    onResetPasswordModalOpen();
+                                  }}
+                                  aria-label="Reset Password"
+                                />
+                              </Tooltip>
+                            </HStack>
                           </Td>
                           <Td>
                             <HStack spacing={2}>
@@ -1950,8 +2043,8 @@ const Users = ({ personnelId }) => {
               </Flex>
             </TabPanel>
           </TabPanels>
-        </Tabs>
-      </Flex>
+        </Tabs >
+      </Flex >
 
       <Divider my={8} borderColor="gray.200" borderStyle="dashed" />
 
@@ -2667,6 +2760,46 @@ const Users = ({ personnelId }) => {
               isLoading={selectedSyncPersonnel && loadingSyncPersonnel[selectedSyncPersonnel.id]}
             >
               Sync User
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* LDAP Reset Password Modal */}
+      <Modal isOpen={isResetPasswordModalOpen} onClose={onResetPasswordModalClose} isCentered>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Reset LDAP Password</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <VStack spacing={4}>
+              <Box bg="orange.50" p={3} borderRadius="md" borderLeft="4px solid" borderColor="orange.400" w="100%">
+                <Text fontSize="sm" color="orange.800">
+                  You are resetting the password for <strong>{selectedLdapUser?.username}</strong>.
+                  This will update the LDAP directory directly.
+                </Text>
+              </Box>
+              <FormControl isRequired>
+                <FormLabel>New Temporary Password</FormLabel>
+                <Input
+                  type="password"
+                  value={newLdapPassword}
+                  onChange={(e) => setNewLdapPassword(e.target.value)}
+                  placeholder="Enter new password"
+                />
+              </FormControl>
+            </VStack>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" onClick={onResetPasswordModalClose}>Cancel</Button>
+            <Button
+              colorScheme="blue"
+              onClick={handleLdapPasswordReset}
+              ml={3}
+              isLoading={isResettingPassword}
+              isDisabled={!newLdapPassword}
+            >
+              Reset Password
             </Button>
           </ModalFooter>
         </ModalContent>

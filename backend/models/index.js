@@ -9,6 +9,7 @@ const PermissionCategory = require("./PermissionCategory");
 const GroupPermissionMapping = require("./GroupPermissionMapping");
 const PersonnelHistory = require("./PersonnelHistory");
 const Reminder = require("./Reminder");
+const Suguan = require("./Suguan");
 const File = require("./File");
 const FileShare = require("./FileShare");
 const Setting = require("./Setting");
@@ -98,4 +99,5 @@ module.exports = {
   FaceRecognitionLog,
   LokalProfile,
   PersonnelImage,
+  Suguan,
 };

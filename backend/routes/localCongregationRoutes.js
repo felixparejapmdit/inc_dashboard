@@ -7,8 +7,11 @@ const localCongregationController = require("../controllers/localCongregationCon
 router.post("/api/import-local-congregations", localCongregationController.importLocalCongregations);
 
 
-// Get all local congregations
-router.get("/api/local-congregations/", localCongregationController.getAllLocalCongregations);
+// Get all local congregations (Original Route)
+router.get("/api/local-congregations", localCongregationController.getAllLocalCongregations);
+
+// Alias: Get all local congregations (New Route requested by user)
+router.get("/api/all-congregations", localCongregationController.getAllLocalCongregations);
 
 // Get a single local congregation by ID
 router.get("/api/local-congregations/:id", localCongregationController.getLocalCongregationById);

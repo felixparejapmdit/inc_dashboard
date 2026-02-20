@@ -33,6 +33,18 @@ const Reminder = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    section_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    subsection_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    personnel_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     created_at: {
       type: DataTypes.DATE,
       defaultValue: Sequelize.NOW,

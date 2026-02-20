@@ -2,6 +2,7 @@ const Suguan = require("../models/Suguan");
 
 // Get all Suguan entries
 exports.getAllSuguan = async (req, res) => {
+  console.log("📥 GET /api/suguan hit");
   try {
     const suguan = await Suguan.findAll({
       order: [
@@ -9,8 +10,8 @@ exports.getAllSuguan = async (req, res) => {
         ["time", "ASC"],
       ], // Order by date and time
     });
-    if (!suguan || suguan.length === 0) {
-      return res.status(404).json({ message: "No Suguan entries found." });
+    if (!suguan) {
+      return res.status(200).json([]);
     }
     res.status(200).json(suguan);
   } catch (error) {
@@ -38,7 +39,7 @@ exports.getSuguanById = async (req, res) => {
 // Create a new Suguan entry
 exports.createSuguan = async (req, res) => {
   try {
-    const { name, district_id, local_id, date, time, gampanin_id } = req.body;
+    const { name, district_id, local_id, date, time, gampanin_id, section_id, subsection_id, personnel_id } = req.body;
 
     // Log the request body for debugging
     console.log("Request Body:", req.body);
@@ -54,6 +55,9 @@ exports.createSuguan = async (req, res) => {
       date,
       time,
       gampanin_id,
+      section_id,
+      subsection_id,
+      personnel_id,
     });
 
     console.log("Request Payload:", {
@@ -63,6 +67,8 @@ exports.createSuguan = async (req, res) => {
       date,
       time,
       gampanin_id,
+      section_id,
+      subsection_id,
     });
 
     res.status(201).json({
@@ -78,7 +84,7 @@ exports.createSuguan = async (req, res) => {
 // Update a Suguan entry by ID
 exports.updateSuguan = async (req, res) => {
   try {
-    const { name, district_id, local_id, date, time, gampanin_id } = req.body;
+    const { name, district_id, local_id, date, time, gampanin_id, section_id, subsection_id, personnel_id } = req.body;
     const suguan = await Suguan.findByPk(req.params.id);
 
     if (!suguan) {
@@ -94,6 +100,9 @@ exports.updateSuguan = async (req, res) => {
     if (date) suguan.date = date;
     if (time) suguan.time = time;
     if (gampanin_id) suguan.gampanin_id = gampanin_id;
+    if (section_id) suguan.section_id = section_id;
+    if (subsection_id) suguan.subsection_id = subsection_id;
+    if (personnel_id) suguan.personnel_id = personnel_id;
 
     await suguan.save();
     res.status(200).json({ message: "Suguan updated successfully.", suguan });

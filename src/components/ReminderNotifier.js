@@ -20,15 +20,15 @@ const ReminderNotifier = () => {
         if (!userId) return;
 
         const loadReminders = () => {
+            const userSectionId = localStorage.getItem("section_id");
             fetchData(
                 "reminders",
                 (data) => {
-                    // If metadata-less array or success structure, fetchData handles it.
-                    // We filter by user just in case the backend returns all.
-                    const userReminders = Array.isArray(data)
-                        ? data.filter(r => String(r.created_by) === String(userId))
+                    // Update: Filter reminders by userSectionId
+                    const sectionReminders = Array.isArray(data)
+                        ? data.filter(r => String(r.section_id) === String(userSectionId))
                         : [];
-                    setReminders(userReminders);
+                    setReminders(sectionReminders);
                 },
                 null,
                 "Failed to fetch reminders for notifications"

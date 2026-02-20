@@ -59,10 +59,11 @@ import {
   BellIcon
 } from "@chakra-ui/icons";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, Search, Filter, Plus, Clock, Calendar, Check, Trash2, Edit3, MoreVertical, AlertTriangle } from "lucide-react";
+import { Bell, Search, Filter, Plus, Clock, Calendar, Check, Trash2, Edit3, MoreVertical, AlertTriangle, User } from "lucide-react";
 import moment from "moment";
 
 import { fetchData, postData, putData, deleteData } from "../utils/fetchData";
+import { filterPersonnelData } from "../utils/filterUtils";
 
 const MotionBox = motion.create(Box);
 
@@ -91,11 +92,14 @@ const Reminders = () => {
   const [deletingReminderId, setDeletingReminderId] = useState(null);
   const cancelRef = useRef();
 
-  const userId = localStorage.getItem("userId");
+  const userId = localStorage.getItem("user_id");
+  const sectionId = localStorage.getItem("section_id");
+  const subsectionId = localStorage.getItem("subsection_id");
+  const personnelId = localStorage.getItem("personnel_id");
   const userName = localStorage.getItem("userFullName") || "User";
 
   // Colors
-  const bg = useColorModeValue("gray.50", "gray.900");
+  const bg = useColorModeValue("gray.50", "#0f172a");
   const cardBg = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
 
@@ -108,7 +112,8 @@ const Reminders = () => {
     fetchData(
       "reminders",
       (data) => {
-        setReminders(data);
+        const filteredData = filterPersonnelData(data);
+        setReminders(filteredData);
         setLoading(false);
       },
       (err) => {
@@ -136,10 +141,10 @@ const Reminders = () => {
 
   const handleEditRedirect = (item) => {
     setEditingReminder(item);
-    setTitle(item.title);
+    setTitle(item.title || "");
     setDescription(item.description || "");
     setReminderDate(moment(item.reminder_date).format("YYYY-MM-DD"));
-    setTime(item.time);
+    setTime(item.time || "");
     setMessage(item.message || "");
     onOpen();
   };
@@ -162,6 +167,9 @@ const Reminders = () => {
       time,
       message,
       created_by: userId,
+      section_id: sectionId,
+      subsection_id: subsectionId,
+      personnel_id: personnelId, // Added personnel_id support
     };
 
     try {
@@ -174,7 +182,6 @@ const Reminders = () => {
       }
       onClose();
       loadReminders();
-      // Trigger global sync for notification background worker
       window.dispatchEvent(new CustomEvent("sync-reminders"));
     } catch (error) {
       toast({
@@ -191,7 +198,6 @@ const Reminders = () => {
       toast({ title: "Reminder deleted", status: "success" });
       onDeleteClose();
       loadReminders();
-      // Trigger global sync for notification background worker
       window.dispatchEvent(new CustomEvent("sync-reminders"));
     } catch (error) {
       toast({
@@ -248,111 +254,108 @@ const Reminders = () => {
     const reminderDate = moment(date).startOf('day');
 
     if (reminderDate.isSame(today)) {
-      return <Badge colorScheme="orange" variant="solid" borderRadius="full" px={2}>Today</Badge>;
+      return <Badge colorScheme="orange" variant="solid" borderRadius="full" px={3} py={0.5} fontWeight="black" textTransform="uppercase">Today</Badge>;
     } else if (reminderDate.isBefore(today)) {
-      return <Badge colorScheme="red" variant="subtle" borderRadius="full" px={2}>Past Due</Badge>;
+      return <Badge colorScheme="red" variant="subtle" borderRadius="full" px={3} py={0.5} fontWeight="black" textTransform="uppercase">Past Due</Badge>;
     } else {
-      return <Badge colorScheme="teal" variant="outline" borderRadius="full" px={2}>Upcoming</Badge>;
+      return <Badge colorScheme="teal" variant="outline" borderRadius="full" px={3} py={0.5} fontWeight="black" textTransform="uppercase">Upcoming</Badge>;
     }
   };
 
   return (
     <Box bg={bg} minH="100vh">
-      <Container maxW="100%" py={8}>
+      <Container maxW="100%" py={8} px={{ base: 4, md: 8 }}>
         {/* Header Section */}
         <Flex
           direction={{ base: "column", md: "row" }}
           justify="space-between"
           align={{ base: "stretch", md: "center" }}
-          mb={8}
+          mb={10}
           gap={4}
         >
           <VStack align="start" spacing={1}>
             <HStack>
               <Icon as={Bell} boxSize={8} color="orange.500" />
-              <Heading size="xl" bgGradient="linear(to-r, orange.400, red.500)" bgClip="text">
+              <Heading size="xl" bgGradient="linear(to-r, orange.400, red.500)" bgClip="text" fontWeight="black" letterSpacing="tight">
                 Personal Reminders
               </Heading>
             </HStack>
-            <Text color="gray.500">Stay organized and never miss a task.</Text>
+            <Text color="gray.500" fontWeight="medium">Stay organized and never miss a task for your section.</Text>
           </VStack>
 
           <Button
-            leftIcon={<Plus size={20} />}
+            leftIcon={<Plus size={22} />}
             colorScheme="orange"
             size="lg"
             onClick={handleOpenAdd}
-            boxShadow="0 4px 14px 0 rgba(251, 146, 60, 0.39)"
+            borderRadius="2xl"
+            px={8}
+            boxShadow="0 8px 16px -4px rgba(251, 146, 60, 0.4)"
             _hover={{
               transform: "translateY(-2px)",
-              boxShadow: "0 6px 20px rgba(251, 146, 60, 0.23)",
+              boxShadow: "0 12px 20px -4px rgba(251, 146, 60, 0.3)",
             }}
           >
-            Create New
+            Create Reminder
           </Button>
         </Flex>
 
         {/* Stats Row */}
-        <StatGroup
-          bg={cardBg}
-          p={6}
-          borderRadius="2xl"
-          boxShadow="sm"
-          border="1px solid"
-          borderColor={borderColor}
-          mb={8}
-        >
-          <Stat textAlign="center">
-            <StatLabel color="gray.500" fontWeight="bold">Total Reminders</StatLabel>
-            <StatNumber fontSize="3xl" color="blue.500">{stats.total}</StatNumber>
-          </Stat>
-          <Stat textAlign="center">
-            <StatLabel color="gray.500" fontWeight="bold">For Today</StatLabel>
-            <StatNumber fontSize="3xl" color="orange.500">{stats.today}</StatNumber>
-          </Stat>
-          <Stat textAlign="center">
-            <StatLabel color="gray.500" fontWeight="bold">Upcoming</StatLabel>
-            <StatNumber fontSize="3xl" color="teal.500">{stats.upcoming}</StatNumber>
-          </Stat>
-        </StatGroup>
+        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6} mb={10}>
+          {[
+            { label: "Total Reminders", value: stats.total, color: "blue.500", icon: Bell },
+            { label: "Alerts for Today", value: stats.today, color: "orange.500", icon: Clock },
+            { label: "Upcoming Soon", value: stats.upcoming, color: "teal.500", icon: Calendar }
+          ].map((stat, idx) => (
+            <Box key={idx} bg={cardBg} p={6} borderRadius="3xl" shadow="sm" border="1px solid" borderColor={borderColor} position="relative" overflow="hidden">
+              <VStack align="start" spacing={0}>
+                <Text fontSize="xs" fontWeight="black" color="gray.400" textTransform="uppercase" letterSpacing="widest">{stat.label}</Text>
+                <Text fontSize="4xl" fontWeight="900" color={stat.color}>{stat.value}</Text>
+              </VStack>
+              <Icon as={stat.icon} position="absolute" right="-10px" bottom="-10px" boxSize={24} color={stat.color} opacity={0.05} transform="rotate(-15deg)" />
+            </Box>
+          ))}
+        </SimpleGrid>
 
         {/* Toolbar Section */}
         <Stack
           direction={{ base: "column", md: "row" }}
-          spacing={4}
-          mb={6}
+          spacing={6}
+          mb={8}
           align="center"
           justify="space-between"
           w="full"
         >
-          <InputGroup maxW={{ base: "full", md: "400px" }}>
+          <InputGroup maxW={{ base: "full", md: "450px" }} size="lg">
             <InputLeftElement pointerEvents="none">
               <Icon as={Search} color="gray.400" />
             </InputLeftElement>
             <Input
-              placeholder="Search reminders..."
+              placeholder="Search content, titles, or messages..."
               bg={cardBg}
-              borderRadius="full"
+              borderRadius="2xl"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               focusBorderColor="orange.400"
+              shadow="sm"
+              fontWeight="medium"
             />
           </InputGroup>
 
           <Tabs
             variant="soft-rounded"
             colorScheme="orange"
-            size="sm"
+            size="md"
             onChange={(index) => {
               const types = ["all", "today", "upcoming", "past"];
               setFilterType(types[index]);
             }}
           >
-            <TabList bg={cardBg} p={1} borderRadius="full" boxShadow="xs">
-              <Tab>All</Tab>
-              <Tab>Today</Tab>
-              <Tab>Upcoming</Tab>
-              <Tab>Past</Tab>
+            <TabList bg={cardBg} p={1.5} borderRadius="2xl" boxShadow="xs" border="1px solid" borderColor={borderColor}>
+              <Tab px={6} fontWeight="bold">All</Tab>
+              <Tab px={6} fontWeight="bold">Today</Tab>
+              <Tab px={6} fontWeight="bold">Upcoming</Tab>
+              <Tab px={6} fontWeight="bold">Past</Tab>
             </TabList>
           </Tabs>
         </Stack>
@@ -360,110 +363,124 @@ const Reminders = () => {
         {/* Reminders Grid */}
         <AnimatePresence mode="wait">
           {loading ? (
-            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+            <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} spacing={10}>
               {[1, 2, 3].map((i) => (
-                <Box key={i} h="200px" bg={cardBg} borderRadius="2xl" animation="pulse 2s infinite" />
+                <Box key={i} h="240px" bg={cardBg} borderRadius="3xl" animation="pulse 2s infinite" />
               ))}
             </SimpleGrid>
           ) : filteredReminders.length > 0 ? (
-            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+            <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} spacing={10}>
               {filteredReminders.map((item) => (
                 <MotionBox
                   key={item.id}
                   layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  whileHover={{ y: -5 }}
+                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  whileHover={{ y: -8, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
                   bg={cardBg}
-                  p={6}
-                  borderRadius="2xl"
-                  boxShadow="md"
+                  p={8}
+                  borderRadius="3xl"
+                  boxShadow="lg"
                   border="1px solid"
                   borderColor={borderColor}
                   position="relative"
                   overflow="hidden"
+                  transition={{ type: "spring", stiffness: 300, damping: 25 }}
                 >
-                  <VStack align="start" spacing={3} h="full">
+                  <VStack align="start" spacing={5} h="full">
                     <Flex justify="space-between" w="full" align="center">
-                      <HStack spacing={2}>
-                        <Icon as={Clock} color="orange.400" size={16} />
-                        <Text fontSize="xs" fontWeight="bold" color="gray.400">
-                          {item.time}
+                      <HStack spacing={2} bg="orange.50" px={3} py={1} borderRadius="full">
+                        <Icon as={Clock} color="orange.500" size={14} />
+                        <Text fontSize="xs" fontWeight="900" color="orange.600">
+                          {moment(item.time, "HH:mm").format("hh:mm A")}
                         </Text>
                       </HStack>
                       {getStatusBadge(item.reminder_date)}
                     </Flex>
 
                     <Box w="full">
-                      <Heading fontSize="xl" color="gray.800" mb={1} noOfLines={1}>
+                      <Heading fontSize="2xl" color="gray.800" fontWeight="900" letterSpacing="tight" mb={2}>
                         {item.title}
                       </Heading>
-                      <Text fontSize="sm" color="gray.500" noOfLines={2} h="40px">
-                        {item.description || "No description provided."}
+                      <Text fontSize="sm" color="gray.500" noOfLines={3} fontWeight="medium" lineHeight="tall">
+                        {item.description || "No specific details provided."}
                       </Text>
                     </Box>
 
                     <Divider />
 
-                    <VStack align="start" spacing={1} w="full">
-                      <HStack fontSize="xs" color="gray.500">
-                        <Icon as={Calendar} size={14} />
-                        <Text>{moment(item.reminder_date).format("MMM DD, YYYY")}</Text>
+                    <VStack align="start" spacing={3} w="full">
+                      <HStack fontSize="xs" color="gray.600" fontWeight="bold">
+                        <Icon as={Calendar} size={14} color="orange.400" />
+                        <Text>{moment(item.reminder_date).format("MMMM DD, YYYY")}</Text>
                       </HStack>
                       {item.message && (
-                        <HStack fontSize="xs" color="orange.600" bg="orange.50" px={2} py={1} borderRadius="md" w="full">
-                          <Icon as={InfoOutlineIcon} size={12} />
-                          <Text noOfLines={1}>{item.message}</Text>
-                        </HStack>
+                        <Box bg="gray.50" p={3} borderRadius="2xl" border="1px solid" borderColor="gray.100" w="full">
+                          <HStack fontSize="xs" color="gray.700" spacing={2}>
+                            <Icon as={InfoOutlineIcon} color="blue.400" size={12} />
+                            <Text fontWeight="bold" noOfLines={1}>{item.message}</Text>
+                          </HStack>
+                        </Box>
                       )}
                     </VStack>
 
                     <HStack w="full" justify="flex-end" spacing={2} pt={2}>
-                      <Tooltip label="Edit Task">
-                        <IconButton
-                          icon={<Edit3 size={18} />}
-                          variant="ghost"
-                          colorScheme="blue"
-                          size="sm"
-                          borderRadius="lg"
-                          onClick={() => handleEditRedirect(item)}
-                        />
-                      </Tooltip>
-                      <Tooltip label="Delete Task">
-                        <IconButton
-                          icon={<Trash2 size={18} />}
-                          variant="ghost"
-                          colorScheme="red"
-                          size="sm"
-                          borderRadius="lg"
-                          onClick={() => {
-                            setDeletingReminderId(item.id);
-                            onDeleteOpen();
-                          }}
-                        />
-                      </Tooltip>
+                      <IconButton
+                        icon={<Edit3 size={18} />}
+                        variant="ghost"
+                        colorScheme="blue"
+                        size="md"
+                        borderRadius="xl"
+                        onClick={() => handleEditRedirect(item)}
+                        aria-label="Edit"
+                      />
+                      <IconButton
+                        icon={<Trash2 size={18} />}
+                        variant="ghost"
+                        colorScheme="red"
+                        size="md"
+                        borderRadius="xl"
+                        onClick={() => {
+                          setDeletingReminderId(item.id);
+                          onDeleteOpen();
+                        }}
+                        aria-label="Delete"
+                      />
                     </HStack>
                   </VStack>
 
-                  {/* Decorative element */}
                   <Box
                     position="absolute"
                     top={0}
                     left={0}
-                    w="4px"
+                    w="8px"
                     h="100%"
-                    bgGradient="linear(to-b, orange.300, red.400)"
+                    bgGradient="linear(to-b, orange.400, red.500)"
+                    opacity={0.8}
                   />
                 </MotionBox>
               ))}
             </SimpleGrid>
           ) : (
-            <Flex direction="column" align="center" justify="center" p={12} bg={cardBg} borderRadius="2xl" boxShadow="sm">
-              <AlertTriangle size={48} color="orange" />
-              <Heading size="md" mt={4} color="gray.700">No reminders found</Heading>
-              <Text color="gray.500">Try adjusting your filters or create a new one.</Text>
-            </Flex>
+            <MotionBox
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              display="flex"
+              flexDirection="column"
+              alignItems="center"
+              justifyContent="center"
+              p={20}
+              bg={cardBg}
+              borderRadius="3xl"
+              boxShadow="sm"
+              textAlign="center"
+            >
+              <Icon as={AlertTriangle} boxSize={16} color="orange.200" />
+              <Heading size="lg" mt={6} color="gray.700" fontWeight="black">Empty Workspace</Heading>
+              <Text color="gray.400" fontSize="lg" mt={2} maxW="md">You don't have any reminders matching the current filter. Time to set some goals!</Text>
+              <Button mt={8} colorScheme="orange" onClick={handleOpenAdd} size="lg" borderRadius="2xl" px={10}>Add Reminder</Button>
+            </MotionBox>
           )}
         </AnimatePresence>
       </Container>
@@ -472,101 +489,113 @@ const Reminders = () => {
       <Modal
         isOpen={isOpen}
         onClose={onClose}
-        size="lg"
-        motionPreset="slideInBottom"
+        size="xl"
+        motionPreset="scale"
       >
-        <ModalOverlay backdropFilter="blur(10px)" />
-        <ModalContent borderRadius="2xl" overflow="hidden">
-          <ModalHeader bg="orange.500" color="white" py={6}>
-            <VStack align="start" spacing={0}>
-              <Text fontSize="lg">{editingReminder ? "Update Reminder" : "New Reminder"}</Text>
-              <Text fontSize="sm" fontWeight="normal" opacity={0.8}>
-                {editingReminder ? "Keep your task information up to date" : "Set a new alert for yourself"}
+        <ModalOverlay backdropFilter="blur(15px)" bg="blackAlpha.700" />
+        <ModalContent borderRadius="3xl" overflow="hidden" boxShadow="2xl">
+          <ModalHeader bgGradient="linear(to-r, orange.500, red.600)" color="white" py={8}>
+            <VStack align="start" spacing={1}>
+              <HStack>
+                <Icon as={Bell} />
+                <Heading size="md">{editingReminder ? "Update Reminder" : "New Task Alert"}</Heading>
+              </HStack>
+              <Text fontSize="sm" fontWeight="normal" opacity={0.9}>
+                {editingReminder ? "Keep your priorities up to date." : "Tell us what you need to be reminded about."}
               </Text>
             </VStack>
           </ModalHeader>
-          <ModalCloseButton color="white" top={6} />
+          <ModalCloseButton color="white" top={8} />
 
-          <ModalBody p={8}>
-            <VStack spacing={6}>
+          <ModalBody p={10}>
+            <VStack spacing={8}>
               <FormControl isRequired>
-                <FormLabel fontWeight="bold">Title</FormLabel>
+                <FormLabel fontWeight="900" fontSize="xs" textTransform="uppercase" letterSpacing="widest" color="gray.600">Reminder Title</FormLabel>
                 <Input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="What needs to be done?"
-                  borderRadius="xl"
+                  placeholder="e.g., Weekly Report Submission"
+                  borderRadius="2xl"
                   size="lg"
                   focusBorderColor="orange.400"
+                  fontWeight="bold"
+                  bg="gray.50"
+                  py={8}
                 />
               </FormControl>
 
               <FormControl>
-                <FormLabel fontWeight="bold">Short Description</FormLabel>
+                <FormLabel fontWeight="900" fontSize="xs" textTransform="uppercase" letterSpacing="widest" color="gray.600">Brief Description</FormLabel>
                 <Input
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="A quick summary..."
-                  borderRadius="xl"
+                  placeholder="What is this about?"
+                  borderRadius="2xl"
                   size="lg"
                   focusBorderColor="orange.400"
+                  bg="gray.50"
                 />
               </FormControl>
 
-              <SimpleGrid columns={2} spacing={4} w="full">
+              <SimpleGrid columns={2} spacing={6} w="full">
                 <FormControl isRequired>
-                  <FormLabel fontWeight="bold">Date</FormLabel>
+                  <FormLabel fontWeight="900" fontSize="xs" textTransform="uppercase" letterSpacing="widest" color="gray.600">Target Date</FormLabel>
                   <Input
                     type="date"
                     value={reminderDate}
                     onChange={(e) => setReminderDate(e.target.value)}
-                    borderRadius="xl"
+                    borderRadius="2xl"
                     size="lg"
                     focusBorderColor="orange.400"
+                    bg="gray.50"
                   />
                 </FormControl>
 
                 <FormControl isRequired>
-                  <FormLabel fontWeight="bold">Time</FormLabel>
+                  <FormLabel fontWeight="900" fontSize="xs" textTransform="uppercase" letterSpacing="widest" color="gray.600">Notify at</FormLabel>
                   <Input
                     type="time"
                     value={time}
                     onChange={(e) => setTime(e.target.value)}
-                    borderRadius="xl"
+                    borderRadius="2xl"
                     size="lg"
                     focusBorderColor="orange.400"
+                    bg="gray.50"
                   />
                 </FormControl>
               </SimpleGrid>
 
               <FormControl>
-                <FormLabel fontWeight="bold">Extended Message</FormLabel>
+                <FormLabel fontWeight="900" fontSize="xs" textTransform="uppercase" letterSpacing="widest" color="gray.600">Detailed Message</FormLabel>
                 <Textarea
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Detailed instructions or context..."
-                  borderRadius="xl"
+                  placeholder="Any extra context or steps involved..."
+                  borderRadius="2xl"
                   size="lg"
-                  minH="100px"
+                  minH="120px"
                   focusBorderColor="orange.400"
+                  bg="gray.50"
                 />
               </FormControl>
             </VStack>
           </ModalBody>
 
-          <ModalFooter p={8} bg="gray.50">
-            <Button variant="ghost" mr={3} onClick={onClose} borderRadius="xl">
-              Cancel
+          <ModalFooter p={10} bg="gray.50" borderTop="1px solid" borderColor="gray.100">
+            <Button variant="ghost" mr={4} onClick={onClose} borderRadius="2xl" size="lg">
+              Discard
             </Button>
             <Button
               colorScheme="orange"
               onClick={handleAddReminder}
-              borderRadius="xl"
+              borderRadius="2xl"
               size="lg"
-              px={10}
-              shadow="md"
+              px={12}
+              shadow="xl"
+              fontWeight="black"
+              boxShadow="0 10px 20px -5px rgba(251, 146, 60, 0.4)"
             >
-              {editingReminder ? "Save Changes" : "Create Reminder"}
+              {editingReminder ? "Save Changes" : "Activate Reminder"}
             </Button>
           </ModalFooter>
         </ModalContent>
@@ -578,22 +607,22 @@ const Reminders = () => {
         leastDestructiveRef={cancelRef}
         onClose={onDeleteClose}
       >
-        <AlertDialogOverlay backdropFilter="blur(5px)">
-          <AlertDialogContent borderRadius="2xl">
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Confirm Deletion
+        <AlertDialogOverlay backdropFilter="blur(8px)" bg="blackAlpha.700">
+          <AlertDialogContent borderRadius="3xl" p={4}>
+            <AlertDialogHeader fontSize="2xl" fontWeight="900" color="red.600">
+              Clear Reminder?
             </AlertDialogHeader>
 
-            <AlertDialogBody>
-              Permanently remove this reminder? This will clear all data associated with it.
+            <AlertDialogBody fontWeight="medium" color="gray.600">
+              This action cannot be undone. You will lose all captured details for this specific reminder.
             </AlertDialogBody>
 
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onDeleteClose} borderRadius="xl">
+            <AlertDialogFooter gap={3}>
+              <Button ref={cancelRef} onClick={onDeleteClose} borderRadius="2xl" variant="ghost">
                 Keep it
               </Button>
-              <Button colorScheme="red" onClick={handleDeleteReminder} ml={3} borderRadius="xl">
-                Yes, Delete
+              <Button colorScheme="red" onClick={handleDeleteReminder} borderRadius="2xl" px={8} fontWeight="black">
+                Yes, Clear
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>

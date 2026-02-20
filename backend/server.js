@@ -1,7 +1,8 @@
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 // Restart trigger
 
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
 
 const fs = require("fs");
 const https = require("https");
@@ -9,7 +10,7 @@ const http = require("http");
 const express = require("express");
 //const fileUpload = require("express-fileupload");
 const multer = require("multer");
-const path = require("path");
+// const path = require("path");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const mysql = require("mysql2"); // ✅ MySQL for querying personnel/family data
@@ -129,6 +130,7 @@ app.get("/api/test-upload", (req, res) => {
 
 // ✅ Register the route
 app.use("/api", uploadLocalRoute);
+app.use("/api", suguanRoutes);
 app.use(userRoutes);
 app.use(express.urlencoded({ extended: true }));
 
@@ -137,7 +139,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(ldapRoutes);
 app.use(appRoutes);
 app.use(reminderRoutes);
-app.use(suguanRoutes);
+// suguanRoutes already registered above
 app.use(eventsRoutes);
 app.use(locationRoutes);
 app.use(phonelocationRoutes);
@@ -233,6 +235,3 @@ if (sslOptions) {
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
-
-
-

@@ -1,31 +1,68 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   Box,
-  Button,
-  Flex,
-  Input,
-  Stack,
-  Table,
-  Tbody,
-  Td,
-  Th,
-  Thead,
-  Tr,
-  useToast,
-  IconButton,
+  Heading,
+  SimpleGrid,
+  VStack,
   Text,
+  Icon,
+  useColorModeValue,
+  Button,
+  IconButton,
   HStack,
+  useToast,
+  Container,
+  Stat,
+  StatLabel,
+  StatNumber,
+  Badge,
+  Flex,
+  Divider,
+  InputGroup,
+  InputLeftElement,
+  Input,
+  Select,
+  Avatar,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Spinner,
+  Center,
   AlertDialog,
   AlertDialogOverlay,
   AlertDialogContent,
   AlertDialogHeader,
   AlertDialogBody,
   AlertDialogFooter,
+  Tooltip,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+  FormControl,
+  FormLabel,
 } from "@chakra-ui/react";
-import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
-import axios from "axios";
-
-import { getAuthHeaders } from "../../utils/apiHeaders";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Search,
+  Plus,
+  Edit2,
+  Trash2,
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight,
+  Globe,
+  Activity,
+  AlertCircle,
+  Flag
+} from "lucide-react";
 
 import {
   fetchData,
@@ -34,343 +71,412 @@ import {
   deleteData,
 } from "../../utils/fetchData";
 
-const ITEMS_PER_PAGE = 15;
+const MotionBox = motion.create(Box);
 
 const CitizenshipManagement = () => {
-  const [citizenships, setCitizenships] = useState([]);
-  const [filteredCitizenships, setFilteredCitizenships] = useState([]);
-  const [newCitizenship, setNewCitizenship] = useState({
-    country_name: "",
-    citizenship: "",
-  });
-  const [isAdding, setIsAdding] = useState(false);
-  const [editingCitizenship, setEditingCitizenship] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [deletingCitizenship, setDeletingCitizenship] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
   const toast = useToast();
+  const [citizenships, setCitizenships] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Modals/Dialogs
+  const {
+    isOpen: isAddOpen,
+    onOpen: onAddOpen,
+    onClose: onAddClose
+  } = useDisclosure();
+
+  const [editingCitizenship, setEditingCitizenship] = useState(null);
+  const [deletingCitizenship, setDeletingCitizenship] = useState(null);
+  const [formState, setFormState] = useState({ country_name: "", citizenship: "" });
   const cancelRef = useRef();
+
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+
+  // Colors
+  const bg = useColorModeValue("gray.50", "#0f172a");
+  const cardBg = useColorModeValue("white", "gray.800");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
+  const headerGradient = useColorModeValue(
+    "linear(to-r, purple.600, blue.600)",
+    "linear(to-r, purple.400, blue.400)"
+  );
+
+  const fetchCitizenships = async () => {
+    setIsLoading(true);
+    try {
+      const data = await fetchData("citizenships");
+      setCitizenships(data || []);
+    } catch (err) {
+      toast({
+        title: "Error loading citizenships",
+        description: err.message || "Failed to fetch data",
+        status: "error",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchCitizenships();
   }, []);
 
-  const fetchCitizenships = () => {
-    fetchData(
-      "citizenships", // endpoint
-      (data) => {
-        setCitizenships(data);
-        setFilteredCitizenships(data);
-      },
-      (errorMsg) =>
-        toast({
-          title: "Error loading citizenships",
-          description: errorMsg,
-          status: "error",
-          duration: 3000,
-        }),
-      "Failed to load citizenships."
-    );
-  };
+  const handleSave = async () => {
+    const isEditing = !!editingCitizenship;
+    const body = isEditing ? editingCitizenship : formState;
 
-  const handleAddOrEditCitizenship = async () => {
-    if (!newCitizenship.country_name || !newCitizenship.citizenship) {
-      toast({
-        title: "Fields Required",
-        description: "Both Country Name and Citizenship are required.",
-        status: "warning",
-        duration: 3000,
-      });
+    if (!body.country_name.trim() || !body.citizenship.trim()) {
+      toast({ title: "Country and Citizenship fields are required", status: "warning" });
       return;
     }
+
     try {
-      if (editingCitizenship) {
-        await putData(
-          `citizenships/${editingCitizenship.id}`,
-          newCitizenship,
-          "Failed to update citizenship."
-        );
-        toast({
-          title: "Citizenship updated",
-          status: "success",
-          duration: 3000,
-        });
+      if (isEditing) {
+        await putData(`citizenships/${editingCitizenship.id}`, body, "Failed to update citizenship");
+        toast({ title: "Citizenship updated", status: "success" });
       } else {
-        await postData(
-          "citizenships",
-          newCitizenship,
-          "Failed to add citizenship."
-        );
-        toast({
-          title: "Citizenship added",
-          status: "success",
-          duration: 3000,
-        });
+        await postData("citizenships", body, "Failed to add citizenship");
+        toast({ title: "Citizenship added", status: "success" });
       }
       fetchCitizenships();
-      setNewCitizenship({ country_name: "", citizenship: "" });
-      setIsAdding(false);
+      onAddClose();
       setEditingCitizenship(null);
+      setFormState({ country_name: "", citizenship: "" });
     } catch (error) {
-      toast({
-        title: `Error ${editingCitizenship ? "updating" : "adding"
-          } citizenship`,
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
+      toast({ title: "Error saving citizenship", description: error.message, status: "error" });
     }
   };
 
-  const handleDeleteCitizenship = async () => {
-    if (!deletingCitizenship) return;
+  const handleDelete = async () => {
     try {
-      await deleteData("citizenships", deletingCitizenship.id);
-      fetchCitizenships();
-      toast({
-        title: "Citizenship deleted",
-        status: "success",
-        duration: 3000,
-      });
+      await deleteData("citizenships", deletingCitizenship.id, "Failed to delete citizenship");
+      toast({ title: "Citizenship deleted", status: "success" });
       setDeletingCitizenship(null);
+      fetchCitizenships();
     } catch (error) {
-      toast({
-        title: "Error deleting citizenship",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-      });
+      toast({ title: "Error deleting citizenship", description: error.message, status: "error" });
     }
   };
 
-  const handleEditCitizenship = (citizen) => {
-    setNewCitizenship({
-      country_name: citizen.country_name,
-      citizenship: citizen.citizenship,
-    });
-    setEditingCitizenship(citizen);
-    setIsAdding(true);
-  };
+  const filteredCitizenships = useMemo(() => {
+    let data = [...citizenships];
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      data = data.filter(c =>
+        c.country_name.toLowerCase().includes(q) ||
+        c.citizenship.toLowerCase().includes(q)
+      );
+    }
+    return data;
+  }, [citizenships, searchQuery]);
 
-  const handleSearch = (event) => {
-    setSearchTerm(event.target.value);
-    const filtered = citizenships.filter((citizen) =>
-      `${citizen.country_name} ${citizen.citizenship}`
-        .toLowerCase()
-        .includes(event.target.value.toLowerCase())
-    );
-    setFilteredCitizenships(filtered);
-    setCurrentPage(1);
-  };
-
-  const totalPages = Math.ceil(filteredCitizenships.length / ITEMS_PER_PAGE);
-  const currentItems = filteredCitizenships.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
-
-  const handlePageChange = (direction) => {
-    setCurrentPage((prev) =>
-      direction === "next"
-        ? Math.min(prev + 1, totalPages)
-        : Math.max(prev - 1, 1)
-    );
-  };
+  const totalPages = Math.ceil(filteredCitizenships.length / limit) || 1;
+  const paginatedData = filteredCitizenships.slice((page - 1) * limit, page * limit);
 
   return (
-    <Box p={5}>
-      <Stack spacing={4}>
-        <Text fontSize="28px" fontWeight="bold">
-          Citizenship List
-        </Text>
+    <Box bg={bg} minH="100vh">
+      <Container maxW="100%" py={8} px={{ base: 4, md: 8 }}>
+        {/* Header Section */}
+        <Flex
+          direction={{ base: "column", md: "row" }}
+          justify="space-between"
+          align={{ base: "stretch", md: "center" }}
+          mb={8}
+          gap={4}
+        >
+          <VStack align="start" spacing={1}>
+            <HStack>
+              <Icon as={Flag} boxSize={8} color="purple.500" />
+              <Heading size="xl" bgGradient={headerGradient} bgClip="text" fontWeight="black" letterSpacing="tight">
+                Citizenships
+              </Heading>
+            </HStack>
+            <Text color="gray.500" fontWeight="medium">Manage global nationalities and administrative origins</Text>
+          </VStack>
 
-        <Input
-          placeholder="Search by Country or Citizenship"
-          value={searchTerm}
-          onChange={handleSearch}
-          mb={4}
-        />
+          <HStack spacing={3}>
+            <Button
+              leftIcon={<Plus size={18} />}
+              colorScheme="purple"
+              onClick={onAddOpen}
+              size="lg"
+              borderRadius="xl"
+              boxShadow="lg"
+              _hover={{ transform: "translateY(-2px)", boxShadow: "xl" }}
+              transition="all 0.2s"
+            >
+              Add Nationality
+            </Button>
+            <IconButton
+              icon={<RefreshCw size={20} />}
+              onClick={fetchCitizenships}
+              isLoading={isLoading}
+              variant="outline"
+              size="lg"
+              borderRadius="xl"
+              aria-label="Refresh Data"
+            />
+          </HStack>
+        </Flex>
 
-        {/* Pagination Controls - Top */}
-        <HStack justify="center" align="center" mb={4} spacing={4}>
-          <Button
-            onClick={() => handlePageChange("previous")}
-            disabled={currentPage === 1}
+        {/* Stats Section */}
+        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6} mb={8}>
+          <MotionBox
+            whileHover={{ y: -4 }}
+            bg={cardBg}
+            p={5}
+            borderRadius="2xl"
+            boxShadow="sm"
+            border="1px solid"
+            borderColor={borderColor}
           >
-            Previous
-          </Button>
-          <Text fontWeight="bold">
-            Page {currentPage} of {totalPages}
-          </Text>
-          <Button
-            onClick={() => handlePageChange("next")}
-            disabled={currentPage === totalPages}
-          >
-            Next
-          </Button>
-        </HStack>
+            <HStack justify="space-between">
+              <VStack align="start" spacing={0}>
+                <Text fontSize="xs" fontWeight="black" color="gray.500" textTransform="uppercase" letterSpacing="widest">
+                  Nationalities
+                </Text>
+                <Text fontSize="3xl" fontWeight="black" color="purple.500">
+                  {citizenships.length}
+                </Text>
+              </VStack>
+              <Box p={3} bg="purple.50" borderRadius="xl">
+                <Icon as={Globe} boxSize={6} color="purple.500" />
+              </Box>
+            </HStack>
+            <Box mt={3} h="2px" bg="purple.400" borderRadius="full" />
+          </MotionBox>
+        </SimpleGrid>
 
-        <Table variant="striped">
-          <Thead>
-            <Tr>
-              <Th>#</Th>
-              <Th>Country Name</Th>
-              <Th>Citizenship</Th>
-              <Th>
-                <Flex justify="space-between" align="center">
-                  <span>Actions</span>
-                  {!isAdding && (
-                    <IconButton
-                      icon={<AddIcon />}
-                      onClick={() => setIsAdding(true)}
-                      size="sm"
-                      aria-label="Add citizenship"
-                      variant="ghost"
-                      _hover={{ bg: "gray.100" }}
-                    />
-                  )}
-                </Flex>
-              </Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {isAdding && (
-              <Tr>
-                <Td>—</Td>
-                <Td>
-                  <Input
-                    placeholder="Country Name"
-                    value={newCitizenship.country_name}
-                    onChange={(e) =>
-                      setNewCitizenship({
-                        ...newCitizenship,
-                        country_name: e.target.value,
-                      })
-                    }
-                    autoFocus
+        {/* Search Panel */}
+        <Box bg={cardBg} p={6} borderRadius="2xl" shadow="sm" border="1px solid" borderColor={borderColor} mb={8}>
+          <InputGroup maxW="400px">
+            <InputLeftElement pointerEvents="none">
+              <Search size={18} color="gray" />
+            </InputLeftElement>
+            <Input
+              placeholder="Search by country or nationality..."
+              value={searchQuery}
+              onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
+              borderRadius="xl"
+              focusBorderColor="purple.400"
+            />
+          </InputGroup>
+        </Box>
+
+        {/* Table Section */}
+        <Box
+          bg={cardBg}
+          borderRadius="3xl"
+          shadow="2xl"
+          border="1px solid"
+          borderColor={borderColor}
+          overflow="hidden"
+        >
+          {isLoading ? (
+            <Center p={20} flexDir="column">
+              <Spinner size="xl" color="purple.500" thickness="4px" />
+              <Text mt={4} fontWeight="bold" color="gray.500">Mapping nationalities...</Text>
+            </Center>
+          ) : filteredCitizenships.length === 0 ? (
+            <Center p={20} flexDir="column">
+              <Icon as={AlertCircle} boxSize={12} color="gray.300" />
+              <Heading size="md" mt={4} color="gray.500">No records found</Heading>
+              <Text color="gray.400">Try adjusting your search query</Text>
+            </Center>
+          ) : (
+            <>
+              <Box overflowX="auto">
+                <Table variant="simple">
+                  <Thead bg="gray.50">
+                    <Tr>
+                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">#</Th>
+                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Country</Th>
+                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Nationality</Th>
+                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest" textAlign="right">Actions</Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    <AnimatePresence>
+                      {paginatedData.map((item, idx) => (
+                        <MotionBox
+                          key={item.id}
+                          as="tr"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          _hover={{ bg: "purple.50/30" }}
+                        >
+                          <Td p={6} fontWeight="bold" color="gray.400">{(page - 1) * limit + idx + 1}</Td>
+                          <Td p={6}>
+                            <HStack spacing={4}>
+                              <Avatar size="sm" name={item.country_name} bg="purple.500" color="white" fontWeight="bold" />
+                              <Text fontWeight="black" color="gray.800" fontSize="md">{item.country_name}</Text>
+                            </HStack>
+                          </Td>
+                          <Td p={6}>
+                            <Badge colorScheme="purple" variant="subtle" px={3} py={1} borderRadius="lg">
+                              {item.citizenship}
+                            </Badge>
+                          </Td>
+                          <Td p={6} textAlign="right">
+                            <HStack spacing={2} justify="flex-end">
+                              <Tooltip label="Edit Details" hasArrow>
+                                <IconButton
+                                  icon={<Edit2 size={16} />}
+                                  onClick={() => { setEditingCitizenship(item); onAddOpen(); }}
+                                  variant="ghost"
+                                  colorScheme="purple"
+                                  borderRadius="full"
+                                  size="sm"
+                                  aria-label="Edit"
+                                />
+                              </Tooltip>
+                              <Tooltip label="Remove Record" hasArrow>
+                                <IconButton
+                                  icon={<Trash2 size={16} />}
+                                  onClick={() => setDeletingCitizenship(item)}
+                                  variant="ghost"
+                                  colorScheme="red"
+                                  borderRadius="full"
+                                  size="sm"
+                                  aria-label="Delete"
+                                />
+                              </Tooltip>
+                            </HStack>
+                          </Td>
+                        </MotionBox>
+                      ))}
+                    </AnimatePresence>
+                  </Tbody>
+                </Table>
+              </Box>
+
+              {/* Pagination */}
+              <Flex direction="column" p={6} gap={4} align="center" bg="gray.50/50" borderTop="1px solid" borderColor={borderColor}>
+                <HStack spacing={2}>
+                  <IconButton
+                    icon={<ChevronLeft size={18} />}
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    isDisabled={page === 1}
+                    variant="outline"
+                    borderRadius="lg"
+                    size="sm"
                   />
-                </Td>
-                <Td>
-                  <Input
-                    placeholder="Citizenship"
-                    value={newCitizenship.citizenship}
-                    onChange={(e) =>
-                      setNewCitizenship({
-                        ...newCitizenship,
-                        citizenship: e.target.value,
-                      })
-                    }
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                    .map((pageNum, idx, arr) => (
+                      <React.Fragment key={pageNum}>
+                        {idx > 0 && arr[idx - 1] !== pageNum - 1 && <Text color="gray.400">...</Text>}
+                        <Button
+                          size="sm"
+                          variant={page === pageNum ? "solid" : "outline"}
+                          colorScheme={page === pageNum ? "purple" : "gray"}
+                          onClick={() => setPage(pageNum)}
+                          borderRadius="lg"
+                        >
+                          {pageNum}
+                        </Button>
+                      </React.Fragment>
+                    ))
+                  }
+                  <IconButton
+                    icon={<ChevronRight size={18} />}
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    isDisabled={page === totalPages}
+                    variant="outline"
+                    borderRadius="lg"
+                    size="sm"
                   />
-                </Td>
-                <Td>
-                  <Flex justify="flex-end">
-                    <Button
-                      onClick={handleAddOrEditCitizenship}
-                      colorScheme="green"
-                      size="sm"
-                      mr={2}
-                    >
-                      {editingCitizenship ? "Save" : "Add"}
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setIsAdding(false);
-                        setEditingCitizenship(null);
-                        setNewCitizenship({
-                          country_name: "",
-                          citizenship: "",
-                        });
-                      }}
-                      colorScheme="red"
-                      size="sm"
-                    >
-                      Cancel
-                    </Button>
-                  </Flex>
-                </Td>
-              </Tr>
-            )}
-            {currentItems.map((citizen, index) => (
-              // <Tr key={citizen.id}>
-              <Tr key={`${citizen.id}-${index}`}>
-                <Td>{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</Td>
-                <Td>{citizen.country_name}</Td>
-                <Td>{citizen.citizenship}</Td>
-                <Td>
-                  <Flex justify="flex-end">
-                    <IconButton
-                      icon={<EditIcon />}
-                      onClick={() => handleEditCitizenship(citizen)}
-                      size="sm"
-                      mr={2}
-                      variant="ghost"
-                      colorScheme="yellow"
-                      aria-label="Edit citizenship"
-                    />
-                    <IconButton
-                      icon={<DeleteIcon />}
-                      onClick={() => setDeletingCitizenship(citizen)}
-                      size="sm"
-                      variant="ghost"
-                      colorScheme="red"
-                      aria-label="Delete citizenship"
-                    />
-                  </Flex>
-                </Td>
-              </Tr>
-            ))}
-          </Tbody>
-        </Table>
+                </HStack>
+                <HStack spacing={3}>
+                  <Text fontSize="sm" fontWeight="bold" color="gray.500">
+                    Showing {(page - 1) * limit + 1} to {Math.min(page * limit, filteredCitizenships.length)} of {filteredCitizenships.length} entries
+                  </Text>
+                  <Select
+                    size="sm"
+                    w="120px"
+                    borderRadius="lg"
+                    value={limit}
+                    onChange={e => { setLimit(Number(e.target.value)); setPage(1) }}
+                  >
+                    {[5, 10, 20, 50].map(val => <option key={val} value={val}>{val} per page</option>)}
+                  </Select>
+                </HStack>
+              </Flex>
+            </>
+          )}
+        </Box>
+      </Container>
 
-        {/* Pagination Controls - Bottom */}
-        <HStack justify="center" align="center" mt={4} spacing={4}>
-          <Button
-            onClick={() => handlePageChange("previous")}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </Button>
-          <Text fontWeight="bold">
-            Page {currentPage} of {totalPages}
-          </Text>
-          <Button
-            onClick={() => handlePageChange("next")}
-            disabled={currentPage === totalPages}
-          >
-            Next
-          </Button>
-        </HStack>
-      </Stack>
+      {/* Add / Edit Modal */}
+      <Modal isOpen={isAddOpen} onClose={() => { onAddClose(); setEditingCitizenship(null); setFormState({ country_name: "", citizenship: "" }); }} isCentered motionPreset="slideInBottom">
+        <ModalOverlay backdropFilter="blur(4px)" />
+        <ModalContent borderRadius="2xl" boxShadow="2xl">
+          <ModalHeader fontWeight="black" fontSize="2xl">
+            {editingCitizenship ? "Edit Nationality" : "Add New Nationality"}
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            <VStack spacing={4}>
+              <FormControl isRequired>
+                <FormLabel fontWeight="bold">Country Name</FormLabel>
+                <Input
+                  placeholder="e.g. Philippines"
+                  value={editingCitizenship ? editingCitizenship.country_name : formState.country_name}
+                  onChange={e => editingCitizenship ? setEditingCitizenship({ ...editingCitizenship, country_name: e.target.value }) : setFormState({ ...formState, country_name: e.target.value })}
+                  borderRadius="xl"
+                  focusBorderColor="purple.400"
+                  size="lg"
+                />
+              </FormControl>
+              <FormControl isRequired>
+                <FormLabel fontWeight="bold">Citizenship / Adjective</FormLabel>
+                <Input
+                  placeholder="e.g. Filipino"
+                  value={editingCitizenship ? editingCitizenship.citizenship : formState.citizenship}
+                  onChange={e => editingCitizenship ? setEditingCitizenship({ ...editingCitizenship, citizenship: e.target.value }) : setFormState({ ...formState, citizenship: e.target.value })}
+                  borderRadius="xl"
+                  focusBorderColor="purple.400"
+                  size="lg"
+                />
+              </FormControl>
+            </VStack>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" mr={3} onClick={() => { onAddClose(); setEditingCitizenship(null); }} borderRadius="xl">Cancel</Button>
+            <Button colorScheme="purple" onClick={handleSave} borderRadius="xl" px={8}>
+              {editingCitizenship ? "Update Data" : "Save Record"}
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation */}
       <AlertDialog
         isOpen={!!deletingCitizenship}
         leastDestructiveRef={cancelRef}
         onClose={() => setDeletingCitizenship(null)}
+        isCentered
       >
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Delete Citizenship
+        <AlertDialogOverlay backdropFilter="blur(4px)">
+          <AlertDialogContent borderRadius="2xl" boxShadow="2xl">
+            <AlertDialogHeader fontSize="xl" fontWeight="black" color="red.500">
+              Remove Record
             </AlertDialogHeader>
-            <AlertDialogBody>
-              Are you sure you want to delete "
-              {deletingCitizenship?.country_name}"? This action cannot be
-              undone.
+            <AlertDialogBody fontWeight="medium">
+              Are you sure you want to delete the nationality for <Text as="span" fontWeight="black">"{deletingCitizenship?.country_name}"</Text>?
+              This administrative action cannot be reversed.
             </AlertDialogBody>
             <AlertDialogFooter>
-              <Button
-                ref={cancelRef}
-                onClick={() => setDeletingCitizenship(null)}
-              >
-                Cancel
+              <Button ref={cancelRef} onClick={() => setDeletingCitizenship(null)} borderRadius="xl" variant="ghost">
+                No, Keep it
               </Button>
-              <Button
-                colorScheme="red"
-                onClick={handleDeleteCitizenship}
-                ml={3}
-              >
-                Delete
+              <Button colorScheme="red" onClick={handleDelete} ml={3} borderRadius="xl" px={8}>
+                Yes, Delete
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>

@@ -2,7 +2,7 @@ import React from "react";
 import { Box, Text, Progress, Flex, Tooltip } from "@chakra-ui/react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const MotionBox = motion(Box);
+const MotionBox = motion.create(Box);
 
 const StepProgressTracker = ({ data, requiredFields = [], totalFields = [] }) => {
     // Calculate progress directly
@@ -68,9 +68,8 @@ const StepProgressTracker = ({ data, requiredFields = [], totalFields = [] }) =>
                                 transition={{ duration: 0.5, ease: "easeInOut" }}
                                 style={{
                                     height: "100%",
-                                    background: `var(--chakra-colors-${colorScheme}-400)`,
-                                    borderRadius: "0 4px 4px 0",
-                                    boxShadow: `0 0 10px var(--chakra-colors-${colorScheme}-200)`
+                                    background: colorScheme,
+                                    borderRadius: "0 4px 4px 0"
                                 }}
                             />
                         </Box>

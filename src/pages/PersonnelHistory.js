@@ -22,41 +22,80 @@ import {
     ModalBody,
     useDisclosure,
     Divider,
+    Container,
+    Stat,
+    StatLabel,
+    StatNumber,
+    Spinner,
+    Center,
+    Tooltip,
+    IconButton,
+    Tag,
+    TagLabel,
+    TagLeftIcon,
+    Portal
 } from "@chakra-ui/react";
-import { Search, History, Calendar, User, Clock, CheckCircle, XCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+    Search,
+    History,
+    Calendar,
+    User,
+    Clock,
+    CheckCircle2,
+    XCircle,
+    AlertCircle,
+    ArrowUpRight,
+    TrendingDown,
+    Activity,
+    UserCheck,
+    UserMinus,
+    RotateCcw,
+    ShieldCheck
+} from "lucide-react";
 import moment from "moment";
 import { fetchData } from "../utils/fetchData";
+import { filterPersonnelData } from "../utils/filterUtils";
 
 const API_URL = process.env.REACT_APP_API_URL || "";
+const MotionBox = motion.create(Box);
 
 const PersonnelHistory = () => {
     const [history, setHistory] = useState([]);
     const [search, setSearch] = useState("");
-    const [loading, setLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
 
     // Modal State
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [selectedPersonnel, setSelectedPersonnel] = useState(null);
 
-    const bgColor = useColorModeValue("white", "gray.800");
-    const cardBg = useColorModeValue("white", "gray.700");
-    const borderColor = useColorModeValue("gray.200", "gray.600");
-    const headingColor = useColorModeValue("teal.600", "teal.300");
+    // Colors
+    const bg = useColorModeValue("gray.50", "#0f172a");
+    const cardBg = useColorModeValue("white", "gray.800");
+    const borderColor = useColorModeValue("gray.200", "gray.700");
+    const headerGradient = useColorModeValue(
+        "linear(to-r, blue.600, blue.600)",
+        "linear(to-r, blue.400, blue.400)"
+    );
+
+    const loadHistory = async () => {
+        setIsLoading(true);
+        try {
+            await fetchData(
+                "personnels/history",
+                (data) => {
+                    const filtered = filterPersonnelData(data);
+                    setHistory(filtered);
+                },
+                null,
+                "Failed to load personnel history."
+            );
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const loadHistory = async () => {
-            setLoading(true);
-            try {
-                await fetchData(
-                    "personnels/history",
-                    setHistory,
-                    null,
-                    "Failed to load personnel history."
-                );
-            } finally {
-                setLoading(false);
-            }
-        };
         loadHistory();
     }, []);
 
@@ -67,7 +106,7 @@ const PersonnelHistory = () => {
                 acc[item.personnel_id] = {
                     id: item.personnel_id,
                     fullname: item.fullname,
-                    currentStatus: item.action, // Assuming latest action defines status roughly
+                    currentStatus: item.action,
                     lastUpdated: item.timestamp,
                     events: [],
                 };
@@ -75,7 +114,6 @@ const PersonnelHistory = () => {
 
             acc[item.personnel_id].events.push(item);
 
-            // Ensure we keep track of the absolute latest timestamp for sorting
             if (new Date(item.timestamp) > new Date(acc[item.personnel_id].lastUpdated)) {
                 acc[item.personnel_id].lastUpdated = item.timestamp;
                 acc[item.personnel_id].currentStatus = item.action;
@@ -84,14 +122,23 @@ const PersonnelHistory = () => {
             return acc;
         }, {});
 
-        // Sort events inside each personnel by desc date
         Object.values(grouped).forEach(p => {
             p.events.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         });
 
-        // Return array sorted by most recent global activity
         return Object.values(grouped).sort((a, b) => new Date(b.lastUpdated) - new Date(a.lastUpdated));
     }, [history]);
+
+    const stats = useMemo(() => {
+        const restoredCount = history.filter(h => h.action === "In").length;
+        const deletedCount = history.filter(h => h.action === "Out").length;
+        return {
+            totalLogs: history.length,
+            activeUsers: groupedPersonnel.filter(p => p.currentStatus === "In").length,
+            removedUsers: groupedPersonnel.filter(p => p.currentStatus === "Out").length,
+            latestAction: history[0]?.timestamp
+        };
+    }, [history, groupedPersonnel]);
 
     const filteredPersonnel = groupedPersonnel.filter((person) => {
         const term = search.toLowerCase();
@@ -107,200 +154,249 @@ const PersonnelHistory = () => {
     };
 
     return (
-        <Box p={{ base: 4, md: 8 }} maxW="100%" mx="auto">
-            <VStack align="stretch" spacing={8}>
+        <Box bg={bg} minH="100vh">
+            <Container maxW="100%" py={8} px={{ base: 4, md: 8 }}>
                 {/* Header Section */}
                 <Flex
                     direction={{ base: "column", md: "row" }}
                     justify="space-between"
-                    align={{ base: "flex-start", md: "center" }}
-                    gap={6}
+                    align={{ base: "stretch", md: "center" }}
+                    mb={8}
+                    gap={4}
                 >
-                    <HStack spacing={4}>
-                        <Box p={3} bg="teal.50" borderRadius="xl">
-                            <Icon as={History} w={8} h={8} color="teal.500" />
-                        </Box>
-                        <Box>
-                            <Heading size="lg" color={headingColor} letterSpacing="tight">
-                                Personnel History
+                    <VStack align="start" spacing={1}>
+                        <HStack>
+                            <Icon as={History} boxSize={8} color="blue.500" />
+                            <Heading size="xl" bgGradient={headerGradient} bgClip="text" fontWeight="black" letterSpacing="tight">
+                                Personnel Lifecycle
                             </Heading>
-                            <Text color="gray.500" fontSize="md">
-                                Monitor and track personnel logs and status changes
-                            </Text>
-                        </Box>
-                    </HStack>
+                        </HStack>
+                        <Text color="gray.500" fontWeight="medium">Audit trail for personnel status, restorations, and removals</Text>
+                    </VStack>
 
-                    <InputGroup maxW="400px" size="lg">
-                        <InputLeftElement pointerEvents="none">
-                            <Icon as={Search} color="gray.400" />
-                        </InputLeftElement>
-                        <Input
-                            placeholder="Search personnel or events..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            borderRadius="full"
-                            bg={bgColor}
-                            border="1px solid"
-                            borderColor={borderColor}
-                            _focus={{ borderColor: "teal.400", boxShadow: "md" }}
-                        />
-                    </InputGroup>
+                    <HStack spacing={3}>
+                        <Tooltip label="Refresh Audit Trail" hasArrow>
+                            <IconButton
+                                icon={<RotateCcw size={20} />}
+                                onClick={loadHistory}
+                                isLoading={isLoading}
+                                variant="outline"
+                                size="lg"
+                                borderRadius="xl"
+                                aria-label="Refresh Data"
+                            />
+                        </Tooltip>
+                        <InputGroup maxW="400px">
+                            <InputLeftElement pointerEvents="none">
+                                <Search size={18} color="gray" />
+                            </InputLeftElement>
+                            <Input
+                                placeholder="Search name, action, or reason..."
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
+                                borderRadius="xl"
+                                bg={cardBg}
+                                size="lg"
+                                focusBorderColor="blue.400"
+                            />
+                        </InputGroup>
+                    </HStack>
                 </Flex>
 
-                {/* Content Grid */}
-                {loading ? (
-                    <Text>Loading...</Text>
-                ) : filteredPersonnel.length === 0 ? (
-                    <Flex direction="column" align="center" justify="center" h="400px" bg={bgColor} borderRadius="xl" border="1px dashed" borderColor="gray.300">
-                        <Icon as={User} w={12} h={12} color="gray.300" mb={4} />
-                        <Text color="gray.500" fontSize="lg">No history records found.</Text>
-                    </Flex>
-                ) : (
-                    <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={6}>
-                        {filteredPersonnel.map((person) => (
-                            <Box
-                                key={person.id}
-                                bg={cardBg}
-                                p={6}
-                                borderRadius="xl"
-                                boxShadow="sm"
-                                border="1px solid"
-                                borderColor="transparent"
-                                cursor="pointer"
-                                position="relative"
-                                transition="all 0.3s ease"
-                                _hover={{
-                                    transform: "translateY(-4px)",
-                                    boxShadow: "lg",
-                                    borderColor: "teal.200",
-                                }}
-                                onClick={() => handleCardClick(person)}
-                            >
-                                <Flex align="center" gap={4} mb={4}>
-                                    <Avatar
-                                        size="md"
-                                        name={person.fullname}
-                                        src={`${API_URL}/api/personnel_images/2x2/${person.id}`} // Assuming generic avatar endpoint logic
-                                        border="2px solid white"
-                                        boxShadow="md"
-                                    />
-                                    <Box>
-                                        <Text fontWeight="bold" fontSize="md" noOfLines={1}>
-                                            {person.fullname}
-                                        </Text>
-                                        <Badge
-                                            colorScheme={person.currentStatus === "In" ? "green" : "red"}
-                                            variant="subtle"
-                                            px={2}
-                                            borderRadius="full"
-                                            fontSize="xs"
-                                        >
-                                            {person.currentStatus === "In" ? "Active / Restored" : "Removed / Out"}
-                                        </Badge>
-                                    </Box>
-                                </Flex>
-
-                                <Divider mb={4} />
-
-                                <VStack align="stretch" spacing={2} overflow="hidden">
-                                    <Text fontSize="xs" color="gray.500" fontWeight="bold" textTransform="uppercase">Latest Activity</Text>
-                                    <Flex align="center" gap={2}>
-                                        <Icon as={Calendar} size={14} color="gray.400" />
-                                        <Text fontSize="sm" color="gray.600">
-                                            {moment(person.lastUpdated).format("MMM DD, YYYY")}
-                                        </Text>
-                                    </Flex>
-                                    <Flex align="center" gap={2}>
-                                        <Icon as={Clock} size={14} color="gray.400" />
-                                        <Text fontSize="sm" color="gray.600">
-                                            {moment(person.lastUpdated).format("h:mm A")}
-                                        </Text>
-                                    </Flex>
-                                    <Text fontSize="xs" color="teal.500" mt={2} fontWeight="medium">
-                                        {person.events.length} History Logs
+                {/* Stats Grid */}
+                <SimpleGrid columns={{ base: 1, md: 4 }} spacing={6} mb={8}>
+                    {[
+                        { label: "Total Audit Logs", value: stats.totalLogs, icon: Activity, color: "blue" },
+                        { label: "Currently Active", value: stats.activeUsers, icon: UserCheck, color: "green" },
+                        { label: "Currently Removed", value: stats.removedUsers, icon: UserMinus, color: "red" },
+                        { label: "Data Integrity", value: "Checked", icon: ShieldCheck, color: "purple" }
+                    ].map(stat => (
+                        <MotionBox
+                            key={stat.label}
+                            whileHover={{ y: -4 }}
+                            bg={cardBg}
+                            p={5}
+                            borderRadius="2xl"
+                            boxShadow="sm"
+                            border="1px solid"
+                            borderColor={borderColor}
+                        >
+                            <HStack justify="space-between">
+                                <VStack align="start" spacing={0}>
+                                    <Text fontSize="xs" fontWeight="black" color="gray.500" textTransform="uppercase" letterSpacing="widest">
+                                        {stat.label}
+                                    </Text>
+                                    <Text fontSize="3xl" fontWeight="black" color={`${stat.color}.500`}>
+                                        {stat.value}
                                     </Text>
                                 </VStack>
-                            </Box>
-                        ))}
+                                <Box p={3} bg={`${stat.color}.50`} borderRadius="xl">
+                                    <Icon as={stat.icon} boxSize={6} color={`${stat.color}.500`} />
+                                </Box>
+                            </HStack>
+                        </MotionBox>
+                    ))}
+                </SimpleGrid>
+
+                {/* Content Section */}
+                {isLoading ? (
+                    <Center p={20} flexDir="column">
+                        <Spinner size="xl" color="blue.500" thickness="4px" />
+                        <Text mt={4} fontWeight="bold" color="gray.500">Decrypting audit logs...</Text>
+                    </Center>
+                ) : filteredPersonnel.length === 0 ? (
+                    <Center p={20} flexDir="column" bg={cardBg} borderRadius="3xl" border="2px dashed" borderColor={borderColor}>
+                        <Icon as={AlertCircle} boxSize={12} color="gray.300" />
+                        <Heading size="md" mt={4} color="gray.500">No matching logs</Heading>
+                        <Text color="gray.400">Try refining your search parameters</Text>
+                    </Center>
+                ) : (
+                    <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={6}>
+                        <AnimatePresence>
+                            {filteredPersonnel.map((person) => (
+                                <MotionBox
+                                    key={person.id}
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    whileHover={{ y: -6, boxShadow: "xl" }}
+                                    bg={cardBg}
+                                    p={6}
+                                    borderRadius="2xl"
+                                    border="1px solid"
+                                    borderColor={borderColor}
+                                    cursor="pointer"
+                                    onClick={() => handleCardClick(person)}
+                                    position="relative"
+                                    overflow="hidden"
+                                >
+                                    <Flex align="center" gap={4} mb={4}>
+                                        <Avatar
+                                            size="lg"
+                                            name={person.fullname}
+                                            src={`${API_URL}/api/personnel_images/2x2/${person.id}`}
+                                            boxShadow="lg"
+                                        />
+                                        <Box zIndex={1}>
+                                            <Text fontWeight="black" fontSize="lg" noOfLines={1} color="gray.800">
+                                                {person.fullname}
+                                            </Text>
+                                            <Badge
+                                                colorScheme={person.currentStatus === "In" ? "green" : "red"}
+                                                variant="subtle"
+                                                px={3}
+                                                borderRadius="full"
+                                                fontSize="xs"
+                                                fontWeight="black"
+                                            >
+                                                {person.currentStatus === "In" ? "REINSTATED" : "DEACTIVATED"}
+                                            </Badge>
+                                        </Box>
+                                    </Flex>
+
+                                    <Divider mb={4} />
+
+                                    <VStack align="stretch" spacing={2}>
+                                        <HStack justify="space-between">
+                                            <Text fontSize="xs" fontWeight="black" color="gray.400" textTransform="uppercase">Final Action</Text>
+                                            <Tag variant="ghost" size="sm" colorScheme="blue">
+                                                <TagLeftIcon as={ArrowUpRight} />
+                                                <TagLabel fontWeight="bold">{person.events.length} Logs</TagLabel>
+                                            </Tag>
+                                        </HStack>
+
+                                        <Flex align="center" gap={2}>
+                                            <Icon as={Calendar} size={14} color="gray.400" />
+                                            <Text fontSize="sm" color="gray.600" fontWeight="medium">
+                                                {moment(person.lastUpdated).format("MMM DD, YYYY")}
+                                            </Text>
+                                        </Flex>
+                                        <Flex align="center" gap={2}>
+                                            <Icon as={Clock} size={14} color="gray.400" />
+                                            <Text fontSize="sm" color="gray.600" fontWeight="medium">
+                                                {moment(person.lastUpdated).format("h:mm A")}
+                                            </Text>
+                                        </Flex>
+                                    </VStack>
+
+                                    {/* Gradient Decoration */}
+                                    <Box
+                                        position="absolute"
+                                        top={0} right={0}
+                                        w="40px" h="40px"
+                                        bgGradient={`linear(to-bl, ${person.currentStatus === "In" ? "green.100" : "red.100"}, transparent)`}
+                                    />
+                                </MotionBox>
+                            ))}
+                        </AnimatePresence>
                     </SimpleGrid>
                 )}
-            </VStack>
+            </Container>
 
             {/* History Detail Modal */}
-            <Modal isOpen={isOpen} onClose={onClose} size="xl" isCentered scrollBehavior="inside">
-                <ModalOverlay backdropFilter="blur(5px)" bg="blackAlpha.300" />
-                <ModalContent borderRadius="xl" maxH="80vh">
-                    <ModalHeader borderBottom="1px solid" borderColor="gray.100" py={4}>
-                        <Flex align="center" gap={4}>
-                            <Avatar size="md" name={selectedPersonnel?.fullname} src={`${API_URL}/api/personnel_images/2x2/${selectedPersonnel?.id}`} />
+            <Modal isOpen={isOpen} onClose={onClose} size="2xl" isCentered scrollBehavior="inside">
+                <ModalOverlay backdropFilter="blur(8px)" bg="blackAlpha.400" />
+                <ModalContent borderRadius="3xl" shadow="2xl" border="1px solid" borderColor={borderColor}>
+                    <ModalHeader p={6} borderBottom="1px solid" borderColor={borderColor}>
+                        <Flex align="center" gap={6}>
+                            <Avatar size="xl" name={selectedPersonnel?.fullname} src={`${API_URL}/api/personnel_images/2x2/${selectedPersonnel?.id}`} boxShadow="xl" />
                             <Box>
-                                <Heading size="md">{selectedPersonnel?.fullname}</Heading>
-                                <Text fontSize="sm" color="gray.500">History Log</Text>
+                                <Heading size="lg" color="gray.800" fontWeight="black">{selectedPersonnel?.fullname}</Heading>
+                                <HStack mt={1} spacing={2}>
+                                    <Badge colorScheme="blue" variant="solid" borderRadius="lg" px={3}>ID: {selectedPersonnel?.id}</Badge>
+                                    <Text fontSize="sm" color="gray.500" fontWeight="bold">Historical Audit Log</Text>
+                                </HStack>
                             </Box>
                         </Flex>
                     </ModalHeader>
-                    <ModalCloseButton />
-                    <ModalBody p={0} bg="gray.50">
-                        <VStack align="stretch" spacing={0}>
+                    <ModalCloseButton m={4} />
+                    <ModalBody p={0} bg="gray.100/50">
+                        <VStack align="stretch" spacing={4} p={6}>
                             {selectedPersonnel?.events.map((event, index) => (
-                                <Flex
+                                <MotionBox
                                     key={index}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: index * 0.1 }}
                                     p={6}
                                     bg="white"
-                                    borderBottom="1px solid"
-                                    borderColor="gray.100"
+                                    borderRadius="2xl"
+                                    shadow="sm"
+                                    border="1px solid"
+                                    borderColor={borderColor}
                                     position="relative"
-                                    _last={{ borderBottom: "none" }}
-                                    gap={4}
                                 >
-                                    {/* Timestamp Column */}
-                                    <Box minW="80px" textAlign="right">
-                                        <Text fontWeight="bold" fontSize="sm" color="gray.700">
-                                            {moment(event.timestamp).format("MMM DD")}
-                                        </Text>
-                                        <Text fontSize="xs" color="gray.400">
-                                            {moment(event.timestamp).format("h:mm A")}
-                                        </Text>
-                                        <Text fontSize="xs" color="gray.300" mt={1}>
-                                            {moment(event.timestamp).format("YYYY")}
-                                        </Text>
-                                    </Box>
-
-                                    {/* Timeline Line (Visual) */}
-                                    <Box position="relative" display="flex" flexDirection="column" alignItems="center">
-                                        <Box
-                                            w="2px"
-                                            h="100%"
-                                            bg="gray.200"
-                                            position="absolute"
-                                            top="0"
-                                            bottom="0"
-                                            zIndex={0}
-                                            display={index === selectedPersonnel.events.length - 1 ? 'none' : 'block'}
-                                        />
-                                        <Box zIndex={1} bg="white" borderRadius="full">
-                                            <Icon
-                                                as={event.action === "In" ? CheckCircle : XCircle}
-                                                color={event.action === "In" ? "green.500" : "red.500"}
-                                                size={20}
-                                            />
+                                    <Flex gap={4}>
+                                        <Box minW="100px" textAlign="right" borderRight="2px solid" borderColor="gray.100" pr={4}>
+                                            <Text fontWeight="black" fontSize="sm" color="gray.800">
+                                                {moment(event.timestamp).format("MMM DD")}
+                                            </Text>
+                                            <Text fontSize="xs" color="gray.500" fontWeight="bold">
+                                                {moment(event.timestamp).format("h:mm A")}
+                                            </Text>
+                                            <Text fontSize="10px" color="gray.400" mt={1}>
+                                                {moment(event.timestamp).format("YYYY")}
+                                            </Text>
                                         </Box>
-                                    </Box>
 
-                                    {/* Content Column */}
-                                    <Box flex={1}>
-                                        <Flex justify="space-between" align="center" mb={1}>
-                                            <Badge colorScheme={event.action === "In" ? "green" : "red"}>
-                                                {event.action === "In" ? "Restored" : "Deleted"}
-                                            </Badge>
-                                            <Text fontSize="xs" color="gray.400">By: {event.performed_by || "System"}</Text>
-                                        </Flex>
+                                        <Box flex={1}>
+                                            <Flex justify="space-between" align="center" mb={2}>
+                                                <HStack>
+                                                    <Icon as={event.action === "In" ? CheckCircle2 : XCircle} boxSize={5} color={event.action === "In" ? "green.500" : "red.500"} />
+                                                    <Badge colorScheme={event.action === "In" ? "green" : "red"} variant="subtle" px={3} borderRadius="lg" fontWeight="black">
+                                                        {event.action === "In" ? "REINSTATEMENT" : "DEACTIVATION"}
+                                                    </Badge>
+                                                </HStack>
+                                                <Text fontSize="xs" fontWeight="black" color="gray.400">VIA: {event.performed_by?.toUpperCase() || "SYSTEM"}</Text>
+                                            </Flex>
 
-                                        <Text color="gray.700" fontSize="sm" fontWeight="medium">
-                                            {event.reason || "No reason provided."}
-                                        </Text>
-                                    </Box>
-                                </Flex>
+                                            <Box bg="gray.50" p={4} borderRadius="xl" border="1px dashed" borderColor="gray.200">
+                                                <Text color="gray.700" fontSize="sm" lineHeight="tall" fontWeight="semibold">
+                                                    {event.reason || "Administrative action performed with no descriptive reason provided."}
+                                                </Text>
+                                            </Box>
+                                        </Box>
+                                    </Flex>
+                                </MotionBox>
                             ))}
                         </VStack>
                     </ModalBody>

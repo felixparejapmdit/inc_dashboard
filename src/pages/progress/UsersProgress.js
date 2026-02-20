@@ -51,6 +51,7 @@ import {
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { getAuthHeaders } from "../../utils/apiHeaders";
+import { filterPersonnelData } from "../../utils/filterUtils";
 
 const API_URL = process.env.REACT_APP_API_URL || "";
 
@@ -90,7 +91,9 @@ const UsersProgress = () => {
             const response = await axios.get(`${API_URL}/api/personnels/monitoring`, {
                 headers: getAuthHeaders(),
             });
-            setPersonnels(response.data);
+            // ✅ Apply RBAC Filter
+            const filteredData = filterPersonnelData(response.data);
+            setPersonnels(filteredData);
         } catch (error) {
             console.error("Error fetching monitoring data:", error);
             statusToast("Error", "Failed to load monitoring data.", "error");

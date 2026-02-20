@@ -43,6 +43,7 @@ import {
   putData,
   deleteData,
 } from "../../utils/fetchData";
+import { filterPersonnelData } from "../../utils/filterUtils";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -74,6 +75,8 @@ const Step6 = () => {
     fetchEnrollData(
       "personnels/progress",
       (data) => {
+        // ✅ Apply RBAC Filter
+        data = filterPersonnelData(data);
         setPersonnelList(data);
         setFilteredPersonnel(data);
       },

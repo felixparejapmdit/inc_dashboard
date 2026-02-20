@@ -1,24 +1,43 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   Box,
+  Heading,
+  SimpleGrid,
+  VStack,
+  Text,
+  Icon,
+  useColorModeValue,
   Button,
   IconButton,
-  Input,
-  Stack,
-  Table,
-  Tbody,
-  Td,
-  Th,
-  Thead,
-  Tr,
+  HStack,
   useToast,
-  Text,
+  Container,
+  Stat,
+  StatLabel,
+  StatNumber,
+  Badge,
+  Flex,
+  Divider,
+  InputGroup,
+  InputLeftElement,
+  Input,
+  Select,
+  Avatar,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Spinner,
+  Center,
   AlertDialog,
   AlertDialogOverlay,
   AlertDialogContent,
   AlertDialogHeader,
   AlertDialogBody,
   AlertDialogFooter,
+  Tooltip,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -26,37 +45,74 @@ import {
   ModalCloseButton,
   ModalBody,
   ModalFooter,
-  Flex,
-  Checkbox,
-  Select,
-  HStack,
   useDisclosure,
+  FormControl,
+  FormLabel,
+  Checkbox,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Portal
 } from "@chakra-ui/react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  AddIcon,
-  DeleteIcon,
-  EditIcon,
-  DownloadIcon,
-  PhoneIcon,
-  CheckIcon,
-  CloseIcon,
-} from "@chakra-ui/icons";
+  Search,
+  Plus,
+  Edit2,
+  Trash2,
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight,
+  Phone,
+  Activity,
+  AlertCircle,
+  Download,
+  Upload,
+  UserPlus,
+  CheckCircle2,
+  XCircle,
+  MoreVertical,
+  MapPin,
+  Hash,
+  Smartphone
+} from "lucide-react";
 import * as XLSX from "xlsx";
-import axios from "axios";
-
+import moment from "moment";
 import {
   fetchData,
   postData,
   putData,
   deleteData,
 } from "../../utils/fetchData";
-const ITEMS_PER_PAGE = 10;
+
+const MotionBox = motion.create(Box);
 
 const PhoneDirectory = () => {
+  const toast = useToast();
   const [directory, setDirectory] = useState([]);
-  const [filtered, setFiltered] = useState([]);
+  const [nameList, setNameList] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [newEntry, setNewEntry] = useState({
+
+  // Modals/Dialogs
+  const {
+    isOpen: isAddOpen,
+    onOpen: onAddOpen,
+    onClose: onAddClose
+  } = useDisclosure();
+  const {
+    isOpen: isImportOpen,
+    onOpen: onImportOpen,
+    onClose: onImportClose
+  } = useDisclosure();
+
+  const [editingEntry, setEditingEntry] = useState(null);
+  const [deletingEntry, setDeletingEntry] = useState(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [file, setFile] = useState(null);
+
+  const [formState, setFormState] = useState({
     name: "",
     location: "",
     prefix: "",
@@ -66,700 +122,577 @@ const PhoneDirectory = () => {
     is_active: true,
   });
 
-  const [editingEntry, setEditingEntry] = useState(null);
-  const [deletingEntry, setDeletingEntry] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // Custom Name Adder
+  const [isAddingNewName, setIsAddingNewName] = useState(false);
+  const [newNameInput, setNewNameInput] = useState("");
+
   const cancelRef = useRef();
-  const toast = useToast();
 
-  const [nameList, setNameList] = useState([]);
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
 
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [editableName, setEditableName] = useState("");
+  // Colors
+  const bg = useColorModeValue("gray.50", "#0f172a");
+  const cardBg = useColorModeValue("white", "gray.800");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
+  const headerGradient = useColorModeValue(
+    "linear(to-r, blue.600, cyan.600)",
+    "linear(to-r, blue.400, cyan.400)"
+  );
 
-  const [isAdding, setIsAdding] = useState(false); // Track whether user is adding a new name
-  const [newName, setNewName] = useState(""); // Track the new name input
-
-  const [file, setFile] = useState(null);
-  const [isImporting, setIsImporting] = useState(false);
-
-  const { isOpen, onOpen, onClose } = useDisclosure();
-
-  const handleUpdateName = () => {
-    if (!editableName.trim()) {
-      toast({
-        title: "Name cannot be empty.",
-        status: "warning",
-        duration: 3000,
-      });
-      return;
-    }
-
-    const updatedList = nameList.map((name) =>
-      name === (editingEntry ? editingEntry.name : newEntry.name)
-        ? editableName
-        : name
-    );
-    setNameList(updatedList);
-
-    editingEntry
-      ? setEditingEntry({ ...editingEntry, name: editableName })
-      : setNewEntry({ ...newEntry, name: editableName });
-
-    setIsEditingName(false);
-    toast({
-      title: "Name updated.",
-      status: "success",
-      duration: 3000,
-    });
-  };
-
-  // Handle name addition
-  const handleAddName = () => {
-    if (newName.trim()) {
-      setNameList((prevNames) => [...prevNames, newName]);
-      setNewEntry({ ...newEntry, name: newName }); // Update form entry with the new name
-      setNewName(""); // Reset the input field
-      setIsAdding(false); // Close input field after adding
-    }
-  };
-
-  const handleCancelAdd = () => {
-    setIsAdding(false);
-    setNewName("");
-  };
-
-  const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-    }
-  };
-
-  const handleImport = async () => {
-    if (!file) return;
-
-    setIsImporting(true);
-
+  const loadData = async () => {
+    setIsLoading(true);
     try {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const data = e.target.result;
-        const workbook = XLSX.read(data, { type: "binary" });
-
-        // Assuming the data is in the first sheet
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-
-        // Parse the sheet into JSON
-        const rows = XLSX.utils.sheet_to_json(sheet);
-
-        // Now, we need to check if each row already exists in the database
-        // You can adjust this logic depending on your backend validation
-        const newEntries = rows.filter((row) => {
-          // Add validation for checking duplicates based on some unique field like name
-          // Example: if a contact already exists, don't import it
-          return !nameList.some(
-            (name) => name === row.name // Adjust this condition to match your validation
-          );
-        });
-
-        if (newEntries.length > 0) {
-          await postData("import-phone-directory", { data: newEntries });
-
-          alert("Data imported successfully!");
-        } else {
-          alert("No new entries to import!");
-        }
-      };
-
-      reader.readAsBinaryString(file);
-    } catch (error) {
-      console.error("Import error:", error);
-      alert("An error occurred while importing the file.");
+      const [dirRes, namesRes] = await Promise.all([
+        fetchData("phone-directory"),
+        fetchData("phone-directory/names")
+      ]);
+      setDirectory(dirRes || []);
+      setNameList(namesRes || []);
+    } catch (err) {
+      toast({
+        title: "Error loading directory",
+        description: err.message,
+        status: "error",
+      });
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsImporting(false);
-    onClose(); // Close modal after import
   };
 
-  // ✅ Fetch names using fetchData
   useEffect(() => {
-    fetchData(
-      "phone-directory/names",
-      (data) => {
-        console.log(data); // optional: log data to verify format
-        setNameList(data);
-      },
-      (err) =>
-        toast({
-          title: "Failed to fetch names",
-          description: err,
-          status: "error",
-          duration: 3000,
-        }),
-      "Failed to fetch names"
-    );
+    loadData();
   }, []);
-
-  useEffect(() => {
-    fetchDirectory();
-  }, []);
-
-  const fetchDirectory = () => {
-    fetchData(
-      "phone-directory",
-      (data) => {
-        setDirectory(data);
-        setFiltered(data);
-      },
-      (err) =>
-        toast({
-          title: "Error loading data",
-          description: err,
-          status: "error",
-          duration: 3000,
-        }),
-      "Failed to fetch phone directory"
-    );
-  };
-
-  // 1️⃣ Search logic (always applies to full directory)
-  useEffect(() => {
-    const filteredResults = directory.filter((entry) => {
-      const fullText = `
-        ${entry.name || ""}
-        ${entry.location || ""}
-        ${entry.prefix || ""}
-        ${entry.extension || ""}
-        ${entry.dect_number || ""}
-        ${entry.phone_name || ""}
-      `
-        .toLowerCase()
-        .trim();
-
-      return fullText.includes(searchQuery.toLowerCase());
-    });
-
-    setFiltered(filteredResults);
-    setCurrentPage(1); // Reset to page 1 after search
-  }, [searchQuery, directory]);
 
   const handleSave = async () => {
-    const entry = editingEntry ? { ...editingEntry } : { ...newEntry };
-
-    // Use editableName if editing is active
-    if (isEditingName && editableName) {
-      entry.name = editableName;
-      setIsEditingName(false);
-    }
-
+    const entry = editingEntry || formState;
     const { name, location, prefix, extension, phone_name } = entry;
 
     if (!name || !location || !prefix || !extension || !phone_name) {
-      toast({
-        title: "Please fill in all required fields",
-        description:
-          "Name, Location, Prefix, Extension, and Phone Name are required.",
-        status: "warning",
-        duration: 4000,
-      });
+      toast({ title: "Please fill in all required fields", status: "warning" });
       return;
     }
 
     try {
       if (editingEntry) {
-        await putData("phone-directory", editingEntry.id, entry);
-        toast({ title: "Entry updated", status: "success", duration: 3000 });
+        await putData("phone-directory", editingEntry.id, editingEntry);
+        toast({ title: "Contact updated", status: "success" });
       } else {
-        await postData(`add_phone-directory`, entry);
-        toast({ title: "Entry added", status: "success", duration: 3000 });
+        await postData("add_phone-directory", formState);
+        toast({ title: "Contact added", status: "success" });
       }
-
-      fetchDirectory();
-      setIsModalOpen(false);
-      setNewEntry({
+      loadData();
+      onAddClose();
+      setEditingEntry(null);
+      setFormState({
         name: "",
         location: "",
         prefix: "",
         extension: "",
-        dect_number: "",
         phone_name: "",
+        dect_number: "",
         is_active: true,
       });
-      setEditingEntry(null);
     } catch (error) {
-      console.error(error);
-      toast({ title: "Error saving entry", status: "error", duration: 3000 });
+      toast({ title: "Error saving contact", status: "error" });
     }
   };
 
   const handleDelete = async () => {
     try {
       await deleteData("phone-directory", deletingEntry.id);
-      toast({ title: "Entry deleted", status: "success", duration: 3000 });
-      fetchDirectory();
-    } catch (error) {
-      console.error(error);
-      toast({ title: "Error deleting entry", status: "error", duration: 3000 });
-    } finally {
+      toast({ title: "Contact removed", status: "success" });
       setDeletingEntry(null);
+      loadData();
+    } catch (error) {
+      toast({ title: "Error deleting contact", status: "error" });
     }
   };
 
-  const [currentPage, setCurrentPage] = useState(1);
+  const handleImport = async () => {
+    if (!file) return;
+    setIsImporting(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const data = e.target.result;
+        const workbook = XLSX.read(data, { type: "binary" });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet);
 
-  // 2️⃣ Pagination logic (only affects filtered results)
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const currentItems = filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+        await postData("import-phone-directory", { data: rows });
+        toast({ title: "Import successful", status: "success" });
+        loadData();
+        onImportClose();
+      };
+      reader.readAsBinaryString(file);
+    } catch (error) {
+      toast({ title: "Import failed", status: "error" });
+    } finally {
+      setIsImporting(false);
+    }
+  };
 
-  const handlePrev = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
-  const handleNext = () =>
-    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  const handleAddCustomName = () => {
+    if (newNameInput.trim()) {
+      setNameList([...nameList, newNameInput.trim()]);
+      if (editingEntry) setEditingEntry({ ...editingEntry, name: newNameInput.trim() });
+      else setFormState({ ...formState, name: newNameInput.trim() });
+      setNewNameInput("");
+      setIsAddingNewName(false);
+    }
+  };
 
-  const renderPagination = () => (
-    <HStack justifyContent="center" alignItems="center" my={3} spacing={4}>
-      <Button onClick={handlePrev} isDisabled={currentPage === 1}>
-        Previous
-      </Button>
-      <Text fontWeight="bold">
-        Page {currentPage} of {totalPages || 1}
-      </Text>
-      <Button
-        onClick={handleNext}
-        isDisabled={currentPage === totalPages || totalPages === 0}
-      >
-        Next
-      </Button>
-    </HStack>
-  );
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(filteredDirectory);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Phone Directory");
+    XLSX.writeFile(workbook, `Phone_Directory_Export_${moment().format("YYYY-MM-DD")}.xlsx`);
+  };
+
+  const filteredDirectory = useMemo(() => {
+    let data = [...directory];
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      data = data.filter(item =>
+        item.name?.toLowerCase().includes(q) ||
+        item.location?.toLowerCase().includes(q) ||
+        item.extension?.toLowerCase().includes(q) ||
+        item.phone_name?.toLowerCase().includes(q) ||
+        item.dect_number?.toLowerCase().includes(q)
+      );
+    }
+    return data;
+  }, [directory, searchQuery]);
+
+  const stats = useMemo(() => ({
+    total: directory.length,
+    active: directory.filter(i => i.is_active).length,
+    inactive: directory.filter(i => !i.is_active).length,
+    dect: directory.filter(i => i.dect_number).length
+  }), [directory]);
+
+  const totalPages = Math.ceil(filteredDirectory.length / limit) || 1;
+  const paginatedData = filteredDirectory.slice((page - 1) * limit, page * limit);
 
   return (
-    <Box p={6} rounded="xl" boxShadow="xl" bg="gray.50">
-      <Stack spacing={6}>
-        <Flex justify="space-between" align="center">
-          <Text fontSize="2xl" fontWeight="bold">
-            📇 Phone Directory
-          </Text>
-          <Flex>
-            {/* Add Contact Button */}
+    <Box bg={bg} minH="100vh">
+      <Container maxW="100%" py={8} px={{ base: 4, md: 8 }}>
+        {/* Header Section */}
+        <Flex
+          direction={{ base: "column", md: "row" }}
+          justify="space-between"
+          align={{ base: "stretch", md: "center" }}
+          mb={8}
+          gap={4}
+        >
+          <VStack align="start" spacing={1}>
+            <HStack>
+              <Icon as={Phone} boxSize={8} color="blue.500" />
+              <Heading size="xl" bgGradient={headerGradient} bgClip="text" fontWeight="black" letterSpacing="tight">
+                Phone Directory
+              </Heading>
+            </HStack>
+            <Text color="gray.500" fontWeight="medium">Corporate communication directory and DECT assignments</Text>
+          </VStack>
+
+          <HStack spacing={3}>
             <Button
-              leftIcon={<AddIcon />}
+              leftIcon={<Plus size={18} />}
               colorScheme="blue"
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => { setEditingEntry(null); setFormState({ name: "", location: "", prefix: "", extension: "", phone_name: "", dect_number: "", is_active: true }); onAddOpen(); }}
+              size="lg"
+              borderRadius="xl"
+              boxShadow="lg"
+              _hover={{ transform: "translateY(-2px)", boxShadow: "xl" }}
+              transition="all 0.2s"
             >
               Add Contact
             </Button>
-
-            {/* Import Button */}
-            <Button
-              leftIcon={<DownloadIcon />}
-              colorScheme="teal"
-              onClick={onOpen} // Open import dialog
-              ml={4}
-            >
-              Import
-            </Button>
-          </Flex>
-
-          {/* Add/Edit Contact Modal */}
-          <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-            <ModalOverlay />
-            <ModalContent>
-              <ModalHeader>
-                {isAdding ? "Add New Name" : "Add Contact"}
-              </ModalHeader>
-              <ModalCloseButton />
-              <ModalBody>
-                <Input
-                  placeholder="Enter New Name"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                />
-                <Button onClick={handleAddName} mt={4}>
-                  Add Name
-                </Button>
-              </ModalBody>
-            </ModalContent>
-          </Modal>
-
-          {/* Import Modal */}
-          <Modal isOpen={isOpen} onClose={onClose}>
-            <ModalOverlay />
-            <ModalContent>
-              <ModalHeader>Import Phone Directory</ModalHeader>
-              <ModalCloseButton />
-              <ModalBody>
-                <Input
-                  type="file"
-                  accept=".xlsx"
-                  onChange={handleFileChange}
-                  disabled={isImporting}
-                />
-                <Button
-                  onClick={handleImport}
-                  colorScheme="green"
-                  mt={4}
-                  isLoading={isImporting}
-                  isDisabled={isImporting || !file}
-                >
-                  Import
-                </Button>
-                <Button onClick={onClose} colorScheme="red" mt={4} ml={2}>
-                  Cancel
-                </Button>
-              </ModalBody>
-            </ModalContent>
-          </Modal>
+            <IconButton
+              icon={<Download size={20} />}
+              onClick={exportToExcel}
+              variant="outline"
+              size="lg"
+              borderRadius="xl"
+              aria-label="Export"
+            />
+            <IconButton
+              icon={<Upload size={20} />}
+              onClick={onImportOpen}
+              variant="outline"
+              size="lg"
+              borderRadius="xl"
+              aria-label="Import"
+            />
+            <IconButton
+              icon={<RefreshCw size={20} />}
+              onClick={loadData}
+              isLoading={isLoading}
+              variant="outline"
+              size="lg"
+              borderRadius="xl"
+              aria-label="Refresh Data"
+            />
+          </HStack>
         </Flex>
 
-        <Input
-          placeholder="Search name, location, prefix, extension, DECT, phone name..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          size="md"
-          borderColor="gray.400"
-        />
-        {renderPagination()}
-        <Box overflowX="auto" w="100%">
-          <Table variant="striped" colorScheme="gray" minW="1000px">
-            <Thead>
-              <Tr>
-                <Th whiteSpace="nowrap">#</Th>
-                <Th whiteSpace="nowrap">Name</Th>
-                <Th whiteSpace="nowrap">Location</Th>
-                <Th whiteSpace="nowrap">Prefix</Th>
-                <Th whiteSpace="nowrap">Extension</Th>
-                <Th whiteSpace="nowrap">DECT Number</Th>
-                {/* <Th whiteSpace="nowrap">Phone Name</Th> */}
-                <Th whiteSpace="nowrap">Status</Th>
-                <Th textAlign="right" whiteSpace="nowrap">
-                  Actions
-                </Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {currentItems.length > 0 ? (
-                currentItems.map((entry, index) => (
-                  // <Tr key={entry.id}>
-                  <Tr key={`${entry.id}-${index}`}>
-                    <Td whiteSpace="nowrap">{startIndex + index + 1}</Td>
-                    <Td
-                      whiteSpace="nowrap"
-                      overflow="hidden"
-                      textOverflow="ellipsis"
-                      maxW="200px"
-                    >
-                      {entry.name}
-                    </Td>
-                    <Td
-                      whiteSpace="nowrap"
-                      overflow="hidden"
-                      textOverflow="ellipsis"
-                      maxW="150px"
-                    >
-                      {entry.location}
-                    </Td>
-                    <Td whiteSpace="nowrap">{entry.prefix}</Td>
-                    <Td whiteSpace="nowrap">{entry.extension}</Td>
-                    <Td whiteSpace="nowrap">{entry.dect_number || "-"}</Td>
-                    {/* <Td whiteSpace="nowrap">{entry.phone_name}</Td> */}
-                    <Td whiteSpace="nowrap">
-                      {entry.is_active ? (
-                        <Text color="green.500">Active</Text>
-                      ) : (
-                        <Text color="red.500">Inactive</Text>
-                      )}
-                    </Td>
-                    <Td textAlign="right" whiteSpace="nowrap">
-                      <IconButton
-                        icon={<EditIcon />}
-                        colorScheme="yellow"
-                        mr={2}
-                        onClick={() => {
-                          setEditingEntry(entry);
-                          setIsModalOpen(true);
-                        }}
-                      />
-                      <IconButton
-                        icon={<DeleteIcon />}
-                        colorScheme="red"
-                        onClick={() => setDeletingEntry(entry)}
-                      />
-                    </Td>
-                  </Tr>
-                ))
-              ) : (
-                <Tr>
-                  <Td colSpan={9} textAlign="center">
-                    No entries found.
-                  </Td>
-                </Tr>
-              )}
-            </Tbody>
-          </Table>
+        {/* Stats Grid */}
+        <SimpleGrid columns={{ base: 1, md: 4 }} spacing={6} mb={8}>
+          {[
+            { label: "Total Contacts", value: stats.total, icon: Smartphone, color: "blue" },
+            { label: "Active Lines", value: stats.active, icon: CheckCircle2, color: "green" },
+            { label: "Inactive", value: stats.inactive, icon: XCircle, color: "red" },
+            { label: "DECT Users", value: stats.dect, icon: Hash, color: "purple" }
+          ].map(stat => (
+            <MotionBox
+              key={stat.label}
+              whileHover={{ y: -4 }}
+              bg={cardBg}
+              p={5}
+              borderRadius="2xl"
+              boxShadow="sm"
+              border="1px solid"
+              borderColor={borderColor}
+            >
+              <HStack justify="space-between">
+                <VStack align="start" spacing={0}>
+                  <Text fontSize="xs" fontWeight="black" color="gray.500" textTransform="uppercase" letterSpacing="widest">
+                    {stat.label}
+                  </Text>
+                  <Text fontSize="3xl" fontWeight="black" color={`${stat.color}.500`}>
+                    {stat.value}
+                  </Text>
+                </VStack>
+                <Box p={3} bg={`${stat.color}.50`} borderRadius="xl">
+                  <Icon as={stat.icon} boxSize={6} color={`${stat.color}.500`} />
+                </Box>
+              </HStack>
+              <Box mt={3} h="2px" bg={`${stat.color}.400`} borderRadius="full" />
+            </MotionBox>
+          ))}
+        </SimpleGrid>
+
+        {/* Action Panel */}
+        <Box bg={cardBg} p={6} borderRadius="2xl" shadow="sm" border="1px solid" borderColor={borderColor} mb={8}>
+          <InputGroup maxW="500px">
+            <InputLeftElement pointerEvents="none">
+              <Search size={18} color="gray" />
+            </InputLeftElement>
+            <Input
+              placeholder="Search by name, location, extension, DECT..."
+              value={searchQuery}
+              onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
+              borderRadius="xl"
+              focusBorderColor="blue.400"
+              size="lg"
+            />
+          </InputGroup>
         </Box>
 
-        {renderPagination()}
-      </Stack>
-
-      {/* Add/Edit Modal */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setEditingEntry(null);
-        }}
-      >
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>
-            {editingEntry ? "Edit Entry" : "Add New Entry"}
-          </ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <Stack spacing={4}>
-              <Box position="relative" w="100%">
-                {!isEditingName ? (
-                  <Flex gap={2} alignItems="center">
-                    <Select
-                      placeholder="Select Personnel Name"
-                      value={editingEntry ? editingEntry.name : newEntry.name}
-                      onChange={(e) =>
-                        editingEntry
-                          ? setEditingEntry({
-                            ...editingEntry,
-                            name: e.target.value,
-                          })
-                          : setNewEntry({ ...newEntry, name: e.target.value })
-                      }
-                      border="1px solid #ccc"
-                      borderRadius="md"
-                      padding="8px"
-                      fontSize="16px"
-                      flex="1"
-                    >
-                      {nameList.map((name, index) => (
-                        <option key={index} value={name}>
-                          {name}
-                        </option>
+        {/* Table Section */}
+        <Box
+          bg={cardBg}
+          borderRadius="3xl"
+          shadow="2xl"
+          border="1px solid"
+          borderColor={borderColor}
+          overflow="hidden"
+        >
+          {isLoading ? (
+            <Center p={20} flexDir="column">
+              <Spinner size="xl" color="blue.500" thickness="4px" />
+              <Text mt={4} fontWeight="bold" color="gray.500">Loading directory...</Text>
+            </Center>
+          ) : filteredDirectory.length === 0 ? (
+            <Center p={20} flexDir="column">
+              <Icon as={AlertCircle} boxSize={12} color="gray.300" />
+              <Heading size="md" mt={4} color="gray.500">No contacts found</Heading>
+              <Text color="gray.400">Try adjusting your search query</Text>
+            </Center>
+          ) : (
+            <>
+              <Box overflowX="auto">
+                <Table variant="simple">
+                  <Thead bg="gray.50">
+                    <Tr>
+                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Name</Th>
+                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Location</Th>
+                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Communication</Th>
+                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Status</Th>
+                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest" textAlign="right">Actions</Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    <AnimatePresence>
+                      {paginatedData.map((item) => (
+                        <MotionBox
+                          key={item.id}
+                          as="tr"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          _hover={{ bg: "blue.50/30" }}
+                        >
+                          <Td p={6}>
+                            <HStack spacing={4}>
+                              <Avatar size="sm" name={item.name} bg="blue.500" color="white" fontWeight="bold" />
+                              <VStack align="start" spacing={0}>
+                                <Text fontWeight="black" color="gray.800" fontSize="md">{item.name}</Text>
+                                <Text fontSize="xs" color="gray.400" fontWeight="bold">{item.phone_name}</Text>
+                              </VStack>
+                            </HStack>
+                          </Td>
+                          <Td p={6}>
+                            <HStack spacing={2}>
+                              <Icon as={MapPin} size={14} color="gray.400" />
+                              <Text fontWeight="medium" color="gray.600">{item.location}</Text>
+                            </HStack>
+                          </Td>
+                          <Td p={6}>
+                            <VStack align="start" spacing={1}>
+                              <Badge colorScheme="blue" variant="subtle" borderRadius="lg" px={2}>
+                                Ext: {item.prefix}-{item.extension}
+                              </Badge>
+                              {item.dect_number && (
+                                <Badge colorScheme="purple" variant="subtle" borderRadius="lg" px={2}>
+                                  DECT: {item.dect_number}
+                                </Badge>
+                              )}
+                            </VStack>
+                          </Td>
+                          <Td p={6}>
+                            <HStack spacing={1}>
+                              <Icon as={item.is_active ? CheckCircle2 : XCircle} color={item.is_active ? "green.500" : "red.500"} size={16} />
+                              <Text fontSize="xs" fontWeight="black" color={item.is_active ? "green.600" : "red.600"}>
+                                {item.is_active ? "ACTIVE" : "INACTIVE"}
+                              </Text>
+                            </HStack>
+                          </Td>
+                          <Td p={6} textAlign="right">
+                            <Menu isLazy>
+                              <MenuButton as={IconButton} icon={<MoreVertical size={18} />} variant="ghost" borderRadius="full" size="sm" />
+                              <Portal>
+                                <MenuList borderRadius="xl" shadow="xl" border="1px solid" borderColor={borderColor}>
+                                  <MenuItem icon={<Edit2 size={14} />} onClick={() => { setEditingEntry(item); onAddOpen(); }}>Edit Contact</MenuItem>
+                                  <MenuItem icon={<Trash2 size={14} />} color="red.500" onClick={() => setDeletingEntry(item)}>Delete Contact</MenuItem>
+                                </MenuList>
+                              </Portal>
+                            </Menu>
+                          </Td>
+                        </MotionBox>
                       ))}
-                    </Select>
-
-                    <IconButton
-                      icon={<EditIcon />}
-                      onClick={() => {
-                        const currentName = editingEntry
-                          ? editingEntry.name
-                          : newEntry.name;
-                        setEditableName(currentName || "");
-                        setIsEditingName(true);
-                      }}
-                      aria-label="Edit Name"
-                      size="sm"
-                      colorScheme="yellow"
-                      isDisabled={
-                        (editingEntry ? editingEntry.name : newEntry.name) ===
-                        ""
-                      }
-                    />
-
-                    <IconButton
-                      icon={<AddIcon />}
-                      onClick={() => setIsAdding(true)}
-                      aria-label="Add New Name"
-                      size="sm"
-                      colorScheme="blue"
-                    />
-                  </Flex>
-                ) : (
-                  <Flex gap={2} alignItems="center" mb={2}>
-                    <Input
-                      placeholder="Edit Name"
-                      value={editableName}
-                      onChange={(e) => setEditableName(e.target.value)}
-                      flex="1"
-                    />
-                    <IconButton
-                      icon={<CheckIcon />}
-                      onClick={() => {
-                        if (!editableName.trim()) return;
-
-                        // Update name in the nameList
-                        setNameList((prev) => {
-                          const oldName = editingEntry
-                            ? editingEntry.name
-                            : newEntry.name;
-                          return prev.map((name) =>
-                            name === oldName ? editableName : name
-                          );
-                        });
-
-                        // Update currently selected entry
-                        if (editingEntry) {
-                          setEditingEntry({
-                            ...editingEntry,
-                            name: editableName,
-                          });
-                        } else {
-                          setNewEntry({ ...newEntry, name: editableName });
-                        }
-
-                        setIsEditingName(false);
-                      }}
-                      aria-label="Update Name"
-                      size="sm"
-                      colorScheme="teal"
-                    />
-
-                    <IconButton
-                      icon={<CloseIcon />}
-                      onClick={() => setIsEditingName(false)}
-                      aria-label="Cancel Edit"
-                      size="sm"
-                      colorScheme="red"
-                    />
-                  </Flex>
-                )}
-
-                {/* Add new name section */}
-                {isAdding && (
-                  <Box mt={2}>
-                    <Input
-                      placeholder="Enter New Name"
-                      value={newName}
-                      onChange={(e) => setNewName(e.target.value)}
-                      mb={2}
-                    />
-                    <Flex gap={2}>
-                      <Button
-                        onClick={handleAddName}
-                        colorScheme="teal"
-                        size="sm"
-                        width="100%"
-                      >
-                        Add Name
-                      </Button>
-                      <Button
-                        onClick={handleCancelAdd}
-                        colorScheme="red"
-                        size="sm"
-                        width="100%"
-                      >
-                        Cancel
-                      </Button>
-                    </Flex>
-                  </Box>
-                )}
+                    </AnimatePresence>
+                  </Tbody>
+                </Table>
               </Box>
 
-              {/* Location */}
-              <Input
-                placeholder="Location"
-                value={editingEntry ? editingEntry.location : newEntry.location}
-                onChange={(e) =>
-                  editingEntry
-                    ? setEditingEntry({
-                      ...editingEntry,
-                      location: e.target.value,
-                    })
-                    : setNewEntry({ ...newEntry, location: e.target.value })
-                }
-              />
+              {/* Pagination */}
+              <Flex direction="column" p={6} gap={4} align="center" bg="gray.50/50" borderTop="1px solid" borderColor={borderColor}>
+                <HStack spacing={2}>
+                  <IconButton
+                    icon={<ChevronLeft size={18} />}
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    isDisabled={page === 1}
+                    variant="outline"
+                    borderRadius="lg"
+                    size="sm"
+                  />
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                    .map((pageNum, idx, arr) => (
+                      <React.Fragment key={pageNum}>
+                        {idx > 0 && arr[idx - 1] !== pageNum - 1 && <Text color="gray.400">...</Text>}
+                        <Button
+                          size="sm"
+                          variant={page === pageNum ? "solid" : "outline"}
+                          colorScheme={page === pageNum ? "blue" : "gray"}
+                          onClick={() => setPage(pageNum)}
+                          borderRadius="lg"
+                        >
+                          {pageNum}
+                        </Button>
+                      </React.Fragment>
+                    ))
+                  }
+                  <IconButton
+                    icon={<ChevronRight size={18} />}
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    isDisabled={page === totalPages}
+                    variant="outline"
+                    borderRadius="lg"
+                    size="sm"
+                  />
+                </HStack>
+                <HStack spacing={3}>
+                  <Text fontSize="sm" fontWeight="bold" color="gray.500">
+                    Showing {(page - 1) * limit + 1} to {Math.min(page * limit, filteredDirectory.length)} of {filteredDirectory.length} entries
+                  </Text>
+                  <Select
+                    size="sm"
+                    w="120px"
+                    borderRadius="lg"
+                    value={limit}
+                    onChange={e => { setLimit(Number(e.target.value)); setPage(1) }}
+                  >
+                    {[5, 10, 20, 50].map(val => <option key={val} value={val}>{val} per page</option>)}
+                  </Select>
+                </HStack>
+              </Flex>
+            </>
+          )}
+        </Box>
+      </Container>
 
-              {/* Prefix */}
-              <Input
-                placeholder="Prefix"
-                value={editingEntry ? editingEntry.prefix : newEntry.prefix}
-                onChange={(e) =>
-                  editingEntry
-                    ? setEditingEntry({
-                      ...editingEntry,
-                      prefix: e.target.value,
-                    })
-                    : setNewEntry({ ...newEntry, prefix: e.target.value })
-                }
-              />
+      {/* Add / Edit Modal */}
+      <Modal isOpen={isAddOpen} onClose={onAddClose} isCentered motionPreset="slideInBottom" size="2xl">
+        <ModalOverlay backdropFilter="blur(4px)" />
+        <ModalContent borderRadius="3xl" boxShadow="2xl">
+          <ModalHeader fontWeight="black" fontSize="2xl">
+            {editingEntry ? "Edit Line Details" : "New Line Registration"}
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+              <Box gridColumn="span 2">
+                <FormControl isRequired>
+                  <FormLabel fontWeight="bold">Owner / Personnel Name</FormLabel>
+                  {!isAddingNewName ? (
+                    <HStack>
+                      <Select
+                        placeholder="Select Personnel"
+                        value={editingEntry ? editingEntry.name : formState.name}
+                        onChange={e => editingEntry ? setEditingEntry({ ...editingEntry, name: e.target.value }) : setFormState({ ...formState, name: e.target.value })}
+                        borderRadius="xl"
+                        size="lg"
+                      >
+                        {nameList.map((n, i) => <option key={i} value={n}>{n}</option>)}
+                      </Select>
+                      <IconButton icon={<UserPlus size={18} />} colorScheme="blue" variant="ghost" onClick={() => setIsAddingNewName(true)} />
+                    </HStack>
+                  ) : (
+                    <HStack>
+                      <Input placeholder="Enter Full Name" value={newNameInput} onChange={e => setNewNameInput(e.target.value)} borderRadius="xl" size="lg" autoFocus />
+                      <IconButton icon={<CheckCircle2 size={18} />} colorScheme="green" onClick={handleAddCustomName} />
+                      <IconButton icon={<XCircle size={18} />} colorScheme="red" variant="ghost" onClick={() => setIsAddingNewName(false)} />
+                    </HStack>
+                  )}
+                </FormControl>
+              </Box>
 
-              {/* Extension */}
-              <Input
-                placeholder="Extension"
-                value={
-                  editingEntry ? editingEntry.extension : newEntry.extension
-                }
-                onChange={(e) =>
-                  editingEntry
-                    ? setEditingEntry({
-                      ...editingEntry,
-                      extension: e.target.value,
-                    })
-                    : setNewEntry({ ...newEntry, extension: e.target.value })
-                }
-              />
+              <FormControl isRequired>
+                <FormLabel fontWeight="bold">Location</FormLabel>
+                <Input
+                  placeholder="e.g. Server Room"
+                  value={editingEntry ? editingEntry.location : formState.location}
+                  onChange={e => editingEntry ? setEditingEntry({ ...editingEntry, location: e.target.value }) : setFormState({ ...formState, location: e.target.value })}
+                  borderRadius="xl"
+                  size="lg"
+                />
+              </FormControl>
 
-              {/* DECT Number */}
-              <Input
-                placeholder="DECT Number"
-                value={
-                  editingEntry ? editingEntry.dect_number : newEntry.dect_number
-                }
-                onChange={(e) =>
-                  editingEntry
-                    ? setEditingEntry({
-                      ...editingEntry,
-                      dect_number: e.target.value,
-                    })
-                    : setNewEntry({ ...newEntry, dect_number: e.target.value })
-                }
-              />
+              <FormControl isRequired>
+                <FormLabel fontWeight="bold">Phone Model / Name</FormLabel>
+                <Input
+                  placeholder="e.g. Cisco CP-7841"
+                  value={editingEntry ? editingEntry.phone_name : formState.phone_name}
+                  onChange={e => editingEntry ? setEditingEntry({ ...editingEntry, phone_name: e.target.value }) : setFormState({ ...formState, phone_name: e.target.value })}
+                  borderRadius="xl"
+                  size="lg"
+                />
+              </FormControl>
 
-              {/* Phone Name */}
-              <Input
-                placeholder="Phone Name"
-                value={
-                  editingEntry ? editingEntry.phone_name : newEntry.phone_name
-                }
-                onChange={(e) =>
-                  editingEntry
-                    ? setEditingEntry({
-                      ...editingEntry,
-                      phone_name: e.target.value,
-                    })
-                    : setNewEntry({ ...newEntry, phone_name: e.target.value })
-                }
-              />
+              <HStack spacing={4} align="end">
+                <FormControl isRequired>
+                  <FormLabel fontWeight="bold">Prefix</FormLabel>
+                  <Input
+                    placeholder="8"
+                    value={editingEntry ? editingEntry.prefix : formState.prefix}
+                    onChange={e => editingEntry ? setEditingEntry({ ...editingEntry, prefix: e.target.value }) : setFormState({ ...formState, prefix: e.target.value })}
+                    borderRadius="xl"
+                    size="lg"
+                  />
+                </FormControl>
+                <FormControl isRequired>
+                  <FormLabel fontWeight="bold">Extension</FormLabel>
+                  <Input
+                    placeholder="1000"
+                    value={editingEntry ? editingEntry.extension : formState.extension}
+                    onChange={e => editingEntry ? setEditingEntry({ ...editingEntry, extension: e.target.value }) : setFormState({ ...formState, extension: e.target.value })}
+                    borderRadius="xl"
+                    size="lg"
+                  />
+                </FormControl>
+              </HStack>
 
-              {/* Active Checkbox */}
-              <Checkbox
-                isChecked={
-                  editingEntry ? editingEntry.is_active : newEntry.is_active
-                }
-                onChange={(e) =>
-                  editingEntry
-                    ? setEditingEntry({
-                      ...editingEntry,
-                      is_active: e.target.checked,
-                    })
-                    : setNewEntry({ ...newEntry, is_active: e.target.checked })
-                }
-              >
-                Active
-              </Checkbox>
-            </Stack>
+              <FormControl>
+                <FormLabel fontWeight="bold">DECT Number (Optional)</FormLabel>
+                <Input
+                  placeholder="6XXX"
+                  value={editingEntry ? editingEntry.dect_number : formState.dect_number}
+                  onChange={e => editingEntry ? setEditingEntry({ ...editingEntry, dect_number: e.target.value }) : setFormState({ ...formState, dect_number: e.target.value })}
+                  borderRadius="xl"
+                  size="lg"
+                />
+              </FormControl>
+
+              <Box gridColumn="span 2">
+                <Divider my={2} />
+                <Checkbox
+                  isChecked={editingEntry ? editingEntry.is_active : formState.is_active}
+                  onChange={e => editingEntry ? setEditingEntry({ ...editingEntry, is_active: e.target.checked }) : setFormState({ ...formState, is_active: e.target.checked })}
+                  colorScheme="blue"
+                  size="lg"
+                  fontWeight="bold"
+                >
+                  Active Line Status
+                </Checkbox>
+              </Box>
+            </SimpleGrid>
+          </ModalBody>
+          <ModalFooter bg="gray.50" borderBottomRadius="3xl" p={6}>
+            <Button variant="ghost" mr={3} onClick={onAddClose} borderRadius="xl">Cancel</Button>
+            <Button colorScheme="blue" onClick={handleSave} borderRadius="xl" px={10} size="lg" boxShadow="lg">
+              {editingEntry ? "Update Entry" : "Register Contact"}
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Import Modal */}
+      <Modal isOpen={isImportOpen} onClose={onImportClose} isCentered>
+        <ModalOverlay backdropFilter="blur(4px)" />
+        <ModalContent borderRadius="2xl">
+          <ModalHeader fontWeight="black">Bulk Import Contacts</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <VStack spacing={4} py={4}>
+              <Box w="full" p={8} border="2px dashed" borderColor="blue.200" borderRadius="2xl" bg="blue.50/50" textAlign="center">
+                <Icon as={Upload} boxSize={8} color="blue.400" mb={2} />
+                <Text fontWeight="bold" color="blue.600">Drop Excel file here</Text>
+                <Text fontSize="xs" color="gray.500">Only .xlsx or .csv files supported</Text>
+                <Input
+                  type="file"
+                  accept=".xlsx,.xls,.csv"
+                  onChange={e => setFile(e.target.files[0])}
+                  opacity={0}
+                  position="absolute"
+                  top={0} left={0} w="full" h="full" cursor="pointer"
+                />
+              </Box>
+              {file && (
+                <HStack w="full" bg="gray.100" p={2} borderRadius="lg" justify="space-between">
+                  <Text fontSize="sm" fontWeight="bold" isTruncated px={2}>{file.name}</Text>
+                  <IconButton icon={<XCircle size={14} />} size="xs" colorScheme="red" variant="ghost" onClick={() => setFile(null)} />
+                </HStack>
+              )}
+            </VStack>
           </ModalBody>
           <ModalFooter>
-            <Button colorScheme="blue" onClick={handleSave}>
-              {editingEntry ? "Update" : "Save"}
-            </Button>
-            <Button
-              onClick={() => {
-                setIsModalOpen(false);
-                setEditingEntry(null);
-              }}
-              ml={3}
-            >
-              Cancel
-            </Button>
+            <Button variant="ghost" mr={3} onClick={onImportClose}>Cancel</Button>
+            <Button colorScheme="blue" onClick={handleImport} isLoading={isImporting} isDisabled={!file}>Start Import</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
@@ -769,23 +702,20 @@ const PhoneDirectory = () => {
         isOpen={!!deletingEntry}
         leastDestructiveRef={cancelRef}
         onClose={() => setDeletingEntry(null)}
+        isCentered
       >
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Delete Entry
+        <AlertDialogOverlay backdropFilter="blur(4px)">
+          <AlertDialogContent borderRadius="2xl">
+            <AlertDialogHeader fontSize="xl" fontWeight="black" color="red.500">
+              Delete Contact
             </AlertDialogHeader>
-            <AlertDialogBody>
-              Are you sure you want to delete "{deletingEntry?.name}" from the
-              directory?
+            <AlertDialogBody fontWeight="medium">
+              Are you sure you want to remove <Text as="span" fontWeight="black">"{deletingEntry?.name}"</Text>?
+              This will erase all communication details for this contact.
             </AlertDialogBody>
             <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={() => setDeletingEntry(null)}>
-                Cancel
-              </Button>
-              <Button colorScheme="red" onClick={handleDelete} ml={3}>
-                Delete
-              </Button>
+              <Button ref={cancelRef} onClick={() => setDeletingEntry(null)} variant="ghost" borderRadius="xl">Cancel</Button>
+              <Button colorScheme="red" onClick={handleDelete} ml={3} borderRadius="xl" px={8}>Delete Permanently</Button>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialogOverlay>

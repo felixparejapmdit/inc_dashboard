@@ -60,7 +60,7 @@ const FaceEnrollment = ({ personnelId, isOpen, onClose }) => {
 
     // Check existing enrollment
     useEffect(() => {
-        if (isOpen && personnelId) {
+        if (isOpen && personnelId && personnelId !== "null") {
             checkEnrollmentStatus();
         }
     }, [isOpen, personnelId]);

@@ -6,12 +6,15 @@ const User = require("../models/User"); // Your local user model
 const LDAP_Users = require("../models/LDAP_Users"); // Import LDAP_Users model
 const Personnel = require("../models/personnels"); // Import Personnel model
 const UserGroupMapping = require("../models/UserGroupMapping"); // Import UserGroupMapping model
-require("dotenv").config();
+const Designation = require("../models/Designation"); // Import Designation model
+const Group = require("../models/Group"); // Import Group model
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
 const { generateToken } = require("../utils/jwt"); // Import the generateToken function
 
 // ✅ Build API_URL dynamically based on HTTPS flag in .env
 // ✅ Build API_URL dynamically based on HTTPS flag in .env
-const rawHost = process.env.REACT_APP_API_HOST || process.env.REACT_APP_API_URL;
+const rawHost = process.env.REACT_APP_API_HOST || process.env.REACT_APP_API_URL || "";
 let API_URL;
 
 if (rawHost.startsWith("http://") || rawHost.startsWith("https://")) {
@@ -19,7 +22,7 @@ if (rawHost.startsWith("http://") || rawHost.startsWith("https://")) {
 } else {
   const useHttps = process.env.HTTPS === "true";
   const protocol = useHttps ? "https" : "http";
-  API_URL = `${protocol}://${rawHost}`;
+  API_URL = `${protocol}://${rawHost || "localhost:5000"}`;
 }
 
 // ✅ Load environment variables
@@ -215,26 +218,27 @@ const authenticateLocal = async (username, password) => {
   return user;
 };
 
-// ✅ Fetch groupId directly from DB
-const getUserGroupId = async (username) => {
+// ✅ Fetch group info directly from DB
+const getUserGroupInfo = async (username) => {
   try {
     const user = await User.findOne({ where: { username } });
     if (!user) {
       console.error("❌ Error: User not found for", username);
-      return null;
+      return { id: null, name: null };
     }
 
     const mapping = await UserGroupMapping.findOne({ where: { user_id: user.id } });
 
     if (!mapping) {
       // console.warn("⚠️ User has no group assigned:", username);
-      return null;
+      return { id: null, name: null };
     }
 
-    return mapping.group_id;
+    const group = await Group.findByPk(mapping.group_id);
+    return { id: mapping.group_id, name: group ? group.name : null };
   } catch (error) {
-    console.error("❌ Error fetching user groupId:", error.message);
-    return null;
+    console.error("❌ Error fetching user group info:", error.message);
+    return { id: null, name: null };
   }
 };
 
@@ -244,6 +248,35 @@ exports.Login = async (req, res) => {
   if (!username || !password) {
     return res.status(400).json({ message: "Username and password are required." });
   }
+
+  // ✅ Helper to fetch personnel hierarchy context
+  const getPersonnelContext = async (username) => {
+    try {
+      const userRecord = await User.findOne({ where: { username } });
+      if (!userRecord || !userRecord.personnel_id) return {};
+
+      const p = await Personnel.findByPk(userRecord.personnel_id);
+      if (!p) return {};
+
+      let designation_name = null;
+      if (p.designation_id) {
+        const d = await Designation.findByPk(p.designation_id);
+        if (d) designation_name = d.name;
+      }
+
+      return {
+        personnel_id: p.personnel_id,
+        department_id: p.department_id,
+        section_id: p.section_id,
+        subsection_id: p.subsection_id,
+        designation_id: p.designation_id,
+        designation_name: designation_name
+      };
+    } catch (err) {
+      console.error("Error fetching personnel context:", err);
+      return {};
+    }
+  };
 
   // ✅ Check if associated personnel is deleted
   const checkPersonnelStatus = async (username) => {
@@ -271,7 +304,10 @@ exports.Login = async (req, res) => {
       }
 
       const ldapUser = await authenticateLDAP(username, password);
-      groupId = await getUserGroupId(username); // Get groupId from DB or null if none
+      // groupId = await getUserGroupId(username); // Get groupId from DB or null if none
+      const groupInfo = await getUserGroupInfo(username);
+      groupId = groupInfo.id;
+      groupName = groupInfo.name;
 
       // ✅ Logic requested: If CN is "Team Leaders" or gidNumber is 2000
       const isTeamLeader =
@@ -281,23 +317,12 @@ exports.Login = async (req, res) => {
       if (!groupId && isTeamLeader) {
         console.log("🔍 Detected 'Team Leader' via CN or gidNumber(2000). Attempting to assign 'Team Leader' group...");
         try {
-          const Group = require("../models/Group");
-          const UserGroupMapping = require("../models/UserGroupMapping");
+          // const Group = require("../models/Group"); // Removed as it is now imported at top
+          // const UserGroupMapping = require("../models/UserGroupMapping");
 
           const teamLeaderGroup = await Group.findOne({ where: { name: "Team Leader" } });
 
           if (teamLeaderGroup) {
-            // Check if mapping exists to be safe
-            const existingMapping = await UserGroupMapping.findOne({
-              where: { user_id: ldapUser.username } // user_id in mapping is string username? need to verify schema. 
-              // Wait, previous code used userId from `getUserGroupId` which fetches from `api/users_access`.
-              // `getUserGroupId` calls `axios.get .../api/users_access/${username}` which returns `id`.
-              // So user_id in mapping is likely the User PK (integer or uuid).
-            });
-
-            // We need the User PK. 
-            // Let's fetch the local user object first to get the ID.
-            const User = require("../models/User");
             const localUser = await User.findOne({ where: { username: ldapUser.username } });
 
             if (localUser) {
@@ -307,6 +332,7 @@ exports.Login = async (req, res) => {
                 group_id: teamLeaderGroup.id
               });
               groupId = teamLeaderGroup.id; // Update groupId for the token
+              groupName = teamLeaderGroup.name;
               console.log("✅ Automatically assigned 'Team Leader' group to user.");
             }
           } else {
@@ -318,14 +344,22 @@ exports.Login = async (req, res) => {
       }
 
       console.log("Group ID: ", groupId);
+      console.log("Group Name: ", groupName);
+
+
+      // Fetch personnel context
+      const context = await getPersonnelContext(ldapUser.username);
+
       user = {
         id: ldapUser.username,
         username: ldapUser.username,
         groupId: groupId,
+        groupName: groupName,
         fullName: ldapUser.fullName || ldapUser.username,
         // Debugging fields
         cn: ldapUser.cn,
-        gidNumber: ldapUser.gidNumber
+        gidNumber: ldapUser.gidNumber,
+        ...context // Merge context
       };
 
       // ✅ Generate JWT token for LDAP user
@@ -343,11 +377,26 @@ exports.Login = async (req, res) => {
         return res.status(403).json({ message: "Account disabled. Associated personnel record is deleted." });
       }
 
-      user = await authenticateLocal(username, password);
-      groupId = await getUserGroupId(username); // Use stored groupId from API
+      const dbUser = await authenticateLocal(username, password);
+      // groupId = await getUserGroupId(username); // Use stored groupId from API
+      const groupInfo = await getUserGroupInfo(username);
+      groupId = groupInfo.id;
+      groupName = groupInfo.name;
+
+      // Fetch personnel context
+      const context = await getPersonnelContext(username);
+
+      user = {
+        id: dbUser.id,
+        username: dbUser.username,
+        groupId: groupId,
+        groupName: groupName,
+        // ... include other necessary fields from dbUser if needed
+        ...context
+      };
 
       // ✅ Generate JWT token for Local user
-      const token = generateToken({ ...user, groupId });
+      const token = generateToken({ ...user });
       return res.json({ success: true, token, user });
     } catch (localErr) {
       return res.status(401).json({ message: "Invalid username or password." });

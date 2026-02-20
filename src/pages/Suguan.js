@@ -35,6 +35,12 @@ import {
   InputGroup,
   InputLeftElement,
   Spacer,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Avatar,
+  Center,
 } from "@chakra-ui/react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -51,25 +57,38 @@ import {
   Filter,
   Briefcase,
   AlertCircle,
-  CheckCircle,
-  BookOpen
+  BookOpen,
+  Download,
+  FileText,
+  Printer,
+  CalendarDays,
+  MoreVertical
 } from "lucide-react";
 import moment from "moment";
+import * as XLSX from "xlsx";
 
 import { fetchData, postData, putData, deleteData } from "../utils/fetchData";
+import { filterPersonnelData } from "../utils/filterUtils";
+
+import ReactSelect from "react-select";
 
 const API_URL = process.env.REACT_APP_API_URL;
+const DISTRICT_API_URL = process.env.REACT_APP_DISTRICT_API_URL;
+const LOCAL_CONGREGATION_API_URL = process.env.REACT_APP_LOCAL_CONGREGATION_API_URL;
 const MotionBox = motion.create(Box);
 
 const Suguan = () => {
   const [suguan, setSuguan] = useState([]);
   const [districts, setDistricts] = useState([]);
+  const [localCongregations, setLocalCongregations] = useState([]);
+  const [personnels, setPersonnels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentWeek, setCurrentWeek] = useState(moment().startOf("isoWeek"));
   const [searchQuery, setSearchQuery] = useState("");
 
   // Form State
   const [name, setName] = useState("");
+  const [personnel_id, setPersonnelId] = useState("");
   const [district_id, setDistrictId] = useState("");
   const [local_id, setLocalId] = useState("");
   const [date, setDate] = useState("");
@@ -87,15 +106,18 @@ const Suguan = () => {
     { value: "4", name: "Reserba" },
     { value: "5", name: "Reserba 1" },
     { value: "6", name: "Reserba 2" },
+    { value: "7", name: "Sugo SL" },
+    { value: "8", name: "Reserba SL" },
+    { value: "9", name: "Kasama sa Tribuna" },
   ];
 
   // Colors
-  const bg = useColorModeValue("gray.50", "gray.900");
+  const bg = useColorModeValue("gray.50", "#0f172a");
   const cardBg = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const headerGradient = useColorModeValue(
     "linear(to-r, teal.500, blue.600)",
-    "linear(to-r, teal.300, blue.400)"
+    "linear(to-r, teal.300, blue.500)"
   );
 
   useEffect(() => {
@@ -106,7 +128,9 @@ const Suguan = () => {
     setLoading(true);
     try {
       await Promise.all([
-        fetchData("districts", setDistricts),
+        fetchData("districts", setDistricts, null, null, null, null, DISTRICT_API_URL),
+        fetchData("all-congregations", setLocalCongregations, null, null, null, null, LOCAL_CONGREGATION_API_URL),
+        fetchData("personnels", setPersonnels),
         fetchSuguan()
       ]);
     } catch (error) {
@@ -117,21 +141,27 @@ const Suguan = () => {
   };
 
   const fetchSuguan = async () => {
-    try {
-      const data = await fetchData("suguan");
-      if (Array.isArray(data)) {
-        const sorted = data.sort((a, b) => {
-          return moment(`${a.date} ${a.time}`).unix() - moment(`${b.date} ${b.time}`).unix();
-        });
-        setSuguan(sorted);
-      }
-    } catch (error) {
-      console.error("Failed to fetch suguan:", error);
-    }
+    return fetchData(
+      "suguan",
+      (data) => {
+        if (Array.isArray(data)) {
+          const filteredData = filterPersonnelData(data);
+          const sorted = filteredData.sort((a, b) => {
+            return moment(`${a.date} ${a.time}`).unix() - moment(`${b.date} ${b.time}`).unix();
+          });
+          setSuguan(sorted);
+        } else {
+          setSuguan([]);
+        }
+      },
+      (err) => console.error("Error fetching Suguan:", err),
+      "Failed to fetch Suguan"
+    );
   };
 
   const resetForm = () => {
     setName("");
+    setPersonnelId("");
     setDistrictId("");
     setLocalId("");
     setDate("");
@@ -148,6 +178,7 @@ const Suguan = () => {
   const handleEdit = (item) => {
     setEditingSuguan(item);
     setName(item.name);
+    setPersonnelId(item.personnel_id || "");
     setDistrictId(item.district_id);
     setLocalId(item.local_congregation);
     setDate(moment(item.date).format("YYYY-MM-DD"));
@@ -163,13 +194,29 @@ const Suguan = () => {
       return;
     }
 
+    const dayOfWeek = moment(date).isoWeekday();
+    if (dayOfWeek === 1 || dayOfWeek === 2) {
+      toast({
+        title: "Invalid Service Date",
+        description: "Service dates cannot be on Monday or Tuesday.",
+        status: "warning",
+      });
+      return;
+    }
+
+    const sectionId = localStorage.getItem("section_id");
+    const subsectionId = localStorage.getItem("subsection_id");
+
     const payload = {
       name,
+      personnel_id,
       district_id,
-      local_id,
+      local_id: local_id,
       date,
       time,
       gampanin_id,
+      section_id: sectionId,
+      subsection_id: subsectionId,
     };
 
     try {
@@ -182,7 +229,6 @@ const Suguan = () => {
       }
       onClose();
       fetchSuguan();
-      // Trigger global sync for notification background worker
       window.dispatchEvent(new CustomEvent("sync-suguan"));
     } catch (error) {
       toast({ title: "Error saving schedule", description: error.message, status: "error" });
@@ -195,7 +241,6 @@ const Suguan = () => {
         await deleteData("suguan", id);
         setSuguan(prev => prev.filter(item => item.id !== id));
         toast({ title: "Schedule deleted", status: "success" });
-        // Trigger global sync for notification background worker
         window.dispatchEvent(new CustomEvent("sync-suguan"));
       } catch (error) {
         toast({ title: "Error deleting schedule", status: "error" });
@@ -203,14 +248,38 @@ const Suguan = () => {
     }
   };
 
-  // Week Navigation
+  const handleExportExcel = () => {
+    const dataToExport = filteredSuguan.map(item => ({
+      Week: `Week ${moment(item.date).isoWeek()}`,
+      Day: moment(item.date).format("dddd"),
+      Date: moment(item.date).format("MMM DD, YYYY"),
+      Time: moment(item.time, "HH:mm").format("hh:mm A"),
+      Personnel: item.name,
+      Role: getGampaninName(item.gampanin_id),
+      Congregation: item.local_congregation,
+      District: getDistrictName(item.district_id)
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Suguan Schedule");
+    XLSX.writeFile(wb, `Suguan_Report_Week_${currentWeek.isoWeek()}.xlsx`);
+
+    toast({
+      title: "Report Generated",
+      description: "Excel file has been downloaded.",
+      status: "success",
+      duration: 3000,
+    });
+  };
+
   const startOfWeek = currentWeek.clone().startOf("isoWeek");
   const endOfWeek = currentWeek.clone().endOf("isoWeek");
 
   const handlePrevWeek = () => setCurrentWeek(prev => prev.clone().subtract(1, "week"));
   const handleNextWeek = () => setCurrentWeek(prev => prev.clone().add(1, "week"));
+  const handleGoToToday = () => setCurrentWeek(moment().startOf("isoWeek"));
 
-  // Filtering Logic
   const filteredSuguan = useMemo(() => {
     let result = suguan.filter(item => {
       const d = moment(item.date);
@@ -224,27 +293,64 @@ const Suguan = () => {
         item.local_congregation.toLowerCase().includes(q)
       );
     }
-
     return result;
   }, [suguan, currentWeek, searchQuery]);
 
-  const midweekSuguan = filteredSuguan.filter(item => moment(item.date).isoWeekday() <= 4);
-  const weekendSuguan = filteredSuguan.filter(item => moment(item.date).isoWeekday() > 4);
-
   const stats = {
     total: filteredSuguan.length,
-    midweek: midweekSuguan.length,
-    weekend: weekendSuguan.length
+    midweek: filteredSuguan.filter(item => moment(item.date).isoWeekday() <= 4).length,
+    weekend: filteredSuguan.filter(item => moment(item.date).isoWeekday() > 4).length
   };
 
   const getGampaninName = (id) => gampanin.find(g => String(g.value) === String(id))?.name || "N/A";
   const getDistrictName = (id) => districts.find(d => String(d.id) === String(id))?.name || "N/A";
 
+  const filteredLocalCongregations = useMemo(() => {
+    if (!district_id) return [];
+    return localCongregations.filter(lc => String(lc.district_id) === String(district_id));
+  }, [localCongregations, district_id]);
+
+  const filteredPersonnels = useMemo(() => {
+    const allowedTypes = ["Minister", "Regular", "Ministerial Student"];
+    return personnels
+      .filter(p => allowedTypes.includes(p.personnel_type))
+      .sort((a, b) => {
+        const nameA = `${a.surname_husband}, ${a.givenname}`.toLowerCase();
+        const nameB = `${b.surname_husband}, ${b.givenname}`.toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
+  }, [personnels]);
+
+  const personnelOptions = useMemo(() => {
+    return filteredPersonnels.map(p => ({
+      value: p.personnel_id,
+      label: `${p.surname_husband}, ${p.givenname}`,
+      name: `${p.givenname} ${p.surname_husband}`
+    }));
+  }, [filteredPersonnels]);
+
+  const hasFriday = useMemo(() => filteredSuguan.some(item => moment(item.date).isoWeekday() === 5), [filteredSuguan]);
+  const gridColumns = hasFriday ? { base: 1, xl: 6 } : { base: 1, xl: 5 };
+
+  const customSelectStyles = {
+    control: (base, state) => ({
+      ...base,
+      borderRadius: "0.75rem",
+      borderColor: state.isFocused ? "#38B2AC" : "inherit",
+      padding: "2px",
+      boxShadow: state.isFocused ? "0 0 0 1px #38B2AC" : "none",
+      "&:hover": { borderColor: "#38B2AC" },
+    }),
+    option: (base, state) => ({
+      ...base,
+      backgroundColor: state.isSelected ? "#38B2AC" : state.isFocused ? "#E6FFFA" : "white",
+      color: state.isSelected ? "white" : "black",
+    })
+  };
+
   return (
     <Box bg={bg} minH="100vh">
-      <Container maxW="100%" py={8}>
-
-        {/* Header Section */}
+      <Container maxW="100%" py={8} px={{ base: 4, md: 8 }}>
         <Flex
           direction={{ base: "column", md: "row" }}
           justify="space-between"
@@ -253,250 +359,410 @@ const Suguan = () => {
           gap={4}
         >
           <VStack align="start" spacing={1}>
-            <Heading size="xl" bgGradient={headerGradient} bgClip="text">
+            <Heading size="xl" bgGradient={headerGradient} bgClip="text" fontWeight="black" letterSpacing="tight">
               Suguan Management
             </Heading>
-            <Text color="gray.500" fontWeight="medium">Organize and monitor weekly assignments</Text>
+            <Text color="gray.500" fontWeight="medium">Organize and monitor weekly assignments for your section</Text>
           </VStack>
 
-          <Button
-            leftIcon={<Plus size={20} />}
-            colorScheme="teal"
-            size="lg"
-            onClick={handleOpenAdd}
-            boxShadow="0 4px 14px 0 rgba(45, 212, 191, 0.39)"
-            _hover={{ transform: "translateY(-2px)", boxShadow: "0 6px 20px rgba(45, 212, 191, 0.23)" }}
-          >
-            Add Suguan
-          </Button>
+          <HStack spacing={3}>
+            <Button
+              leftIcon={<Download size={18} />}
+              variant="outline"
+              colorScheme="teal"
+              size="lg"
+              onClick={handleExportExcel}
+              borderRadius="xl"
+            >
+              Export Report
+            </Button>
+            <Button
+              leftIcon={<Plus size={20} />}
+              colorScheme="teal"
+              size="lg"
+              onClick={handleOpenAdd}
+              borderRadius="xl"
+              boxShadow="0 4px 14px 0 rgba(45, 212, 191, 0.39)"
+              _hover={{ transform: "translateY(-2px)", boxShadow: "0 6px 20px rgba(45, 212, 191, 0.23)" }}
+            >
+              Add Suguan
+            </Button>
+          </HStack>
         </Flex>
 
-        {/* Stats & Navigation Row */}
         <SimpleGrid columns={{ base: 1, lg: 3 }} spacing={6} mb={8}>
-
-          {/* Week Selector */}
-          <Box bg={cardBg} p={4} borderRadius="2xl" boxShadow="sm" border="1px solid" borderColor={borderColor}>
-            <VStack spacing={3}>
-              <Text fontSize="xs" fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="widest">
-                Schedule Viewing
-              </Text>
+          <Box bg={cardBg} p={5} borderRadius="2xl" boxShadow="sm" border="1px solid" borderColor={borderColor} position="relative" overflow="hidden">
+            <VStack spacing={3} position="relative" zIndex={1}>
+              <Flex w="full" justify="space-between" align="center">
+                <Text fontSize="xs" fontWeight="black" color="teal.500" textTransform="uppercase" letterSpacing="widest">
+                  Current View
+                </Text>
+                <Button size="xs" variant="ghost" colorScheme="teal" onClick={handleGoToToday}>Today</Button>
+              </Flex>
               <HStack w="full" justify="space-between">
                 <IconButton
-                  icon={<ChevronLeft size={20} />}
+                  icon={<ChevronLeft size={22} />}
                   onClick={handlePrevWeek}
                   variant="ghost"
-                  borderRadius="lg"
+                  colorScheme="teal"
+                  borderRadius="full"
                   aria-label="Previous Week"
+                  _hover={{ bg: "teal.50" }}
                 />
                 <VStack spacing={0}>
-                  <Text fontWeight="bold">Week {currentWeek.isoWeek()}</Text>
-                  <Text fontSize="xs" color="gray.500">
+                  <Text fontWeight="extrabold" fontSize="xl">Week {currentWeek.isoWeek()}</Text>
+                  <Text fontSize="xs" color="gray.500" fontWeight="bold">
                     {startOfWeek.format("MMM DD")} - {endOfWeek.format("MMM DD, YYYY")}
                   </Text>
                 </VStack>
                 <IconButton
-                  icon={<ChevronRight size={20} />}
+                  icon={<ChevronRight size={22} />}
                   onClick={handleNextWeek}
                   variant="ghost"
-                  borderRadius="lg"
+                  colorScheme="teal"
+                  isDisabled={currentWeek.clone().add(1, "week").isAfter(moment())}
+                  borderRadius="full"
                   aria-label="Next Week"
+                  _hover={{ bg: "teal.50" }}
                 />
               </HStack>
             </VStack>
+            <Box position="absolute" top={0} left={0} w="full" h="2px" bg="teal.400" />
           </Box>
 
-          {/* Stats Bar */}
-          <StatGroup
+          <Box
             gridColumn={{ lg: "span 2" }}
             bg={cardBg}
-            p={4}
+            p={5}
             borderRadius="2xl"
             boxShadow="sm"
             border="1px solid"
             borderColor={borderColor}
+            position="relative"
           >
-            <Stat textAlign="center">
-              <StatLabel color="gray.500" fontSize="sm">Weekly Total</StatLabel>
-              <StatNumber fontSize="2xl" color="teal.500">{stats.total}</StatNumber>
-            </Stat>
-            <Stat textAlign="center" borderLeft="1px solid" borderColor={borderColor}>
-              <StatLabel color="gray.500" fontSize="sm">Midweek</StatLabel>
-              <StatNumber fontSize="2xl" color="blue.500">{stats.midweek}</StatNumber>
-            </Stat>
-            <Stat textAlign="center" borderLeft="1px solid" borderColor={borderColor}>
-              <StatLabel color="gray.500" fontSize="sm">Weekend</StatLabel>
-              <StatNumber fontSize="2xl" color="purple.500">{stats.weekend}</StatNumber>
-            </Stat>
-          </StatGroup>
+            <StatGroup w="full">
+              <Stat textAlign="center">
+                <StatLabel color="gray.500" fontSize="xs" fontWeight="bold" textTransform="uppercase">Weekly Total</StatLabel>
+                <StatNumber fontSize="3xl" color="teal.500" fontWeight="black">{stats.total}</StatNumber>
+              </Stat>
+              <Stat textAlign="center" borderLeft="1px solid" borderColor={borderColor}>
+                <StatLabel color="gray.500" fontSize="xs" fontWeight="bold" textTransform="uppercase">Midweek</StatLabel>
+                <StatNumber fontSize="3xl" color="blue.500" fontWeight="black">{stats.midweek}</StatNumber>
+              </Stat>
+              <Stat textAlign="center" borderLeft="1px solid" borderColor={borderColor}>
+                <StatLabel color="gray.500" fontSize="xs" fontWeight="bold" textTransform="uppercase">Weekend</StatLabel>
+                <StatNumber fontSize="3xl" color="purple.500" fontWeight="black">{stats.weekend}</StatNumber>
+              </Stat>
+            </StatGroup>
+            <Box position="absolute" top={0} left={0} w="full" h="2px" bgGradient="linear(to-r, teal.400, blue.400, purple.400)" />
+          </Box>
         </SimpleGrid>
 
-        {/* Search Bar */}
-        <InputGroup mb={8} size="lg">
-          <InputLeftElement pointerEvents="none">
-            <Search size={20} color="gray.400" />
-          </InputLeftElement>
-          <Input
-            placeholder="Search by name or congregation..."
-            bg={cardBg}
-            borderRadius="xl"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            focusBorderColor="teal.400"
-            boxShadow="sm"
-          />
-        </InputGroup>
 
-        {/* Schedule Display */}
+
         {filteredSuguan.length === 0 ? (
-          <Flex direction="column" align="center" justify="center" p={20} bg={cardBg} borderRadius="3xl" boxShadow="sm">
-            <Icon as={AlertCircle} boxSize={12} color="orange.400" />
-            <Heading size="md" mt={4} color="gray.700">No schedule found</Heading>
-            <Text color="gray.500">There are no assignments for this week or search criteria.</Text>
-          </Flex>
+          <MotionBox
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            direction="column"
+            align="center"
+            justify="center"
+            p={20}
+            bg={cardBg}
+            borderRadius="3xl"
+            boxShadow="sm"
+            textAlign="center"
+          >
+            <Icon as={AlertCircle} boxSize={16} color="orange.300" />
+            <Heading size="lg" mt={6} color="gray.700" fontWeight="black">No suguan found</Heading>
+            <Text color="gray.500" fontSize="lg" mt={2}>There are no schedules listed for the selected week ({currentWeek.isoWeek()}).</Text>
+            <Button mt={8} colorScheme="teal" onClick={handleOpenAdd} size="lg" borderRadius="xl">Create First Schedule</Button>
+          </MotionBox>
         ) : (
-          <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8} alignItems="start">
+          <Box
+            w="full"
+            bg={cardBg}
+            borderRadius="3xl"
+            boxShadow="2xl"
+            overflow="hidden"
+            border="1px solid"
+            borderColor={borderColor}
+          >
+            {/* Header Row */}
+            <SimpleGrid columns={gridColumns} bg="gray.50" py={4} px={6} borderBottom="1px solid" borderColor={borderColor}>
+              <Text fontWeight="black" color="gray.500" fontSize="xs" textTransform="uppercase" letterSpacing="widest">Personnel</Text>
+              <Text display={{ base: "none", xl: "block" }} fontWeight="black" color="gray.500" fontSize="xs" textTransform="uppercase" letterSpacing="widest">Wednesday</Text>
+              <Text display={{ base: "none", xl: "block" }} fontWeight="black" color="gray.500" fontSize="xs" textTransform="uppercase" letterSpacing="widest">Thursday</Text>
+              {hasFriday && <Text display={{ base: "none", xl: "block" }} fontWeight="black" color="orange.500" fontSize="xs" textTransform="uppercase" letterSpacing="widest">Friday</Text>}
+              <Text display={{ base: "none", xl: "block" }} fontWeight="black" color="gray.500" fontSize="xs" textTransform="uppercase" letterSpacing="widest">Saturday</Text>
+              <Text display={{ base: "none", xl: "block" }} fontWeight="black" color="gray.500" fontSize="xs" textTransform="uppercase" letterSpacing="widest">Sunday</Text>
+            </SimpleGrid>
 
-            {/* Midweek Section */}
-            <VStack align="stretch" spacing={4}>
-              <HStack px={2}>
-                <Icon as={BookOpen} color="blue.500" />
-                <Heading size="md" color="gray.700">Midweek Assignments</Heading>
-                <Badge ml={2} colorScheme="blue" borderRadius="full" px={2}>{midweekSuguan.length}</Badge>
-              </HStack>
-              <AnimatePresence>
-                {midweekSuguan.map((item) => (
-                  <SuguanCard
-                    key={item.id}
-                    item={item}
-                    onEdit={() => handleEdit(item)}
-                    onDelete={() => handleDelete(item.id)}
-                    districtName={getDistrictName(item.district_id)}
-                    gampaninName={getGampaninName(item.gampanin_id)}
-                    cardBg={cardBg}
-                    borderColor={borderColor}
-                  />
-                ))}
-              </AnimatePresence>
-              {midweekSuguan.length === 0 && <Text p={8} textAlign="center" color="gray.400" bg={cardBg} borderRadius="xl" border="1px dashed" borderColor={borderColor}>Empty midweek</Text>}
+            {/* Personnel Rows */}
+            <VStack align="stretch" spacing={0} divider={<Divider />}>
+              {Object.entries(
+                filteredSuguan.reduce((acc, item) => {
+                  if (!acc[item.name]) acc[item.name] = { id: item.personnel_id, items: [] };
+                  acc[item.name].items.push(item);
+                  return acc;
+                }, {})
+              ).map(([name, data]) => {
+                const pItems = data.items;
+                const pInfo = personnels.find(p => p.personnel_id === data.id);
+
+                const wednesday = pItems.filter(i => moment(i.date).isoWeekday() === 3);
+                const thursday = pItems.filter(i => moment(i.date).isoWeekday() === 4);
+                const friday = pItems.filter(i => moment(i.date).isoWeekday() === 5);
+                const saturday = pItems.filter(i => moment(i.date).isoWeekday() === 6);
+                const sunday = pItems.filter(i => moment(i.date).isoWeekday() === 7);
+
+                return (
+                  <SimpleGrid
+                    key={name}
+                    columns={gridColumns}
+                    py={6}
+                    px={6}
+                    transition="all 0.2s"
+                    _hover={{ bg: "gray.50/50" }}
+                  >
+                    {/* Column 1: Personnel Info */}
+                    <HStack spacing={4} align="center" mb={{ base: 4, xl: 0 }}>
+                      <Avatar
+                        name={name}
+                        size="md"
+                        boxShadow="md"
+                        border="2px solid white"
+                        src={
+                          pInfo?.images?.[0]?.image_url
+                            ? `${API_URL}${pInfo.images[0].image_url}`
+                            : pInfo?.avatar
+                              ? `${API_URL}/uploads/avatar/${pInfo.avatar}`
+                              : ""
+                        }
+                      />
+                      <VStack align="start" spacing={0}>
+                        <Text fontWeight="black" fontSize="md" color="gray.800" lineHeight="1.2" noOfLines={2}>{name}</Text>
+                        <Badge colorScheme="teal" variant="subtle" fontSize="3xs" borderRadius="full">
+                          {pInfo?.personnel_type || "Personnel"}
+                        </Badge>
+                      </VStack>
+                    </HStack>
+
+                    {/* Column 2: Wednesday */}
+                    <VStack align="stretch" spacing={3} px={{ xl: 2 }} mb={{ base: 4, xl: 0 }}>
+                      <Text display={{ xl: "none" }} fontSize="xs" fontWeight="black" color="blue.500">WEDNESDAY</Text>
+                      {wednesday.length > 0 ? wednesday.map(item => (
+                        <GridAssignmentCard
+                          key={item.id}
+                          item={item}
+                          onEdit={() => handleEdit(item)}
+                          onDelete={() => handleDelete(item.id)}
+                          gampaninName={getGampaninName(item.gampanin_id)}
+                          color="blue"
+                        />
+                      )) : <EmptySlot label="None" />}
+                    </VStack>
+
+                    {/* Column 3: Thursday */}
+                    <VStack align="stretch" spacing={3} px={{ xl: 2 }} mb={{ base: 4, xl: 0 }}>
+                      <Text display={{ xl: "none" }} fontSize="xs" fontWeight="black" color="blue.500">THURSDAY</Text>
+                      {thursday.length > 0 ? thursday.map(item => (
+                        <GridAssignmentCard
+                          key={item.id}
+                          item={item}
+                          onEdit={() => handleEdit(item)}
+                          onDelete={() => handleDelete(item.id)}
+                          gampaninName={getGampaninName(item.gampanin_id)}
+                          color="blue"
+                        />
+                      )) : <EmptySlot label="None" />}
+                    </VStack>
+
+                    {/* Column 4: Friday (Conditional) */}
+                    {hasFriday && (
+                      <VStack align="stretch" spacing={3} px={{ xl: 2 }} mb={{ base: 4, xl: 0 }}>
+                        <Text display={{ xl: "none" }} fontSize="xs" fontWeight="black" color="orange.500">FRIDAY</Text>
+                        {friday.length > 0 ? friday.map(item => (
+                          <GridAssignmentCard
+                            key={item.id}
+                            item={item}
+                            onEdit={() => handleEdit(item)}
+                            onDelete={() => handleDelete(item.id)}
+                            gampaninName={getGampaninName(item.gampanin_id)}
+                            color="orange"
+                          />
+                        )) : <EmptySlot label="None" />}
+                      </VStack>
+                    )}
+
+                    {/* Column 5: Saturday */}
+                    <VStack align="stretch" spacing={3} px={{ xl: 2 }} mb={{ base: 4, xl: 0 }}>
+                      <Text display={{ xl: "none" }} fontSize="xs" fontWeight="black" color="purple.500">SATURDAY</Text>
+                      {saturday.length > 0 ? saturday.map(item => (
+                        <GridAssignmentCard
+                          key={item.id}
+                          item={item}
+                          onEdit={() => handleEdit(item)}
+                          onDelete={() => handleDelete(item.id)}
+                          gampaninName={getGampaninName(item.gampanin_id)}
+                          color="purple"
+                        />
+                      )) : <EmptySlot label="None" />}
+                    </VStack>
+
+                    {/* Column 6: Sunday */}
+                    <VStack align="stretch" spacing={3} px={{ xl: 2 }}>
+                      <Text display={{ xl: "none" }} fontSize="xs" fontWeight="black" color="purple.500">SUNDAY</Text>
+                      {sunday.length > 0 ? sunday.map(item => (
+                        <GridAssignmentCard
+                          key={item.id}
+                          item={item}
+                          onEdit={() => handleEdit(item)}
+                          onDelete={() => handleDelete(item.id)}
+                          gampaninName={getGampaninName(item.gampanin_id)}
+                          color="purple"
+                        />
+                      )) : <EmptySlot label="None" />}
+                    </VStack>
+                  </SimpleGrid>
+                );
+              })}
             </VStack>
-
-            {/* Weekend Section */}
-            <VStack align="stretch" spacing={4}>
-              <HStack px={2}>
-                <Icon as={Users} color="purple.500" />
-                <Heading size="md" color="gray.700">Weekend Assignments</Heading>
-                <Badge ml={2} colorScheme="purple" borderRadius="full" px={2}>{weekendSuguan.length}</Badge>
-              </HStack>
-              <AnimatePresence>
-                {weekendSuguan.map((item) => (
-                  <SuguanCard
-                    key={item.id}
-                    item={item}
-                    onEdit={() => handleEdit(item)}
-                    onDelete={() => handleDelete(item.id)}
-                    districtName={getDistrictName(item.district_id)}
-                    gampaninName={getGampaninName(item.gampanin_id)}
-                    cardBg={cardBg}
-                    borderColor={borderColor}
-                  />
-                ))}
-              </AnimatePresence>
-              {weekendSuguan.length === 0 && <Text p={8} textAlign="center" color="gray.400" bg={cardBg} borderRadius="xl" border="1px dashed" borderColor={borderColor}>Empty weekend</Text>}
-            </VStack>
-
-          </SimpleGrid>
+          </Box>
         )}
       </Container>
 
       {/* Add/Edit Modal */}
-      <Modal isOpen={isOpen} onClose={onClose} size="xl" motionPreset="slideInBottom">
-        <ModalOverlay backdropFilter="blur(8px)" />
-        <ModalContent borderRadius="3xl">
-          <ModalHeader bg="teal.500" color="white" py={6} borderTopRadius="3xl">
-            <HStack>
-              <Icon as={editingSuguan ? Edit3 : Plus} />
-              <Text>{editingSuguan ? "Edit Assignment" : "New Assignment"}</Text>
-            </HStack>
+      <Modal isOpen={isOpen} onClose={onClose} size="xl">
+        <ModalOverlay backdropFilter="blur(10px)" bg="blackAlpha.300" />
+        <ModalContent borderRadius="3xl" overflow="hidden" boxShadow="2xl">
+          <ModalHeader p={8} bgGradient="linear(to-r, teal.500, blue.600)" color="white">
+            <VStack align="start" spacing={1}>
+              <Text fontSize="2xl" fontWeight="black">{editingSuguan ? "Update Assignment" : "New Weekly Schedule"}</Text>
+              <Text fontSize="xs" fontWeight="bold" opacity={0.8} textTransform="uppercase" letterSpacing="widest">
+                {editingSuguan ? "Modifying existing record" : "Adding new service assignment"}
+              </Text>
+            </VStack>
           </ModalHeader>
-          <ModalCloseButton color="white" top={6} />
+          <ModalCloseButton color="white" top={8} right={8} />
 
           <ModalBody p={8}>
-            <VStack spacing={5}>
+            <VStack spacing={6}>
               <FormControl isRequired>
-                <FormLabel fontWeight="bold">Personnel Name</FormLabel>
-                <Input
-                  placeholder="Full Name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  borderRadius="xl"
-                  size="lg"
-                  focusBorderColor="teal.400"
+                <FormLabel fontWeight="black" fontSize="sm" color="gray.600" textTransform="uppercase" letterSpacing="widest">Assign Personnel</FormLabel>
+                <ReactSelect
+                  options={personnelOptions}
+                  onChange={(opt) => {
+                    setPersonnelId(opt ? opt.value : "");
+                    setName(opt ? opt.name : "");
+                  }}
+                  value={
+                    personnelOptions.find(opt => String(opt.value) === String(personnel_id)) ||
+                    (personnel_id ? { value: personnel_id, label: name } : null)
+                  }
+                  placeholder="Search and select personnel..."
+                  styles={customSelectStyles}
+                  isClearable
                 />
               </FormControl>
 
-              <SimpleGrid columns={2} spacing={4} w="full">
+              <SimpleGrid columns={2} spacing={6} w="full">
                 <FormControl isRequired>
-                  <FormLabel fontWeight="bold">District</FormLabel>
-                  <Select
-                    placeholder="Select District"
-                    value={district_id}
-                    onChange={(e) => setDistrictId(e.target.value)}
-                    borderRadius="xl"
-                    size="lg"
-                    focusBorderColor="teal.400"
-                  >
-                    {districts.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                  </Select>
+                  <FormLabel fontWeight="black" fontSize="sm" color="gray.600" textTransform="uppercase" letterSpacing="widest">District</FormLabel>
+                  <ReactSelect
+                    options={districts.map(d => ({ value: d.id, label: d.name }))}
+                    onChange={(opt) => {
+                      setDistrictId(opt ? opt.value : "");
+                      setLocalId(""); // Reset local when district changes
+                    }}
+                    value={districts.find(d => String(d.id) === String(district_id)) ?
+                      { value: district_id, label: districts.find(d => String(d.id) === String(district_id)).name } : null}
+                    placeholder={personnel_id ? "Search District..." : "Select personnel first"}
+                    styles={customSelectStyles}
+                    isDisabled={!personnel_id}
+                    isClearable
+                  />
                 </FormControl>
 
                 <FormControl isRequired>
-                  <FormLabel fontWeight="bold">Congregation</FormLabel>
-                  <Input
-                    placeholder="Local Name"
-                    value={local_id}
-                    onChange={(e) => setLocalId(e.target.value)}
-                    borderRadius="xl"
-                    size="lg"
-                    focusBorderColor="teal.400"
+                  <FormLabel fontWeight="black" fontSize="sm" color="gray.600" textTransform="uppercase" letterSpacing="widest">Local Congregation</FormLabel>
+                  <ReactSelect
+                    options={filteredLocalCongregations.map(lc => ({
+                      value: lc.id,
+                      label: lc.name
+                    }))}
+                    onChange={(opt) => {
+                      setLocalId(opt ? opt.label : ""); // Keeping it as label for now as per current display logic
+                    }}
+                    value={local_id ? { value: local_id, label: local_id } : null}
+                    placeholder={district_id ? "Search local..." : "Select a district first"}
+                    styles={customSelectStyles}
+                    isDisabled={!district_id}
+                    isClearable
                   />
                 </FormControl>
               </SimpleGrid>
 
-              <SimpleGrid columns={2} spacing={4} w="full">
+              <SimpleGrid columns={2} spacing={6} w="full">
                 <FormControl isRequired>
-                  <FormLabel fontWeight="bold">Date</FormLabel>
+                  <FormLabel fontWeight="black" fontSize="sm" color="gray.600" textTransform="uppercase" letterSpacing="widest">Date</FormLabel>
                   <Input
                     type="date"
                     value={date}
-                    onChange={(e) => setDate(e.target.value)}
+                    isDisabled={!local_id}
+                    placeholder={local_id ? "" : "Select local first"}
+                    onChange={(e) => {
+                      const selectedDate = e.target.value;
+                      if (!selectedDate) {
+                        setDate("");
+                        return;
+                      }
+                      const dayOfWeek = moment(selectedDate).isoWeekday();
+                      if (dayOfWeek === 1 || dayOfWeek === 2) {
+                        toast({
+                          title: "Invalid day of week",
+                          description: "Monday and Tuesday are not allowed for service date.",
+                          status: "warning",
+                          duration: 3000,
+                          isClosable: true,
+                        });
+                        return;
+                      }
+                      setDate(selectedDate);
+                    }}
                     borderRadius="xl"
                     size="lg"
                     focusBorderColor="teal.400"
+                    bg="gray.50"
                   />
                 </FormControl>
 
                 <FormControl isRequired>
-                  <FormLabel fontWeight="bold">Time</FormLabel>
+                  <FormLabel fontWeight="black" fontSize="sm" color="gray.600" textTransform="uppercase" letterSpacing="widest">Time</FormLabel>
                   <Input
                     type="time"
                     value={time}
+                    isDisabled={!date}
                     onChange={(e) => setTime(e.target.value)}
                     borderRadius="xl"
                     size="lg"
                     focusBorderColor="teal.400"
+                    bg="gray.50"
                   />
                 </FormControl>
               </SimpleGrid>
 
               <FormControl isRequired>
-                <FormLabel fontWeight="bold">Gampanin (Role)</FormLabel>
+                <FormLabel fontWeight="black" fontSize="sm" color="gray.600" textTransform="uppercase" letterSpacing="widest">Assigned Gampanin</FormLabel>
                 <Select
-                  placeholder="Select Role"
+                  placeholder={time ? "Select Role" : "Select time first"}
                   value={gampanin_id}
+                  isDisabled={!time}
                   onChange={(e) => setGampaninId(e.target.value)}
                   borderRadius="xl"
                   size="lg"
                   focusBorderColor="teal.400"
+                  bg="gray.50"
                 >
                   {gampanin.map(g => <option key={g.value} value={g.value}>{g.name}</option>)}
                 </Select>
@@ -504,17 +770,18 @@ const Suguan = () => {
             </VStack>
           </ModalBody>
 
-          <ModalFooter p={8} bg="gray.50" borderBottomRadius="3xl">
-            <Button variant="ghost" mr={3} onClick={onClose} borderRadius="xl">Cancel</Button>
+          <ModalFooter p={8} bg="gray.50" borderTop="1px solid" borderColor="gray.100">
+            <Button variant="ghost" mr={3} onClick={onClose} borderRadius="xl" size="lg">Cancel</Button>
             <Button
               colorScheme="teal"
               onClick={handleSave}
               borderRadius="xl"
               size="lg"
-              px={10}
-              boxShadow="lg"
+              px={12}
+              boxShadow="0 10px 20px -5px rgba(45, 212, 191, 0.5)"
+              fontWeight="black"
             >
-              {editingSuguan ? "Save Changes" : "Create Schedule"}
+              {editingSuguan ? "Update Assignment" : "Encode"}
             </Button>
           </ModalFooter>
         </ModalContent>
@@ -526,86 +793,76 @@ const Suguan = () => {
 // Subcomponent: SuguanCard
 const SuguanCard = ({ item, onEdit, onDelete, districtName, gampaninName, cardBg, borderColor }) => {
   const isWeekend = moment(item.date).isoWeekday() > 4;
-  const accentColor = isWeekend ? "purple.500" : "blue.500";
+  const accentColor = isWeekend ? "purple.600" : "blue.600";
   const accentLight = isWeekend ? "purple.50" : "blue.50";
 
   return (
     <MotionBox
       layout
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      whileHover={{ y: -5 }}
+      whileHover={{ scale: 1.02, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
       bg={cardBg}
       p={6}
-      borderRadius="2xl"
-      boxShadow="md"
+      borderRadius="3xl"
+      boxShadow="lg"
       border="1px solid"
       borderColor={borderColor}
       position="relative"
-      transition={{ duration: 0.2 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
     >
-      <VStack align="start" spacing={3}>
+      <VStack align="start" spacing={4}>
         <Flex w="full" justify="space-between" align="center">
           <Badge
             colorScheme={isWeekend ? "purple" : "blue"}
-            variant="solid"
-            borderRadius="lg"
-            px={3}
-            py={1}
+            variant="subtle"
+            borderRadius="full"
+            px={4}
+            py={1.5}
             fontSize="xs"
+            fontWeight="black"
+            textTransform="uppercase"
+            letterSpacing="widest"
           >
             {moment(item.date).format("dddd")}
           </Badge>
-          <HStack spacing={1}>
-            <Tooltip label="Edit Assignment">
-              <IconButton
-                icon={<Edit3 size={16} />}
-                size="sm"
-                variant="ghost"
-                colorScheme="blue"
-                onClick={onEdit}
-              />
-            </Tooltip>
-            <Tooltip label="Delete Assignment">
-              <IconButton
-                icon={<Trash2 size={16} />}
-                size="sm"
-                variant="ghost"
-                colorScheme="red"
-                onClick={onDelete}
-              />
-            </Tooltip>
-          </HStack>
+          <Menu>
+            <MenuButton as={IconButton} icon={<MoreVertical size={16} />} variant="ghost" size="sm" borderRadius="full" />
+            <MenuList borderRadius="xl" shadow="xl">
+              <MenuItem icon={<Edit3 size={14} />} onClick={onEdit}>Modify Details</MenuItem>
+              <MenuItem icon={<Trash2 size={14} />} color="red.500" onClick={onDelete}>Delete Schedule</MenuItem>
+            </MenuList>
+          </Menu>
         </Flex>
 
-        <Box>
-          <Text fontWeight="black" fontSize="xl" color="gray.800" lineHeight="1.2">
+        <Box w="full">
+          <Text fontWeight="900" fontSize="2xl" color="gray.800" lineHeight="1.1" letterSpacing="tight">
             {item.name}
           </Text>
-          <HStack mt={1} spacing={2}>
+          <HStack mt={2} spacing={2} bg={accentLight} display="inline-flex" px={3} py={1} borderRadius="lg">
             <Icon as={Briefcase} size={14} color={accentColor} />
-            <Text fontWeight="bold" color={accentColor} fontSize="sm">{gampaninName}</Text>
+            <Text fontWeight="black" color={accentColor} fontSize="xs" textTransform="uppercase">{gampaninName}</Text>
           </HStack>
         </Box>
 
-        <Divider />
-
-        <VStack align="start" spacing={2} w="full">
-          <HStack color="gray.600" fontSize="sm">
-            <Icon as={MapPin} size={14} />
-            <Text fontWeight="semibold">{item.local_congregation}</Text>
-            <Text color="gray.400" fontSize="xs">({districtName})</Text>
+        <VStack align="start" spacing={3} w="full" pt={1}>
+          <HStack color="gray.600" spacing={2}>
+            <Icon as={MapPin} size={18} color="teal.500" />
+            <VStack align="start" spacing={0}>
+              <Text fontWeight="extrabold" fontSize="md" color="gray.700">{item.local_congregation}</Text>
+              <Text color="gray.400" fontSize="xs" fontWeight="bold">{districtName.toUpperCase()} DISTRICT</Text>
+            </VStack>
           </HStack>
 
-          <Flex w="full" justify="space-between" bg={accentLight} p={2} borderRadius="xl" align="center">
-            <HStack color={accentColor}>
-              <Icon as={Calendar} size={14} />
-              <Text fontWeight="bold" fontSize="xs">{moment(item.date).format("MMM DD, YYYY")}</Text>
+          <Flex w="full" justify="space-between" bg="gray.50" p={4} borderRadius="2xl" align="center" border="1px solid" borderColor="gray.100">
+            <HStack color="gray.700">
+              <Icon as={Calendar} size={16} color="teal.500" />
+              <Text fontWeight="black" fontSize="sm">{moment(item.date).format("MMM DD, YYYY")}</Text>
             </HStack>
-            <HStack color={accentColor}>
-              <Icon as={Clock} size={14} />
-              <Text fontWeight="bold" fontSize="xs">{moment(item.time, "HH:mm").format("hh:mm A")}</Text>
+            <HStack color="orange.500" bg="orange.50" px={3} py={1} borderRadius="full">
+              <Icon as={Clock} size={16} />
+              <Text fontWeight="black" fontSize="sm">{moment(item.time, "HH:mm").format("hh:mm A")}</Text>
             </HStack>
           </Flex>
         </VStack>
@@ -614,14 +871,54 @@ const SuguanCard = ({ item, onEdit, onDelete, districtName, gampaninName, cardBg
       <Box
         position="absolute"
         left={0}
-        top="20%"
-        bottom="20%"
-        w="4px"
+        top="25%"
+        bottom="25%"
+        w="5px"
         bg={accentColor}
         borderRightRadius="full"
+        boxShadow={`0 0 15px ${accentColor}`}
       />
-    </MotionBox>
+    </MotionBox >
   );
 };
+
+// Helper Component for Grid Row Assignment
+const GridAssignmentCard = ({ item, onEdit, onDelete, gampaninName, color }) => {
+  return (
+    <Box
+      p={3}
+      bg={`${color}.50`}
+      borderRadius="xl"
+      border="1px solid"
+      borderColor={`${color}.100`}
+      position="relative"
+    >
+      <VStack align="start" spacing={1}>
+        <HStack w="full" justify="space-between">
+          <Badge colorScheme={color} fontSize="9px">{moment(item.date).format("ddd")}</Badge>
+          <Menu>
+            <MenuButton as={IconButton} icon={<MoreVertical size={12} />} variant="ghost" size="xs" borderRadius="full" />
+            <MenuList borderRadius="xl" shadow="xl">
+              <MenuItem icon={<Edit3 size={12} />} onClick={onEdit}>Edit</MenuItem>
+              <MenuItem icon={<Trash2 size={12} />} color="red.500" onClick={onDelete}>Delete</MenuItem>
+            </MenuList>
+          </Menu>
+        </HStack>
+        <Text fontSize="xs" fontWeight="black" color="gray.700" noOfLines={1}>{item.local_congregation}</Text>
+        <HStack spacing={1}>
+          <Icon as={Clock} size={10} color={`${color}.400`} />
+          <Text fontSize="10px" fontWeight="bold" color="gray.500">{moment(item.time, "HH:mm").format("hh:mm A")}</Text>
+        </HStack>
+        <Text fontSize="9px" fontWeight="black" color={`${color}.600`} textTransform="uppercase">{gampaninName}</Text>
+      </VStack>
+    </Box>
+  );
+};
+
+const EmptySlot = ({ label }) => (
+  <Center p={4} border="1px dashed" borderColor="gray.100" borderRadius="xl">
+    <Text fontSize="10px" color="gray.300" fontWeight="bold">{label}</Text>
+  </Center>
+);
 
 export default Suguan;

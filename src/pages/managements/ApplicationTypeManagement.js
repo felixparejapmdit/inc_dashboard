@@ -1,24 +1,37 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   Box,
+  Heading,
+  SimpleGrid,
+  VStack,
+  Text,
+  Icon,
+  useColorModeValue,
   Button,
   IconButton,
-  Input,
-  Stack,
-  Table,
-  Tbody,
-  Td,
-  Th,
-  Thead,
-  Tr,
+  HStack,
   useToast,
-  Text,
+  Container,
+  InputGroup,
+  InputLeftElement,
+  Input,
+  Select,
+  Avatar,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Spinner,
+  Center,
   AlertDialog,
   AlertDialogOverlay,
   AlertDialogContent,
   AlertDialogHeader,
   AlertDialogBody,
   AlertDialogFooter,
+  Tooltip,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -26,17 +39,29 @@ import {
   ModalCloseButton,
   ModalBody,
   ModalFooter,
+  useDisclosure,
+  FormControl,
+  FormLabel,
   Flex,
-  HStack,
   Badge,
-  InputGroup,
-  InputLeftElement,
-  Heading,
-  Card,
-  CardBody,
+  Stack,
   Divider,
 } from "@chakra-ui/react";
-import { AddIcon, DeleteIcon, EditIcon, SearchIcon } from "@chakra-ui/icons";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Search,
+  Plus,
+  Edit3,
+  Trash2,
+  RefreshCw,
+  AppWindow,
+  Layers,
+  Database,
+  Activity,
+  AlertCircle,
+  Hash,
+  Filter
+} from "lucide-react";
 
 import {
   fetchData,
@@ -45,382 +70,408 @@ import {
   deleteData,
 } from "../../utils/fetchData";
 
+const MotionBox = motion.create(Box);
+const ITEMS_PER_PAGE = 10;
+
 const ApplicationTypeManagement = () => {
-  const [appTypes, setAppTypes] = useState([]);
-  const [filteredAppTypes, setFilteredAppTypes] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [newAppType, setNewAppType] = useState({ name: "" });
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingAppType, setEditingAppType] = useState(null);
-  const [deletingAppType, setDeletingAppType] = useState(null);
   const toast = useToast();
+  const [appTypes, setAppTypes] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Modals/Dialogs
+  const {
+    isOpen: isAddOpen,
+    onOpen: onAddOpen,
+    onClose: onAddClose
+  } = useDisclosure();
+
+  const [editingType, setEditingType] = useState(null);
+  const [deletingType, setDeletingType] = useState(null);
+  const [typeName, setTypeName] = useState("");
   const cancelRef = useRef();
 
-  useEffect(() => {
-    const filtered = appTypes.filter((type) =>
-      type.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    setFilteredAppTypes(filtered);
-  }, [searchQuery, appTypes]);
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+
+  // Colors
+  const bg = useColorModeValue("gray.50", "#0f172a");
+  const cardBg = useColorModeValue("white", "gray.800");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
+  const headerGradient = useColorModeValue(
+    "linear(to-r, blue.600, blue.600)",
+    "linear(to-r, blue.400, blue.400)"
+  );
+
+  const fetchApplicationTypes = async () => {
+    setIsLoading(true);
+    try {
+      const data = await fetchData("application-types");
+      setAppTypes(data || []);
+    } catch (err) {
+      toast({
+        title: "Error loading app types",
+        description: err.message || "Failed to fetch data",
+        status: "error",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchApplicationTypes();
   }, []);
 
-  // Fetch all application types
-  const fetchApplicationTypes = async () => {
-    try {
-      await fetchData("application-types", (data) => {
-        setAppTypes(data);
-        setFilteredAppTypes(data);
-      });
-    } catch (error) {
-      toast({
-        title: "Error loading application types",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-  };
-
-  // Add new application type
-  const handleAddApplicationType = async () => {
-    if (!newAppType.name) {
-      toast({
-        title: "Name is required",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
+  const handleSave = async () => {
+    if (!typeName.trim()) {
+      toast({ title: "Module name is required", status: "warning" });
       return;
     }
 
     try {
-      await postData("add_application-types", newAppType);
+      if (editingType) {
+        await putData(`application-types/${editingType.id}`, { name: typeName }, "Failed to update category.");
+        toast({ title: "Module refreshed", status: "success" });
+      } else {
+        await postData("add_application-types", { name: typeName }, "Failed to add category.");
+        toast({ title: "New module registered", status: "success" });
+      }
       fetchApplicationTypes();
-      setNewAppType({ name: "" });
-      setIsModalOpen(false);
-      toast({
-        title: "Application type added",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      handleCloseModal();
     } catch (error) {
-      toast({
-        title: "Error adding application type",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      toast({ title: "Error saving record", description: error.message, status: "error" });
     }
   };
 
-  // Update existing application type
-  const handleUpdateApplicationType = async () => {
-    if (!editingAppType.name) {
-      toast({
-        title: "Name is required",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
+  const handleDelete = async () => {
     try {
-      await putData(`application-types/${editingAppType.id}`, editingAppType);
+      await deleteData("application-types", deletingType.id, "Failed to delete category.");
+      toast({ title: "Module retired", status: "success" });
+      setDeletingType(null);
       fetchApplicationTypes();
-      setEditingAppType(null);
-      setIsModalOpen(false);
-      toast({
-        title: "Application type updated",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
     } catch (error) {
-      toast({
-        title: "Error updating application type",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      toast({ title: "Error deleting", description: error.message, status: "error" });
     }
   };
 
-  // Delete application type
-  const handleDeleteApplicationType = async () => {
-    try {
-      await deleteData("application-types", deletingAppType.id);
-      fetchApplicationTypes();
-      toast({
-        title: "Application type deleted",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-    } catch (error) {
-      toast({
-        title: "Error deleting application type",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
-      setDeletingAppType(null);
+  const handleCloseModal = () => {
+    onAddClose();
+    setEditingType(null);
+    setTypeName("");
+  };
+
+  const filteredData = useMemo(() => {
+    let data = [...appTypes];
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      data = data.filter(t => t.name?.toLowerCase().includes(q));
     }
+    return data;
+  }, [appTypes, searchQuery]);
+
+  const totalPages = Math.ceil(filteredData.length / limit) || 1;
+  const paginatedData = filteredData.slice((page - 1) * limit, page * limit);
+
+  // Stats
+  const stats = {
+    total: appTypes.length,
+    active: filteredData.length,
+    newest: appTypes.length > 0 ? appTypes[appTypes.length - 1].name : "N/A"
   };
 
   return (
-    <Box p={{ base: 4, md: 6 }}>
-      <Stack spacing={6}>
+    <Box bg={bg} minH="100vh">
+      <Container maxW="100%" py={8} px={{ base: 4, md: 8 }}>
         {/* Header Section */}
         <Flex
           direction={{ base: "column", md: "row" }}
           justify="space-between"
           align={{ base: "stretch", md: "center" }}
+          mb={8}
           gap={4}
         >
-          <Heading size="lg" color="gray.700">
-            Application Type Management
-          </Heading>
-          <Button
-            leftIcon={<AddIcon />}
-            colorScheme="blue"
-            size="md"
-            onClick={() => {
-              setEditingAppType(null);
-              setNewAppType({ name: "" });
-              setIsModalOpen(true);
-            }}
-            boxShadow="sm"
-            _hover={{ boxShadow: "md", transform: "translateY(-2px)" }}
-            transition="all 0.2s"
-          >
-            Application Type
-          </Button>
-        </Flex>
+          <VStack align="start" spacing={1}>
+            <HStack>
+              <Icon as={AppWindow} boxSize={8} color="blue.500" />
+              <Heading size="xl" bgGradient={headerGradient} bgClip="text" fontWeight="black" letterSpacing="tight">
+                Software Modules
+              </Heading>
+            </HStack>
+            <Text color="gray.500" fontWeight="medium">Manage Categories and System Designations</Text>
+          </VStack>
 
-        {/* Search Bar */}
-        <Card variant="outline" boxShadow="sm">
-          <CardBody>
-            <InputGroup size="md">
-              <InputLeftElement pointerEvents="none">
-                <SearchIcon color="gray.400" />
-              </InputLeftElement>
-              <Input
-                placeholder="Search application types..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                bg="white"
-                borderColor="gray.300"
-                _hover={{ borderColor: "gray.400" }}
-                _focus={{ borderColor: "blue.400", boxShadow: "0 0 0 1px var(--chakra-colors-blue-400)" }}
-              />
-            </InputGroup>
-          </CardBody>
-        </Card>
-
-        {/* Results Summary */}
-        <Flex justify="space-between" align="center" px={2}>
-          <Text fontSize="sm" color="gray.600">
-            Showing {filteredAppTypes.length} of {appTypes.length} application types
-          </Text>
-          {searchQuery && (
-            <Badge colorScheme="blue" fontSize="xs" px={2} py={1} borderRadius="md">
-              Filtered
-            </Badge>
-          )}
-        </Flex>
-
-        {/* Application Type Table */}
-        <Card variant="outline" boxShadow="md" overflow="hidden">
-          <Box overflowX="auto">
-            <Table variant="simple" size="md">
-              <Thead bg="gray.50">
-                <Tr>
-                  <Th width="80px" color="gray.600" fontWeight="semibold">#</Th>
-                  <Th color="gray.600" fontWeight="semibold">Name</Th>
-                  <Th width="140px" textAlign="center" color="gray.600" fontWeight="semibold">
-                    Actions
-                  </Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {filteredAppTypes.length > 0 ? (
-                  filteredAppTypes.map((type, index) => (
-                    <Tr
-                      key={`${type.id}-${index}`}
-                      _hover={{ bg: "gray.50" }}
-                      transition="background-color 0.2s"
-                    >
-                      <Td color="gray.500" fontWeight="medium">
-                        {index + 1}
-                      </Td>
-                      <Td fontWeight="medium" color="gray.700">
-                        {type.name}
-                      </Td>
-                      <Td>
-                        <HStack spacing={2} justify="center" flexWrap="nowrap">
-                          <IconButton
-                            icon={<EditIcon />}
-                            colorScheme="orange"
-                            variant="ghost"
-                            size="md"
-                            aria-label="Edit"
-                            onClick={() => {
-                              setEditingAppType(type);
-                              setIsModalOpen(true);
-                            }}
-                            _hover={{ bg: "orange.50" }}
-                            flexShrink={0}
-                          />
-                          <IconButton
-                            icon={<DeleteIcon />}
-                            colorScheme="red"
-                            variant="ghost"
-                            size="md"
-                            aria-label="Delete"
-                            onClick={() => setDeletingAppType(type)}
-                            _hover={{ bg: "red.50" }}
-                            flexShrink={0}
-                          />
-                        </HStack>
-                      </Td>
-                    </Tr>
-                  ))
-                ) : (
-                  <Tr>
-                    <Td colSpan={3} textAlign="center" py={8}>
-                      <Text color="gray.500" fontSize="md">
-                        {searchQuery
-                          ? "No application types found matching your search."
-                          : "No application types available. Click 'New Application Type' to add one."}
-                      </Text>
-                    </Td>
-                  </Tr>
-                )}
-              </Tbody>
-            </Table>
-          </Box>
-        </Card>
-      </Stack>
-
-      {/* Add/Edit Modal */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setEditingAppType(null);
-          setNewAppType({ name: "" });
-        }}
-        isCentered
-        size="md"
-      >
-        <ModalOverlay backdropFilter="blur(4px)" />
-        <ModalContent>
-          <ModalHeader borderBottomWidth="1px" pb={4}>
-            {editingAppType
-              ? "Edit Application Type"
-              : "Add New Application Type"}
-          </ModalHeader>
-          <ModalCloseButton />
-          <ModalBody py={6}>
-            <Stack spacing={4}>
-              <Box>
-                <Text mb={2} fontSize="sm" fontWeight="medium" color="gray.600">
-                  Application Type Name
-                </Text>
-                <Input
-                  placeholder="Enter application type name"
-                  value={editingAppType ? editingAppType.name : newAppType.name}
-                  onChange={(e) =>
-                    editingAppType
-                      ? setEditingAppType({
-                        ...editingAppType,
-                        name: e.target.value,
-                      })
-                      : setNewAppType({ name: e.target.value })
-                  }
-                  size="md"
-                  autoFocus
-                  _focus={{ borderColor: "blue.400", boxShadow: "0 0 0 1px var(--chakra-colors-blue-400)" }}
-                />
-              </Box>
-            </Stack>
-          </ModalBody>
-          <Divider />
-          <ModalFooter gap={3}>
+          <HStack spacing={3}>
             <Button
-              variant="ghost"
-              onClick={() => {
-                setIsModalOpen(false);
-                setEditingAppType(null);
-                setNewAppType({ name: "" });
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
+              leftIcon={<Plus size={18} />}
               colorScheme="blue"
-              onClick={
-                editingAppType
-                  ? handleUpdateApplicationType
-                  : handleAddApplicationType
-              }
-              boxShadow="sm"
-              _hover={{ boxShadow: "md" }}
+              onClick={onAddOpen}
+              size="lg"
+              borderRadius="xl"
+              boxShadow="lg"
+              _hover={{ transform: "translateY(-2px)", boxShadow: "xl" }}
+              transition="all 0.2s"
             >
-              {editingAppType ? "Update" : "Save"}
+              Add Module
+            </Button>
+            <IconButton
+              icon={<RefreshCw size={20} />}
+              onClick={() => { setSearchQuery(""); fetchApplicationTypes(); }}
+              isLoading={isLoading}
+              variant="outline"
+              size="lg"
+              borderRadius="xl"
+              aria-label="Refresh Data"
+            />
+          </HStack>
+        </Flex>
+
+        {/* Stats Grid */}
+        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6} mb={8}>
+          {[
+            { label: "Total Modules", value: stats.total, icon: Layers, color: "blue" },
+            { label: "Filtered Matches", value: stats.active, icon: Filter, color: "blue" },
+            { label: "Latest Addition", value: stats.newest, icon: Activity, color: "purple", isText: true }
+          ].map((stat, idx) => (
+            <MotionBox
+              key={idx}
+              whileHover={{ y: -4 }}
+              bg={cardBg}
+              p={5}
+              borderRadius="2xl"
+              boxShadow="sm"
+              border="1px solid"
+              borderColor={borderColor}
+            >
+              <HStack justify="space-between">
+                <VStack align="start" spacing={0}>
+                  <Text fontSize="xs" fontWeight="black" color="gray.500" textTransform="uppercase" letterSpacing="widest">
+                    {stat.label}
+                  </Text>
+                  <Text fontSize={stat.isText ? "lg" : "3xl"} fontWeight="black" color={`${stat.color}.500`} noOfLines={1}>
+                    {stat.value}
+                  </Text>
+                </VStack>
+                <Box p={3} bg={`${stat.color}.50`} borderRadius="xl">
+                  <Icon as={stat.icon} boxSize={6} color={`${stat.color}.500`} />
+                </Box>
+              </HStack>
+            </MotionBox>
+          ))}
+        </SimpleGrid>
+
+        {/* Search & Filter Toolbar */}
+        <Stack direction={{ base: "column", md: "row" }} spacing={4} mb={6}>
+          <InputGroup maxW={{ base: "full", md: "400px" }} size="lg">
+            <InputLeftElement pointerEvents="none">
+              <Search size={18} color="gray" />
+            </InputLeftElement>
+            <Input
+              placeholder="Search module designations..."
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
+              borderRadius="xl"
+              bg={cardBg}
+              focusBorderColor="blue.400"
+            />
+          </InputGroup>
+        </Stack>
+
+        {/* Content Table */}
+        <Box
+          bg={cardBg}
+          borderRadius="3xl"
+          shadow="sm"
+          border="1px solid"
+          borderColor={borderColor}
+          overflow="hidden"
+        >
+          {isLoading ? (
+            <Center p={20} flexDir="column">
+              <Spinner size="xl" color="blue.500" thickness="4px" />
+              <Text mt={4} fontWeight="bold" color="gray.500">Loading modules...</Text>
+            </Center>
+          ) : filteredData.length === 0 ? (
+            <Center p={20} flexDir="column">
+              <Icon as={AlertCircle} boxSize={12} color="gray.300" />
+              <Heading size="md" mt={4} color="gray.500">No modules found</Heading>
+              <Text color="gray.400">Try adjusting your search query</Text>
+            </Center>
+          ) : (
+            <Box overflowX="auto">
+              <Table variant="simple">
+                <Thead bg="gray.50">
+                  <Tr>
+                    <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Module Name</Th>
+                    <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">System Identifier</Th>
+                    <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest" textAlign="right">Actions</Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  <AnimatePresence>
+                    {paginatedData.map((item) => (
+                      <MotionBox
+                        key={item.id}
+                        as="tr"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        _hover={{ bg: "gray.50" }}
+                      >
+                        <Td p={6}>
+                          <HStack spacing={4}>
+                            <Avatar
+                              size="sm"
+                              icon={<Layers size={20} />}
+                              bg="blue.100"
+                              color="blue.600"
+                              fontWeight="bold"
+                              borderRadius="md"
+                            />
+                            <VStack align="start" spacing={0}>
+                              <Text fontWeight="bold" color="gray.800" fontSize="md">{item.name}</Text>
+                              <Text fontSize="xs" color="gray.500">Core Component</Text>
+                            </VStack>
+                          </HStack>
+                        </Td>
+                        <Td p={6}>
+                          <HStack>
+                            <Icon as={Hash} size={14} color="gray.400" />
+                            <Badge colorScheme="blue" variant="subtle" px={3} py={1} borderRadius="full" fontFamily="mono" fontSize="xs">
+                              ID: {item.id}
+                            </Badge>
+                          </HStack>
+                        </Td>
+                        <Td p={6} textAlign="right">
+                          <HStack spacing={2} justify="flex-end">
+                            <Tooltip label="Update Registry" hasArrow>
+                              <IconButton
+                                icon={<Edit3 size={18} />}
+                                onClick={() => { setEditingType(item); setTypeName(item.name); onAddOpen(); }}
+                                variant="ghost"
+                                colorScheme="blue"
+                                size="sm"
+                                aria-label="Edit"
+                              />
+                            </Tooltip>
+                            <Tooltip label="Retire Module" hasArrow>
+                              <IconButton
+                                icon={<Trash2 size={18} />}
+                                onClick={() => setDeletingType(item)}
+                                variant="ghost"
+                                colorScheme="red"
+                                size="sm"
+                                aria-label="Delete"
+                              />
+                            </Tooltip>
+                          </HStack>
+                        </Td>
+                      </MotionBox>
+                    ))}
+                  </AnimatePresence>
+                </Tbody>
+              </Table>
+            </Box>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <Flex justify="center" align="center" p={6} borderTop="1px solid" borderColor={borderColor}>
+              <HStack spacing={2}>
+                <Button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  isDisabled={page === 1}
+                  size="sm"
+                  variant="outline"
+                  borderRadius="lg"
+                >
+                  Previous
+                </Button>
+                <Text fontSize="sm" fontWeight="bold" color="gray.500" px={2}>
+                  {page} of {totalPages}
+                </Text>
+                <Button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  isDisabled={page === totalPages}
+                  size="sm"
+                  variant="outline"
+                  borderRadius="lg"
+                >
+                  Next
+                </Button>
+              </HStack>
+            </Flex>
+          )}
+        </Box>
+      </Container>
+
+      {/* Add / Edit Modal */}
+      <Modal isOpen={isAddOpen} onClose={handleCloseModal} isCentered size="lg">
+        <ModalOverlay backdropFilter="blur(8px)" />
+        <ModalContent borderRadius="3xl" boxShadow="2xl">
+          <ModalHeader bgGradient={headerGradient} color="white" borderTopRadius="3xl">
+            {editingType ? "Update Module" : "Add New Module"}
+          </ModalHeader>
+          <ModalCloseButton color="white" />
+          <ModalBody p={8}>
+            <VStack spacing={6}>
+              <Box bg="blue.50" p={4} borderRadius="xl" w="full" display="flex" alignItems="center" gap={4}>
+                <Icon as={AppWindow} boxSize={8} color="blue.500" />
+                <VStack align="start" spacing={0}>
+                  <Text fontWeight="bold" color="blue.700">Category Configuration</Text>
+                  <Text fontSize="xs" color="blue.500">Define the core classification for your applications.</Text>
+                </VStack>
+              </Box>
+              <FormControl isRequired>
+                <FormLabel fontWeight="bold" fontSize="sm" color="gray.600">Module Name</FormLabel>
+                <Input
+                  placeholder="e.g. Productivity Tools"
+                  value={typeName}
+                  onChange={e => setTypeName(e.target.value)}
+                  borderRadius="xl"
+                  focusBorderColor="blue.400"
+                  size="lg"
+                  bg="gray.50"
+                />
+              </FormControl>
+            </VStack>
+          </ModalBody>
+          <ModalFooter bg="gray.50" borderBottomRadius="3xl" p={6}>
+            <Button variant="ghost" mr={3} onClick={handleCloseModal} borderRadius="xl">Cancel</Button>
+            <Button colorScheme="blue" onClick={handleSave} borderRadius="xl" px={8} boxShadow="lg">
+              {editingType ? "Update Category" : "Save Category"}
             </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation */}
       <AlertDialog
-        isOpen={!!deletingAppType}
+        isOpen={!!deletingType}
         leastDestructiveRef={cancelRef}
-        onClose={() => setDeletingAppType(null)}
+        onClose={() => setDeletingType(null)}
         isCentered
       >
-        <AlertDialogOverlay backdropFilter="blur(4px)">
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold" borderBottomWidth="1px" pb={4}>
-              Delete Application Type
-            </AlertDialogHeader>
-
-            <AlertDialogBody py={6}>
-              <Text>
-                Are you sure you want to delete <strong>"{deletingAppType?.name}"</strong>?
-              </Text>
-              <Text mt={2} color="gray.600" fontSize="sm">
-                This action cannot be undone.
-              </Text>
-            </AlertDialogBody>
-
-            <AlertDialogFooter borderTopWidth="1px" pt={4} gap={3}>
-              <Button
-                ref={cancelRef}
-                onClick={() => setDeletingAppType(null)}
-                variant="ghost"
-              >
-                Cancel
-              </Button>
-              <Button
-                colorScheme="red"
-                onClick={handleDeleteApplicationType}
-                boxShadow="sm"
-                _hover={{ boxShadow: "md" }}
-              >
-                Delete
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
+        <AlertDialogOverlay backdropFilter="blur(4px)" />
+        <AlertDialogContent borderRadius="2xl" boxShadow="2xl">
+          <AlertDialogHeader fontSize="lg" fontWeight="bold">
+            Retire Module
+          </AlertDialogHeader>
+          <AlertDialogBody>
+            Are you sure you want to delete <Text as="span" fontWeight="bold" color="red.500">"{deletingType?.name}"</Text>?
+            This action cannot be undone.
+          </AlertDialogBody>
+          <AlertDialogFooter>
+            <Button ref={cancelRef} onClick={() => setDeletingType(null)} borderRadius="xl">
+              Cancel
+            </Button>
+            <Button colorScheme="red" onClick={handleDelete} ml={3} borderRadius="xl">
+              Delete
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
       </AlertDialog>
     </Box>
   );

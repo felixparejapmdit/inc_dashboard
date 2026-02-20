@@ -306,7 +306,17 @@ const Login = () => {
         localStorage.setItem("username", user.username);
         localStorage.setItem("userFullName", user.fullName || user.username);
         localStorage.setItem("groupId", user.groupId);
+        localStorage.setItem("groupName", user.groupName);
         localStorage.setItem("isLoggingIn", "true");
+
+        // ✅ Save Personnel Context
+        if (user.department_id) localStorage.setItem("department_id", user.department_id);
+        if (user.section_id) localStorage.setItem("section_id", user.section_id);
+        if (user.subsection_id) localStorage.setItem("subsection_id", user.subsection_id);
+        if (user.designation_id) localStorage.setItem("designation_id", user.designation_id);
+        if (user.designation_name) localStorage.setItem("designation_name", user.designation_name);
+
+        if (user.personnel_id) localStorage.setItem("user_id", user.personnel_id);
 
         // ✅ Fetch Numeric User ID if not provided as number (for LDAP fallback)
         let userId = user.id;

@@ -132,6 +132,8 @@ router.post(
   UserController.migrateLdapToPmdLoginUsers
 );
 
+router.post("/api/ldap/admin-reset-password", verifyToken, ldapController.adminResetPassword);
+
 // Set up Multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {

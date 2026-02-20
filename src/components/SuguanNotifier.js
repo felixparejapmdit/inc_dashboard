@@ -36,9 +36,15 @@ const SuguanNotifier = () => {
             fetchData(
                 "suguan",
                 (data) => {
+                    const userSectionId = localStorage.getItem("section_id");
                     if (Array.isArray(data)) {
                         const now = moment();
                         const upcoming = data.filter(item => {
+                            // Filter by correct section
+                            if (userSectionId && String(item.section_id) !== String(userSectionId)) {
+                                return false;
+                            }
+
                             const eventTime = getEventTime(item);
                             // Keep assignments from 10 mins ago up to 48 hours ahead
                             return eventTime.isAfter(now.clone().subtract(10, 'minutes')) &&

@@ -1,250 +1,511 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   Box,
-  Button,
-  Flex,
-  HStack,
-  IconButton,
-  Input,
-  Stack,
-  Table,
-  Tbody,
-  Td,
+  Heading,
+  SimpleGrid,
+  VStack,
   Text,
-  Th,
-  Thead,
-  Tr,
-  useDisclosure,
+  Icon,
+  useColorModeValue,
+  Button,
+  IconButton,
+  HStack,
   useToast,
+  Container,
+  Stat,
+  StatLabel,
+  StatNumber,
+  Badge,
+  Flex,
+  Divider,
+  InputGroup,
+  InputLeftElement,
+  Input,
+  Select,
+  Avatar,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Spinner,
+  Center,
   AlertDialog,
   AlertDialogOverlay,
   AlertDialogContent,
   AlertDialogHeader,
   AlertDialogBody,
   AlertDialogFooter,
+  Tooltip,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+  FormControl,
+  FormLabel,
 } from "@chakra-ui/react";
-import { AddIcon, DeleteIcon, EditIcon, CheckIcon, CloseIcon } from "@chakra-ui/icons";
-import { fetchData, postData, putData, deleteData } from "../../utils/fetchData";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Search,
+  Plus,
+  Edit2,
+  Trash2,
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight,
+  Home,
+  Activity,
+  AlertCircle,
+  Building2,
+  Lock,
+  History,
+  Info
+} from "lucide-react";
+
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+} from "../../utils/fetchData";
+
+const MotionBox = motion.create(Box);
 
 const HousingManagement = () => {
-  const [housingList, setHousingList] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isAdding, setIsAdding] = useState(false);
-  const [newItem, setNewItem] = useState({ building_name: "", floor: "", room: "", description: "" });
-
-  const [editRowId, setEditRowId] = useState(null);
-  const [editedData, setEditedData] = useState({});
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
-
   const toast = useToast();
-  const [deleteId, setDeleteId] = useState(null);
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [housingList, setHousingList] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Modals/Dialogs
+  const {
+    isOpen: isAddOpen,
+    onOpen: onAddOpen,
+    onClose: onAddClose
+  } = useDisclosure();
+
+  const [editingItem, setEditingItem] = useState(null);
+  const [deletingItem, setDeletingItem] = useState(null);
+  const [formState, setFormState] = useState({ building_name: "", floor: "", room: "", description: "" });
   const cancelRef = useRef();
+
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+
+  // Colors
+  const bg = useColorModeValue("gray.50", "#0f172a");
+  const cardBg = useColorModeValue("white", "gray.800");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
+  const headerGradient = useColorModeValue(
+    "linear(to-r, orange.600, orange.600)",
+    "linear(to-r, orange.400, orange.400)"
+  );
+
+  const loadHousing = async () => {
+    setIsLoading(true);
+    try {
+      const data = await fetchData("housing");
+      setHousingList(data || []);
+    } catch (err) {
+      toast({
+        title: "Error loading housing",
+        description: err.message || "Failed to fetch data",
+        status: "error",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     loadHousing();
   }, []);
 
-  const loadHousing = () => {
-    fetchData(
-      "housing",
-      setHousingList,
-      (err) => toast({
-        title: "Error loading housing",
-        description: err,
-        status: "error",
-        duration: 3000,
-      }),
-      "Failed to fetch housing"
-    );
-  };
+  const handleSave = async () => {
+    const isEditing = !!editingItem;
+    const body = isEditing ? editingItem : formState;
 
-  const handleAdd = async () => {
-    const { building_name, floor, room } = newItem;
-    if (!building_name.trim() || !floor.trim() || !room.trim()) {
-      toast({ title: "Building, Floor, and Room are required", status: "warning", duration: 3000 });
+    if (!body.building_name.trim() || !body.floor.trim() || !body.room.trim()) {
+      toast({ title: "Building, Floor, and Room are required", status: "warning" });
       return;
     }
 
     try {
-      await postData("housing", newItem, "Failed to add housing");
-      setNewItem({ building_name: "", floor: "", room: "", description: "" });
-      setIsAdding(false);
+      if (isEditing) {
+        await putData("housing", editingItem.id, editingItem, "Failed to update housing");
+        toast({ title: "Housing data updated", status: "success" });
+      } else {
+        await postData("housing", formState, "Failed to add housing");
+        toast({ title: "New unit registered", status: "success" });
+      }
       loadHousing();
-      toast({ title: "Housing added", status: "success", duration: 3000 });
-    } catch (err) {
-      toast({ title: "Error adding", description: err.message, status: "error", duration: 3000 });
+      onAddClose();
+      setEditingItem(null);
+      setFormState({ building_name: "", floor: "", room: "", description: "" });
+    } catch (error) {
+      toast({ title: "Error saving record", description: error.message, status: "error" });
     }
   };
 
-  const startEdit = (item) => {
-    setEditRowId(item.id);
-    setEditedData({ ...item });
-  };
-
-  const cancelEdit = () => {
-    setEditRowId(null);
-    setEditedData({});
-  };
-
-  const handleUpdate = async (id) => {
+  const handleDelete = async () => {
     try {
-      await putData("housing", id, editedData, "Failed to update housing");
-      toast({ title: "Housing updated", status: "success", duration: 3000 });
-      setEditRowId(null);
-      setEditedData({});
+      await deleteData("housing", deletingItem.id, "Failed to delete housing");
+      toast({ title: "Unit removed", status: "success" });
+      setDeletingItem(null);
       loadHousing();
-    } catch (err) {
-      toast({ title: "Update error", description: err.message, status: "error", duration: 3000 });
+    } catch (error) {
+      toast({ title: "Error deleting", description: error.message, status: "error" });
     }
   };
 
-  const openDeleteDialog = (id) => {
-    setDeleteId(id);
-    onOpen();
-  };
-
-  const confirmDelete = async () => {
-    try {
-      await deleteData("housing", deleteId, "Failed to delete housing");
-      onClose();
-      loadHousing();
-      toast({ title: "Housing deleted", status: "warning", duration: 3000 });
-    } catch (err) {
-      toast({ title: "Delete error", description: err.message, status: "error", duration: 3000 });
+  const filteredData = useMemo(() => {
+    let data = [...housingList];
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      data = data.filter(h =>
+        h.building_name.toLowerCase().includes(q) ||
+        h.description?.toLowerCase().includes(q) ||
+        h.room?.toLowerCase().includes(q)
+      );
     }
-  };
+    return data;
+  }, [housingList, searchQuery]);
 
-  const filtered = housingList.filter(h =>
-    h.building_name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const totalPages = Math.ceil(filtered.length / itemsPerPage);
-  const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const totalPages = Math.ceil(filteredData.length / limit) || 1;
+  const paginatedData = filteredData.slice((page - 1) * limit, page * limit);
 
   return (
-    <Box p={5}>
-      <Stack spacing={4}>
-        <Text fontSize="2xl" fontWeight="bold">Housing Management</Text>
+    <Box bg={bg} minH="100vh">
+      <Container maxW="100%" py={8} px={{ base: 4, md: 8 }}>
+        {/* Header Section */}
+        <Flex
+          direction={{ base: "column", md: "row" }}
+          justify="space-between"
+          align={{ base: "stretch", md: "center" }}
+          mb={8}
+          gap={4}
+        >
+          <VStack align="start" spacing={1}>
+            <HStack>
+              <Icon as={Home} boxSize={8} color="orange.500" />
+              <Heading size="xl" bgGradient={headerGradient} bgClip="text" fontWeight="black" letterSpacing="tight">
+                Housing Portal
+              </Heading>
+            </HStack>
+            <Text color="gray.500" fontWeight="medium">Manage residential units, building allocations, and room assignments</Text>
+          </VStack>
 
-        <Input
-          placeholder="Search by building name"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-
-        <Table variant="striped" size="md">
-          <Thead>
-            <Tr>
-              <Th>Building</Th>
-              <Th>Floor</Th>
-              <Th>Room</Th>
-              <Th>Description</Th>
-              <Th textAlign="right">
-                <Flex justify="space-between" align="center">
-                  Actions
-                  {!isAdding && (
-                    <IconButton
-                      icon={<AddIcon />}
-                      size="sm"
-                      variant="ghost"
-                      colorScheme="green"
-                      onClick={() => setIsAdding(true)}
-                      aria-label="Add"
-                    />
-                  )}
-                </Flex>
-              </Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {isAdding && (
-              <Tr>
-                <Td><Input value={newItem.building_name} onChange={(e) => setNewItem({ ...newItem, building_name: e.target.value })} /></Td>
-                <Td><Input value={newItem.floor} onChange={(e) => setNewItem({ ...newItem, floor: e.target.value })} /></Td>
-                <Td><Input value={newItem.room} onChange={(e) => setNewItem({ ...newItem, room: e.target.value })} /></Td>
-                <Td><Input value={newItem.description} onChange={(e) => setNewItem({ ...newItem, description: e.target.value })} /></Td>
-                <Td>
-                  <HStack justify="flex-end">
-                    <Button size="sm" colorScheme="green" onClick={handleAdd}>Save</Button>
-                    <Button size="sm" colorScheme="red" onClick={() => setIsAdding(false)}>Cancel</Button>
-                  </HStack>
-                </Td>
-              </Tr>
-            )}
-
-            {paginated.map((item) => (
-              <Tr key={item.id}>
-                <Td>
-                  {editRowId === item.id ? (
-                    <Input value={editedData.building_name} onChange={(e) => setEditedData({ ...editedData, building_name: e.target.value })} />
-                  ) : (
-                    item.building_name
-                  )}
-                </Td>
-                <Td>
-                  {editRowId === item.id ? (
-                    <Input value={editedData.floor} onChange={(e) => setEditedData({ ...editedData, floor: e.target.value })} />
-                  ) : (
-                    item.floor
-                  )}
-                </Td>
-                <Td>
-                  {editRowId === item.id ? (
-                    <Input value={editedData.room} onChange={(e) => setEditedData({ ...editedData, room: e.target.value })} />
-                  ) : (
-                    item.room
-                  )}
-                </Td>
-                <Td>
-                  {editRowId === item.id ? (
-                    <Input value={editedData.description} onChange={(e) => setEditedData({ ...editedData, description: e.target.value })} />
-                  ) : (
-                    item.description || "—"
-                  )}
-                </Td>
-                <Td>
-                  <HStack justify="flex-end">
-                    {editRowId === item.id ? (
-                      <>
-                        <IconButton icon={<CheckIcon />} size="sm" colorScheme="green" onClick={() => handleUpdate(item.id)} aria-label="Save" />
-                        <IconButton icon={<CloseIcon />} size="sm" colorScheme="red" onClick={cancelEdit} aria-label="Cancel" />
-                      </>
-                    ) : (
-                      <>
-                        <IconButton icon={<EditIcon />} size="sm" colorScheme="yellow" onClick={() => startEdit(item)} aria-label="Edit" />
-                        <IconButton icon={<DeleteIcon />} size="sm" colorScheme="red" onClick={() => openDeleteDialog(item.id)} aria-label="Delete" />
-                      </>
-                    )}
-                  </HStack>
-                </Td>
-              </Tr>
-            ))}
-          </Tbody>
-        </Table>
-
-        {totalPages > 1 && (
-          <HStack justify="center" mt={4}>
-            <Button size="sm" onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))} isDisabled={currentPage === 1}>Previous</Button>
-            <Text>Page {currentPage} of {totalPages}</Text>
-            <Button size="sm" onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))} isDisabled={currentPage === totalPages}>Next</Button>
+          <HStack spacing={3}>
+            <Button
+              leftIcon={<Plus size={18} />}
+              colorScheme="orange"
+              onClick={onAddOpen}
+              size="lg"
+              borderRadius="xl"
+              boxShadow="lg"
+              _hover={{ transform: "translateY(-2px)", boxShadow: "xl" }}
+              transition="all 0.2s"
+            >
+              Add Housing Unit
+            </Button>
+            <IconButton
+              icon={<RefreshCw size={20} />}
+              onClick={loadHousing}
+              isLoading={isLoading}
+              variant="outline"
+              size="lg"
+              borderRadius="xl"
+              aria-label="Refresh Data"
+            />
           </HStack>
-        )}
-      </Stack>
+        </Flex>
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog isOpen={isOpen} leastDestructiveRef={cancelRef} onClose={onClose} isCentered>
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader>Delete Housing</AlertDialogHeader>
-            <AlertDialogBody>
-              Are you sure you want to delete this entry? This action cannot be undone.
+        {/* Stats Section */}
+        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6} mb={8}>
+          <MotionBox
+            whileHover={{ y: -4 }}
+            bg={cardBg}
+            p={5}
+            borderRadius="2xl"
+            boxShadow="sm"
+            border="1px solid"
+            borderColor={borderColor}
+          >
+            <HStack justify="space-between">
+              <VStack align="start" spacing={0}>
+                <Text fontSize="xs" fontWeight="black" color="gray.500" textTransform="uppercase" letterSpacing="widest">
+                  Total Units
+                </Text>
+                <Text fontSize="3xl" fontWeight="black" color="orange.500">
+                  {housingList.length}
+                </Text>
+              </VStack>
+              <Box p={3} bg="orange.50" borderRadius="xl">
+                <Icon as={Building2} boxSize={6} color="orange.500" />
+              </Box>
+            </HStack>
+            <Box mt={3} h="2px" bg="orange.400" borderRadius="full" />
+          </MotionBox>
+        </SimpleGrid>
+
+        {/* Search Panel */}
+        <Box bg={cardBg} p={6} borderRadius="2xl" shadow="sm" border="1px solid" borderColor={borderColor} mb={8}>
+          <InputGroup maxW="400px">
+            <InputLeftElement pointerEvents="none">
+              <Search size={18} color="gray" />
+            </InputLeftElement>
+            <Input
+              placeholder="Search by building, room, or desc..."
+              value={searchQuery}
+              onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
+              borderRadius="xl"
+              focusBorderColor="orange.400"
+            />
+          </InputGroup>
+        </Box>
+
+        {/* Table Section */}
+        <Box
+          bg={cardBg}
+          borderRadius="3xl"
+          shadow="2xl"
+          border="1px solid"
+          borderColor={borderColor}
+          overflow="hidden"
+        >
+          {isLoading ? (
+            <Center p={20} flexDir="column">
+              <Spinner size="xl" color="orange.500" thickness="4px" />
+              <Text mt={4} fontWeight="bold" color="gray.500">Indexing housing directory...</Text>
+            </Center>
+          ) : filteredData.length === 0 ? (
+            <Center p={20} flexDir="column">
+              <Icon as={AlertCircle} boxSize={12} color="gray.300" />
+              <Heading size="md" mt={4} color="gray.500">No housing units found</Heading>
+              <Text color="gray.400">Try adjusting your search query</Text>
+            </Center>
+          ) : (
+            <>
+              <Box overflowX="auto">
+                <Table variant="simple">
+                  <Thead bg="gray.50">
+                    <Tr>
+                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Building & Level</Th>
+                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Unit / Room</Th>
+                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Status / Description</Th>
+                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest" textAlign="right">Actions</Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    <AnimatePresence>
+                      {paginatedData.map((item) => (
+                        <MotionBox
+                          key={item.id}
+                          as="tr"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          _hover={{ bg: "orange.50/30" }}
+                        >
+                          <Td p={6}>
+                            <HStack spacing={4}>
+                              <Avatar size="sm" icon={<Building2 size={20} />} bg="orange.500" color="white" fontWeight="bold" />
+                              <VStack align="start" spacing={0}>
+                                <Text fontWeight="black" color="gray.800" fontSize="md">{item.building_name}</Text>
+                                <Text fontSize="xs" color="gray.500" fontWeight="bold">Floor: {item.floor}</Text>
+                              </VStack>
+                            </HStack>
+                          </Td>
+                          <Td p={6}>
+                            <Badge colorScheme="orange" variant="solid" px={3} py={1} borderRadius="lg" fontWeight="black">
+                              UNIT {item.room}
+                            </Badge>
+                          </Td>
+                          <Td p={6}>
+                            <HStack spacing={2}>
+                              <Icon as={Info} size={14} color="gray.400" />
+                              <Text color="gray.600" fontSize="sm" noOfLines={1}>{item.description || "No additional records"}</Text>
+                            </HStack>
+                          </Td>
+                          <Td p={6} textAlign="right">
+                            <HStack spacing={2} justify="flex-end">
+                              <Tooltip label="Edit Details" hasArrow>
+                                <IconButton
+                                  icon={<Edit2 size={16} />}
+                                  onClick={() => { setEditingItem(item); onAddOpen(); }}
+                                  variant="ghost"
+                                  colorScheme="orange"
+                                  borderRadius="full"
+                                  size="sm"
+                                  aria-label="Edit"
+                                />
+                              </Tooltip>
+                              <Tooltip label="Eject Record" hasArrow>
+                                <IconButton
+                                  icon={<Trash2 size={16} />}
+                                  onClick={() => setDeletingItem(item)}
+                                  variant="ghost"
+                                  colorScheme="red"
+                                  borderRadius="full"
+                                  size="sm"
+                                  aria-label="Delete"
+                                />
+                              </Tooltip>
+                            </HStack>
+                          </Td>
+                        </MotionBox>
+                      ))}
+                    </AnimatePresence>
+                  </Tbody>
+                </Table>
+              </Box>
+
+              {/* Pagination */}
+              <Flex direction="column" p={6} gap={4} align="center" bg="gray.50/50" borderTop="1px solid" borderColor={borderColor}>
+                <HStack spacing={2}>
+                  <IconButton
+                    icon={<ChevronLeft size={18} />}
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    isDisabled={page === 1}
+                    variant="outline"
+                    borderRadius="lg"
+                    size="sm"
+                  />
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                    .map((pageNum, idx, arr) => (
+                      <React.Fragment key={pageNum}>
+                        {idx > 0 && arr[idx - 1] !== pageNum - 1 && <Text color="gray.400">...</Text>}
+                        <Button
+                          size="sm"
+                          variant={page === pageNum ? "solid" : "outline"}
+                          colorScheme={page === pageNum ? "orange" : "gray"}
+                          onClick={() => setPage(pageNum)}
+                          borderRadius="lg"
+                        >
+                          {pageNum}
+                        </Button>
+                      </React.Fragment>
+                    ))
+                  }
+                  <IconButton
+                    icon={<ChevronRight size={18} />}
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    isDisabled={page === totalPages}
+                    variant="outline"
+                    borderRadius="lg"
+                    size="sm"
+                  />
+                </HStack>
+                <HStack spacing={3}>
+                  <Text fontSize="sm" fontWeight="bold" color="gray.500">
+                    Showing {(page - 1) * limit + 1} to {Math.min(page * limit, filteredData.length)} of {filteredData.length} records
+                  </Text>
+                  <Select
+                    size="sm"
+                    w="120px"
+                    borderRadius="lg"
+                    value={limit}
+                    onChange={e => { setLimit(Number(e.target.value)); setPage(1) }}
+                  >
+                    {[5, 10, 20, 50].map(val => <option key={val} value={val}>{val} per page</option>)}
+                  </Select>
+                </HStack>
+              </Flex>
+            </>
+          )}
+        </Box>
+      </Container>
+
+      {/* Add / Edit Modal */}
+      <Modal isOpen={isAddOpen} onClose={() => { onAddClose(); setEditingItem(null); setFormState({ building_name: "", floor: "", room: "", description: "" }); }} isCentered motionPreset="slideInBottom" size="xl">
+        <ModalOverlay backdropFilter="blur(4px)" />
+        <ModalContent borderRadius="2xl" boxShadow="2xl">
+          <ModalHeader fontWeight="black" fontSize="2xl">
+            {editingItem ? "Update Housing Parameters" : "Housing Unit Registration"}
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            <VStack spacing={5}>
+              <FormControl isRequired>
+                <FormLabel fontWeight="bold">Building Designation</FormLabel>
+                <Input
+                  placeholder="e.g. West Wing Residence"
+                  value={editingItem ? editingItem.building_name : formState.building_name}
+                  onChange={e => editingItem ? setEditingItem({ ...editingItem, building_name: e.target.value }) : setFormState({ ...formState, building_name: e.target.value })}
+                  borderRadius="xl" focusBorderColor="orange.400" size="lg"
+                />
+              </FormControl>
+              <SimpleGrid columns={2} spacing={4} w="100%">
+                <FormControl isRequired>
+                  <FormLabel fontWeight="bold">Floor Level</FormLabel>
+                  <Input
+                    placeholder="e.g. 4th Floor"
+                    value={editingItem ? editingItem.floor : formState.floor}
+                    onChange={e => editingItem ? setEditingItem({ ...editingItem, floor: e.target.value }) : setFormState({ ...formState, floor: e.target.value })}
+                    borderRadius="xl" focusBorderColor="orange.400" size="lg"
+                  />
+                </FormControl>
+                <FormControl isRequired>
+                  <FormLabel fontWeight="bold">Room / Unit Code</FormLabel>
+                  <Input
+                    placeholder="e.g. 402-A"
+                    value={editingItem ? editingItem.room : formState.room}
+                    onChange={e => editingItem ? setEditingItem({ ...editingItem, room: e.target.value }) : setFormState({ ...formState, room: e.target.value })}
+                    borderRadius="xl" focusBorderColor="orange.400" size="lg"
+                  />
+                </FormControl>
+              </SimpleGrid>
+              <FormControl>
+                <FormLabel fontWeight="bold">Operational Description</FormLabel>
+                <Input
+                  placeholder="Details about unit status or type..."
+                  value={editingItem ? editingItem.description || "" : formState.description}
+                  onChange={e => editingItem ? setEditingItem({ ...editingItem, description: e.target.value }) : setFormState({ ...formState, description: e.target.value })}
+                  borderRadius="xl" focusBorderColor="orange.400" size="lg"
+                />
+              </FormControl>
+            </VStack>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" mr={3} onClick={() => { onAddClose(); setEditingItem(null); }} borderRadius="xl">Cancel</Button>
+            <Button colorScheme="orange" onClick={handleSave} borderRadius="xl" px={8}>
+              {editingItem ? "Modify Allocation" : "Register Unit"}
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Delete Confirmation */}
+      <AlertDialog
+        isOpen={!!deletingItem}
+        leastDestructiveRef={cancelRef}
+        onClose={() => setDeletingItem(null)}
+        isCentered
+      >
+        <AlertDialogOverlay backdropFilter="blur(4px)">
+          <AlertDialogContent borderRadius="2xl" boxShadow="2xl">
+            <AlertDialogHeader fontSize="xl" fontWeight="black" color="red.500">
+              Revoke Housing Record
+            </AlertDialogHeader>
+            <AlertDialogBody fontWeight="medium">
+              Eject and delete record for <Text as="span" fontWeight="black">"{deletingItem?.building_name} Room {deletingItem?.room}"</Text>?
+              This action is permanent and clears all historical occupancy links.
             </AlertDialogBody>
             <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onClose}>Cancel</Button>
-              <Button colorScheme="red" onClick={confirmDelete} ml={3}>Delete</Button>
+              <Button ref={cancelRef} onClick={() => setDeletingItem(null)} borderRadius="xl" variant="ghost">
+                Abort
+              </Button>
+              <Button colorScheme="red" onClick={handleDelete} ml={3} borderRadius="xl" px={8}>
+                Commit Deletion
+              </Button>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialogOverlay>
