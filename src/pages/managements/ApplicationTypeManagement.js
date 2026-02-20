@@ -196,10 +196,10 @@ const ApplicationTypeManagement = () => {
             <HStack>
               <Icon as={AppWindow} boxSize={8} color="blue.500" />
               <Heading size="xl" bgGradient={headerGradient} bgClip="text" fontWeight="black" letterSpacing="tight">
-                Software Modules
+                Application Types
               </Heading>
             </HStack>
-            <Text color="gray.500" fontWeight="medium">Manage Categories and System Designations</Text>
+            <Text color="gray.500" fontWeight="medium">Manage Application Types</Text>
           </VStack>
 
           <HStack spacing={3}>

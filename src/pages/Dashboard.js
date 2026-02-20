@@ -8,6 +8,8 @@ import React, {
   Suspense,
   lazy,
 } from "react";
+// Import PersonnelPreview (moved to top)
+import PersonnelPreview from "./PersonnelPreview";
 import {
   Box,
   Badge,
@@ -92,7 +94,7 @@ const API_URL = process.env.REACT_APP_API_URL;
 const APPS_CACHE_KEY = "categorizedApps";
 const APPS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-export default function Dashboard() {
+export default function Dashboard({ isSidebarExpanded }) {
   const [appTypes, setAppTypes] = useState([]);
 
   const { hasPermission } = usePermissionContext();
@@ -110,7 +112,23 @@ export default function Dashboard() {
     localStorage.getItem("userFullName") || ""
   );
 
+
+
   const [currentDate, setCurrentDate] = useState(() => new Date());
+
+  const { isOpen: isPreviewOpen, onOpen: onPreviewOpen, onClose: onPreviewClose } = useDisclosure();
+  const [previewPersonnelId, setPreviewPersonnelId] = useState(null);
+
+  const handlePreviewPersonnel = useCallback((id) => {
+    setPreviewPersonnelId(id);
+    onPreviewOpen();
+  }, [onPreviewOpen]);
+
+  const handleClosePreview = useCallback(() => {
+    setPreviewPersonnelId(null);
+    onPreviewClose();
+  }, [onPreviewClose]);
+
   const [error, setError] = useState("");
   const [updatedApp, setUpdatedApp] = useState({
     name: "",
@@ -698,6 +716,7 @@ export default function Dashboard() {
                 app={app}
                 colors={colors}
                 handleAppClick={handleAppClick}
+                onPreview={handlePreviewPersonnel}
                 small
               />
             ))}
@@ -720,6 +739,7 @@ export default function Dashboard() {
                   app={app}
                   colors={colors}
                   handleAppClick={handleAppClick}
+                  onPreview={handlePreviewPersonnel}
                 />
               ))}
             </SimpleGrid>
@@ -771,6 +791,7 @@ export default function Dashboard() {
                                       app={app}
                                       colors={colors}
                                       handleAppClick={handleAppClick}
+                                      onPreview={handlePreviewPersonnel}
                                     />
                                   </Box>
                                 )}
@@ -1102,9 +1123,28 @@ export default function Dashboard() {
           </Modal>
         )
       }
-    </Box >
+
+      {/* Personnel Preview Modal */}
+      <Modal isOpen={isPreviewOpen} onClose={handleClosePreview} size="full" scrollBehavior="inside">
+        <ModalOverlay />
+        <ModalContent bg={useColorModeValue("gray.50", "gray.900")}>
+          <ModalHeader>
+            Personnel Details
+            <ModalCloseButton />
+          </ModalHeader>
+          <ModalBody p={0}>
+            {previewPersonnelId && <PersonnelPreview personnelId={previewPersonnelId} inModal={true} isSidebarOpen={isSidebarExpanded} />}
+          </ModalBody>
+          <ModalFooter>
+            <Button onClick={handleClosePreview} colorScheme="blue">Close</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </Box>
   );
 }
+
+
 
 // Memoized AppCard to avoid unnecessary re-renders
 const AppCard = React.memo(function AppCard({
@@ -1112,22 +1152,38 @@ const AppCard = React.memo(function AppCard({
   colors,
   handleAppClick,
   small,
+  onPreview, // Receive onPreview handler
 }) {
+  const navigate = useNavigate();
   const isFileData = app.generated_code && app.filename;
-  const isPhoneDirectory = app.name && app.extension;
+  // Use app.type if available, otherwise fallback to extension check
+  const isPhoneDirectory = app.type === "phone_directory" || (app.name && app.extension);
   const { hasPermission } = usePermissionContext();
 
+  // Check if it's a valid personnel record
+  const isPersonnel = !!app.personnel_id;
+
   const isClickable =
-    !isFileData || (hasPermission("atgfile.view") && !isPhoneDirectory);
+    isPersonnel ||
+    (!isFileData && !isPhoneDirectory) ||
+    (isFileData && hasPermission("atgfile.view") && !isPhoneDirectory);
 
   const handleClick = (e) => {
-
     if (!isClickable) return;
 
     e.preventDefault();
     if (handleAppClick) {
       handleAppClick(app);
     }
+
+    if (isPersonnel) {
+      // Call the onPreview handler instead of opening a new window
+      if (onPreview) {
+        onPreview(app.personnel_id);
+      }
+      return;
+    }
+
     const targetUrl = app.url;
     if (targetUrl) {
       window.open(targetUrl, "_blank");
@@ -1148,7 +1204,13 @@ const AppCard = React.memo(function AppCard({
       textAlign="center"
       width={small ? "120px" : "100%"}
       minHeight={small ? "80px" : "200px"}
-      cursor="default"
+      onClick={handleClick}
+      cursor={isClickable ? "pointer" : "default"}
+      _hover={
+        isClickable
+          ? { transform: "scale(1.03)", transition: "all 0.2s ease-in-out" }
+          : {}
+      }
     >
       {/* Avatar */}
       <Box>
@@ -1295,7 +1357,6 @@ const AppCard = React.memo(function AppCard({
     </VStack>
   );
 });
-
 
 // Memoized AppCard for performance
 const AppCard1 = React.memo(function AppCard({

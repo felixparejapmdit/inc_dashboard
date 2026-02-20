@@ -6,14 +6,14 @@ const verifyToken = require("../middlewares/authMiddleware");
 
 // GET the current Drag & Drop setting
 router.get(
-  "/api/settings/drag-drop",
+  "/settings/drag-drop",
   verifyToken,
   settingsController.getDragDropSetting
 );
 
 // PUT to update the setting
 router.put(
-  "/api/settings/drag-drop",
+  "/settings/drag-drop",
   verifyToken,
   settingsController.updateDragDropSetting
 );

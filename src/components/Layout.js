@@ -150,7 +150,12 @@ const Layout = ({ children, currentUser }) => {
           padding: "20px",
         }}
       >
-        {children}
+        {React.Children.map(children, (child) => {
+          if (React.isValidElement(child)) {
+            return React.cloneElement(child, { isSidebarExpanded });
+          }
+          return child;
+        })}
       </div>
 
       <AlertDialog

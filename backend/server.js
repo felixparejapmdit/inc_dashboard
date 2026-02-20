@@ -130,6 +130,8 @@ app.get("/api/test-upload", (req, res) => {
 
 // ✅ Register the route
 app.use("/api", uploadLocalRoute);
+app.use("/api", settingRoutes);
+
 app.use("/api", suguanRoutes);
 app.use(userRoutes);
 app.use(express.urlencoded({ extended: true }));
@@ -185,7 +187,7 @@ app.use(districtsRoutes);
 app.use(localCongregationRoutes);
 
 app.use(chatRoutes);
-app.use(settingRoutes);
+// app.use(settingRoutes);
 app.use("/api/schema", require("./routes/schemaRoutes")); // Register Schema Sync Routes
 app.use(authRoutes);
 app.use("/api/face-recognition", faceRecognitionRoutes);

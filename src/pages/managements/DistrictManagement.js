@@ -210,7 +210,7 @@ const DistrictManagement = () => {
                 Districts
               </Heading>
             </HStack>
-            <Text color="gray.500" fontWeight="medium">Manage regional and administrative districts</Text>
+            <Text color="gray.500" fontWeight="medium">Manage districts</Text>
           </VStack>
 
           <HStack spacing={3}>

@@ -17,8 +17,10 @@ const LOCAL_CONGREGATION_API_URL =
   process.env.REACT_APP_LOCAL_CONGREGATION_API_URL; // Local Congregation API URL
 const FAMILY_MEMBERS_API_URL = `${API_URL}/api/get-family-members`; // Family Members API URL
 
-const PersonnelPreview = () => {
-  const { personnelId } = useParams(); // Get personnel ID from URL
+const PersonnelPreview = ({ personnelId: propPersonnelId, inModal = false, isSidebarOpen = false }) => {
+  const { personnelId: paramsPersonnelId } = useParams(); // Get personnel ID from URL
+  const personnelId = propPersonnelId || paramsPersonnelId; // Prefer prop if provided
+
   const [personnel, setPersonnel] = useState(null); // Personnel data
   const [familyMembers, setFamilyMembers] = useState([]); // Family members array
   const [loading, setLoading] = useState(true); // Loading state
@@ -28,6 +30,11 @@ const PersonnelPreview = () => {
   const [personnelEducationalBackground, setPersonnelEducationalBackground] =
     useState(null); // Educational background storage
   const [personnelWorkExperience, setPersonnelWorkExperience] = useState(null); // Work experience storage
+
+  // Sidebar logic
+  // We rely on isSidebarOpen prop passed from Dashboard -> Layout
+
+  const containerPaddingLeft = (inModal && isSidebarOpen) ? "250px" : "0";
 
   const wholeBodyRef = useRef(null);
   const [hideSidebarOnPrint, setHideSidebarOnPrint] = useState(false);
@@ -396,7 +403,12 @@ const PersonnelPreview = () => {
 
   return (
     <div
-      style={{ display: "block", minHeight: "100vh" }}
+      style={{
+        display: "block",
+        minHeight: "100vh",
+        paddingLeft: containerPaddingLeft,
+        transition: "padding-left 0.3s ease"
+      }}
     >
       <div className="main-content-row" style={{ display: "flex", minHeight: "100vh" }}>
         {/* Passing the correct props to ProfileSidebar and PersonnelInfo */}

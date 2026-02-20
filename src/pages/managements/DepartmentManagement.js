@@ -213,7 +213,7 @@ const DepartmentManagement = () => {
                 Departments
               </Heading>
             </HStack>
-            <Text color="gray.500" fontWeight="medium">Manage organizational departments and structures</Text>
+            <Text color="gray.500" fontWeight="medium">Manage organizational departments</Text>
           </VStack>
 
           <HStack spacing={3}>

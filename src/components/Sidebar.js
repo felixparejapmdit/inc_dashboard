@@ -17,6 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogBody,
   AlertDialogFooter,
+  useBreakpointValue,
 } from "@chakra-ui/react";
 import {
   FiHome,
@@ -86,7 +87,8 @@ const getIconForLabel = (label) => {
 const Sidebar = ({ currentUser, onSidebarToggle }) => {
   const { hasPermission } = usePermissionContext(); // Correct usage
 
-  const [isExpanded, setIsExpanded] = useState(true);
+  const isMobile = useBreakpointValue({ base: true, md: false });
+  const [isExpanded, setIsExpanded] = useState(!isMobile);
   const [isSettingsExpanded, setIsSettingsExpanded] = useState(false); // State for expanding settings submenu
   const [isManagementsExpanded, setIsManagementsExpanded] = useState(false);
   const [isProgressStepsExpanded, setIsProgressStepsExpanded] = useState(false);
@@ -103,6 +105,19 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
   const location = useLocation();
   const showLdapUsers = false; // Set this to true if you want to show the item
   const roleTextColor = useColorModeValue("gray.500", "gray.300");
+
+  // Handle item click for mobile (auto-close)
+  const handleItemClick = (path, isExternal = false) => {
+    if (isExternal) {
+      window.open(path, "_blank");
+    } else {
+      navigate(path);
+    }
+    if (isMobile) {
+      setIsExpanded(false);
+      onSidebarToggle(false);
+    }
+  };
 
   // Fetch the logged-in user's name and gender from the backend
   useEffect(() => {
@@ -306,7 +321,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
         data-tour="sidebar-toggle"
         position="fixed"
         top="24px"
-        left={isExpanded ? "235px" : "16px"}
+        left={isExpanded && !isMobile ? "235px" : "16px"}
         transition="all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)"
         borderRadius="full"
         size="sm"
@@ -326,7 +341,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
           transform: "scale(0.95)"
         }}
         boxShadow="0 4px 12px rgba(0,0,0,0.15)"
-        zIndex={1500}
+        zIndex={2000}
         p={0}
         w="32px"
         h="32px"
@@ -340,13 +355,18 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
       <Flex
         direction="column"
         height="100vh"
-        position="sticky"
+        position={isMobile ? "fixed" : "sticky"}
         top="0"
+        left={isMobile && !isExpanded ? "-100%" : "0"}
+        right={isMobile ? "0" : "auto"}
+        bottom={isMobile ? "0" : "auto"}
         overflowY="auto"
-        width={isExpanded ? "250px" : "0px"}
-        transition="all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)"
-        boxShadow="4px 0 24px rgba(0,0,0,0.08)"
-        zIndex={100}
+        width={isMobile ? "100%" : (isExpanded ? "250px" : "0px")}
+        bg={isMobile ? "rgba(255, 255, 255, 0.95)" : "#FFD559"}
+        backdropFilter={isMobile ? "blur(12px)" : "none"}
+        transition="all 0.5s cubic-bezier(0.4, 0, 0.2, 1)"
+        boxShadow={isExpanded ? "4px 0 24px rgba(0,0,0,0.08)" : "none"}
+        zIndex={1900}
         p={isExpanded ? 4 : 0}
         overflowX="hidden"
         css={{
@@ -360,9 +380,9 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
           "::-webkit-scrollbar-track": {
             backgroundColor: "transparent",
           },
-          msOverflowStyle: "auto", // ✅ camelCase version of '-ms-overflow-style'
-          scrollbarWidth: "thin", // ✅ camelCase
-          scrollbarColor: "rgba(0, 0, 0, 0.1) transparent", // ✅ camelCase
+          msOverflowStyle: "auto",
+          scrollbarWidth: "thin",
+          scrollbarColor: "rgba(0, 0, 0, 0.1) transparent",
         }}
       >
         {/* Logo Box */}
@@ -389,7 +409,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
               icon={FiHome}
               label="Home"
               isExpanded={isExpanded}
-              onClick={() => navigate("/dashboard")}
+              onClick={() => handleItemClick("/dashboard")}
               isActive={location.pathname === "/dashboard"}
             />
           )}
@@ -400,7 +420,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
               icon={FiBarChart2}
               label="Statistics"
               isExpanded={isExpanded}
-              onClick={() => navigate("/personnel-statistics")}
+              onClick={() => handleItemClick("/personnel-statistics")}
               isActive={location.pathname === "/personnel-statistics"}
             />
           )}
@@ -411,7 +431,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
               icon={FiBarChart2}
               label="Inv Dashboard"
               isExpanded={isExpanded}
-              onClick={() => navigate("/inv-dashboard")}
+              onClick={() => handleItemClick("/inv-dashboard")}
               isActive={location.pathname === "/inv-dashboard"}
             />
           )}
@@ -422,7 +442,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
               icon={FiBarChart2}
               label="ATG Dashboard"
               isExpanded={isExpanded}
-              onClick={() => navigate("/atg-dashboard")}
+              onClick={() => handleItemClick("/atg-dashboard")}
               isActive={location.pathname === "/atg-dashboard"}
             />
           )}
@@ -433,7 +453,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
               icon={FiUser}
               label="Profile"
               isExpanded={isExpanded}
-              onClick={() => navigate("/profile")}
+              onClick={() => handleItemClick("/profile")}
               isActive={location.pathname === "/profile"}
             />
           )}
@@ -443,7 +463,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
               data-tour="schedule-button" // ✅ must match the tutorial step
               label="Share a link"
               isExpanded={isExpanded}
-              onClick={() => navigate("/managements/filemanagement")}
+              onClick={() => handleItemClick("/managements/filemanagement")}
               icon={FaShareAlt}
               isActive={location.pathname === "/managements/filemanagement"}
             />
@@ -468,7 +488,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiGrid}
                   label="Apps"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/application")} // Redirect to application.js
+                  onClick={() => handleItemClick("/application")} // Redirect to application.js
                   isActive={location.pathname === "/application"}
                 />
               )}
@@ -476,7 +496,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 <SidebarItem
                   label="Application Type"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/managements/applicationtype")}
+                  onClick={() => handleItemClick("/managements/applicationtype")}
                   useDynamicIcon
                   isActive={location.pathname === "/managements/applicationtype"}
                 />
@@ -486,7 +506,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiCalendar}
                   label="Categories"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/managements/categorymanagement")} // Redirect to categorymanagement.js
+                  onClick={() => handleItemClick("/managements/categorymanagement")} // Redirect to categorymanagement.js
                   isActive={location.pathname === "/managements/categorymanagement"}
                 />
               )}
@@ -495,7 +515,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiCalendar}
                   label="Drap & Drop"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/settings/drag-drop")} // Redirect to categorymanagement.js
+                  onClick={() => handleItemClick("/settings/drag-drop")} // Redirect to categorymanagement.js
                   isActive={location.pathname === "/settings/drag-drop"}
                 />
               )}
@@ -504,7 +524,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiCalendar}
                   label="Events"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/add-events")} // Redirect to Events.js
+                  onClick={() => handleItemClick("/add-events")} // Redirect to Events.js
                   isActive={location.pathname === "/add-events"}
                 />
               )}
@@ -512,7 +532,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 <SidebarItem
                   label="Event Locations"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/managements/locations")}
+                  onClick={() => handleItemClick("/managements/locations")}
                   useDynamicIcon
                   isActive={location.pathname === "/managements/locations"}
                 />
@@ -522,7 +542,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
               <SidebarItem
                 label="Share a link"
                 isExpanded={isExpanded}
-                onClick={() => navigate("/managements/filemanagement")}
+                onClick={() => handleItemClick("/managements/filemanagement")}
                 useDynamicIcon
               />
             )} */}
@@ -531,7 +551,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiCalendar}
                   label="Groups"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/managements/groupmanagement")} // Redirect to groupmanagement.js
+                  onClick={() => handleItemClick("/managements/groupmanagement")} // Redirect to groupmanagement.js
                   isActive={location.pathname === "/managements/groupmanagement"}
                 />
               )}
@@ -540,7 +560,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiCalendar}
                   label="Permissions"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/managements/permissionmanagement")} // Redirect to permissionmanagement.js
+                  onClick={() => handleItemClick("/managements/permissionmanagement")} // Redirect to permissionmanagement.js
                   isActive={location.pathname === "/managements/permissionmanagement"}
                 />
               )}
@@ -550,7 +570,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiUsers}
                   label="Personnel"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/user")} // Redirect to users.js
+                  onClick={() => handleItemClick("/user")} // Redirect to users.js
                   isActive={location.pathname === "/user"}
                 />
               )}
@@ -559,7 +579,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiUsers}
                   label="Deleted Users"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/tempdeleted-users")} // Redirect to users.js
+                  onClick={() => handleItemClick("/tempdeleted-users")} // Redirect to users.js
                   isActive={location.pathname === "/tempdeleted-users"}
                 />
               )}
@@ -568,7 +588,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiUsers}
                   label="Personnel History"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/personnel-history")}
+                  onClick={() => handleItemClick("/personnel-history")}
                   isActive={location.pathname === "/personnel-history"}
                 />
               )}
@@ -576,7 +596,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 <SidebarItem
                   label="Phone Locations"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/managements/phonelocations")}
+                  onClick={() => handleItemClick("/managements/phonelocations")}
                   useDynamicIcon
                   isActive={location.pathname === "/managements/phonelocations"}
                 />
@@ -586,7 +606,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiUsers}
                   label="Phone Directory"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/managements/phonedirectory")} // Redirect to users.js
+                  onClick={() => handleItemClick("/managements/phonedirectory")} // Redirect to users.js
                   isActive={location.pathname === "/managements/phonedirectory"}
                 />
               )}
@@ -595,7 +615,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 icon={FiUsers}
                 label="Login Reports"
                 isExpanded={isExpanded}
-                onClick={() => navigate("/managements/loginaudits")} // Redirect to users.js
+                onClick={() => handleItemClick("/managements/loginaudits")} // Redirect to users.js
                 isActive={location.pathname === "/managements/loginaudits"}
               />
 
@@ -604,7 +624,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiUser}
                   label="Reminder"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/reminders")} // Redirect to Reminders.js
+                  onClick={() => handleItemClick("/reminders")} // Redirect to Reminders.js
                   isActive={location.pathname === "/reminders"}
                 />
               )}
@@ -613,7 +633,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiUser}
                   label="Suguan"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/add-suguan")} // Redirect to Suguan.js
+                  onClick={() => handleItemClick("/add-suguan")} // Redirect to Suguan.js
                   isActive={location.pathname === "/add-suguan"}
                 />
               )}
@@ -622,7 +642,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiUsers}
                   label="LdapUsers" // Added LdapUsers page
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/ldap-users")}
+                  onClick={() => handleItemClick("/ldap-users")}
                   isActive={location.pathname === "/ldap-users"}
                 />
               )}
@@ -630,7 +650,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 icon={FiArrowRight} // Use appropriate icon
                 label="Schema Sync"
                 isExpanded={isExpanded}
-                onClick={() => navigate("/settings/schema-sync")}
+                onClick={() => handleItemClick("/settings/schema-sync")}
                 isActive={location.pathname === "/settings/schema-sync"}
               />
             </VStack>
@@ -655,7 +675,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiUsers}
                   label="Progress Tracker"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/progresstracking")} // Redirect to the main progress tracking page
+                  onClick={() => handleItemClick("/progresstracking")} // Redirect to the main progress tracking page
                   isActive={location.pathname === "/progresstracking"}
                 />
               )}
@@ -665,7 +685,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiUser}
                   label="Section Chief"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/progress/step1")} // Step 1: Section Chief
+                  onClick={() => handleItemClick("/progress/step1")} // Step 1: Section Chief
                   isActive={location.pathname === "/progress/step1"}
                 />
               )}
@@ -674,7 +694,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiBriefcase}
                   label="Admin Office"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/progress/step2")} // Step 2: Admin Office
+                  onClick={() => handleItemClick("/progress/step2")} // Step 2: Admin Office
                   isActive={location.pathname === "/progress/step2"}
                 />
               )}
@@ -683,7 +703,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiShield}
                   label="Security Overseer"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/progress/step3")} // Step 3: Security Overseer
+                  onClick={() => handleItemClick("/progress/step3")} // Step 3: Security Overseer
                   isActive={location.pathname === "/progress/step3"}
                 />
               )}
@@ -692,7 +712,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiCpu}
                   label="PMD IT"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/progress/step4")} // Step 4: PMD IT
+                  onClick={() => handleItemClick("/progress/step4")} // Step 4: PMD IT
                   isActive={location.pathname === "/progress/step4"}
                 />
               )}
@@ -701,7 +721,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiHome}
                   label="ATG Office 1"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/progress/step5")} // Step 5: Marco Cervantes
+                  onClick={() => handleItemClick("/progress/step5")} // Step 5: Marco Cervantes
                   isActive={location.pathname === "/progress/step5"}
                 />
               )}
@@ -710,7 +730,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiHome}
                   label="ATG Office 2"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/progress/step6")} // Step 6: Karl Dematera
+                  onClick={() => handleItemClick("/progress/step6")} // Step 6: Karl Dematera
                   isActive={location.pathname === "/progress/step6"}
                 />
               )}
@@ -719,7 +739,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiCheckCircle}
                   label="ATG Office Approval"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/progress/step7")} // Step 7: ATG Office
+                  onClick={() => handleItemClick("/progress/step7")} // Step 7: ATG Office
                   isActive={location.pathname === "/progress/step7"}
                 />
               )}
@@ -728,7 +748,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiUserCheck}
                   label="Personnel Office"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/progress/step8")} // Step 8: Personnel Office
+                  onClick={() => handleItemClick("/progress/step8")} // Step 8: Personnel Office
                   isActive={location.pathname === "/progress/step8"}
                 />
               )}
@@ -737,7 +757,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiUsers}
                   label="Users Progress"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/progress/users-progress")} // Users Progress
+                  onClick={() => handleItemClick("/progress/users-progress")} // Users Progress
                   isActive={location.pathname === "/progress/users-progress"}
                 />
               )}
@@ -762,7 +782,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 <SidebarItem
                   label="Citizenship"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/managements/citizenships")}
+                  onClick={() => handleItemClick("/managements/citizenships")}
                   useDynamicIcon
                   isActive={location.pathname === "/managements/citizenships"}
                 />
@@ -771,7 +791,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 <SidebarItem
                   label="Contact Info"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/managements/contact_infos")}
+                  onClick={() => handleItemClick("/managements/contact_infos")}
                   useDynamicIcon
                   isActive={location.pathname === "/managements/contact_infos"}
                 />
@@ -780,7 +800,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 <SidebarItem
                   label="Department"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/managements/departments")}
+                  onClick={() => handleItemClick("/managements/departments")}
                   useDynamicIcon // Use dynamic icon mapping
                   isActive={location.pathname === "/managements/departments"}
                 />
@@ -789,7 +809,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 <SidebarItem
                   label="Designation"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/managements/designations")}
+                  onClick={() => handleItemClick("/managements/designations")}
                   useDynamicIcon
                   isActive={location.pathname === "/managements/designations"}
                 />
@@ -798,7 +818,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 <SidebarItem
                   label="District"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/managements/districts")}
+                  onClick={() => handleItemClick("/managements/districts")}
                   useDynamicIcon
                   isActive={location.pathname === "/managements/districts"}
                 />
@@ -807,7 +827,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 <SidebarItem
                   label="Housing"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/managements/housingmanagement")}
+                  onClick={() => handleItemClick("/managements/housingmanagement")}
                   useDynamicIcon
                   isActive={location.pathname === "/managements/housingmanagement"}
                 />
@@ -816,7 +836,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 <SidebarItem
                   label="Issued ID"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/managements/government_issued_ids")}
+                  onClick={() => handleItemClick("/managements/government_issued_ids")}
                   useDynamicIcon
                   isActive={location.pathname === "/managements/government_issued_ids"}
                 />
@@ -825,7 +845,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 <SidebarItem
                   label="Language"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/managements/languages")}
+                  onClick={() => handleItemClick("/managements/languages")}
                   useDynamicIcon
                   isActive={location.pathname === "/managements/languages"}
                 />
@@ -835,7 +855,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 <SidebarItem
                   label="Nationality"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/managements/nationalities")}
+                  onClick={() => handleItemClick("/managements/nationalities")}
                   useDynamicIcon
                   isActive={location.pathname === "/managements/nationalities"}
                 />
@@ -844,7 +864,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 <SidebarItem
                   label="Section"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/managements/sections")}
+                  onClick={() => handleItemClick("/managements/sections")}
                   useDynamicIcon
                   isActive={location.pathname === "/managements/sections"}
                 />
@@ -853,7 +873,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 <SidebarItem
                   label="Subsection"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/managements/subsections")}
+                  onClick={() => handleItemClick("/managements/subsections")}
                   useDynamicIcon
                   isActive={location.pathname === "/managements/subsections"}
                 />
@@ -880,7 +900,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiCalendar}
                   label="Lokal Profile"
                   isExpanded={isExpanded}
-                  onClick={() => navigate("/lokalprofile")} // Redirect to lokalprofile.js
+                  onClick={() => handleItemClick("/lokalprofile")} // Redirect to lokalprofile.js
                   isActive={location.pathname === "/lokalprofile"}
                 />
               )}
@@ -894,7 +914,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiCalendar}
                   label="File Organizer"
                   isExpanded={isExpanded}
-                  onClick={() => window.open("/fileorganizer", "_blank")} // Open in new tab
+                  onClick={() => handleItemClick("/fileorganizer", true)} // Open in new tab
                 />
               )}
             </VStack>
@@ -1014,38 +1034,64 @@ const SidebarItem = ({
       mx="auto"
       mb={1}
       px={4}
-      height="50px"
+      height="48px"
       justifyContent="flex-start"
-      bg={isActive ? "whiteAlpha.900" : "transparent"}
-      color={isActive ? "black" : "#2D3748"} // gray.800
-      boxShadow={isActive ? "md" : "none"}
+      bg={isActive ? "rgba(255, 255, 255, 0.4)" : "transparent"}
+      color={isActive ? "orange.600" : "#2D3748"}
+      position="relative"
       _hover={{
-        bg: "whiteAlpha.600",
-        transform: "translateX(5px)",
-        boxShadow: "md",
-        color: "black"
+        bg: "rgba(255, 255, 255, 0.2)",
+        transform: "translateX(4px)",
       }}
       _active={{
-        bg: "whiteAlpha.900",
-        transform: "scale(0.98)"
+        transform: "scale(0.98)",
       }}
-      borderRadius="2xl"
-      transition="all 0.2s cubic-bezier(0.4, 0, 0.2, 1)"
+      borderRadius="xl"
+      transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
       leftIcon={
         isExpanded &&
-        IconComponent && <Icon as={IconComponent} boxSize={5} color={isActive ? "orange.500" : "#4A5568"} /> // gray.600
+        IconComponent && (
+          <Icon
+            as={IconComponent}
+            boxSize={5}
+            color={isActive ? "orange.600" : "#4A5568"}
+          />
+        )
       }
-      rightIcon={isExpanded && rightIcon && <Icon as={rightIcon} color={isActive ? "black" : "#4A5568"} />}
+      rightIcon={
+        isExpanded &&
+        rightIcon && (
+          <Icon as={rightIcon} color={isActive ? "orange.600" : "#4A5568"} />
+        )
+      }
       overflow="hidden"
       whiteSpace="nowrap"
       {...rest}
     >
+      {/* 3px Vertical Line for Active Link */}
+      {isActive && (
+        <Box
+          position="absolute"
+          left="0"
+          top="20%"
+          bottom="20%"
+          width="3px"
+          bg="orange.500"
+          borderRadius="full"
+        />
+      )}
+
       {isExpanded && (
-        <Text fontSize="md" fontWeight="600" letterSpacing="wide" ml={1}>
+        <Text
+          fontSize="0.95rem"
+          fontWeight={isActive ? "700" : "600"}
+          letterSpacing="wide"
+          ml={1}
+        >
           {label}
         </Text>
       )}
-    </Button >
+    </Button>
   );
 };
 
