@@ -2,7 +2,10 @@
 import axios from "axios";
 import { getAuthHeaders } from "./apiHeaders";
 
-const API_URL = process.env.REACT_APP_API_URL || "";
+let API_URL = process.env.REACT_APP_API_URL || "";
+if (typeof window !== "undefined" && window.location.protocol === "https:" && API_URL.startsWith("http://")) {
+  API_URL = API_URL.replace("http://", "https://");
+}
 
 // Global Axios Interceptor for 401 Unauthorized
 axios.interceptors.response.use(

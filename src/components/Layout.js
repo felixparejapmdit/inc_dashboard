@@ -94,6 +94,10 @@ const Layout = ({ children, currentUser }) => {
         // Only redirect if we have a definitive answer that the user is NOT logged in
         if (user && (user.isLoggedIn === false || user.isLoggedIn === 0)) {
           console.warn("User session invalid on server. Redirecting to login.");
+          localStorage.removeItem("authToken");
+          localStorage.removeItem("username");
+          localStorage.removeItem("groupId");
+          localStorage.removeItem("role");
           navigate("/login");
         }
       } catch (error) {

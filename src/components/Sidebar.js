@@ -88,7 +88,16 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
   const { hasPermission } = usePermissionContext(); // Correct usage
 
   const isMobile = useBreakpointValue({ base: true, md: false });
-  const [isExpanded, setIsExpanded] = useState(!isMobile);
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  // Ensure sidebar is expanded on desktop and collapsed on mobile when view changes
+  useEffect(() => {
+    if (isMobile !== undefined) {
+      const shouldExpand = !isMobile;
+      setIsExpanded(shouldExpand);
+      onSidebarToggle(shouldExpand);
+    }
+  }, [isMobile, onSidebarToggle]);
   const [isSettingsExpanded, setIsSettingsExpanded] = useState(false); // State for expanding settings submenu
   const [isManagementsExpanded, setIsManagementsExpanded] = useState(false);
   const [isProgressStepsExpanded, setIsProgressStepsExpanded] = useState(false);

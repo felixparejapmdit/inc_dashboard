@@ -379,7 +379,13 @@ const LokalProfile = () => {
         <Box h="150px" bg="gray.100" position="relative">
           {profile.imageUrl ? (
             <Image
-              src={profile.imageUrl?.startsWith('/') ? `${API_URL}${profile.imageUrl}` : profile.imageUrl}
+              src={
+                profile.imageUrl?.startsWith("http")
+                  ? profile.imageUrl
+                  : profile.imageUrl?.startsWith("/")
+                    ? `${API_URL}${profile.imageUrl}`
+                    : `${API_URL}/${profile.imageUrl}`
+              }
               alt={lokalName}
               w="100%"
               h="100%"
@@ -388,7 +394,13 @@ const LokalProfile = () => {
               _hover={{ transform: "scale(1.1)" }}
               cursor="zoom-in"
               onClick={() => {
-                setSelectedImage(profile.imageUrl?.startsWith('/') ? `${API_URL}${profile.imageUrl}` : profile.imageUrl);
+                setSelectedImage(
+                  profile.imageUrl?.startsWith("http")
+                    ? profile.imageUrl
+                    : profile.imageUrl?.startsWith("/")
+                      ? `${API_URL}${profile.imageUrl}`
+                      : `${API_URL}/${profile.imageUrl}`
+                );
                 onImageOpen();
               }}
             />
