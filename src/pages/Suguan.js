@@ -318,7 +318,7 @@ const Suguan = () => {
   }, [localCongregations, district_id]);
 
   const filteredPersonnels = useMemo(() => {
-    const allowedTypes = ["Minister", "Regular", "Ministerial Student"];
+    const allowedTypes = ["Minister", "Regular", "Ministerial Student", "Volunteer"];
     return personnels
       .filter(p => allowedTypes.includes(p.personnel_type))
       .sort((a, b) => {

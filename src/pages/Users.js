@@ -270,6 +270,7 @@ const Users = ({ personnelId }) => {
     "Lay Member": false,
     "Minister's Wife": false,
     "Ministerial Student": false,
+    Volunteer: false,
     district: "",
     local: "",
     section: "",
@@ -292,6 +293,7 @@ const Users = ({ personnelId }) => {
     "Lay Member": false,
     "Minister's Wife": false,
     "Ministerial Student": false,
+    Volunteer: false,
     district: "",
     local: "",
     section: "",
@@ -313,6 +315,7 @@ const Users = ({ personnelId }) => {
     "Lay Member": false,
     "Minister's Wife": false,
     "Ministerial Student": false,
+    Volunteer: false,
   });
 
   const handleAdvancedFilterChange = (key, value) => {
@@ -358,6 +361,7 @@ const Users = ({ personnelId }) => {
       "Lay Member": checked,
       "Minister's Wife": checked,
       "Ministerial Student": checked,
+      Volunteer: checked,
     };
 
     setCheckboxes(newCheckboxes);
@@ -381,6 +385,7 @@ const Users = ({ personnelId }) => {
       layMember: "Lay Member",
       ministersWife: "Minister's Wife",
       ministerialStudent: "Ministerial Student",
+      volunteer: "Volunteer",
     };
 
     const actualKey = mapKey[key];
@@ -417,6 +422,7 @@ const Users = ({ personnelId }) => {
       "Lay Member": false,
       "Minister's Wife": false,
       "Ministerial Student": false,
+      Volunteer: false,
       district: "",
       local: "",
       section: "",
@@ -439,6 +445,7 @@ const Users = ({ personnelId }) => {
       "Lay Member": false,
       "Minister's Wife": false,
       "Ministerial Student": false,
+      Volunteer: false,
     });
     setAllAdvanceSelected(false);
     onCloseAdvance();
@@ -465,6 +472,7 @@ const Users = ({ personnelId }) => {
         "Lay Member": false,
         "Minister's Wife": false,
         "Ministerial Student": false,
+        Volunteer: false,
         district: "",
         local: "",
         section: "",
@@ -626,6 +634,7 @@ const Users = ({ personnelId }) => {
       if (appliedFilters["Lay Member"]) selectedTypes.push("Lay Member");
       if (appliedFilters["Minister's Wife"]) selectedTypes.push("Minister's Wife");
       if (appliedFilters["Ministerial Student"]) selectedTypes.push("Ministerial Student");
+      if (appliedFilters.Volunteer) selectedTypes.push("Volunteer");
 
       const personnelTypeMatch =
         selectedTypes.length === 0 || selectedTypes.includes(user.personnel_type);
@@ -2608,6 +2617,7 @@ const Users = ({ personnelId }) => {
                   <Checkbox isChecked={checkboxes["Lay Member"]} onChange={(e) => handleCheckboxChange("layMember", e.target.checked)}>Lay Member</Checkbox>
                   <Checkbox isChecked={checkboxes["Minister's Wife"]} onChange={(e) => handleCheckboxChange("ministersWife", e.target.checked)}>Minister's Wife</Checkbox>
                   <Checkbox isChecked={checkboxes["Ministerial Student"]} onChange={(e) => handleCheckboxChange("ministerialStudent", e.target.checked)}>Ministerial Student</Checkbox>
+                  <Checkbox isChecked={checkboxes.Volunteer} onChange={(e) => handleCheckboxChange("volunteer", e.target.checked)}>Volunteer</Checkbox>
                 </SimpleGrid>
               </Box>
 

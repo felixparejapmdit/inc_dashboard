@@ -144,6 +144,20 @@ const DashboardModal = ({ isOpen, onClose, title, children, size = "4xl" }) => (
   </Modal>
 );
 
+const gampaninLookup = [
+  { value: "1", name: "Sugo" },
+  { value: "2", name: "Sugo 1" },
+  { value: "3", name: "Sugo 2" },
+  { value: "4", name: "Reserba" },
+  { value: "5", name: "Reserba 1" },
+  { value: "6", name: "Reserba 2" },
+  { value: "7", name: "Sugo SL" },
+  { value: "8", name: "Reserba SL" },
+  { value: "9", name: "Kasama sa Tribuna" },
+];
+
+const getGampaninName = (id) => gampaninLookup.find(g => String(g.value) === String(id))?.name || id;
+
 /* ---------- Main Component ---------- */
 
 export default function ATGDashboard() {
@@ -533,7 +547,7 @@ export default function ATGDashboard() {
                           <Td fontWeight="bold" color="blue.600">{s.time}</Td>
                           <Td fontWeight="600">{s.name}</Td>
                           <Td>{s.local_congregation}</Td>
-                          <Td><Badge colorScheme="blue" variant="subtle" px={2} borderRadius="md">{s.gampanin_id}</Badge></Td>
+                          <Td><Badge colorScheme="blue" variant="subtle" px={2} borderRadius="md">{getGampaninName(s.gampanin_id)}</Badge></Td>
                         </Tr>
                       ))
                     )}

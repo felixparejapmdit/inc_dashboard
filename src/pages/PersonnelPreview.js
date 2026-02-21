@@ -1,6 +1,6 @@
 import "pagedjs";
 import React, { useEffect, useState, useRef } from "react";
-import { useParams } from "react-router-dom"; // To access the URL parameter
+import { useParams, useOutletContext } from "react-router-dom"; // To access the URL parameter
 import axios from "axios"; // Axios for API calls
 import ProfileSidebar from "../components/ProfileSidebar"; // ✅ default import
 import PersonnelInfo from "../components/PersonnelInfo"; // ✅ default import
@@ -17,7 +17,10 @@ const LOCAL_CONGREGATION_API_URL =
   process.env.REACT_APP_LOCAL_CONGREGATION_API_URL; // Local Congregation API URL
 const FAMILY_MEMBERS_API_URL = `${API_URL}/api/get-family-members`; // Family Members API URL
 
-const PersonnelPreview = ({ personnelId: propPersonnelId, inModal = false, isSidebarOpen = false }) => {
+const PersonnelPreview = ({ personnelId: propPersonnelId, inModal = false, isSidebarOpen: propIsSidebarOpen = false }) => {
+  const context = useOutletContext();
+  const isSidebarOpen = propIsSidebarOpen || context?.isSidebarExpanded;
+
   const { personnelId: paramsPersonnelId } = useParams(); // Get personnel ID from URL
   const personnelId = propPersonnelId || paramsPersonnelId; // Prefer prop if provided
 

@@ -441,7 +441,8 @@ const Step2 = () => {
                     </Text>
                   </Box>
                   {personnelInfo?.personnel_type !== "Minister's Wife" &&
-                    personnelInfo?.personnel_type !== "Lay Member" && (
+                    personnelInfo?.personnel_type !== "Lay Member" &&
+                    personnelInfo?.personnel_type !== "Volunteer" && (
                       <Box
                         p={6}
                         bg="white"

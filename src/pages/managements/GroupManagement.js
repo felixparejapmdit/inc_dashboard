@@ -37,8 +37,12 @@ import {
   Spinner,
   Center,
   FormControl,
-  FormLabel
+  FormLabel,
+  Skeleton,
+  SkeletonCircle,
+  SkeletonText
 } from "@chakra-ui/react";
+
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Users,
@@ -68,6 +72,24 @@ import {
   deleteData,
 } from "../../utils/fetchData";
 import { usePermissionContext } from "../../contexts/PermissionContext";
+
+const TableSkeleton = () => (
+  <Tbody>
+    {[1, 2, 3, 5, 6].map((i) => (
+      <Tr key={i}>
+        <Td><Skeleton height="20px" /></Td>
+        <Td>
+          <HStack spacing={4}>
+            <SkeletonCircle size="10" />
+            <Skeleton height="20px" width="150px" />
+          </HStack>
+        </Td>
+        <Td><Skeleton height="20px" /></Td>
+        <Td><Skeleton height="32px" width="100px" margin="auto" /></Td>
+      </Tr>
+    ))}
+  </Tbody>
+);
 
 const MotionBox = motion.create(Box);
 
@@ -339,22 +361,19 @@ const GroupManagement = () => {
           borderColor={borderColor}
           overflow="hidden"
         >
-          {isLoading ? (
-            <Center p={20} flexDir="column">
-              <Spinner size="xl" color="cyan.500" thickness="4px" />
-              <Text mt={4} fontWeight="bold" color="gray.500">Loading Groups...</Text>
-            </Center>
-          ) : (
-            <Box overflowX="auto">
-              <Table variant="simple">
-                <Thead bg="gray.50">
-                  <Tr>
-                    <Th p={6} width="50px">#</Th>
-                    <Th p={6} minW="200px">Group Identity</Th>
-                    <Th p={6} display={{ base: "none", md: "table-cell" }}>Description</Th>
-                    <Th p={6} textAlign="center">Actions</Th>
-                  </Tr>
-                </Thead>
+          <Box overflowX="auto">
+            <Table variant="simple">
+              <Thead bg="gray.50">
+                <Tr>
+                  <Th p={6} width="50px">#</Th>
+                  <Th p={6} minW="200px">Group Identity</Th>
+                  <Th p={6} display={{ base: "none", md: "table-cell" }}>Description</Th>
+                  <Th p={6} textAlign="center">Actions</Th>
+                </Tr>
+              </Thead>
+              {isLoading ? (
+                <TableSkeleton />
+              ) : (
                 <Tbody>
                   {/* Add Group Row */}
                   {isAddingOrEditing === "add" && (
@@ -629,9 +648,9 @@ const GroupManagement = () => {
                     );
                   })}
                 </Tbody>
-              </Table>
-            </Box>
-          )}
+              )}
+            </Table>
+          </Box>
         </Box>
       </Container>
 

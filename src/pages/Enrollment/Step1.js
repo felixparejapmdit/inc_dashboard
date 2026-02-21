@@ -68,6 +68,7 @@ const Step1 = ({
     "Ministerial Student",
     "Minister's Wife",
     "Lay Member",
+    "Volunteer",
   ];
 
   const [filteredPersonnelTypes, setFilteredPersonnelTypes] =
@@ -78,7 +79,7 @@ const Step1 = ({
     let updatedTypes = [];
 
     if (personnelData.gender === "Female") {
-      updatedTypes = ["Minister's Wife", "Lay Member"];
+      updatedTypes = ["Minister's Wife", "Lay Member", "Volunteer"];
     } else if (personnelData.gender === "Male") {
       updatedTypes = totalPersonnelTypes.filter(
         (type) => type !== "Minister's Wife"

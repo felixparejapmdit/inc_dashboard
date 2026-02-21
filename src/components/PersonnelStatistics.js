@@ -56,6 +56,7 @@ const gradientMap = {
   "Minister's Wife": "linear(to-br, pink.400, pink.700)",
   "Ministerial Student": "linear(to-br, orange.400, red.600)",
   "Lay Member": "linear(to-br, cyan.400, teal.700)",
+  Volunteer: "linear(to-br, purple.400, purple.700)",
 };
 
 const PersonnelStatistics = () => {
@@ -66,6 +67,7 @@ const PersonnelStatistics = () => {
     "Minister's Wife": 0,
     "Ministerial Student": 0,
     "Lay Member": 0,
+    Volunteer: 0,
   });
 
   const [trackingStats, setTrackingStats] = useState({});
@@ -77,6 +79,7 @@ const PersonnelStatistics = () => {
     "Minister's Wife": [],
     "Ministerial Student": [],
     "Lay Member": [],
+    Volunteer: [],
   });
   const [totalProgress, setTotalProgress] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -101,6 +104,7 @@ const PersonnelStatistics = () => {
     "Minister's Wife": FaFemale,
     "Ministerial Student": FiUserX,
     "Lay Member": FiUserPlus,
+    Volunteer: FiUsers,
   };
 
   const trackingSteps = [
@@ -170,6 +174,7 @@ const PersonnelStatistics = () => {
           "Minister's Wife": 0,
           "Ministerial Student": 0,
           "Lay Member": 0,
+          Volunteer: 0,
         };
         const byType = {
           All: data,
@@ -178,6 +183,7 @@ const PersonnelStatistics = () => {
           "Minister's Wife": [],
           "Ministerial Student": [],
           "Lay Member": [],
+          Volunteer: [],
         };
 
         data.forEach((p) => {

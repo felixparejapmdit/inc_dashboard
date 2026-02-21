@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar"; // Import your Sidebar component
 import axios from "axios";
 import { usePermissionContext } from "../contexts/PermissionContext"; // Import Permission Context
@@ -154,12 +154,16 @@ const Layout = ({ children, currentUser }) => {
           padding: "20px",
         }}
       >
-        {React.Children.map(children, (child) => {
-          if (React.isValidElement(child)) {
-            return React.cloneElement(child, { isSidebarExpanded });
-          }
-          return child;
-        })}
+        {children ? (
+          React.Children.map(children, (child) => {
+            if (React.isValidElement(child)) {
+              return React.cloneElement(child, { isSidebarExpanded });
+            }
+            return child;
+          })
+        ) : (
+          <Outlet context={{ isSidebarExpanded }} />
+        )}
       </div>
 
       <AlertDialog

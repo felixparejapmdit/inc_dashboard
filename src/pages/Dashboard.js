@@ -77,7 +77,7 @@ import { useDisclosure } from "@chakra-ui/react";
 
 
 import { SearchIcon } from "@chakra-ui/icons";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { getAuthHeaders } from "../utils/apiHeaders";
 import { fetchData } from "../utils/fetchData";
@@ -94,7 +94,10 @@ const API_URL = process.env.REACT_APP_API_URL;
 const APPS_CACHE_KEY = "categorizedApps";
 const APPS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-export default function Dashboard({ isSidebarExpanded }) {
+export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) {
+  const { isSidebarExpanded: contextIsSidebarExpanded } = useOutletContext() || {};
+  const isSidebarExpanded = propIsSidebarExpanded ?? contextIsSidebarExpanded;
+
   const [appTypes, setAppTypes] = useState([]);
 
   const { hasPermission } = usePermissionContext();

@@ -350,7 +350,8 @@ const Step1 = () => {
 
               {/* Additional Fields Based on Personnel Type */}
               {personnelInfo.personnel_type !== "Minister's Wife" &&
-                personnelInfo.personnel_type !== "Lay Member" && (
+                personnelInfo.personnel_type !== "Lay Member" &&
+                personnelInfo.personnel_type !== "Volunteer" && (
                   <Box
                     p={6}
                     bg="white"

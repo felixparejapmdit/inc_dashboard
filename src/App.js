@@ -156,6 +156,11 @@ function MainApp() {
     //console.log("API URL: ", apiUrl);
   }, []);
 
+  const defaultUser = {
+    name: "John Doe",
+    avatarUrl: "/path/to/avatar.jpg",
+  };
+
   return (
     <>
       {showSearchBar && <GlobalSearchBar />}
@@ -164,7 +169,6 @@ function MainApp() {
           <Route path="*" element={<Maintenance />} />
         ) : (
           <>
-            {/* <Route path="/" element={<Dashboard />} /> */}
             <Route path="/maintenance" element={<Maintenance />} />
           </>
         )}
@@ -179,727 +183,114 @@ function MainApp() {
 
         {/* Redirect the root URL to /login */}
         <Route path="/" element={<Navigate to="/login" />} />
-        {/* Standalone Route for Enrollment Page */}
         <Route path="/enroll" element={<Enrollment />} />
-
         <Route path="/enrollment/:referenceNumber" element={<Enrollment />} />
-
-        {/* Define the login route */}
         <Route path="/login" element={<Login />} />
-        {/* Routes wrapped with the sidebar layout */}
-        <Route
-          path="/dashboard"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <Dashboard />
-            </Layout>
-          }
-        />
 
-        <Route
-          path="/personnel-statistics"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <PersonnelStatistics />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/inv-dashboard"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <InventoryDashboard />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/atg-dashboard"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <ATGDashboard />
-            </Layout>
-          }
-        />
-        <Route
-          path="/application"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <Applications />
-            </Layout>
-          }
-        />
-        <Route
-          path="/user"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <Users />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/tempdeleted-users"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <TemporarilyDeletedUsers />
-            </Layout>
-          }
-        />
+        {/* Standalone Route for Personnel Preview */}
         <Route
           path="/personnel-preview/:personnelId"
           element={<PersonnelPreview />}
         />
 
-        <Route
-          path="/personnel-history"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <PersonnelHistory />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/progresstracking"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <ProgressTracking />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/progress/step1"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <ProgressStep1 />
-            </Layout>
-          }
-        />
-
-        {/* <Route path="/progress/step1" element={<ProgressStep1 />} /> */}
-        <Route
-          path="/progress/step2"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <ProgressStep2 />
-            </Layout>
-          }
-        />
-        <Route
-          path="/progress/step3"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <ProgressStep3 />
-            </Layout>
-          }
-        />
-        <Route
-          path="/progress/step4"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <ProgressStep4 />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/progress/step5"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <ProgressStep5 />
-            </Layout>
-          }
-        />
-        <Route
-          path="/progress/step6"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <ProgressStep6 />
-            </Layout>
-          }
-        />
-        <Route
-          path="/progress/step7"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <ProgressStep7 />
-            </Layout>
-          }
-        />
-        <Route
-          path="/progress/step8"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <ProgressStep8 />
-            </Layout>
-          }
-        />
-        <Route
-          path="/progress/users-progress"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <UsersProgress />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/profile"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <Profile />
-            </Layout>
-          }
-        />
-        {/* New Routes for Add Apps, Add Suguan, Add Events, Add Reminders */}
-        <Route
-          path="/add-apps"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <Applications />
-            </Layout>
-          }
-        />
-        <Route
-          path="/add-suguan"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <Suguan />
-            </Layout>
-          }
-        />
-        <Route
-          path="/add-events"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <Events />
-            </Layout>
-          }
-        />
-        <Route
-          path="/reminders"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <Reminders />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/lokalprofile"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <LokalProfile />
-            </Layout>
-          }
-        />
+        {/* File Organizer Standalone Routes */}
         <Route path="/shelvespage" element={<ShelvesPage />} />
-
         <Route path="/file-organizer/shelves" element={<ShelvesPage />} />
-
         <Route path="/containers/:shelfId" element={<ContainersPage />} />
-
         <Route
           path="/file-organizer/shelves/:shelfId/containers"
           element={<ContainersPage />}
         />
-
         <Route
           path="/containers/:containerId/folders"
           element={<FoldersPage />}
         />
-
         <Route
           path="/shelves/:shelfId/containers/:containerId/folders/:folderId/documents"
           element={<DocumentsPage />}
         />
-
         <Route path="/file-organizer/search" element={<GlobalSearchPage />} />
-
         <Route path="/file-organizer/qrcode" element={<GenerateQRCode />} />
         <Route path="/file-organizer/scancode" element={<ScanningQrCode />} />
         <Route path="/file-organizer/tree" element={<GlobalTreePage />} />
 
-        <Route
-          path="/Mastodon"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <Mastodon />
-            </Layout>
-          }
-        />
-        {/* New Route for LdapUser */}
-        <Route
-          path="/ldap-users/"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <LdapUser />
-            </Layout>
-          }
-        />
-        {/* New Route for Department Management */}
-        <Route
-          path="/managements/departments"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <DepartmentManagement />
-            </Layout>
-          }
-        />
-        <Route
-          path="/managements/sections"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <SectionManagement />
-            </Layout>
-          }
-        />
-        <Route
-          path="/managements/subsections"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <SubsectionManagement />
-            </Layout>
-          }
-        />
-        <Route
-          path="/managements/designations"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <DesignationManagement />
-            </Layout>
-          }
-        />
-        <Route
-          path="/managements/districts"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <DistrictManagement />
-            </Layout>
-          }
-        />
-        <Route
-          path="/managements/citizenships"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <CitizenshipManagement />
-            </Layout>
-          }
-        />
-        <Route
-          path="/managements/nationalities"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <NationalityManagement />
-            </Layout>
-          }
-        />
-        <Route
-          path="/managements/languages"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <LanguagesManagement />
-            </Layout>
-          }
-        />
-        <Route
-          path="/managements/contact_infos"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <ContactTypeInfoManagement />
-            </Layout>
-          }
-        />
-        <Route
-          path="/managements/government_issued_ids"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <GovernmentIssuedIDManagement />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/managements/locations"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <LocationManagement />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/managements/phonelocations"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <PhoneLocationManagement />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/managements/applicationtype"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <ApplicationTypeManagement />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/managements/housingmanagement"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <HousingManagement />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/managements/filemanagement"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <FileManagement />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/managements/phonedirectory"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <PhoneDirectory />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/managements/loginaudits"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <LoginAudits />
-            </Layout>
-          }
-        />
-        <Route
-          path="/managements/attendancetracker"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <AttendanceTracker />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/managements/groupmanagement"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <GroupManagement />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/managements/permissionmanagement"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <PermissionManagement />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/managements/categorymanagement"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <PermissionCategoriesManagement />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/settings/drag-drop"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <DragDropSettings />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/settings/schema-sync"
-          element={
-            <Layout
-              currentUser={{
-                name: "John Doe",
-                avatarUrl: "/path/to/avatar.jpg",
-              }}
-            >
-              <SchemaSync />
-            </Layout>
-          }
-        />
-
         <Route path="/ollama-api" element={<OllamaAPI />} />
+
+        {/* --- ROUTES PROTECTED BY LAYOUT (SIDEBAR) --- */}
+        <Route element={<Layout currentUser={defaultUser} />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/personnel-statistics" element={<PersonnelStatistics />} />
+          <Route path="/inv-dashboard" element={<InventoryDashboard />} />
+          <Route path="/atg-dashboard" element={<ATGDashboard />} />
+          <Route path="/application" element={<Applications />} />
+          <Route path="/user" element={<Users />} />
+          <Route path="/tempdeleted-users" element={<TemporarilyDeletedUsers />} />
+          <Route path="/personnel-history" element={<PersonnelHistory />} />
+          <Route path="/progresstracking" element={<ProgressTracking />} />
+          <Route path="/progress/step1" element={<ProgressStep1 />} />
+          <Route path="/progress/step2" element={<ProgressStep2 />} />
+          <Route path="/progress/step3" element={<ProgressStep3 />} />
+          <Route path="/progress/step4" element={<ProgressStep4 />} />
+          <Route path="/progress/step5" element={<ProgressStep5 />} />
+          <Route path="/progress/step6" element={<ProgressStep6 />} />
+          <Route path="/progress/step7" element={<ProgressStep7 />} />
+          <Route path="/progress/step8" element={<ProgressStep8 />} />
+          <Route path="/progress/users-progress" element={<UsersProgress />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/add-apps" element={<Applications />} />
+          <Route path="/add-suguan" element={<Suguan />} />
+          <Route path="/add-events" element={<Events />} />
+          <Route path="/reminders" element={<Reminders />} />
+          <Route path="/lokalprofile" element={<LokalProfile />} />
+          <Route path="/Mastodon" element={<Mastodon />} />
+          <Route path="/ldap-users/" element={<LdapUser />} />
+
+          {/* Managements */}
+          <Route path="/managements/departments" element={<DepartmentManagement />} />
+          <Route path="/managements/sections" element={<SectionManagement />} />
+          <Route path="/managements/subsections" element={<SubsectionManagement />} />
+          <Route path="/managements/designations" element={<DesignationManagement />} />
+          <Route path="/managements/districts" element={<DistrictManagement />} />
+          <Route path="/managements/citizenships" element={<CitizenshipManagement />} />
+          <Route path="/managements/nationalities" element={<NationalityManagement />} />
+          <Route path="/managements/languages" element={<LanguagesManagement />} />
+          <Route path="/managements/contact_infos" element={<ContactTypeInfoManagement />} />
+          <Route path="/managements/government_issued_ids" element={<GovernmentIssuedIDManagement />} />
+          <Route path="/managements/locations" element={<LocationManagement />} />
+          <Route path="/managements/phonelocations" element={<PhoneLocationManagement />} />
+          <Route path="/managements/applicationtype" element={<ApplicationTypeManagement />} />
+          <Route path="/managements/housingmanagement" element={<HousingManagement />} />
+          <Route path="/managements/filemanagement" element={<FileManagement />} />
+          <Route path="/managements/phonedirectory" element={<PhoneDirectory />} />
+          <Route path="/managements/loginaudits" element={<LoginAudits />} />
+          <Route path="/managements/attendancetracker" element={<AttendanceTracker />} />
+          <Route path="/managements/groupmanagement" element={<GroupManagement />} />
+          <Route path="/managements/permissionmanagement" element={<PermissionManagement />} />
+          <Route path="/managements/categorymanagement" element={<PermissionCategoriesManagement />} />
+
+          {/* Settings */}
+          <Route path="/settings/drag-drop" element={<DragDropSettings />} />
+          <Route path="/settings/schema-sync" element={<SchemaSync />} />
+        </Route>
       </Routes>
 
       {/* Render Chatbot/Notifiers only if NOT on /login AND NOT on enrollment pages */}
-      {!(
-        location.pathname === "/login" ||
-        location.pathname.startsWith("/enroll") ||
-        location.pathname.match(/^\/step[1-7]$/) ||
-        location.pathname.startsWith("/progress/step")
-      ) && (
-          <div className="noPrint">
+      <div className="noPrint">
+        {/* Dashboard page: Show all notifiers */}
+        {location.pathname === "/dashboard" && (
+          <>
             <Notifications />
             <ReminderNotifier />
             <SuguanNotifier />
-            {/* <Chatbot /> */}
-          </div>
+          </>
         )}
+
+        {/* Reminders page: Only show the Reminder notifier */}
+        {location.pathname === "/reminders" && <ReminderNotifier />}
+
+        {/* Suguan page: Only show the Suguan notifier */}
+        {location.pathname === "/add-suguan" && <SuguanNotifier />}
+      </div>
     </>
   );
 }

@@ -19,8 +19,10 @@ import {
     useColorModeValue,
     Badge,
     Divider,
+    Button,
+    useToast,
 } from "@chakra-ui/react";
-import { FiBell } from "react-icons/fi";
+import { FiBell, FiCheckCircle } from "react-icons/fi";
 import { getAuthHeaders } from "../utils/apiHeaders";
 import moment from "moment";
 
@@ -30,6 +32,7 @@ const Notifications = () => {
     const location = useLocation();
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(false);
+    const toast = useToast();
 
     const notifHoverBg = useColorModeValue("gray.50", "whiteAlpha.100");
     const notifDescColor = useColorModeValue("gray.600", "gray.300");
@@ -130,6 +133,11 @@ const Notifications = () => {
             window.removeEventListener("sync-suguan", fetchNotifications);
         };
     }, []);
+
+    const handleCloseAll = () => {
+        setNotifications([]);
+        toast.closeAll();
+    };
 
     const getNotifIcon = (type) => {
         switch (type) {
@@ -248,8 +256,23 @@ const Notifications = () => {
                         <PopoverCloseButton />
                         <PopoverHeader borderBottom="1px solid" borderColor="gray.100" pt={4} px={5} pb={3}>
                             <HStack justify="space-between">
-                                <Heading size="sm" color="gray.700">Notifications</Heading>
-                                <Badge colorScheme="orange" variant="outline">{notifications.length}</Badge>
+                                <HStack spacing={2}>
+                                    <Heading size="sm" color="gray.700">Notifications</Heading>
+                                    <Badge colorScheme="orange" variant="outline">{notifications.length}</Badge>
+                                </HStack>
+                                {notifications.length > 0 && (
+                                    <Button
+                                        size="xs"
+                                        variant="ghost"
+                                        colorScheme="blue"
+                                        leftIcon={<FiCheckCircle />}
+                                        onClick={handleCloseAll}
+                                        fontSize="10px"
+                                        height="24px"
+                                    >
+                                        Close All
+                                    </Button>
+                                )}
                             </HStack>
                             <Text fontSize="xs" color="gray.500" mt={1}>
                                 Daily updates and tracking
