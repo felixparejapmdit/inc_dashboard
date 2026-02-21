@@ -288,13 +288,13 @@ const PermissionCategoriesManagement = () => {
           ) : (
             <>
               <Box overflowX="auto">
-                <Table variant="simple">
+                <Table variant="simple" style={{ tableLayout: "fixed" }}>
                   <Thead bg="gray.50">
                     <Tr>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Classification Label</Th>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Functional Context</Th>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">System Index</Th>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest" textAlign="right">Actions</Th>
+                      <Th p={6} width="35%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Classification Label</Th>
+                      <Th p={6} width="30%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Functional Context</Th>
+                      <Th p={6} width="20%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">System Index</Th>
+                      <Th p={6} width="15%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest" textAlign="right">Actions</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
@@ -310,13 +310,13 @@ const PermissionCategoriesManagement = () => {
                           _hover={{ bg: "green.50/30" }}
                         >
                           <Td p={6}>
-                            <HStack spacing={4}>
-                              <Avatar size="sm" icon={<ShieldCheck size={20} />} bg="green.500" color="white" fontWeight="bold" />
-                              <Text fontWeight="black" color="gray.800" fontSize="md">{item.name}</Text>
+                            <HStack spacing={4} overflow="hidden">
+                              <Avatar size="sm" icon={<ShieldCheck size={20} />} bg="green.500" color="white" fontWeight="bold" flexShrink={0} />
+                              <Text fontWeight="black" color="gray.800" fontSize="md" isTruncated>{item.name}</Text>
                             </HStack>
                           </Td>
                           <Td p={6}>
-                            <Text color="gray.500" fontSize="sm" fontStyle={!item.description ? "italic" : "normal"}>
+                            <Text color="gray.500" fontSize="sm" fontStyle={!item.description ? "italic" : "normal"} isTruncated>
                               {item.description || "No functional context provided"}
                             </Text>
                           </Td>

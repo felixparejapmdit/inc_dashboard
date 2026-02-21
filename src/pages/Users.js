@@ -1812,16 +1812,16 @@ const Users = ({ personnelId }) => {
                 </Text>
               </HStack>
               <Box width="100%" overflowX="auto">
-                <Table variant="simple" minWidth="1000px" size="md">
+                <Table variant="simple" minWidth="1000px" size="md" style={{ tableLayout: "fixed" }}>
                   <Thead bg="gray.50">
                     <Tr>
-                      <Th py={3} color="gray.600">#</Th>
+                      <Th py={3} width="50px" color="gray.600">#</Th>
                       {allKeys.map((key) => columnVisibility[key] && (
                         <Th key={`th-${key}`} py={3} color="gray.600">
                           {key.replace("personnel_", "").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
                         </Th>
                       ))}
-                      <Th py={3} color="gray.600">Action</Th>
+                      <Th py={3} width="180px" color="gray.600">Action</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
@@ -1868,7 +1868,7 @@ const Users = ({ personnelId }) => {
                                     />
                                   </Tooltip>
                                 ) : (
-                                  <Text fontSize="sm" color="gray.700">
+                                  <Text fontSize="sm" color="gray.700" isTruncated>
                                     {item[key] !== null && item[key] !== undefined ? String(item[key]) : ""}
                                   </Text>
                                 )}
@@ -1925,15 +1925,15 @@ const Users = ({ personnelId }) => {
                 </Text>
               </HStack>
               <Box width="100%" overflowX="auto">
-                <Table variant="simple" minWidth="1000px" size="md">
+                <Table variant="simple" minWidth="1000px" size="md" style={{ tableLayout: "fixed" }}>
                   <Thead bg="gray.50">
                     <Tr>
-                      <Th py={3} color="gray.600">#</Th>
-                      <Th py={3} color="gray.600">Username/UID</Th>
-                      <Th py={3} color="gray.600">Full Name (from LDAP)</Th>
-                      <Th py={3} color="gray.600">Group Name</Th>
-                      <Th py={3} color="gray.600">Password</Th>
-                      <Th py={3} color="gray.600">Action</Th>
+                      <Th py={3} width="50px" color="gray.600">#</Th>
+                      <Th py={3} width="15%" color="gray.600">Username/UID</Th>
+                      <Th py={3} width="35%" color="gray.600">Full Name (from LDAP)</Th>
+                      <Th py={3} width="15%" color="gray.600">Group Name</Th>
+                      <Th py={3} width="15%" color="gray.600">Password</Th>
+                      <Th py={3} width="15%" color="gray.600">Action</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
@@ -1964,7 +1964,7 @@ const Users = ({ personnelId }) => {
                           <Td>
                             <Badge colorScheme="orange" variant="outline">{item.username}</Badge>
                           </Td>
-                          <Td fontWeight="medium" color="gray.700">
+                          <Td fontWeight="medium" color="gray.700" isTruncated>
                             {`${item.givenName || ""} ${item.sn || ""}`.trim() || item.username}
                           </Td>
                           <Td>
@@ -2091,13 +2091,13 @@ const Users = ({ personnelId }) => {
             </Flex>
 
             <Box overflowX="auto" borderRadius="lg" border="1px solid" borderColor="gray.100">
-              <Table variant="simple" size="md">
+              <Table variant="simple" size="md" style={{ tableLayout: "fixed" }}>
                 <Thead bg="gray.50">
                   <Tr>
-                    <Th py={4} color="gray.600">#</Th>
-                    <Th py={4} color="gray.600">Personnel Details</Th>
-                    <Th py={4} color="gray.600">Section</Th>
-                    <Th py={4} color="gray.600">Action</Th>
+                    <Th py={4} width="80px" color="gray.600">#</Th>
+                    <Th py={4} width="45%" color="gray.600">Personnel Details</Th>
+                    <Th py={4} width="30%" color="gray.600">Section</Th>
+                    <Th py={4} width="200px" color="gray.600">Action</Th>
                   </Tr>
                 </Thead>
                 <Tbody>
@@ -2157,7 +2157,7 @@ const Users = ({ personnelId }) => {
                               </Box>
                             </HStack>
                           </Td>
-                          <Td color="gray.600">{personnel.section || "N/A"}</Td>
+                          <Td color="gray.600" isTruncated>{personnel.section || "N/A"}</Td>
                           {/* Actions will continue below... */}
                           <Td>
                             <HStack spacing={2}>

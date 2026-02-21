@@ -294,7 +294,7 @@ const PhoneDirectory = () => {
                 Phone Directory
               </Heading>
             </HStack>
-            <Text color="gray.500" fontWeight="medium">Corporate communication directory and DECT assignments</Text>
+            <Text color="gray.500" fontWeight="medium">Manage list of phone directory and DECT assignments</Text>
           </VStack>
 
           <HStack spacing={3}>
@@ -414,14 +414,14 @@ const PhoneDirectory = () => {
           ) : (
             <>
               <Box overflowX="auto">
-                <Table variant="simple">
+                <Table variant="simple" style={{ tableLayout: "fixed" }}>
                   <Thead bg="gray.50">
                     <Tr>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Name</Th>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Location</Th>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Communication</Th>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Status</Th>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest" textAlign="right">Actions</Th>
+                      <Th p={6} width="30%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Name</Th>
+                      <Th p={6} width="20%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Location</Th>
+                      <Th p={6} width="25%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Communication</Th>
+                      <Th p={6} width="15%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Status</Th>
+                      <Th p={6} width="10%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest" textAlign="right">Actions</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
@@ -436,19 +436,19 @@ const PhoneDirectory = () => {
                           transition={{ duration: 0.2 }}
                           _hover={{ bg: "blue.50/30" }}
                         >
-                          <Td p={6}>
-                            <HStack spacing={4}>
+                          <Td p={6} overflow="hidden">
+                            <HStack spacing={4} overflow="hidden">
                               <Avatar size="sm" name={item.name} bg="blue.500" color="white" fontWeight="bold" />
-                              <VStack align="start" spacing={0}>
-                                <Text fontWeight="black" color="gray.800" fontSize="md">{item.name}</Text>
-                                <Text fontSize="xs" color="gray.400" fontWeight="bold">{item.phone_name}</Text>
+                              <VStack align="start" spacing={0} overflow="hidden">
+                                <Text fontWeight="black" color="gray.800" fontSize="md" isTruncated width="100%">{item.name}</Text>
+                                <Text fontSize="xs" color="gray.400" fontWeight="bold" isTruncated width="100%">{item.phone_name}</Text>
                               </VStack>
                             </HStack>
                           </Td>
-                          <Td p={6}>
-                            <HStack spacing={2}>
-                              <Icon as={MapPin} size={14} color="gray.400" />
-                              <Text fontWeight="medium" color="gray.600">{item.location}</Text>
+                          <Td p={6} overflow="hidden">
+                            <HStack spacing={2} overflow="hidden">
+                              <Icon as={MapPin} size={14} color="gray.400" flexShrink={0} />
+                              <Text fontWeight="medium" color="gray.600" isTruncated>{item.location}</Text>
                             </HStack>
                           </Td>
                           <Td p={6}>

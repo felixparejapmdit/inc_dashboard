@@ -289,13 +289,13 @@ const CitizenshipManagement = () => {
           ) : (
             <>
               <Box overflowX="auto">
-                <Table variant="simple">
+                <Table variant="simple" style={{ tableLayout: "fixed" }}>
                   <Thead bg="gray.50">
                     <Tr>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">#</Th>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Country</Th>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Nationality</Th>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest" textAlign="right">Actions</Th>
+                      <Th p={6} width="10%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">#</Th>
+                      <Th p={6} width="45%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Country</Th>
+                      <Th p={6} width="30%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Nationality</Th>
+                      <Th p={6} width="15%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest" textAlign="right">Actions</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
@@ -312,9 +312,9 @@ const CitizenshipManagement = () => {
                         >
                           <Td p={6} fontWeight="bold" color="gray.400">{(page - 1) * limit + idx + 1}</Td>
                           <Td p={6}>
-                            <HStack spacing={4}>
-                              <Avatar size="sm" name={item.country_name} bg="purple.500" color="white" fontWeight="bold" />
-                              <Text fontWeight="black" color="gray.800" fontSize="md">{item.country_name}</Text>
+                            <HStack spacing={4} overflow="hidden">
+                              <Avatar size="sm" name={item.country_name} bg="purple.500" color="white" fontWeight="bold" flexShrink={0} />
+                              <Text fontWeight="black" color="gray.800" fontSize="md" isTruncated w="full">{item.country_name}</Text>
                             </HStack>
                           </Td>
                           <Td p={6}>

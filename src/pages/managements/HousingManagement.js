@@ -293,13 +293,13 @@ const HousingManagement = () => {
           ) : (
             <>
               <Box overflowX="auto">
-                <Table variant="simple">
+                <Table variant="simple" style={{ tableLayout: "fixed" }}>
                   <Thead bg="gray.50">
                     <Tr>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Building & Level</Th>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Unit / Room</Th>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Status / Description</Th>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest" textAlign="right">Actions</Th>
+                      <Th p={6} width="35%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Building & Level</Th>
+                      <Th p={6} width="20%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Unit / Room</Th>
+                      <Th p={6} width="30%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Status / Description</Th>
+                      <Th p={6} width="15%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest" textAlign="right">Actions</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
@@ -317,9 +317,9 @@ const HousingManagement = () => {
                           <Td p={6}>
                             <HStack spacing={4}>
                               <Avatar size="sm" icon={<Building2 size={20} />} bg="orange.500" color="white" fontWeight="bold" />
-                              <VStack align="start" spacing={0}>
-                                <Text fontWeight="black" color="gray.800" fontSize="md">{item.building_name}</Text>
-                                <Text fontSize="xs" color="gray.500" fontWeight="bold">Floor: {item.floor}</Text>
+                              <VStack align="start" spacing={0} overflow="hidden">
+                                <Text fontWeight="black" color="gray.800" fontSize="md" isTruncated w="full">{item.building_name}</Text>
+                                <Text fontSize="xs" color="gray.500" fontWeight="bold" isTruncated w="full">Floor: {item.floor}</Text>
                               </VStack>
                             </HStack>
                           </Td>
@@ -329,9 +329,9 @@ const HousingManagement = () => {
                             </Badge>
                           </Td>
                           <Td p={6}>
-                            <HStack spacing={2}>
-                              <Icon as={Info} size={14} color="gray.400" />
-                              <Text color="gray.600" fontSize="sm" noOfLines={1}>{item.description || "No additional records"}</Text>
+                            <HStack spacing={2} overflow="hidden">
+                              <Icon as={Info} size={14} color="gray.400" flexShrink={0} />
+                              <Text color="gray.600" fontSize="sm" noOfLines={1} isTruncated w="full">{item.description || "No additional records"}</Text>
                             </HStack>
                           </Td>
                           <Td p={6} textAlign="right">

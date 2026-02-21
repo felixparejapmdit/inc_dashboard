@@ -21,6 +21,12 @@ import {
   Badge,
   SimpleGrid,
   Stack,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
 } from "@chakra-ui/react";
 import axios from "axios";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -56,8 +62,9 @@ const EnrollmentForm = ({ referenceNumber }) => {
   const [isCongratulatoryModalOpen, setIsCongratulatoryModalOpen] =
     useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [searchParams] = useSearchParams();
+  const searchParams = useSearchParams()[0];
   const personnelId = searchParams.get("personnel_id");
+  const familyFetchedRef = React.useRef(false);
   const stepParam = searchParams.get("step");
   const typeParam = searchParams.get("type");
   const [progress, setProgress] = useState(0); // Update this based on API response
@@ -96,6 +103,91 @@ const EnrollmentForm = ({ referenceNumber }) => {
   //const personnelId = searchParams.get("personnel_id");
   const [isEditing, setIsEditing] = useState(!personnelId); // Enabled if personnel_id exists
   const [dutiesToDelete, setDutiesToDelete] = useState([]);
+
+  // Unsaved changes alert state
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [pendingStep, setPendingStep] = useState(null);
+  const cancelRef = React.useRef();
+
+  const isMemberModified = (member) => {
+    if (!member) return false;
+    // Fields that don't count as user modifications
+    const staticFields = [
+      "relationship_type",
+      "gender",
+      "isEditing",
+      "id",
+      "personnel_id",
+      "surname_maiden_disabled",
+      "surname_husband_disabled",
+      "surname_maiden_label",
+      "surname_maiden_placeholder",
+      "surname_husband_label",
+      "surname_husband_placeholder"
+    ];
+    return Object.keys(member).some((key) => {
+      if (staticFields.includes(key)) return false;
+      const val = member[key];
+      if (Array.isArray(val)) return val.length > 0;
+      // Consider it modified if it's not empty/null/false
+      return val !== "" && val !== null && val !== undefined && val !== false;
+    });
+  };
+
+  const hasUnsavedChanges = () => {
+    switch (step) {
+      case 1:
+        return isEditing;
+      case 2:
+        return (
+          contacts.some((c) => c.isEditing && isMemberModified(c)) ||
+          addresses.some((a) => a.isEditing && isMemberModified(a)) ||
+          govIDs.some((g) => g.isEditing && isMemberModified(g))
+        );
+      case 3:
+        return (
+          education.some((e) => e.isEditing && isMemberModified(e)) ||
+          workExperience.some((w) => w.isEditing && isMemberModified(w))
+        );
+      case 4:
+        return family.parents.some((p) => p.isEditing && isMemberModified(p));
+      case 5:
+        return family.siblings.some((s) => s.isEditing && isMemberModified(s));
+      case 6:
+        return family.spouses.some((s) => s.isEditing && isMemberModified(s));
+      case 7:
+        return family.children.some((c) => c.isEditing && isMemberModified(c));
+      default:
+        return false;
+    }
+  };
+
+  const handleStepClick = (selectedStep) => {
+    if (hasUnsavedChanges()) {
+      setPendingStep(selectedStep);
+      setIsAlertOpen(true);
+    } else {
+      navigateToStep(selectedStep);
+    }
+  };
+
+  const navigateToStep = (selectedStep) => {
+    const newUrl = `/enroll?personnel_id=${personnelId}&step=${selectedStep}${typeParam === "evaluation"
+      ? "&type=evaluation"
+      : typeParam === "editpersonnel"
+        ? "&type=editpersonnel"
+        : typeParam === "editprofile"
+          ? "&type=editprofile"
+          : typeParam === "track"
+            ? "&type=track"
+            : typeParam === "new"
+              ? "&type=new"
+              : ""
+      }`;
+
+    navigate(newUrl);
+    setStep(selectedStep);
+  };
 
 
 
@@ -158,6 +250,50 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
     fetchPersonnelDetails();
   }, []);
+
+  const handleDeletePersonnel = async () => {
+    if (!personnelId || personnelId === "null") {
+      toast({
+        title: "Error",
+        description: "No personnel record to delete.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this personnel record? This action cannot be undone."
+    );
+    if (!confirmed) return;
+
+    try {
+      setIsLoading(true);
+      await deleteData("personnels", personnelId);
+      toast({
+        title: "Personnel Deleted",
+        description: "The personnel record has been successfully deleted.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom-left",
+      });
+      navigate("/personnels");
+    } catch (error) {
+      console.error("Error deleting personnel:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete personnel record.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom-left",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Put fetchChurchDuties outside useEffect so you can call it manually
   const fetchChurchDuties = () => {
@@ -640,11 +776,13 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
   const handleBackHome = () => {
     console.log("🏠 handleBackHome called, typeParam:", typeParam);
+
+    if (hasUnsavedChanges()) {
+      setIsAlertOpen(true);
+      return;
+    }
+
     if (typeParam === "track" || typeParam === "new") {
-      const confirmExit = window.confirm(
-        "Are you sure you want to exit? Please make sure all necessary data is saved."
-      );
-      if (!confirmExit) return;
       navigate("/login");
     } else if (typeParam === "editpersonnel") {
       navigate("/profile");
@@ -1005,17 +1143,9 @@ const EnrollmentForm = ({ referenceNumber }) => {
   const handleNext = async () => {
     setIsLoading(true);
     try {
-      // ✅ Prevent proceeding if editing is enabled
-      if (isEditing) {
-        toast({
-          title: "Save Required",
-          description:
-            "Please save your changes before proceeding to the next step.",
-          status: "warning",
-          duration: 3000,
-          isClosable: true,
-          position: "bottom-left",
-        });
+      // ✅ Prevent proceeding if any changes are unsaved
+      if (hasUnsavedChanges()) {
+        setIsAlertOpen(true);
         setIsLoading(false);
         return;
       }
@@ -1326,7 +1456,8 @@ const EnrollmentForm = ({ referenceNumber }) => {
           }
 
           // Adjust date formats
-          setPersonnelData({
+          setPersonnelData((prev) => ({
+            ...prev,
             ...personnel,
             panunumpa_date: personnel.panunumpa_date
               ? new Date(personnel.panunumpa_date).toISOString().split("T")[0]
@@ -1337,7 +1468,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
             datejoined: personnel.datejoined
               ? new Date(personnel.datejoined).toISOString().split("T")[0]
               : "",
-          });
+          }));
 
           // Set step based on enrollment_progress
           if (!stepParam) {
@@ -1360,40 +1491,56 @@ const EnrollmentForm = ({ referenceNumber }) => {
         personnelId
       );
 
-      // ✅ 2. Fetch family members
-      await fetchData(
-        "get-family-members",
-        (members) => {
-          const organizedFamily = {
-            parents: members.filter(
-              (m) =>
-                m.relationship_type === "Father" ||
-                m.relationship_type === "Mother"
-            ),
-            siblings: members.filter((m) => m.relationship_type === "Sibling"),
-            spouses: members.filter((m) => m.relationship_type === "Spouse"),
-            children: members.filter((m) => m.relationship_type === "Child"),
-          };
-          setFamily(organizedFamily);
-        },
-        (errorMsg) => {
-          toast({
-            title: "Error",
-            description: errorMsg || "Failed to retrieve family members.",
-            status: "error",
-            duration: 3000,
-            isClosable: true,
-            position: "bottom-left",
-          });
-          navigate("/");
-        },
-        "Failed to fetch family members",
-        { personnel_id: personnelId }
-      );
+      // ✅ 2. Fetch family members - ONLY if not already loaded to prevent clearing input fields
+      if (!familyFetchedRef.current) {
+        await fetchData(
+          "get-family-members",
+          (members) => {
+            familyFetchedRef.current = true; // Mark as fetched
+            if (members && Array.isArray(members) && members.length > 0) {
+              // Normalize keys for consistency (handling potential givenName/LastName etc)
+              const normalizedMembers = members.map(m => ({
+                ...m,
+                givenname: m.givenname || m.givenName || "",
+                lastname: m.lastname || m.lastName || m.last_name || "",
+                middlename: m.middlename || m.middleName || "",
+              }));
+
+              const organizedFamily = {
+                parents: [
+                  normalizedMembers.find((m) => m.relationship_type === "Father") || {
+                    ...initialFamilyMember,
+                    relationship_type: "Father",
+                    gender: "Male",
+                  },
+                  normalizedMembers.find((m) => m.relationship_type === "Mother") || {
+                    ...initialFamilyMember,
+                    relationship_type: "Mother",
+                    gender: "Female",
+                  },
+                ],
+                siblings: normalizedMembers.filter(
+                  (m) => m.relationship_type === "Sibling"
+                ),
+                spouses: normalizedMembers.filter((m) => m.relationship_type === "Spouse"),
+                children: normalizedMembers.filter((m) => m.relationship_type === "Child"),
+              };
+              setFamily(organizedFamily);
+            }
+          },
+          (errorMsg) => {
+            console.error("Family fetch error:", errorMsg);
+            // Even if it fails, we mark it as "attempted" so we don't keep clearing user's manually added items
+            familyFetchedRef.current = true;
+          },
+          "Failed to fetch family members",
+          { personnel_id: personnelId }
+        );
+      }
     };
 
     fetchEnrollmentData();
-  }, [personnelId, navigate, toast, stepParam]);
+  }, [personnelId, navigate, toast]);
 
   return (
     <VStack
@@ -1594,21 +1741,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
                               return;
                             }
 
-                            const newUrl = `/enroll?personnel_id=${personnelId}&step=${selectedStep}${typeParam === "evaluation"
-                              ? "&type=evaluation"
-                              : typeParam === "editpersonnel"
-                                ? "&type=editpersonnel"
-                                : typeParam === "editprofile"
-                                  ? "&type=editprofile"
-                                  : typeParam === "track"
-                                    ? "&type=track"
-                                    : typeParam === "new"
-                                      ? "&type=new"
-                                      : ""
-                              }`;
-
-                            navigate(newUrl);
-                            setStep(selectedStep);
+                            handleStepClick(selectedStep);
                           }}
                           position="relative"
                           zIndex="100"
@@ -1886,7 +2019,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
           civilStatusOptions={civilStatusOptions}
           bloodtypes={bloodtypes}
           isEditing={isEditing} // ✅ Pass isEditing as a prop
-          toggleEdit={toggleEdit} // ✅ Pass toggleEdit function
+          toggleEdit={() => setIsEditing(!isEditing)} // Pass down toggle handler
           dutiesToDelete={dutiesToDelete} // 🔥 ADD THIS
           setDutiesToDelete={setDutiesToDelete} // 🔥 ADD THIS
           formErrors={formErrors} // ✅ Pass formErrors
@@ -1968,14 +2101,14 @@ const EnrollmentForm = ({ referenceNumber }) => {
                 gender:
                   existingParent.gender ||
                   (relationship === "Father" ? "Male" : "Female"),
-                //isEditing: existingParent.isEditing ?? true, // Preserve edit mode
+                isEditing: existingParent.isEditing ?? (existingParent.id ? false : true), // Preserve edit mode
               }
               : {
                 relationship_type: relationship,
                 givenname: "",
                 lastname: "",
                 gender: relationship === "Father" ? "Male" : "Female",
-                //isEditing: true, // Always allow editing for new entries
+                isEditing: true, // Always allow editing for new entries
               };
           })}
           setData={(updatedParents) =>
@@ -2658,6 +2791,41 @@ const EnrollmentForm = ({ referenceNumber }) => {
           />
         </Flex>
       )}
+
+      {/* Unsaved Changes Alert Dialog */}
+      <AlertDialog
+        isOpen={isAlertOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={() => setIsAlertOpen(false)}
+        isCentered
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent borderRadius="xl" boxShadow="2xl">
+            <AlertDialogHeader fontSize="xl" fontWeight="extrabold" color="orange.600" pb={2}>
+              🚀 Wait a Minute!
+            </AlertDialogHeader>
+
+            <AlertDialogBody py={4}>
+              <VStack spacing={4} align="stretch">
+                <Text fontSize="md" color="gray.700">
+                  It looks like you have some <strong>unsaved changes</strong> on the current step.
+                </Text>
+                <Box p={3} bg="orange.50" borderLeft="4px solid" borderColor="orange.400" borderRadius="md">
+                  <Text fontSize="sm" color="orange.800" fontWeight="semibold">
+                    Please click the save (check) icon first to ensure your progress is recorded before proceeding to another step.
+                  </Text>
+                </Box>
+              </VStack>
+            </AlertDialogBody>
+
+            <AlertDialogFooter borderTop="1px solid" borderColor="gray.100" pt={4}>
+              <Button ref={cancelRef} onClick={() => setIsAlertOpen(false)} variant="ghost" mr={3}>
+                Got it
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </VStack>
   );
 };

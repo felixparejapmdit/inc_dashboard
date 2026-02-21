@@ -254,13 +254,13 @@ const TemporarilyDeletedUsers = () => {
           ) : (
             <>
               <Box overflowX="auto">
-                <Table variant="simple">
+                <Table variant="simple" style={{ tableLayout: "fixed" }}>
                   <Thead bg="gray.50">
                     <Tr>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Personnel Identity</Th>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Middle Designation</Th>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Surname (Husband)</Th>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest" textAlign="right">Record Actions</Th>
+                      <Th p={6} width="35%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Personnel Identity</Th>
+                      <Th p={6} width="25%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Middle Designation</Th>
+                      <Th p={6} width="25%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Surname (Husband)</Th>
+                      <Th p={6} width="15%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest" textAlign="right">Record Actions</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
@@ -284,17 +284,17 @@ const TemporarilyDeletedUsers = () => {
                                 border="2px solid"
                                 borderColor="red.100"
                               />
-                              <VStack align="start" spacing={0}>
-                                <Text fontWeight="black" color="gray.800" fontSize="md">{user.givenname}</Text>
-                                <Badge colorScheme="red" variant="subtle" fontSize="10px">ID: {user.personnel_id}</Badge>
+                              <VStack align="start" spacing={0} overflow="hidden">
+                                <Text fontWeight="black" color="gray.800" fontSize="md" isTruncated w="full">{user.givenname}</Text>
+                                <Badge colorScheme="red" variant="subtle" fontSize="10px" isTruncated>ID: {user.personnel_id}</Badge>
                               </VStack>
                             </HStack>
                           </Td>
                           <Td p={6}>
-                            <Text color="gray.600" fontWeight="semibold">{user.middlename || "—"}</Text>
+                            <Text color="gray.600" fontWeight="semibold" isTruncated>{user.middlename || "—"}</Text>
                           </Td>
                           <Td p={6}>
-                            <Text color="gray.600" fontWeight="bold">{user.surname_husband || "—"}</Text>
+                            <Text color="gray.600" fontWeight="bold" isTruncated>{user.surname_husband || "—"}</Text>
                           </Td>
                           <Td p={6} textAlign="right">
                             <Tooltip label="Reinstate Record" hasArrow>

@@ -300,12 +300,12 @@ const ApplicationTypeManagement = () => {
             </Center>
           ) : (
             <Box overflowX="auto">
-              <Table variant="simple">
+              <Table variant="simple" style={{ tableLayout: "fixed" }}>
                 <Thead bg="gray.50">
                   <Tr>
-                    <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Module Name</Th>
-                    <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">System Identifier</Th>
-                    <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest" textAlign="right">Actions</Th>
+                    <Th p={6} width="60%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Module Name</Th>
+                    <Th p={6} width="25%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">System Identifier</Th>
+                    <Th p={6} width="15%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest" textAlign="right">Actions</Th>
                   </Tr>
                 </Thead>
                 <Tbody>
@@ -321,7 +321,7 @@ const ApplicationTypeManagement = () => {
                         _hover={{ bg: "gray.50" }}
                       >
                         <Td p={6}>
-                          <HStack spacing={4}>
+                          <HStack spacing={4} overflow="hidden">
                             <Avatar
                               size="sm"
                               icon={<Layers size={20} />}
@@ -329,10 +329,11 @@ const ApplicationTypeManagement = () => {
                               color="blue.600"
                               fontWeight="bold"
                               borderRadius="md"
+                              flexShrink={0}
                             />
-                            <VStack align="start" spacing={0}>
-                              <Text fontWeight="bold" color="gray.800" fontSize="md">{item.name}</Text>
-                              <Text fontSize="xs" color="gray.500">Core Component</Text>
+                            <VStack align="start" spacing={0} overflow="hidden">
+                              <Text fontWeight="bold" color="gray.800" fontSize="md" isTruncated w="full">{item.name}</Text>
+                              <Text fontSize="xs" color="gray.500" isTruncated w="full">Core Component</Text>
                             </VStack>
                           </HStack>
                         </Td>

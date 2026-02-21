@@ -54,6 +54,7 @@ import {
   putData,
   deleteData,
 } from "../../utils/fetchData";
+import InfoField from "./PreviewForm";
 
 const Step2 = () => {
   const [contacts, setContacts] = useState([]);
@@ -567,27 +568,32 @@ const Step2 = () => {
                                 : toggleEditContact(idx)
                             }
                           />
-                          {contact.isEditing ? (
-                            <IconButton
-                              icon={<CloseIcon />}
-                              size="sm"
-                              colorScheme="gray"
-                              onClick={() => handleCancelEdit(idx)}
-                            />
-                          ) : (
-                            <IconButton
-                              icon={<DeleteIcon />}
-                              size="sm"
-                              colorScheme="red"
-                              onClick={() => handleRemoveContact(idx)}
-                            />
+                          {contact.isEditing && (
+                            <>
+                              <IconButton
+                                icon={<CloseIcon />}
+                                size="sm"
+                                colorScheme="gray"
+                                onClick={() => handleCancelEdit(idx)}
+                              />
+                              <IconButton
+                                icon={<DeleteIcon />}
+                                size="sm"
+                                colorScheme="red"
+                                ml={2}
+                                onClick={() => handleRemoveContact(idx)}
+                              />
+                            </>
                           )}
                         </Flex>
                       </Flex>
 
                       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={3}>
-                        <FormControl>
-                          <FormLabel fontSize="sm" fontWeight="bold">Type</FormLabel>
+                        <InfoField
+                          label="Type"
+                          value={contactTypes.find(t => String(t.id) === String(contact.contactype_id))?.name}
+                          isEditing={contact.isEditing}
+                        >
                           <Select
                             placeholder="Select Type"
                             value={contact.contactype_id}
@@ -607,12 +613,13 @@ const Step2 = () => {
                               </option>
                             ))}
                           </Select>
-                        </FormControl>
+                        </InfoField>
 
-                        <FormControl>
-                          <FormLabel fontSize="sm" fontWeight="bold">
-                            Contact Info
-                          </FormLabel>
+                        <InfoField
+                          label="Contact Info"
+                          value={contact.contact_info}
+                          isEditing={contact.isEditing}
+                        >
                           <InputGroup size="sm">
                             {(() => {
                               const typeName =
@@ -679,12 +686,15 @@ const Step2 = () => {
                               }
                             />
                           </InputGroup>
-                        </FormControl>
+                        </InfoField>
 
                         {isTelephone && (
                           <>
-                            <FormControl>
-                              <FormLabel fontSize="sm" fontWeight="bold">Location</FormLabel>
+                            <InfoField
+                              label="Location"
+                              value={contact.contact_location}
+                              isEditing={contact.isEditing}
+                            >
                               <Select
                                 placeholder="Select Location"
                                 value={contact.contact_location || ""}
@@ -704,10 +714,13 @@ const Step2 = () => {
                                   </option>
                                 ))}
                               </Select>
-                            </FormControl>
+                            </InfoField>
 
-                            <FormControl>
-                              <FormLabel fontSize="sm" fontWeight="bold">Extension</FormLabel>
+                            <InfoField
+                              label="Extension"
+                              value={contact.extension}
+                              isEditing={contact.isEditing}
+                            >
                               <Select
                                 placeholder="Select Phone"
                                 value={contact.extension || ""}
@@ -727,7 +740,7 @@ const Step2 = () => {
                                   </option>
                                 ))}
                               </Select>
-                            </FormControl>
+                            </InfoField>
                           </>
                         )}
                       </SimpleGrid>
@@ -914,28 +927,32 @@ const Step2 = () => {
                         />
 
                         {/* Cancel Button (Shown when Editing) */}
-                        {address.isEditing ? (
-                          <IconButton
-                            icon={<CloseIcon />}
-                            size="sm"
-                            colorScheme="gray"
-                            onClick={() => handleCancelEditAddress(idx)}
-                          />
-                        ) : (
-                          /* Delete Button (Shown when NOT Editing) */
-                          <IconButton
-                            icon={<DeleteIcon />}
-                            size="sm"
-                            colorScheme="red"
-                            onClick={() => handleRemoveAddress(idx)}
-                          />
+                        {address.isEditing && (
+                          <>
+                            <IconButton
+                              icon={<CloseIcon />}
+                              size="sm"
+                              colorScheme="gray"
+                              onClick={() => handleCancelEditAddress(idx)}
+                            />
+                            <IconButton
+                              icon={<DeleteIcon />}
+                              size="sm"
+                              colorScheme="red"
+                              ml={2}
+                              onClick={() => handleRemoveAddress(idx)}
+                            />
+                          </>
                         )}
                       </Flex>
                     </Flex>
 
                     <SimpleGrid columns={1} spacing={3}>
-                      <FormControl>
-                        <FormLabel fontSize="sm" fontWeight="bold">Address Type</FormLabel>
+                      <InfoField
+                        label="Address Type"
+                        value={address.address_type}
+                        isEditing={address.isEditing}
+                      >
                         <Select
                           placeholder="Address Type"
                           value={address.address_type}
@@ -953,10 +970,13 @@ const Step2 = () => {
                           <option>Provincial Address</option>
                           <option>INC Housing</option>
                         </Select>
-                      </FormControl>
+                      </InfoField>
 
-                      <FormControl>
-                        <FormLabel fontSize="sm" fontWeight="bold">Address</FormLabel>
+                      <InfoField
+                        label="Address"
+                        value={address.name}
+                        isEditing={address.isEditing}
+                      >
                         <Input
                           placeholder="Street, Zone, Barangay, Town/City, Province, Country"
                           value={address.name || ""}
@@ -966,7 +986,7 @@ const Step2 = () => {
                           }
                           size="sm"
                         />
-                      </FormControl>
+                      </InfoField>
                     </SimpleGrid>
                   </Box>
                 ))

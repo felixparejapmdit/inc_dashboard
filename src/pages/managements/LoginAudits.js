@@ -503,14 +503,14 @@ const LoginAudits = () => {
           ) : (
             <>
               <Box overflowX="auto">
-                <Table variant="simple" size="md">
+                <Table variant="simple" size="md" style={{ tableLayout: "fixed" }}>
                   <Thead bg="gray.50">
                     <Tr>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">User Details</Th>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Device & OS</Th>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Browser</Th>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Access Time</Th>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest"></Th>
+                      <Th p={6} width="25%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">User Details</Th>
+                      <Th p={6} width="20%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Device & OS</Th>
+                      <Th p={6} width="15%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Browser</Th>
+                      <Th p={6} width="30%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Access Time</Th>
+                      <Th p={6} width="10%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest"></Th>
                     </Tr>
                   </Thead>
                   <Tbody>
@@ -528,8 +528,8 @@ const LoginAudits = () => {
                           <Td p={6}>
                             <HStack spacing={4}>
                               <Avatar size="sm" name={log.username_display} bg="purple.500" />
-                              <VStack align="start" spacing={0}>
-                                <Text fontWeight="black" color="gray.800">{log.username_display}</Text>
+                              <VStack align="start" spacing={0} overflow="hidden">
+                                <Text fontWeight="black" color="gray.800" isTruncated w="full">{log.username_display}</Text>
                                 <HStack spacing={1}>
                                   <Globe size={10} color="gray" />
                                   <Text fontSize="2xs" fontWeight="bold" color="gray.500">{log.ip_address || "no-ip"}</Text>
@@ -543,13 +543,13 @@ const LoginAudits = () => {
                                 <Icon as={Monitor} size={14} color="blue.500" />
                               </Box>
                               <VStack align="start" spacing={0}>
-                                <Text fontWeight="bold" fontSize="sm">{log.device || "Desktop"}</Text>
-                                <Badge variant="subtle" colorScheme="blue" fontSize="2xs">{log.os || "Unknown OS"}</Badge>
+                                <Text fontWeight="bold" fontSize="sm" isTruncated w="full">{log.device || "Desktop"}</Text>
+                                <Badge variant="subtle" colorScheme="blue" fontSize="2xs" isTruncated maxWidth="full">{log.os || "Unknown OS"}</Badge>
                               </VStack>
                             </HStack>
                           </Td>
                           <Td p={6}>
-                            <Text fontSize="sm" fontWeight="bold" color="gray.600">{log.browser || "—"}</Text>
+                            <Text fontSize="sm" fontWeight="bold" color="gray.600" isTruncated>{log.browser || "—"}</Text>
                           </Td>
                           <Td p={6}>
                             <VStack align="start" spacing={0}>

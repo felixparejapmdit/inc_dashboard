@@ -570,7 +570,10 @@ const FileManagement = ({ qrcode }) => {
                             <Input
                                 placeholder="Search files, codes, or URLs..."
                                 value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onChange={(e) => {
+                                    setSearchQuery(e.target.value);
+                                    setCurrentPage(1);
+                                }}
                                 borderRadius="full"
                                 bg="gray.50"
                                 _focus={{ bg: "white", borderColor: "orange.400" }}
@@ -581,7 +584,10 @@ const FileManagement = ({ qrcode }) => {
                             <Select
                                 placeholder="Filter by sender"
                                 value={senderQuery}
-                                onChange={(e) => setSenderQuery(e.target.value)}
+                                onChange={(e) => {
+                                    setSenderQuery(e.target.value);
+                                    setCurrentPage(1);
+                                }}
                                 borderRadius="full"
                                 bg="gray.50"
                                 _focus={{ bg: "white", borderColor: "orange.400" }}
@@ -881,16 +887,16 @@ const FileManagement = ({ qrcode }) => {
                         /* Table View */
                         <Card>
                             <CardBody p={0} overflowX="auto">
-                                <Table variant="simple">
+                                <Table variant="simple" style={{ tableLayout: "fixed" }}>
                                     <Thead bg="gray.50">
                                         <Tr>
-                                            <Th>#</Th>
-                                            <Th>Filename</Th>
-                                            <Th>Code</Th>
-                                            {hasPermission("link.qrcode") && <Th>QR Code</Th>}
-                                            <Th display={{ base: "none", md: "table-cell" }}>Sender</Th>
-                                            <Th display={{ base: "none", lg: "table-cell" }}>Date</Th>
-                                            {hasPermission("link.action") && <Th textAlign="right">Actions</Th>}
+                                            <Th width="5%">#</Th>
+                                            <Th width="30%">Filename</Th>
+                                            <Th width="15%">Code</Th>
+                                            {hasPermission("link.qrcode") && <Th width="15%">QR Code</Th>}
+                                            <Th width="20%" display={{ base: "none", md: "table-cell" }}>Sender</Th>
+                                            <Th width="15%" display={{ base: "none", lg: "table-cell" }}>Date</Th>
+                                            {hasPermission("link.action") && <Th width="15%" textAlign="right">Actions</Th>}
                                         </Tr>
                                     </Thead>
                                     <Tbody>
@@ -901,9 +907,9 @@ const FileManagement = ({ qrcode }) => {
                                                 transition="all 0.2s"
                                             >
                                                 <Td fontWeight="medium">{index + 1}</Td>
-                                                <Td>
-                                                    <VStack align="start" spacing={0}>
-                                                        <Text fontWeight="semibold" noOfLines={1}>
+                                                <Td overflow="hidden">
+                                                    <VStack align="start" spacing={0} overflow="hidden">
+                                                        <Text fontWeight="semibold" noOfLines={1} isTruncated w="full">
                                                             {file.filename}
                                                         </Text>
                                                         <Badge
@@ -916,35 +922,43 @@ const FileManagement = ({ qrcode }) => {
                                                         </Badge>
                                                     </VStack>
                                                 </Td>
-                                                <Td>
-                                                    <HStack>
-                                                        <a
-                                                            href={file.url}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            style={{
-                                                                color: "#1a73e8",
-                                                                textDecoration: "none",
-                                                                fontWeight: "600",
-                                                            }}
-                                                        >
-                                                            {file.generated_code}
-                                                        </a>
+                                                <Td overflow="hidden">
+                                                    <HStack overflow="hidden">
+                                                        <Box overflow="hidden" flexShrink={1}>
+                                                            <a
+                                                                href={file.url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                style={{
+                                                                    color: "#1a73e8",
+                                                                    textDecoration: "none",
+                                                                    fontWeight: "600",
+                                                                    display: "block",
+                                                                    overflow: "hidden",
+                                                                    textOverflow: "ellipsis",
+                                                                    whiteSpace: "nowrap"
+                                                                }}
+                                                            >
+                                                                {file.generated_code}
+                                                            </a>
+                                                        </Box>
                                                         <Tooltip label="Copy Link">
                                                             <IconButton
                                                                 icon={<CopyIcon />}
                                                                 size="xs"
                                                                 variant="ghost"
                                                                 onClick={() => copyToClipboard(file.url)}
+                                                                flexShrink={0}
                                                             />
                                                         </Tooltip>
                                                     </HStack>
                                                 </Td>
                                                 {hasPermission("link.qrcode") && (
-                                                    <Td>
-                                                        <HStack spacing={2}>
+                                                    <Td overflow="hidden">
+                                                        <HStack spacing={2} overflow="hidden">
                                                             <Box
                                                                 cursor="pointer"
+                                                                flexShrink={0}
                                                                 onClick={() => {
                                                                     setSelectedQrUrl(file.url);
                                                                     setSelectedGeneratedCode(file.generated_code);
@@ -955,7 +969,7 @@ const FileManagement = ({ qrcode }) => {
                                                             >
                                                                 <QRCodeCanvas
                                                                     value={file.url}
-                                                                    size={48}
+                                                                    size={44}
                                                                     bgColor="transparent"
                                                                     fgColor="#000000"
                                                                     level="H"
@@ -970,13 +984,14 @@ const FileManagement = ({ qrcode }) => {
                                                                     onClick={() =>
                                                                         downloadQRCode(file.url, file.generated_code)
                                                                     }
+                                                                    flexShrink={0}
                                                                 />
                                                             </Tooltip>
                                                         </HStack>
                                                     </Td>
                                                 )}
-                                                <Td display={{ base: "none", md: "table-cell" }}>
-                                                    <Text fontSize="sm" noOfLines={1}>
+                                                <Td display={{ base: "none", md: "table-cell" }} overflow="hidden">
+                                                    <Text fontSize="sm" noOfLines={1} isTruncated w="full">
                                                         {file.user?.personnel
                                                             ? `${file.user.personnel.givenname || ""} ${file.user.personnel.surname_husband || ""
                                                             }`

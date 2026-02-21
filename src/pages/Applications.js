@@ -471,14 +471,14 @@ const Applications = () => {
               </SimpleGrid>
             ) : (
               <Box bg={cardBg} borderRadius="3xl" shadow="sm" border="1px solid" borderColor={borderColor} overflow="hidden">
-                <Table variant="simple">
+                <Table variant="simple" style={{ tableLayout: "fixed" }}>
                   <Thead bg="gray.50">
                     <Tr>
-                      <Th>Application</Th>
-                      <Th>Category</Th>
-                      <Th>URL Endpoint</Th>
-                      <Th>Status</Th>
-                      <Th textAlign="right">Actions</Th>
+                      <Th width="30%">Application</Th>
+                      <Th width="15%">Category</Th>
+                      <Th width="30%">URL Endpoint</Th>
+                      <Th width="10%">Status</Th>
+                      <Th width="15%" textAlign="right">Actions</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
@@ -487,9 +487,9 @@ const Applications = () => {
                         <Td>
                           <HStack>
                             <Avatar src={app.icon} name={app.name} size="sm" borderRadius="md" />
-                            <VStack align="start" spacing={0}>
-                              <Text fontWeight="bold">{app.name}</Text>
-                              <Text fontSize="xs" color="gray.500" noOfLines={1}>{app.description}</Text>
+                            <VStack align="start" spacing={0} overflow="hidden">
+                              <Text fontWeight="bold" isTruncated w="full">{app.name}</Text>
+                              <Text fontSize="xs" color="gray.500" isTruncated w="full">{app.description}</Text>
                             </VStack>
                           </HStack>
                         </Td>
@@ -499,7 +499,7 @@ const Applications = () => {
                           </Badge>
                         </Td>
                         <Td>
-                          <Text fontSize="sm" color="blue.500" fontWeight="medium" textDecor="underline" cursor="pointer" onClick={() => window.open(app.url, "_blank")}>
+                          <Text fontSize="sm" color="blue.500" fontWeight="medium" textDecor="underline" cursor="pointer" onClick={() => window.open(app.url, "_blank")} isTruncated>
                             {app.url}
                           </Text>
                         </Td>

@@ -886,15 +886,20 @@ function MainApp() {
         <Route path="/ollama-api" element={<OllamaAPI />} />
       </Routes>
 
-      {/* Render Chatbot only if NOT on /login AND hide it when printing */}
-      {location.pathname !== "/login" && (
-        <div className="noPrint">
-          <Notifications />
-          <ReminderNotifier />
-          <SuguanNotifier />
-          {/* <Chatbot /> */}
-        </div>
-      )}
+      {/* Render Chatbot/Notifiers only if NOT on /login AND NOT on enrollment pages */}
+      {!(
+        location.pathname === "/login" ||
+        location.pathname.startsWith("/enroll") ||
+        location.pathname.match(/^\/step[1-7]$/) ||
+        location.pathname.startsWith("/progress/step")
+      ) && (
+          <div className="noPrint">
+            <Notifications />
+            <ReminderNotifier />
+            <SuguanNotifier />
+            {/* <Chatbot /> */}
+          </div>
+        )}
     </>
   );
 }

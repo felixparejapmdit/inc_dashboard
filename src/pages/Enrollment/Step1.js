@@ -25,7 +25,8 @@ import {
   FormErrorMessage,
   Divider,
 } from "@chakra-ui/react";
-import { DeleteIcon, EditIcon, CheckIcon } from "@chakra-ui/icons";
+import { DeleteIcon, EditIcon, CheckIcon, AddIcon } from "@chakra-ui/icons";
+import InfoField from "./PreviewForm";
 import StepProgressTracker from "../../components/StepProgressTracker"; // ✅ Import StepProgressTracker
 import axios from "axios";
 
@@ -105,10 +106,8 @@ const Step1 = ({
   const [duties, setDuties] = useState(personnelData.church_duties || []);
 
   useEffect(() => {
-    if (personnelData.church_duties) {
-      if (personnelData.church_duties.length > 0) {
-        setDuties(personnelData.church_duties);
-      }
+    if (Array.isArray(personnelData.church_duties)) {
+      setDuties(personnelData.church_duties);
     }
   }, [personnelData.church_duties]);
 
@@ -279,8 +278,13 @@ const Step1 = ({
           <Box mb={6} p={4} borderRadius="lg" bg="white" shadow="sm" border="1px" borderColor="gray.100">
 
             <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={5} mb={4}>
-              <FormControl isRequired isInvalid={!!formErrors.gender}>
-                <FormLabel fontWeight="bold" color="#0a5856">Gender</FormLabel>
+              <InfoField
+                label="Gender"
+                value={personnelData.gender}
+                isEditing={isEditing}
+                isRequired
+                error={formErrors.gender}
+              >
                 <RadioGroup
                   name="gender"
                   onChange={(value) =>
@@ -299,11 +303,15 @@ const Step1 = ({
                     <Radio value="Female">Female</Radio>
                   </Stack>
                 </RadioGroup>
-                <FormErrorMessage>{formErrors.gender}</FormErrorMessage>
-              </FormControl>
+              </InfoField>
 
-              <FormControl isRequired isInvalid={!!formErrors.civil_status}>
-                <FormLabel fontWeight="bold" color="#0a5856">Civil Status</FormLabel>
+              <InfoField
+                label="Civil Status"
+                value={personnelData.civil_status}
+                isEditing={isEditing}
+                isRequired
+                error={formErrors.civil_status}
+              >
                 <RadioGroup
                   name="civil_status"
                   onChange={(value) =>
@@ -325,12 +333,14 @@ const Step1 = ({
                     ))}
                   </Stack>
                 </RadioGroup>
-                <FormErrorMessage>{formErrors.civil_status}</FormErrorMessage>
-              </FormControl>
+              </InfoField>
 
               {personnelData.civil_status === "Married" && (
-                <FormControl>
-                  <FormLabel fontWeight="bold" color="#0a5856">Wedding Date</FormLabel>
+                <InfoField
+                  label="Wedding Date"
+                  value={personnelData.wedding_anniversary}
+                  isEditing={isEditing}
+                >
                   <Input
                     placeholder="Wedding Anniversary"
                     name="wedding_anniversary"
@@ -345,14 +355,19 @@ const Step1 = ({
                     width="100%"
                     isDisabled={!isEditing}
                   />
-                </FormControl>
+                </InfoField>
               )}
             </SimpleGrid>
 
             {/* Names Grid */}
             <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={5}>
-              <FormControl isRequired isInvalid={!!formErrors.givenname}>
-                <FormLabel fontWeight="bold" color="#0a5856">Given Name</FormLabel>
+              <InfoField
+                label="Given Name"
+                value={personnelData.givenname}
+                isEditing={isEditing}
+                isRequired
+                error={formErrors.givenname}
+              >
                 <Input
                   placeholder="Given Name"
                   name="givenname"
@@ -360,11 +375,13 @@ const Step1 = ({
                   onChange={handleChange}
                   isDisabled={!isEditing}
                 />
-                <FormErrorMessage>{formErrors.givenname}</FormErrorMessage>
-              </FormControl>
+              </InfoField>
 
-              <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Middle Name</FormLabel>
+              <InfoField
+                label="Middle Name"
+                value={personnelData.middlename}
+                isEditing={isEditing}
+              >
                 <Input
                   placeholder="Middle Name"
                   name="middlename"
@@ -372,12 +389,14 @@ const Step1 = ({
                   onChange={handleChange}
                   isDisabled={!isEditing}
                 />
-              </FormControl>
+              </InfoField>
 
-              <FormControl isInvalid={!!formErrors.surname_maiden}>
-                <FormLabel fontWeight="bold" color="#0a5856">
-                  {personnelData.surname_maiden_label || "Surname (Maiden)"}
-                </FormLabel>
+              <InfoField
+                label={personnelData.surname_maiden_label || "Surname (Maiden)"}
+                value={personnelData.surname_maiden}
+                isEditing={isEditing}
+                error={formErrors.surname_maiden}
+              >
                 <Input
                   placeholder={
                     personnelData.surname_maiden_placeholder || "Surname (Maiden)"
@@ -385,15 +404,17 @@ const Step1 = ({
                   name="surname_maiden"
                   value={personnelData.surname_maiden || ""}
                   onChange={handleChange}
-                  isDisabled={personnelData.surname_maiden_disabled}
+                  isDisabled={personnelData.surname_maiden_disabled || !isEditing}
                 />
-                <FormErrorMessage>{formErrors.surname_maiden}</FormErrorMessage>
-              </FormControl>
+              </InfoField>
 
-              <FormControl isRequired isInvalid={!!formErrors.surname_husband}>
-                <FormLabel fontWeight="bold" color="#0a5856">
-                  {personnelData.surname_husband_label || "Surname (Husband)"}
-                </FormLabel>
+              <InfoField
+                label={personnelData.surname_husband_label || "Surname (Husband)"}
+                value={personnelData.surname_husband}
+                isEditing={isEditing}
+                isRequired
+                error={formErrors.surname_husband}
+              >
                 <Input
                   placeholder={
                     personnelData.surname_husband_placeholder ||
@@ -404,11 +425,13 @@ const Step1 = ({
                   onChange={handleChange}
                   isDisabled={!isEditing}
                 />
-                <FormErrorMessage>{formErrors.surname_husband}</FormErrorMessage>
-              </FormControl>
+              </InfoField>
 
-              <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Suffix</FormLabel>
+              <InfoField
+                label="Suffix"
+                value={personnelData.suffix}
+                isEditing={isEditing}
+              >
                 <Select
                   name="suffix"
                   value={
@@ -442,10 +465,14 @@ const Step1 = ({
                     }),
                   }}
                 />
-              </FormControl>
+              </InfoField>
 
-              <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Nickname</FormLabel>
+              <InfoField
+                label="Nickname"
+                value={personnelData.nickname}
+                isEditing={isEditing}
+                error={formErrors.nickname}
+              >
                 <Input
                   placeholder="Nickname"
                   name="nickname"
@@ -453,9 +480,16 @@ const Step1 = ({
                   onChange={handleChange}
                   isDisabled={!isEditing}
                 />
-              </FormControl>
-              <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Current District</FormLabel>
+              </InfoField>
+              <InfoField
+                label="Current District"
+                value={
+                  districts.find(
+                    (d) => String(d.id) === String(personnelData.registered_district_id)
+                  )?.name
+                }
+                isEditing={isEditing}
+              >
                 <Select
                   placeholder="Select District"
                   name="registered_district_id"
@@ -489,10 +523,19 @@ const Step1 = ({
                   }}
                   isDisabled={!isEditing}
                 />
-              </FormControl>
+              </InfoField>
 
-              <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Current Local Congregation</FormLabel>
+              <InfoField
+                label="Current Local Congregation"
+                value={
+                  localCongregations.find(
+                    (c) =>
+                      String(c.id) ===
+                      String(personnelData.registered_local_congregation)
+                  )?.name
+                }
+                isEditing={isEditing}
+              >
                 <Select
                   placeholder="Select Local Congregation"
                   name="registered_local_congregation"
@@ -527,7 +570,7 @@ const Step1 = ({
                     }),
                   }}
                 />
-              </FormControl>
+              </InfoField>
             </SimpleGrid>
           </Box>
 
@@ -537,8 +580,13 @@ const Step1 = ({
           <Box mb={6} p={4} borderRadius="lg" bg="white" shadow="sm" border="1px" borderColor="gray.100">
 
             <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={5}>
-              <FormControl isRequired isInvalid={!!formErrors.date_of_birth}>
-                <FormLabel fontWeight="bold" color="#0a5856">Birthday</FormLabel>
+              <InfoField
+                label="Birthday"
+                value={personnelData.date_of_birth}
+                isEditing={isEditing}
+                isRequired
+                error={formErrors.date_of_birth}
+              >
                 <Input
                   placeholder="Date of Birth"
                   name="date_of_birth"
@@ -552,11 +600,9 @@ const Step1 = ({
                   width="100%"
                   isDisabled={!isEditing}
                 />
-                <FormErrorMessage>{formErrors.date_of_birth}</FormErrorMessage>
-              </FormControl>
+              </InfoField>
 
-              <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Age</FormLabel>
+              <InfoField label="Age" value={age} isEditing={isEditing}>
                 <Input
                   placeholder="0"
                   name="age"
@@ -565,10 +611,13 @@ const Step1 = ({
                   width="100%"
                   isDisabled={!isEditing}
                 />
-              </FormControl>
+              </InfoField>
 
-              <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Place of Birth</FormLabel>
+              <InfoField
+                label="Place of Birth"
+                value={personnelData.place_of_birth}
+                isEditing={isEditing}
+              >
                 <Input
                   placeholder="Place of Birth"
                   name="place_of_birth"
@@ -581,10 +630,15 @@ const Step1 = ({
                   width="100%"
                   isDisabled={!isEditing}
                 />
-              </FormControl>
+              </InfoField>
 
-              <FormControl isRequired isInvalid={!!formErrors.datejoined}>
-                <FormLabel fontWeight="bold" color="#0a5856">Date Started in the office</FormLabel>
+              <InfoField
+                label="Date Started in the office"
+                value={personnelData.datejoined}
+                isEditing={isEditing}
+                isRequired
+                error={formErrors.datejoined}
+              >
                 <Input
                   placeholder="Date Joined"
                   name="datejoined"
@@ -598,8 +652,7 @@ const Step1 = ({
                   width="100%"
                   isDisabled={!isEditing}
                 />
-                <FormErrorMessage>{formErrors.datejoined}</FormErrorMessage>
-              </FormControl>
+              </InfoField>
             </SimpleGrid>
           </Box>
 
@@ -607,8 +660,20 @@ const Step1 = ({
           <Box mb={6} p={4} borderRadius="lg" bg="white" shadow="sm" border="1px" borderColor="gray.100">
 
             <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={5}>
-              <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Languages</FormLabel>
+              <InfoField
+                label="Languages"
+                value={
+                  Array.isArray(personnelData.language_id)
+                    ? languages
+                      .filter((lang) =>
+                        personnelData.language_id.includes(lang.id)
+                      )
+                      .map((lang) => lang.name)
+                      .join(", ")
+                    : "N/A"
+                }
+                isEditing={isEditing}
+              >
                 <Select
                   isMulti
                   placeholder="Select Languages"
@@ -642,10 +707,13 @@ const Step1 = ({
                   isDisabled={!isEditing}
                   styles={{ container: (base) => ({ ...base, width: "100%" }) }}
                 />
-              </FormControl>
+              </InfoField>
 
-              <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Blood Type</FormLabel>
+              <InfoField
+                label="Blood Type"
+                value={personnelData.bloodtype}
+                isEditing={isEditing}
+              >
                 <Select
                   placeholder="Blood Type"
                   name="bloodtype"
@@ -665,10 +733,15 @@ const Step1 = ({
                   isDisabled={!isEditing}
                   styles={{ container: (base) => ({ ...base, width: "100%" }) }}
                 />
-              </FormControl>
+              </InfoField>
 
-              <FormControl isRequired isInvalid={!!formErrors.email_address}>
-                <FormLabel fontWeight="bold" color="#0a5856">Personal Email Address</FormLabel>
+              <InfoField
+                label="Personal Email Address"
+                value={personnelData.email_address}
+                isEditing={isEditing}
+                isRequired
+                error={formErrors.email_address}
+              >
                 <Input
                   placeholder="Enter Email Address"
                   name="email_address"
@@ -676,8 +749,7 @@ const Step1 = ({
                   onChange={handleChange}
                   isDisabled={!isEditing}
                 />
-                <FormErrorMessage>{formErrors.email_address}</FormErrorMessage>
-              </FormControl>
+              </InfoField>
 
               <FormControl display="none">
                 <FormLabel fontWeight="bold" color="#0a5856">Work Email Address</FormLabel>
@@ -689,8 +761,20 @@ const Step1 = ({
                 />
               </FormControl>
 
-              <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Citizenship</FormLabel>
+              <InfoField
+                label="Citizenship"
+                value={
+                  Array.isArray(personnelData.citizenship)
+                    ? citizenships
+                      .filter((c) =>
+                        personnelData.citizenship?.includes(c.id)
+                      )
+                      .map((c) => c.citizenship)
+                      .join(", ")
+                    : "N/A"
+                }
+                isEditing={isEditing}
+              >
                 <Select
                   isMulti
                   placeholder="Select Citizenship"
@@ -721,7 +805,7 @@ const Step1 = ({
                   isDisabled={!isEditing}
                   styles={{ container: (base) => ({ ...base, width: "100%" }) }}
                 />
-              </FormControl>
+              </InfoField>
 
 
             </SimpleGrid>
@@ -731,8 +815,15 @@ const Step1 = ({
           <Box mb={6} p={4} borderRadius="lg" bg="white" shadow="sm" border="1px" borderColor="gray.100">
 
             <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={5}>
-              <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Ethnicity</FormLabel>
+              <InfoField
+                label="Ethnicity"
+                value={
+                  nationalities.find(
+                    (n) => n.id === personnelData.nationality
+                  )?.nationality
+                }
+                isEditing={isEditing}
+              >
                 <Select
                   placeholder="Select Ethnicity"
                   name="nationality"
@@ -758,9 +849,18 @@ const Step1 = ({
                   isDisabled={!isEditing}
                   styles={{ container: (base) => ({ ...base, width: "100%" }) }}
                 />
-              </FormControl>
-              <FormControl isRequired isInvalid={!!formErrors.department_id}>
-                <FormLabel fontWeight="bold" color="#0a5856">Department</FormLabel>
+              </InfoField>
+              <InfoField
+                label="Department"
+                value={
+                  departments.find(
+                    (d) => String(d.id) === String(personnelData.department_id)
+                  )?.name
+                }
+                isEditing={isEditing}
+                isRequired
+                error={formErrors.department_id}
+              >
                 <Select
                   placeholder="Select Department"
                   name="department_id"
@@ -788,11 +888,17 @@ const Step1 = ({
                   isDisabled={!isEditing}
                   styles={{ container: (base) => ({ ...base, width: "100%" }) }}
                 />
-                <FormErrorMessage>{formErrors.department_id}</FormErrorMessage>
-              </FormControl>
+              </InfoField>
 
-              <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Section</FormLabel>
+              <InfoField
+                label="Section"
+                value={
+                  sections.find(
+                    (s) => String(s.id) === String(personnelData.section_id)
+                  )?.name
+                }
+                isEditing={isEditing}
+              >
                 <Select
                   placeholder="Select Section"
                   name="section_id"
@@ -818,7 +924,7 @@ const Step1 = ({
                   isClearable
                   styles={{ container: (base) => ({ ...base, width: "100%" }) }}
                 />
-              </FormControl>
+              </InfoField>
 
               <FormControl display="none">
                 <FormLabel fontWeight="bold" color="#0a5856">Subsection/Team</FormLabel>
@@ -993,8 +1099,11 @@ const Step1 = ({
                 </RadioGroup>
               </FormControl>
 
-              <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Date Baptized</FormLabel>
+              <InfoField
+                label="Date Baptized"
+                value={personnelData.date_baptized}
+                isEditing={isEditing}
+              >
                 <Input
                   type="date"
                   name="date_baptized"
@@ -1009,10 +1118,13 @@ const Step1 = ({
                   }
                   isDisabled={!isEditing}
                 />
-              </FormControl>
+              </InfoField>
 
-              <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Place of Baptism</FormLabel>
+              <InfoField
+                label="Place of Baptism"
+                value={personnelData.place_of_baptism}
+                isEditing={isEditing}
+              >
                 <Input
                   type="text"
                   name="place_of_baptism"
@@ -1027,10 +1139,13 @@ const Step1 = ({
                   }
                   isDisabled={!isEditing}
                 />
-              </FormControl>
+              </InfoField>
 
-              <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Minister Officiated</FormLabel>
+              <InfoField
+                label="Minister Officiated"
+                value={personnelData.minister_officiated}
+                isEditing={isEditing}
+              >
                 <Input
                   type="text"
                   name="minister_officiated"
@@ -1045,10 +1160,17 @@ const Step1 = ({
                   }
                   isDisabled={!isEditing}
                 />
-              </FormControl>
+              </InfoField>
 
-              <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">District First Registered</FormLabel>
+              <InfoField
+                label="District First Registered"
+                value={
+                  districts.find(
+                    (d) => String(d.id) === String(personnelData.district_first_registered)
+                  )?.name
+                }
+                isEditing={isEditing}
+              >
                 <Select
                   placeholder="Select District"
                   name="district_first_registered"
@@ -1077,10 +1199,17 @@ const Step1 = ({
                   isDisabled={!isEditing}
                   styles={{ container: (base) => ({ ...base, width: "100%" }) }}
                 />
-              </FormControl>
+              </InfoField>
 
-              <FormControl>
-                <FormLabel fontWeight="bold" color="#0a5856">Local First Registered</FormLabel>
+              <InfoField
+                label="Local First Registered"
+                value={
+                  localCongregations.find(
+                    (c) => String(c.id) === String(personnelData.local_first_registered)
+                  )?.name
+                }
+                isEditing={isEditing}
+              >
                 <Select
                   placeholder="Select Local Congregation"
                   name="local_first_registered"
@@ -1113,15 +1242,20 @@ const Step1 = ({
                   isClearable
                   styles={{ container: (base) => ({ ...base, width: "100%" }) }}
                 />
-              </FormControl>
+              </InfoField>
             </SimpleGrid>
           </Box>
 
           {/* Personnel Classification Section */}
           <Box mb={6} p={4} borderRadius="lg" bg="white" shadow="sm" border="1px" borderColor="gray.100">
 
-            <FormControl isRequired isInvalid={!!formErrors.personnel_type}>
-              <FormLabel fontWeight="bold" color="#0a5856">Personnel Type</FormLabel>
+            <InfoField
+              label="Personnel Type"
+              value={personnelData.personnel_type}
+              isEditing={isEditing}
+              isRequired
+              error={formErrors.personnel_type}
+            >
               <RadioGroup
                 name="personnel_type"
                 onChange={(value) => {
@@ -1145,8 +1279,7 @@ const Step1 = ({
                   ))}
                 </Stack>
               </RadioGroup>
-              <FormErrorMessage>{formErrors.personnel_type}</FormErrorMessage>
-            </FormControl>
+            </InfoField>
           </Box>
 
           {/* Conditional Fields Based on Personnel Type */}
@@ -1291,16 +1424,11 @@ const Step1 = ({
               personnelData.personnel_type
             ) && (
               <>
-                <Flex align="center" mb="3" width="100%">
-                  <Text
-                    fontWeight="bold"
-                    mr="4"
-                    minWidth="120px"
-                    whiteSpace="nowrap"
-                    color="#0a5856"
-                  >
-                    Assigned Number:
-                  </Text>
+                <InfoField
+                  label="Assigned Number"
+                  value={personnelData.assigned_number}
+                  isEditing={isEditing}
+                >
                   <Input
                     type="number"
                     placeholder="Enter Assigned Number"
@@ -1314,31 +1442,31 @@ const Step1 = ({
                         },
                       })
                     }
-                    width="calc(100% - 140px)" // Adjusted to fit next to label
+                    width="100%"
                     min="0"
-                    isDisabled={!isEditing} // Fields disabled if not editing
+                    isDisabled={!isEditing}
                   />
-                </Flex>
+                </InfoField>
 
-                {/* Ministerial Status */}
-                <Flex direction="column" mb="3" width="100%">
-                  <Text fontSize="md" fontWeight="bold" mb="1" color="#0a5856">
-                    Classification in Central Office:
-                  </Text>
+                <InfoField
+                  label="Classification in Central Office"
+                  value={personnelData.m_status}
+                  isEditing={isEditing}
+                >
                   <RadioGroup
                     name="m_status"
                     onChange={(value) =>
                       handleChange({ target: { name: "m_status", value } })
                     }
                     value={personnelData.m_status}
-                    isDisabled={!isEditing} // Fields disabled if not editing
+                    isDisabled={!isEditing}
                   >
                     <Stack direction="row" spacing={4} wrap="wrap">
                       <Radio value="May Destino">May Destino</Radio>
                       <Radio value="Fulltime">Fulltime</Radio>
                     </Stack>
                   </RadioGroup>
-                </Flex>
+                </InfoField>
 
                 {/* Conditional Rendering for District and Local Assignments */}
                 {personnelData.m_status === "May Destino" && (
@@ -1350,19 +1478,17 @@ const Step1 = ({
                     justify="space-between"
                   >
                     {/* District Assignment*/}
-                    <Box
-                      width={{ base: "100%", md: "48%" }}
-                      mb={{ base: "3", md: "0" }}
+                    <InfoField
+                      label="District Assignment"
+                      value={
+                        districts.find(
+                          (d) =>
+                            String(d.id) ===
+                            String(personnelData.district_assignment_id)
+                        )?.name
+                      }
+                      isEditing={isEditing}
                     >
-                      <Text
-                        fontWeight="bold"
-                        mb="2"
-                        minWidth="120px"
-                        whiteSpace="nowrap"
-                        color="#0a5856"
-                      >
-                        District Assignment:
-                      </Text>
                       <Select
                         placeholder="Select District"
                         name="district_assignment_id"
@@ -1395,21 +1521,22 @@ const Step1 = ({
                             width: "100%",
                           }),
                         }}
-                        isDisabled={!isEditing} // Fields disabled if not editing
+                        isDisabled={!isEditing}
                       />
-                    </Box>
+                    </InfoField>
 
                     {/* Local Congregation Assignment Dropdown */}
-                    <Box width={{ base: "100%", md: "48%" }}>
-                      <Text
-                        fontWeight="bold"
-                        mb="2"
-                        minWidth="120px"
-                        whiteSpace="nowrap"
-                        color="#0a5856"
-                      >
-                        Local Congregation Assignment:
-                      </Text>
+                    <InfoField
+                      label="Local Congregation Assignment"
+                      value={
+                        localCongregations.find(
+                          (c) =>
+                            String(c.id) ===
+                            String(personnelData.local_congregation_assignment)
+                        )?.name
+                      }
+                      isEditing={isEditing}
+                    >
                       <Select
                         placeholder="Select Local Congregation"
                         name="local_congregation_assignment"
@@ -1448,7 +1575,7 @@ const Step1 = ({
                           }),
                         }}
                       />
-                    </Box>
+                    </InfoField>
                   </Flex>
                 )}
               </>
@@ -1457,16 +1584,11 @@ const Step1 = ({
           {/* Panunumpa Date */}
           {personnelData.gender === "Male" &&
             ["Minister", "Regular"].includes(personnelData.personnel_type) && (
-              <Flex align="center" mb="3" width="100%">
-                <Text
-                  fontSize="md"
-                  fontWeight="bold"
-                  mr="4"
-                  width="250px"
-                  color="#0a5856"
-                >
-                  Date of Oath-taking as Worker:
-                </Text>
+              <InfoField
+                label="Date of Oath-taking as Worker"
+                value={personnelData.panunumpa_date}
+                isEditing={isEditing}
+              >
                 <Input
                   placeholder="Panunumpa Date"
                   name="panunumpa_date"
@@ -1477,25 +1599,20 @@ const Step1 = ({
                       target: { name: "panunumpa_date", value: e.target.value },
                     })
                   }
-                  width="calc(100% - 250px)" // Matches remaining width
-                  isDisabled={!isEditing} // Fields disabled if not editing
+                  width="100%"
+                  isDisabled={!isEditing}
                 />
-              </Flex>
+              </InfoField>
             )}
 
           {/* Ordination Date */}
           {personnelData.gender === "Male" &&
             personnelData.personnel_type === "Minister" && (
-              <Flex align="center" mb="3" width="100%">
-                <Text
-                  fontSize="md"
-                  fontWeight="bold"
-                  mr="4"
-                  width="250px"
-                  color="#0a5856"
-                >
-                  Date of Ordination:
-                </Text>
+              <InfoField
+                label="Date of Ordination"
+                value={personnelData.ordination_date}
+                isEditing={isEditing}
+              >
                 <Input
                   placeholder="Ordination Date"
                   name="ordination_date"
@@ -1509,10 +1626,10 @@ const Step1 = ({
                       },
                     })
                   }
-                  width="calc(100% - 250px)" // Matches remaining width
-                  isDisabled={!isEditing} // Fields disabled if not editing
+                  width="100%"
+                  isDisabled={!isEditing}
                 />
-              </Flex>
+              </InfoField>
             )}
         </Box>
       )

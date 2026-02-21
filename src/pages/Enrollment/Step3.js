@@ -33,6 +33,7 @@ import {
   deleteData,
 } from "../../utils/fetchData";
 import { getAuthHeaders } from "../../utils/apiHeaders";
+import InfoField from "./PreviewForm";
 
 const API_URL = process.env.REACT_APP_API_URL || "";
 const MAX_CERTIFICATE_SIZE_MB = 5;
@@ -102,140 +103,116 @@ const EducationItem = ({
           size="sm"
           mr={2}
         />
-        <IconButton
-          aria-label="Delete education entry"
-          icon={<DeleteIcon />}
-          colorScheme="red"
-          size="sm"
-          onClick={() => onRemoveEducation(idx)}
-        />
+        {edu.isEditing && (
+          <IconButton
+            aria-label="Delete education entry"
+            icon={<DeleteIcon />}
+            colorScheme="red"
+            size="sm"
+            onClick={() => onRemoveEducation(idx)}
+          />
+        )}
       </Box>
     </Flex>
     <Divider mb={4} />
     <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }} gap={4}>
       <GridItem>
-        <Text
-          fontWeight="bold"
-          mb="2"
-          minWidth="120px"
-          whiteSpace="nowrap"
-          color="#0a5856"
-        >
-          Educational Level:
-        </Text>
-        <Select
-          placeholder="Level"
+        <InfoField
+          label="Educational Level"
           value={edu.level}
-          isDisabled={!edu.isEditing}
-          onChange={(e) => onEducationChange(idx, "level", e.target.value)}
+          isEditing={edu.isEditing}
+          isRequired
         >
-          {educationalLevelOptions.map((level) => (
-            <option key={level} value={level}>
-              {level}
-            </option>
-          ))}
-        </Select>
-        {edu.isEditing && validation.levelError && (
-          <Text fontSize="xs" color="red.500" mt={1}>
-            Educational level is required.
-          </Text>
-        )}
+          <Select
+            placeholder="Level"
+            value={edu.level}
+            isDisabled={!edu.isEditing}
+            onChange={(e) => onEducationChange(idx, "level", e.target.value)}
+          >
+            {educationalLevelOptions.map((level) => (
+              <option key={level} value={level}>
+                {level}
+              </option>
+            ))}
+          </Select>
+        </InfoField>
       </GridItem>
       <GridItem>
-        <Text
-          fontWeight="bold"
-          mb="2"
-          minWidth="120px"
-          whiteSpace="nowrap"
-          color="#0a5856"
+        <InfoField
+          label="School"
+          value={edu.school}
+          isEditing={edu.isEditing}
+          isRequired
         >
-          School:
-        </Text>
-        <Input
-          placeholder="School"
-          value={edu.school || ""}
-          isDisabled={!edu.isEditing}
-          onChange={(e) => onEducationChange(idx, "school", e.target.value)}
-        />
-        {edu.isEditing && validation.schoolError && (
-          <Text fontSize="xs" color="red.500" mt={1}>
-            School is required.
-          </Text>
-        )}
+          <Input
+            placeholder="School"
+            value={edu.school || ""}
+            isDisabled={!edu.isEditing}
+            onChange={(e) => onEducationChange(idx, "school", e.target.value)}
+          />
+        </InfoField>
       </GridItem>
       <GridItem>
-        <Text
-          fontWeight="bold"
-          mb="2"
-          minWidth="120px"
-          whiteSpace="nowrap"
-          color="#0a5856"
+        <InfoField
+          label="Start Year"
+          value={edu.startfrom}
+          isEditing={edu.isEditing}
         >
-          Start Year:
-        </Text>
-        <Input
-          placeholder="Start Year"
-          type="number"
-          value={edu.startfrom || ""}
-          isDisabled={!edu.isEditing}
-          onChange={(e) => onEducationChange(idx, "startfrom", e.target.value)}
-        />
+          <Input
+            placeholder="Start Year"
+            type="number"
+            value={edu.startfrom || ""}
+            isDisabled={!edu.isEditing}
+            onChange={(e) => onEducationChange(idx, "startfrom", e.target.value)}
+          />
+        </InfoField>
       </GridItem>
       <GridItem>
-        <Text
-          fontWeight="bold"
-          mb="2"
-          minWidth="120px"
-          whiteSpace="nowrap"
-          color="#0a5856"
+        <InfoField
+          label="Completion Year"
+          value={edu.completion_year}
+          isEditing={edu.isEditing}
         >
-          Completion Year:
-        </Text>
-        <Input
-          placeholder="Completion Year"
-          type="number"
-          value={edu.completion_year || ""}
-          isDisabled={!edu.isEditing}
-          onChange={(e) =>
-            onEducationChange(idx, "completion_year", e.target.value)
-          }
-        />
+          <Input
+            placeholder="Completion Year"
+            type="number"
+            value={edu.completion_year || ""}
+            isDisabled={!edu.isEditing}
+            onChange={(e) =>
+              onEducationChange(idx, "completion_year", e.target.value)
+            }
+          />
+        </InfoField>
       </GridItem>
       <GridItem>
-        <Text
-          fontWeight="bold"
-          mb="2"
-          minWidth="120px"
-          whiteSpace="nowrap"
-          color="#0a5856"
+        <InfoField
+          label="Field Of Study"
+          value={edu.field_of_study}
+          isEditing={edu.isEditing}
         >
-          Field Of Study:
-        </Text>
-        <Input
-          placeholder="Field of Study"
-          value={edu.field_of_study || ""}
-          isDisabled={isHigherEducationDetailsDisabled(edu)}
-          onChange={(e) =>
-            onEducationChange(idx, "field_of_study", e.target.value)
-          }
-        />
+          <Input
+            placeholder="Field of Study"
+            value={edu.field_of_study || ""}
+            isDisabled={isHigherEducationDetailsDisabled(edu)}
+            onChange={(e) =>
+              onEducationChange(idx, "field_of_study", e.target.value)
+            }
+          />
+        </InfoField>
       </GridItem>
       <GridItem>
-        <Text
-          fontWeight="bold"
-          mb="2"
-          minWidth="120px"
-          whiteSpace="nowrap"
-          color="#0a5856"
+        <InfoField
+          label="Degree"
+          value={edu.degree}
+          isEditing={edu.isEditing}
         >
-          Degree:
-        </Text>
-        <Input
-          placeholder="Degree"
-          value={edu.degree || ""}
-          isDisabled={isHigherEducationDetailsDisabled(edu)}
-          onChange={(e) => onEducationChange(idx, "degree", e.target.value)}
-        />
+          <Input
+            placeholder="Degree"
+            value={edu.degree || ""}
+            isDisabled={isHigherEducationDetailsDisabled(edu)}
+            onChange={(e) => onEducationChange(idx, "degree", e.target.value)}
+          />
+        </InfoField>
       </GridItem>
       <GridItem display="none">
         <Text
@@ -255,27 +232,24 @@ const EducationItem = ({
         />
       </GridItem>
       <GridItem>
-        <Text
-          fontWeight="bold"
-          mb="2"
-          minWidth="120px"
-          whiteSpace="nowrap"
-          color="#0a5856"
+        <InfoField
+          label="Professional Licensure"
+          value={edu.professional_licensure_examination}
+          isEditing={edu.isEditing}
         >
-          Professional Licensure:
-        </Text>
-        <Input
-          placeholder="Professional Licensure"
-          value={edu.professional_licensure_examination || ""}
-          isDisabled={isHigherEducationDetailsDisabled(edu)}
-          onChange={(e) =>
-            onEducationChange(
-              idx,
-              "professional_licensure_examination",
-              e.target.value
-            )
-          }
-        />
+          <Input
+            placeholder="Professional Licensure"
+            value={edu.professional_licensure_examination || ""}
+            isDisabled={isHigherEducationDetailsDisabled(edu)}
+            onChange={(e) =>
+              onEducationChange(
+                idx,
+                "professional_licensure_examination",
+                e.target.value
+              )
+            }
+          />
+        </InfoField>
       </GridItem>
       {isCertificateUploadAllowed(edu.level) && (
         <GridItem colSpan={{ base: 1, md: 2, lg: 4 }}>
@@ -1047,91 +1021,84 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
                   size="sm"
                   mr={2}
                 />
-                <IconButton
-                  icon={<DeleteIcon />}
-                  colorScheme="red"
-                  size="sm"
-                  onClick={() =>
-                    setDeleteDialog({
-                      isOpen: true,
-                      type: "work",
-                      index: idx,
-                    })
-                  }
-                />
+                {work.isEditing && (
+                  <IconButton
+                    icon={<DeleteIcon />}
+                    colorScheme="red"
+                    size="sm"
+                    onClick={() =>
+                      setDeleteDialog({
+                        isOpen: true,
+                        type: "work",
+                        index: idx,
+                      })
+                    }
+                  />
+                )}
               </Box>
             </Flex>
             <Divider mb={4} />
             <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }} gap={4}>
               <GridItem>
-                <Text
-                  fontWeight="bold"
-                  mb="2"
-                  minWidth="120px"
-                  whiteSpace="nowrap"
-                  color="#0a5856"
-                >
-                  Employment Type:
-                </Text>
-                <Select
-                  placeholder="Employment Type"
+                <InfoField
+                  label="Employment Type"
                   value={work.employment_type}
-                  isDisabled={!work.isEditing}
-                  onChange={(e) =>
-                    handleWorkExperienceChange(
-                      idx,
-                      "employment_type",
-                      e.target.value
-                    )
-                  }
+                  isEditing={work.isEditing}
                 >
-                  {employmentTypeOptions.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </Select>
+                  <Select
+                    placeholder="Employment Type"
+                    value={work.employment_type}
+                    isDisabled={!work.isEditing}
+                    onChange={(e) =>
+                      handleWorkExperienceChange(
+                        idx,
+                        "employment_type",
+                        e.target.value
+                      )
+                    }
+                  >
+                    {employmentTypeOptions.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </Select>
+                </InfoField>
               </GridItem>
               <GridItem>
-                <Text
-                  fontWeight="bold"
-                  mb="2"
-                  minWidth="120px"
-                  whiteSpace="nowrap"
-                  color="#0a5856"
+                <InfoField
+                  label="Company"
+                  value={work.company}
+                  isEditing={work.isEditing}
                 >
-                  Company:
-                </Text>
-                <Input
-                  placeholder="Company"
-                  value={work.company || ""}
-                  isDisabled={
-                    !work.isEditing ||
-                    ["Volunteer/Kawani"].includes(work.employment_type)
-                  } // Disable if employment_type is Volunteer or Kawani
-                  onChange={(e) =>
-                    handleWorkExperienceChange(idx, "company", e.target.value)
-                  }
-                />
+                  <Input
+                    placeholder="Company"
+                    value={work.company || ""}
+                    isDisabled={
+                      !work.isEditing ||
+                      ["Volunteer/Kawani"].includes(work.employment_type)
+                    } // Disable if employment_type is Volunteer or Kawani
+                    onChange={(e) =>
+                      handleWorkExperienceChange(idx, "company", e.target.value)
+                    }
+                  />
+                </InfoField>
               </GridItem>
               <GridItem>
-                <Text
-                  fontWeight="bold"
-                  mb="2"
-                  minWidth="120px"
-                  whiteSpace="nowrap"
-                  color="#0a5856"
+                <InfoField
+                  label="Company Address"
+                  value={work.address}
+                  isEditing={work.isEditing}
                 >
-                  Company Address:
-                </Text>
-                <Textarea rows={3}
-                  placeholder="Company Address (Unit/Street, Brgy, City, Province)"
-                  value={work.address || ""}
-                  isDisabled={!work.isEditing}
-                  onChange={(e) =>
-                    handleWorkExperienceChange(idx, "address", e.target.value)
-                  }
-                />
+                  <Textarea rows={3}
+                    placeholder="Company Address (Unit/Street, Brgy, City, Province)"
+                    value={work.address || ""}
+                    isDisabled={!work.isEditing}
+                    onChange={(e) =>
+                      handleWorkExperienceChange(idx, "address", e.target.value)
+                    }
+                  />
+                </InfoField>
               </GridItem>
               <GridItem display="none">
                 <Text
@@ -1191,84 +1158,72 @@ const Step3 = ({ employmentTypeOptions, educationalLevelOptions }) => {
                 />
               </GridItem>
               <GridItem>
-                <Text
-                  fontWeight="bold"
-                  mb="2"
-                  minWidth="120px"
-                  whiteSpace="nowrap"
-                  color="#0a5856"
+                <InfoField
+                  label="Brief Description of Responsibilities"
+                  value={work.position}
+                  isEditing={work.isEditing}
                 >
-                  Brief Description of Responsibilities:
-                </Text>
-                <Textarea
-                  placeholder="Enter description..."
-                  value={work.position || ""}
-                  isDisabled={!work.isEditing}
-                  onChange={(e) =>
-                    handleWorkExperienceChange(idx, "position", e.target.value)
-                  }
-                />
+                  <Textarea
+                    placeholder="Enter description..."
+                    value={work.position || ""}
+                    isDisabled={!work.isEditing}
+                    onChange={(e) =>
+                      handleWorkExperienceChange(idx, "position", e.target.value)
+                    }
+                  />
+                </InfoField>
               </GridItem>
               <GridItem>
-                <Text
-                  fontWeight="bold"
-                  mb="2"
-                  minWidth="120px"
-                  whiteSpace="nowrap"
-                  color="#0a5856"
+                <InfoField
+                  label="Start Date"
+                  value={work.start_date}
+                  isEditing={work.isEditing}
                 >
-                  Start Date:
-                </Text>
-                <Input
-                  type="date"
-                  value={work.start_date || ""}
-                  isDisabled={!work.isEditing}
-                  onChange={(e) =>
-                    handleWorkExperienceChange(idx, "start_date", e.target.value)
-                  }
-                />
+                  <Input
+                    type="date"
+                    value={work.start_date || ""}
+                    isDisabled={!work.isEditing}
+                    onChange={(e) =>
+                      handleWorkExperienceChange(idx, "start_date", e.target.value)
+                    }
+                  />
+                </InfoField>
               </GridItem>
               <GridItem>
-                <Text
-                  fontWeight="bold"
-                  mb="2"
-                  minWidth="120px"
-                  whiteSpace="nowrap"
-                  color="#0a5856"
+                <InfoField
+                  label="End Date"
+                  value={work.end_date}
+                  isEditing={work.isEditing}
                 >
-                  End Date:
-                </Text>
-                <Input
-                  type="date"
-                  value={work.end_date || ""}
-                  isDisabled={!work.isEditing}
-                  onChange={(e) =>
-                    handleWorkExperienceChange(idx, "end_date", e.target.value)
-                  }
-                />
+                  <Input
+                    type="date"
+                    value={work.end_date || ""}
+                    isDisabled={!work.isEditing}
+                    onChange={(e) =>
+                      handleWorkExperienceChange(idx, "end_date", e.target.value)
+                    }
+                  />
+                </InfoField>
               </GridItem>
               <GridItem>
-                <Text
-                  fontWeight="bold"
-                  mb="2"
-                  minWidth="120px"
-                  whiteSpace="nowrap"
-                  color="#0a5856"
+                <InfoField
+                  label="Reason for Leaving"
+                  value={work.reason_for_leaving}
+                  isEditing={work.isEditing}
                 >
-                  Reason for Leaving:
-                </Text>
-                <Input
-                  placeholder="Reason for Leaving"
-                  value={work.reason_for_leaving || ""}
-                  isDisabled={!work.isEditing}
-                  onChange={(e) =>
-                    handleWorkExperienceChange(
-                      idx,
-                      "reason_for_leaving",
-                      e.target.value
-                    )
-                  }
-                />
+                  <Input
+                    placeholder="Reason for Leaving"
+                    value={work.reason_for_leaving || ""}
+                    isDisabled={!work.isEditing}
+                    onChange={(e) =>
+                      handleWorkExperienceChange(
+                        idx,
+                        "reason_for_leaving",
+                        e.target.value
+                      )
+                    }
+                  />
+                </InfoField>
               </GridItem>
             </Grid>
 

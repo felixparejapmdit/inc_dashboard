@@ -85,6 +85,8 @@ const Suguan = () => {
   const [loading, setLoading] = useState(true);
   const [currentWeek, setCurrentWeek] = useState(moment().startOf("isoWeek"));
   const [searchQuery, setSearchQuery] = useState("");
+  const [sections, setSections] = useState([]);
+  const [selectedSection, setSelectedSection] = useState("");
 
   // Form State
   const [name, setName] = useState("");
@@ -131,6 +133,7 @@ const Suguan = () => {
         fetchData("districts", setDistricts, null, null, null, null, DISTRICT_API_URL),
         fetchData("all-congregations", setLocalCongregations, null, null, null, null, LOCAL_CONGREGATION_API_URL),
         fetchData("personnels", setPersonnels),
+        fetchData("sections", setSections),
         fetchSuguan()
       ]);
     } catch (error) {
@@ -293,8 +296,12 @@ const Suguan = () => {
         item.local_congregation.toLowerCase().includes(q)
       );
     }
+    if (selectedSection) {
+      result = result.filter(item => String(item.section_id) === String(selectedSection));
+    }
+
     return result;
-  }, [suguan, currentWeek, searchQuery]);
+  }, [suguan, currentWeek, searchQuery, selectedSection]);
 
   const stats = {
     total: filteredSuguan.length,
@@ -366,6 +373,15 @@ const Suguan = () => {
           </VStack>
 
           <HStack spacing={3}>
+            <Box minW="220px">
+              <ReactSelect
+                options={sections.map(s => ({ value: s.id, label: s.name }))}
+                onChange={(opt) => setSelectedSection(opt ? opt.value : "")}
+                placeholder="Filter by Section"
+                styles={customSelectStyles}
+                isClearable
+              />
+            </Box>
             <Button
               leftIcon={<Download size={18} />}
               variant="outline"

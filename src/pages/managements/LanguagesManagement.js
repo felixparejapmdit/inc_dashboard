@@ -289,12 +289,12 @@ const LanguagesManagement = () => {
           ) : (
             <>
               <Box overflowX="auto">
-                <Table variant="simple">
+                <Table variant="simple" style={{ tableLayout: "fixed" }}>
                   <Thead bg="gray.50">
                     <Tr>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Language Name</Th>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Primary Country</Th>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest" textAlign="right">Actions</Th>
+                      <Th p={6} width="45%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Language Name</Th>
+                      <Th p={6} width="40%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Primary Country</Th>
+                      <Th p={6} width="15%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest" textAlign="right">Actions</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
@@ -310,18 +310,18 @@ const LanguagesManagement = () => {
                           _hover={{ bg: "blue.50/30" }}
                         >
                           <Td p={6}>
-                            <HStack spacing={4}>
-                              <Avatar size="sm" name={item.name} bg="blue.500" color="white" fontWeight="bold" />
-                              <VStack align="start" spacing={0}>
-                                <Text fontWeight="black" color="gray.800" fontSize="md">{item.name}</Text>
-                                <Text fontSize="xs" color="gray.400" fontWeight="bold">Linguistics Ref: {item.id}</Text>
+                            <HStack spacing={4} overflow="hidden">
+                              <Avatar size="sm" name={item.name} bg="blue.500" color="white" fontWeight="bold" flexShrink={0} />
+                              <VStack align="start" spacing={0} overflow="hidden">
+                                <Text fontWeight="black" color="gray.800" fontSize="md" isTruncated w="full">{item.name}</Text>
+                                <Text fontSize="xs" color="gray.400" fontWeight="bold" isTruncated w="full">Linguistics Ref: {item.id}</Text>
                               </VStack>
                             </HStack>
                           </Td>
                           <Td p={6}>
-                            <HStack spacing={2}>
-                              <Icon as={MessageSquare} size={14} color="gray.400" />
-                              <Text fontWeight="medium" color="gray.600">{item.country_name}</Text>
+                            <HStack spacing={2} overflow="hidden">
+                              <Icon as={MessageSquare} size={14} color="gray.400" flexShrink={0} />
+                              <Text fontWeight="medium" color="gray.600" isTruncated w="full">{item.country_name}</Text>
                             </HStack>
                           </Td>
                           <Td p={6} textAlign="right">

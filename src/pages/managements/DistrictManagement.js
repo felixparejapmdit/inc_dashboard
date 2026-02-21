@@ -307,12 +307,12 @@ const DistrictManagement = () => {
           ) : (
             <>
               <Box overflowX="auto">
-                <Table variant="simple">
+                <Table variant="simple" style={{ tableLayout: "fixed" }}>
                   <Thead bg="gray.50">
                     <Tr>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">District Name</Th>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Code / ID</Th>
-                      <Th p={6} color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest" textAlign="right">Actions</Th>
+                      <Th p={6} width="60%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">District Name</Th>
+                      <Th p={6} width="25%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Code / ID</Th>
+                      <Th p={6} width="15%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest" textAlign="right">Actions</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
@@ -328,9 +328,9 @@ const DistrictManagement = () => {
                           _hover={{ bg: "green.50/30" }}
                         >
                           <Td p={6}>
-                            <HStack spacing={4}>
-                              <Avatar size="sm" name={item.name} bg="green.500" color="white" fontWeight="bold" />
-                              <Text fontWeight="black" color="gray.800" fontSize="md">{item.name}</Text>
+                            <HStack spacing={4} overflow="hidden">
+                              <Avatar size="sm" name={item.name} bg="green.500" color="white" fontWeight="bold" flexShrink={0} />
+                              <Text fontWeight="black" color="gray.800" fontSize="md" isTruncated>{item.name}</Text>
                             </HStack>
                           </Td>
                           <Td p={6}>

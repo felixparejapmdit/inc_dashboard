@@ -242,9 +242,9 @@ export default function Dashboard({ isSidebarExpanded }) {
       // Use a single threshold with a buffer to prevent flickering
       // Switch to compact if > 80px, switch back if < 30px
       if (scrollTop > 80) {
-        setCompactGreeting(true);
+        setCompactGreeting((prev) => (prev !== true ? true : prev));
       } else if (scrollTop < 30) {
-        setCompactGreeting(false);
+        setCompactGreeting((prev) => (prev !== false ? false : prev));
       }
     };
 
@@ -632,7 +632,9 @@ export default function Dashboard({ isSidebarExpanded }) {
                 display="flex"
                 flexDirection="column"
                 justifyContent="center"
-                minH={compactGreeting ? "48px" : "auto"}
+                minH={compactGreeting ? "60px" : "150px"}
+                transition="all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
+                willChange="min-height, padding"
               >
                 <AnimatePresence mode="wait">
                   {!compactGreeting && (
