@@ -71,6 +71,7 @@ import {
     postData,
     deleteData,
     putFileData,
+    clearFetchCache,
 } from "../../utils/fetchData";
 
 const FileManagement = ({ qrcode }) => {
@@ -98,7 +99,6 @@ const FileManagement = ({ qrcode }) => {
     const [selectedQrUrl, setSelectedQrUrl] = useState(null);
     const [selectedGeneratedCode, setSelectedGeneratedCode] = useState("");
     const [isVIP, setIsVIP] = useState(false);
-    const [viewMode, setViewMode] = useState("table"); // 'table' or 'grid'
 
     const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
     const { isOpen: isShareModalOpen, onOpen: onShareModalOpen, onClose: onShareModalClose } = useDisclosure();
@@ -352,7 +352,8 @@ const FileManagement = ({ qrcode }) => {
 
             await postData("add-file", formData, "Failed to upload file.");
 
-            fetchFilesByUserId(user_id);
+            clearFetchCache();
+            await fetchFilesByUserId(user_id);
             setNewFile({
                 filename: "",
                 url: "",
@@ -388,7 +389,8 @@ const FileManagement = ({ qrcode }) => {
         try {
             await putFileData("file-management", editingFile.id, updatedEditingFile);
 
-            fetchFilesByUserId(user_id);
+            clearFetchCache();
+            await fetchFilesByUserId(user_id);
             setEditingFile(null);
             onModalClose();
             toast({ title: "File updated successfully!", status: "success", duration: 3000 });
@@ -407,7 +409,10 @@ const FileManagement = ({ qrcode }) => {
 
         try {
             await deleteData("file-management", deletingFile.id);
-            fetchFilesByUserId(currentUserId);
+
+            clearFetchCache();
+            await fetchFilesByUserId(currentUserId);
+
             toast({
                 title: "File deleted successfully!",
                 status: "success",
@@ -563,69 +568,52 @@ const FileManagement = ({ qrcode }) => {
                         borderRadius="lg"
                         boxShadow="sm"
                     >
-                        <InputGroup maxW={{ base: "100%", md: "350px" }}>
-                            <InputLeftElement pointerEvents="none">
-                                <SearchIcon color="gray.400" />
-                            </InputLeftElement>
-                            <Input
-                                placeholder="Search files, codes, or URLs..."
-                                value={searchQuery}
-                                onChange={(e) => {
-                                    setSearchQuery(e.target.value);
-                                    setCurrentPage(1);
-                                }}
-                                borderRadius="full"
-                                bg="gray.50"
-                                _focus={{ bg: "white", borderColor: "orange.400" }}
-                            />
-                        </InputGroup>
+                        {/* Grouped Search and Filter */}
+                        <Flex
+                            flex={1}
+                            gap={2}
+                            direction={{ base: "column", md: "row" }}
+                            align={{ base: "stretch", md: "center" }}
+                            maxW={{ base: "100%", md: "600px" }}
+                        >
+                            <InputGroup flex={1}>
+                                <InputLeftElement pointerEvents="none">
+                                    <SearchIcon color="gray.400" />
+                                </InputLeftElement>
+                                <Input
+                                    placeholder="Search files, codes, or URLs..."
+                                    value={searchQuery}
+                                    onChange={(e) => {
+                                        setSearchQuery(e.target.value);
+                                        setCurrentPage(1);
+                                    }}
+                                    borderRadius="full"
+                                    bg="gray.50"
+                                    _focus={{ bg: "white", borderColor: "orange.400" }}
+                                />
+                            </InputGroup>
 
-                        <InputGroup maxW={{ base: "100%", md: "350px" }}>
-                            <Select
-                                placeholder="Filter by sender"
-                                value={senderQuery}
-                                onChange={(e) => {
-                                    setSenderQuery(e.target.value);
-                                    setCurrentPage(1);
-                                }}
-                                borderRadius="full"
-                                bg="gray.50"
-                                _focus={{ bg: "white", borderColor: "orange.400" }}
-                                icon={<Icon as={FiUser} color="gray.400" />}
-                            >
-                                {uniqueSenders.map((sender, index) => (
-                                    <option key={index} value={sender}>{sender}</option>
-                                ))}
-                            </Select>
-                        </InputGroup>
+                            <InputGroup flex={{ base: 1, md: "0.6" }}>
+                                <Select
+                                    placeholder="Filter by sender"
+                                    value={senderQuery}
+                                    onChange={(e) => {
+                                        setSenderQuery(e.target.value);
+                                        setCurrentPage(1);
+                                    }}
+                                    borderRadius="full"
+                                    bg="gray.50"
+                                    _focus={{ bg: "white", borderColor: "orange.400" }}
+                                >
+                                    {uniqueSenders.map((sender, index) => (
+                                        <option key={index} value={sender}>{sender}</option>
+                                    ))}
+                                </Select>
+                            </InputGroup>
+                        </Flex>
 
                         <HStack spacing={3}>
-                            {/* View Mode Toggle */}
-                            <HStack
-                                bg="gray.100"
-                                borderRadius="full"
-                                p={1}
-                                display={{ base: "none", md: "flex" }}
-                            >
-                                <IconButton
-                                    icon={<ViewIcon />}
-                                    size="sm"
-                                    borderRadius="full"
-                                    colorScheme={viewMode === "table" ? "orange" : "gray"}
-                                    variant={viewMode === "table" ? "solid" : "ghost"}
-                                    onClick={() => setViewMode("table")}
-                                    aria-label="Table view"
-                                />
-                                <IconButton
-                                    icon={<FaQrcode />}
-                                    size="sm"
-                                    borderRadius="full"
-                                    colorScheme={viewMode === "grid" ? "orange" : "gray"}
-                                    variant={viewMode === "grid" ? "solid" : "ghost"}
-                                    onClick={() => setViewMode("grid")}
-                                    aria-label="Grid view"
-                                />
-                            </HStack>
+                            {/* View Mode Toggle Removed */}
 
                             {hasPermission("link.newfile") && (
                                 <Button
@@ -722,167 +710,6 @@ const FileManagement = ({ qrcode }) => {
                                 </VStack>
                             </CardBody>
                         </Card>
-                    ) : viewMode === "grid" ? (
-                        /* Grid View */
-                        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={4}>
-                            {filteredFiles.map((file, index) => (
-                                <Card
-                                    key={`${file.id}-${index}`}
-                                    overflow="hidden"
-                                    _hover={{ transform: "translateY(-4px)", boxShadow: "xl" }}
-                                    transition="all 0.3s"
-                                >
-                                    <CardHeader bg="orange.50" pb={3}>
-                                        <Flex justify="space-between" align="start">
-                                            <VStack align="start" spacing={1} flex={1}>
-                                                <Heading size="sm" noOfLines={1}>
-                                                    {file.filename}
-                                                </Heading>
-                                                <Badge colorScheme={file.user_id === currentUserId ? "orange" : "blue"}>
-                                                    {file.user_id === currentUserId ? "My File" : "Shared"}
-                                                </Badge>
-                                            </VStack>
-                                            {hasPermission("link.action") && file.user_id === currentUserId && (
-                                                <Menu>
-                                                    <MenuButton
-                                                        as={IconButton}
-                                                        icon={<FaEllipsisV />}
-                                                        variant="ghost"
-                                                        size="sm"
-                                                    />
-                                                    <MenuList>
-                                                        <MenuItem
-                                                            icon={<EditIcon />}
-                                                            onClick={() => {
-                                                                setEditingFile(file);
-                                                                onModalOpen();
-                                                            }}
-                                                        >
-                                                            Edit
-                                                        </MenuItem>
-                                                        <MenuItem
-                                                            icon={<FaShareAlt />}
-                                                            onClick={() => {
-                                                                setSelectedFile(file);
-                                                                fetchAlreadySharedUserIds(file);
-                                                                onShareModalOpen();
-                                                            }}
-                                                        >
-                                                            Share
-                                                        </MenuItem>
-                                                        <MenuItem
-                                                            icon={<DeleteIcon />}
-                                                            color="red.500"
-                                                            onClick={() => {
-                                                                setDeletingFile(file);
-                                                                onDeleteAlertOpen();
-                                                            }}
-                                                        >
-                                                            Delete
-                                                        </MenuItem>
-                                                    </MenuList>
-                                                </Menu>
-                                            )}
-                                        </Flex>
-                                    </CardHeader>
-                                    <CardBody>
-                                        <VStack spacing={4}>
-                                            {/* QR Code */}
-                                            <Box
-                                                p={3}
-                                                bg="white"
-                                                borderRadius="md"
-                                                border="2px"
-                                                borderColor="gray.200"
-                                                cursor="pointer"
-                                                onClick={() => {
-                                                    setSelectedQrUrl(file.url);
-                                                    setSelectedGeneratedCode(file.generated_code);
-                                                    onModalPreviewOpen();
-                                                }}
-                                                _hover={{ borderColor: "orange.400" }}
-                                                transition="all 0.2s"
-                                            >
-                                                <QRCodeCanvas
-                                                    value={file.url}
-                                                    size={120}
-                                                    bgColor="transparent"
-                                                    fgColor="#000000"
-                                                    level="H"
-                                                />
-                                                <Text
-                                                    mt={2}
-                                                    fontSize="sm"
-                                                    fontWeight="bold"
-                                                    textAlign="center"
-                                                    color="gray.700"
-                                                >
-                                                    {file.generated_code}
-                                                </Text>
-                                            </Box>
-
-                                            {/* File Info */}
-                                            <VStack spacing={2} w="100%" align="stretch">
-                                                <HStack justify="space-between">
-                                                    <Text fontSize="xs" color="gray.500">
-                                                        Created
-                                                    </Text>
-                                                    <Text fontSize="xs" fontWeight="medium">
-                                                        {new Date(file.created_at).toLocaleDateString()}
-                                                    </Text>
-                                                </HStack>
-                                                <HStack justify="space-between">
-                                                    <Text fontSize="xs" color="gray.500">
-                                                        Sender
-                                                    </Text>
-                                                    <Text fontSize="xs" fontWeight="medium" noOfLines={1}>
-                                                        {file.user?.personnel
-                                                            ? `${file.user.personnel.givenname || ""} ${file.user.personnel.surname_husband || ""
-                                                            }`
-                                                            : "N/A"}
-                                                    </Text>
-                                                </HStack>
-                                            </VStack>
-
-                                            {/* Actions */}
-                                            <HStack w="100%" spacing={2}>
-                                                <Tooltip label="Copy Link">
-                                                    <IconButton
-                                                        icon={<CopyIcon />}
-                                                        size="sm"
-                                                        flex={1}
-                                                        colorScheme="gray"
-                                                        onClick={() => copyToClipboard(file.url)}
-                                                    />
-                                                </Tooltip>
-                                                <Tooltip label="Download QR">
-                                                    <IconButton
-                                                        icon={<DownloadIcon />}
-                                                        size="sm"
-                                                        flex={1}
-                                                        colorScheme="green"
-                                                        onClick={() =>
-                                                            downloadQRCode(file.url, file.generated_code)
-                                                        }
-                                                    />
-                                                </Tooltip>
-                                                <Tooltip label="Open Link">
-                                                    <IconButton
-                                                        as="a"
-                                                        href={file.url}
-                                                        target="_blank"
-                                                        icon={<LinkIcon />}
-                                                        size="sm"
-                                                        flex={1}
-                                                        colorScheme="blue"
-                                                    />
-                                                </Tooltip>
-                                            </HStack>
-                                        </VStack>
-                                    </CardBody>
-                                </Card>
-                            ))}
-                        </SimpleGrid>
                     ) : (
                         /* Table View */
                         <Card>
@@ -1000,7 +827,7 @@ const FileManagement = ({ qrcode }) => {
                                                 </Td>
                                                 <Td display={{ base: "none", lg: "table-cell" }}>
                                                     <Text fontSize="sm">
-                                                        {new Date(file.created_at).toLocaleDateString()}
+                                                        {new Date(file.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                                                     </Text>
                                                 </Td>
                                                 {hasPermission("link.action") &&
@@ -1063,7 +890,7 @@ const FileManagement = ({ qrcode }) => {
                     {/* Pagination */}
                     {filteredFiles.length > 0 && (
                         <Flex
-                            justify="space-between"
+                            justify="center"
                             align="center"
                             bg="white"
                             p={4}
@@ -1078,10 +905,10 @@ const FileManagement = ({ qrcode }) => {
                                 variant="outline"
                                 colorScheme="orange"
                             >
-                                Previous
+                                Prev
                             </Button>
 
-                            <HStack spacing={2}>
+                            <HStack spacing={2} px={6}>
                                 <Text fontSize={{ base: "sm", md: "md" }} fontWeight="medium">
                                     Page {currentPage} of {totalPages}
                                 </Text>
