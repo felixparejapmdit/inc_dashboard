@@ -24,6 +24,36 @@ axios.interceptors.response.use(
   }
 );
 
+const FETCH_CACHE_TTL_MS = 30 * 1000;
+const fetchCache = new Map();
+
+const applySetterForResponse = (endpoint, setter, onError, data) => {
+  if (!setter || typeof setter !== "function") return;
+
+  if (data?.success) {
+    setter(data.data);
+    return;
+  }
+
+  if (Array.isArray(data)) {
+    setter(data);
+    return;
+  }
+
+  if (typeof data === "object" && data !== null) {
+    setter(data);
+    return;
+  }
+
+  console.warn(`Unexpected response format for ${endpoint}:`, data);
+  setter([]);
+  if (onError) onError("Unexpected response format.");
+};
+
+export const clearFetchCache = () => {
+  fetchCache.clear();
+};
+
 /**
  * Reusable GET data function
  * @param {string} endpoint - API endpoint (e.g., "users")
@@ -57,25 +87,44 @@ export const fetchData = async (
       url += `?${queryString}`;
     }
 
-    const response = await axios.get(url, {
-      headers: getAuthHeaders(),
-    });
+    const now = Date.now();
+    let data;
 
-    const data = response.data;
+    const cached = fetchCache.get(url);
+    if (cached?.data && now - cached.timestamp < FETCH_CACHE_TTL_MS) {
+      data = cached.data;
+    } else {
+      if (cached && !cached.promise) {
+        fetchCache.delete(url);
+      }
 
-    if (setter && typeof setter === "function") {
-      if (data.success) {
-        setter(data.data);
-      } else if (Array.isArray(data)) {
-        setter(data);
-      } else if (typeof data === "object" && data !== null) {
-        setter(data);
+      if (cached?.promise) {
+        data = await cached.promise;
       } else {
-        console.warn(`Unexpected response format for ${endpoint}:`, data);
-        setter([]);
-        if (onError) onError("Unexpected response format.");
+        const requestPromise = axios
+          .get(url, { headers: getAuthHeaders() })
+          .then((response) => {
+            fetchCache.set(url, {
+              data: response.data,
+              timestamp: Date.now(),
+            });
+            return response.data;
+          })
+          .catch((error) => {
+            fetchCache.delete(url);
+            throw error;
+          });
+
+        fetchCache.set(url, {
+          promise: requestPromise,
+          timestamp: now,
+        });
+
+        data = await requestPromise;
       }
     }
+
+    applySetterForResponse(endpoint, setter, onError, data);
 
     // Return the data for optional use
     return data.success ? data.data : data;

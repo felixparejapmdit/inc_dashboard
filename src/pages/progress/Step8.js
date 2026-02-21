@@ -72,7 +72,7 @@ const Step8 = ({ onScanComplete }) => {
   const [isCheckboxChecked, setIsCheckboxChecked] = useState(false);
   const [rfidInput, setRfidInput] = useState("");
   const { hasPermission } = usePermissionContext(); // Correct usage
-  const userGroupName = localStorage.getItem("userGroupName");
+  const userGroupName = localStorage.getItem("groupName");
   const isAdmin = userGroupName === "Admin"; // Check if user is Admin
 
   const { isOpen, onOpen, onClose } = useDisclosure();

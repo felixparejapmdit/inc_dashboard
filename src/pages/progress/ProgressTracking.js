@@ -151,7 +151,7 @@ const ProgressTracking = () => {
 
   const { hasPermission } = usePermissionContext();
   // Check if user is in "Admin" group OR has superuser permission
-  const userGroup = localStorage.getItem("userGroupName");
+  const userGroup = localStorage.getItem("groupName");
   const isAdmin = userGroup === "Admin" || hasPermission("*");
 
   const [viewMode, setViewMode] = useState("list"); // 'grid' | 'list'

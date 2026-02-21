@@ -137,7 +137,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
   const hasUnsavedChanges = () => {
     switch (step) {
       case 1:
-        return isEditing;
+        return isEditing && !!personnelId;
       case 2:
         return (
           contacts.some((c) => c.isEditing && isMemberModified(c)) ||
@@ -2019,7 +2019,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
           civilStatusOptions={civilStatusOptions}
           bloodtypes={bloodtypes}
           isEditing={isEditing} // ✅ Pass isEditing as a prop
-          toggleEdit={() => setIsEditing(!isEditing)} // Pass down toggle handler
+          toggleEdit={toggleEdit} // Pass down toggle handler
           dutiesToDelete={dutiesToDelete} // 🔥 ADD THIS
           setDutiesToDelete={setDutiesToDelete} // 🔥 ADD THIS
           formErrors={formErrors} // ✅ Pass formErrors
