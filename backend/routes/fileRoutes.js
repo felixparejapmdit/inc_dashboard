@@ -40,7 +40,7 @@ router.post(
 
 // PUT: Update File
 router.put(
-  "/file-management/:id",
+  "/api/file-management/:id",
   upload.single("thumbnail"),
   verifyToken,
   fileController.updateFile

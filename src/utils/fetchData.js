@@ -559,7 +559,7 @@ export const putFileData = async (
   errorMsg = "Failed to update data."
 ) => {
   try {
-    let url = `${API_URL}/${endpoint}`;
+    let url = `${API_URL}/api/${endpoint}`;
     let payload = {};
     let isMultipart = false;
 
