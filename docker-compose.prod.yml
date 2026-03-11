@@ -4,6 +4,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: inc_backend_prod
+    image: inc_backend_prod:latest
     env_file:
       - .env.docker
     environment:
