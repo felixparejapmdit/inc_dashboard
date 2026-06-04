@@ -111,6 +111,7 @@ const faceRecognitionRoutes = require("./routes/faceRecognition");
 const uploadLocalRoute = require('./routes/uploadLocal');
 
 const proxySnipeitRoutes = require("./routes/proxySnipeitRoutes");
+const darRoutes = require("./routes/darRoutes");
 
 // app.use(express.json()); // Removed to allow larger limits below
 
@@ -200,6 +201,7 @@ app.use(require("./routes/newsRoutes"));
 app.use("/api/news", require("./routes/proxyNews"));
 app.use(phoneDirectoryRoutes);
 app.use("/api", proxySnipeitRoutes);
+app.use(darRoutes);
 
 // Ensure upload folder exists
 const uploadDir = path.join(__dirname, "uploads/avatar");

@@ -264,7 +264,7 @@ const InventoryDashboard = () => {
             </Text>
           </CardHeader>
           <CardBody>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={320}>
               <BarChart
                 data={teamData}
                 margin={{ top: 20, right: 20, left: -20, bottom: 10 }}
@@ -291,7 +291,7 @@ const InventoryDashboard = () => {
             </Text>
           </CardHeader>
           <CardBody>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={320}>
               <PieChart>
                 <Pie
                   data={teamData}

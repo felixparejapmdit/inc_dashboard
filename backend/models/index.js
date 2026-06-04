@@ -18,13 +18,30 @@ const FaceRecognition = require("./FaceRecognition");
 const FaceRecognitionLog = require("./FaceRecognitionLog");
 const LokalProfile = require("./LokalProfile");
 const PersonnelImage = require("./PersonnelImage");
+const TaskCategory = require("./TaskCategory");
+const Task = require("./Task");
+const AccomplishedLog = require("./AccomplishedLog");
+const DailyActivityReport = require("./DailyActivityReport");
 
 // Sync database
 sequelize
   .sync()
-  .then(() => {
+  .then(async () => {
     console.log("Database synchronized successfully.");
-    // Start your application here
+    try {
+      const count = await TaskCategory.count();
+      if (count === 0) {
+        await TaskCategory.bulkCreate([
+          { category_name: "Worship Service",     color_hex: "#DC2626" },  // Rich Crimson / Dark Red
+          { category_name: "Office Task",          color_hex: "#D97706" },  // Warm Amber / Gold
+          { category_name: "Outside Office Task",  color_hex: "#7C3AED" },  // Modern Purple / Indigo
+          { category_name: "Personal Task",        color_hex: "#2563EB" },  // Vibrant Royal Blue
+        ]);
+        console.log("Default Task Categories seeded successfully.");
+      }
+    } catch (seedErr) {
+      console.error("Failed to seed default categories:", seedErr);
+    }
   })
   .catch((err) => {
     console.error("Failed to sync database:", err);
@@ -79,6 +96,19 @@ FaceRecognitionLog.belongsTo(Personnel, { foreignKey: "personnel_id", as: "perso
 Personnel.hasMany(PersonnelImage, { foreignKey: "personnel_id", as: "images" });
 PersonnelImage.belongsTo(Personnel, { foreignKey: "personnel_id", as: "personnel" });
 
+// DAR associations
+TaskCategory.hasMany(Task, { foreignKey: "category_id", as: "tasks" });
+Task.belongsTo(TaskCategory, { foreignKey: "category_id", as: "category" });
+
+User.hasMany(Task, { foreignKey: "user_id", as: "tasks" });
+Task.belongsTo(User, { foreignKey: "user_id", as: "user" });
+
+Task.hasMany(AccomplishedLog, { foreignKey: "task_id", as: "logs" });
+AccomplishedLog.belongsTo(Task, { foreignKey: "task_id", as: "task" });
+
+User.hasMany(DailyActivityReport, { foreignKey: "user_id", as: "dailyReports" });
+DailyActivityReport.belongsTo(User, { foreignKey: "user_id", as: "user" });
+
 // Export all models
 module.exports = {
   sequelize, // Optional if needed elsewhere
@@ -99,5 +129,9 @@ module.exports = {
   FaceRecognitionLog,
   LokalProfile,
   PersonnelImage,
+  TaskCategory,
+  Task,
+  AccomplishedLog,
+  DailyActivityReport,
   Suguan,
 };

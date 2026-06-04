@@ -86,45 +86,7 @@ const TooltipComponent = ({
     }
   };
 
-  // Text-to-Speech Effect
-  useEffect(() => {
-    // Cancel any previous speech
-    window.speechSynthesis.cancel();
 
-    const speak = () => {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 1.0;
-      utterance.pitch = 0.9; // Lower pitch for male robot tone
-      utterance.volume = 1.0;
-
-      // Try to select a "Microsoft David" or "Google UK English Male" or any Male voice
-      const voices = window.speechSynthesis.getVoices();
-      const preferredVoice = voices.find(voice =>
-        voice.name.includes("Microsoft David") ||
-        voice.name.includes("Google UK English Male") ||
-        voice.name.includes("Google US English Male") ||
-        (voice.name.includes("Male") && voice.lang.startsWith("en"))
-      );
-
-      if (preferredVoice) {
-        utterance.voice = preferredVoice;
-      }
-
-      window.speechSynthesis.speak(utterance);
-    };
-
-    // A small delay to ensure voices are loaded if it's the first time
-    if (window.speechSynthesis.getVoices().length === 0) {
-      window.speechSynthesis.addEventListener('voiceschanged', speak, { once: true });
-    } else {
-      speak();
-    }
-
-    // Cleanup on unmount or step change
-    return () => {
-      window.speechSynthesis.cancel();
-    };
-  }, [text]);
 
   return (
     <Box

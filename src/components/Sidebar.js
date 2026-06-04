@@ -46,6 +46,7 @@ import {
   FiSliders,
   FiArrowLeft,
   FiBarChart2,
+  FiFileText,
 } from "react-icons/fi";
 import { FaDownload, FaShareAlt } from "react-icons/fa"; // Font Awesome download icon
 import { useNavigate, useLocation } from "react-router-dom";
@@ -923,12 +924,22 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiCalendar}
                   label="File Organizer"
                   isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/fileorganizer", true)} // Open in new tab
+                  onClick={() => handleItemClick("/file-organizer/shelves", true)} // Open in new tab
                 />
               )}
             </VStack>
           </Collapse>
         </VStack>
+
+        {/* Daily Activity Report */}
+        <SidebarItem
+          icon={FiFileText}
+          label="Daily Activity"
+          isExpanded={isExpanded}
+          onClick={() => handleItemClick("/daily-activity-report")}
+          isActive={location.pathname === "/daily-activity-report"}
+        />
+
 
         <Flex flexGrow={1} />
 

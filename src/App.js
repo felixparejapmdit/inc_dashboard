@@ -94,6 +94,7 @@ import ATGDashboard from "./pages/ATG Dashboard.js";
 
 // Plugins
 import LokalProfile from "./pages/LokalProfile.js";
+import DailyActivityReport from "./pages/DailyActivityReport.js";
 
 import ShelvesPage from "./pages/FileOrganizer/ShelvesPage.js";
 import ContainersPage from "./pages/FileOrganizer/ContainersPage.js";
@@ -195,6 +196,7 @@ function MainApp() {
 
         {/* File Organizer Standalone Routes */}
         <Route path="/shelvespage" element={<ShelvesPage />} />
+        <Route path="/fileorganizer" element={<Navigate to="/file-organizer/shelves" />} />
         <Route path="/file-organizer/shelves" element={<ShelvesPage />} />
         <Route path="/containers/:shelfId" element={<ContainersPage />} />
         <Route
@@ -242,6 +244,7 @@ function MainApp() {
           <Route path="/add-events" element={<Events />} />
           <Route path="/reminders" element={<Reminders />} />
           <Route path="/lokalprofile" element={<LokalProfile />} />
+          <Route path="/daily-activity-report" element={<DailyActivityReport />} />
           <Route path="/Mastodon" element={<Mastodon />} />
           <Route path="/ldap-users/" element={<LdapUser />} />
 
