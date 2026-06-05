@@ -37,11 +37,39 @@ const CAT_COLORS = {
   "Personal Task":        "#2563EB",   // Vibrant Royal Blue
 };
 
+// ─── Priority config ──────────────────────────────────────────────────────────
+const PRIORITY_CFG = {
+  Critical: { color: "#DC2626", label: "CRITICAL", bg: "#FEE2E2" },
+  High:     { color: "#EA580C", label: "HIGH",     bg: "#FFEDD5" },
+  Medium:   { color: "#D97706", label: "MEDIUM",   bg: "#FEF3C7" },
+  Low:      { color: "#2563EB", label: "LOW",      bg: "#DBEAFE" },
+};
+
+// ─── Time Formatter ───────────────────────────────────────────────────────────
+const fmtTime = (timeStr) => {
+  if (!timeStr) return "—";
+  const parts = timeStr.split(":");
+  const hours = parseInt(parts[0], 10);
+  const minutes = parseInt(parts[1] || "0", 10);
+  const ampm = hours >= 12 ? "PM" : "AM";
+  const displayHours = hours % 12 || 12;
+  const displayMinutes = String(minutes).padStart(2, "0");
+  return `${displayHours}:${displayMinutes} ${ampm}`;
+};
+
 // ─── Status badge config ───────────────────────────────────────────────────────
 const STATUS_CFG = {
-  Active:   { bg: "#EFF6FF", color: "#1D4ED8", label: "ACTIVE"   },
-  Complete: { bg: "#F59E0B", color: "#FFFFFF",  label: "COMPLETE" },
-  Check:    { bg: "#FEF3C7", color: "#92400E",  label: "CHECK"    },
+  Active:    { bg: "#EFF6FF", color: "#1D4ED8", label: "ACTIVE" },
+  Completed: { bg: "#D1FAE5", color: "#065F46", label: "COMPLETED" },
+};
+
+// ─── Kanban columns config ────────────────────────────────────────────────────
+const KANBAN_CFG = {
+  "New":                  { bg: "#F8F9FA", borderTop: "4px solid #9CA3AF", badgeBg: "gray.100",  badgeColor: "gray.700" },
+  "Blocked":              { bg: "#FFF5F5", borderTop: "4px solid #E53E3E", badgeBg: "red.100",   badgeColor: "red.700" },
+  "In Progress":          { bg: "#EBF8FF", borderTop: "4px solid #3182CE", badgeBg: "blue.100",  badgeColor: "blue.700" },
+  "Waiting for approval": { bg: "#FFFDF5", borderTop: "4px solid #D69E2E", badgeBg: "orange.100", badgeColor: "orange.700" },
+  "Done":                 { bg: "#F0FDF4", borderTop: "4px solid #38A169", badgeBg: "green.100",  badgeColor: "green.700" },
 };
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
@@ -50,21 +78,38 @@ const fmtDate = (d) => new Date(d + "T00:00:00").toLocaleDateString("en-PH", { m
 const fmtDay  = (d) => DAYS[new Date(d + "T00:00:00").getDay()];
 const todayISO = () => new Date().toISOString().split("T")[0];
 
+// Use local date components to avoid UTC timezone day-shift (e.g. UTC+8 midnight = previous UTC day)
+const localISO = (dt) => {
+  const y  = dt.getFullYear();
+  const m  = String(dt.getMonth() + 1).padStart(2, "0");
+  const dd = String(dt.getDate()).padStart(2, "0");
+  return `${y}-${m}-${dd}`;
+};
+
 function getWeekBounds(offset = 0) {
   const d = new Date();
   d.setDate(d.getDate() + offset * 7);
   const day = d.getDay();
   const monday = new Date(d); monday.setDate(d.getDate() - ((day + 6) % 7));
   const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
-  const iso = (dt) => dt.toISOString().split("T")[0];
-  return { start: iso(monday), end: iso(sunday) };
+  return { start: localISO(monday), end: localISO(sunday) };
+}
+
+// Returns the ISO 8601 week number for a given Date
+function getISOWeek(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7; // treat Sunday as 7
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum); // nearest Thursday
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
 }
 
 function weekLabel({ start, end }) {
   const s = new Date(start + "T00:00:00");
   const e = new Date(end   + "T00:00:00");
-  const fmt = (dt) => dt.toLocaleDateString("en-PH", { month: "short", day: "numeric" });
-  return `${fmt(s)} – ${fmt(e)}, ${e.getFullYear()}`;
+  const weekNum = getISOWeek(s);
+  const fmt = (dt) => dt.toLocaleDateString("en-PH", { month: "long", day: "numeric" });
+  return `Week ${weekNum}, ${fmt(s)} to ${fmt(e)}`;
 }
 
 // ─── StatusBadge ───────────────────────────────────────────────────────────────
@@ -133,7 +178,7 @@ function SectionHead({ title, action }) {
 // ─── Task Modal ────────────────────────────────────────────────────────────────
 function TaskModal({ isOpen, onClose, categories, onSaved, initial }) {
   const toast = useToast();
-  const blank = { title: "", category_id: "", description: "", task_date: todayISO(), start_time: "", end_time: "", status: "Active" };
+  const blank = { title: "", category_id: "", description: "", task_date: todayISO(), start_time: "", end_time: "", status: "Active", priority: "Medium" };
   const [form, setForm] = useState(blank);
   const [saving, setSaving] = useState(false);
 
@@ -210,12 +255,20 @@ function TaskModal({ isOpen, onClose, categories, onSaved, initial }) {
                 <Input type="time" name="end_time" value={form.end_time} onChange={handleChange} {...fieldStyle} />
               </Box>
             </SimpleGrid>
-            <Box w="full">
-              <Text fontSize="9px" fontWeight="800" mb={1} color="gray.400" textTransform="uppercase" letterSpacing="0.12em">Status</Text>
-              <Select name="status" value={form.status} onChange={handleChange} {...fieldStyle}>
-                {["Active","Complete","Check"].map(s => <option key={s} value={s}>{s}</option>)}
-              </Select>
-            </Box>
+            <SimpleGrid columns={2} spacing={4} w="full">
+              <Box>
+                <Text fontSize="9px" fontWeight="800" mb={1} color="gray.400" textTransform="uppercase" letterSpacing="0.12em">Priority</Text>
+                <Select name="priority" value={form.priority || "Medium"} onChange={handleChange} {...fieldStyle}>
+                  {["Critical", "High", "Medium", "Low"].map(p => <option key={p} value={p}>{p}</option>)}
+                </Select>
+              </Box>
+              <Box>
+                <Text fontSize="9px" fontWeight="800" mb={1} color="gray.400" textTransform="uppercase" letterSpacing="0.12em">Status</Text>
+                <Select name="status" value={form.status} onChange={handleChange} {...fieldStyle}>
+                  {["Active", "Completed"].map(s => <option key={s} value={s}>{s}</option>)}
+                </Select>
+              </Box>
+            </SimpleGrid>
           </VStack>
         </ModalBody>
         <ModalFooter gap={3} bg="white" borderTop="1px solid #F3F4F6">
@@ -248,7 +301,12 @@ function LogModal({ isOpen, onClose, task, onSaved }) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await axios.post(`${API}/api/dar/logs`, { task_id: task.task_id, ...form }, { headers: getAuthHeaders() });
+      const sanitizedHours = parseFloat(form.hours_rendered) || 0.00;
+      await axios.post(`${API}/api/dar/logs`, {
+        task_id: task.task_id,
+        completed_time: form.completed_time || null,
+        hours_rendered: sanitizedHours
+      }, { headers: getAuthHeaders() });
       toast({ title: "Log saved!", status: "success", duration: 2000, isClosable: true });
       onSaved(); onClose();
     } catch {
@@ -313,8 +371,60 @@ export default function DailyActivityReport() {
   const [sortAZ,     setSortAZ]     = useState(false);
   const [editTask,   setEditTask]   = useState(null);
   const [logTask,    setLogTask]    = useState(null);
+  const [dragOverCol, setDragOverCol] = useState(null);
 
   const week = useMemo(() => getWeekBounds(weekOffset), [weekOffset]);
+
+  const weekOptions = useMemo(() => {
+    const opts = [];
+    for (let i = -12; i <= 4; i++) {
+      const w = getWeekBounds(i);
+      opts.push({
+        offset: i,
+        label: weekLabel(w),
+      });
+    }
+    return opts;
+  }, []);
+
+  const getTaskKanbanStatus = (t) => {
+    if (t.kanban_status) return t.kanban_status;
+    return t.status === "Completed" ? "Done" : "New";
+  };
+
+  const handleDragStart = (e, taskId) => {
+    e.dataTransfer.setData("text/plain", taskId.toString());
+  };
+
+  const handleDrop = async (e, targetKanbanStatus) => {
+    e.preventDefault();
+    const taskIdStr = e.dataTransfer.getData("text/plain");
+    if (!taskIdStr) return;
+    const taskId = parseInt(taskIdStr, 10);
+    const task = tasks.find(t => t.task_id === taskId);
+    if (!task) return;
+
+    const newStatus = targetKanbanStatus === "Done" ? "Completed" : "Active";
+
+    // Optimistically update
+    setTasks(prev => prev.map(t => 
+      t.task_id === taskId 
+        ? { ...t, kanban_status: targetKanbanStatus, status: newStatus } 
+        : t
+    ));
+
+    try {
+      await axios.put(`${API}/api/dar/tasks/${taskId}`, {
+        kanban_status: targetKanbanStatus,
+        status: newStatus
+      }, { headers: getAuthHeaders() });
+      load();
+      toast({ title: "Task moved.", status: "success", duration: 1500, isClosable: true });
+    } catch (err) {
+      toast({ title: "Failed to move task.", description: err.message, status: "error", duration: 3000, isClosable: true });
+      load();
+    }
+  };
 
   const userId = useMemo(() => {
     try {
@@ -374,13 +484,14 @@ export default function DailyActivityReport() {
     for (let i = 0; i < 7; i++) {
       const d = new Date(week.start + "T00:00:00");
       d.setDate(d.getDate() + i);
-      days.push(d.toISOString().split("T")[0]);
+      // Use localISO to avoid UTC day-shift in UTC+ timezones
+      days.push(localISO(d));
     }
     return days;
   }, [week]);
 
   const activeCnt   = tasks.filter(t => t.status === "Active").length;
-  const completeCnt = tasks.filter(t => t.status === "Complete").length;
+  const completeCnt = tasks.filter(t => t.status === "Completed").length;
   const totalHours  = logs.reduce((s, l) => s + parseFloat(l.hours_rendered || 0), 0);
 
   const catBreakdown = useMemo(() => categories.map(c => ({
@@ -469,7 +580,7 @@ export default function DailyActivityReport() {
             <Box w="1px" h="50px" bg="gray.100" />
             <Box textAlign="center">
               <Text fontSize="3xl" fontWeight="900" color={T.emerald}>{completeCnt}</Text>
-              <Text fontSize="9px" color="gray.400" fontWeight="800" textTransform="uppercase" letterSpacing="0.1em">Complete</Text>
+              <Text fontSize="9px" color="gray.400" fontWeight="800" textTransform="uppercase" letterSpacing="0.1em">Completed</Text>
             </Box>
             <Box w="1px" h="50px" bg="gray.100" />
             <Box textAlign="center">
@@ -576,6 +687,13 @@ export default function DailyActivityReport() {
 
           {/* Filters */}
           <HStack spacing={2} flexWrap="wrap">
+            <Select size="sm" w="220px" borderRadius="full" borderColor="gray.200"
+              fontSize="xs" fontWeight="600" color="gray.600"
+              value={weekOffset} onChange={e => setWeekOffset(parseInt(e.target.value, 10))}>
+              {weekOptions.map(opt => (
+                <option key={opt.offset} value={opt.offset}>{opt.label}</option>
+              ))}
+            </Select>
             <Button
               size="sm" onClick={() => setSortAZ(v => !v)} borderRadius="full"
               fontSize="xs" fontWeight="800"
@@ -656,12 +774,20 @@ export default function DailyActivityReport() {
                         <Text fontSize="xs" color="gray.500" whiteSpace="nowrap">{fmtDate(t.task_date)}</Text>
                       </Box>
                       <Box flex="1">
-                        <Text fontSize="xs" color="gray.500">{t.start_time || "—"}</Text>
+                        <Text fontSize="xs" color="gray.500">{fmtTime(t.start_time)}</Text>
                       </Box>
                       <Box flex="1">
-                        <Text fontSize="xs" color="gray.500">{t.end_time || "—"}</Text>
+                        <Text fontSize="xs" color="gray.500">{fmtTime(t.end_time)}</Text>
                       </Box>
-                      <Box flex="1.2"><StatusBadge status={t.status} /></Box>
+                      <Box flex="1.2">
+                        {t.status === "Completed" ? (
+                          <Box color="emerald" fontSize="md" fontWeight="bold">
+                            <FiCheckSquare size={18} color={T.emerald} />
+                          </Box>
+                        ) : (
+                          <StatusBadge status={t.status} />
+                        )}
+                      </Box>
                       <Box flex="0.8">
                         <HStack spacing={1} justify="flex-end">
                           <Tooltip label="Edit">
@@ -685,42 +811,107 @@ export default function DailyActivityReport() {
             </Box>
           )}
 
-          {/* ──────────────── CARD VIEW (Kanban by day) ──────────────── */}
+          {/* ──────────────── CARD VIEW (Kanban Board) ──────────────── */}
           {activeTab === "card" && (
-            <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} spacing={4}>
-              {weekDays.map(date => {
-                const dayTasks = filteredTasks.filter(t => t.task_date === date);
+            <SimpleGrid columns={{ base: 1, md: 5 }} spacing={4} w="full" alignSelf="stretch">
+              {Object.keys(KANBAN_CFG).map(colId => {
+                const cfg = KANBAN_CFG[colId];
+                const colTasks = filteredTasks.filter(t => getTaskKanbanStatus(t) === colId);
+                const isOver = dragOverCol === colId;
                 return (
-                  <Box key={date} bg="white" borderRadius="2xl" boxShadow="sm"
-                    border={`2px solid ${T.amber}`} overflow="hidden">
-                    {/* Day header */}
-                    <Box bg={T.corpBlue} p={3}>
-                      <Text fontSize="9px" fontWeight="900" color={T.amber} textTransform="uppercase" letterSpacing="0.12em">
-                        {fmtDay(date)}
-                      </Text>
-                      <Text fontSize="sm" fontWeight="800" color="white">{fmtDate(date)}</Text>
-                      <Box as="span" bg={T.amber} color={T.corpBlue} fontSize="9px" fontWeight="900"
-                        px={2} py="2px" borderRadius="full" display="inline-block" mt={1}>
-                        {dayTasks.length} task{dayTasks.length !== 1 ? "s" : ""}
-                      </Box>
-                    </Box>
-                    {/* Tasks */}
-                    <VStack p={3} spacing={2} align="stretch" minH="120px">
-                      {dayTasks.length === 0 ? (
-                        <Text fontSize="xs" color="gray.300" textAlign="center" mt={4}>No tasks</Text>
-                      ) : dayTasks.map(t => (
-                        <Box key={t.task_id} p={3} bg="#F8F9FA" borderRadius="xl"
-                          borderLeft={`3px solid ${catColor(t.category_id)}`}
-                          cursor="pointer" transition="all 0.15s"
-                          _hover={{ boxShadow: "md", bg: "white", transform: "translateY(-1px)" }}
-                          onClick={() => { setEditTask(t); taskModal.onOpen(); }}>
-                          <Text fontSize="xs" fontWeight="900" color={catColor(t.category_id)} noOfLines={2}>{t.title}</Text>
-                          <Flex justify="space-between" align="center" mt={1}>
-                            <Text fontSize="9px" color="gray.400" fontWeight="600">{catName(t.category_id)}</Text>
-                            <StatusBadge status={t.status} />
-                          </Flex>
+                  <Box
+                    key={colId}
+                    bg={isOver ? "gray.50" : "white"}
+                    borderRadius="2xl"
+                    boxShadow="sm"
+                    border={`2px solid ${T.amber}`}
+                    borderTop={cfg.borderTop}
+                    overflow="hidden"
+                    transition="all 0.15s"
+                    onDragOver={(e) => { e.preventDefault(); setDragOverCol(colId); }}
+                    onDragLeave={() => setDragOverCol(null)}
+                    onDrop={(e) => { setDragOverCol(null); handleDrop(e, colId); }}
+                    minH="400px"
+                  >
+                    {/* Column Header */}
+                    <Box p={3} borderBottom="1px solid #F3F4F6">
+                      <Flex justify="space-between" align="center">
+                        <Text fontSize="xs" fontWeight="900" color={T.corpBlue} letterSpacing="0.04em">
+                          {colId}
+                        </Text>
+                        <Box
+                          bg={cfg.badgeBg}
+                          color={cfg.badgeColor}
+                          fontSize="10px"
+                          fontWeight="900"
+                          px={2}
+                          py="2px"
+                          borderRadius="full"
+                          minW="20px"
+                          textAlign="center"
+                        >
+                          {colTasks.length}
                         </Box>
-                      ))}
+                      </Flex>
+                    </Box>
+
+                    {/* Column Cards */}
+                    <VStack p={3} spacing={3} align="stretch">
+                      {colTasks.length === 0 ? (
+                        <Text fontSize="xs" color="gray.300" textAlign="center" py={6}>
+                          Drop tasks here
+                        </Text>
+                      ) : (
+                        colTasks.map(t => (
+                          <Box
+                            key={t.task_id}
+                            p={3}
+                            bg="#F8F9FA"
+                            borderRadius="xl"
+                            borderLeft={`4px solid ${catColor(t.category_id)}`}
+                            boxShadow="sm"
+                            cursor="grab"
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, t.task_id)}
+                            transition="all 0.15s"
+                            _hover={{ boxShadow: "md", bg: "white", transform: "translateY(-1px)" }}
+                            onClick={() => { setEditTask(t); taskModal.onOpen(); }}
+                          >
+                            <Text fontSize="xs" fontWeight="900" color={catColor(t.category_id)} noOfLines={2}>
+                              {t.title}
+                            </Text>
+                            {t.description && (
+                              <Text fontSize="9px" color="gray.400" noOfLines={2} mt={1}>
+                                {t.description}
+                              </Text>
+                            )}
+                            <Flex justify="space-between" align="center" mt={2} flexWrap="wrap" gap={1}>
+                              <HStack spacing={1}>
+                                <Box
+                                  as="span"
+                                  px={1.5}
+                                  py="2px"
+                                  borderRadius="md"
+                                  bg={PRIORITY_CFG[t.priority || "Medium"].bg}
+                                  color={PRIORITY_CFG[t.priority || "Medium"].color}
+                                  fontSize="7px"
+                                  fontWeight="900"
+                                >
+                                  {t.priority || "Medium"}
+                                </Box>
+                                <Text fontSize="8px" color="gray.400" fontWeight="600">
+                                  {catName(t.category_id)}
+                                </Text>
+                              </HStack>
+                              {t.start_time && (
+                                <Text fontSize="8px" color="gray.400" fontWeight="500">
+                                  {fmtTime(t.start_time)}
+                                </Text>
+                              )}
+                            </Flex>
+                          </Box>
+                        ))
+                      )}
                     </VStack>
                   </Box>
                 );
@@ -743,11 +934,11 @@ export default function DailyActivityReport() {
               ]} />
 
               <VStack spacing={2} px={4} py={3} align="stretch">
-                {filteredTasks.length === 0 ? (
+                {filteredTasks.filter(t => t.status === "Completed").length === 0 ? (
                   <Box textAlign="center" py={10}>
-                    <Text fontSize="sm" fontWeight="600" color="gray.300">No tasks this week.</Text>
+                    <Text fontSize="sm" fontWeight="600" color="gray.300">No accomplished tasks found for this week.</Text>
                   </Box>
-                ) : filteredTasks.map(t => {
+                ) : filteredTasks.filter(t => t.status === "Completed").map(t => {
                   const log = logs.find(l => l.task_id === t.task_id);
                   return (
                     <Box key={t.task_id} {...pillRow} borderLeft={`4px solid ${catColor(t.category_id)}`}>
@@ -825,7 +1016,7 @@ export default function DailyActivityReport() {
                 <VStack spacing={2} px={4} py={3} align="stretch">
                   {weekDays.map(date => {
                     const rpt       = getDayReport(date);
-                    const dayTasks  = tasks.filter(t => t.task_date === date && t.status === "Complete");
+                    const dayTasks  = tasks.filter(t => t.task_date === date && t.status === "Completed");
                     const defaultAc = dayTasks.map(t => `• ${t.title}`).join("\n");
                     return (
                       <Box key={date} {...pillRow} borderLeft={`4px solid ${T.amber}`}>

@@ -942,16 +942,22 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
               )}
             </VStack>
           </Collapse>
+
+          <Collapse in={isPluginsExpanded} animateOpacity>
+            <VStack align="start" ml={isExpanded ? 4 : 0} spacing={3}>
+
+              {/* Daily Activity Report */}
+              <SidebarItem
+                icon={FiFileText}
+                label="Daily Activity"
+                isExpanded={isExpanded}
+                onClick={() => handleItemClick("/daily-activity-report")}
+                isActive={location.pathname === "/daily-activity-report"}
+              />
+            </VStack>
+          </Collapse>
         </VStack>
 
-        {/* Daily Activity Report */}
-        <SidebarItem
-          icon={FiFileText}
-          label="Daily Activity"
-          isExpanded={isExpanded}
-          onClick={() => handleItemClick("/daily-activity-report")}
-          isActive={location.pathname === "/daily-activity-report"}
-        />
 
 
         <Flex flexGrow={1} />
