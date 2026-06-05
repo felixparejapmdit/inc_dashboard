@@ -10,37 +10,15 @@ exports.getAllProfiles = async (req, res) => {
   try {
     const profiles = await LokalProfile.findAll();
 
-    let districts = [];
-    let lokals = [];
-
-    try {
-      const [districtRes, lokalRes] = await Promise.all([
-        axios.get(DISTRICT_API_URL),
-        axios.get(LOCAL_CONGREGATION_API_URL),
-      ]);
-      const dData = districtRes.data;
-      districts = Array.isArray(dData) ? dData : [];
-
-      const lData = lokalRes.data;
-      lokals = Array.isArray(lData) ? lData : [];
-    } catch (apiError) {
-      console.warn(
-        "Warning: Failed to fetch district/lokal info",
-        apiError.message
-      );
-      // Proceeding with empty district/lokal fallback
-    }
-
+    // Map profiles to their data values and fall back districtName/lokalName to the stored district/lokal IDs/strings.
+    // This removes the slow, redundant external HTTP calls to DISTRICT_API_URL and LOCAL_CONGREGATION_API_URL,
+    // which were causing the test server to hang and reset connections.
     const enrichedProfiles = profiles.map((profile) => ({
       ...profile.dataValues,
-      // Handle District: Lookup by ID (loose match) or use raw string
-      districtName:
-        districts.find((d) => d.id == profile.district)?.name || profile.district, // Loose equality for string/int IDs
-      // Handle Lokal: Lookup by ID (loose match) or use raw string
-      lokalName: lokals.find((l) => l.id == profile.lokal)?.name || profile.lokal,
+      districtName: profile.district,
+      lokalName: profile.lokal,
     }));
 
-    // console.log("Enriched profiles:", enrichedProfiles);
     res.json(enrichedProfiles);
   } catch (error) {
     console.error("CRITICAL ERROR in getAllProfiles:", error);
