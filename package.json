@@ -2,7 +2,7 @@
   "name": "pmd-dashboard-application",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://127.0.0.1:5003",
+  "proxy": "http://127.0.0.1:5000",
   "dependencies": {
     "@babel/core": "^7.16.0",
     "@chakra-ui/icons": "^2.1.1",
