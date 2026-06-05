@@ -1,60 +1,139 @@
-# Dependencies
-/node_modules
-/backend/node_modules
-/.pnp
-.pnp.js
+# ============================================================
+# CRITICAL: DATABASE DATA — Never commit database dumps or live data.
+# Overwriting or merging these with local data can corrupt
+# production and test server databases.
+# ============================================================
 
-# Testing
-/coverage
+# Docker-managed DB data volumes (MySQL, MariaDB, PostgreSQL, etc.)
+db_data/
+db_data_prod/
+db_data_test/
 
-# Production Build
-/build
-/dist
+# SQLite database files (e.g., used by Nginx Proxy Manager)
+data/database.sqlite
+data/*.sqlite
+*.sqlite
+*.sqlite3
+*.db
 
-# Environment Variables & Secrets
+# SQL dump files — never commit full DB dumps
+*.sql
+*.dump
+!backend/migrations/*.sql
+
+# Database export scripts output
+backend/scripts/database_export.json
+backend/scripts/database_export*.json
+
+# LDAP/user seed data files (contain real user records)
+backend/data/
+backend/databases/
+ldap_users_data.sql
+users_data.sql
+
+# ============================================================
+# SSL / TLS CERTIFICATES AND PRIVATE KEYS — Never commit.
+# Committing private keys to Git exposes them permanently.
+# ============================================================
+*.pem
+*.key
+*.crt
+*.csr
+*.p12
+*.pfx
+nginx/certs/
+ssl/
+data/custom_ssl/
+letsencrypt/
+
+# ============================================================
+# UPLOADED USER FILES — Contains real personnel data (photos,
+# IDs, PDFs). Never commit. Restore from server/object storage.
+# ============================================================
+backend/uploads/
+backend/public/uploads/
+uploads/
+
+# ============================================================
+# APP DATA DIRECTORY (Nginx Proxy Manager & similar services)
+# Contains live keys, SSL certs, sqlite DBs, and access logs.
+# ============================================================
+data/
+
+# ============================================================
+# ENVIRONMENT VARIABLES & SECRETS
+# ============================================================
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 .env.docker
-*.pem
-*.key
-*.crt
+.env.*.local
 
-# Backend Uploads
-backend/uploads/
-backend/public/uploads/
+# ============================================================
+# DEPENDENCIES
+# ============================================================
+/node_modules
+/backend/node_modules
+/.pnp
+.pnp.js
 
-# Database Data (if local)
-db_data/
-db_data_prod/
+# ============================================================
+# PRODUCTION BUILD OUTPUT
+# ============================================================
+/build
+/dist
 
-# Editor & System Files
-.DS_Store
-.vscode/
-.idea/
-*.swp
-*.swo
-*copy*
-*backup*
-*.bak
-*.tmp
-
-# Logs
+# ============================================================
+# LOGS & RUNTIME FILES
+# ============================================================
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 logs/
+backend_log.txt
 *.pid
 *.seed
 *.pid.lock
 
-# Docker
+# ============================================================
+# TESTING
+# ============================================================
+/coverage
+
+# ============================================================
+# EDITOR & SYSTEM FILES
+# ============================================================
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+Thumbs.db
+
+# ============================================================
+# DOCKER INTERNALS
+# ============================================================
 .dockerignore
 
-# Temporary / Generated Files
-backend/models/index*copy*
+# ============================================================
+# TEMPORARY, BACKUP & COPY FILES
+# ============================================================
+*.bak
+*.tmp
+*.temp
+*copy*
+*backup*
 * copy.*
 * - Copy.*
+* - copy.*
+
+# ============================================================
+# FACE RECOGNITION MODELS (large binary blobs — download on demand)
+# ============================================================
+public/models/
+backend/models/*.dat
+backend/models/*.bin
+backend/models/*.model

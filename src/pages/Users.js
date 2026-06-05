@@ -740,40 +740,41 @@ const Users = ({ personnelId }) => {
     loadAllData();
   }, []);
 
-  // Fetch 2x2 avatars for the currently visible personnel
+  // Fetch 2x2 avatars for the currently visible personnel (batch request)
   useEffect(() => {
     const fetchAvatars = async () => {
-      const newAvatars = {};
-
       const allItems = [...currentItemsPersonnel, ...currentItemsNew];
-      const promises = allItems.map(async (user) => {
-        if (!user.personnel_id) return;
 
-        // Skip if we already have a 2x2 loaded (optional optimization, but good for UX)
-        // if (avatars[user.personnel_id]) return; 
+      // Only request IDs we haven't already loaded — avoids re-fetching on page nav
+      const idsToFetch = allItems
+        .map((u) => u.personnel_id)
+        .filter((id) => id != null && !avatars[id]);
 
-        try {
-          const response = await axios.get(
-            `${API_URL}/api/personnel_images/2x2/${user.personnel_id}`,
-            { headers: getAuthHeaders() }
-          );
-          if (response.data.success && response.data.data) {
-            // Append timestamp to bust cache if needed, or just use URL
-            newAvatars[user.personnel_id] = `${API_URL}${response.data.data.image_url}`;
+      if (idsToFetch.length === 0) return;
+
+      try {
+        const response = await axios.post(
+          `${API_URL}/api/personnel_images/2x2/batch`,
+          { ids: idsToFetch },
+          { headers: getAuthHeaders() }
+        );
+
+        if (response.data.success && response.data.data) {
+          const urlMap = {};
+          Object.entries(response.data.data).forEach(([id, image_url]) => {
+            urlMap[id] = `${API_URL}${image_url}`;
+          });
+
+          if (Object.keys(urlMap).length > 0) {
+            setAvatars((prev) => ({ ...prev, ...urlMap }));
           }
-        } catch (err) {
-          // If 404 (no 2x2 picture), we just don't add it to the map
         }
-      });
-
-      await Promise.all(promises);
-
-      if (Object.keys(newAvatars).length > 0) {
-        setAvatars((prev) => ({ ...prev, ...newAvatars }));
+      } catch (err) {
+        // Silently ignore — avatars are non-critical
       }
     };
 
-    if (currentItemsPersonnel.length > 0) {
+    if (currentItemsPersonnel.length > 0 || currentItemsNew.length > 0) {
       fetchAvatars();
     }
   }, [currentItemsPersonnel, currentItemsNew]); // Run whenever the page/list changes

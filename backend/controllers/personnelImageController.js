@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { Op } = require("sequelize");
 const PersonnelImage = require("../models/PersonnelImage");
 
 // Create a new personnel image
@@ -135,6 +136,36 @@ exports.get2x2ImageByPersonnelId = async (req, res) => {
     res.status(200).json({ success: true, data: image });
   } catch (err) {
     console.error("Error fetching 2x2 picture:", err);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
+// ✅ Batch fetch 2x2 images for multiple personnel IDs in a single DB query
+exports.getBatch2x2Images = async (req, res) => {
+  const { ids } = req.body; // Expects: { ids: [1, 2, 3, ...] }
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ success: false, message: "No IDs provided." });
+  }
+
+  try {
+    const images = await PersonnelImage.findAll({
+      where: {
+        personnel_id: { [Op.in]: ids },
+        type: "2x2 Picture",
+      },
+      attributes: ["personnel_id", "image_url"],
+    });
+
+    // Return as a map { personnel_id: image_url } for easy lookup
+    const result = {};
+    images.forEach((img) => {
+      result[img.personnel_id] = img.image_url;
+    });
+
+    res.status(200).json({ success: true, data: result });
+  } catch (err) {
+    console.error("Error batch fetching 2x2 pictures:", err);
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };

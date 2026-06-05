@@ -270,7 +270,20 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
       .then((response) => {
         if (response.ok) {
           setUser({ name: "", avatarUrl: "" }); // Clear the user state on logout
-          localStorage.removeItem("userFullName"); // Clear local storage on logout
+          localStorage.removeItem("authToken");
+          localStorage.removeItem("username");
+          localStorage.removeItem("userFullName");
+          localStorage.removeItem("groupId");
+          localStorage.removeItem("groupName");
+          localStorage.removeItem("isLoggingIn");
+          localStorage.removeItem("department_id");
+          localStorage.removeItem("section_id");
+          localStorage.removeItem("subsection_id");
+          localStorage.removeItem("designation_id");
+          localStorage.removeItem("designation_name");
+          localStorage.removeItem("user_id");
+          localStorage.removeItem("userId");
+          localStorage.removeItem("role");
           navigate("/login"); // Navigate to login page after logging out
         } else {
           console.error(

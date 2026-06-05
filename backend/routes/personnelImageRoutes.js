@@ -18,6 +18,13 @@ router.get(
   personnelImageController.getImagesByPersonnelId
 );
 
+// ✅ Batch Route: Fetch 2x2 images for multiple personnel IDs in one request
+// Must be defined BEFORE the /:personnel_id route to avoid param conflicts
+router.post(
+  "/api/personnel_images/2x2/batch",
+  personnelImageController.getBatch2x2Images
+);
+
 // ✅ New Route: Fetch personnel image of type "2x2 Picture"
 router.get(
   "/api/personnel_images/2x2/:personnel_id",
