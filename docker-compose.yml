@@ -97,12 +97,8 @@ services:
       - node.name=inc_elasticsearch
       - cluster.name=es-docker-cluster
       - discovery.type=single-node
-      - bootstrap.memory_lock=true
+      - bootstrap.memory_lock=false
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
     volumes:
       - es_data:/usr/share/elasticsearch/data
     ports:
