@@ -1,6 +1,6 @@
 const sequelize = require("../config/database.js");
 
-async function migrate() {
+async function migrate(shouldClose = true) {
   try {
     await sequelize.authenticate();
     console.log('Database connection OK.');
@@ -37,10 +37,17 @@ async function migrate() {
 
   } catch (error) {
     console.error('Migration failed:', error);
-    process.exit(1);
+    if (shouldClose) process.exit(1);
   } finally {
-    await sequelize.close();
+    if (shouldClose) {
+      await sequelize.close();
+    }
   }
 }
 
-migrate();
+if (require.main === module) {
+  migrate(true);
+} else {
+  module.exports = migrate;
+}
+

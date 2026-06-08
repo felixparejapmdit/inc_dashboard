@@ -134,11 +134,14 @@ const DepartmentManagement = () => {
     }
 
     try {
-      await postData("departments", { name: newDepartmentName }, "Failed to add department");
+      const result = await postData("departments", { name: newDepartmentName }, "Failed to add department");
+      // ✅ Optimistic update: append the new department immediately
+      const newDept = { id: result?.data?.id || result?.id || Date.now(), name: newDepartmentName, ...(result?.data || {}) };
+      setDepartments(prev => [...prev, newDept]);
       toast({ title: "Department added successfully", status: "success" });
       setNewDepartmentName("");
       onAddClose();
-      fetchDepartments();
+      fetchDepartments(); // background sync
     } catch (error) {
       toast({
         title: "Error adding department",
@@ -156,9 +159,11 @@ const DepartmentManagement = () => {
 
     try {
       await putData("departments", editingDepartment.id, editingDepartment, "Failed to update department");
+      // ✅ Optimistic update: update the department in local state immediately
+      setDepartments(prev => prev.map(d => d.id === editingDepartment.id ? { ...d, ...editingDepartment } : d));
       toast({ title: "Department updated successfully", status: "success" });
       setEditingDepartment(null);
-      fetchDepartments();
+      fetchDepartments(); // background sync
     } catch (error) {
       toast({
         title: "Error updating department",
@@ -169,12 +174,17 @@ const DepartmentManagement = () => {
   };
 
   const handleDeleteDepartment = async () => {
+    const deptToDelete = deletingDepartment;
     try {
-      await deleteData("departments", deletingDepartment.id, "Failed to delete department");
-      toast({ title: "Department deleted successfully", status: "success" });
+      // ✅ Optimistic update: remove from local state immediately
+      setDepartments(prev => prev.filter(d => d.id !== deptToDelete.id));
       setDeletingDepartment(null);
-      fetchDepartments();
+      await deleteData("departments", deptToDelete.id, "Failed to delete department");
+      toast({ title: "Department deleted successfully", status: "success" });
+      fetchDepartments(); // background sync
     } catch (error) {
+      // Rollback on failure
+      fetchDepartments();
       toast({
         title: "Error deleting department",
         description: error.message,

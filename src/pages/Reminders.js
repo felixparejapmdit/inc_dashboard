@@ -107,26 +107,22 @@ const Reminders = () => {
     loadReminders();
   }, []);
 
-  const loadReminders = () => {
+  const loadReminders = async () => {
     setLoading(true);
-    fetchData(
-      "reminders",
-      (data) => {
-        const filteredData = filterPersonnelData(data);
-        setReminders(filteredData);
-        setLoading(false);
-      },
-      (err) => {
-        toast({
-          title: "Error loading reminders",
-          description: err,
-          status: "error",
-          duration: 3000,
-        });
-        setLoading(false);
-      },
-      "Failed to fetch reminders"
-    );
+    try {
+      const data = await fetchData("reminders");
+      const filteredData = filterPersonnelData(data || []);
+      setReminders(filteredData);
+    } catch (err) {
+      toast({
+        title: "Error loading reminders",
+        description: err?.message || "Failed to fetch",
+        status: "error",
+        duration: 3000,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleOpenAdd = () => {
@@ -175,13 +171,20 @@ const Reminders = () => {
     try {
       if (editingReminder) {
         await putData("reminders", editingReminder.id, payload);
+        // ✅ Optimistic update: update the reminder in local state immediately
+        setReminders(prev => prev.map(r =>
+          r.id === editingReminder.id ? { ...r, ...payload } : r
+        ));
         toast({ title: "Reminder updated", status: "success" });
       } else {
-        await postData("reminders", payload);
+        const result = await postData("reminders", payload);
+        // ✅ Optimistic update: append the new reminder immediately
+        const newReminder = { id: result?.data?.id || result?.id || Date.now(), ...payload, ...(result?.data || {}) };
+        setReminders(prev => [...prev, newReminder]);
         toast({ title: "Reminder added", status: "success" });
       }
       onClose();
-      loadReminders();
+      loadReminders(); // background sync
       window.dispatchEvent(new CustomEvent("sync-reminders"));
     } catch (error) {
       toast({
@@ -193,13 +196,18 @@ const Reminders = () => {
   };
 
   const handleDeleteReminder = async () => {
+    const idToDelete = deletingReminderId;
     try {
-      await deleteData("reminders", deletingReminderId);
-      toast({ title: "Reminder deleted", status: "success" });
+      // ✅ Optimistic update: remove from local state immediately
+      setReminders(prev => prev.filter(r => r.id !== idToDelete));
       onDeleteClose();
-      loadReminders();
+      await deleteData("reminders", idToDelete);
+      toast({ title: "Reminder deleted", status: "success" });
+      loadReminders(); // background sync
       window.dispatchEvent(new CustomEvent("sync-reminders"));
     } catch (error) {
+      // Rollback on failure
+      loadReminders();
       toast({
         title: "Error deleting reminder",
         description: error.message,

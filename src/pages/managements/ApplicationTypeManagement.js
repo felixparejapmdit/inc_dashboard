@@ -133,12 +133,17 @@ const ApplicationTypeManagement = () => {
     try {
       if (editingType) {
         await putData(`application-types/${editingType.id}`, { name: typeName }, "Failed to update category.");
+        // ✅ Optimistic update: update in local state immediately
+        setAppTypes(prev => prev.map(t => t.id === editingType.id ? { ...t, name: typeName } : t));
         toast({ title: "Module refreshed", status: "success" });
       } else {
-        await postData("add_application-types", { name: typeName }, "Failed to add category.");
+        const result = await postData("add_application-types", { name: typeName }, "Failed to add category.");
+        // ✅ Optimistic update: append the new type immediately
+        const newType = { id: result?.data?.id || result?.id || Date.now(), name: typeName, ...(result?.data || {}) };
+        setAppTypes(prev => [...prev, newType]);
         toast({ title: "New module registered", status: "success" });
       }
-      fetchApplicationTypes();
+      fetchApplicationTypes(); // background sync
       handleCloseModal();
     } catch (error) {
       toast({ title: "Error saving record", description: error.message, status: "error" });
@@ -146,12 +151,17 @@ const ApplicationTypeManagement = () => {
   };
 
   const handleDelete = async () => {
+    const typeToDelete = deletingType;
     try {
-      await deleteData("application-types", deletingType.id, "Failed to delete category.");
-      toast({ title: "Module retired", status: "success" });
+      // ✅ Optimistic update: remove immediately
+      setAppTypes(prev => prev.filter(t => t.id !== typeToDelete.id));
       setDeletingType(null);
-      fetchApplicationTypes();
+      await deleteData("application-types", typeToDelete.id, "Failed to delete category.");
+      toast({ title: "Module retired", status: "success" });
+      fetchApplicationTypes(); // background sync
     } catch (error) {
+      // Rollback on failure
+      fetchApplicationTypes();
       toast({ title: "Error deleting", description: error.message, status: "error" });
     }
   };

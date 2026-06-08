@@ -59,6 +59,9 @@ import { TimeIcon } from "@chakra-ui/icons";
 import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
+import { getAuthHeaders } from "../utils/apiHeaders";
+import axios from "axios";
+
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
 const API_URL = process.env.REACT_APP_API_URL;
@@ -96,12 +99,12 @@ const Events = () => {
     setIsLoading(true);
     try {
       const [eventsRes, locationsRes] = await Promise.all([
-        fetch(`${API_URL}/api/events`),
-        fetch(`${API_URL}/api/locations`),
+        axios.get(`${API_URL}/api/events`, { headers: getAuthHeaders() }),
+        axios.get(`${API_URL}/api/locations`, { headers: getAuthHeaders() }),
       ]);
 
-      const eventsData = await eventsRes.json();
-      const locationsData = await locationsRes.json();
+      const eventsData = eventsRes.data;
+      const locationsData = locationsRes.data;
 
       const eventsWithLocation = eventsData.map((event) => {
         const location = locationsData.find(
@@ -182,22 +185,32 @@ const Events = () => {
       time: moment(formData.time, "HH:mm").format("HH:mm:ss"),
     };
 
+    // Find location name for optimistic update
+    const locationName = locations.find(l => String(l.id) === String(formData.location_id))?.name || "N/A";
+
     try {
-      const url = editingEvent ? `${API_URL}/api/events/${editingEvent.id}` : `${API_URL}/api/events`;
-      const method = editingEvent ? "PUT" : "POST";
+      if (editingEvent) {
+        const res = await axios.put(`${API_URL}/api/events/${editingEvent.id}`, payload, {
+          headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
+        });
+        if (res.status < 200 || res.status >= 300) throw new Error("Sync failed");
+        // ✅ Optimistic update: update event in local state
+        const updatedEvent = { ...editingEvent, ...payload, locationName };
+        setEvents(prev => prev.map(e => e.id === editingEvent.id ? updatedEvent : e));
+      } else {
+        const res = await axios.post(`${API_URL}/api/events`, payload, {
+          headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
+        });
+        if (res.status < 200 || res.status >= 300) throw new Error("Sync failed");
+        // ✅ Optimistic update: append the new event
+        const newEvent = { id: res.data?.id || Date.now(), ...payload, locationName };
+        setEvents(prev => [...prev, newEvent]);
+      }
 
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) throw new Error("Sync failed");
-
-      await fetchEventsAndLocations();
       toast({ title: editingEvent ? "Event Updated" : "Event Commited", status: "success" });
       resetForm();
       onClose();
+      fetchEventsAndLocations(); // background sync
     } catch (err) {
       toast({ title: "Sync Error", description: err.message, status: "error" });
     }
@@ -220,14 +233,21 @@ const Events = () => {
 
   const handleDeleteEvent = async () => {
     if (!editingEvent) return;
+    const eventToDelete = editingEvent;
     try {
-      const res = await fetch(`${API_URL}/api/events/${editingEvent.id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Purge failed");
-      await fetchEventsAndLocations();
-      toast({ title: "Event Purged", status: "info" });
+      // ✅ Optimistic update: remove from local state immediately
+      setEvents(prev => prev.filter(e => e.id !== eventToDelete.id));
       resetForm();
       onClose();
+      const res = await axios.delete(`${API_URL}/api/events/${eventToDelete.id}`, {
+        headers: getAuthHeaders(),
+      });
+      if (res.status < 200 || res.status >= 300) throw new Error("Purge failed");
+      toast({ title: "Event Purged", status: "info" });
+      fetchEventsAndLocations(); // background sync
     } catch (err) {
+      // Rollback on failure
+      fetchEventsAndLocations();
       toast({ title: "Purge Error", status: "error" });
     }
   };
@@ -238,16 +258,18 @@ const Events = () => {
       date: moment(start).format("YYYY-MM-DD"),
       time: moment(start).format("HH:mm:ss"),
     };
+    // ✅ Optimistic update: update the dropped event's date/time immediately
+    setEvents(prev => prev.map(e => e.id === updatedEvent.id ? { ...e, ...updatedEvent } : e));
     try {
-      const res = await fetch(`${API_URL}/api/events/${updatedEvent.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedEvent),
+      const res = await axios.put(`${API_URL}/api/events/${updatedEvent.id}`, updatedEvent, {
+        headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
       });
-      if (!res.ok) throw new Error("Move failed");
-      await fetchEventsAndLocations();
+      if (res.status < 200 || res.status >= 300) throw new Error("Move failed");
       toast({ title: "Event Rescheduled", status: "success", duration: 1500 });
+      fetchEventsAndLocations(); // background sync
     } catch (err) {
+      // Rollback on failure
+      fetchEventsAndLocations();
       toast({ title: "Drop Sync Error", status: "error" });
     }
   };

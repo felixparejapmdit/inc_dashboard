@@ -27,7 +27,7 @@ const PhoneDirectory = sequelize.define(
     },
     phone_name: {
       type: DataTypes.STRING(255),
-      allowNull: false,
+      allowNull: true,
     },
     dect_number: {
       type: DataTypes.STRING(50),

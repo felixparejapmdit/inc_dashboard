@@ -144,11 +144,14 @@ const DesignationManagement = () => {
     }
 
     try {
-      await postData("designations", formState, "Failed to add designation");
+      const result = await postData("designations", formState, "Failed to add designation");
+      // ✅ Optimistic update: append new designation immediately
+      const newDesig = { id: result?.data?.id || result?.id || Date.now(), ...formState, ...(result?.data || {}) };
+      setDesignations(prev => [...prev, newDesig]);
       toast({ title: "Designation added successfully", status: "success" });
       setFormState({ name: "", section_id: "", subsection_id: "" });
       onAddClose();
-      loadAllData();
+      loadAllData(); // background sync
     } catch (error) {
       toast({
         title: "Error adding designation",
@@ -166,9 +169,11 @@ const DesignationManagement = () => {
 
     try {
       await putData("designations", editingDesignation.id, editingDesignation, "Failed to update designation");
+      // ✅ Optimistic update: update in local state immediately
+      setDesignations(prev => prev.map(d => d.id === editingDesignation.id ? { ...d, ...editingDesignation } : d));
       toast({ title: "Designation updated successfully", status: "success" });
       setEditingDesignation(null);
-      loadAllData();
+      loadAllData(); // background sync
     } catch (error) {
       toast({
         title: "Error updating designation",
@@ -179,12 +184,17 @@ const DesignationManagement = () => {
   };
 
   const handleDeleteDesignation = async () => {
+    const desigToDelete = deletingDesignation;
     try {
-      await deleteData("designations", deletingDesignation.id, "Failed to delete designation");
-      toast({ title: "Designation deleted successfully", status: "success" });
+      // ✅ Optimistic update: remove from local state immediately
+      setDesignations(prev => prev.filter(d => d.id !== desigToDelete.id));
       setDeletingDesignation(null);
-      loadAllData();
+      await deleteData("designations", desigToDelete.id, "Failed to delete designation");
+      toast({ title: "Designation deleted successfully", status: "success" });
+      loadAllData(); // background sync
     } catch (error) {
+      // Rollback on failure
+      loadAllData();
       toast({
         title: "Error deleting designation",
         description: error.message,

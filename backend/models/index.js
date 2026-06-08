@@ -28,6 +28,14 @@ sequelize
   .sync()
   .then(async () => {
     console.log("Database synchronized successfully.");
+    // Run tasks priority and kanban migration
+    try {
+      const migrateTasks = require("../scripts/migrate_tasks_priority_kanban");
+      await migrateTasks(false);
+      console.log("✅ Tasks database migration completed successfully.");
+    } catch (migErr) {
+      console.error("❌ Tasks database migration failed:", migErr);
+    }
     try {
       const count = await TaskCategory.count();
       if (count === 0) {

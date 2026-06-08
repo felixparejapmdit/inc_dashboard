@@ -62,6 +62,7 @@ exports.checkSchema = async (req, res) => {
 
             // Add to all models list
             const modelInfo = {
+                name: modelName,
                 modelName: modelName,
                 tableName: tableName,
                 status: "Synced",

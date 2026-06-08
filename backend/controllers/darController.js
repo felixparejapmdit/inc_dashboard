@@ -63,6 +63,7 @@ exports.createTask = async (req, res) => {
     const task = await Task.create(taskData);
     res.status(201).json(task);
   } catch (err) {
+    console.error("❌ Error in createTask:", err);
     res.status(500).json({ message: "Failed to create task.", error: err.message });
   }
 };
@@ -76,6 +77,7 @@ exports.updateTask = async (req, res) => {
     });
     res.json(task);
   } catch (err) {
+    console.error("❌ Error in updateTask:", err);
     res.status(500).json({ message: "Failed to update task.", error: err.message });
   }
 };
@@ -86,6 +88,7 @@ exports.deleteTask = async (req, res) => {
     if (!deleted) return res.status(404).json({ message: "Task not found." });
     res.json({ message: "Task deleted successfully." });
   } catch (err) {
+    console.error("❌ Error in deleteTask:", err);
     res.status(500).json({ message: "Failed to delete task.", error: err.message });
   }
 };

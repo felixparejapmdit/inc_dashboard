@@ -85,10 +85,10 @@ exports.createPhoneDirectory = async (req, res) => {
     is_active,
   } = req.body;
 
-  if (!name || !location || !prefix || !extension || !phone_name) {
+  if (!name || !location || !prefix || !extension) {
     return res
       .status(400)
-      .json({ message: "All fields except DECT number are required" });
+      .json({ message: "Owner, location, prefix, and extension are required" });
   }
 
   try {

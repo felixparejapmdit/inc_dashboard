@@ -2,8 +2,17 @@
 import axios from "axios";
 import { getAuthHeaders } from "./apiHeaders";
 
-let API_URL = process.env.REACT_APP_API_URL || "";
-if (typeof window !== "undefined" && window.location.protocol === "https:" && API_URL.startsWith("http://")) {
+const isLocalDev =
+  typeof window !== "undefined" &&
+  ["localhost", "127.0.0.1"].includes(window.location.hostname);
+
+let API_URL =
+  process.env.REACT_APP_API_URL || (isLocalDev ? "http://127.0.0.1:5001" : "");
+if (
+  typeof window !== "undefined" &&
+  window.location.protocol === "https:" &&
+  API_URL.startsWith("http://")
+) {
   API_URL = API_URL.replace("http://", "https://");
 }
 
@@ -15,13 +24,15 @@ axios.interceptors.response.use(
       const currentPath = window.location.pathname;
       // Prevent redirect loop if already on login page
       if (currentPath !== "/login") {
-        console.warn("Session expired or unauthorized. Redirecting to login...");
+        console.warn(
+          "Session expired or unauthorized. Redirecting to login...",
+        );
         localStorage.removeItem("authToken"); // Clear invalid token
         window.location.href = "/login";
       }
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 const FETCH_CACHE_TTL_MS = 30 * 1000;
@@ -69,13 +80,14 @@ export const fetchData = async (
   errorMsg = null,
   params = null,
   onFinally = null,
-  baseUrl = ""
+  baseUrl = "",
 ) => {
   try {
-    let url = `${baseUrl}/api/${endpoint}`;
+    const resolvedBaseUrl = baseUrl || API_URL;
+    let url = `${resolvedBaseUrl}/api/${endpoint}`;
 
     // Log API request in development
-    if (process.env.NODE_ENV !== 'production') {
+    if (process.env.NODE_ENV !== "production") {
       console.log(`🌐 API Request: ${url}`);
     }
 
@@ -186,14 +198,16 @@ export const fetchPermissionData = async (groupId, setPermissions, onError) => {
       console.warn("⚠️ Unexpected permissions data format:", data);
       setPermissions([]);
     }
-
   } catch (error) {
-    console.error(`❌ Network Error fetching permissions for group ${groupId}:`, {
-      message: error.message,
-      url: `${API_URL}/api/permissions_access/${groupId}`,
-      code: error.code,
-      stack: error.stack
-    });
+    console.error(
+      `❌ Network Error fetching permissions for group ${groupId}:`,
+      {
+        message: error.message,
+        url: `${API_URL}/api/permissions_access/${groupId}`,
+        code: error.code,
+        stack: error.stack,
+      },
+    );
 
     // Handle specific network errors
     if (error.code === "ECONNABORTED") {
@@ -201,7 +215,7 @@ export const fetchPermissionData = async (groupId, setPermissions, onError) => {
     } else if (error.response) {
       console.error(
         `Server responded with ${error.response.status}:`,
-        error.response.data
+        error.response.data,
       );
     }
 
@@ -213,16 +227,17 @@ export const fetchPermissionData = async (groupId, setPermissions, onError) => {
   }
 };
 
-
 export const fetchLoginData = async (
   endpoint,
   onSuccess,
   onError,
   errorMessage = "Failed to fetch data",
-  param = null // dynamic parameter for endpoint (e.g., username or groupId)
+  param = null, // dynamic parameter for endpoint (e.g., username or groupId)
 ) => {
   try {
-    const url = param ? `${API_URL}/api/${endpoint}/${param}` : `${API_URL}/api/${endpoint}`;
+    const url = param
+      ? `${API_URL}/api/${endpoint}/${param}`
+      : `${API_URL}/api/${endpoint}`;
 
     const response = await axios.get(url, {
       headers: getAuthHeaders(),
@@ -231,7 +246,10 @@ export const fetchLoginData = async (
 
     const data = response.data;
 
-    if (data && (data.success || Array.isArray(data) || typeof data === "object")) {
+    if (
+      data &&
+      (data.success || Array.isArray(data) || typeof data === "object")
+    ) {
       onSuccess(data);
     } else {
       console.warn(`⚠️ Unexpected data format from ${url}:`, data);
@@ -255,7 +273,7 @@ export const fetchDataPhotoshoot = async (
   personnelId,
   setter = null,
   onError = null,
-  errorMsg = "Failed to fetch personnel images."
+  errorMsg = "Failed to fetch personnel images.",
 ) => {
   try {
     const url = `${API_URL}/api/personnel_images/${personnelId}`;
@@ -273,12 +291,14 @@ export const fetchDataPhotoshoot = async (
       }
       return data.data; // Return raw image data
     } else {
-      console.warn(`Photoshoot API failed or returned unexpected format for ID ${personnelId}:`, data);
+      console.warn(
+        `Photoshoot API failed or returned unexpected format for ID ${personnelId}:`,
+        data,
+      );
       if (setter) setter([]);
       if (onError) onError(errorMsg);
       return [];
     }
-
   } catch (error) {
     console.error(`Error fetching personnel_images/${personnelId}:`, error);
     if (onError) onError(errorMsg);
@@ -293,10 +313,11 @@ export const fetchProgressData = async (
   errorMsg = null,
   params = null, // string or object
   onFinally = null,
-  baseUrl = API_URL
+  baseUrl = API_URL,
 ) => {
   try {
-    let url = `${baseUrl}/api/${endpoint}`;
+    const resolvedBaseUrl = baseUrl || API_URL;
+    let url = `${resolvedBaseUrl}/api/${endpoint}`;
     if (typeof params === "string") {
       url += `/${params}`;
     } else if (typeof params === "object" && params !== null) {
@@ -338,12 +359,13 @@ export const fetchEnrollData = async (
   errorMsg = null,
   params = null,
   onFinally = null,
-  baseUrl = API_URL
+  baseUrl = API_URL,
 ) => {
   try {
+    const resolvedBaseUrl = baseUrl || API_URL;
     const url = params
-      ? `${baseUrl}/api/${endpoint}/${params}`
-      : `${baseUrl}/api/${endpoint}`;
+      ? `${resolvedBaseUrl}/api/${endpoint}/${params}`
+      : `${resolvedBaseUrl}/api/${endpoint}`;
 
     const response = await axios.get(url, {
       headers: getAuthHeaders(),
@@ -457,9 +479,10 @@ export const fetchEnrollData = async (
 export const postData = async (
   endpoint,
   payload,
-  errorMsg = "Failed to submit data."
+  errorMsg = "Failed to submit data.",
 ) => {
   try {
+    clearFetchCache();
     const isFormData = payload instanceof FormData;
 
     const response = await axios.post(`${API_URL}/api/${endpoint}`, payload, {
@@ -483,7 +506,7 @@ export const postData = async (
 
 export const fetchSetting = async (
   endpoint, // e.g. "settings/drag-drop"
-  errorMsg = "Failed to fetch setting."
+  errorMsg = "Failed to fetch setting.",
 ) => {
   try {
     const url = `${API_URL}/api/${endpoint}`;
@@ -502,9 +525,10 @@ export const fetchSetting = async (
 export const putSetting = async (
   endpoint, // e.g. "settings/drag-drop"
   payload,
-  errorMsg = "Failed to update setting."
+  errorMsg = "Failed to update setting.",
 ) => {
   try {
+    clearFetchCache();
     const url = `${API_URL}/api/${endpoint}`;
 
     const response = await axios.put(url, payload, {
@@ -556,9 +580,10 @@ export const putFileData = async (
   endpoint,
   idOrPayload,
   maybePayload,
-  errorMsg = "Failed to update data."
+  errorMsg = "Failed to update data.",
 ) => {
   try {
+    clearFetchCache();
     let url = `${API_URL}/api/${endpoint}`;
     let payload = {};
     let isMultipart = false;
@@ -577,7 +602,7 @@ export const putFileData = async (
       Object.values(payload).some(
         (val) =>
           val instanceof File ||
-          (Array.isArray(val) && val.some((item) => item instanceof File))
+          (Array.isArray(val) && val.some((item) => item instanceof File)),
       );
 
     let dataToSend = payload;
@@ -616,9 +641,10 @@ export const putData = async (
   endpoint,
   idOrPayload,
   maybePayload,
-  errorMsg = "Failed to update data."
+  errorMsg = "Failed to update data.",
 ) => {
   try {
+    clearFetchCache();
     let url = `${API_URL}/api/${endpoint}`;
     let payload;
     let isMultipart = false;
@@ -666,8 +692,13 @@ export const putData = async (
   }
 };
 
-export const putDataRestore = async (endpoint, id, errorMsg = "Failed to restore data.") => {
+export const putDataRestore = async (
+  endpoint,
+  id,
+  errorMsg = "Failed to restore data.",
+) => {
   try {
+    clearFetchCache();
     // Build the correct restore URL
     const url = `${API_URL}/api/${endpoint}/${id}`;
 
@@ -676,25 +707,28 @@ export const putDataRestore = async (endpoint, id, errorMsg = "Failed to restore
       {}, // Empty body for restore (no payload needed)
       {
         headers: getAuthHeaders(),
-      }
+      },
     );
 
     return response.data;
   } catch (error) {
-    console.error(`PUT restore error on ${endpoint}/${id}:`, error?.response || error);
+    console.error(
+      `PUT restore error on ${endpoint}/${id}:`,
+      error?.response || error,
+    );
     throw new Error(errorMsg);
   }
 };
-
 
 // New function optimized for simple JSON updates (like contact extension)
 export const putDataContact = async (
   endpoint, // e.g., 'personnel-contacts/90'
   payload, // The JSON object {extension: '1234'}
-  errorMsg = "Failed to update contact data."
+  errorMsg = "Failed to update contact data.",
 ) => {
   try {
-    // CRITICAL FIX: The endpoint should be treated as the full path already, 
+    clearFetchCache();
+    // CRITICAL FIX: The endpoint should be treated as the full path already,
     // without adding another /api/ or using complex ID logic.
     const url = `${API_URL}/api/${endpoint}`;
 
@@ -719,9 +753,10 @@ export const putDataContact = async (
 export const deleteData = async (
   endpoint,
   id,
-  errorMsg = "Failed to delete data."
+  errorMsg = "Failed to delete data.",
 ) => {
   try {
+    clearFetchCache();
     const response = await axios.delete(`${API_URL}/api/${endpoint}/${id}`, {
       headers: getAuthHeaders(),
     });

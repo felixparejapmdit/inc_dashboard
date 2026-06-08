@@ -113,6 +113,12 @@ const uploadLocalRoute = require('./routes/uploadLocal');
 const proxySnipeitRoutes = require("./routes/proxySnipeitRoutes");
 const darRoutes = require("./routes/darRoutes");
 
+// ✅ Bootstrap: Load models/index.js to trigger sequelize.sync() and run
+// the tasks migration (adds priority + kanban_status columns if missing).
+// This MUST be imported here — darController.js imports models directly
+// (../models/Task etc.) and bypasses models/index.js otherwise.
+require("./models");
+
 // app.use(express.json()); // Removed to allow larger limits below
 
 app.use(cors({ origin: "*" }));

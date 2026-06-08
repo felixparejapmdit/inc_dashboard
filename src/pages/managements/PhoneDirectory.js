@@ -167,9 +167,9 @@ const PhoneDirectory = () => {
 
   const handleSave = async () => {
     const entry = editingEntry || formState;
-    const { name, location, prefix, extension, phone_name } = entry;
+    const { name, location, prefix, extension } = entry;
 
-    if (!name || !location || !prefix || !extension || !phone_name) {
+    if (!name || !location || !prefix || !extension) {
       toast({ title: "Please fill in all required fields", status: "warning" });
       return;
     }
@@ -593,8 +593,8 @@ const PhoneDirectory = () => {
                 />
               </FormControl>
 
-              <FormControl isRequired>
-                <FormLabel fontWeight="bold">Phone Model / Name</FormLabel>
+              <FormControl>
+                <FormLabel fontWeight="bold">Phone Model / Name (Optional)</FormLabel>
                 <Input
                   placeholder="e.g. Cisco CP-7841"
                   value={editingEntry ? editingEntry.phone_name : formState.phone_name}

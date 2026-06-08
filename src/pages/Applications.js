@@ -182,16 +182,26 @@ const Applications = () => {
       app_type,
     };
 
+    // Find the matching type name for display
+    const typeName = appTypes.find(t => String(t.id) === String(app_type))?.name || "";
+
     try {
       if (editingApp) {
-        await putData("apps", editingApp.id, payload);
+        const result = await putData("apps", editingApp.id, payload);
+        // ✅ Optimistic update: update the item in local state immediately
+        const updatedApp = { ...editingApp, ...payload, app_type_name: typeName, ...(result?.data || {}) };
+        setApps(prev => prev.map(a => a.id === editingApp.id ? updatedApp : a));
         toast({ title: "Application updated", status: "success" });
       } else {
-        await postData("apps", payload);
+        const result = await postData("apps", payload);
+        // ✅ Optimistic update: append the new item immediately
+        const newApp = { id: result?.data?.id || result?.id || Date.now(), ...payload, app_type_name: typeName, ...(result?.data || {}) };
+        setApps(prev => [...prev, newApp]);
         toast({ title: "Application added", status: "success" });
       }
       resetForm();
       onClose();
+      // Re-fetch in background to sync any server-side computed fields
       loadData();
     } catch (error) {
       toast({ title: "Error saving application", description: error.message, status: "error" });
@@ -199,12 +209,18 @@ const Applications = () => {
   };
 
   const handleDelete = async () => {
+    const appToDelete = deletingApp;
     try {
-      await deleteData("apps", deletingApp.id);
-      toast({ title: "Application deleted", status: "success" });
+      // ✅ Optimistic update: remove item from local state immediately
+      setApps(prev => prev.filter(a => a.id !== appToDelete.id));
       setDeletingApp(null);
+      await deleteData("apps", appToDelete.id);
+      toast({ title: "Application deleted", status: "success" });
+      // Re-fetch in background to ensure sync
       loadData();
     } catch (error) {
+      // Rollback on failure
+      loadData();
       toast({ title: "Error deleting", description: error.message, status: "error" });
     }
   };

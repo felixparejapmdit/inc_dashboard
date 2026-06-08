@@ -201,7 +201,7 @@ function TaskModal({ isOpen, onClose, categories, onSaved, initial }) {
       toast({ title: initial ? "Task updated!" : "Task created!", status: "success", duration: 2000, isClosable: true });
       onSaved(); onClose();
     } catch (err) {
-      toast({ title: "Failed to save task.", description: err.message, status: "error", duration: 3000, isClosable: true });
+      toast({ title: "Failed to save task.", description: err.response?.data?.error || err.response?.data?.message || err.message, status: "error", duration: 3000, isClosable: true });
     } finally { setSaving(false); }
   };
 
@@ -309,8 +309,8 @@ function LogModal({ isOpen, onClose, task, onSaved }) {
       }, { headers: getAuthHeaders() });
       toast({ title: "Log saved!", status: "success", duration: 2000, isClosable: true });
       onSaved(); onClose();
-    } catch {
-      toast({ title: "Failed to save log.", status: "error", duration: 3000, isClosable: true });
+    } catch (err) {
+      toast({ title: "Failed to save log.", description: err.response?.data?.error || err.response?.data?.message || err.message, status: "error", duration: 3000, isClosable: true });
     } finally { setSaving(false); }
   };
 
@@ -421,7 +421,7 @@ export default function DailyActivityReport() {
       load();
       toast({ title: "Task moved.", status: "success", duration: 1500, isClosable: true });
     } catch (err) {
-      toast({ title: "Failed to move task.", description: err.message, status: "error", duration: 3000, isClosable: true });
+      toast({ title: "Failed to move task.", description: err.response?.data?.error || err.response?.data?.message || err.message, status: "error", duration: 3000, isClosable: true });
       load();
     }
   };
@@ -448,7 +448,7 @@ export default function DailyActivityReport() {
       ]);
       setTasks(tRes.data); setLogs(lRes.data); setReports(rRes.data); setCategories(cRes.data);
     } catch (err) {
-      toast({ title: "Failed to load data.", description: err.message, status: "error", duration: 3000, isClosable: true });
+      toast({ title: "Failed to load data.", description: err.response?.data?.error || err.response?.data?.message || err.message, status: "error", duration: 3000, isClosable: true });
     } finally { setLoading(false); }
   }, [userId, week, toast]);
 
@@ -468,7 +468,9 @@ export default function DailyActivityReport() {
       await axios.delete(`${API}/api/dar/tasks/${id}`, { headers: getAuthHeaders() });
       toast({ title: "Task deleted.", status: "info", duration: 2000, isClosable: true });
       load();
-    } catch { toast({ title: "Delete failed.", status: "error", duration: 2000, isClosable: true }); }
+    } catch (err) {
+      toast({ title: "Delete failed.", description: err.response?.data?.error || err.response?.data?.message || err.message, status: "error", duration: 2000, isClosable: true });
+    }
   };
 
   const filteredTasks = useMemo(() => {

@@ -136,11 +136,14 @@ const SectionManagement = () => {
     }
 
     try {
-      await postData("sections", formState, "Failed to add section");
+      const result = await postData("sections", formState, "Failed to add section");
+      // ✅ Optimistic update: append new section immediately
+      const newSection = { id: result?.data?.id || result?.id || Date.now(), ...formState, ...(result?.data || {}) };
+      setSections(prev => [...prev, newSection]);
       toast({ title: "Section added successfully", status: "success" });
       setFormState({ name: "", department_id: "" });
       onAddClose();
-      loadAllData();
+      loadAllData(); // background sync
     } catch (error) {
       toast({
         title: "Error adding section",
@@ -158,9 +161,11 @@ const SectionManagement = () => {
 
     try {
       await putData("sections", editingSection.id, editingSection, "Failed to update section");
+      // ✅ Optimistic update: update in local state immediately
+      setSections(prev => prev.map(s => s.id === editingSection.id ? { ...s, ...editingSection } : s));
       toast({ title: "Section updated successfully", status: "success" });
       setEditingSection(null);
-      loadAllData();
+      loadAllData(); // background sync
     } catch (error) {
       toast({
         title: "Error updating section",
@@ -171,12 +176,17 @@ const SectionManagement = () => {
   };
 
   const handleDeleteSection = async () => {
+    const secToDelete = deletingSection;
     try {
-      await deleteData("sections", deletingSection.id, "Failed to delete section");
-      toast({ title: "Section deleted successfully", status: "success" });
+      // ✅ Optimistic update: remove from local state immediately
+      setSections(prev => prev.filter(s => s.id !== secToDelete.id));
       setDeletingSection(null);
-      loadAllData();
+      await deleteData("sections", secToDelete.id, "Failed to delete section");
+      toast({ title: "Section deleted successfully", status: "success" });
+      loadAllData(); // background sync
     } catch (error) {
+      // Rollback on failure
+      loadAllData();
       toast({
         title: "Error deleting section",
         description: error.message,
