@@ -64,6 +64,8 @@ const EnrollmentForm = ({ referenceNumber }) => {
   const [isDownloading, setIsDownloading] = useState(false);
   const searchParams = useSearchParams()[0];
   const personnelId = searchParams.get("personnel_id");
+  const hasValidPersonnelId =
+    !!personnelId && personnelId !== "null" && personnelId !== "undefined";
   const familyFetchedRef = React.useRef(false);
   const stepParam = searchParams.get("step");
   const typeParam = searchParams.get("type");
@@ -1143,6 +1145,19 @@ const EnrollmentForm = ({ referenceNumber }) => {
   const handleNext = async () => {
     setIsLoading(true);
     try {
+      if (!hasValidPersonnelId) {
+        toast({
+          title: "Save Step 1 first",
+          description:
+            "Please save the personnel record before moving to the next step.",
+          status: "warning",
+          duration: 3500,
+          isClosable: true,
+          position: "bottom-left",
+        });
+        return;
+      }
+
       // ✅ Prevent proceeding if any changes are unsaved
       if (hasUnsavedChanges()) {
         setIsAlertOpen(true);
@@ -1424,8 +1439,10 @@ const EnrollmentForm = ({ referenceNumber }) => {
   useEffect(() => {
     const fetchEnrollmentData = async () => {
       // ✅ 0. Early check for missing or invalid personnel_id
-      if (!personnelId || personnelId === "null") {
-        console.warn("⚠️ EnrollmentForm: No valid personnelId provided.");
+      if (!hasValidPersonnelId) {
+        if (typeParam !== "new" || Number(stepParam || step) > 1) {
+          console.warn("⚠️ EnrollmentForm: No valid personnelId provided.");
+        }
         if (personnelId === "null" && typeParam !== "new") {
           toast({
             title: "Not Enrolled",
@@ -2242,7 +2259,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
             colorScheme="teal"
             onClick={handleNext}
             isLoading={isLoading}
-            disabled={!!emailError || !personnelData.email_address} // Disable if invalid
+            disabled={!!emailError || !personnelData.email_address || !hasValidPersonnelId} // Disable if invalid
           >
             Next
           </Button>
