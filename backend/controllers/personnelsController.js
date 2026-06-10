@@ -549,6 +549,14 @@ const referenceNumber = generateReferenceNumber();
 exports.createPersonnel = async (req, res) => {
   try {
     const personnelData = req.body;
+    const normalizedEmail =
+      typeof personnelData.email_address === "string"
+        ? personnelData.email_address.trim()
+        : "";
+    const normalizedWorkEmail =
+      typeof personnelData.work_email_address === "string"
+        ? personnelData.work_email_address.trim()
+        : "";
 
     // Generate reference number and set default values for progress fields
     personnelData.reference_number = generateReferenceNumber();
@@ -576,6 +584,15 @@ exports.createPersonnel = async (req, res) => {
       });
     }
 
+    if (!normalizedEmail) {
+      return res.status(400).json({
+        message: "Email address is required.",
+      });
+    }
+
+    personnelData.email_address = normalizedEmail;
+    personnelData.work_email_address = normalizedWorkEmail || null;
+
     // Check if a record with the same givenname and surname_husband already exists
     const existingPersonnel = await Personnel.findOne({
       where: {
@@ -589,6 +606,28 @@ exports.createPersonnel = async (req, res) => {
         message:
           "A personnel record with the same given name and surname already exists.",
       });
+    }
+
+    const duplicateEmail = await Personnel.findOne({
+      where: { email_address: normalizedEmail },
+    });
+
+    if (duplicateEmail) {
+      return res.status(400).json({
+        message: "A personnel record with this email address already exists.",
+      });
+    }
+
+    if (normalizedWorkEmail) {
+      const duplicateWorkEmail = await Personnel.findOne({
+        where: { work_email_address: normalizedWorkEmail },
+      });
+
+      if (duplicateWorkEmail) {
+        return res.status(400).json({
+          message: "A personnel record with this work email address already exists.",
+        });
+      }
     }
 
     // Ensure language_id is stored as an array (converted to JSON)
@@ -655,6 +694,24 @@ exports.createPersonnel = async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating personnel record:", error.message);
+
+    if (
+      error instanceof Sequelize.UniqueConstraintError ||
+      error?.name === "SequelizeUniqueConstraintError"
+    ) {
+      const uniqueField = error.errors?.[0]?.path;
+      const uniqueMessage =
+        uniqueField === "email_address"
+          ? "A personnel record with this email address already exists."
+          : uniqueField === "work_email_address"
+            ? "A personnel record with this work email address already exists."
+            : "A personnel record with the same unique value already exists.";
+
+      return res.status(400).json({
+        message: uniqueMessage,
+      });
+    }
+
     res.status(500).json({
       message: "Error creating personnel record",
       error: error.message,
