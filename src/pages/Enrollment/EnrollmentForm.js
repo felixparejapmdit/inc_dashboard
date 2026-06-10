@@ -69,6 +69,7 @@ const EnrollmentForm = ({ referenceNumber }) => {
   const familyFetchedRef = React.useRef(false);
   const stepParam = searchParams.get("step");
   const typeParam = searchParams.get("type");
+  const typeQuery = typeParam ? `&type=${encodeURIComponent(typeParam)}` : "";
   const [progress, setProgress] = useState(0); // Update this based on API response
   const personnelProgress = Number(searchParams.get("personnel_progress"));
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
@@ -1356,8 +1357,15 @@ const EnrollmentForm = ({ referenceNumber }) => {
 
       // Extract the personnel_id from the response
       // Note: fetchData/postData already returns the unwrapped data (data.success ? data.data : data)
-      const personnel = response.personnel || response;
-      const { personnel_id, reference_number } = personnel;
+      const personnel = response?.personnel || response?.data || response;
+      const personnel_id =
+        personnel?.personnel_id ?? personnel?.id ?? response?.personnel_id;
+      const reference_number =
+        personnel?.reference_number ?? response?.reference_number;
+
+      if (!personnel_id) {
+        throw new Error("Personnel record was created, but no personnel_id was returned.");
+      }
 
       // After saving personnel and getting personnel_id
       if (
@@ -1417,8 +1425,11 @@ const EnrollmentForm = ({ referenceNumber }) => {
       // Close modal and move to the next step
       setIsModalOpen(false);
 
-      // Redirect to Step 2 with personnel_id
-      window.location.href = `/enroll?personnel_id=${personnel_id}&step=2`;
+      // Stay inside the SPA so deployed routing does not bounce the user back to login
+      navigate(
+        `/enroll?personnel_id=${personnel_id}&step=2${typeQuery}`,
+        { replace: true }
+      );
     } catch (error) {
       console.error("Error saving personnel data:", error);
 

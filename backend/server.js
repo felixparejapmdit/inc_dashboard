@@ -24,10 +24,64 @@ const axios = require("axios"); // ✅ Axios to communicate with Ollama API
 let sslOptions = null;
 if (process.env.HTTPS === "true") {
   try { // Use try/catch for file read to prevent crash
-    sslOptions = {
-      key: fs.readFileSync(process.env.SSL_KEY_FILE),
-      cert: fs.readFileSync(process.env.SSL_CRT_FILE),
+    const resolveSslFile = (configuredPath, candidateNames = []) => {
+      if (!configuredPath) return null;
+
+      const basePath = path.isAbsolute(configuredPath)
+        ? configuredPath
+        : path.resolve(__dirname, configuredPath);
+
+      const isFile = (candidatePath) => {
+        try {
+          return fs.statSync(candidatePath).isFile() ? candidatePath : null;
+        } catch {
+          return null;
+        }
+      };
+
+      const directMatch = isFile(basePath);
+      if (directMatch) return directMatch;
+
+      try {
+        if (fs.statSync(basePath).isDirectory()) {
+          for (const candidateName of candidateNames) {
+            const candidatePath = path.join(basePath, candidateName);
+            const nestedMatch = isFile(candidatePath);
+            if (nestedMatch) return nestedMatch;
+          }
+        }
+      } catch {
+        // Ignore and fall through to null so the server can continue without SSL.
+      }
+
+      return null;
     };
+
+    const resolvedKeyPath = resolveSslFile(process.env.SSL_KEY_FILE, [
+      "key.pem",
+      "privkey.pem",
+      "server.key",
+    ]);
+    const resolvedCertPath = resolveSslFile(process.env.SSL_CRT_FILE, [
+      "cert.pem",
+      "fullchain.pem",
+      "server.crt",
+    ]);
+
+    if (!resolvedKeyPath || !resolvedCertPath) {
+      console.warn(
+        "⚠️ SSL requested but certificate files could not be resolved. Running HTTP only.",
+        {
+          key: process.env.SSL_KEY_FILE,
+          cert: process.env.SSL_CRT_FILE,
+        }
+      );
+    } else {
+      sslOptions = {
+        key: fs.readFileSync(resolvedKeyPath),
+        cert: fs.readFileSync(resolvedCertPath),
+      };
+    }
   } catch (err) {
     console.error("❌ SSL CONFIG ERROR: Failed to read certificate files.", err.message);
     sslOptions = null; // Disable HTTPS if files are missing
