@@ -19,6 +19,7 @@ const isPublicEnrollmentRoute = (req) => {
       "/api/government-issued-ids",
       "/api/phonelocations",
       "/api/phone-directory",
+      "/api/personnels_check",
       "/api/all-congregations",
     ];
     if (publicGetPrefixes.some(p => path === p || path.startsWith(p + "/"))) {
