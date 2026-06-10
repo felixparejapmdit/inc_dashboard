@@ -1,8 +1,67 @@
 const { Op } = require("sequelize");
+const sequelize = require("../config/database");
+const User = require("../models/User");
 const TaskCategory = require("../models/TaskCategory");
 const Task = require("../models/Task");
 const AccomplishedLog = require("../models/AccomplishedLog");
 const DailyActivityReport = require("../models/DailyActivityReport");
+
+let taskTableColumnsCache = null;
+
+const getTaskTableColumns = async () => {
+  if (!taskTableColumnsCache) {
+    const columns = await sequelize.getQueryInterface().describeTable("tasks");
+    taskTableColumnsCache = new Set(Object.keys(columns));
+  }
+
+  return taskTableColumnsCache;
+};
+
+const pickTaskColumns = async (payload) => {
+  const tableColumns = await getTaskTableColumns();
+  const filtered = {};
+
+  for (const [key, value] of Object.entries(payload || {})) {
+    if (tableColumns.has(key)) {
+      filtered[key] = value;
+    }
+  }
+
+  return filtered;
+};
+
+const resolveDarUserId = async (req, requestedUserId = null) => {
+  const normalizeNumericId = (value) => {
+    if (value === null || value === undefined || value === "") return null;
+    const parsed = Number(value);
+    return Number.isInteger(parsed) && String(parsed) === String(value).trim()
+      ? parsed
+      : null;
+  };
+
+  const directRequestedId = normalizeNumericId(requestedUserId);
+  if (directRequestedId) return directRequestedId;
+
+  const tokenUserId = normalizeNumericId(req.user?.id);
+  if (tokenUserId) return tokenUserId;
+
+  const usernamesToTry = [req.user?.username, req.user?.id]
+    .filter((value) => typeof value === "string" && value.trim())
+    .map((value) => value.trim());
+
+  for (const username of usernamesToTry) {
+    const user = await User.findOne({
+      where: { username },
+      attributes: ["id"],
+    });
+
+    if (user?.id) {
+      return user.id;
+    }
+  }
+
+  return null;
+};
 
 // ─── CATEGORIES ────────────────────────────────────────────────────────────────
 
@@ -20,7 +79,14 @@ exports.getCategories = async (req, res) => {
 exports.getTasks = async (req, res) => {
   try {
     const { user_id, date, week_start, week_end, status } = req.query;
-    const targetUserId = user_id || req.user?.id;
+    const targetUserId = await resolveDarUserId(req, user_id);
+
+    if (!targetUserId) {
+      return res.status(400).json({
+        message: "Unable to resolve the current user for DAR tasks.",
+      });
+    }
+
     const where = {};
     if (targetUserId) where.user_id = targetUserId;
     if (status)  where.status = status;
@@ -56,11 +122,20 @@ exports.getTaskById = async (req, res) => {
 
 exports.createTask = async (req, res) => {
   try {
-    const taskData = { ...req.body };
-    if (!taskData.user_id && req.user?.id) {
-      taskData.user_id = req.user.id;
+    const taskData = await pickTaskColumns({ ...req.body });
+    const resolvedUserId = await resolveDarUserId(req, taskData.user_id);
+
+    if (!resolvedUserId) {
+      return res.status(400).json({
+        message: "Unable to resolve the current user for this task.",
+      });
     }
-    const task = await Task.create(taskData);
+
+    taskData.user_id = resolvedUserId;
+
+    const task = await Task.create(taskData, {
+      fields: Object.keys(taskData),
+    });
     res.status(201).json(task);
   } catch (err) {
     console.error("❌ Error in createTask:", err);
@@ -70,7 +145,17 @@ exports.createTask = async (req, res) => {
 
 exports.updateTask = async (req, res) => {
   try {
-    const [updated] = await Task.update(req.body, { where: { task_id: req.params.id } });
+    const updateData = await pickTaskColumns({ ...req.body });
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({
+        message: "No valid task fields were provided for update.",
+      });
+    }
+
+    const [updated] = await Task.update(updateData, {
+      where: { task_id: req.params.id },
+      fields: Object.keys(updateData),
+    });
     if (!updated) return res.status(404).json({ message: "Task not found." });
     const task = await Task.findByPk(req.params.id, {
       include: [{ model: TaskCategory, as: "category" }],
@@ -98,7 +183,14 @@ exports.deleteTask = async (req, res) => {
 exports.getLogs = async (req, res) => {
   try {
     const { user_id, week_start, week_end } = req.query;
-    const targetUserId = user_id || req.user?.id;
+    const targetUserId = await resolveDarUserId(req, user_id);
+
+    if (!targetUserId) {
+      return res.status(400).json({
+        message: "Unable to resolve the current user for DAR logs.",
+      });
+    }
+
     let taskWhere = {};
     if (targetUserId) taskWhere.user_id = targetUserId;
     if (week_start && week_end)
@@ -138,7 +230,14 @@ exports.upsertLog = async (req, res) => {
 exports.getReports = async (req, res) => {
   try {
     const { user_id, week_start, week_end } = req.query;
-    const targetUserId = user_id || req.user?.id;
+    const targetUserId = await resolveDarUserId(req, user_id);
+
+    if (!targetUserId) {
+      return res.status(400).json({
+        message: "Unable to resolve the current user for DAR reports.",
+      });
+    }
+
     const where = {};
     if (targetUserId) where.user_id = targetUserId;
     if (week_start && week_end)
@@ -157,7 +256,7 @@ exports.getReports = async (req, res) => {
 exports.upsertReport = async (req, res) => {
   try {
     const { user_id, report_date, accomplishments, remarks, personnel_remarks } = req.body;
-    const targetUserId = user_id || req.user?.id;
+    const targetUserId = await resolveDarUserId(req, user_id);
     if (!targetUserId) {
       return res.status(400).json({ message: "User ID is required." });
     }
