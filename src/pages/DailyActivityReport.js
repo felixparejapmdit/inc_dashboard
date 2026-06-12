@@ -6,6 +6,7 @@ import {
   ModalFooter, ModalCloseButton, useDisclosure, useToast,
   VStack, HStack, SimpleGrid, Spinner, Tooltip, InputGroup, InputLeftElement,
 } from "@chakra-ui/react";
+import { motion } from "framer-motion";
 import {
   FiPlus, FiEdit2, FiTrash2, FiSearch, FiPrinter,
   FiList, FiGrid, FiCheckSquare, FiFileText, FiClock,
@@ -15,6 +16,13 @@ import { PieChart, Pie, Cell } from "recharts";
 import { getAuthHeaders } from "../utils/apiHeaders";
 
 const API = process.env.REACT_APP_API_URL || "";
+
+const formatPrintHours = (hours) => {
+  if (!Number.isFinite(hours) || hours <= 0) return "";
+  return Number.isInteger(hours) ? `${hours}` : hours.toFixed(1);
+};
+
+const MotionBox = motion(Box);
 
 // ─── Design Tokens ─────────────────────────────────────────────────────────────
 const T = {
@@ -405,25 +413,48 @@ export default function DailyActivityReport() {
     if (!task) return;
 
     const newStatus = targetKanbanStatus === "Done" ? "Completed" : "Active";
+    const originalKanbanStatus = task.kanban_status || "New";
+    const originalStatus = task.status || "Active";
 
-    // Optimistically update
-    setTasks(prev => prev.map(t => 
-      t.task_id === taskId 
-        ? { ...t, kanban_status: targetKanbanStatus, status: newStatus } 
-        : t
-    ));
+    setDragOverCol(null);
+    setTasks(prev =>
+      prev.map(t =>
+        t.task_id === taskId
+          ? { ...t, kanban_status: targetKanbanStatus, status: newStatus }
+          : t
+      )
+    );
 
-    try {
-      await axios.put(`${API}/api/dar/tasks/${taskId}`, {
+    void axios.put(
+      `${API}/api/dar/tasks/${taskId}`,
+      {
         kanban_status: targetKanbanStatus,
         status: newStatus
-      }, { headers: getAuthHeaders() });
-      load();
-      toast({ title: "Task moved.", status: "success", duration: 1500, isClosable: true });
-    } catch (err) {
-      toast({ title: "Failed to move task.", description: err.response?.data?.error || err.response?.data?.message || err.message, status: "error", duration: 3000, isClosable: true });
-      load();
-    }
+      },
+      { headers: getAuthHeaders() }
+    ).then(() => {
+      toast({
+        title: "Task moved.",
+        status: "success",
+        duration: 1200,
+        isClosable: true,
+      });
+    }).catch((err) => {
+      setTasks(prev =>
+        prev.map(t =>
+          t.task_id === taskId
+            ? { ...t, kanban_status: originalKanbanStatus, status: originalStatus }
+            : t
+        )
+      );
+      toast({
+        title: "Failed to move task.",
+        description: err.response?.data?.error || err.response?.data?.message || err.message,
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    });
   };
 
   const userId = useMemo(() => {
@@ -529,6 +560,85 @@ export default function DailyActivityReport() {
     borderColor: "gray.200",
     _focus: { border: `1.5px solid ${T.amber}`, boxShadow: `0 0 0 1px ${T.amber}` },
   };
+
+  const printTaskHours = useMemo(() => {
+    return new Map(
+      logs.map((log) => [log.task_id, Number.parseFloat(log.hours_rendered || 0)])
+    );
+  }, [logs]);
+
+  const formatPrintAccomplishments = useCallback((text, dayTasks = []) => {
+    if (!text) return "";
+
+    const lines = String(text)
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+
+    const normalizedTasks = dayTasks.map((task) => ({
+      title: String(task.title || "").trim().toLowerCase(),
+      task_id: task.task_id,
+    }));
+
+    const linesWithHours = lines.map((line) => {
+      const clean = line.replace(/^[•\-*\s]+/, "").trim();
+      const lower = clean.toLowerCase();
+
+      const matchedTask = normalizedTasks.find(
+        (task) => task.title && (lower === task.title || lower.includes(task.title) || task.title.includes(lower))
+      );
+
+      if (!matchedTask) return clean;
+
+      const taskHours = printTaskHours.get(matchedTask.task_id);
+      const hoursLabel = formatPrintHours(taskHours);
+      return hoursLabel ? `${clean} (${hoursLabel}hrs)` : clean;
+    });
+
+    return linesWithHours.map((line) => `• ${line}`).join("\n");
+  }, [printTaskHours]);
+
+  const printRows = useMemo(() => {
+    return weekDays.map((date) => {
+      const rpt = reports.find((r) => r.report_date === date);
+      const dayTasks = tasks.filter(
+        (t) => t.task_date === date && t.status === "Completed"
+      );
+      const defaultAccomplishments = dayTasks
+        .map((t) => {
+          const hoursLabel = formatPrintHours(printTaskHours.get(t.task_id));
+          return `• ${t.title}${hoursLabel ? ` (${hoursLabel}hrs)` : ""}`;
+        })
+        .join("\n");
+
+      return {
+        date,
+        dayLabel: fmtDay(date),
+        dateLabel: fmtDate(date),
+        accomplishments:
+          formatPrintAccomplishments(rpt?.accomplishments, dayTasks) ||
+          defaultAccomplishments ||
+          "",
+        remarks: rpt?.remarks || "",
+        personnelRemarks: rpt?.personnel_remarks || "",
+      };
+    });
+  }, [tasks, reports, weekDays, printTaskHours, formatPrintAccomplishments]);
+
+  const printMeta = useMemo(() => {
+    const totalHours = logs.reduce(
+      (sum, log) => sum + Number.parseFloat(log.hours_rendered || 0),
+      0
+    );
+
+    return {
+      name: "Pareja Felix",
+      totalHours: Number.isFinite(totalHours) ? totalHours.toFixed(1) : "0.0",
+      department: "Admin - TRG",
+      weekNumber: getISOWeek(new Date(`${week.start}T00:00:00`)),
+      petsangSaklaw: `${week.start} – ${week.end}`,
+    };
+  }, [logs, week]);
 
   return (
     <Box minH="100vh" bg={T.bg} p={{ base: 3, md: 6 }}>
@@ -821,15 +931,17 @@ export default function DailyActivityReport() {
                 const colTasks = filteredTasks.filter(t => getTaskKanbanStatus(t) === colId);
                 const isOver = dragOverCol === colId;
                 return (
-                  <Box
+                  <MotionBox
                     key={colId}
+                    layout
+                    initial={false}
                     bg={isOver ? "gray.50" : "white"}
                     borderRadius="2xl"
                     boxShadow="sm"
                     border={`2px solid ${T.amber}`}
                     borderTop={cfg.borderTop}
                     overflow="hidden"
-                    transition="all 0.15s"
+                    transition={{ layout: { duration: 0.18, ease: "easeOut" } }}
                     onDragOver={(e) => { e.preventDefault(); setDragOverCol(colId); }}
                     onDragLeave={() => setDragOverCol(null)}
                     onDrop={(e) => { setDragOverCol(null); handleDrop(e, colId); }}
@@ -865,8 +977,10 @@ export default function DailyActivityReport() {
                         </Text>
                       ) : (
                         colTasks.map(t => (
-                          <Box
+                          <MotionBox
                             key={t.task_id}
+                            layout
+                            initial={false}
                             p={3}
                             bg="#F8F9FA"
                             borderRadius="xl"
@@ -875,7 +989,7 @@ export default function DailyActivityReport() {
                             cursor="grab"
                             draggable
                             onDragStart={(e) => handleDragStart(e, t.task_id)}
-                            transition="all 0.15s"
+                            transition={{ layout: { duration: 0.15, ease: "easeOut" } }}
                             _hover={{ boxShadow: "md", bg: "white", transform: "translateY(-1px)" }}
                             onClick={() => { setEditTask(t); taskModal.onOpen(); }}
                           >
@@ -911,11 +1025,11 @@ export default function DailyActivityReport() {
                                 </Text>
                               )}
                             </Flex>
-                          </Box>
+                          </MotionBox>
                         ))
                       )}
                     </VStack>
-                  </Box>
+                  </MotionBox>
                 );
               })}
             </SimpleGrid>
@@ -1065,6 +1179,75 @@ export default function DailyActivityReport() {
                   PRINT DAR
                 </Button>
               </Flex>
+
+              <Box className="dar-print-sheet" aria-hidden="true">
+                <Box className="dar-print-shell">
+                  <Box className="dar-print-header">
+                    <Text className="dar-print-title">
+                      ULAT UKOL SA NATAPOS NA GAWAIN NG NAGLILINGKOD SA TANGGAPAN
+                    </Text>
+                    <table className="dar-print-meta">
+                      <tbody>
+                        <tr>
+                          <th>Pangalan:</th>
+                          <td>{printMeta.name}</td>
+                          <th>Total Hrs:</th>
+                          <td>{printMeta.totalHours}</td>
+                          <th>Dept:</th>
+                          <td>{printMeta.department}</td>
+                          <th>Wk #:</th>
+                          <td>{printMeta.weekNumber}</td>
+                          <th>Petsang Saklaw:</th>
+                          <td>{printMeta.petsangSaklaw}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </Box>
+
+                  <table className="dar-print-table">
+                    <thead>
+                      <tr>
+                        <th className="col-day">Araw</th>
+                        <th className="col-work">Gawain</th>
+                        <th className="col-ref">Reference</th>
+                        <th className="col-remarks">Remarks ng Section Chief / Department Head</th>
+                        <th className="col-personnel">Remarks ng Personnel</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {printRows.map((row) => (
+                        <tr key={row.date}>
+                          <td className="cell-day">
+                            <strong>{row.dayLabel}</strong>
+                            <div>{row.dateLabel}</div>
+                          </td>
+                          <td className="cell-work">{row.accomplishments || "—"}</td>
+                          <td className="cell-ref">• Manual</td>
+                          <td className="cell-remarks">{row.remarks || ""}</td>
+                          <td className="cell-personnel">{row.personnelRemarks || ""}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  <Box className="dar-print-signature">
+                    <Box className="dar-print-lagda">
+                      <Text className="dar-print-note">Lagda:</Text>
+                      <Box className="dar-print-line" />
+                      <Text className="dar-print-name">Pareja Felix</Text>
+                    </Box>
+
+                    <Box className="dar-print-noted">
+                      <Text className="dar-print-note">Noted by:</Text>
+                      <Box className="dar-print-signature-row">
+                        <Box className="dar-print-signature-line" />
+                        <Text className="dar-print-signature-name">Ronald Te Guzman</Text>
+                        <Text className="dar-print-signature-title">Section Chief</Text>
+                      </Box>
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
             </Box>
           )}
         </>
@@ -1079,9 +1262,235 @@ export default function DailyActivityReport() {
       {/* ── Print Styles ── */}
       <style>{`
         @media print {
-          body * { visibility: hidden !important; }
-          #dar-print-area, #dar-print-area * { visibility: visible !important; }
-          #dar-print-area { position: fixed; top: 0; left: 0; width: 100%; }
+          @page {
+            size: A4 landscape;
+            margin: 4.5mm;
+          }
+
+          html, body {
+            width: 100% !important;
+            height: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #fff !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+
+          body * {
+            visibility: hidden !important;
+          }
+
+          #dar-print-area,
+          #dar-print-area * {
+            visibility: visible !important;
+          }
+
+          #dar-print-area {
+            position: static !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+          }
+
+          #dar-print-area > *:not(.dar-print-sheet) {
+            display: none !important;
+          }
+
+          .dar-print-sheet {
+            display: block !important;
+            visibility: visible !important;
+            position: relative;
+            width: 119%;
+            max-width: 119%;
+            height: auto;
+            padding: 0;
+            margin: 0;
+            zoom: 0.84;
+            overflow: hidden;
+          }
+
+          .dar-print-shell {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            min-height: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+
+          .dar-print-header {
+            margin-bottom: 1mm;
+          }
+
+          .dar-print-title {
+            text-align: center;
+            font-size: 11pt;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            margin: 0 0 0.9mm 0;
+            text-transform: uppercase;
+          }
+
+          .dar-print-meta {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-size: 8.5pt;
+            margin-bottom: 0.8mm;
+          }
+
+          .dar-print-meta th,
+          .dar-print-meta td {
+            border: 0.3pt solid #bfbfbf;
+            padding: 0.4mm 0.65mm;
+            vertical-align: middle;
+            word-break: break-word;
+          }
+
+          .dar-print-meta th {
+            background: #f7f7f7;
+            text-align: right;
+            font-weight: 700;
+            width: 10%;
+          }
+
+          .dar-print-meta td {
+            text-align: center;
+            font-weight: 600;
+            white-space: nowrap;
+          }
+
+          .dar-print-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-size: 8.6pt;
+            line-height: 1.0;
+            margin-bottom: 0.8mm;
+          }
+
+          .dar-print-table th,
+          .dar-print-table td {
+            border: 0.3pt solid #bfbfbf;
+            padding: 0.3mm 0.5mm;
+            vertical-align: top;
+            word-break: break-word;
+            white-space: pre-wrap;
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+
+          .dar-print-table thead th {
+            background: #f7f7f7;
+            text-align: center;
+            font-weight: 700;
+            padding-top: 0.45mm;
+            padding-bottom: 0.45mm;
+            font-size: 7.8pt;
+            line-height: 1.0;
+          }
+
+          .dar-print-table thead {
+            display: table-header-group;
+          }
+
+          .dar-print-table tbody {
+            display: table-row-group;
+          }
+
+          .dar-print-table tr {
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+
+          .dar-print-table .col-day { width: 12%; }
+          .dar-print-table .col-work { width: 42%; }
+          .dar-print-table .col-ref { width: 12%; }
+          .dar-print-table .col-remarks { width: 17%; }
+          .dar-print-table .col-personnel { width: 17%; }
+
+          .dar-print-table .cell-day {
+            text-align: center;
+            font-weight: 700;
+          }
+
+          .dar-print-table .cell-day div {
+            margin-top: 0.1mm;
+            font-weight: 500;
+          }
+
+          .dar-print-table .cell-work {
+            white-space: pre-line;
+            line-height: 1.0;
+          }
+
+          .dar-print-table .cell-ref {
+            text-align: left;
+            white-space: pre-line;
+            line-height: 1.0;
+          }
+
+          .dar-print-signature {
+            margin-top: 1mm;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: start;
+            column-gap: 8mm;
+            padding-top: 0.25mm;
+            width: 100%;
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+
+          .dar-print-lagda,
+          .dar-print-noted {
+            width: 100%;
+            text-align: center;
+          }
+
+          .dar-print-note {
+            font-size: 8.5pt;
+            font-weight: 700;
+            margin-bottom: 0.3mm;
+          }
+
+          .dar-print-line,
+          .dar-print-signature-line {
+            border-bottom: 0.4pt solid #111;
+            width: 65%;
+            margin: 0 auto 0.25mm auto;
+          }
+
+          .dar-print-name {
+            font-size: 8.5pt;
+            font-weight: 500;
+          }
+
+          .dar-print-signature-row {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+            padding-top: 0.15mm;
+          }
+
+          .dar-print-signature-name {
+            font-size: 8.5pt;
+            font-weight: 600;
+            margin-top: -0.6mm;
+          }
+
+          .dar-print-signature-title {
+            font-size: 7.5pt;
+            margin-top: 0.4mm;
+          }
+        }
+
+        .dar-print-sheet {
+          display: none;
         }
       `}</style>
     </Box>

@@ -7,7 +7,7 @@ const isLocalDev =
   ["localhost", "127.0.0.1"].includes(window.location.hostname);
 
 let API_URL =
-  process.env.REACT_APP_API_URL || (isLocalDev ? "http://127.0.0.1:5000" : "");
+  process.env.REACT_APP_API_URL || (isLocalDev ? "http://127.0.0.1:5003" : "");
 if (
   typeof window !== "undefined" &&
   window.location.protocol === "https:" &&
