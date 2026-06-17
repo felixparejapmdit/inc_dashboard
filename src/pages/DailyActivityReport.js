@@ -18,8 +18,20 @@ import { getAuthHeaders } from "../utils/apiHeaders";
 const API = process.env.REACT_APP_API_URL || "";
 
 const formatPrintHours = (hours) => {
-  if (!Number.isFinite(hours) || hours <= 0) return "";
-  return Number.isInteger(hours) ? `${hours}` : hours.toFixed(1);
+  const value = Number.parseFloat(hours);
+  if (!Number.isFinite(value) || value <= 0) return "0";
+
+  const rounded = Math.round(value * 10) / 10;
+  return Number.isInteger(rounded) ? `${rounded}` : rounded.toFixed(1).replace(/\.0$/, "");
+};
+
+const formatPrintHourLabel = (hours) => {
+  const value = Number.parseFloat(hours);
+  const numeric = Number.isFinite(value) && value > 0
+    ? formatPrintHours(value)
+    : "0";
+  const unit = numeric === "1" || numeric === "0" ? "hr" : "hrs";
+  return `${numeric} ${unit}`;
 };
 
 const MotionBox = motion(Box);
@@ -63,6 +75,21 @@ const fmtTime = (timeStr) => {
   const displayHours = hours % 12 || 12;
   const displayMinutes = String(minutes).padStart(2, "0");
   return `${displayHours}:${displayMinutes} ${ampm}`;
+};
+
+const calcTaskHours = (startTime, endTime) => {
+  if (!startTime || !endTime) return 0;
+
+  const [startH = 0, startM = 0, startS = 0] = String(startTime).split(":").map(Number);
+  const [endH = 0, endM = 0, endS = 0] = String(endTime).split(":").map(Number);
+
+  const startMinutes = (startH * 60) + startM + (startS / 60);
+  const endMinutes = (endH * 60) + endM + (endS / 60);
+  const diffMinutes = endMinutes >= startMinutes
+    ? endMinutes - startMinutes
+    : (24 * 60 - startMinutes) + endMinutes;
+
+  return diffMinutes / 60;
 };
 
 // ─── Status badge config ───────────────────────────────────────────────────────
@@ -563,9 +590,11 @@ export default function DailyActivityReport() {
 
   const printTaskHours = useMemo(() => {
     return new Map(
-      logs.map((log) => [log.task_id, Number.parseFloat(log.hours_rendered || 0)])
+      tasks
+        .filter((task) => task.status === "Completed")
+        .map((task) => [task.task_id, calcTaskHours(task.start_time, task.end_time)])
     );
-  }, [logs]);
+  }, [tasks]);
 
   const formatPrintAccomplishments = useCallback((text, dayTasks = []) => {
     if (!text) return "";
@@ -604,17 +633,21 @@ export default function DailyActivityReport() {
       const dayTasks = tasks.filter(
         (t) => t.task_date === date && t.status === "Completed"
       );
+      const dayHours = dayTasks.reduce(
+        (sum, task) => sum + Number.parseFloat(printTaskHours.get(task.task_id) || 0),
+        0
+      );
       const defaultAccomplishments = dayTasks
         .map((t) => {
           const hoursLabel = formatPrintHours(printTaskHours.get(t.task_id));
-          return `• ${t.title}${hoursLabel ? ` (${hoursLabel}hrs)` : ""}`;
+          return `• ${t.title} (${formatPrintHourLabel(hoursLabel)})`;
         })
         .join("\n");
 
       return {
         date,
         dayLabel: fmtDay(date),
-        dateLabel: fmtDate(date),
+        dayHoursLabel: formatPrintHourLabel(dayHours),
         accomplishments:
           formatPrintAccomplishments(rpt?.accomplishments, dayTasks) ||
           defaultAccomplishments ||
@@ -626,8 +659,8 @@ export default function DailyActivityReport() {
   }, [tasks, reports, weekDays, printTaskHours, formatPrintAccomplishments]);
 
   const printMeta = useMemo(() => {
-    const totalHours = logs.reduce(
-      (sum, log) => sum + Number.parseFloat(log.hours_rendered || 0),
+    const totalHours = Array.from(printTaskHours.values()).reduce(
+      (sum, hours) => sum + Number.parseFloat(hours || 0),
       0
     );
 
@@ -638,10 +671,11 @@ export default function DailyActivityReport() {
       weekNumber: getISOWeek(new Date(`${week.start}T00:00:00`)),
       petsangSaklaw: `${week.start} – ${week.end}`,
     };
-  }, [logs, week]);
+  }, [printTaskHours, week]);
 
   return (
-    <Box minH="100vh" bg={T.bg} p={{ base: 3, md: 6 }}>
+    <>
+    <Box className="no-print" minH="100vh" bg={T.bg} p={{ base: 3, md: 6 }}>
 
       {/* ── Page Header ── */}
       <Flex align="center" justify="space-between" mb={6} flexWrap="wrap" gap={4}>
@@ -1107,7 +1141,7 @@ export default function DailyActivityReport() {
 
           {/* ──────────────── REPORT VIEW ──────────────── */}
           {activeTab === "report" && (
-            <Box id="dar-print-area">
+            <Box>
               <Box bg="white" borderRadius="2xl" boxShadow="sm" border={`2px solid ${T.amber}`} overflow="hidden">
                 <SectionHead title={`Daily Activity Report — ${weekLabel(week)}`} />
 
@@ -1180,74 +1214,6 @@ export default function DailyActivityReport() {
                 </Button>
               </Flex>
 
-              <Box className="dar-print-sheet" aria-hidden="true">
-                <Box className="dar-print-shell">
-                  <Box className="dar-print-header">
-                    <Text className="dar-print-title">
-                      ULAT UKOL SA NATAPOS NA GAWAIN NG NAGLILINGKOD SA TANGGAPAN
-                    </Text>
-                    <table className="dar-print-meta">
-                      <tbody>
-                        <tr>
-                          <th>Pangalan:</th>
-                          <td>{printMeta.name}</td>
-                          <th>Total Hrs:</th>
-                          <td>{printMeta.totalHours}</td>
-                          <th>Dept:</th>
-                          <td>{printMeta.department}</td>
-                          <th>Wk #:</th>
-                          <td>{printMeta.weekNumber}</td>
-                          <th>Petsang Saklaw:</th>
-                          <td>{printMeta.petsangSaklaw}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </Box>
-
-                  <table className="dar-print-table">
-                    <thead>
-                      <tr>
-                        <th className="col-day">Araw</th>
-                        <th className="col-work">Gawain</th>
-                        <th className="col-ref">Reference</th>
-                        <th className="col-remarks">Remarks ng Section Chief / Department Head</th>
-                        <th className="col-personnel">Remarks ng Personnel</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {printRows.map((row) => (
-                        <tr key={row.date}>
-                          <td className="cell-day">
-                            <strong>{row.dayLabel}</strong>
-                            <div>{row.dateLabel}</div>
-                          </td>
-                          <td className="cell-work">{row.accomplishments || "—"}</td>
-                          <td className="cell-ref">• Manual</td>
-                          <td className="cell-remarks">{row.remarks || ""}</td>
-                          <td className="cell-personnel">{row.personnelRemarks || ""}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-
-                  <Box className="dar-print-signature">
-                    <Box className="dar-print-lagda">
-                      <Text className="dar-print-note">Lagda:</Text>
-                      <Box className="dar-print-line" />
-                      <Text className="dar-print-name">Pareja Felix</Text>
-                    </Box>
-
-                    <Box className="dar-print-noted">
-                      <Text className="dar-print-note">Noted by:</Text>
-                      <Box className="dar-print-signature-row">
-                        <Box className="dar-print-signature-line" />
-                        <Text className="dar-print-signature-name">Ronald Te Guzman</Text>
-                        <Text className="dar-print-signature-title">Section Chief</Text>
-                      </Box>
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
             </Box>
           )}
         </>
@@ -1258,13 +1224,85 @@ export default function DailyActivityReport() {
         categories={categories} onSaved={load} initial={editTask} />
       <LogModal isOpen={logModal.isOpen} onClose={logModal.onClose}
         task={logTask} onSaved={load} />
+    </Box>
+
+    <Box id="dar-print-area" className="dar-print-sheet" aria-hidden="true">
+      <Box className="dar-print-shell">
+        <Box className="dar-print-body">
+          <Box className="dar-print-header">
+            <Text className="dar-print-title">
+              ULAT UKOL SA NATAPOS NA GAWAIN NG NAGLILINGKOD SA TANGGAPAN
+            </Text>
+            <table className="dar-print-meta">
+              <tbody>
+                <tr>
+                  <th>Pangalan:</th>
+                  <td>{printMeta.name}</td>
+                  <th>Total Hrs:</th>
+                  <td>{printMeta.totalHours}</td>
+                  <th>Dept:</th>
+                  <td>{printMeta.department}</td>
+                  <th>Wk #:</th>
+                  <td>{printMeta.weekNumber}</td>
+                  <th>Petsang Saklaw:</th>
+                  <td>{printMeta.petsangSaklaw}</td>
+                </tr>
+              </tbody>
+            </table>
+          </Box>
+
+          <table className="dar-print-table">
+            <thead>
+              <tr>
+                <th className="col-day">Araw</th>
+                <th className="col-work">Gawain</th>
+                <th className="col-ref">Reference</th>
+                <th className="col-remarks">Remarks ng Section Chief / Department Head</th>
+                <th className="col-personnel">Remarks ng Personnel</th>
+              </tr>
+            </thead>
+            <tbody>
+              {printRows.map((row) => (
+                <tr key={row.date}>
+                  <td className="cell-day">
+                    <strong>{row.dayLabel}</strong>
+                    <span>({row.dayHoursLabel})</span>
+                  </td>
+                  <td className="cell-work">{row.accomplishments || "—"}</td>
+                  <td className="cell-ref">• Manual</td>
+                  <td className="cell-remarks">{row.remarks || ""}</td>
+                  <td className="cell-personnel">{row.personnelRemarks || ""}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Box>
+
+        <Box className="dar-print-signature">
+          <Box className="dar-print-lagda">
+            <Text className="dar-print-note">Lagda:</Text>
+            <Box className="dar-print-line" />
+            <Text className="dar-print-name">Pareja Felix</Text>
+          </Box>
+
+          <Box className="dar-print-noted">
+            <Text className="dar-print-note">Noted by:</Text>
+            <Box className="dar-print-signature-row">
+              <Box className="dar-print-signature-line" />
+              <Text className="dar-print-signature-name">Ronald T. de Guzman</Text>
+              <Text className="dar-print-signature-title">Section Chief</Text>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
 
       {/* ── Print Styles ── */}
       <style>{`
         @media print {
           @page {
-            size: A4 landscape;
-            margin: 4.5mm;
+            size: landscape;
+            margin: 10mm;
           }
 
           html, body {
@@ -1277,38 +1315,21 @@ export default function DailyActivityReport() {
             print-color-adjust: exact !important;
           }
 
-          body * {
-            visibility: hidden !important;
-          }
-
-          #dar-print-area,
-          #dar-print-area * {
-            visibility: visible !important;
-          }
-
-          #dar-print-area {
-            position: static !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 100% !important;
-            padding: 0 !important;
-            margin: 0 !important;
-          }
-
-          #dar-print-area > *:not(.dar-print-sheet) {
+          .no-print,
+          .chakra-portal,
+          [id^="chakra-toast-manager"] {
             display: none !important;
           }
 
           .dar-print-sheet {
             display: block !important;
             visibility: visible !important;
-            position: relative;
-            width: 119%;
-            max-width: 119%;
+            position: static !important;
+            width: 100% !important;
+            max-width: 100% !important;
             height: auto;
             padding: 0;
             margin: 0;
-            zoom: 0.84;
             overflow: hidden;
           }
 
@@ -1319,18 +1340,26 @@ export default function DailyActivityReport() {
             min-height: 0;
             padding: 0;
             box-sizing: border-box;
+            min-height: calc(100vh - 20mm);
+          }
+
+          .dar-print-body {
+            display: flex;
+            flex-direction: column;
+            flex: 1 0 auto;
+            gap: 1mm;
           }
 
           .dar-print-header {
-            margin-bottom: 1mm;
+            margin-bottom: 0.75mm;
           }
 
           .dar-print-title {
             text-align: center;
-            font-size: 11pt;
+            font-size: 10.25pt;
             font-weight: 700;
             letter-spacing: 0.01em;
-            margin: 0 0 0.9mm 0;
+            margin: 0 0 0.6mm 0;
             text-transform: uppercase;
           }
 
@@ -1338,14 +1367,14 @@ export default function DailyActivityReport() {
             width: 100%;
             border-collapse: collapse;
             table-layout: fixed;
-            font-size: 8.5pt;
-            margin-bottom: 0.8mm;
+            font-size: 7.9pt;
+            margin-bottom: 0.5mm;
           }
 
           .dar-print-meta th,
           .dar-print-meta td {
             border: 0.3pt solid #bfbfbf;
-            padding: 0.4mm 0.65mm;
+            padding: 0.25mm 0.45mm;
             vertical-align: middle;
             word-break: break-word;
           }
@@ -1354,7 +1383,7 @@ export default function DailyActivityReport() {
             background: #f7f7f7;
             text-align: right;
             font-weight: 700;
-            width: 10%;
+            width: 9%;
           }
 
           .dar-print-meta td {
@@ -1367,15 +1396,15 @@ export default function DailyActivityReport() {
             width: 100%;
             border-collapse: collapse;
             table-layout: fixed;
-            font-size: 8.6pt;
-            line-height: 1.0;
-            margin-bottom: 0.8mm;
+            font-size: 7.5pt;
+            line-height: 0.95;
+            margin-bottom: 0.65mm;
           }
 
           .dar-print-table th,
           .dar-print-table td {
             border: 0.3pt solid #bfbfbf;
-            padding: 0.3mm 0.5mm;
+            padding: 0.22mm 0.4mm;
             vertical-align: top;
             word-break: break-word;
             white-space: pre-wrap;
@@ -1387,10 +1416,10 @@ export default function DailyActivityReport() {
             background: #f7f7f7;
             text-align: center;
             font-weight: 700;
-            padding-top: 0.45mm;
-            padding-bottom: 0.45mm;
-            font-size: 7.8pt;
-            line-height: 1.0;
+            padding-top: 0.35mm;
+            padding-bottom: 0.35mm;
+            font-size: 7pt;
+            line-height: 0.95;
           }
 
           .dar-print-table thead {
@@ -1415,31 +1444,32 @@ export default function DailyActivityReport() {
           .dar-print-table .cell-day {
             text-align: center;
             font-weight: 700;
+            line-height: 1;
+            white-space: nowrap;
           }
 
-          .dar-print-table .cell-day div {
-            margin-top: 0.1mm;
-            font-weight: 500;
+          .dar-print-table .cell-day span {
+            font-weight: 600;
           }
 
           .dar-print-table .cell-work {
             white-space: pre-line;
-            line-height: 1.0;
+            line-height: 0.95;
           }
 
           .dar-print-table .cell-ref {
             text-align: left;
             white-space: pre-line;
-            line-height: 1.0;
+            line-height: 0.95;
           }
 
           .dar-print-signature {
-            margin-top: 1mm;
+            margin-top: auto;
             display: grid;
             grid-template-columns: 1fr 1fr;
             align-items: start;
-            column-gap: 8mm;
-            padding-top: 0.25mm;
+            column-gap: 28mm;
+            padding: 0 8mm 0;
             width: 100%;
             page-break-inside: avoid;
             break-inside: avoid;
@@ -1448,25 +1478,29 @@ export default function DailyActivityReport() {
           .dar-print-lagda,
           .dar-print-noted {
             width: 100%;
-            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
           }
 
           .dar-print-note {
-            font-size: 8.5pt;
+            font-size: 8pt;
             font-weight: 700;
-            margin-bottom: 0.3mm;
+            margin-bottom: 0.1mm;
+            align-self: flex-start;
           }
 
           .dar-print-line,
           .dar-print-signature-line {
             border-bottom: 0.4pt solid #111;
-            width: 65%;
-            margin: 0 auto 0.25mm auto;
+            width: 74%;
+            margin: 0 auto 0.12mm auto;
           }
 
           .dar-print-name {
-            font-size: 8.5pt;
+            font-size: 8pt;
             font-weight: 500;
+            margin-top: -0.1mm;
           }
 
           .dar-print-signature-row {
@@ -1474,18 +1508,20 @@ export default function DailyActivityReport() {
             flex-direction: column;
             align-items: center;
             gap: 0;
-            padding-top: 0.15mm;
+            padding-top: 0;
+            width: 100%;
+            align-self: stretch;
           }
 
           .dar-print-signature-name {
-            font-size: 8.5pt;
+            font-size: 8pt;
             font-weight: 600;
-            margin-top: -0.6mm;
+            margin-top: -0.1mm;
           }
 
           .dar-print-signature-title {
-            font-size: 7.5pt;
-            margin-top: 0.4mm;
+            font-size: 7pt;
+            margin-top: 0.15mm;
           }
         }
 
@@ -1493,6 +1529,6 @@ export default function DailyActivityReport() {
           display: none;
         }
       `}</style>
-    </Box>
+    </>
   );
 }

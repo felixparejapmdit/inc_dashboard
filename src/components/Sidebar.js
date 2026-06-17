@@ -325,7 +325,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
   };
 
   return (
-    <Box display="flex" flexDirection="column" minH="100%" bg="#FFD559">
+    <Box className="no-print" display="flex" flexDirection="column" minH="100%" bg="#FFD559">
       {/* <Button to="/dashboard" data-tour="dashboard">
   Dashboard
 </Button>

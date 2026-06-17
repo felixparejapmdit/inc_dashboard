@@ -52,7 +52,7 @@ import {
   Trash2,
   CalendarDays,
   Activity,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react";
 import { TimeIcon } from "@chakra-ui/icons";
 
@@ -91,7 +91,7 @@ const Events = () => {
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const headerGradient = useColorModeValue(
     "linear(to-r, blue.600, purple.600)",
-    "linear(to-r, blue.400, purple.400)"
+    "linear(to-r, blue.400, purple.400)",
   );
 
   /* ---------- Data Fetching ---------- */
@@ -108,7 +108,7 @@ const Events = () => {
 
       const eventsWithLocation = eventsData.map((event) => {
         const location = locationsData.find(
-          (loc) => loc.id === event.location_id
+          (loc) => loc.id === event.location_id,
         );
         return { ...event, locationName: location?.name || "N/A" };
       });
@@ -186,28 +186,48 @@ const Events = () => {
     };
 
     // Find location name for optimistic update
-    const locationName = locations.find(l => String(l.id) === String(formData.location_id))?.name || "N/A";
+    const locationName =
+      locations.find((l) => String(l.id) === String(formData.location_id))
+        ?.name || "N/A";
 
     try {
       if (editingEvent) {
-        const res = await axios.put(`${API_URL}/api/events/${editingEvent.id}`, payload, {
-          headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
-        });
-        if (res.status < 200 || res.status >= 300) throw new Error("Sync failed");
+        const res = await axios.put(
+          `${API_URL}/api/events/${editingEvent.id}`,
+          payload,
+          {
+            headers: {
+              ...getAuthHeaders(),
+              "Content-Type": "application/json",
+            },
+          },
+        );
+        if (res.status < 200 || res.status >= 300)
+          throw new Error("Sync failed");
         // ✅ Optimistic update: update event in local state
         const updatedEvent = { ...editingEvent, ...payload, locationName };
-        setEvents(prev => prev.map(e => e.id === editingEvent.id ? updatedEvent : e));
+        setEvents((prev) =>
+          prev.map((e) => (e.id === editingEvent.id ? updatedEvent : e)),
+        );
       } else {
         const res = await axios.post(`${API_URL}/api/events`, payload, {
           headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
         });
-        if (res.status < 200 || res.status >= 300) throw new Error("Sync failed");
+        if (res.status < 200 || res.status >= 300)
+          throw new Error("Sync failed");
         // ✅ Optimistic update: append the new event
-        const newEvent = { id: res.data?.id || Date.now(), ...payload, locationName };
-        setEvents(prev => [...prev, newEvent]);
+        const newEvent = {
+          id: res.data?.id || Date.now(),
+          ...payload,
+          locationName,
+        };
+        setEvents((prev) => [...prev, newEvent]);
       }
 
-      toast({ title: editingEvent ? "Event Updated" : "Event Commited", status: "success" });
+      toast({
+        title: editingEvent ? "Event Updated" : "Event Commited",
+        status: "success",
+      });
       resetForm();
       onClose();
       fetchEventsAndLocations(); // background sync
@@ -217,7 +237,8 @@ const Events = () => {
   };
 
   const handleEditEvent = (eventData) => {
-    const rawEvent = eventData.resource || events.find(e => e.id === eventData.id);
+    const rawEvent =
+      eventData.resource || events.find((e) => e.id === eventData.id);
     if (!rawEvent) return;
 
     setEditingEvent(rawEvent);
@@ -236,13 +257,17 @@ const Events = () => {
     const eventToDelete = editingEvent;
     try {
       // ✅ Optimistic update: remove from local state immediately
-      setEvents(prev => prev.filter(e => e.id !== eventToDelete.id));
+      setEvents((prev) => prev.filter((e) => e.id !== eventToDelete.id));
       resetForm();
       onClose();
-      const res = await axios.delete(`${API_URL}/api/events/${eventToDelete.id}`, {
-        headers: getAuthHeaders(),
-      });
-      if (res.status < 200 || res.status >= 300) throw new Error("Purge failed");
+      const res = await axios.delete(
+        `${API_URL}/api/events/${eventToDelete.id}`,
+        {
+          headers: getAuthHeaders(),
+        },
+      );
+      if (res.status < 200 || res.status >= 300)
+        throw new Error("Purge failed");
       toast({ title: "Event Purged", status: "info" });
       fetchEventsAndLocations(); // background sync
     } catch (err) {
@@ -259,11 +284,19 @@ const Events = () => {
       time: moment(start).format("HH:mm:ss"),
     };
     // ✅ Optimistic update: update the dropped event's date/time immediately
-    setEvents(prev => prev.map(e => e.id === updatedEvent.id ? { ...e, ...updatedEvent } : e));
+    setEvents((prev) =>
+      prev.map((e) =>
+        e.id === updatedEvent.id ? { ...e, ...updatedEvent } : e,
+      ),
+    );
     try {
-      const res = await axios.put(`${API_URL}/api/events/${updatedEvent.id}`, updatedEvent, {
-        headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
-      });
+      const res = await axios.put(
+        `${API_URL}/api/events/${updatedEvent.id}`,
+        updatedEvent,
+        {
+          headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
+        },
+      );
       if (res.status < 200 || res.status >= 300) throw new Error("Move failed");
       toast({ title: "Event Rescheduled", status: "success", duration: 1500 });
       fetchEventsAndLocations(); // background sync
@@ -278,15 +311,29 @@ const Events = () => {
     <Box bg={bg} minH="100vh">
       <Container maxW="100%" py={8} px={{ base: 4, md: 8 }}>
         {/* Header */}
-        <Flex direction={{ base: "column", md: "row" }} justify="space-between" align={{ base: "stretch", md: "center" }} mb={8} gap={4}>
+        <Flex
+          direction={{ base: "column", md: "row" }}
+          justify="space-between"
+          align={{ base: "stretch", md: "center" }}
+          mb={8}
+          gap={4}
+        >
           <VStack align="start" spacing={1}>
             <HStack>
               <Icon as={CalendarIcon} boxSize={8} color="blue.500" />
-              <Heading size="xl" bgGradient={headerGradient} bgClip="text" fontWeight="black" letterSpacing="tight">
+              <Heading
+                size="xl"
+                bgGradient={headerGradient}
+                bgClip="text"
+                fontWeight="black"
+                letterSpacing="tight"
+              >
                 PMD Events
               </Heading>
             </HStack>
-            <Text color="gray.500" fontWeight="medium">Manage events</Text>
+            <Text color="gray.500" fontWeight="medium">
+              Manage events
+            </Text>
           </VStack>
 
           <HStack spacing={3}>
@@ -295,9 +342,9 @@ const Events = () => {
                 <IconButton
                   aria-label="Calendar"
                   icon={<CalendarDays size={20} />}
-                  onClick={() => setViewMode('calendar')}
-                  colorScheme={viewMode === 'calendar' ? 'blue' : 'gray'}
-                  variant={viewMode === 'calendar' ? 'solid' : 'outline'}
+                  onClick={() => setViewMode("calendar")}
+                  colorScheme={viewMode === "calendar" ? "blue" : "gray"}
+                  variant={viewMode === "calendar" ? "solid" : "outline"}
                   borderRadius="xl"
                 />
               </Tooltip>
@@ -305,9 +352,9 @@ const Events = () => {
                 <IconButton
                   aria-label="List"
                   icon={<List size={20} />}
-                  onClick={() => setViewMode('list')}
-                  colorScheme={viewMode === 'list' ? 'blue' : 'gray'}
-                  variant={viewMode === 'list' ? 'solid' : 'outline'}
+                  onClick={() => setViewMode("list")}
+                  colorScheme={viewMode === "list" ? "blue" : "gray"}
+                  variant={viewMode === "list" ? "solid" : "outline"}
                   borderRadius="xl"
                 />
               </Tooltip>
@@ -315,7 +362,10 @@ const Events = () => {
             <Button
               leftIcon={<Plus size={20} />}
               colorScheme="blue"
-              onClick={() => { resetForm(); onOpen(); }}
+              onClick={() => {
+                resetForm();
+                onOpen();
+              }}
               size="lg"
               borderRadius="xl"
               boxShadow="lg"
@@ -323,28 +373,70 @@ const Events = () => {
             >
               Dispatch Event
             </Button>
-            <IconButton icon={<RefreshCw size={20} />} onClick={fetchEventsAndLocations} isLoading={isLoading} size="lg" borderRadius="xl" variant="ghost" />
+            <IconButton
+              icon={<RefreshCw size={20} />}
+              onClick={fetchEventsAndLocations}
+              isLoading={isLoading}
+              size="lg"
+              borderRadius="xl"
+              variant="ghost"
+            />
           </HStack>
         </Flex>
 
         {/* Dash Stats */}
         <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6} mb={8}>
-          <MotionBox whileHover={{ y: -4 }} bg={cardBg} p={5} borderRadius="2xl" boxShadow="sm" border="1px solid" borderColor={borderColor}>
+          <MotionBox
+            whileHover={{ y: -4 }}
+            bg={cardBg}
+            p={5}
+            borderRadius="2xl"
+            boxShadow="sm"
+            border="1px solid"
+            borderColor={borderColor}
+          >
             <HStack justify="space-between">
               <VStack align="start" spacing={0}>
-                <Text fontSize="xs" fontWeight="black" color="gray.500" textTransform="uppercase" letterSpacing="widest">Total Engagements</Text>
-                <Text fontSize="3xl" fontWeight="black" color="blue.500">{events.length}</Text>
+                <Text
+                  fontSize="xs"
+                  fontWeight="black"
+                  color="gray.500"
+                  textTransform="uppercase"
+                  letterSpacing="widest"
+                >
+                  Total Engagements
+                </Text>
+                <Text fontSize="3xl" fontWeight="black" color="blue.500">
+                  {events.length}
+                </Text>
               </VStack>
-              <Box p={3} bg="blue.50" borderRadius="xl"><Icon as={Activity} boxSize={6} color="blue.500" /></Box>
+              <Box p={3} bg="blue.50" borderRadius="xl">
+                <Icon as={Activity} boxSize={6} color="blue.500" />
+              </Box>
             </HStack>
           </MotionBox>
         </SimpleGrid>
 
         {/* Content Area */}
-        <Box bg={cardBg} borderRadius="3xl" shadow="2xl" border="1px solid" borderColor={borderColor} overflow="hidden" p={4}>
+        <Box
+          bg={cardBg}
+          borderRadius="3xl"
+          shadow="2xl"
+          border="1px solid"
+          borderColor={borderColor}
+          overflow="hidden"
+          p={4}
+        >
           <AnimatePresence mode="wait">
             {viewMode === "calendar" ? (
-              <MotionBox key="calendar" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }} height="750px">
+              <MotionBox
+                key="calendar"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+                height="750px"
+              >
                 <DnDCalendar
                   localizer={localizer}
                   events={formattedEvents}
@@ -365,13 +457,18 @@ const Events = () => {
                       fontWeight: "bold",
                       border: "none",
                       padding: "4px 8px",
-                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)"
+                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                     },
                   })}
                 />
               </MotionBox>
             ) : (
-              <SimpleGrid key="list" columns={{ base: 1, md: 2, lg: 3 }} spacing={6} p={4}>
+              <SimpleGrid
+                key="list"
+                columns={{ base: 1, md: 2, lg: 3 }}
+                spacing={6}
+                p={4}
+              >
                 {formattedEvents.map((evt) => (
                   <MotionBox
                     key={evt.id}
@@ -388,14 +485,44 @@ const Events = () => {
                   >
                     <VStack align="start" spacing={3}>
                       <HStack w="100%" justify="space-between">
-                        <Heading size="sm" fontWeight="black" color="blue.600">{evt.title}</Heading>
-                        {evt.resource.recurrence !== 'none' && <Badge colorScheme="purple" variant="subtle" borderRadius="full" px={2}><Repeat size={10} style={{ marginRight: '4px', display: 'inline' }} />{evt.resource.recurrence}</Badge>}
+                        <Heading size="sm" fontWeight="black" color="blue.600">
+                          {evt.title}
+                        </Heading>
+                        {evt.resource.recurrence !== "none" && (
+                          <Badge
+                            colorScheme="purple"
+                            variant="subtle"
+                            borderRadius="full"
+                            px={2}
+                          >
+                            <Repeat
+                              size={10}
+                              style={{ marginRight: "4px", display: "inline" }}
+                            />
+                            {evt.resource.recurrence}
+                          </Badge>
+                        )}
                       </HStack>
                       <Divider />
                       <VStack align="start" spacing={2} fontSize="sm">
-                        <HStack color="gray.600"><Icon as={CalendarIcon} size={14} /><Text fontWeight="bold">{moment(evt.start).format("MMM DD, YYYY")}</Text></HStack>
-                        <HStack color="gray.600"><Icon as={Clock} size={14} /><Text fontWeight="bold">{moment(evt.start).format("h:mm A")}</Text></HStack>
-                        <HStack color="gray.600"><Icon as={MapPin} size={14} /><Text fontWeight="bold" noOfLines={1}>{evt.resource.locationName}</Text></HStack>
+                        <HStack color="gray.600">
+                          <Icon as={CalendarIcon} size={14} />
+                          <Text fontWeight="bold">
+                            {moment(evt.start).format("MMM DD, YYYY")}
+                          </Text>
+                        </HStack>
+                        <HStack color="gray.600">
+                          <Icon as={Clock} size={14} />
+                          <Text fontWeight="bold">
+                            {moment(evt.start).format("h:mm A")}
+                          </Text>
+                        </HStack>
+                        <HStack color="gray.600">
+                          <Icon as={MapPin} size={14} />
+                          <Text fontWeight="bold" noOfLines={1}>
+                            {evt.resource.locationName}
+                          </Text>
+                        </HStack>
                       </VStack>
                     </VStack>
                   </MotionBox>
@@ -407,50 +534,145 @@ const Events = () => {
       </Container>
 
       {/* Modal */}
-      <Modal isOpen={isOpen} onClose={onClose} size="xl" isCentered motionPreset="slideInBottom">
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        size="xl"
+        isCentered
+        motionPreset="slideInBottom"
+      >
         <ModalOverlay backdropFilter="blur(8px)" />
         <ModalContent borderRadius="3xl" shadow="dark-lg" p={2}>
           <ModalHeader fontSize="2xl" fontWeight="black">
             <HStack spacing={4}>
-              <Box p={2} bg="blue.50" borderRadius="lg"><Icon as={editingEvent ? Edit2 : Plus} color="blue.500" /></Box>
-              <Text>{editingEvent ? "Modify Dispatch" : "Initiate Engagement"}</Text>
+              <Box p={2} bg="blue.50" borderRadius="lg">
+                <Icon as={editingEvent ? Edit2 : Plus} color="blue.500" />
+              </Box>
+              <Text>
+                {editingEvent ? "Modify Dispatch" : "Initiate Engagement"}
+              </Text>
             </HStack>
           </ModalHeader>
           <ModalCloseButton mt={4} mr={4} />
           <ModalBody py={6}>
             <VStack spacing={6}>
               <FormControl isRequired isInvalid={!!formErrors.eventName}>
-                <FormLabel fontWeight="black" fontSize="xs" textTransform="uppercase" letterSpacing="widest" color="gray.500">Event Designation</FormLabel>
-                <Input name="eventName" value={formData.eventName} onChange={handleChange} placeholder="e.g. Strategic Synergy Summit" size="lg" borderRadius="xl" focusBorderColor="blue.400" fontWeight="bold" />
+                <FormLabel
+                  fontWeight="black"
+                  fontSize="xs"
+                  textTransform="uppercase"
+                  letterSpacing="widest"
+                  color="gray.500"
+                >
+                  Event Designation
+                </FormLabel>
+                <Input
+                  name="eventName"
+                  value={formData.eventName}
+                  onChange={handleChange}
+                  placeholder="e.g. Strategic Synergy Summit"
+                  size="lg"
+                  borderRadius="xl"
+                  focusBorderColor="blue.400"
+                  fontWeight="bold"
+                />
                 <FormErrorMessage>{formErrors.eventName}</FormErrorMessage>
               </FormControl>
 
               <SimpleGrid columns={2} w="100%" spacing={6}>
                 <FormControl isRequired isInvalid={!!formErrors.date}>
-                  <FormLabel fontWeight="black" fontSize="xs" textTransform="uppercase" letterSpacing="widest" color="gray.500">Deployment Date</FormLabel>
-                  <Input type="date" name="date" value={formData.date} onChange={handleChange} size="lg" borderRadius="xl" focusBorderColor="blue.400" />
+                  <FormLabel
+                    fontWeight="black"
+                    fontSize="xs"
+                    textTransform="uppercase"
+                    letterSpacing="widest"
+                    color="gray.500"
+                  >
+                    Deployment Date
+                  </FormLabel>
+                  <Input
+                    type="date"
+                    name="date"
+                    value={formData.date}
+                    onChange={handleChange}
+                    size="lg"
+                    borderRadius="xl"
+                    focusBorderColor="blue.400"
+                  />
                   <FormErrorMessage>{formErrors.date}</FormErrorMessage>
                 </FormControl>
                 <FormControl isRequired isInvalid={!!formErrors.time}>
-                  <FormLabel fontWeight="black" fontSize="xs" textTransform="uppercase" letterSpacing="widest" color="gray.500">Activation Time</FormLabel>
-                  <Input type="time" name="time" value={formData.time} onChange={handleChange} size="lg" borderRadius="xl" focusBorderColor="blue.400" />
+                  <FormLabel
+                    fontWeight="black"
+                    fontSize="xs"
+                    textTransform="uppercase"
+                    letterSpacing="widest"
+                    color="gray.500"
+                  >
+                    Activation Time
+                  </FormLabel>
+                  <Input
+                    type="time"
+                    name="time"
+                    value={formData.time}
+                    onChange={handleChange}
+                    size="lg"
+                    borderRadius="xl"
+                    focusBorderColor="blue.400"
+                  />
                   <FormErrorMessage>{formErrors.time}</FormErrorMessage>
                 </FormControl>
               </SimpleGrid>
 
               <FormControl isRequired isInvalid={!!formErrors.location_id}>
-                <FormLabel fontWeight="black" fontSize="xs" textTransform="uppercase" letterSpacing="widest" color="gray.500">Operational Venue</FormLabel>
-                <Select name="location_id" value={formData.location_id} onChange={handleChange} placeholder="Select Command Center" size="lg" borderRadius="xl" focusBorderColor="blue.400">
-                  {locations.map(loc => <option key={loc.id} value={loc.id}>{loc.name}</option>)}
+                <FormLabel
+                  fontWeight="black"
+                  fontSize="xs"
+                  textTransform="uppercase"
+                  letterSpacing="widest"
+                  color="gray.500"
+                >
+                  Operational Venue
+                </FormLabel>
+                <Select
+                  name="location_id"
+                  value={formData.location_id}
+                  onChange={handleChange}
+                  placeholder="Select Command Center"
+                  size="lg"
+                  borderRadius="xl"
+                  focusBorderColor="blue.400"
+                >
+                  {locations.map((loc) => (
+                    <option key={loc.id} value={loc.id}>
+                      {loc.name}
+                    </option>
+                  ))}
                 </Select>
                 <FormErrorMessage>{formErrors.location_id}</FormErrorMessage>
               </FormControl>
 
               <FormControl>
-                <FormLabel fontWeight="black" fontSize="xs" textTransform="uppercase" letterSpacing="widest" color="gray.500">Recurrence Protocol</FormLabel>
+                <FormLabel
+                  fontWeight="black"
+                  fontSize="xs"
+                  textTransform="uppercase"
+                  letterSpacing="widest"
+                  color="gray.500"
+                >
+                  Recurrence Protocol
+                </FormLabel>
                 <HStack spacing={4} w="100%">
                   <Icon as={Repeat} color="blue.400" />
-                  <Select name="recurrence" value={formData.recurrence} onChange={handleChange} variant="filled" borderRadius="xl" size="lg" focusBorderColor="blue.400">
+                  <Select
+                    name="recurrence"
+                    value={formData.recurrence}
+                    onChange={handleChange}
+                    variant="filled"
+                    borderRadius="xl"
+                    size="lg"
+                    focusBorderColor="blue.400"
+                  >
                     <option value="none">One-time Deployment</option>
                     <option value="daily">Daily Cycle</option>
                     <option value="weekly">Weekly Pulse</option>
@@ -463,11 +685,32 @@ const Events = () => {
           <ModalFooter pb={8} px={8}>
             <Flex w="100%" justify="space-between" align="center">
               {editingEvent ? (
-                <Button leftIcon={<Trash2 size={18} />} colorScheme="red" variant="ghost" onClick={handleDeleteEvent} borderRadius="xl">Terminate</Button>
-              ) : <Box />}
+                <Button
+                  leftIcon={<Trash2 size={18} />}
+                  colorScheme="red"
+                  variant="ghost"
+                  onClick={handleDeleteEvent}
+                  borderRadius="xl"
+                >
+                  Terminate
+                </Button>
+              ) : (
+                <Box />
+              )}
               <HStack spacing={4}>
-                <Button variant="ghost" onClick={onClose} borderRadius="xl">Abort</Button>
-                <Button colorScheme="blue" onClick={handleSaveEvent} size="lg" borderRadius="xl" px={10} boxShadow="lg">Commit</Button>
+                <Button variant="ghost" onClick={onClose} borderRadius="xl">
+                  Abort
+                </Button>
+                <Button
+                  colorScheme="blue"
+                  onClick={handleSaveEvent}
+                  size="lg"
+                  borderRadius="xl"
+                  px={10}
+                  boxShadow="lg"
+                >
+                  Commit
+                </Button>
               </HStack>
             </Flex>
           </ModalFooter>
@@ -478,7 +721,18 @@ const Events = () => {
 };
 
 const Edit2 = (props) => (
-  <svg xmlns="http://www.w3.org/2003/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+  <svg
+    xmlns="http://www.w3.org/2003/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
     <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
   </svg>
 );

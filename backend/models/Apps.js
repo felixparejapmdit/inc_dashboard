@@ -23,7 +23,7 @@ const App = sequelize.define(
       allowNull: true,
     },
     icon: {
-      type: DataTypes.TEXT, // Assuming the icon is stored as base64 or URL
+      type: DataTypes.TEXT("long"), // Base64 QR/image uploads can exceed regular TEXT
       allowNull: true,
     },
     app_type: {

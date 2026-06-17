@@ -604,7 +604,19 @@ exports.addApp = async (req, res) => {
     res.status(201).json({ message: "App added successfully.", app: newApp });
   } catch (error) {
     console.error("Error adding app:", error);
-    res.status(500).json({ message: "Database error" });
+
+    if (error?.name === "SequelizeUniqueConstraintError" || error?.parent?.code === "ER_DUP_ENTRY") {
+      return res.status(400).json({
+        message: "An app with the same name or URL already exists.",
+        error: error.parent?.sqlMessage || error.message,
+      });
+    }
+
+    return res.status(500).json({
+      message: "Database error",
+      error: error.parent?.sqlMessage || error.message,
+      code: error.parent?.code || error.code || null,
+    });
   }
 };
 

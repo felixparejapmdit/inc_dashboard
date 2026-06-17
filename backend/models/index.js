@@ -37,6 +37,13 @@ sequelize
       console.error("❌ Tasks database migration failed:", migErr);
     }
     try {
+      const migrateAppsIcon = require("../scripts/migrate_apps_icon_longtext");
+      await migrateAppsIcon(false);
+      console.log("✅ Apps icon migration completed successfully.");
+    } catch (migErr) {
+      console.error("❌ Apps icon migration failed:", migErr);
+    }
+    try {
       const count = await TaskCategory.count();
       if (count === 0) {
         await TaskCategory.bulkCreate([
