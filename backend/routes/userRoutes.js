@@ -10,6 +10,7 @@ const https = require("https");
 const express = require("express");
 const router = express.Router();
 const db = require("../db");
+const fs = require("fs");
 
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
@@ -34,6 +35,114 @@ const axios = require("axios");
 const agent = new https.Agent({
   rejectUnauthorized: false, // ⚠️ This disables SSL validation - use only in development
 });
+
+const USERS_SQL_QUERY = `
+  SELECT 
+    u.ID, u.personnel_id, u.username, u.password, MAX(ug.id) AS groupId, u.avatar, 
+    MAX(ug.name) as groupname, GROUP_CONCAT(a.name) AS availableApps,
+    p.givenname AS personnel_givenname, p.middlename AS personnel_middlename,
+    p.surname_husband AS personnel_surname_husband, p.surname_maiden AS personnel_surname_maiden,
+    p.suffix AS personnel_suffix, p.nickname AS personnel_nickname,
+    dreg.name As personnel_registered_district_id, lc.name AS personnel_registered_local_congregation,
+    p.date_of_birth AS personnel_date_of_birth, p.place_of_birth AS personnel_place_of_birth,
+    p.datejoined AS personnel_datejoined, p.gender AS personnel_gender,
+    p.civil_status AS personnel_civil_status, p.wedding_anniversary AS personnel_wedding_anniversary,
+    p.email_address AS personnel_email, p.bloodtype AS personnel_bloodtype,
+    p.local_congregation AS personnel_local_congregation, p.personnel_type AS personnel_type,
+    p.district_assignment_id AS personnel_district_assignment_id,
+    p.local_congregation_assignment AS personnel_local_congregation_assignment,
+    p.assigned_number AS personnel_assigned_number, p.panunumpa_date AS personnel_panunumpa_date,
+    p.ordination_date AS personnel_ordination_date, d.name AS personnel_department_name,
+    s.name AS personnel_section_name, s.id AS personnel_section_id,
+    ss.name AS personnel_subsection_name, ss.id AS personnel_subsection_id,
+    dg.name AS personnel_designation_name, dt.name AS personnel_district_name,
+    l.name AS personnel_language_name, u.id as user_id, p.citizenship,
+    p.designation_id, p.language_id, edu.educational_levels AS personnel_educational_level,
+    addr.address_types AS INC_Housing
+  FROM users u 
+  LEFT JOIN user_group_mappings ugm ON ugm.user_id = u.ID 
+  LEFT JOIN user_groups ug ON ug.id = ugm.group_id 
+  LEFT JOIN available_apps ua ON u.ID = ua.user_id 
+  LEFT JOIN apps a ON ua.app_id = a.id 
+  LEFT JOIN personnels p ON u.personnel_id = p.personnel_id
+  LEFT JOIN departments d ON p.department_id = d.id
+  LEFT JOIN sections s ON p.section_id = s.id
+  LEFT JOIN subsections ss ON p.subsection_id = ss.id
+  LEFT JOIN designations dg ON p.designation_id = dg.id
+  LEFT JOIN districts dreg ON p.registered_district_id = dreg.id
+  LEFT JOIN local_congregation lc ON p.registered_local_congregation = lc.id
+  LEFT JOIN districts dt ON p.district_assignment_id = dt.id
+  LEFT JOIN languages l ON p.language_id = l.id
+  LEFT JOIN (
+      SELECT personnel_id, GROUP_CONCAT(level SEPARATOR '; ') AS educational_levels
+      FROM educational_background GROUP BY personnel_id
+  ) AS edu ON edu.personnel_id = p.personnel_id
+  LEFT JOIN (
+      SELECT pa.personnel_id, pa.name AS address_types
+      FROM personnel_address pa
+      JOIN (
+          SELECT personnel_id, MAX(id) AS max_id FROM personnel_address
+          WHERE address_type = 'INC Housing' GROUP BY personnel_id
+      ) latest ON pa.personnel_id = latest.personnel_id AND pa.id = latest.max_id
+  ) AS addr ON addr.personnel_id = u.personnel_id
+  WHERE u.uid IS NOT NULL AND (p.deleted_at IS NULL OR u.personnel_id IS NULL)
+  GROUP BY 
+    u.ID, u.personnel_id, u.username, u.password, u.avatar, 
+    p.givenname, p.middlename, p.surname_husband, p.surname_maiden, p.suffix, p.nickname, 
+    p.registered_district_id, p.registered_local_congregation, p.date_of_birth, 
+    p.place_of_birth, p.datejoined, p.gender, p.civil_status, p.wedding_anniversary, 
+    p.email_address, p.bloodtype, p.local_congregation, p.personnel_type, 
+    p.local_congregation_assignment, p.assigned_number, p.panunumpa_date, p.ordination_date, 
+    d.name, s.name, s.id, ss.name, ss.id, dg.name, dt.name, l.name, 
+    u.id, p.citizenship, p.designation_id, p.language_id;
+`;
+
+const queryUsersFromDb = () =>
+  new Promise((resolve, reject) => {
+    db.query(USERS_SQL_QUERY, (err, results) => (err ? reject(err) : resolve(results)));
+  });
+
+const readLdapUsersFromFile = () => {
+  try {
+    const filePath = path.join(__dirname, "../data/ldap_users.json");
+    if (!fs.existsSync(filePath)) return [];
+    const data = fs.readFileSync(filePath, "utf-8");
+    const parsed = JSON.parse(data);
+    return Array.isArray(parsed) ? parsed : (parsed.LDAP_Users || []);
+  } catch (err) {
+    console.error("Error reading LDAP data from file:", err);
+    return [];
+  }
+};
+
+const formatUsersForClient = (rows, { districtMap = new Map(), localMap = new Map(), ldapMap = new Map() } = {}) => {
+  return (rows || []).map((user) => {
+    const ldapUser = ldapMap.get(user.username);
+    const givenName = ldapUser?.givenName || user.personnel_givenname || "";
+    const sn = ldapUser?.sn || user.personnel_surname_husband || user.personnel_surname_maiden || "";
+    const mail = ldapUser?.mail || user.personnel_email || "";
+
+    return {
+      ...user,
+      availableApps: user.availableApps
+        ? user.availableApps.split(",").map((app) => app.trim()).filter(Boolean)
+        : [],
+      personnel_district_assignment_name:
+        districtMap.get(user.personnel_district_assignment_id) ||
+        user.personnel_district_name ||
+        "N/A",
+      personnel_local_congregation_assignment_name:
+        localMap.get(user.personnel_local_congregation_assignment) ||
+        user.personnel_registered_local_congregation ||
+        "N/A",
+      givenName: givenName || "N/A",
+      sn: sn || "N/A",
+      mail: mail || "N/A",
+      email: mail || "N/A",
+      fullname: `${givenName || ""} ${sn || ""}`.trim() || "N/A",
+    };
+  });
+};
 
 //const ldap = require("ldapjs");
 //const LDAP_URL = process.env.LDAP_URL;
@@ -599,6 +708,23 @@ const fetchApiDataCached = async (url, type) => {
 // Get all users with their available apps and LDAP attributes
 router.get("/api/users", verifyToken, async (req, res) => {
   console.log("🧠 Fetching fresh user data...");
+  const isFastMode = req.query.fast === "1" || req.query.fast === "true";
+
+  if (isFastMode) {
+    try {
+      const dbResults = await queryUsersFromDb();
+      const ldapUsersRaw = readLdapUsersFromFile();
+      const ldapMap = new Map(ldapUsersRaw.map((u) => [u.uid, u]));
+      return res.json(formatUsersForClient(dbResults, { ldapMap }));
+    } catch (err) {
+      console.error("Error in fast user fetch:", err);
+      return res.status(500).json({
+        message: "Error fetching users data",
+        error: err.message,
+        stack: err.stack
+      });
+    }
+  }
 
   // Function to fetch users from LDAP
   const fetchLdapUsers = () => {
@@ -647,91 +773,13 @@ router.get("/api/users", verifyToken, async (req, res) => {
     });
   };
 
-  // Fallback function to read from ldap_users.json
-  const readLdapFromFile = () => {
-    try {
-      const filePath = path.join(__dirname, "../data/ldap_users.json");
-      if (!fs.existsSync(filePath)) return [];
-      const data = fs.readFileSync(filePath, "utf-8");
-      const parsed = JSON.parse(data);
-      return Array.isArray(parsed) ? parsed : (parsed.LDAP_Users || []);
-    } catch (err) {
-      console.error("Error reading LDAP data from file:", err);
-      return [];
-    }
-  };
-
-  // SQL Query for DB users
-  const sqlQuery = `
-  SELECT 
-    u.ID, u.personnel_id, u.username, u.password, MAX(ug.id) AS groupId, u.avatar, 
-    MAX(ug.name) as groupname, GROUP_CONCAT(a.name) AS availableApps,
-    p.givenname AS personnel_givenname, p.middlename AS personnel_middlename,
-    p.surname_husband AS personnel_surname_husband, p.surname_maiden AS personnel_surname_maiden,
-    p.suffix AS personnel_suffix, p.nickname AS personnel_nickname,
-    dreg.name As personnel_registered_district_id, lc.name AS personnel_registered_local_congregation,
-    p.date_of_birth AS personnel_date_of_birth, p.place_of_birth AS personnel_place_of_birth,
-    p.datejoined AS personnel_datejoined, p.gender AS personnel_gender,
-    p.civil_status AS personnel_civil_status, p.wedding_anniversary AS personnel_wedding_anniversary,
-    p.email_address AS personnel_email, p.bloodtype AS personnel_bloodtype,
-    p.local_congregation AS personnel_local_congregation, p.personnel_type AS personnel_type,
-    p.district_assignment_id AS personnel_district_assignment_id,
-    p.local_congregation_assignment AS personnel_local_congregation_assignment,
-    p.assigned_number AS personnel_assigned_number, p.panunumpa_date AS personnel_panunumpa_date,
-    p.ordination_date AS personnel_ordination_date, d.name AS personnel_department_name,
-    s.name AS personnel_section_name, s.id AS personnel_section_id,
-    ss.name AS personnel_subsection_name, ss.id AS personnel_subsection_id,
-    dg.name AS personnel_designation_name, dt.name AS personnel_district_name,
-    l.name AS personnel_language_name, u.id as user_id, p.citizenship,
-    p.designation_id, p.language_id, edu.educational_levels AS personnel_educational_level,
-    addr.address_types AS INC_Housing
-  FROM users u 
-  LEFT JOIN user_group_mappings ugm ON ugm.user_id = u.ID 
-  LEFT JOIN user_groups ug ON ug.id = ugm.group_id 
-  LEFT JOIN available_apps ua ON u.ID = ua.user_id 
-  LEFT JOIN apps a ON ua.app_id = a.id 
-  LEFT JOIN personnels p ON u.personnel_id = p.personnel_id
-  LEFT JOIN departments d ON p.department_id = d.id
-  LEFT JOIN sections s ON p.section_id = s.id
-  LEFT JOIN subsections ss ON p.subsection_id = ss.id
-  LEFT JOIN designations dg ON p.designation_id = dg.id
-  LEFT JOIN districts dreg ON p.registered_district_id = dreg.id
-  LEFT JOIN local_congregation lc ON p.registered_local_congregation = lc.id
-  LEFT JOIN districts dt ON p.district_assignment_id = dt.id
-  LEFT JOIN languages l ON p.language_id = l.id
-  LEFT JOIN (
-      SELECT personnel_id, GROUP_CONCAT(level SEPARATOR '; ') AS educational_levels
-      FROM educational_background GROUP BY personnel_id
-  ) AS edu ON edu.personnel_id = p.personnel_id
-  LEFT JOIN (
-      SELECT pa.personnel_id, pa.name AS address_types
-      FROM personnel_address pa
-      JOIN (
-          SELECT personnel_id, MAX(id) AS max_id FROM personnel_address
-          WHERE address_type = 'INC Housing' GROUP BY personnel_id
-      ) latest ON pa.personnel_id = latest.personnel_id AND pa.id = latest.max_id
-  ) AS addr ON addr.personnel_id = u.personnel_id
-  WHERE u.uid IS NOT NULL AND (p.deleted_at IS NULL OR u.personnel_id IS NULL)
-  GROUP BY 
-    u.ID, u.personnel_id, u.username, u.password, u.avatar, 
-    p.givenname, p.middlename, p.surname_husband, p.surname_maiden, p.suffix, p.nickname, 
-    p.registered_district_id, p.registered_local_congregation, p.date_of_birth, 
-    p.place_of_birth, p.datejoined, p.gender, p.civil_status, p.wedding_anniversary, 
-    p.email_address, p.bloodtype, p.local_congregation, p.personnel_type, 
-    p.local_congregation_assignment, p.assigned_number, p.panunumpa_date, p.ordination_date, 
-    d.name, s.name, s.id, ss.name, ss.id, dg.name, dt.name, l.name, 
-    u.id, p.citizenship, p.designation_id, p.language_id;
-  `;
-
   try {
     // 🚀 Parallel Execution of all high-latency operations
     const [districts, localCongregations, dbResults, ldapUsersRaw] = await Promise.all([
       fetchApiDataCached(DISTRICT_API_URL, 'districts'),
       fetchApiDataCached(LOCAL_CONGREGATION_API_URL, 'locals'),
-      new Promise((resolve, reject) => {
-        db.query(sqlQuery, (err, results) => (err ? reject(err) : resolve(results)));
-      }),
-      fetchLdapUsers().catch(() => readLdapFromFile())
+      queryUsersFromDb(),
+      fetchLdapUsers().catch(() => readLdapUsersFromFile())
     ]);
 
     // Optimize lookups with Maps
@@ -740,17 +788,10 @@ router.get("/api/users", verifyToken, async (req, res) => {
     const ldapMap = new Map(ldapUsersRaw.map(u => [u.uid, u]));
 
     // Format and combine data
-    const combinedUsers = (dbResults || []).map((user) => {
-      const ldapUser = ldapMap.get(user.username);
-      return {
-        ...user,
-        availableApps: user.availableApps ? user.availableApps.split(",") : [],
-        personnel_district_assignment_name: districtMap.get(user.personnel_district_assignment_id) || "N/A",
-        personnel_local_congregation_assignment_name: localMap.get(user.personnel_local_congregation_assignment) || "N/A",
-        givenName: ldapUser?.givenName || "N/A",
-        sn: ldapUser?.sn || "N/A",
-        mail: ldapUser?.mail || "N/A",
-      };
+    const combinedUsers = formatUsersForClient(dbResults, {
+      districtMap,
+      localMap,
+      ldapMap,
     });
 
     res.json(combinedUsers);
@@ -1027,7 +1068,6 @@ router.post("/api/logout", (req, res) => {
   });
 });
 
-const fs = require("fs");
 // Update User Profile with Avatar Upload
 router.put("/api/users_profile/:id", upload.single("avatar"), (req, res) => {
   try {

@@ -132,7 +132,8 @@ const Users = ({ personnelId }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [editingUser, setEditingUser] = useState(null);
   const [status, setStatus] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const [isUsersLoading, setIsUsersLoading] = useState(true);
+  const [isNewPersonnelLoading, setIsNewPersonnelLoading] = useState(true);
 
   const [existingPersonnel, setExistingPersonnel] = useState([]); // Personnel already in LDAP but no personnel_id
   const [newPersonnels, setNewPersonnels] = useState([]);
@@ -546,8 +547,9 @@ const Users = ({ personnelId }) => {
   };
 
   const fetchUsers = async () => {
+    setIsUsersLoading(true);
     try {
-      const response = await axios.get(`${API_URL}/api/users`, {
+      const response = await axios.get(`${API_URL}/api/users?fast=1`, {
         headers: getAuthHeaders(),
       });
       let userData = Array.isArray(response.data) ? response.data : [];
@@ -559,10 +561,13 @@ const Users = ({ personnelId }) => {
       setUsers(userData);
     } catch (error) {
       console.error("Failed to load personnel list:", error);
+    } finally {
+      setIsUsersLoading(false);
     }
   };
 
   const fetchNewPersonnels = async () => {
+    setIsNewPersonnelLoading(true);
     try {
       const response = await axios.get(`${API_URL}/api/personnels/new`, {
         headers: getAuthHeaders(), // ✅ Apply authorization headers here
@@ -573,6 +578,8 @@ const Users = ({ personnelId }) => {
       setNewPersonnels(data);
     } catch (error) {
       console.error("Failed to load new personnels:", error);
+    } finally {
+      setIsNewPersonnelLoading(false);
     }
   };
 
@@ -722,22 +729,10 @@ const Users = ({ personnelId }) => {
   const [avatars, setAvatars] = useState({});
 
   useEffect(() => {
-    const loadAllData = async () => {
-      setIsLoading(true);
-      try {
-        await Promise.all([
-          fetchUsers(),
-          fetchApps(),
-          fetchNewPersonnels(),
-          fetchData("groups", setGroups, setStatus, "Failed to load groups.")
-        ]);
-      } catch (err) {
-        console.error("Error loading initial data:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadAllData();
+    fetchUsers();
+    fetchApps();
+    fetchNewPersonnels();
+    fetchData("groups", setGroups, setStatus, "Failed to load groups.");
   }, []);
 
   // Fetch 2x2 avatars for the currently visible personnel (batch request)
@@ -1010,17 +1005,25 @@ const Users = ({ personnelId }) => {
     setUsername(item.username);
 
     // Extract first name and last name correctly
-    const givenNameParts = item.givenName ? item.givenName.split(" ") : ["N/A"]; // Safe split
+    const sourceGivenName =
+      item.givenName && item.givenName !== "N/A"
+        ? item.givenName
+        : item.personnel_givenname || "";
+    const givenNameParts = sourceGivenName ? sourceGivenName.split(" ") : [""]; // Safe split
     const firstName = givenNameParts[0];
-    const lastName = item.sn || "";
+    const lastName =
+      (item.sn && item.sn !== "N/A" ? item.sn : null) ||
+      item.personnel_surname_husband ||
+      item.personnel_surname_maiden ||
+      "";
 
     setFirstName(firstName);
     setLastName(lastName);
 
     // Use setFullname if needed for display purposes
-    setFullname(`${firstName} ${lastName}`);
+    setFullname(`${firstName} ${lastName}`.trim());
 
-    setEmail(item.mail || "");
+    setEmail(item.mail || item.email || item.personnel_email || "");
     setAvatarUrl(avatars[item.personnel_id] || (item.avatar ? `${API_URL}${item.avatar}` : ""));
 
     // Robust handling of availableApps: map objects to names if necessary
@@ -1835,7 +1838,7 @@ const Users = ({ personnelId }) => {
                     </Tr>
                   </Thead>
                   <Tbody>
-                    {isLoading ? (
+                    {isUsersLoading ? (
                       Array.from({ length: 5 }).map((_, i) => (
                         <Tr key={i}>
                           <Td colSpan={allKeys.filter(k => columnVisibility[k]).length + 2}>
@@ -1947,7 +1950,7 @@ const Users = ({ personnelId }) => {
                     </Tr>
                   </Thead>
                   <Tbody>
-                    {isLoading ? (
+                    {isUsersLoading ? (
                       Array.from({ length: 5 }).map((_, i) => (
                         <Tr key={i}>
                           <Td colSpan={5}>
@@ -2111,7 +2114,7 @@ const Users = ({ personnelId }) => {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {isLoading ? (
+                  {isNewPersonnelLoading ? (
                     Array.from({ length: 5 }).map((_, i) => (
                       <Tr key={i}>
                         <Td colSpan={5} py={4}>
