@@ -493,6 +493,17 @@ export default function DailyActivityReport() {
     } catch { return null; }
   }, []);
 
+  const loggedInUserName = useMemo(() => {
+    const fullName = typeof window !== "undefined"
+      ? localStorage.getItem("userFullName")
+      : "";
+    const username = typeof window !== "undefined"
+      ? localStorage.getItem("username")
+      : "";
+
+    return (fullName && fullName.trim()) || (username && username.trim()) || "User";
+  }, []);
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -665,13 +676,13 @@ export default function DailyActivityReport() {
     );
 
     return {
-      name: "Pareja Felix",
+      name: loggedInUserName,
       totalHours: Number.isFinite(totalHours) ? totalHours.toFixed(1) : "0.0",
       department: "Admin - TRG",
       weekNumber: getISOWeek(new Date(`${week.start}T00:00:00`)),
       petsangSaklaw: `${week.start} – ${week.end}`,
     };
-  }, [printTaskHours, week]);
+  }, [loggedInUserName, printTaskHours, week]);
 
   return (
     <>
@@ -1282,7 +1293,7 @@ export default function DailyActivityReport() {
           <Box className="dar-print-lagda">
             <Text className="dar-print-note">Lagda:</Text>
             <Box className="dar-print-line" />
-            <Text className="dar-print-name">Pareja Felix</Text>
+            <Text className="dar-print-name">{printMeta.name}</Text>
           </Box>
 
           <Box className="dar-print-noted">
