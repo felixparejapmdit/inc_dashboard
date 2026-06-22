@@ -91,6 +91,7 @@ import PersonnelStatistics from "./components/PersonnelStatistics";
 
 import InventoryDashboard from "./pages/InventoryDashboard.js";
 import ATGDashboard from "./pages/ATG Dashboard.js";
+import ATGFiles from "./pages/ATGFiles.js";
 
 // Plugins
 import LokalProfile from "./pages/LokalProfile.js";
@@ -224,6 +225,8 @@ function MainApp() {
           <Route path="/personnel-statistics" element={<PersonnelStatistics />} />
           <Route path="/inv-dashboard" element={<InventoryDashboard />} />
           <Route path="/atg-dashboard" element={<ATGDashboard />} />
+          <Route path="/atgfiles" element={<ATGFiles />} />
+          <Route path="/atg-files" element={<Navigate to="/atgfiles" replace />} />
           <Route path="/application" element={<Applications />} />
           <Route path="/user" element={<Users />} />
           <Route path="/tempdeleted-users" element={<TemporarilyDeletedUsers />} />

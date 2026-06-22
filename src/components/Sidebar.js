@@ -47,6 +47,7 @@ import {
   FiArrowLeft,
   FiBarChart2,
   FiFileText,
+  FiFolder,
 } from "react-icons/fi";
 import { FaDownload, FaShareAlt } from "react-icons/fa"; // Font Awesome download icon
 import { useNavigate, useLocation } from "react-router-dom";
@@ -240,7 +241,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
     }
 
     // Check Plugins
-    if (path === "/lokalprofile") {
+    if (path === "/lokalprofile" || path === "/atgfiles" || path === "/atg-files") {
       setIsPluginsExpanded(true);
     }
   }, [location.pathname]);
@@ -930,6 +931,13 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   isActive={location.pathname === "/lokalprofile"}
                 />
               )}
+              <SidebarItem
+                icon={FiFolder}
+                label="ATG Files"
+                isExpanded={isExpanded}
+                onClick={() => handleItemClick("/atgfiles")}
+                isActive={location.pathname === "/atgfiles"}
+              />
             </VStack>
           </Collapse>
 
