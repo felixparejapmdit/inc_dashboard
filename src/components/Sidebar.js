@@ -670,7 +670,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   isActive={location.pathname === "/ldap-users"}
                 />
               )}
-
+              {hasPermission("schemasync.view") && (
               <SidebarItem
                 icon={FiArrowRight} // Use appropriate icon
                 label="Schema Sync"
@@ -678,7 +678,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 onClick={() => handleItemClick("/settings/schema-sync")}
                 isActive={location.pathname === "/settings/schema-sync"}
               />
-              
+              )}
             </VStack>
           </Collapse>
 
