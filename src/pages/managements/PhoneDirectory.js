@@ -152,7 +152,7 @@ const PhoneDirectory = () => {
       setNameList(namesRes || []);
     } catch (err) {
       toast({
-        title: "Error loading directory",
+        title: "Could not load contacts",
         description: err.message,
         status: "error",
       });
@@ -202,7 +202,7 @@ const PhoneDirectory = () => {
   const handleDelete = async () => {
     try {
       await deleteData("phone-directory", deletingEntry.id);
-      toast({ title: "Contact removed", status: "success" });
+      toast({ title: "Contact deleted", status: "success" });
       setDeletingEntry(null);
       loadData();
     } catch (error) {
@@ -222,7 +222,7 @@ const PhoneDirectory = () => {
         const rows = XLSX.utils.sheet_to_json(sheet);
 
         await postData("import-phone-directory", { data: rows });
-        toast({ title: "Import successful", status: "success" });
+        toast({ title: "Import done", status: "success" });
         loadData();
         onImportClose();
       };
@@ -291,10 +291,10 @@ const PhoneDirectory = () => {
             <HStack>
               <Icon as={Phone} boxSize={8} color="blue.500" />
               <Heading size="xl" bgGradient={headerGradient} bgClip="text" fontWeight="black" letterSpacing="tight">
-                Phone Directory
+                Phone List
               </Heading>
             </HStack>
-            <Text color="gray.500" fontWeight="medium">Manage list of phone directory and DECT assignments</Text>
+            <Text color="gray.500" fontWeight="medium">View and manage phone contacts</Text>
           </VStack>
 
           <HStack spacing={3}>
@@ -341,10 +341,10 @@ const PhoneDirectory = () => {
         {/* Stats Grid */}
         <SimpleGrid columns={{ base: 1, md: 4 }} spacing={6} mb={8}>
           {[
-            { label: "Total Contacts", value: stats.total, icon: Smartphone, color: "blue" },
-            { label: "Active Lines", value: stats.active, icon: CheckCircle2, color: "green" },
+            { label: "All Contacts", value: stats.total, icon: Smartphone, color: "blue" },
+            { label: "Active", value: stats.active, icon: CheckCircle2, color: "green" },
             { label: "Inactive", value: stats.inactive, icon: XCircle, color: "red" },
-            { label: "DECT Users", value: stats.dect, icon: Hash, color: "purple" }
+            { label: "DECT", value: stats.dect, icon: Hash, color: "purple" }
           ].map(stat => (
             <MotionBox
               key={stat.label}
@@ -381,7 +381,7 @@ const PhoneDirectory = () => {
               <Search size={18} color="gray" />
             </InputLeftElement>
             <Input
-              placeholder="Search by name, location, extension, DECT..."
+              placeholder="Search contacts..."
               value={searchQuery}
               onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
               borderRadius="xl"
@@ -403,7 +403,7 @@ const PhoneDirectory = () => {
           {isLoading ? (
             <Center p={20} flexDir="column">
               <Spinner size="xl" color="blue.500" thickness="4px" />
-              <Text mt={4} fontWeight="bold" color="gray.500">Loading directory...</Text>
+              <Text mt={4} fontWeight="bold" color="gray.500">Loading contacts...</Text>
             </Center>
           ) : filteredDirectory.length === 0 ? (
             <Center p={20} flexDir="column">
@@ -476,8 +476,8 @@ const PhoneDirectory = () => {
                               <MenuButton as={IconButton} icon={<MoreVertical size={18} />} variant="ghost" borderRadius="full" size="sm" />
                               <Portal>
                                 <MenuList borderRadius="xl" shadow="xl" border="1px solid" borderColor={borderColor}>
-                                  <MenuItem icon={<Edit2 size={14} />} onClick={() => { setEditingEntry(item); onAddOpen(); }}>Edit Contact</MenuItem>
-                                  <MenuItem icon={<Trash2 size={14} />} color="red.500" onClick={() => setDeletingEntry(item)}>Delete Contact</MenuItem>
+                                  <MenuItem icon={<Edit2 size={14} />} onClick={() => { setEditingEntry(item); onAddOpen(); }}>Edit</MenuItem>
+                                  <MenuItem icon={<Trash2 size={14} />} color="red.500" onClick={() => setDeletingEntry(item)}>Delete</MenuItem>
                                 </MenuList>
                               </Portal>
                             </Menu>
@@ -551,18 +551,18 @@ const PhoneDirectory = () => {
         <ModalOverlay backdropFilter="blur(4px)" />
         <ModalContent borderRadius="3xl" boxShadow="2xl">
           <ModalHeader fontWeight="black" fontSize="2xl">
-            {editingEntry ? "Edit Line Details" : "New Line Registration"}
+            {editingEntry ? "Edit Contact" : "New Contact"}
           </ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
             <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
               <Box gridColumn="span 2">
                 <FormControl isRequired>
-                  <FormLabel fontWeight="bold">Owner / Personnel Name</FormLabel>
+                  <FormLabel fontWeight="bold">Name</FormLabel>
                   {!isAddingNewName ? (
                     <HStack>
                       <Select
-                        placeholder="Select Personnel"
+                        placeholder="Select person"
                         value={editingEntry ? editingEntry.name : formState.name}
                         onChange={e => editingEntry ? setEditingEntry({ ...editingEntry, name: e.target.value }) : setFormState({ ...formState, name: e.target.value })}
                         borderRadius="xl"
@@ -574,7 +574,7 @@ const PhoneDirectory = () => {
                     </HStack>
                   ) : (
                     <HStack>
-                      <Input placeholder="Enter Full Name" value={newNameInput} onChange={e => setNewNameInput(e.target.value)} borderRadius="xl" size="lg" autoFocus />
+                      <Input placeholder="Enter name" value={newNameInput} onChange={e => setNewNameInput(e.target.value)} borderRadius="xl" size="lg" autoFocus />
                       <IconButton icon={<CheckCircle2 size={18} />} colorScheme="green" onClick={handleAddCustomName} />
                       <IconButton icon={<XCircle size={18} />} colorScheme="red" variant="ghost" onClick={() => setIsAddingNewName(false)} />
                     </HStack>
@@ -594,7 +594,7 @@ const PhoneDirectory = () => {
               </FormControl>
 
               <FormControl>
-                <FormLabel fontWeight="bold">Phone Model / Name (Optional)</FormLabel>
+                <FormLabel fontWeight="bold">Phone Model (Optional)</FormLabel>
                 <Input
                   placeholder="e.g. Cisco CP-7841"
                   value={editingEntry ? editingEntry.phone_name : formState.phone_name}
@@ -647,7 +647,7 @@ const PhoneDirectory = () => {
                   size="lg"
                   fontWeight="bold"
                 >
-                  Active Line Status
+                  Active
                 </Checkbox>
               </Box>
             </SimpleGrid>
@@ -655,7 +655,7 @@ const PhoneDirectory = () => {
           <ModalFooter bg="gray.50" borderBottomRadius="3xl" p={6}>
             <Button variant="ghost" mr={3} onClick={onAddClose} borderRadius="xl">Cancel</Button>
             <Button colorScheme="blue" onClick={handleSave} borderRadius="xl" px={10} size="lg" boxShadow="lg">
-              {editingEntry ? "Update Entry" : "Register Contact"}
+              {editingEntry ? "Save Contact" : "Save Contact"}
             </Button>
           </ModalFooter>
         </ModalContent>
@@ -665,13 +665,13 @@ const PhoneDirectory = () => {
       <Modal isOpen={isImportOpen} onClose={onImportClose} isCentered>
         <ModalOverlay backdropFilter="blur(4px)" />
         <ModalContent borderRadius="2xl">
-          <ModalHeader fontWeight="black">Bulk Import Contacts</ModalHeader>
+          <ModalHeader fontWeight="black">Import Contacts</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <VStack spacing={4} py={4}>
               <Box w="full" p={8} border="2px dashed" borderColor="blue.200" borderRadius="2xl" bg="blue.50/50" textAlign="center">
                 <Icon as={Upload} boxSize={8} color="blue.400" mb={2} />
-                <Text fontWeight="bold" color="blue.600">Drop Excel file here</Text>
+                <Text fontWeight="bold" color="blue.600">Drop file here</Text>
                 <Text fontSize="xs" color="gray.500">Only .xlsx or .csv files supported</Text>
                 <Input
                   type="file"
@@ -692,7 +692,7 @@ const PhoneDirectory = () => {
           </ModalBody>
           <ModalFooter>
             <Button variant="ghost" mr={3} onClick={onImportClose}>Cancel</Button>
-            <Button colorScheme="blue" onClick={handleImport} isLoading={isImporting} isDisabled={!file}>Start Import</Button>
+            <Button colorScheme="blue" onClick={handleImport} isLoading={isImporting} isDisabled={!file}>Import</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
@@ -715,7 +715,7 @@ const PhoneDirectory = () => {
             </AlertDialogBody>
             <AlertDialogFooter>
               <Button ref={cancelRef} onClick={() => setDeletingEntry(null)} variant="ghost" borderRadius="xl">Cancel</Button>
-              <Button colorScheme="red" onClick={handleDelete} ml={3} borderRadius="xl" px={8}>Delete Permanently</Button>
+              <Button colorScheme="red" onClick={handleDelete} ml={3} borderRadius="xl" px={8}>Delete</Button>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialogOverlay>

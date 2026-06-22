@@ -606,7 +606,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   isActive={location.pathname === "/tempdeleted-users"}
                 />
               )}
-              {hasPermission("personnels.view") && ( // Or use a specific permission like personnels.history
+              {hasPermission("personnelhistory.view") && ( // Or use a specific permission like personnels.history
                 <SidebarItem
                   icon={FiUsers}
                   label="Personnel History"
@@ -634,6 +634,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 />
               )}
 
+{hasPermission("loginreports.view") && (
               <SidebarItem
                 icon={FiUsers}
                 label="Login Reports"
@@ -641,7 +642,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 onClick={() => handleItemClick("/managements/loginaudits")} // Redirect to users.js
                 isActive={location.pathname === "/managements/loginaudits"}
               />
-
+)}
               {hasPermission("reminders.view") && (
                 <SidebarItem
                   icon={FiUser}
@@ -669,6 +670,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   isActive={location.pathname === "/ldap-users"}
                 />
               )}
+
               <SidebarItem
                 icon={FiArrowRight} // Use appropriate icon
                 label="Schema Sync"
@@ -676,6 +678,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 onClick={() => handleItemClick("/settings/schema-sync")}
                 isActive={location.pathname === "/settings/schema-sync"}
               />
+              
             </VStack>
           </Collapse>
 

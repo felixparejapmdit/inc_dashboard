@@ -120,7 +120,7 @@ const PermissionManagement = () => {
       setCategories(catsData || []);
     } catch (err) {
       toast({
-        title: "Error loading data",
+        title: "Error loading permissions",
         description: err.message,
         status: "error",
       });
@@ -148,7 +148,7 @@ const PermissionManagement = () => {
 
   const handleSubmit = async () => {
     if (!formState.name || !formState.categoryId) {
-      toast({ title: "Name and Category are required", status: "warning" });
+      toast({ title: "Name and category are required", status: "warning" });
       return;
     }
 
@@ -174,7 +174,7 @@ const PermissionManagement = () => {
       toast({ title: "Permission deleted", status: "success" });
       loadData();
     } catch (error) {
-      toast({ title: "Error deleting", description: error.message, status: "error" });
+      toast({ title: "Error deleting permission", description: error.message, status: "error" });
     } finally {
       setDeletingPermission(null);
     }
@@ -215,10 +215,10 @@ const PermissionManagement = () => {
             <HStack>
               <Icon as={Shield} boxSize={8} color="teal.500" />
               <Heading size="xl" bgGradient={headerGradient} bgClip="text" fontWeight="black" letterSpacing="tight">
-                Access Controls
+                Permissions
               </Heading>
             </HStack>
-            <Text color="gray.500" fontWeight="medium">Manage system permissions and security roles</Text>
+            <Text color="gray.500" fontWeight="medium">View and manage permissions</Text>
           </VStack>
 
           <HStack spacing={3}>
@@ -252,9 +252,9 @@ const PermissionManagement = () => {
         {/* Stats Grid */}
         <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6} mb={8}>
           {[
-            { label: "Total Permissions", value: stats.total, icon: Lock, color: "teal" },
+            { label: "All Permissions", value: stats.total, icon: Lock, color: "teal" },
             { label: "Categories", value: stats.categories, icon: Filter, color: "blue" },
-            { label: "Visible Items", value: stats.active, icon: CheckCircle2, color: "purple" }
+            { label: "Shown", value: stats.active, icon: CheckCircle2, color: "purple" }
           ].map((stat, idx) => (
             <MotionBox
               key={idx}
@@ -301,7 +301,7 @@ const PermissionManagement = () => {
             <Box w="300px">
               <Select
                 isMulti
-                placeholder="Filter by Category..."
+                placeholder="Filter by category"
                 options={categories.map(c => ({ value: c.id, label: c.name }))}
                 value={selectedCategories}
                 onChange={setSelectedCategories}
@@ -363,14 +363,14 @@ const PermissionManagement = () => {
 
                 {categoryPermissions.length === 0 ? (
                   <Box p={6} textAlign="center" color="gray.500">
-                    <Text fontSize="sm">No permissions in this category yet.</Text>
+                    <Text fontSize="sm">No permissions here yet.</Text>
                   </Box>
                 ) : (
                   <Box overflowX="auto">
                     <Table variant="simple">
                       <Thead>
                         <Tr>
-                          <Th>Permission Name</Th>
+                          <Th>Permission</Th>
                           <Th>Description</Th>
                           <Th textAlign="right">Actions</Th>
                         </Tr>
@@ -453,15 +453,15 @@ const PermissionManagement = () => {
               <Box bg="teal.50" p={4} borderRadius="xl" w="full" display="flex" alignItems="center" gap={4}>
                 <Icon as={Unlock} boxSize={8} color="teal.500" />
                 <VStack align="start" spacing={0}>
-                  <Text fontWeight="bold" color="teal.700">Access Configuration</Text>
+                  <Text fontWeight="bold" color="teal.700">Permission Details</Text>
                   <Text fontSize="xs" color="teal.500">Define the scope and category for this permission key.</Text>
                 </VStack>
               </Box>
 
               <FormControl isRequired>
-                <FormLabel fontWeight="bold" fontSize="sm">Permission Name</FormLabel>
+                <FormLabel fontWeight="bold" fontSize="sm">Permission</FormLabel>
                 <Input
-                  placeholder="e.g. view_dashboard"
+                  placeholder="e.g. view dashboard"
                   value={formState.name}
                   onChange={(e) => setFormState({ ...formState, name: e.target.value })}
                   borderRadius="xl"
@@ -471,7 +471,7 @@ const PermissionManagement = () => {
               <FormControl isRequired>
                 <FormLabel fontWeight="bold" fontSize="sm">Category</FormLabel>
                 <ChakraSelect
-                  placeholder="Select Category"
+                  placeholder="Select category"
                   value={formState.categoryId}
                   onChange={(e) => setFormState({ ...formState, categoryId: e.target.value })}
                   borderRadius="xl"
@@ -483,7 +483,7 @@ const PermissionManagement = () => {
               <FormControl>
                 <FormLabel fontWeight="bold" fontSize="sm">Description</FormLabel>
                 <Textarea
-                  placeholder="Brief description of what this permission allows..."
+                  placeholder="What this permission does..."
                   value={formState.description}
                   onChange={(e) => setFormState({ ...formState, description: e.target.value })}
                   borderRadius="xl"
@@ -494,7 +494,7 @@ const PermissionManagement = () => {
           <ModalFooter bg="gray.50" borderBottomRadius="3xl" p={6}>
             <Button variant="ghost" mr={3} onClick={onClose} borderRadius="xl">Cancel</Button>
             <Button colorScheme="teal" onClick={handleSubmit} borderRadius="xl" px={8}>
-              {modalType === 'add' ? "Create Permission" : "Update Permission"}
+              {modalType === 'add' ? "Save Permission" : "Save Permission"}
             </Button>
           </ModalFooter>
         </ModalContent>
@@ -513,7 +513,7 @@ const PermissionManagement = () => {
             Delete Permission
           </AlertDialogHeader>
           <AlertDialogBody>
-            Are you sure you want to delete <b>{deletingPermission?.name}</b>? This action cannot be undone.
+            Delete <b>{deletingPermission?.name}</b>? This cannot be undone.
           </AlertDialogBody>
           <AlertDialogFooter>
             <Button ref={cancelRef} onClick={() => setDeletingPermission(null)} borderRadius="xl">

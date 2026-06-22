@@ -113,8 +113,8 @@ const PermissionCategoriesManagement = () => {
       setCategories(data || []);
     } catch (err) {
       toast({
-        title: "Error loading classifications",
-        description: err.message || "Failed to fetch data",
+        title: "Error loading categories",
+        description: err.message || "Failed to load data",
         status: "error",
       });
     } finally {
@@ -131,35 +131,35 @@ const PermissionCategoriesManagement = () => {
     const dataToSave = isEditing ? editingCategory : formState;
 
     if (!dataToSave.name.trim()) {
-      toast({ title: "Category designation is required", status: "warning" });
+      toast({ title: "Category name is required", status: "warning" });
       return;
     }
 
     try {
       if (isEditing) {
         await putData("permission-categories", editingCategory.id, dataToSave, "Error updating category");
-        toast({ title: "Classification updated", status: "success" });
+        toast({ title: "Category updated", status: "success" });
       } else {
         await postData("permission-categories", dataToSave);
-        toast({ title: "New category authorized", status: "success" });
+        toast({ title: "Category added", status: "success" });
       }
       fetchCategories();
       onAddClose();
       setEditingCategory(null);
       setFormState({ name: "", description: "" });
     } catch (error) {
-      toast({ title: "Error saving record", description: error.message, status: "error" });
+      toast({ title: "Error saving category", description: error.message, status: "error" });
     }
   };
 
   const handleDelete = async () => {
     try {
       await deleteData("permission-categories", deletingCategory.id, "Error deleting category");
-      toast({ title: "Category revoked", status: "success" });
+      toast({ title: "Category deleted", status: "success" });
       setDeletingCategory(null);
       fetchCategories();
     } catch (error) {
-      toast({ title: "Error deleting", description: error.message, status: "error" });
+      toast({ title: "Error deleting category", description: error.message, status: "error" });
     }
   };
 
@@ -190,10 +190,10 @@ const PermissionCategoriesManagement = () => {
             <HStack>
               <Icon as={ShieldCheck} boxSize={8} color="green.500" />
               <Heading size="xl" bgGradient={headerGradient} bgClip="text" fontWeight="black" letterSpacing="tight">
-                Permission Categories
+                Categories
               </Heading>
             </HStack>
-            <Text color="gray.500" fontWeight="medium">Manage access control hierarchy and security classifications</Text>
+            <Text color="gray.500" fontWeight="medium">View and manage permission groups</Text>
           </VStack>
 
           <HStack spacing={3}>
@@ -235,7 +235,7 @@ const PermissionCategoriesManagement = () => {
             <HStack justify="space-between">
               <VStack align="start" spacing={0}>
                 <Text fontSize="xs" fontWeight="black" color="gray.500" textTransform="uppercase" letterSpacing="widest">
-                  Defined Classifications
+                  All Categories
                 </Text>
                 <Text fontSize="3xl" fontWeight="black" color="green.500">
                   {categories.length}
@@ -256,7 +256,7 @@ const PermissionCategoriesManagement = () => {
               <Search size={18} color="gray" />
             </InputLeftElement>
             <Input
-              placeholder="Search security categories..."
+              placeholder="Search categories..."
               value={searchQuery}
               onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
               borderRadius="xl"
@@ -277,12 +277,12 @@ const PermissionCategoriesManagement = () => {
           {isLoading ? (
             <Center p={20} flexDir="column">
               <Spinner size="xl" color="green.500" thickness="4px" />
-              <Text mt={4} fontWeight="bold" color="gray.500">Decrypting security registry...</Text>
+              <Text mt={4} fontWeight="bold" color="gray.500">Loading categories...</Text>
             </Center>
           ) : filteredData.length === 0 ? (
             <Center p={20} flexDir="column">
               <Icon as={AlertCircle} boxSize={12} color="gray.300" />
-              <Heading size="md" mt={4} color="gray.500">No classifications found</Heading>
+              <Heading size="md" mt={4} color="gray.500">No categories found</Heading>
               <Text color="gray.400">Try adjusting your search query</Text>
             </Center>
           ) : (
@@ -291,9 +291,9 @@ const PermissionCategoriesManagement = () => {
                 <Table variant="simple" style={{ tableLayout: "fixed" }}>
                   <Thead bg="gray.50">
                     <Tr>
-                      <Th p={6} width="35%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Classification Label</Th>
-                      <Th p={6} width="30%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Functional Context</Th>
-                      <Th p={6} width="20%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">System Index</Th>
+                      <Th p={6} width="35%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Category</Th>
+                      <Th p={6} width="30%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Description</Th>
+                      <Th p={6} width="20%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">ID</Th>
                       <Th p={6} width="15%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest" textAlign="right">Actions</Th>
                     </Tr>
                   </Thead>
@@ -317,7 +317,7 @@ const PermissionCategoriesManagement = () => {
                           </Td>
                           <Td p={6}>
                             <Text color="gray.500" fontSize="sm" fontStyle={!item.description ? "italic" : "normal"} isTruncated>
-                              {item.description || "No functional context provided"}
+                              {item.description || "No description."}
                             </Text>
                           </Td>
                           <Td p={6}>
@@ -327,7 +327,7 @@ const PermissionCategoriesManagement = () => {
                           </Td>
                           <Td p={6} textAlign="right">
                             <HStack spacing={2} justify="flex-end">
-                              <Tooltip label="Update Registry" hasArrow>
+                              <Tooltip label="Edit" hasArrow>
                                 <IconButton
                                   icon={<Edit2 size={16} />}
                                   onClick={() => { setEditingCategory(item); onAddOpen(); }}
@@ -338,7 +338,7 @@ const PermissionCategoriesManagement = () => {
                                   aria-label="Edit"
                                 />
                               </Tooltip>
-                              <Tooltip label="Revoke Category" hasArrow>
+                              <Tooltip label="Delete" hasArrow>
                                 <IconButton
                                   icon={<Trash2 size={16} />}
                                   onClick={() => setDeletingCategory(item)}
@@ -420,24 +420,24 @@ const PermissionCategoriesManagement = () => {
         <ModalOverlay backdropFilter="blur(4px)" />
         <ModalContent borderRadius="2xl" boxShadow="2xl">
           <ModalHeader fontWeight="black" fontSize="2xl">
-            {editingCategory ? "Update Classification" : "Authorize New Category"}
+            {editingCategory ? "Edit Category" : "New Category"}
           </ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
             <VStack spacing={4}>
               <FormControl isRequired>
-                <FormLabel fontWeight="bold">Category Designation</FormLabel>
+                <FormLabel fontWeight="bold">Category Name</FormLabel>
                 <Input
-                  placeholder="e.g. Sensitive Data Access"
+                  placeholder="e.g. Access"
                   value={editingCategory ? editingCategory.name : formState.name}
                   onChange={e => editingCategory ? setEditingCategory({ ...editingCategory, name: e.target.value }) : setFormState({ ...formState, name: e.target.value })}
                   borderRadius="xl" focusBorderColor="emerald.400" size="lg"
                 />
               </FormControl>
               <FormControl>
-                <FormLabel fontWeight="bold">Functional Description</FormLabel>
+                <FormLabel fontWeight="bold">Description</FormLabel>
                 <Textarea
-                  placeholder="Define the scope and context of this category..."
+                  placeholder="Write a short description..."
                   value={editingCategory ? editingCategory.description : formState.description}
                   onChange={e => editingCategory ? setEditingCategory({ ...editingCategory, description: e.target.value }) : setFormState({ ...formState, description: e.target.value })}
                   borderRadius="xl" focusBorderColor="emerald.400" size="lg"
@@ -448,7 +448,7 @@ const PermissionCategoriesManagement = () => {
           <ModalFooter>
             <Button variant="ghost" mr={3} onClick={() => { onAddClose(); setEditingCategory(null); }} borderRadius="xl">Cancel</Button>
             <Button colorScheme="emerald" onClick={handleSave} borderRadius="xl" px={8}>
-              {editingCategory ? "Commit Sync" : "Authorize Class"}
+              {editingCategory ? "Save Category" : "Save Category"}
             </Button>
           </ModalFooter>
         </ModalContent>
@@ -464,18 +464,18 @@ const PermissionCategoriesManagement = () => {
         <AlertDialogOverlay backdropFilter="blur(4px)">
           <AlertDialogContent borderRadius="2xl" boxShadow="2xl">
             <AlertDialogHeader fontSize="xl" fontWeight="black" color="red.500">
-              Revoke Classification
+              Delete Category
             </AlertDialogHeader>
             <AlertDialogBody fontWeight="medium">
-              Confirm revocation of <Text as="span" fontWeight="black">"{deletingCategory?.name}"</Text>?
-              This will neutralize all permission sets associated with this category.
+              Delete <Text as="span" fontWeight="black">"{deletingCategory?.name}"</Text>?
+              This will remove its linked permissions.
             </AlertDialogBody>
             <AlertDialogFooter>
               <Button ref={cancelRef} onClick={() => setDeletingCategory(null)} borderRadius="xl" variant="ghost">
-                Abort
+                Cancel
               </Button>
               <Button colorScheme="red" onClick={handleDelete} ml={3} borderRadius="xl" px={8}>
-                Revoke Authorization
+                Delete
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>

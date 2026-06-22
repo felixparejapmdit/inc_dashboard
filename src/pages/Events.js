@@ -118,8 +118,8 @@ const Events = () => {
     } catch (err) {
       console.error("Error fetching data:", err);
       toast({
-        title: "Connection Error",
-        description: "Could not load events. Please check your system status.",
+        title: "Load failed",
+        description: "Could not load events. Please try again.",
         status: "error",
       });
     } finally {
@@ -169,10 +169,10 @@ const Events = () => {
 
   const handleSaveEvent = async () => {
     const errors = {};
-    if (!formData.eventName) errors.eventName = "Title is required";
-    if (!formData.date) errors.date = "Date is required";
-    if (!formData.time) errors.time = "Time is required";
-    if (!formData.location_id) errors.location_id = "Venue is required";
+    if (!formData.eventName) errors.eventName = "Please add a title.";
+    if (!formData.date) errors.date = "Please choose a date.";
+    if (!formData.time) errors.time = "Please choose a time.";
+    if (!formData.location_id) errors.location_id = "Please choose a location.";
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
@@ -203,7 +203,7 @@ const Events = () => {
           },
         );
         if (res.status < 200 || res.status >= 300)
-          throw new Error("Sync failed");
+          throw new Error("Save failed");
         // ✅ Optimistic update: update event in local state
         const updatedEvent = { ...editingEvent, ...payload, locationName };
         setEvents((prev) =>
@@ -214,7 +214,7 @@ const Events = () => {
           headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
         });
         if (res.status < 200 || res.status >= 300)
-          throw new Error("Sync failed");
+          throw new Error("Save failed");
         // ✅ Optimistic update: append the new event
         const newEvent = {
           id: res.data?.id || Date.now(),
@@ -225,14 +225,14 @@ const Events = () => {
       }
 
       toast({
-        title: editingEvent ? "Event Updated" : "Event Commited",
+        title: editingEvent ? "Event updated" : "Event saved",
         status: "success",
       });
       resetForm();
       onClose();
       fetchEventsAndLocations(); // background sync
     } catch (err) {
-      toast({ title: "Sync Error", description: err.message, status: "error" });
+      toast({ title: "Save failed", description: err.message, status: "error" });
     }
   };
 
@@ -267,13 +267,13 @@ const Events = () => {
         },
       );
       if (res.status < 200 || res.status >= 300)
-        throw new Error("Purge failed");
-      toast({ title: "Event Purged", status: "info" });
+        throw new Error("Delete failed");
+      toast({ title: "Event deleted", status: "info" });
       fetchEventsAndLocations(); // background sync
     } catch (err) {
       // Rollback on failure
       fetchEventsAndLocations();
-      toast({ title: "Purge Error", status: "error" });
+      toast({ title: "Delete failed", status: "error" });
     }
   };
 
@@ -298,12 +298,12 @@ const Events = () => {
         },
       );
       if (res.status < 200 || res.status >= 300) throw new Error("Move failed");
-      toast({ title: "Event Rescheduled", status: "success", duration: 1500 });
+      toast({ title: "Event moved", status: "success", duration: 1500 });
       fetchEventsAndLocations(); // background sync
     } catch (err) {
       // Rollback on failure
       fetchEventsAndLocations();
-      toast({ title: "Drop Sync Error", status: "error" });
+      toast({ title: "Move failed", status: "error" });
     }
   };
 
@@ -328,19 +328,19 @@ const Events = () => {
                 fontWeight="black"
                 letterSpacing="tight"
               >
-                PMD Events
+                Events
               </Heading>
             </HStack>
             <Text color="gray.500" fontWeight="medium">
-              Manage events
+              View and edit events
             </Text>
           </VStack>
 
           <HStack spacing={3}>
             <ButtonGroup isAttached variant="outline" size="lg">
-              <Tooltip label="Timeline Grid">
+              <Tooltip label="Calendar view">
                 <IconButton
-                  aria-label="Calendar"
+                  aria-label="Calendar view"
                   icon={<CalendarDays size={20} />}
                   onClick={() => setViewMode("calendar")}
                   colorScheme={viewMode === "calendar" ? "blue" : "gray"}
@@ -348,9 +348,9 @@ const Events = () => {
                   borderRadius="xl"
                 />
               </Tooltip>
-              <Tooltip label="Analytical List">
+              <Tooltip label="List view">
                 <IconButton
-                  aria-label="List"
+                  aria-label="List view"
                   icon={<List size={20} />}
                   onClick={() => setViewMode("list")}
                   colorScheme={viewMode === "list" ? "blue" : "gray"}
@@ -371,7 +371,7 @@ const Events = () => {
               boxShadow="lg"
               _hover={{ transform: "translateY(-2px)", boxShadow: "xl" }}
             >
-              Dispatch Event
+              New Event
             </Button>
             <IconButton
               icon={<RefreshCw size={20} />}
@@ -404,7 +404,7 @@ const Events = () => {
                   textTransform="uppercase"
                   letterSpacing="widest"
                 >
-                  Total Engagements
+                  Total Events
                 </Text>
                 <Text fontSize="3xl" fontWeight="black" color="blue.500">
                   {events.length}
@@ -549,7 +549,7 @@ const Events = () => {
                 <Icon as={editingEvent ? Edit2 : Plus} color="blue.500" />
               </Box>
               <Text>
-                {editingEvent ? "Modify Dispatch" : "Initiate Engagement"}
+                {editingEvent ? "Edit Event" : "New Event"}
               </Text>
             </HStack>
           </ModalHeader>
@@ -564,13 +564,13 @@ const Events = () => {
                   letterSpacing="widest"
                   color="gray.500"
                 >
-                  Event Designation
+                  Event name
                 </FormLabel>
                 <Input
                   name="eventName"
                   value={formData.eventName}
                   onChange={handleChange}
-                  placeholder="e.g. Strategic Synergy Summit"
+                  placeholder="Enter event name"
                   size="lg"
                   borderRadius="xl"
                   focusBorderColor="blue.400"
@@ -588,7 +588,7 @@ const Events = () => {
                     letterSpacing="widest"
                     color="gray.500"
                   >
-                    Deployment Date
+                    Date
                   </FormLabel>
                   <Input
                     type="date"
@@ -609,7 +609,7 @@ const Events = () => {
                     letterSpacing="widest"
                     color="gray.500"
                   >
-                    Activation Time
+                    Time
                   </FormLabel>
                   <Input
                     type="time"
@@ -632,13 +632,13 @@ const Events = () => {
                   letterSpacing="widest"
                   color="gray.500"
                 >
-                  Operational Venue
+                  Location
                 </FormLabel>
                 <Select
                   name="location_id"
                   value={formData.location_id}
                   onChange={handleChange}
-                  placeholder="Select Command Center"
+                  placeholder="Select location"
                   size="lg"
                   borderRadius="xl"
                   focusBorderColor="blue.400"
@@ -660,7 +660,7 @@ const Events = () => {
                   letterSpacing="widest"
                   color="gray.500"
                 >
-                  Recurrence Protocol
+                  Repeat
                 </FormLabel>
                 <HStack spacing={4} w="100%">
                   <Icon as={Repeat} color="blue.400" />
@@ -673,10 +673,10 @@ const Events = () => {
                     size="lg"
                     focusBorderColor="blue.400"
                   >
-                    <option value="none">One-time Deployment</option>
-                    <option value="daily">Daily Cycle</option>
-                    <option value="weekly">Weekly Pulse</option>
-                    <option value="monthly">Monthly Orbit</option>
+                    <option value="none">None</option>
+                    <option value="daily">Every day</option>
+                    <option value="weekly">Every week</option>
+                    <option value="monthly">Every month</option>
                   </Select>
                 </HStack>
               </FormControl>
@@ -692,14 +692,14 @@ const Events = () => {
                   onClick={handleDeleteEvent}
                   borderRadius="xl"
                 >
-                  Terminate
+                  Delete
                 </Button>
               ) : (
                 <Box />
               )}
               <HStack spacing={4}>
                 <Button variant="ghost" onClick={onClose} borderRadius="xl">
-                  Abort
+                  Cancel
                 </Button>
                 <Button
                   colorScheme="blue"
@@ -709,7 +709,7 @@ const Events = () => {
                   px={10}
                   boxShadow="lg"
                 >
-                  Commit
+                  Save
                 </Button>
               </HStack>
             </Flex>

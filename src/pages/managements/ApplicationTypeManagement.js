@@ -111,8 +111,8 @@ const ApplicationTypeManagement = () => {
       setAppTypes(data || []);
     } catch (err) {
       toast({
-        title: "Error loading app types",
-        description: err.message || "Failed to fetch data",
+        title: "Could not load types",
+        description: err.message || "Please try again.",
         status: "error",
       });
     } finally {
@@ -126,7 +126,7 @@ const ApplicationTypeManagement = () => {
 
   const handleSave = async () => {
     if (!typeName.trim()) {
-      toast({ title: "Module name is required", status: "warning" });
+      toast({ title: "Type name is required", status: "warning" });
       return;
     }
 
@@ -135,18 +135,18 @@ const ApplicationTypeManagement = () => {
         await putData(`application-types/${editingType.id}`, { name: typeName }, "Failed to update category.");
         // ✅ Optimistic update: update in local state immediately
         setAppTypes(prev => prev.map(t => t.id === editingType.id ? { ...t, name: typeName } : t));
-        toast({ title: "Module refreshed", status: "success" });
+        toast({ title: "Type updated", status: "success" });
       } else {
         const result = await postData("add_application-types", { name: typeName }, "Failed to add category.");
         // ✅ Optimistic update: append the new type immediately
         const newType = { id: result?.data?.id || result?.id || Date.now(), name: typeName, ...(result?.data || {}) };
         setAppTypes(prev => [...prev, newType]);
-        toast({ title: "New module registered", status: "success" });
+        toast({ title: "Type added", status: "success" });
       }
       fetchApplicationTypes(); // background sync
       handleCloseModal();
     } catch (error) {
-      toast({ title: "Error saving record", description: error.message, status: "error" });
+      toast({ title: "Error saving type", description: error.message, status: "error" });
     }
   };
 
@@ -157,12 +157,12 @@ const ApplicationTypeManagement = () => {
       setAppTypes(prev => prev.filter(t => t.id !== typeToDelete.id));
       setDeletingType(null);
       await deleteData("application-types", typeToDelete.id, "Failed to delete category.");
-      toast({ title: "Module retired", status: "success" });
+      toast({ title: "Type deleted", status: "success" });
       fetchApplicationTypes(); // background sync
     } catch (error) {
       // Rollback on failure
       fetchApplicationTypes();
-      toast({ title: "Error deleting", description: error.message, status: "error" });
+      toast({ title: "Error deleting type", description: error.message, status: "error" });
     }
   };
 
@@ -206,10 +206,10 @@ const ApplicationTypeManagement = () => {
             <HStack>
               <Icon as={AppWindow} boxSize={8} color="blue.500" />
               <Heading size="xl" bgGradient={headerGradient} bgClip="text" fontWeight="black" letterSpacing="tight">
-                Application Types
+                App Types
               </Heading>
             </HStack>
-            <Text color="gray.500" fontWeight="medium">Manage Application Types</Text>
+            <Text color="gray.500" fontWeight="medium">View and manage app types</Text>
           </VStack>
 
           <HStack spacing={3}>
@@ -223,7 +223,7 @@ const ApplicationTypeManagement = () => {
               _hover={{ transform: "translateY(-2px)", boxShadow: "xl" }}
               transition="all 0.2s"
             >
-              Add Module
+              Add Type
             </Button>
             <IconButton
               icon={<RefreshCw size={20} />}
@@ -240,9 +240,9 @@ const ApplicationTypeManagement = () => {
         {/* Stats Grid */}
         <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6} mb={8}>
           {[
-            { label: "Total Modules", value: stats.total, icon: Layers, color: "blue" },
-            { label: "Filtered Matches", value: stats.active, icon: Filter, color: "blue" },
-            { label: "Latest Addition", value: stats.newest, icon: Activity, color: "purple", isText: true }
+            { label: "All Types", value: stats.total, icon: Layers, color: "blue" },
+            { label: "Shown", value: stats.active, icon: Filter, color: "blue" },
+            { label: "Latest", value: stats.newest, icon: Activity, color: "purple", isText: true }
           ].map((stat, idx) => (
             <MotionBox
               key={idx}
@@ -278,7 +278,7 @@ const ApplicationTypeManagement = () => {
               <Search size={18} color="gray" />
             </InputLeftElement>
             <Input
-              placeholder="Search module designations..."
+              placeholder="Search types..."
               value={searchQuery}
               onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
               borderRadius="xl"
@@ -300,12 +300,12 @@ const ApplicationTypeManagement = () => {
           {isLoading ? (
             <Center p={20} flexDir="column">
               <Spinner size="xl" color="blue.500" thickness="4px" />
-              <Text mt={4} fontWeight="bold" color="gray.500">Loading modules...</Text>
+              <Text mt={4} fontWeight="bold" color="gray.500">Loading types...</Text>
             </Center>
           ) : filteredData.length === 0 ? (
             <Center p={20} flexDir="column">
               <Icon as={AlertCircle} boxSize={12} color="gray.300" />
-              <Heading size="md" mt={4} color="gray.500">No modules found</Heading>
+              <Heading size="md" mt={4} color="gray.500">No types found</Heading>
               <Text color="gray.400">Try adjusting your search query</Text>
             </Center>
           ) : (
@@ -313,8 +313,8 @@ const ApplicationTypeManagement = () => {
               <Table variant="simple" style={{ tableLayout: "fixed" }}>
                 <Thead bg="gray.50">
                   <Tr>
-                    <Th p={6} width="60%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Module Name</Th>
-                    <Th p={6} width="25%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">System Identifier</Th>
+                    <Th p={6} width="60%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Type Name</Th>
+                    <Th p={6} width="25%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">ID</Th>
                     <Th p={6} width="15%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest" textAlign="right">Actions</Th>
                   </Tr>
                 </Thead>
@@ -357,7 +357,7 @@ const ApplicationTypeManagement = () => {
                         </Td>
                         <Td p={6} textAlign="right">
                           <HStack spacing={2} justify="flex-end">
-                            <Tooltip label="Update Registry" hasArrow>
+                            <Tooltip label="Edit" hasArrow>
                               <IconButton
                                 icon={<Edit3 size={18} />}
                                 onClick={() => { setEditingType(item); setTypeName(item.name); onAddOpen(); }}
@@ -367,7 +367,7 @@ const ApplicationTypeManagement = () => {
                                 aria-label="Edit"
                               />
                             </Tooltip>
-                            <Tooltip label="Retire Module" hasArrow>
+                            <Tooltip label="Delete" hasArrow>
                               <IconButton
                                 icon={<Trash2 size={18} />}
                                 onClick={() => setDeletingType(item)}
@@ -423,7 +423,7 @@ const ApplicationTypeManagement = () => {
         <ModalOverlay backdropFilter="blur(8px)" />
         <ModalContent borderRadius="3xl" boxShadow="2xl">
           <ModalHeader bgGradient={headerGradient} color="white" borderTopRadius="3xl">
-            {editingType ? "Update Module" : "Add New Module"}
+            {editingType ? "Edit Type" : "New Type"}
           </ModalHeader>
           <ModalCloseButton color="white" />
           <ModalBody p={8}>
@@ -431,14 +431,14 @@ const ApplicationTypeManagement = () => {
               <Box bg="blue.50" p={4} borderRadius="xl" w="full" display="flex" alignItems="center" gap={4}>
                 <Icon as={AppWindow} boxSize={8} color="blue.500" />
                 <VStack align="start" spacing={0}>
-                  <Text fontWeight="bold" color="blue.700">Category Configuration</Text>
-                  <Text fontSize="xs" color="blue.500">Define the core classification for your applications.</Text>
+                  <Text fontWeight="bold" color="blue.700">Type Details</Text>
+                  <Text fontSize="xs" color="blue.500">Use a short name for this type.</Text>
                 </VStack>
               </Box>
               <FormControl isRequired>
-                <FormLabel fontWeight="bold" fontSize="sm" color="gray.600">Module Name</FormLabel>
+                <FormLabel fontWeight="bold" fontSize="sm" color="gray.600">Type Name</FormLabel>
                 <Input
-                  placeholder="e.g. Productivity Tools"
+                  placeholder="e.g. Tools"
                   value={typeName}
                   onChange={e => setTypeName(e.target.value)}
                   borderRadius="xl"
@@ -452,7 +452,7 @@ const ApplicationTypeManagement = () => {
           <ModalFooter bg="gray.50" borderBottomRadius="3xl" p={6}>
             <Button variant="ghost" mr={3} onClick={handleCloseModal} borderRadius="xl">Cancel</Button>
             <Button colorScheme="blue" onClick={handleSave} borderRadius="xl" px={8} boxShadow="lg">
-              {editingType ? "Update Category" : "Save Category"}
+              {editingType ? "Save Type" : "Save Type"}
             </Button>
           </ModalFooter>
         </ModalContent>
@@ -467,12 +467,10 @@ const ApplicationTypeManagement = () => {
       >
         <AlertDialogOverlay backdropFilter="blur(4px)" />
         <AlertDialogContent borderRadius="2xl" boxShadow="2xl">
-          <AlertDialogHeader fontSize="lg" fontWeight="bold">
-            Retire Module
-          </AlertDialogHeader>
+          <AlertDialogHeader fontSize="lg" fontWeight="bold">Delete Type</AlertDialogHeader>
           <AlertDialogBody>
             Are you sure you want to delete <Text as="span" fontWeight="bold" color="red.500">"{deletingType?.name}"</Text>?
-            This action cannot be undone.
+            This cannot be undone.
           </AlertDialogBody>
           <AlertDialogFooter>
             <Button ref={cancelRef} onClick={() => setDeletingType(null)} borderRadius="xl">

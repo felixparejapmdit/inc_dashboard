@@ -168,14 +168,14 @@ const PersonnelHistory = () => {
                         <HStack>
                             <Icon as={History} boxSize={8} color="blue.500" />
                             <Heading size="xl" bgGradient={headerGradient} bgClip="text" fontWeight="black" letterSpacing="tight">
-                                Personnel Lifecycle
+                                Personnel History
                             </Heading>
                         </HStack>
-                        <Text color="gray.500" fontWeight="medium">Audit trail for personnel status, restorations, and removals</Text>
+                        <Text color="gray.500" fontWeight="medium">See status changes for each person</Text>
                     </VStack>
 
                     <HStack spacing={3}>
-                        <Tooltip label="Refresh Audit Trail" hasArrow>
+                        <Tooltip label="Refresh" hasArrow>
                             <IconButton
                                 icon={<RotateCcw size={20} />}
                                 onClick={loadHistory}
@@ -191,7 +191,7 @@ const PersonnelHistory = () => {
                                 <Search size={18} color="gray" />
                             </InputLeftElement>
                             <Input
-                                placeholder="Search name, action, or reason..."
+                                placeholder="Search name or action..."
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
                                 borderRadius="xl"
@@ -206,10 +206,10 @@ const PersonnelHistory = () => {
                 {/* Stats Grid */}
                 <SimpleGrid columns={{ base: 1, md: 4 }} spacing={6} mb={8}>
                     {[
-                        { label: "Total Audit Logs", value: stats.totalLogs, icon: Activity, color: "blue" },
-                        { label: "Currently Active", value: stats.activeUsers, icon: UserCheck, color: "green" },
-                        { label: "Currently Removed", value: stats.removedUsers, icon: UserMinus, color: "red" },
-                        { label: "Data Integrity", value: "Checked", icon: ShieldCheck, color: "purple" }
+                        { label: "All Logs", value: stats.totalLogs, icon: Activity, color: "blue" },
+                        { label: "Active", value: stats.activeUsers, icon: UserCheck, color: "green" },
+                        { label: "Removed", value: stats.removedUsers, icon: UserMinus, color: "red" },
+                        { label: "Checked", value: "Yes", icon: ShieldCheck, color: "purple" }
                     ].map(stat => (
                         <MotionBox
                             key={stat.label}
@@ -242,13 +242,13 @@ const PersonnelHistory = () => {
                 {isLoading ? (
                     <Center p={20} flexDir="column">
                         <Spinner size="xl" color="blue.500" thickness="4px" />
-                        <Text mt={4} fontWeight="bold" color="gray.500">Decrypting audit logs...</Text>
+                        <Text mt={4} fontWeight="bold" color="gray.500">Loading logs...</Text>
                     </Center>
                 ) : filteredPersonnel.length === 0 ? (
                     <Center p={20} flexDir="column" bg={cardBg} borderRadius="3xl" border="2px dashed" borderColor={borderColor}>
                         <Icon as={AlertCircle} boxSize={12} color="gray.300" />
-                        <Heading size="md" mt={4} color="gray.500">No matching logs</Heading>
-                        <Text color="gray.400">Try refining your search parameters</Text>
+                        <Heading size="md" mt={4} color="gray.500">No logs found</Heading>
+                        <Text color="gray.400">Try a different search</Text>
                     </Center>
                 ) : (
                     <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={6}>
@@ -288,7 +288,7 @@ const PersonnelHistory = () => {
                                                 fontSize="xs"
                                                 fontWeight="black"
                                             >
-                                                {person.currentStatus === "In" ? "REINSTATED" : "DEACTIVATED"}
+                                                {person.currentStatus === "In" ? "Active" : "Removed"}
                                             </Badge>
                                         </Box>
                                     </Flex>
@@ -297,10 +297,10 @@ const PersonnelHistory = () => {
 
                                     <VStack align="stretch" spacing={2}>
                                         <HStack justify="space-between">
-                                            <Text fontSize="xs" fontWeight="black" color="gray.400" textTransform="uppercase">Final Action</Text>
+                                            <Text fontSize="xs" fontWeight="black" color="gray.400" textTransform="uppercase">Last action</Text>
                                             <Tag variant="ghost" size="sm" colorScheme="blue">
                                                 <TagLeftIcon as={ArrowUpRight} />
-                                                <TagLabel fontWeight="bold">{person.events.length} Logs</TagLabel>
+                                                <TagLabel fontWeight="bold">{person.events.length} Entries</TagLabel>
                                             </Tag>
                                         </HStack>
 
@@ -343,7 +343,7 @@ const PersonnelHistory = () => {
                                 <Heading size="lg" color="gray.800" fontWeight="black">{selectedPersonnel?.fullname}</Heading>
                                 <HStack mt={1} spacing={2}>
                                     <Badge colorScheme="blue" variant="solid" borderRadius="lg" px={3}>ID: {selectedPersonnel?.id}</Badge>
-                                    <Text fontSize="sm" color="gray.500" fontWeight="bold">Historical Audit Log</Text>
+                                    <Text fontSize="sm" color="gray.500" fontWeight="bold">History Log</Text>
                                 </HStack>
                             </Box>
                         </Flex>
@@ -383,15 +383,15 @@ const PersonnelHistory = () => {
                                                 <HStack>
                                                     <Icon as={event.action === "In" ? CheckCircle2 : XCircle} boxSize={5} color={event.action === "In" ? "green.500" : "red.500"} />
                                                     <Badge colorScheme={event.action === "In" ? "green" : "red"} variant="subtle" px={3} borderRadius="lg" fontWeight="black">
-                                                        {event.action === "In" ? "REINSTATEMENT" : "DEACTIVATION"}
+                                                        {event.action === "In" ? "Active" : "Removed"}
                                                     </Badge>
                                                 </HStack>
-                                                <Text fontSize="xs" fontWeight="black" color="gray.400">VIA: {event.performed_by?.toUpperCase() || "SYSTEM"}</Text>
+                                                <Text fontSize="xs" fontWeight="black" color="gray.400">By: {event.performed_by?.toUpperCase() || "SYSTEM"}</Text>
                                             </Flex>
 
                                             <Box bg="gray.50" p={4} borderRadius="xl" border="1px dashed" borderColor="gray.200">
                                                 <Text color="gray.700" fontSize="sm" lineHeight="tall" fontWeight="semibold">
-                                                    {event.reason || "Administrative action performed with no descriptive reason provided."}
+                                                    {event.reason || "No note provided."}
                                                 </Text>
                                             </Box>
                                         </Box>

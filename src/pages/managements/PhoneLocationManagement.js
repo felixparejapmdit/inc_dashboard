@@ -111,8 +111,8 @@ const PhoneLocationManagement = () => {
       setLocations(data || []);
     } catch (err) {
       toast({
-        title: "Error loading locations",
-        description: err.message || "Failed to fetch data",
+        title: "Could not load locations",
+        description: err.message || "Please try again.",
         status: "error",
       });
     } finally {
@@ -132,7 +132,7 @@ const PhoneLocationManagement = () => {
 
     try {
       await postData("phonelocations", { name: newLocationName }, "Failed to add location");
-      toast({ title: "Location added successfully", status: "success" });
+      toast({ title: "Location added", status: "success" });
       setNewLocationName("");
       onAddClose();
       fetchLocations();
@@ -153,7 +153,7 @@ const PhoneLocationManagement = () => {
 
     try {
       await putData("phonelocations", editingLocation.id, editingLocation, "Failed to update location");
-      toast({ title: "Location updated successfully", status: "success" });
+      toast({ title: "Location updated", status: "success" });
       setEditingLocation(null);
       fetchLocations();
     } catch (error) {
@@ -168,7 +168,7 @@ const PhoneLocationManagement = () => {
   const handleDeleteLocation = async () => {
     try {
       await deleteData("phonelocations", deletingLocation.id, "Failed to delete location");
-      toast({ title: "Location deleted successfully", status: "success" });
+      toast({ title: "Location deleted", status: "success" });
       setDeletingLocation(null);
       fetchLocations();
     } catch (error) {
@@ -216,10 +216,10 @@ const PhoneLocationManagement = () => {
             <HStack>
               <Icon as={MapPin} boxSize={8} color="blue.500" />
               <Heading size="xl" bgGradient={headerGradient} bgClip="text" fontWeight="black" letterSpacing="tight">
-                Phone Locations
+                Locations
               </Heading>
             </HStack>
-            <Text color="gray.500" fontWeight="medium">Manage physical sites for communication assets</Text>
+            <Text color="gray.500" fontWeight="medium">View and manage locations</Text>
           </VStack>
 
           <HStack spacing={3}>
@@ -269,7 +269,7 @@ const PhoneLocationManagement = () => {
             <HStack justify="space-between">
               <VStack align="start" spacing={0}>
                 <Text fontSize="xs" fontWeight="black" color="gray.500" textTransform="uppercase" letterSpacing="widest">
-                  Defined Sites
+                  All Locations
                 </Text>
                 <Text fontSize="3xl" fontWeight="black" color="blue.500">
                   {locations.length}
@@ -311,7 +311,7 @@ const PhoneLocationManagement = () => {
           {isLoading ? (
             <Center p={20} flexDir="column">
               <Spinner size="xl" color="blue.500" thickness="4px" />
-              <Text mt={4} fontWeight="bold" color="gray.500">Mapping site data...</Text>
+              <Text mt={4} fontWeight="bold" color="gray.500">Loading locations...</Text>
             </Center>
           ) : filteredLocations.length === 0 ? (
             <Center p={20} flexDir="column">
@@ -325,8 +325,8 @@ const PhoneLocationManagement = () => {
                 <Table variant="simple" style={{ tableLayout: "fixed" }}>
                   <Thead bg="gray.50">
                     <Tr>
-                      <Th p={6} width="60%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Location Name</Th>
-                      <Th p={6} width="25%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">ID Code</Th>
+                      <Th p={6} width="60%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Location</Th>
+                      <Th p={6} width="25%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">ID</Th>
                       <Th p={6} width="15%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest" textAlign="right">Actions</Th>
                     </Tr>
                   </Thead>
@@ -355,7 +355,7 @@ const PhoneLocationManagement = () => {
                           </Td>
                           <Td p={6} textAlign="right">
                             <HStack spacing={2} justify="flex-end">
-                              <Tooltip label="Edit Location" hasArrow>
+                              <Tooltip label="Edit" hasArrow>
                                 <IconButton
                                   icon={<Edit2 size={16} />}
                                   onClick={() => setEditingLocation(item)}
@@ -366,7 +366,7 @@ const PhoneLocationManagement = () => {
                                   aria-label="Edit"
                                 />
                               </Tooltip>
-                              <Tooltip label="Delete Location" hasArrow>
+                              <Tooltip label="Delete" hasArrow>
                                 <IconButton
                                   icon={<Trash2 size={16} />}
                                   onClick={() => setDeletingLocation(item)}
@@ -447,13 +447,13 @@ const PhoneLocationManagement = () => {
       <Modal isOpen={isAddOpen} onClose={onAddClose} isCentered motionPreset="slideInBottom">
         <ModalOverlay backdropFilter="blur(4px)" />
         <ModalContent borderRadius="2xl" boxShadow="2xl">
-          <ModalHeader fontWeight="black" fontSize="2xl">Add New Site</ModalHeader>
+          <ModalHeader fontWeight="black" fontSize="2xl">New Location</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
             <FormControl>
               <FormLabel fontWeight="bold">Location Name</FormLabel>
               <Input
-                placeholder="Enter physical site name"
+                placeholder="Enter location name"
                 value={newLocationName}
                 onChange={e => setNewLocationName(e.target.value)}
                 borderRadius="xl"
@@ -464,7 +464,7 @@ const PhoneLocationManagement = () => {
           </ModalBody>
           <ModalFooter>
             <Button variant="ghost" mr={3} onClick={onAddClose} borderRadius="xl">Cancel</Button>
-            <Button colorScheme="blue" onClick={handleAddLocation} borderRadius="xl" px={8}>Register Site</Button>
+            <Button colorScheme="blue" onClick={handleAddLocation} borderRadius="xl" px={8}>Save Location</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
@@ -473,13 +473,13 @@ const PhoneLocationManagement = () => {
       <Modal isOpen={!!editingLocation} onClose={() => setEditingLocation(null)} isCentered motionPreset="slideInBottom">
         <ModalOverlay backdropFilter="blur(4px)" />
         <ModalContent borderRadius="2xl" boxShadow="2xl">
-          <ModalHeader fontWeight="black" fontSize="2xl">Edit Site Details</ModalHeader>
+          <ModalHeader fontWeight="black" fontSize="2xl">Edit Location</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
             <FormControl>
               <FormLabel fontWeight="bold">Location Name</FormLabel>
               <Input
-                placeholder="Enter physical site name"
+                placeholder="Enter location name"
                 value={editingLocation?.name || ""}
                 onChange={e => setEditingLocation({ ...editingLocation, name: e.target.value })}
                 borderRadius="xl"
@@ -490,7 +490,7 @@ const PhoneLocationManagement = () => {
           </ModalBody>
           <ModalFooter>
             <Button variant="ghost" mr={3} onClick={() => setEditingLocation(null)} borderRadius="xl">Cancel</Button>
-            <Button colorScheme="blue" onClick={handleUpdateLocation} borderRadius="xl" px={8}>Update Site</Button>
+            <Button colorScheme="blue" onClick={handleUpdateLocation} borderRadius="xl" px={8}>Save Changes</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
@@ -505,7 +505,7 @@ const PhoneLocationManagement = () => {
         <AlertDialogOverlay backdropFilter="blur(4px)">
           <AlertDialogContent borderRadius="2xl" boxShadow="2xl">
             <AlertDialogHeader fontSize="xl" fontWeight="black" color="red.500">
-              Delete Site
+              Delete Location
             </AlertDialogHeader>
             <AlertDialogBody fontWeight="medium">
               Are you sure you want to delete <Text as="span" fontWeight="black">"{deletingLocation?.name}"</Text>?
@@ -513,10 +513,10 @@ const PhoneLocationManagement = () => {
             </AlertDialogBody>
             <AlertDialogFooter>
               <Button ref={cancelRef} onClick={() => setDeletingLocation(null)} borderRadius="xl" variant="ghost">
-                No, Keep it
+                Cancel
               </Button>
               <Button colorScheme="red" onClick={handleDeleteLocation} ml={3} borderRadius="xl" px={8}>
-                Yes, Delete
+                Delete
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>

@@ -193,15 +193,15 @@ const Suguan = () => {
   const handleSave = async (e) => {
     e.preventDefault();
     if (!name || !district_id || !local_id || !date || !time || !gampanin_id) {
-      toast({ title: "Please fill all required fields", status: "warning" });
+      toast({ title: "Please fill in all required fields", status: "warning" });
       return;
     }
 
     const dayOfWeek = moment(date).isoWeekday();
     if (dayOfWeek === 1 || dayOfWeek === 2) {
       toast({
-        title: "Invalid Service Date",
-        description: "Service dates cannot be on Monday or Tuesday.",
+        title: "Invalid date",
+        description: "Monday and Tuesday are not allowed.",
         status: "warning",
       });
       return;
@@ -225,10 +225,10 @@ const Suguan = () => {
     try {
       if (editingSuguan) {
         await putData("suguan", editingSuguan.id, payload);
-        toast({ title: "Schedule updated", status: "success" });
+      toast({ title: "Schedule updated", status: "success" });
       } else {
         await postData("suguan", payload);
-        toast({ title: "Schedule added", status: "success" });
+      toast({ title: "Schedule added", status: "success" });
       }
       onClose();
       fetchSuguan();
@@ -269,8 +269,8 @@ const Suguan = () => {
     XLSX.writeFile(wb, `Suguan_Report_Week_${currentWeek.isoWeek()}.xlsx`);
 
     toast({
-      title: "Report Generated",
-      description: "Excel file has been downloaded.",
+      title: "Report ready",
+      description: "The Excel file was downloaded.",
       status: "success",
       duration: 3000,
     });
@@ -367,9 +367,9 @@ const Suguan = () => {
         >
           <VStack align="start" spacing={1}>
             <Heading size="xl" bgGradient={headerGradient} bgClip="text" fontWeight="black" letterSpacing="tight">
-              Suguan Management
+              Suguan Schedule
             </Heading>
-            <Text color="gray.500" fontWeight="medium">Organize and monitor weekly assignments for your section</Text>
+            <Text color="gray.500" fontWeight="medium">View and manage weekly assignments</Text>
           </VStack>
 
           <HStack spacing={3}>
@@ -377,7 +377,7 @@ const Suguan = () => {
               <ReactSelect
                 options={sections.map(s => ({ value: s.id, label: s.name }))}
                 onChange={(opt) => setSelectedSection(opt ? opt.value : "")}
-                placeholder="Filter by Section"
+                placeholder="Filter by section"
                 styles={customSelectStyles}
                 isClearable
               />
@@ -390,7 +390,7 @@ const Suguan = () => {
               onClick={handleExportExcel}
               borderRadius="xl"
             >
-              Export Report
+              Export
             </Button>
             <Button
               leftIcon={<Plus size={20} />}
@@ -401,7 +401,7 @@ const Suguan = () => {
               boxShadow="0 4px 14px 0 rgba(45, 212, 191, 0.39)"
               _hover={{ transform: "translateY(-2px)", boxShadow: "0 6px 20px rgba(45, 212, 191, 0.23)" }}
             >
-              Add Suguan
+              Add Schedule
             </Button>
           </HStack>
         </Flex>
@@ -411,7 +411,7 @@ const Suguan = () => {
             <VStack spacing={3} position="relative" zIndex={1}>
               <Flex w="full" justify="space-between" align="center">
                 <Text fontSize="xs" fontWeight="black" color="teal.500" textTransform="uppercase" letterSpacing="widest">
-                  Current View
+                  This Week
                 </Text>
                 <Button size="xs" variant="ghost" colorScheme="teal" onClick={handleGoToToday}>Today</Button>
               </Flex>
@@ -422,7 +422,7 @@ const Suguan = () => {
                   variant="ghost"
                   colorScheme="teal"
                   borderRadius="full"
-                  aria-label="Previous Week"
+                  aria-label="Previous"
                   _hover={{ bg: "teal.50" }}
                 />
                 <VStack spacing={0}>
@@ -438,7 +438,7 @@ const Suguan = () => {
                   colorScheme="teal"
                   isDisabled={currentWeek.clone().add(1, "week").isAfter(moment())}
                   borderRadius="full"
-                  aria-label="Next Week"
+                  aria-label="Next"
                   _hover={{ bg: "teal.50" }}
                 />
               </HStack>
@@ -458,11 +458,11 @@ const Suguan = () => {
           >
             <StatGroup w="full">
               <Stat textAlign="center">
-                <StatLabel color="gray.500" fontSize="xs" fontWeight="bold" textTransform="uppercase">Weekly Total</StatLabel>
+                <StatLabel color="gray.500" fontSize="xs" fontWeight="bold" textTransform="uppercase">All Assignments</StatLabel>
                 <StatNumber fontSize="3xl" color="teal.500" fontWeight="black">{stats.total}</StatNumber>
               </Stat>
               <Stat textAlign="center" borderLeft="1px solid" borderColor={borderColor}>
-                <StatLabel color="gray.500" fontSize="xs" fontWeight="bold" textTransform="uppercase">Midweek</StatLabel>
+                <StatLabel color="gray.500" fontSize="xs" fontWeight="bold" textTransform="uppercase">Weekdays</StatLabel>
                 <StatNumber fontSize="3xl" color="blue.500" fontWeight="black">{stats.midweek}</StatNumber>
               </Stat>
               <Stat textAlign="center" borderLeft="1px solid" borderColor={borderColor}>
@@ -490,9 +490,9 @@ const Suguan = () => {
             textAlign="center"
           >
             <Icon as={AlertCircle} boxSize={16} color="orange.300" />
-            <Heading size="lg" mt={6} color="gray.700" fontWeight="black">No suguan found</Heading>
+            <Heading size="lg" mt={6} color="gray.700" fontWeight="black">No schedule found</Heading>
             <Text color="gray.500" fontSize="lg" mt={2}>There are no schedules listed for the selected week ({currentWeek.isoWeek()}).</Text>
-            <Button mt={8} colorScheme="teal" onClick={handleOpenAdd} size="lg" borderRadius="xl">Create First Schedule</Button>
+            <Button mt={8} colorScheme="teal" onClick={handleOpenAdd} size="lg" borderRadius="xl">Add Schedule</Button>
           </MotionBox>
         ) : (
           <Box
@@ -654,9 +654,9 @@ const Suguan = () => {
         <ModalContent borderRadius="3xl" overflow="hidden" boxShadow="2xl">
           <ModalHeader p={8} bgGradient="linear(to-r, teal.500, blue.600)" color="white">
             <VStack align="start" spacing={1}>
-              <Text fontSize="2xl" fontWeight="black">{editingSuguan ? "Update Assignment" : "New Weekly Schedule"}</Text>
+              <Text fontSize="2xl" fontWeight="black">{editingSuguan ? "Edit Schedule" : "New Schedule"}</Text>
               <Text fontSize="xs" fontWeight="bold" opacity={0.8} textTransform="uppercase" letterSpacing="widest">
-                {editingSuguan ? "Modifying existing record" : "Adding new service assignment"}
+                {editingSuguan ? "Change the saved entry" : "Add a new schedule"}
               </Text>
             </VStack>
           </ModalHeader>
@@ -665,7 +665,7 @@ const Suguan = () => {
           <ModalBody p={8}>
             <VStack spacing={6}>
               <FormControl isRequired>
-                <FormLabel fontWeight="black" fontSize="sm" color="gray.600" textTransform="uppercase" letterSpacing="widest">Assign Personnel</FormLabel>
+                <FormLabel fontWeight="black" fontSize="sm" color="gray.600" textTransform="uppercase" letterSpacing="widest">Person</FormLabel>
                 <ReactSelect
                   options={personnelOptions}
                   onChange={(opt) => {
@@ -676,7 +676,7 @@ const Suguan = () => {
                     personnelOptions.find(opt => String(opt.value) === String(personnel_id)) ||
                     (personnel_id ? { value: personnel_id, label: name } : null)
                   }
-                  placeholder="Search and select personnel..."
+                  placeholder="Search and select a person..."
                   styles={customSelectStyles}
                   isClearable
                 />
@@ -693,7 +693,7 @@ const Suguan = () => {
                     }}
                     value={districts.find(d => String(d.id) === String(district_id)) ?
                       { value: district_id, label: districts.find(d => String(d.id) === String(district_id)).name } : null}
-                    placeholder={personnel_id ? "Search District..." : "Select personnel first"}
+                    placeholder={personnel_id ? "Search district..." : "Select a person first"}
                     styles={customSelectStyles}
                     isDisabled={!personnel_id}
                     isClearable
@@ -701,7 +701,7 @@ const Suguan = () => {
                 </FormControl>
 
                 <FormControl isRequired>
-                  <FormLabel fontWeight="black" fontSize="sm" color="gray.600" textTransform="uppercase" letterSpacing="widest">Local Congregation</FormLabel>
+                  <FormLabel fontWeight="black" fontSize="sm" color="gray.600" textTransform="uppercase" letterSpacing="widest">Local</FormLabel>
                   <ReactSelect
                     options={filteredLocalCongregations.map(lc => ({
                       value: lc.id,
@@ -736,8 +736,8 @@ const Suguan = () => {
                       const dayOfWeek = moment(selectedDate).isoWeekday();
                       if (dayOfWeek === 1 || dayOfWeek === 2) {
                         toast({
-                          title: "Invalid day of week",
-                          description: "Monday and Tuesday are not allowed for service date.",
+                          title: "Invalid date",
+                          description: "Monday and Tuesday are not allowed.",
                           status: "warning",
                           duration: 3000,
                           isClosable: true,
@@ -769,9 +769,9 @@ const Suguan = () => {
               </SimpleGrid>
 
               <FormControl isRequired>
-                <FormLabel fontWeight="black" fontSize="sm" color="gray.600" textTransform="uppercase" letterSpacing="widest">Assigned Gampanin</FormLabel>
+                <FormLabel fontWeight="black" fontSize="sm" color="gray.600" textTransform="uppercase" letterSpacing="widest">Role</FormLabel>
                 <Select
-                  placeholder={time ? "Select Role" : "Select time first"}
+                  placeholder={time ? "Select role" : "Select time first"}
                   value={gampanin_id}
                   isDisabled={!time}
                   onChange={(e) => setGampaninId(e.target.value)}
@@ -797,7 +797,7 @@ const Suguan = () => {
               boxShadow="0 10px 20px -5px rgba(45, 212, 191, 0.5)"
               fontWeight="black"
             >
-              {editingSuguan ? "Update Assignment" : "Encode"}
+              {editingSuguan ? "Save Schedule" : "Save Schedule"}
             </Button>
           </ModalFooter>
         </ModalContent>
@@ -846,8 +846,8 @@ const SuguanCard = ({ item, onEdit, onDelete, districtName, gampaninName, cardBg
           <Menu>
             <MenuButton as={IconButton} icon={<MoreVertical size={16} />} variant="ghost" size="sm" borderRadius="full" />
             <MenuList borderRadius="xl" shadow="xl">
-              <MenuItem icon={<Edit3 size={14} />} onClick={onEdit}>Modify Details</MenuItem>
-              <MenuItem icon={<Trash2 size={14} />} color="red.500" onClick={onDelete}>Delete Schedule</MenuItem>
+              <MenuItem icon={<Edit3 size={14} />} onClick={onEdit}>Edit</MenuItem>
+              <MenuItem icon={<Trash2 size={14} />} color="red.500" onClick={onDelete}>Delete</MenuItem>
             </MenuList>
           </Menu>
         </Flex>

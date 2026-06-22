@@ -34,7 +34,7 @@ const formatPrintHourLabel = (hours) => {
   return `${numeric} ${unit}`;
 };
 
-const MotionBox = motion(Box);
+const MotionBox = motion.create(Box);
 
 // ─── Design Tokens ─────────────────────────────────────────────────────────────
 const T = {

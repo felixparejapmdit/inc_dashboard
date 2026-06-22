@@ -115,8 +115,8 @@ const Reminders = () => {
       setReminders(filteredData);
     } catch (err) {
       toast({
-        title: "Error loading reminders",
-        description: err?.message || "Failed to fetch",
+        title: "Could not load reminders",
+        description: err?.message || "Please try again.",
         status: "error",
         duration: 3000,
       });
@@ -149,8 +149,8 @@ const Reminders = () => {
     e.preventDefault();
     if (!title || !reminderDate || !time) {
       toast({
-        title: "Required information missing",
-        description: "Please fill in title, date, and time.",
+        title: "Please fill in all required fields",
+        description: "Add a title, date, and time.",
         status: "warning",
       });
       return;
@@ -285,10 +285,10 @@ const Reminders = () => {
             <HStack>
               <Icon as={Bell} boxSize={8} color="orange.500" />
               <Heading size="xl" bgGradient="linear(to-r, orange.400, red.500)" bgClip="text" fontWeight="black" letterSpacing="tight">
-                Personal Reminders
+                Reminders
               </Heading>
             </HStack>
-            <Text color="gray.500" fontWeight="medium">Stay organized and never miss a task for your section.</Text>
+            <Text color="gray.500" fontWeight="medium">Keep track of your tasks</Text>
           </VStack>
 
           <Button
@@ -304,16 +304,16 @@ const Reminders = () => {
               boxShadow: "0 12px 20px -4px rgba(251, 146, 60, 0.3)",
             }}
           >
-            Create Reminder
+            Add Reminder
           </Button>
         </Flex>
 
         {/* Stats Row */}
         <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6} mb={10}>
           {[
-            { label: "Total Reminders", value: stats.total, color: "blue.500", icon: Bell },
-            { label: "Alerts for Today", value: stats.today, color: "orange.500", icon: Clock },
-            { label: "Upcoming Soon", value: stats.upcoming, color: "teal.500", icon: Calendar }
+            { label: "All Reminders", value: stats.total, color: "blue.500", icon: Bell },
+            { label: "Today", value: stats.today, color: "orange.500", icon: Clock },
+            { label: "Soon", value: stats.upcoming, color: "teal.500", icon: Calendar }
           ].map((stat, idx) => (
             <Box key={idx} bg={cardBg} p={6} borderRadius="3xl" shadow="sm" border="1px solid" borderColor={borderColor} position="relative" overflow="hidden">
               <VStack align="start" spacing={0}>
@@ -339,7 +339,7 @@ const Reminders = () => {
               <Icon as={Search} color="gray.400" />
             </InputLeftElement>
             <Input
-              placeholder="Search content, titles, or messages..."
+              placeholder="Search reminders..."
               bg={cardBg}
               borderRadius="2xl"
               value={searchQuery}
@@ -412,7 +412,7 @@ const Reminders = () => {
                         {item.title}
                       </Heading>
                       <Text fontSize="sm" color="gray.500" noOfLines={3} fontWeight="medium" lineHeight="tall">
-                        {item.description || "No specific details provided."}
+                        {item.description || "No details yet."}
                       </Text>
                     </Box>
 
@@ -485,8 +485,8 @@ const Reminders = () => {
               textAlign="center"
             >
               <Icon as={AlertTriangle} boxSize={16} color="orange.200" />
-              <Heading size="lg" mt={6} color="gray.700" fontWeight="black">Empty Workspace</Heading>
-              <Text color="gray.400" fontSize="lg" mt={2} maxW="md">You don't have any reminders matching the current filter. Time to set some goals!</Text>
+              <Heading size="lg" mt={6} color="gray.700" fontWeight="black">No reminders found</Heading>
+              <Text color="gray.400" fontSize="lg" mt={2} maxW="md">Try another filter or add a new reminder.</Text>
               <Button mt={8} colorScheme="orange" onClick={handleOpenAdd} size="lg" borderRadius="2xl" px={10}>Add Reminder</Button>
             </MotionBox>
           )}
@@ -506,10 +506,10 @@ const Reminders = () => {
             <VStack align="start" spacing={1}>
               <HStack>
                 <Icon as={Bell} />
-                <Heading size="md">{editingReminder ? "Update Reminder" : "New Task Alert"}</Heading>
+                <Heading size="md">{editingReminder ? "Edit Reminder" : "New Reminder"}</Heading>
               </HStack>
               <Text fontSize="sm" fontWeight="normal" opacity={0.9}>
-                {editingReminder ? "Keep your priorities up to date." : "Tell us what you need to be reminded about."}
+                {editingReminder ? "Update the reminder." : "Add a new reminder."}
               </Text>
             </VStack>
           </ModalHeader>
@@ -518,11 +518,11 @@ const Reminders = () => {
           <ModalBody p={10}>
             <VStack spacing={8}>
               <FormControl isRequired>
-                <FormLabel fontWeight="900" fontSize="xs" textTransform="uppercase" letterSpacing="widest" color="gray.600">Reminder Title</FormLabel>
+                <FormLabel fontWeight="900" fontSize="xs" textTransform="uppercase" letterSpacing="widest" color="gray.600">Title</FormLabel>
                 <Input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g., Weekly Report Submission"
+                  placeholder="e.g., Submit report"
                   borderRadius="2xl"
                   size="lg"
                   focusBorderColor="orange.400"
@@ -533,11 +533,11 @@ const Reminders = () => {
               </FormControl>
 
               <FormControl>
-                <FormLabel fontWeight="900" fontSize="xs" textTransform="uppercase" letterSpacing="widest" color="gray.600">Brief Description</FormLabel>
+                <FormLabel fontWeight="900" fontSize="xs" textTransform="uppercase" letterSpacing="widest" color="gray.600">Description</FormLabel>
                 <Input
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="What is this about?"
+                  placeholder="Short note"
                   borderRadius="2xl"
                   size="lg"
                   focusBorderColor="orange.400"
@@ -547,7 +547,7 @@ const Reminders = () => {
 
               <SimpleGrid columns={2} spacing={6} w="full">
                 <FormControl isRequired>
-                  <FormLabel fontWeight="900" fontSize="xs" textTransform="uppercase" letterSpacing="widest" color="gray.600">Target Date</FormLabel>
+                  <FormLabel fontWeight="900" fontSize="xs" textTransform="uppercase" letterSpacing="widest" color="gray.600">Date</FormLabel>
                   <Input
                     type="date"
                     value={reminderDate}
@@ -560,7 +560,7 @@ const Reminders = () => {
                 </FormControl>
 
                 <FormControl isRequired>
-                  <FormLabel fontWeight="900" fontSize="xs" textTransform="uppercase" letterSpacing="widest" color="gray.600">Notify at</FormLabel>
+                  <FormLabel fontWeight="900" fontSize="xs" textTransform="uppercase" letterSpacing="widest" color="gray.600">Time</FormLabel>
                   <Input
                     type="time"
                     value={time}
@@ -574,11 +574,11 @@ const Reminders = () => {
               </SimpleGrid>
 
               <FormControl>
-                <FormLabel fontWeight="900" fontSize="xs" textTransform="uppercase" letterSpacing="widest" color="gray.600">Detailed Message</FormLabel>
+                <FormLabel fontWeight="900" fontSize="xs" textTransform="uppercase" letterSpacing="widest" color="gray.600">Note</FormLabel>
                 <Textarea
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Any extra context or steps involved..."
+                  placeholder="Add a short note..."
                   borderRadius="2xl"
                   size="lg"
                   minH="120px"
@@ -591,7 +591,7 @@ const Reminders = () => {
 
           <ModalFooter p={10} bg="gray.50" borderTop="1px solid" borderColor="gray.100">
             <Button variant="ghost" mr={4} onClick={onClose} borderRadius="2xl" size="lg">
-              Discard
+              Cancel
             </Button>
             <Button
               colorScheme="orange"
@@ -603,7 +603,7 @@ const Reminders = () => {
               fontWeight="black"
               boxShadow="0 10px 20px -5px rgba(251, 146, 60, 0.4)"
             >
-              {editingReminder ? "Save Changes" : "Activate Reminder"}
+              {editingReminder ? "Save Reminder" : "Save Reminder"}
             </Button>
           </ModalFooter>
         </ModalContent>
@@ -618,19 +618,19 @@ const Reminders = () => {
         <AlertDialogOverlay backdropFilter="blur(8px)" bg="blackAlpha.700">
           <AlertDialogContent borderRadius="3xl" p={4}>
             <AlertDialogHeader fontSize="2xl" fontWeight="900" color="red.600">
-              Clear Reminder?
+              Delete Reminder?
             </AlertDialogHeader>
 
             <AlertDialogBody fontWeight="medium" color="gray.600">
-              This action cannot be undone. You will lose all captured details for this specific reminder.
+              This cannot be undone.
             </AlertDialogBody>
 
             <AlertDialogFooter gap={3}>
               <Button ref={cancelRef} onClick={onDeleteClose} borderRadius="2xl" variant="ghost">
-                Keep it
+                Cancel
               </Button>
               <Button colorScheme="red" onClick={handleDeleteReminder} borderRadius="2xl" px={8} fontWeight="black">
-                Yes, Clear
+                Delete
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>

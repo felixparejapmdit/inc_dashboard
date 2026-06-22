@@ -190,14 +190,14 @@ const GroupManagement = () => {
       );
 
       if (!skipRefresh) {
-        toast({ title: "Permission updated successfully", status: "success", duration: 2000 });
+        toast({ title: "Permission saved", status: "success", duration: 2000 });
         const currentGroupId = localStorage.getItem("groupId");
         if (currentGroupId && String(currentGroupId) === String(groupId)) {
           refreshGlobalPermissions(currentGroupId);
         }
       }
     } catch (error) {
-      toast({ title: "Error updating permission", description: error.message, status: "error" });
+      toast({ title: "Error saving permission", description: error.message, status: "error" });
     }
   };
 
@@ -211,7 +211,7 @@ const GroupManagement = () => {
       fetchGroups();
       setNewGroup({ name: "", description: "" });
       setIsAddingOrEditing(null);
-      toast({ title: "Group added successfully", status: "success" });
+      toast({ title: "Group added", status: "success" });
     } catch (error) {
       toast({ title: "Error adding group", description: error.message, status: "error" });
     }
@@ -220,7 +220,7 @@ const GroupManagement = () => {
   const handleGroupChange = async (userId, newGroupId) => {
     try {
       await putData("user-groups", userId, { group_id: newGroupId }, "Failed to update group");
-      toast({ title: "Group updated successfully", status: "success" });
+      toast({ title: "Group updated", status: "success" });
       if (selectedGroup) fetchGroupUsers(selectedGroup.id);
     } catch (error) {
       toast({ title: "Error updating group", description: error.message, status: "error" });
@@ -234,7 +234,7 @@ const GroupManagement = () => {
       setEditingGroup(null);
       setIsAddingOrEditing(null); // Close edit mode
       setSelectedGroup(null); // Close panel
-      toast({ title: "Group updated successfully", status: "success" });
+      toast({ title: "Group updated", status: "success" });
     } catch (error) {
       toast({ title: "Error updating group", description: error.message, status: "error" });
     }
@@ -245,7 +245,7 @@ const GroupManagement = () => {
     try {
       await deleteData("groups", group.id, "Failed to delete group");
       fetchGroups();
-      toast({ title: "Group deleted successfully", status: "success" });
+      toast({ title: "Group deleted", status: "success" });
     } catch (error) {
       toast({ title: "Error deleting group", description: error.message, status: "error" });
     }
@@ -278,10 +278,10 @@ const GroupManagement = () => {
             <HStack>
               <Icon as={Layers} boxSize={8} color="cyan.500" />
               <Heading size="xl" bgGradient={headerGradient} bgClip="text" fontWeight="black" letterSpacing="tight">
-                Group Management
+                Groups
               </Heading>
             </HStack>
-            <Text color="gray.500" fontWeight="medium">Configure user groups, roles, and system access permissions</Text>
+            <Text color="gray.500" fontWeight="medium">View and manage groups</Text>
           </VStack>
 
           <HStack spacing={3}>
@@ -320,9 +320,9 @@ const GroupManagement = () => {
         {!isLoading && (
           <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6} mb={8}>
             {[
-              { label: "Total Groups", value: groups.length, icon: Layers, color: "cyan" },
-              { label: "Admin Roles", value: groups.filter(g => g.name.toLowerCase().includes('admin')).length, icon: Shield, color: "purple" },
-              { label: "System Roles", value: groups.length, icon: Briefcase, color: "blue" }
+              { label: "All Groups", value: groups.length, icon: Layers, color: "cyan" },
+              { label: "Admin Groups", value: groups.filter(g => g.name.toLowerCase().includes('admin')).length, icon: Shield, color: "purple" },
+              { label: "System Groups", value: groups.length, icon: Briefcase, color: "blue" }
             ].map((stat, idx) => (
               <MotionBox
                 key={idx}
@@ -366,7 +366,7 @@ const GroupManagement = () => {
               <Thead bg="gray.50">
                 <Tr>
                   <Th p={6} width="50px">#</Th>
-                  <Th p={6} minW="200px">Group Identity</Th>
+                  <Th p={6} minW="200px">Group Name</Th>
                   <Th p={6} display={{ base: "none", md: "table-cell" }}>Description</Th>
                   <Th p={6} textAlign="center">Actions</Th>
                 </Tr>
@@ -384,7 +384,7 @@ const GroupManagement = () => {
                           <Input
                             autoFocus
                             bg="white"
-                            placeholder="Group Name"
+                            placeholder="Group name"
                             value={newGroup.name}
                             onChange={(e) => setNewGroup({ ...newGroup, name: e.target.value })}
                             borderRadius="lg"
@@ -397,7 +397,7 @@ const GroupManagement = () => {
                         <FormControl>
                           <Input
                             bg="white"
-                            placeholder="Description (Optional)"
+                            placeholder="Description"
                             value={newGroup.description}
                             onChange={(e) => setNewGroup({ ...newGroup, description: e.target.value })}
                             borderRadius="lg"
@@ -474,7 +474,7 @@ const GroupManagement = () => {
                                     {group.name}
                                   </Text>
                                   <Text fontSize="xs" color={isSelected ? "cyan.500" : "gray.500"}>
-                                    Click to view permissions
+                                    Click to see permissions
                                   </Text>
                                 </VStack>
                               </HStack>
@@ -491,7 +491,7 @@ const GroupManagement = () => {
                               />
                             ) : (
                               <Text color="gray.600" fontSize="sm" noOfLines={1}>
-                                {group.description || "No description provided"}
+                                {group.description || "No description."}
                               </Text>
                             )}
                           </Td>
@@ -504,7 +504,7 @@ const GroupManagement = () => {
                                 </>
                               ) : (
                                 <>
-                                  <Tooltip label="View Users">
+                                  <Tooltip label="View members">
                                     <IconButton
                                       icon={<Users size={16} />}
                                       size="sm"
@@ -513,7 +513,7 @@ const GroupManagement = () => {
                                       onClick={(e) => { e.stopPropagation(); handleShowUsers(group); }}
                                     />
                                   </Tooltip>
-                                  <Tooltip label="Edit Details">
+                                  <Tooltip label="Edit">
                                     <IconButton
                                       icon={<Edit2 size={16} />}
                                       size="sm"
@@ -528,7 +528,7 @@ const GroupManagement = () => {
                                       }}
                                     />
                                   </Tooltip>
-                                  <Tooltip label="Delete Group">
+                                  <Tooltip label="Delete">
                                     <IconButton
                                       icon={<Trash2 size={16} />}
                                       size="sm"
@@ -563,7 +563,7 @@ const GroupManagement = () => {
                                             Permissions: {group.name}
                                           </Text>
                                           <Text fontSize="xs" color="gray.500">
-                                            Manage access rights for this group
+                                            Set access for this group
                                           </Text>
                                         </Box>
                                       </HStack>
@@ -576,9 +576,9 @@ const GroupManagement = () => {
                                           <Box key={category.categoryId} bg="white" borderRadius="xl" shadow="sm" overflow="hidden" border="1px solid" borderColor="gray.100">
                                             <Flex bg="gray.50" p={4} justify="space-between" align="center" borderBottom="1px solid" borderColor="gray.100">
                                               <HStack>
-                                                <Badge colorScheme={allGranted ? "green" : "gray"} variant="solid" borderRadius="md">
+                                                  <Badge colorScheme={allGranted ? "green" : "gray"} variant="solid" borderRadius="md">
                                                   CATEGORY
-                                                </Badge>
+                                                  </Badge>
                                                 <Text fontWeight="bold" color="gray.700">{category.categoryName}</Text>
                                               </HStack>
                                               <Checkbox
@@ -596,7 +596,7 @@ const GroupManagement = () => {
                                                   Promise.all(category.permissions.map(perm =>
                                                     handlePermissionChange(group.id, perm.id, category.categoryId, newAccess, true)
                                                   )).then(() => {
-                                                    toast({ title: "Permissions updated", status: "success", duration: 2000 });
+                                                    toast({ title: "Permissions saved", status: "success", duration: 2000 });
                                                     const currentGroupId = localStorage.getItem("groupId");
                                                     if (currentGroupId && String(currentGroupId) === String(group.id)) {
                                                       refreshGlobalPermissions(currentGroupId);
@@ -605,7 +605,7 @@ const GroupManagement = () => {
                                                 }}
                                               >
                                                 <Text fontSize="xs" fontWeight="bold" color="cyan.600">
-                                                  {allGranted ? "REVOKE ALL" : "GRANT ALL"}
+                                                  {allGranted ? "Remove all" : "Give all"}
                                                 </Text>
                                               </Checkbox>
                                             </Flex>
@@ -614,7 +614,7 @@ const GroupManagement = () => {
                                                 {category.permissions.map((perm) => (
                                                   <Tr key={perm.id} _hover={{ bg: "gray.50" }}>
                                                     <Td pl={8} py={3} fontWeight="medium" color="gray.600" width="30%">{perm.name}</Td>
-                                                    <Td py={3} color="gray.400" fontSize="xs">{perm.description || "No description"}</Td>
+                                                    <Td py={3} color="gray.400" fontSize="xs">{perm.description || "No description."}</Td>
                                                     <Td py={3} isNumeric width="10%">
                                                       <Switch
                                                         colorScheme="cyan"
@@ -671,7 +671,7 @@ const GroupManagement = () => {
             {groupUsers.length === 0 ? (
               <Center p={10} flexDir="column">
                 <Icon as={AlertCircle} color="gray.300" boxSize={10} mb={3} />
-                <Text color="gray.500">No users found in this group.</Text>
+                <Text color="gray.500">No members yet.</Text>
               </Center>
             ) : (
               <Box maxHeight="400px" overflowY="auto" borderRadius="xl" border="1px solid" borderColor="gray.100">
@@ -679,8 +679,8 @@ const GroupManagement = () => {
                   <Thead bg="gray.50" position="sticky" top={0} zIndex={1}>
                     <Tr>
                       <Th>Name</Th>
-                      <Th>Username / Email</Th>
-                      <Th>Group Assignment</Th>
+                      <Th>Username or email</Th>
+                      <Th>Group</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
@@ -697,7 +697,7 @@ const GroupManagement = () => {
                           <Td>
                             <VStack align="start" spacing={0}>
                               <Text fontSize="xs" fontWeight="bold">{user.username}</Text>
-                              <Text fontSize="xs" color="gray.500">{user.email || "No Email"}</Text>
+                              <Text fontSize="xs" color="gray.500">{user.email || "No email"}</Text>
                             </VStack>
                           </Td>
                           <Td>

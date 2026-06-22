@@ -130,7 +130,7 @@ const Applications = () => {
       setAppTypes(typesData || []);
     } catch (error) {
       toast({
-        title: "Error loading data",
+        title: "Could not load apps",
         description: error.message,
         status: "error",
       });
@@ -165,12 +165,12 @@ const Applications = () => {
 
   const handleSave = async () => {
     if (!name.trim() || !url.trim() || !app_type) {
-      toast({ title: "Required fields missing", status: "warning" });
+      toast({ title: "Please fill in all required fields", status: "warning" });
       return;
     }
 
     if (!icon && !editingApp) {
-      toast({ title: "Icon is required", status: "warning" });
+      toast({ title: "Please add an image", status: "warning" });
       return;
     }
 
@@ -191,20 +191,20 @@ const Applications = () => {
         // ✅ Optimistic update: update the item in local state immediately
         const updatedApp = { ...editingApp, ...payload, app_type_name: typeName, ...(result?.data || {}) };
         setApps(prev => prev.map(a => a.id === editingApp.id ? updatedApp : a));
-        toast({ title: "Application updated", status: "success" });
+        toast({ title: "App updated", status: "success" });
       } else {
         const result = await postData("apps", payload);
         // ✅ Optimistic update: append the new item immediately
         const newApp = { id: result?.data?.id || result?.id || Date.now(), ...payload, app_type_name: typeName, ...(result?.data || {}) };
         setApps(prev => [...prev, newApp]);
-        toast({ title: "Application added", status: "success" });
+        toast({ title: "App added", status: "success" });
       }
       resetForm();
       onClose();
       // Re-fetch in background to sync any server-side computed fields
       loadData();
     } catch (error) {
-      toast({ title: "Error saving application", description: error.message, status: "error" });
+      toast({ title: "Error saving app", description: error.message, status: "error" });
     }
   };
 
@@ -215,13 +215,13 @@ const Applications = () => {
       setApps(prev => prev.filter(a => a.id !== appToDelete.id));
       setDeletingApp(null);
       await deleteData("apps", appToDelete.id);
-      toast({ title: "Application deleted", status: "success" });
+      toast({ title: "App deleted", status: "success" });
       // Re-fetch in background to ensure sync
       loadData();
     } catch (error) {
       // Rollback on failure
       loadData();
-      toast({ title: "Error deleting", description: error.message, status: "error" });
+      toast({ title: "Error deleting app", description: error.message, status: "error" });
     }
   };
 
@@ -268,10 +268,10 @@ const Applications = () => {
             <HStack>
               <Icon as={AppWindow} boxSize={8} color="orange.500" />
               <Heading size="xl" bgGradient={headerGradient} bgClip="text" fontWeight="black" letterSpacing="tight">
-                Application Portal
+                Apps
               </Heading>
             </HStack>
-            <Text color="gray.500" fontWeight="medium">Manage all tools and software</Text>
+            <Text color="gray.500" fontWeight="medium">View and manage your apps</Text>
           </VStack>
 
           <HStack spacing={3}>
@@ -284,7 +284,7 @@ const Applications = () => {
               boxShadow="lg"
               _hover={{ transform: "translateY(-2px)", boxShadow: "xl" }}
             >
-              Add Application
+              Add App
             </Button>
             <IconButton
               icon={<RefreshCw size={20} />}
@@ -301,9 +301,9 @@ const Applications = () => {
         {/* Stats Grid */}
         <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6} mb={8}>
           {[
-            { label: "Total Applications", value: stats.total, icon: Layers, color: "blue" },
-            { label: "App Categories", value: stats.types, icon: Database, color: "purple" },
-            { label: "Visible Apps", value: stats.active, icon: Activity, color: "orange" }
+            { label: "All Apps", value: stats.total, icon: Layers, color: "blue" },
+            { label: "Types", value: stats.types, icon: Database, color: "purple" },
+            { label: "Shown", value: stats.active, icon: Activity, color: "orange" }
           ].map((stat) => (
             <MotionBox
               key={stat.label}
@@ -339,7 +339,7 @@ const Applications = () => {
               <Search size={18} color="gray" />
             </InputLeftElement>
             <Input
-              placeholder="Search applications..."
+              placeholder="Search apps..."
               value={searchQuery}
               onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
               borderRadius="xl"
@@ -348,7 +348,7 @@ const Applications = () => {
             />
           </InputGroup>
           <Select
-            placeholder="Filter by Type"
+            placeholder="Filter by type"
             value={filterType}
             onChange={(e) => { setFilterType(e.target.value); setPage(1); }}
             maxW={{ base: "full", md: "250px" }}
@@ -365,14 +365,14 @@ const Applications = () => {
               onClick={() => setViewMode("grid")}
               variant={viewMode === "grid" ? "solid" : "ghost"}
               colorScheme="orange"
-              aria-label="Grid View"
+              aria-label="Grid"
             />
             <IconButton
               icon={<List size={20} />}
               onClick={() => setViewMode("table")}
               variant={viewMode === "table" ? "solid" : "ghost"}
               colorScheme="orange"
-              aria-label="Table View"
+              aria-label="List"
             />
           </HStack>
         </Stack>
@@ -381,12 +381,12 @@ const Applications = () => {
         {isLoading ? (
           <Center p={20} flexDir="column">
             <Icon as={RefreshCw} boxSize={12} color="orange.500" className="spin" />
-            <Text mt={4} color="gray.500">Loading applications...</Text>
+            <Text mt={4} color="gray.500">Loading apps...</Text>
           </Center>
         ) : filteredApps.length === 0 ? (
           <Center p={20} flexDir="column" bg={cardBg} borderRadius="3xl" border="1px solid" borderColor={borderColor}>
             <Icon as={AlertCircle} boxSize={12} color="gray.300" />
-            <Heading size="md" mt={4} color="gray.500">No applications found</Heading>
+            <Heading size="md" mt={4} color="gray.500">No apps found</Heading>
             <Text color="gray.400">Try adjusting search or filters.</Text>
           </Center>
         ) : (
@@ -440,11 +440,11 @@ const Applications = () => {
                           <Text fontSize="xs" color="blue.500" fontWeight="bold" noOfLines={1}>{app.url}</Text>
                         </VStack>
                         <Text fontSize="sm" color="gray.500" textAlign="center" noOfLines={2} minH="40px">
-                          {app.description || "No description provided."}
+                          {app.description || "No description."}
                         </Text>
                         <Divider />
                         <HStack spacing={2} w="full" justify="center">
-                          <Tooltip label="Launch">
+                          <Tooltip label="Open">
                             <IconButton
                               icon={<ExternalLink size={18} />}
                               size="sm"
@@ -490,9 +490,9 @@ const Applications = () => {
                 <Table variant="simple" style={{ tableLayout: "fixed" }}>
                   <Thead bg="gray.50">
                     <Tr>
-                      <Th width="30%">Application</Th>
-                      <Th width="15%">Category</Th>
-                      <Th width="30%">URL Endpoint</Th>
+                      <Th width="30%">App</Th>
+                      <Th width="15%">Type</Th>
+                      <Th width="30%">Link</Th>
                       <Th width="10%">Status</Th>
                       <Th width="15%" textAlign="right">Actions</Th>
                     </Tr>
@@ -559,7 +559,7 @@ const Applications = () => {
         <ModalOverlay backdropFilter="blur(8px)" />
         <ModalContent borderRadius="3xl">
           <ModalHeader bgGradient={headerGradient} color="white" borderTopRadius="3xl">
-            {editingApp ? "Edit Application" : "New Application"}
+            {editingApp ? "Edit App" : "New App"}
           </ModalHeader>
           <ModalCloseButton color="white" />
           <ModalBody p={8}>
@@ -584,7 +584,7 @@ const Applications = () => {
                   ) : (
                     <Center w="full" h="full" flexDirection="column">
                       <Icon as={UploadCloud} color="gray.400" boxSize={8} />
-                      <Text fontSize="xs" color="gray.500" mt={1}>Upload Icon</Text>
+                      <Text fontSize="xs" color="gray.500" mt={1}>Upload image</Text>
                     </Center>
                   )}
                   <Input type="file" id="icon-upload" display="none" accept="image/*" onChange={handleImageUpload} />
@@ -594,31 +594,31 @@ const Applications = () => {
 
               <SimpleGrid columns={2} spacing={4} w="full">
                 <FormControl isRequired>
-                  <FormLabel fontWeight="bold" fontSize="sm">Application Name</FormLabel>
+                  <FormLabel fontWeight="bold" fontSize="sm">App Name</FormLabel>
                   <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Dashboard" borderRadius="xl" />
                 </FormControl>
                 <FormControl isRequired>
-                  <FormLabel fontWeight="bold" fontSize="sm">Category</FormLabel>
-                  <Select value={app_type} onChange={(e) => setAppType(e.target.value)} placeholder="Select Type" borderRadius="xl">
+                  <FormLabel fontWeight="bold" fontSize="sm">Type</FormLabel>
+                  <Select value={app_type} onChange={(e) => setAppType(e.target.value)} placeholder="Select type" borderRadius="xl">
                     {appTypes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                   </Select>
                 </FormControl>
               </SimpleGrid>
 
               <FormControl isRequired>
-                <FormLabel fontWeight="bold" fontSize="sm">URL Endpoint</FormLabel>
+                <FormLabel fontWeight="bold" fontSize="sm">Link</FormLabel>
                 <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..." borderRadius="xl" />
               </FormControl>
 
               <FormControl>
                 <FormLabel fontWeight="bold" fontSize="sm">Description</FormLabel>
-                <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Brief description..." borderRadius="xl" />
+                <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Short note..." borderRadius="xl" />
               </FormControl>
             </VStack>
           </ModalBody>
           <ModalFooter bg="gray.50" borderBottomRadius="3xl" p={6}>
             <Button variant="ghost" onClick={onClose} mr={3} borderRadius="xl">Cancel</Button>
-            <Button colorScheme="orange" onClick={handleSave} borderRadius="xl" px={8}>Save Application</Button>
+            <Button colorScheme="orange" onClick={handleSave} borderRadius="xl" px={8}>Save App</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
@@ -627,9 +627,9 @@ const Applications = () => {
       <AlertDialog isOpen={!!deletingApp} leastDestructiveRef={cancelRef} onClose={() => setDeletingApp(null)} isCentered>
         <AlertDialogOverlay backdropFilter="blur(5px)" />
         <AlertDialogContent borderRadius="2xl">
-          <AlertDialogHeader fontSize="lg" fontWeight="bold">Delete Application</AlertDialogHeader>
+          <AlertDialogHeader fontSize="lg" fontWeight="bold">Delete App</AlertDialogHeader>
           <AlertDialogBody>
-            Are you sure you want to delete <b>{deletingApp?.name}</b>? This action cannot be undone.
+            Delete <b>{deletingApp?.name}</b>? This cannot be undone.
           </AlertDialogBody>
           <AlertDialogFooter>
             <Button ref={cancelRef} onClick={() => setDeletingApp(null)} borderRadius="xl">Cancel</Button>

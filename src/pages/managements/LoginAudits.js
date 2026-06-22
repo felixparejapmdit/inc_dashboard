@@ -138,8 +138,8 @@ const LoginAudits = () => {
       setSecondsAgo(0);
     } catch (err) {
       toast({
-        title: "Error loading data",
-        description: err.message || "Failed to fetch data",
+        title: "Could not load logs",
+        description: err.message || "Please try again.",
         status: "error",
       });
     } finally {
@@ -261,8 +261,8 @@ const LoginAudits = () => {
     XLSX.writeFile(wb, `${filename}_${moment().format("YYYYMMDD")}.xlsx`);
 
     toast({
-      title: "Report Generated",
-      description: `${type.toUpperCase()} report has been downloaded.`,
+      title: "Report ready",
+      description: `${type.toUpperCase()} report was downloaded.`,
       status: "success",
       duration: 3000,
     });
@@ -303,10 +303,10 @@ const LoginAudits = () => {
             <HStack>
               <Icon as={ShieldCheck} boxSize={8} color="purple.500" />
               <Heading size="xl" bgGradient={headerGradient} bgClip="text" fontWeight="black" letterSpacing="tight">
-                Login Audits
+                Login History
               </Heading>
             </HStack>
-            <Text color="gray.500" fontWeight="medium">Monitor system access and security logs </Text>
+            <Text color="gray.500" fontWeight="medium">See who logged in and when</Text>
           </VStack>
 
           <HStack spacing={3}>
@@ -319,14 +319,14 @@ const LoginAudits = () => {
                 size="lg"
                 borderRadius="xl"
               >
-                Export Report
+                Export
               </MenuButton>
               <MenuList borderRadius="xl" shadow="xl" border="1px solid" borderColor={borderColor}>
-                <MenuItem icon={<FileText size={16} />} onClick={() => handleExportReport("filtered")}>Current Filtered View</MenuItem>
+                <MenuItem icon={<FileText size={16} />} onClick={() => handleExportReport("filtered")}>Current view</MenuItem>
                 <Divider my={2} />
-                <MenuItem icon={<Calendar size={16} />} onClick={() => handleExportReport("weekly")}>Past 7 Days Report</MenuItem>
-                <MenuItem icon={<Calendar size={16} />} onClick={() => handleExportReport("monthly")}>Past 30 Days Report</MenuItem>
-                <MenuItem icon={<Calendar size={16} />} onClick={() => handleExportReport("yearly")}>Full Year Report</MenuItem>
+                <MenuItem icon={<Calendar size={16} />} onClick={() => handleExportReport("weekly")}>Last 7 days</MenuItem>
+                <MenuItem icon={<Calendar size={16} />} onClick={() => handleExportReport("monthly")}>Last 30 days</MenuItem>
+                <MenuItem icon={<Calendar size={16} />} onClick={() => handleExportReport("yearly")}>This year</MenuItem>
               </MenuList>
             </Menu>
 
@@ -346,10 +346,10 @@ const LoginAudits = () => {
         {/* Stats Grid */}
         <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} spacing={6} mb={8}>
           {[
-            { label: "Total Sessions", value: stats.total, icon: Activity, color: "blue", mode: null },
+            { label: "All Sessions", value: stats.total, icon: Activity, color: "blue", mode: null },
             { label: "Today's Logins", value: stats.today, icon: Clock, color: "green", mode: "today" },
             { label: "Unique Users", value: stats.unique, icon: UsersIcon, color: "purple", mode: "unique" },
-            { label: "Mobile Access", value: stats.mobile, icon: Monitor, color: "orange", mode: null },
+            { label: "Mobile Logins", value: stats.mobile, icon: Monitor, color: "orange", mode: null },
           ].map(stat => (
             <MotionBox
               key={stat.label}
@@ -388,13 +388,13 @@ const LoginAudits = () => {
         <Box bg={cardBg} p={6} borderRadius="2xl" shadow="sm" border="1px solid" borderColor={borderColor} mb={8}>
           <SimpleGrid columns={{ base: 1, md: 5 }} spacing={4} align="end">
             <Box gridColumn={{ base: "span 1", md: "span 2" }}>
-              <FormLabel fontSize="xs" fontWeight="black" color="gray.500" textTransform="uppercase">Filter by Personnel</FormLabel>
+              <FormLabel fontSize="xs" fontWeight="black" color="gray.500" textTransform="uppercase">Filter by person</FormLabel>
               <ReactSelect
                 options={personnelOptions}
                 onChange={(opt) => setSelectedPersonnelId(opt ? opt.value : "")}
                 value={personnelOptions.find(o => String(o.value) === String(selectedPersonnelId))}
                 styles={customSelectStyles}
-                placeholder="Search Personnel..."
+                placeholder="Search person..."
                 isClearable
               />
             </Box>
@@ -417,7 +417,7 @@ const LoginAudits = () => {
                 value={selectedMonth}
                 onChange={e => setSelectedMonth(e.target.value)}
                 borderRadius="xl"
-                placeholder="All Months"
+                placeholder="All months"
               >
                 {moment.months().map((m, i) => (
                   <option key={m} value={String(i + 1).padStart(2, "0")}>{m}</option>
@@ -431,7 +431,7 @@ const LoginAudits = () => {
                 value={selectedYear}
                 onChange={e => setSelectedYear(e.target.value)}
                 borderRadius="xl"
-                placeholder="All Years"
+                placeholder="All years"
               >
                 {[...Array(5)].map((_, i) => {
                   const y = moment().year() - i;
@@ -449,7 +449,7 @@ const LoginAudits = () => {
                 <Search size={18} color="gray" />
               </InputLeftElement>
               <Input
-                placeholder="Search browser, OS, device info..."
+                placeholder="Search device or browser..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 borderRadius="xl"
@@ -468,14 +468,14 @@ const LoginAudits = () => {
                 />
               </HStack>
               <Button leftIcon={<AlertCircle size={16} />} variant="ghost" colorScheme="red" size="sm" onClick={resetFilters}>
-                Reset All Filters
+                Clear filters
               </Button>
             </HStack>
           </Flex>
 
           {lastUpdated && (
             <Text mt={4} fontSize="2xs" color="gray.400" fontWeight="bold" textTransform="uppercase">
-              Last Updated: {moment(lastUpdated).format("h:mm:ss A")} ({secondsAgo}s ago)
+              Last update: {moment(lastUpdated).format("h:mm:ss A")} ({secondsAgo}s ago)
             </Text>
           )}
         </Box>
@@ -492,7 +492,7 @@ const LoginAudits = () => {
           {isLoading ? (
             <Center p={20} flexDir="column">
               <Spinner size="xl" color="purple.500" thickness="4px" />
-              <Text mt={4} fontWeight="bold" color="gray.500">Retrieving system logs...</Text>
+              <Text mt={4} fontWeight="bold" color="gray.500">Loading logs...</Text>
             </Center>
           ) : filteredAudits.length === 0 ? (
             <Center p={20} flexDir="column">
@@ -506,10 +506,10 @@ const LoginAudits = () => {
                 <Table variant="simple" size="md" style={{ tableLayout: "fixed" }}>
                   <Thead bg="gray.50">
                     <Tr>
-                      <Th p={6} width="25%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">User Details</Th>
-                      <Th p={6} width="20%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Device & OS</Th>
+                      <Th p={6} width="25%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">User</Th>
+                      <Th p={6} width="20%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Device</Th>
                       <Th p={6} width="15%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Browser</Th>
-                      <Th p={6} width="30%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Access Time</Th>
+                      <Th p={6} width="30%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Time</Th>
                       <Th p={6} width="10%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest"></Th>
                     </Tr>
                   </Thead>
