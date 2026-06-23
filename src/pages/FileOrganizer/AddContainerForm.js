@@ -15,9 +15,7 @@ const AddContainerForm = ({ onSave, editData }) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
-  const formBg = useColorModeValue("white", "gray.800");
-  const border = useColorModeValue("1px solid #E2E8F0", "1px solid #4A5568");
-  const inputBg = useColorModeValue("orange.50", "orange.100");
+  const inputBg = useColorModeValue("orange.50", "gray.700");
 
   // Prefill when editing
   useEffect(() => {
@@ -53,14 +51,7 @@ const AddContainerForm = ({ onSave, editData }) => {
     <Box
       as="form"
       onSubmit={handleSubmit}
-      mt={4}
-      p={6}
-      borderRadius="lg"
-      bg={formBg}
-      boxShadow="lg"
-      border={border}
-      maxW="400px"
-      mx="auto"
+      w="100%"
     >
       <Stack spacing={5}>
         <FormControl isRequired>
@@ -83,7 +74,7 @@ const AddContainerForm = ({ onSave, editData }) => {
           />
         </FormControl>
 
-        <Button type="submit" colorScheme="teal" size="md" fontWeight="bold">
+        <Button type="submit" colorScheme="orange" size="md" fontWeight="bold">
           {editData ? "Update Container" : "Save Container"}
         </Button>
       </Stack>

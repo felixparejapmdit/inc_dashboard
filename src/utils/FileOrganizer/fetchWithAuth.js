@@ -1,6 +1,8 @@
 // utils/FileOrganizer/fetchWithAuth.js
 
-export const DIRECTUS_API_URL = "http://172.18.162.62:3306";
+export const DIRECTUS_API_URL = (
+  process.env.REACT_APP_DIRECTUS_URL || "https://test-directus.pmdmc.net"
+).replace(/\/+$/, "");
 
 // Function to get the full asset URL
 export const getAssetUrl = (assetId) => {
@@ -10,14 +12,15 @@ export const getAssetUrl = (assetId) => {
 // Function to handle API calls with authorization
 export const fetchWithAuth = async (url, options = {}) => {
   try {
-    const token = document.cookie
+    const sessionToken = document.cookie
       .split("; ")
       .find((row) => row.startsWith("directus_session_token"))
       ?.split("=")[1];
+    const token = process.env.REACT_APP_DIRECTUS_TOKEN || sessionToken;
 
     const headers = {
       ...options.headers,
-      Authorization: `Bearer ${token}`,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
 
     const response = await fetch(url, {

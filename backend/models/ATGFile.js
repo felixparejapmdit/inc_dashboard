@@ -22,7 +22,7 @@ const ATGFile = sequelize.define(
       // e.g., 'pdf', 'xlsx', 'image', 'docx'
     },
     item_type: {
-      type: DataTypes.STRING(20),
+      type: DataTypes.STRING(50),
       allowNull: false,
       defaultValue: "file",
       // 'file' or 'folder'

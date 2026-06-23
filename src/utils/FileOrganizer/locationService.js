@@ -1,7 +1,22 @@
 import directus from "./directusClient";
 
+const collectionMap = {
+  shelf: "Shelves",
+  shelves: "Shelves",
+  container: "Containers",
+  containers: "Containers",
+  folder: "Folders",
+  folders: "Folders",
+  document: "Documents",
+  documents: "Documents",
+};
+
 export const moveItemToLocation = async (id, type, newLocation) => {
-  const collection = type + "s"; // e.g., 'folder' → 'folders'
+  const collection = collectionMap[String(type || "").toLowerCase()];
+
+  if (!collection) {
+    throw new Error(`Unknown file organizer type: ${type}`);
+  }
 
   const payload = {};
   if (newLocation.shelf) payload.shelf_id = newLocation.shelf;

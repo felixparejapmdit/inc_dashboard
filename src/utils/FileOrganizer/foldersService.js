@@ -11,6 +11,37 @@ const handleError = (fn) => async (...args) => {
   }
 };
 
+const attachDocumentsToFolders = async (folders) => {
+  if (!Array.isArray(folders) || folders.length === 0) return folders;
+
+  const folderIds = folders.map((folder) => folder.id);
+  const documentRes = await directus.get("/items/Documents", {
+    params: {
+      fields: [
+        "id",
+        "name",
+        "generated_code",
+        "folder_id",
+        "container_id",
+        "shelf_id",
+        "file_url",
+        "created_at",
+      ],
+      filter: { folder_id: { _in: folderIds } },
+      sort: "name",
+      limit: -1,
+    },
+  });
+
+  const documents = documentRes.data.data || [];
+  return folders.map((folder) => ({
+    ...folder,
+    documents: documents.filter(
+      (document) => String(document.folder_id) === String(folder.id)
+    ),
+  }));
+};
+
 // ✅ GET all folders (optionally filtered by container_id or search)
 export const getFolders = handleError(async (options = {}) => {
   const { container_id = null, search = "" } = options;
@@ -22,15 +53,7 @@ export const getFolders = handleError(async (options = {}) => {
       "description",
       "generated_code",
       "container_id",
-      "created_at",
-      "documents.id",
-      "documents.name",
-      "documents.generated_code",
-      "documents.folder_id",
-      "documents.container_id",
-      "documents.shelf_id",
-      "documents.file_url",
-      "documents.created_at"
+      "created_at"
     ],
     sort: "-created_at",
   };
@@ -42,8 +65,9 @@ export const getFolders = handleError(async (options = {}) => {
   }
 
   const res = await directus.get("/items/Folders", { params });
-  console.log("📂 Folders (with documents):", res.data.data); // 👀 Debug
-  return res.data.data;
+  const folders = await attachDocumentsToFolders(res.data.data || []);
+  console.log("📂 Folders (with documents):", folders); // 👀 Debug
+  return folders;
 });
 
 
@@ -65,16 +89,14 @@ export const getFoldersByContainerId = handleError(async (containerId) => {
         "name",
         "description",
         "generated_code",
-        "documents.id",
-        "documents.name",     
-        "documents.file_url",     // <-- Added this
-        "documents.created_at"
+        "container_id",
+        "created_at"
       ],
       sort: ["name"],
     },
   });
 
-  return res.data.data;
+  return attachDocumentsToFolders(res.data.data || []);
 });
 
 

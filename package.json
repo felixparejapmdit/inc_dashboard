@@ -128,7 +128,9 @@
     "react": "react-app-rewired start",
     "backend": "nodemon backend/server.js",
     "build": "react-app-rewired build",
-    "test": "react-app-rewired test"
+    "test": "react-app-rewired test",
+    "directus:up": "docker compose up directus",
+    "directus:apply-file-organizer-schema": "node directus/scripts/apply-file-organizer-schema.js"
   },
   "eslintConfig": {
     "extends": [

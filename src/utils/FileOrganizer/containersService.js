@@ -1,6 +1,5 @@
 // utils/FileOrganizer/containersService.js
 import directus from "./directusClient";
-import QRCode from "qrcode";
 
 // ✅ Reusable error handler
 const handleError = (fn) => async (...args) => {
@@ -12,6 +11,28 @@ const handleError = (fn) => async (...args) => {
   }
 };
 
+const attachFoldersToContainers = async (containers) => {
+  if (!Array.isArray(containers) || containers.length === 0) return containers;
+
+  const containerIds = containers.map((container) => container.id);
+  const folderRes = await directus.get("/items/Folders", {
+    params: {
+      fields: ["id", "name", "created_at", "container_id"],
+      filter: { container_id: { _in: containerIds } },
+      sort: "name",
+      limit: -1,
+    },
+  });
+
+  const folders = folderRes.data.data || [];
+  return containers.map((container) => ({
+    ...container,
+    folders: folders.filter(
+      (folder) => String(folder.container_id) === String(container.id)
+    ),
+  }));
+};
+
 // ✅ GET all containers (optionally filtered by shelf_id)
 export const getContainers = handleError(async (shelf_id = null) => {
   const params = {
@@ -21,10 +42,7 @@ export const getContainers = handleError(async (shelf_id = null) => {
       "description",
       "generated_code",
       "shelf_id",
-      "created_at",
-      "folders.id",
-      "folders.name",
-      "folders.created_at"
+      "created_at"
     ],
     sort: "-created_at",
   };
@@ -34,8 +52,9 @@ export const getContainers = handleError(async (shelf_id = null) => {
   }
 
   const res = await directus.get("/items/Containers", { params });
-  console.log("📦 Containers (with folders):", res.data.data); // 👀 Debug
-  return res.data.data;
+  const containers = await attachFoldersToContainers(res.data.data || []);
+  console.log("📦 Containers (with folders):", containers); // 👀 Debug
+  return containers;
 });
 
 // ✅ GET single container by ID (with folders)
@@ -48,14 +67,12 @@ export const getContainerById = handleError(async (id) => {
         "description",
         "generated_code",
         "shelf_id",
-        "created_at",
-        "folders.id",
-        "folders.name",
-        "folders.created_at"
+        "created_at"
       ],
     },
   });
-  return res.data.data;
+  const [container] = await attachFoldersToContainers([res.data.data]);
+  return container;
 });
 
 // ✅ GET container by ID WITH folder count

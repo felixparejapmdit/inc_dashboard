@@ -1,43 +1,42 @@
 // src/pages/FileOrganizer/ContainersPage.js
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
+  Badge,
   Box,
-  Heading,
-  Button,
-  VStack,
-  HStack,
-  Text,
-  useToast,
-  SimpleGrid,
-  Spinner,
-  Center,
-  Input,
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
-  IconButton,
-  useDisclosure,
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogOverlay,
+  Button,
+  Center,
   Flex,
+  Heading,
+  HStack,
+  Icon,
+  Input,
+  InputGroup,
+  InputLeftElement,
+  SimpleGrid,
+  Spinner,
+  Stack,
+  Text,
+  useColorModeValue,
+  useToast,
 } from "@chakra-ui/react";
-import { AddIcon, ChevronRightIcon } from "@chakra-ui/icons";
-import { useParams, Link as RouterLink } from "react-router-dom";
-
-import ContainerCard from "./ContainerCard";
+import { AddIcon, ChevronRightIcon, SearchIcon } from "@chakra-ui/icons";
+import { Link as RouterLink, useParams } from "react-router-dom";
+import { BsBoxSeam } from "react-icons/bs";
+import { FaFolder, FaLayerGroup } from "react-icons/fa";
 import AddContainerForm from "./AddContainerForm";
+import ContainerCard from "./ContainerCard";
 import {
-  getContainers,
   createContainer,
   deleteContainer,
+  getContainers,
   updateContainer,
 } from "../../utils/FileOrganizer/containersService";
 import { getShelfById } from "../../utils/FileOrganizer/shelvesService";
 import { handleError } from "../../utils/FileOrganizer/handleError";
+import FormActionModal from "../../components/FileOrganizer/FormActionModal";
 
 const ContainersPage = () => {
   const { shelfId } = useParams();
@@ -45,352 +44,302 @@ const ContainersPage = () => {
 
   const [shelf, setShelf] = useState(null);
   const [containers, setContainers] = useState([]);
-
-  const [folders, setFolders] = useState([]); // <-- store containers here
-  const [filteredContainers, setFilteredContainers] = useState([]);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingContainer, setEditingContainer] = useState(null);
   const [loading, setLoading] = useState(true);
-  const formRef = React.useRef(null);
 
-  // Delete confirmation state
-  const [containerToDelete, setContainerToDelete] = useState(null);
-  const {
-    isOpen: isDeleteOpen,
-    onOpen: onDeleteOpen,
-    onClose: onDeleteClose,
-  } = useDisclosure();
-  const cancelRef = React.useRef();
+  const pageBg = useColorModeValue("#f6f8fb", "gray.900");
+  const panelBg = useColorModeValue("white", "gray.800");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
+  const mutedText = useColorModeValue("gray.600", "gray.400");
+  const headingColor = useColorModeValue("gray.900", "white");
 
-  // put this at the top of your component (before return)
-  const [columns, setColumns] = useState(3);
-
-  useEffect(() => {
-    const updateColumns = () => {
-      if (window.innerWidth < 640) setColumns(1);
-      else if (window.innerWidth < 768) setColumns(2);
-      else setColumns(3);
-    };
-    updateColumns(); // initial
-    window.addEventListener("resize", updateColumns);
-    return () => window.removeEventListener("resize", updateColumns);
-  }, []);
-
-  useEffect(() => {
-    fetchShelf();
-    fetchContainers();
-  }, [shelfId]);
-
-  const fetchShelf = async () => {
-    try {
-      const data = await getShelfById(shelfId);
-      setShelf(data);
-    } catch (error) {
-      handleError(error, toast, "Failed to fetch shelf");
-    }
-  };
-
-  const fetchContainers = async () => {
-    await refreshContainers();
-  };
-
-  const refreshContainers = async () => {
+  const loadContainers = async () => {
     try {
       setLoading(true);
-      const all = await getContainers();
-
-      console.log("📦 All containers from API:", all);
-
-      // Log folders for each container
-      all.forEach((container) => {
-        console.log(
-          `🗂 Container ${container.id} (${container.name}) has folders:`,
-          container.folders || []
-        );
-      });
-
-      const shelfContainers = all.filter(
-        (c) => c.shelf_id === parseInt(shelfId)
-      );
-
-      console.log("📌 Shelf-specific containers:", shelfContainers);
-
-      setContainers(shelfContainers);
-      setFilteredContainers(filterBySearch(shelfContainers, search));
+      const [shelfData, containersData] = await Promise.all([
+        getShelfById(shelfId),
+        getContainers(shelfId),
+      ]);
+      setShelf(shelfData);
+      setContainers(containersData || []);
     } catch (error) {
-      handleError(error, toast, "Failed to fetch containers");
+      handleError(error, toast, "Failed to load containers");
     } finally {
       setLoading(false);
     }
   };
 
-  const filterBySearch = (list, searchText) => {
-    if (!searchText.trim()) return list;
-    return list.filter((c) =>
-      c.name.toLowerCase().includes(searchText.toLowerCase())
+  useEffect(() => {
+    loadContainers();
+  }, [shelfId]);
+
+  const filteredContainers = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return containers;
+    return containers.filter((container) =>
+      [container.name, container.description, container.generated_code]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query))
     );
+  }, [containers, search]);
+
+  const folderCount = useMemo(
+    () => containers.reduce((total, container) => total + (container.folders?.length || 0), 0),
+    [containers]
+  );
+
+  const openNewContainerForm = () => {
+    setEditingContainer(null);
+    setShowForm(true);
   };
 
-  const handleAddContainer = async (data) => {
+  const handleSaveContainer = async (data) => {
     try {
-      const newContainer = {
-        ...data,
-        shelf_id: parseInt(shelfId),
-      };
-      await createContainer(newContainer);
-      toast({
-        title: "Container added",
-        description: "New container created.",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      if (editingContainer) {
+        await updateContainer(editingContainer.id, data);
+        toast({ title: "Container updated", status: "success", isClosable: true });
+      } else {
+        await createContainer({ ...data, shelf_id: parseInt(shelfId, 10) });
+        toast({ title: "Container created", status: "success", isClosable: true });
+      }
+
       setShowForm(false);
       setEditingContainer(null);
       setSearch("");
-      await refreshContainers();
+      await loadContainers();
     } catch (error) {
-      handleError(error, toast, "Error adding container");
+      handleError(
+        error,
+        toast,
+        editingContainer ? "Error updating container" : "Error adding container"
+      );
     }
   };
 
-  const handleUpdateContainer = (container) => {
-    setEditingContainer(container); // pass the whole container object
-    setShowForm(true);
-
-    setTimeout(() => {
-      formRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 100);
-  };
-
-  const handleSaveUpdate = async (updatedData) => {
+  const handleDeleteContainer = async (containerId) => {
     try {
-      await updateContainer(editingContainer.id, updatedData);
-      toast({
-        title: "Container updated",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-      setShowForm(false);
-      setEditingContainer(null);
-      await refreshContainers();
-    } catch (error) {
-      handleError(error, toast, "Error updating container");
-    }
-  };
-
-  const confirmDeleteContainer = (containerId) => {
-    setContainerToDelete(containerId);
-    onDeleteOpen();
-  };
-
-  const handleConfirmDelete = async () => {
-    try {
-      await deleteContainer(containerToDelete);
-      toast({
-        title: "Container deleted",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-      onDeleteClose();
-      setContainerToDelete(null);
-      await refreshContainers();
+      await deleteContainer(containerId);
+      toast({ title: "Container deleted", status: "success", isClosable: true });
+      await loadContainers();
     } catch (error) {
       handleError(error, toast, "Error deleting container");
     }
   };
 
-  useEffect(() => {
-    setFilteredContainers(filterBySearch(containers, search));
-  }, [search, containers]);
-
   return (
-    <Box p={[4, 6, 10]} mt={12}>
-      {/* Breadcrumb */}
-      <Breadcrumb
-        spacing="8px"
-        separator={<ChevronRightIcon color="gray.400" boxSize={4} />}
-        mb={6}
-        fontWeight="medium"
-        fontSize="sm"
-        color="gray.600"
-      >
-        <BreadcrumbItem>
-          <BreadcrumbLink as={RouterLink} to="/file-organizer/shelves">
-            📁 Shelves
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbItem>
-          <BreadcrumbLink isCurrentPage color="teal.700" fontWeight="semibold">
-            {shelf ? shelf.name : "Loading..."}
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbItem isCurrentPage>
-          <BreadcrumbLink color="gray.700" fontWeight="semibold">
-            Containers
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-      </Breadcrumb>
+    <Box bg={pageBg} minH="100vh" mt={12} px={{ base: 3, md: 5 }} py={6} w="full">
+      <Box w="full">
+        <Breadcrumb
+          color={mutedText}
+          fontSize="sm"
+          fontWeight="600"
+          mb={5}
+          separator={<ChevronRightIcon color="gray.400" />}
+        >
+          <BreadcrumbItem>
+            <BreadcrumbLink as={RouterLink} to="/file-organizer/shelves">
+              <HStack spacing={2}>
+                <Icon as={FaLayerGroup} color="teal.500" />
+                <Text>Shelves</Text>
+              </HStack>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbItem isCurrentPage>
+            <BreadcrumbLink>
+              <HStack spacing={2}>
+                <Icon as={FaLayerGroup} color="teal.500" />
+                <Text>{shelf?.name || "Loading shelf"}</Text>
+              </HStack>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbItem isCurrentPage>
+            <BreadcrumbLink>
+              <HStack spacing={2}>
+                <Icon as={BsBoxSeam} color="orange.500" />
+                <Text>Containers</Text>
+              </HStack>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+        </Breadcrumb>
 
-      {/* Heading Row */}
-      <HStack justifyContent="space-between" alignItems="center" mb={6}>
-        {/* Title + Total */}
-        <HStack spacing={2} alignItems="baseline">
-          <Heading size="lg" color="teal.700">
-            📦 Containers in{" "}
-            <Text as="span" fontWeight="bold" color="teal.800">
-              {shelf ? shelf.name : "..."}
-            </Text>
-          </Heading>
-          {filteredContainers.length > 0 && (
-            <Text fontSize="sm" color="gray.500">
-              ({filteredContainers.length} total)
-            </Text>
-          )}
-        </HStack>
+        <Flex
+          align={{ base: "flex-start", lg: "center" }}
+          bg={panelBg}
+          border="1px solid"
+          borderColor={borderColor}
+          borderRadius="3xl"
+          boxShadow="0 24px 70px rgba(15, 23, 42, 0.08)"
+          direction={{ base: "column", lg: "row" }}
+          gap={6}
+          justify="space-between"
+          p={{ base: 5, md: 8 }}
+        >
+          <HStack align="flex-start" spacing={4}>
+            <Flex
+              align="center"
+              bg="orange.50"
+              borderRadius="2xl"
+              color="orange.600"
+              h="58px"
+              justify="center"
+              w="58px"
+            >
+              <Icon as={BsBoxSeam} boxSize={7} />
+            </Flex>
+            <Box>
+              <Badge borderRadius="full" colorScheme="orange" mb={3} px={3} py={1}>
+                Shelf containers
+              </Badge>
+              <Heading color={headingColor} size="xl">
+                {shelf?.name || "Containers"}
+              </Heading>
+              <Text color={mutedText} fontSize={{ base: "md", md: "lg" }} mt={2}>
+                Containers are boxes or sections inside this shelf.
+              </Text>
+            </Box>
+          </HStack>
 
-        {/* Add/Cancel Button */}
-        <Button
-          leftIcon={<AddIcon />}
-          colorScheme={showForm ? "red" : "teal"}
-          onClick={() => {
-            setShowForm(!showForm);
+          <Button
+            colorScheme="orange"
+            leftIcon={<AddIcon />}
+            onClick={openNewContainerForm}
+            size="lg"
+          >
+            New container
+          </Button>
+        </Flex>
+
+        <SimpleGrid columns={{ base: 1, md: 2 }} mt={6} spacing={4}>
+          <Flex
+            align="center"
+            bg={panelBg}
+            border="1px solid"
+            borderColor={borderColor}
+            borderRadius="2xl"
+            gap={3}
+            p={4}
+          >
+            <Icon as={BsBoxSeam} color="orange.500" />
+            <Text fontWeight="800">{containers.length}</Text>
+            <Text color={mutedText}>containers in this shelf</Text>
+          </Flex>
+          <Flex
+            align="center"
+            bg={panelBg}
+            border="1px solid"
+            borderColor={borderColor}
+            borderRadius="2xl"
+            gap={3}
+            p={4}
+          >
+            <Icon as={FaFolder} color="yellow.500" />
+            <Text fontWeight="800">{folderCount}</Text>
+            <Text color={mutedText}>folders across containers</Text>
+          </Flex>
+        </SimpleGrid>
+
+        <FormActionModal
+          colorScheme="orange"
+          description="Create a container, like a box or section, inside the current shelf."
+          eyebrow="Container setup"
+          helperItems={[
+            "Use containers to divide a shelf into smaller areas.",
+            "Add a helpful description if this container has a specific purpose.",
+            "Folders can be added after the container is saved.",
+          ]}
+          icon={BsBoxSeam}
+          isOpen={showForm}
+          onClose={() => {
+            setShowForm(false);
             setEditingContainer(null);
           }}
+          title={editingContainer ? "Edit container" : "Create new container"}
         >
-          {showForm ? "Cancel" : "Container"}
-        </Button>
-      </HStack>
-
-      {/* Form */}
-      {showForm && (
-        <Box mb={6}>
           <AddContainerForm
-            onSave={editingContainer ? handleSaveUpdate : handleAddContainer}
             editData={editingContainer}
+            onSave={handleSaveContainer}
           />
-        </Box>
-      )}
+        </FormActionModal>
 
-      {/* Search */}
-      <HStack mb={6}>
-        <Input
-          placeholder="Search containers..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </HStack>
+        <Stack
+          align={{ base: "stretch", md: "center" }}
+          direction={{ base: "column", md: "row" }}
+          justify="space-between"
+          mt={8}
+          spacing={4}
+        >
+          <Box>
+            <Heading color={headingColor} size="md">
+              Containers
+            </Heading>
+            <Text color={mutedText} fontSize="sm">
+              {filteredContainers.length} container{filteredContainers.length === 1 ? "" : "s"} shown
+            </Text>
+          </Box>
 
-      <Box mt={6}>
+          <InputGroup maxW={{ base: "100%", md: "360px" }}>
+            <InputLeftElement pointerEvents="none">
+              <SearchIcon color="gray.400" />
+            </InputLeftElement>
+            <Input
+              bg={panelBg}
+              borderColor={borderColor}
+              borderRadius="xl"
+              placeholder="Search containers"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </InputGroup>
+        </Stack>
+
         {loading ? (
-          <Center>
-            <Spinner size="xl" color="teal.500" />
+          <Center minH="320px">
+            <Spinner color="orange.500" size="xl" />
           </Center>
         ) : filteredContainers.length > 0 ? (
-          <>
-            {Array.from(
-              { length: Math.ceil(filteredContainers.length / columns) },
-              (_, rowIndex) => {
-                const start = rowIndex * columns;
-                const rowItems = filteredContainers.slice(
-                  start,
-                  start + columns
-                );
-
-                const cardWidth =
-                  columns === 1 ? 280 : columns === 2 ? 280 : 300;
-                const spacing = columns === 1 ? 12 : 16;
-                const shelfWidth =
-                  rowItems.length * cardWidth + (rowItems.length - 1) * spacing;
-
-                const shelfVisualWidth = shelfWidth + 80; // extra plank length
-
-                return (
-                  <Flex
-                    key={rowIndex}
-                    justify="center"
-                    mb={4}
-                    position="relative"
-                  >
-                    {/* Filtered background image */}
-                    <Box
-                      position="absolute"
-                      top={0}
-                      left={0}
-                      right={0}
-                      bottom={0}
-                      bgImage="url('https://images.vexels.com/media/users/3/161071/isolated/preview/522782b07ea4b4cfccaf296c313de9b9-shelf-wood-flat.png')"
-                      bgRepeat="no-repeat"
-                      bgSize="100% 100%"
-                      filter="grayscale(100%) brightness(120%) contrast(100%)" // Adjusted filter
-                    borderRadius="md"
-                      zIndex={0}
-                    />
-
-                    {/* Foreground container content */}
-                    <Flex
-                      p={6}
-                      alignItems="center"
-                      minH="260px"
-                      w={`${shelfVisualWidth}px`}
-                      borderRadius="md"
-                      justify="center"
-                      position="relative"
-                      zIndex={1}
-                    >
-                      <SimpleGrid columns={rowItems.length} spacing={4}>
-                        {rowItems.map((container) => (
-                          <ContainerCard
-                            key={container.id}
-                            container={container}
-                            folders={container.folders || []}
-                            onUpdate={handleUpdateContainer}
-                            onDelete={confirmDeleteContainer}
-                          />
-                        ))}
-                      </SimpleGrid>
-                    </Flex>
-                  </Flex>
-                );
-              }
-            )}
-          </>
+          <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} mt={5} spacing={5}>
+            {filteredContainers.map((container) => (
+              <ContainerCard
+                key={container.id}
+                container={container}
+                folders={container.folders || []}
+                onDelete={handleDeleteContainer}
+                onUpdate={(item) => {
+                  setEditingContainer(item);
+                  setShowForm(true);
+                }}
+              />
+            ))}
+          </SimpleGrid>
         ) : (
-          <Center>
-            <Text color="gray.500">No containers found.</Text>
+          <Center
+            bg={panelBg}
+            border="1px dashed"
+            borderColor={borderColor}
+            borderRadius="2xl"
+            flexDirection="column"
+            mt={5}
+            minH="280px"
+            p={8}
+            textAlign="center"
+          >
+            <Icon as={search ? FaLayerGroup : BsBoxSeam} boxSize={10} color="orange.400" mb={4} />
+            <Heading size="md">No containers found</Heading>
+            <Text color={mutedText} maxW="420px" mt={2}>
+              {search
+                ? "Try a different search word."
+                : "Add a container inside this shelf to hold folders."}
+            </Text>
+            {!search && (
+              <Button colorScheme="orange" leftIcon={<AddIcon />} mt={5} onClick={openNewContainerForm}>
+                New container
+              </Button>
+            )}
           </Center>
         )}
       </Box>
-
-      {/* Confirm Delete AlertDialog */}
-      <AlertDialog
-        isOpen={isDeleteOpen}
-        leastDestructiveRef={cancelRef}
-        onClose={onDeleteClose}
-      >
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Delete Container
-            </AlertDialogHeader>
-            <AlertDialogBody>
-              Are you sure you want to delete this container? This action cannot
-              be undone.
-            </AlertDialogBody>
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onDeleteClose}>
-                Cancel
-              </Button>
-              <Button colorScheme="red" onClick={handleConfirmDelete} ml={3}>
-                Delete
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
     </Box>
   );
 };

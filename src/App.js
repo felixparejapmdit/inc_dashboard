@@ -96,6 +96,7 @@ import ATGFiles from "./pages/ATGFiles.js";
 // Plugins
 import LokalProfile from "./pages/LokalProfile.js";
 import DailyActivityReport from "./pages/DailyActivityReport.js";
+import WebDAVPage from "./pages/WebDAVPage.js";
 
 import ShelvesPage from "./pages/FileOrganizer/ShelvesPage.js";
 import ContainersPage from "./pages/FileOrganizer/ContainersPage.js";
@@ -248,6 +249,7 @@ function MainApp() {
           <Route path="/reminders" element={<Reminders />} />
           <Route path="/lokalprofile" element={<LokalProfile />} />
           <Route path="/daily-activity-report" element={<DailyActivityReport />} />
+          <Route path="/webdav" element={<WebDAVPage />} />
           <Route path="/Mastodon" element={<Mastodon />} />
           <Route path="/ldap-users/" element={<LdapUser />} />
 

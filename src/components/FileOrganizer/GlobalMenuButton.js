@@ -1,8 +1,7 @@
 // src/components/FileOrganizer/GlobalMenuButton.js
 
 import React from "react";
-// 💡 Add imports for routing hooks
-import { useNavigate, useLocation } from "react-router-dom"; 
+import { useLocation } from "react-router-dom"; 
 import {
   Menu,
   MenuButton,
@@ -18,11 +17,12 @@ import {
   DeleteIcon,
   ViewIcon,
 } from "@chakra-ui/icons";
-import { FaPaintBrush } from "react-icons/fa";
+import { FaDownload, FaPaintBrush, FaQrcode } from "react-icons/fa";
 
 const GlobalMenuButton = ({
   itemType = "shelf", // default
   onView,
+  onDownload,
   onEdit,
   onDelete,
   onShowQr,
@@ -32,8 +32,6 @@ const GlobalMenuButton = ({
   // 💡 NOTE: We don't strictly need 'item' here if onEdit is passed as a function 
   // that already has the item bound (e.g., onEdit={() => onUpdate(container)})
 }) => {
-  // 💡 Initialize routing hooks
-  const navigate = useNavigate();
   const location = useLocation(); 
 
   // Function to handle the edit action
@@ -48,15 +46,8 @@ const GlobalMenuButton = ({
         onEdit();
       }
     } else {
-      // Standard behavior: navigate to the edit page 
-      // NOTE: This assumes your edit routes follow a pattern like: /shelves/:id/edit
-      const editRoute = `/${itemType}s/edit`; 
-      
-      // Since the card's onEdit is probably what navigates here, we can just call it
-      // if onEdit is meant for navigation outside the tree, or use navigate directly:
-      // Since onEdit prop is provided, we prioritize using the prop logic:
       if (onEdit) {
-        onEdit(); // Assuming onEdit handles external navigation or logic outside the tree
+        onEdit();
       }
     }
   };
@@ -89,7 +80,19 @@ const GlobalMenuButton = ({
                 onView();
               }}
             >
-              View File
+              Open
+            </MenuItem>
+          )}
+
+          {itemType === "document" && onDownload && (
+            <MenuItem
+              icon={<FaDownload />}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDownload();
+              }}
+            >
+              Download
             </MenuItem>
           )}
 
@@ -131,7 +134,7 @@ const GlobalMenuButton = ({
           {/* QR Code Option */}
           <MenuDivider my={2} />
           <MenuItem
-            icon={<ViewIcon />}
+            icon={<FaQrcode />}
             onClick={(e) => {
               e.stopPropagation();
               if (generatedCode) {

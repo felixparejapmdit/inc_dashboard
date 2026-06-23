@@ -10,10 +10,16 @@ import {
   ModalCloseButton,
   Button,
   Text,
-  useDisclosure,
 } from "@chakra-ui/react";
 
-const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, title, message }) => {
+const DeleteConfirmModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  description,
+}) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
       <ModalOverlay />
@@ -21,7 +27,9 @@ const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, title, message }) => {
         <ModalHeader>{title || "Confirm Delete"}</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <Text>{message || "Are you sure you want to delete this item?"}</Text>
+          <Text>
+            {message || description || "Are you sure you want to delete this item?"}
+          </Text>
         </ModalBody>
         <ModalFooter>
           <Button variant="ghost" onClick={onClose}>

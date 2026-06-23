@@ -81,6 +81,35 @@ services:
     networks:
       - inc_network
 
+  directus:
+    image: directus/directus:11
+    container_name: inc_directus
+    restart: unless-stopped
+    ports:
+      - "8055:8055"
+    environment:
+      KEY: ${DIRECTUS_KEY:-replace-this-directus-key}
+      SECRET: ${DIRECTUS_SECRET:-replace-this-directus-secret}
+      ADMIN_EMAIL: ${DIRECTUS_ADMIN_EMAIL:-admin@example.com}
+      ADMIN_PASSWORD: ${DIRECTUS_ADMIN_PASSWORD:-change-this-password}
+      DB_CLIENT: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: ${MYSQL_DATABASE:-ppi}
+      DB_USER: ${MYSQL_USER:-root}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-}
+      PUBLIC_URL: ${DIRECTUS_PUBLIC_URL:-http://localhost:8055}
+      CORS_ENABLED: "true"
+      CORS_ORIGIN: "true"
+    volumes:
+      - ./directus/uploads:/directus/uploads
+      - ./directus/extensions:/directus/extensions
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - inc_network
+
   redis:
     image: redis:alpine
     container_name: inc_redis

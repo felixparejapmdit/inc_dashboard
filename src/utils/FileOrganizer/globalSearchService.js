@@ -2,10 +2,14 @@
 import directus from "./directusClient";
 
 const fieldMap = {
-  shelves: "id,name,generated_code",
-  containers: "id,name,shelf_id,folders.id,folders.name", // ✅ proper relation syntax
-  folders: "id,name,container_id,container.shelf_id",
-  documents: "id,title,folder_id",
+  Shelves: "id,name,description,generated_code,color,created_at",
+  Containers: "id,name,description,generated_code,shelf_id,created_at",
+  Folders: "id,name,description,generated_code,container_id,created_at",
+  Documents: "id,name,title,description,generated_code,folder_id,container_id,shelf_id,file_url,type,tags,created_at",
+  shelves: "id,name,description,generated_code,color,created_at",
+  containers: "id,name,description,generated_code,shelf_id,created_at",
+  folders: "id,name,description,generated_code,container_id,created_at",
+  documents: "id,name,title,description,generated_code,folder_id,container_id,shelf_id,file_url,type,tags,created_at",
 };
 
 export const getAllData = async (collection) => {

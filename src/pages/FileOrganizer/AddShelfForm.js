@@ -15,8 +15,6 @@ const AddShelfForm = ({ initialData,onSave, onCancel }) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
-  const formBg = useColorModeValue("white", "gray.800");
-  const border = useColorModeValue("1px solid #E2E8F0", "1px solid #4A5568");
   const inputBg = useColorModeValue("gray.50", "gray.700");
   const inputColor = useColorModeValue("gray.800", "white");
   const inputFocusBorder = useColorModeValue("teal.400", "teal.300");
@@ -24,9 +22,11 @@ const AddShelfForm = ({ initialData,onSave, onCancel }) => {
   // Prefill when editing
   useEffect(() => {
     if (initialData) {
-      setName(initialData.name);
+      setName(initialData.name || "");
+      setDescription(initialData.description || "");
     } else {
       setName("");
+      setDescription("");
     }
   }, [initialData]);
 
@@ -47,14 +47,7 @@ const AddShelfForm = ({ initialData,onSave, onCancel }) => {
     <Box
       as="form"
       onSubmit={handleSubmit}
-      mt={4}
-      p={6}
-      borderRadius="lg"
-      bg={formBg}
-      boxShadow="lg"
-      border={border}
-      maxW="400px"
-      mx="auto"
+      w="100%"
     >
       <Stack spacing={5}>
         <FormControl isRequired>
@@ -102,6 +95,7 @@ const AddShelfForm = ({ initialData,onSave, onCancel }) => {
             onClick={onCancel}
             size="md"
             flex="1"
+            display={onCancel ? "inline-flex" : "none"}
           >
             Cancel
           </Button>

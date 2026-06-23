@@ -46,6 +46,7 @@ import {
   FiSliders,
   FiArrowLeft,
   FiBarChart2,
+  FiCloud,
   FiFileText,
   FiFolder,
 } from "react-icons/fi";
@@ -55,6 +56,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { usePermissionContext } from "../contexts/PermissionContext";
 
 import Tutorial from "../components/Tutorial";
+
+const WEB_DAV_ROUTE = "/webdav";
 
 // Map labels to icons
 const getIconForLabel = (label) => {
@@ -277,7 +280,8 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
     if (
       path === "/lokalprofile" ||
       path === "/atgfiles" ||
-      path === "/atg-files"
+      path === "/atg-files" ||
+      path === WEB_DAV_ROUTE
     ) {
       setIsPluginsExpanded(true);
     }
@@ -1008,6 +1012,15 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   isExpanded={isExpanded}
                   onClick={() => handleItemClick("/atgfiles")}
                   isActive={location.pathname === "/atgfiles"}
+                />
+              )}
+              {hasPermission("webdav.view") && (
+                <SidebarItem
+                  icon={FiCloud}
+                  label="WebDAV"
+                  isExpanded={isExpanded}
+                  onClick={() => handleItemClick(WEB_DAV_ROUTE)}
+                  isActive={location.pathname === WEB_DAV_ROUTE}
                 />
               )}
             </VStack>

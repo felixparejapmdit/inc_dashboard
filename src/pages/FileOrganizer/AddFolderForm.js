@@ -14,8 +14,7 @@ const AddFolderForm = ({ onSave, editData, containerId }) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
-  const inputBg = useColorModeValue("orange.50", "gray.700");
-  const formBg = useColorModeValue("white", "gray.800");
+  const inputBg = useColorModeValue("yellow.50", "gray.700");
 
   useEffect(() => {
     if (editData) {
@@ -49,13 +48,7 @@ const AddFolderForm = ({ onSave, editData, containerId }) => {
     <Box
       as="form"
       onSubmit={handleSubmit}
-      mt={4}
-      p={6}
-      borderRadius="lg"
-      bg={formBg}
-      boxShadow="lg"
-      maxW="400px"
-      mx="auto"
+      w="100%"
     >
       <Stack spacing={4}>
         <FormControl isRequired>
@@ -78,7 +71,7 @@ const AddFolderForm = ({ onSave, editData, containerId }) => {
           />
         </FormControl>
 
-        <Button type="submit" colorScheme="teal">
+        <Button type="submit" colorScheme="yellow">
           {editData ? "Update Folder" : "Save Folder"}
         </Button>
       </Stack>

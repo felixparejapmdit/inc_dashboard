@@ -1,26 +1,38 @@
 import React, { useState } from "react";
-import { useNavigate,useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
+  Badge,
   Box,
+  Divider,
+  Flex,
+  HStack,
+  Icon,
   Text,
   VStack,
-  Flex,
-  Divider,
-  Icon,
   useColorModeValue,
 } from "@chakra-ui/react";
 import {
   FaFileAlt,
-  FaFilePdf,
-  FaFileWord,
+  FaFileArchive,
   FaFileExcel,
   FaFileImage,
-  FaFileArchive,
+  FaFilePdf,
+  FaFileWord,
   FaFolder,
 } from "react-icons/fa";
-import GlobalMenuButton from "../../components/FileOrganizer/GlobalMenuButton";
 import DeleteConfirmModal from "../../components/FileOrganizer/DeleteConfirmModal";
+import GlobalMenuButton from "../../components/FileOrganizer/GlobalMenuButton";
 import QRCodeModal from "../../components/FileOrganizer/QRCodeModal";
+
+const getFileIcon = (filename = "") => {
+  const ext = String(filename).split(".").pop().toLowerCase();
+  if (ext === "pdf") return { icon: FaFilePdf, color: "red.500" };
+  if (["doc", "docx"].includes(ext)) return { icon: FaFileWord, color: "blue.500" };
+  if (["xls", "xlsx"].includes(ext)) return { icon: FaFileExcel, color: "green.500" };
+  if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) return { icon: FaFileImage, color: "yellow.500" };
+  if (["zip", "rar", "7z"].includes(ext)) return { icon: FaFileArchive, color: "purple.500" };
+  return { icon: FaFileAlt, color: "gray.500" };
+};
 
 const FolderCard = ({
   folder,
@@ -32,206 +44,154 @@ const FolderCard = ({
   onClick,
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isQROpen, setIsQROpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-  const location = useLocation(); // 👈 Initialize useLocation
-  // Theming
-  const cardBg = useColorModeValue("white", "gray.700");
-  const cardBorder = useColorModeValue("gray.200", "gray.600");
-  const folderHeaderBg = useColorModeValue("yellow.400", "yellow.600");
-  const folderTabBg = useColorModeValue("yellow.500", "yellow.700");
-  const docSectionBg = useColorModeValue("gray.50", "gray.800");
-  const nameColor = useColorModeValue("gray.800", "white");
-  const docColor = useColorModeValue("gray.600", "gray.300");
-  const emptyColor = useColorModeValue("gray.400", "gray.500");
+  const bg = useColorModeValue("white", "gray.800");
+  const panelBg = useColorModeValue("yellow.50", "gray.900");
+  const border = useColorModeValue("yellow.200", "gray.700");
+  const strongBorder = useColorModeValue("yellow.400", "yellow.500");
+  const textColor = useColorModeValue("gray.900", "white");
+  const mutedText = useColorModeValue("gray.600", "gray.400");
+  const accent = useColorModeValue("yellow.600", "yellow.300");
 
-  const handleCardClick1 = (e) => {
-    if (!e.target.closest("button")) {
-      navigate(
-        `/shelves/${shelfId}/containers/${containerId}/folders/${folder.id}/documents`
-      );
-    }
-  };
+  const handleCardClick = (event) => {
+    if (event.target.closest("button,[role=menuitem]")) return;
 
+    if (location.pathname.includes("/file-organizer/tree")) {
+      onClick?.(folder);
+      return;
+    }
 
-  const handleCardClick = (e) => {
-    if (!e.target.closest("button")) {
-      if (location.pathname.includes("/file-organizer/tree")) {
-        // This is the line that gets called:
-        onClick(folder); 
-      } else {
-        navigate(`/shelves/${shelfId}/containers/${containerId}/folders/${folder.id}/documents`);
-      }
-    }
-};
-
-  // Pick icon based on file extension, with a safety check
-  const getFileIcon = (filename) => {
-    if (!filename || typeof filename !== 'string') {
-      return <FaFileAlt color="#4A5568" />;
-    }
-    const ext = filename.split(".").pop().toLowerCase();
-    switch (ext) {
-      case "pdf":
-        return <FaFilePdf color="#E53E3E" />;
-      case "doc":
-      case "docx":
-        return <FaFileWord color="#3182CE" />;
-      case "xls":
-      case "xlsx":
-        return <FaFileExcel color="#38A169" />;
-      case "jpg":
-      case "jpeg":
-      case "png":
-      case "gif":
-        return <FaFileImage color="#D69E2E" />;
-      case "zip":
-      case "rar":
-        return <FaFileArchive color="#805AD5" />;
-      default:
-        return <FaFileAlt color="#4A5568" />;
-    }
+    navigate(`/shelves/${shelfId}/containers/${containerId}/folders/${folder.id}/documents`);
   };
 
   return (
     <>
       <Box
-        borderWidth="1px"
-        borderColor={cardBorder}
-        borderRadius="xl"
-        bg={cardBg}
-        boxShadow="md"
-        transition="all 0.2s"
-        _hover={{ boxShadow: "xl", transform: "translateY(-4px)" }}
+        bg={bg}
+        border="1px solid"
+        borderColor={border}
+        borderRadius="2xl"
+        boxShadow="0 16px 38px rgba(113, 63, 18, 0.08)"
         cursor="pointer"
-        onClick={handleCardClick}
-        display="flex"
-        flexDirection="column"
         h="100%"
+        minH="245px"
+        onClick={handleCardClick}
+        overflow="hidden"
         position="relative"
+        transition="all 0.2s ease"
+        _hover={{
+          borderColor: strongBorder,
+          boxShadow: "0 22px 48px rgba(113, 63, 18, 0.16)",
+          transform: "translateY(-3px)",
+        }}
       >
-        {/* Folder tab */}
-        <Box
-          bg={folderTabBg}
-          w="40%"
-          h="20px"
-          borderTopRadius="md"
-          ml={4}
-          mt={-2}
-          zIndex={2}
-        />
+        <Box bg={accent} borderTopRadius="2xl" h="14px" ml={5} mt={0} w="42%" />
 
-        {/* Folder header (lid effect) */}
-        <Flex
-          bg={folderHeaderBg}
-          p={3}
-          borderTopRadius="xl"
-          align="center"
-          justify="center"
-          flexShrink={0}
-          position="relative"
-        >
-          <Box position="absolute" top={2} right={2} zIndex={3}>
+        <Flex align="flex-start" justify="space-between" gap={3} p={5} pt={4} pb={4}>
+          <HStack align="flex-start" minW={0} spacing={3}>
+            <Flex
+              align="center"
+              bg={panelBg}
+              border="1px solid"
+              borderColor={border}
+              borderRadius="xl"
+              h="46px"
+              justify="center"
+              w="46px"
+            >
+              <Icon as={FaFolder} boxSize={6} color={accent} />
+            </Flex>
+            <Box minW={0}>
+              <Text color={textColor} fontSize="lg" fontWeight="800" noOfLines={1}>
+                {folder.name}
+              </Text>
+              <Text color={mutedText} fontSize="sm" mt={1} noOfLines={2}>
+                {folder.description || "A folder for related documents."}
+              </Text>
+            </Box>
+          </HStack>
+
+          <Box onClick={(event) => event.stopPropagation()}>
             <GlobalMenuButton
-              onEdit={() => onUpdate(folder)}
+              itemType="folder"
+              generatedCode={folder.generated_code}
+              onEdit={() => onUpdate?.(folder)}
               onDelete={() => setIsDeleteOpen(true)}
               onGenerateQr={() => setIsQROpen(true)}
-              itemType="folder"
+              onShowQr={() => setIsQROpen(true)}
             />
           </Box>
-          <Flex align="center" gap={2}>
-            <Icon as={FaFolder} boxSize={5} color="gray.700" />
-            <Text
-              fontWeight="bold"
-              fontSize="md"
-              color={nameColor}
-              noOfLines={1}
-              textAlign="center"
-              px={2}
-            >
-              {folder.name}
-            </Text>
-          </Flex>
         </Flex>
 
-        <Divider borderColor={cardBorder} />
+        <HStack px={5} pb={4}>
+          <Badge borderRadius="full" colorScheme="yellow" px={3} py={1}>
+            {documents.length} document{documents.length === 1 ? "" : "s"}
+          </Badge>
+          {folder.generated_code && (
+            <Badge borderRadius="full" colorScheme="gray" px={3} py={1}>
+              {folder.generated_code}
+            </Badge>
+          )}
+        </HStack>
 
-        {/* Document preview section - now always visible */}
-        <VStack
-          bg={docSectionBg}
-          p={4}
-          spacing={2}
-          flex="1"
-          align="stretch"
-          borderBottomRadius="xl"
-          overflow="hidden"
-        >
-          {documents && documents.length > 0 ? (
+        <Divider borderColor={border} />
+
+        <VStack align="stretch" bg={panelBg} minH="108px" p={5} spacing={2}>
+          {documents.length > 0 ? (
             <>
-              {documents.slice(0, 3).map((doc) => (
-                <Flex key={doc.id} align="center" gap={2}>
-                  <Icon boxSize={4}>{getFileIcon(doc.file_url)}</Icon>
-                  <Text
-                    fontSize="sm"
-                    color={docColor}
-                    noOfLines={1}
-                    flex="1"
-                    title={doc.name}
-                  >
-                    {doc.name}
-                  </Text>
-                </Flex>
-              ))}
+              {documents.slice(0, 3).map((document) => {
+                const fileIcon = getFileIcon(document.file_url || document.name);
+                return (
+                  <Flex key={document.id} align="center" gap={2}>
+                    <Icon as={fileIcon.icon} color={fileIcon.color} />
+                    <Text fontSize="sm" fontWeight="600" noOfLines={1}>
+                      {document.name}
+                    </Text>
+                  </Flex>
+                );
+              })}
               {documents.length > 3 && (
-                <Text
-                  fontSize="xs"
-                  color={emptyColor}
-                  fontWeight="medium"
-                  textAlign="right"
-                >
-                  +{documents.length - 3} more
+                <Text color={mutedText} fontSize="sm" fontWeight="600" textAlign="right">
+                  +{documents.length - 3} more documents
                 </Text>
               )}
             </>
           ) : (
             <Flex
               align="center"
-              justify="center"
-              h="100%"
-              minH="80px"
+              border="1px dashed"
+              borderColor={border}
+              borderRadius="xl"
+              color={mutedText}
               direction="column"
               gap={2}
+              justify="center"
+              minH="84px"
+              textAlign="center"
             >
-              <Icon as={FaFileAlt} boxSize={8} color={emptyColor} opacity={0.5} />
-              <Text
-                fontSize="sm"
-                color={emptyColor}
-                fontStyle="italic"
-                textAlign="center"
-              >
-                No documents yet
-              </Text>
+              <Icon as={FaFileAlt} boxSize={6} />
+              <Text fontSize="sm">No documents yet</Text>
             </Flex>
           )}
         </VStack>
       </Box>
 
-      {/* QR Code Modal */}
       <QRCodeModal
         isOpen={isQROpen}
         onClose={() => setIsQROpen(false)}
-        value={folder.id.toString()}
-        code={folder.generated_code}
-        title={folder.name}
+        code={folder.generated_code || String(folder.id)}
+        title={`QR Code for ${folder.name}`}
+        name={folder.name}
       />
 
-      {/* Delete Confirmation Modal */}
       <DeleteConfirmModal
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
         onConfirm={() => {
-          onDelete && onDelete(folder.id);
+          onDelete?.(folder.id);
           setIsDeleteOpen(false);
         }}
         title="Delete Folder"

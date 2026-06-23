@@ -61,6 +61,13 @@ sequelize
       console.error("❌ Group application type visibility migration failed:", migErr);
     }
     try {
+      const seedWebDavPluginPermission = require("../scripts/seed_webdav_plugin_permission");
+      await seedWebDavPluginPermission(false);
+      console.log("✅ WebDAV plugin permission seed completed successfully.");
+    } catch (seedErr) {
+      console.error("❌ WebDAV plugin permission seed failed:", seedErr);
+    }
+    try {
       const count = await TaskCategory.count();
       if (count === 0) {
         await TaskCategory.bulkCreate([
