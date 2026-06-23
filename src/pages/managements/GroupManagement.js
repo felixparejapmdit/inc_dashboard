@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -37,7 +37,6 @@ import {
   Spinner,
   Center,
   FormControl,
-  FormLabel,
   Skeleton,
   SkeletonCircle,
   SkeletonText
@@ -101,9 +100,12 @@ const GroupManagement = () => {
   const [isUserGroupModalOpen, setIsUserGroupModalOpen] = useState(false);
   const [groupUsers, setGroupUsers] = useState([]);
   const [permissions, setPermissions] = useState([]);
+  const [applicationTypes, setApplicationTypes] = useState([]);
   const [newGroup, setNewGroup] = useState({ name: "", description: "" });
   const [editingGroup, setEditingGroup] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isApplicationTypesLoading, setIsApplicationTypesLoading] = useState(false);
+  const [savingApplicationTypeId, setSavingApplicationTypeId] = useState(null);
 
   const toast = useToast();
   const { fetchPermissions: refreshGlobalPermissions } = usePermissionContext();
@@ -159,6 +161,20 @@ const GroupManagement = () => {
     );
   };
 
+  const fetchGroupApplicationTypes = (groupId) => {
+    setIsApplicationTypesLoading(true);
+    fetchData(
+      `groups/${groupId}/application-types`,
+      (data) => setApplicationTypes(Array.isArray(data) ? data : []),
+      (err) => toast({ title: "Error loading app visibility", description: err, status: "error" }),
+      "Failed to load application visibility",
+      null,
+      () => setIsApplicationTypesLoading(false)
+    ).catch(() => {
+      setApplicationTypes([]);
+    });
+  };
+
   const fetchGroupUsers = (groupId) => {
     fetchData(
       `groups/${groupId}/users`,
@@ -168,16 +184,36 @@ const GroupManagement = () => {
     );
   };
 
+  const clearSelectedGroup = () => {
+    setSelectedGroup(null);
+    setIsAddingOrEditing(null);
+    setPermissions([]);
+    setApplicationTypes([]);
+    setSavingApplicationTypeId(null);
+  };
+
+  const loadGroupContext = (group) => {
+    setSelectedGroup(group);
+    setIsAddingOrEditing("edit");
+    fetchGroupUsers(group.id);
+    fetchPermissions(group.id);
+    fetchGroupApplicationTypes(group.id);
+  };
+
   // Handlers preserved
   const handleShowUsers = (group) => {
-    setSelectedGroup(group);
-    fetchGroupUsers(group.id);
+    loadGroupContext(group);
     setIsUserGroupModalOpen(true);
   };
 
   const handleSelectGroup = (group) => {
-    setSelectedGroup(group);
-    fetchGroupUsers(group.id);
+    const isSameGroup = selectedGroup?.id === group.id && isAddingOrEditing !== "add";
+    if (isSameGroup) {
+      clearSelectedGroup();
+      return;
+    }
+
+    loadGroupContext(group);
   };
 
   const handlePermissionChange = async (groupId, permissionId, categoryId, accessrights, skipRefresh = false) => {
@@ -201,6 +237,45 @@ const GroupManagement = () => {
     }
   };
 
+  const handleApplicationTypeVisibilityChange = async (applicationType, isVisible) => {
+    if (!selectedGroup) return;
+
+    const previousApplicationTypes = applicationTypes;
+    const nextValue = isVisible ? 1 : 0;
+
+    setSavingApplicationTypeId(applicationType.id);
+    setApplicationTypes((prev) =>
+      prev.map((type) =>
+        type.id === applicationType.id ? { ...type, is_visible: nextValue } : type
+      )
+    );
+
+    try {
+      await putData(
+        `groups/${selectedGroup.id}/application-types`,
+        applicationType.id,
+        { is_visible: nextValue },
+        "Failed to save application visibility"
+      );
+
+      toast({
+        title: isVisible ? "Application type shown" : "Application type hidden",
+        description: `${applicationType.name} updated for ${selectedGroup.name}.`,
+        status: "success",
+        duration: 2000,
+      });
+    } catch (error) {
+      setApplicationTypes(previousApplicationTypes);
+      toast({
+        title: "Error saving app visibility",
+        description: error.message,
+        status: "error",
+      });
+    } finally {
+      setSavingApplicationTypeId(null);
+    }
+  };
+
   const handleAddGroup = async () => {
     if (!newGroup.name) {
       toast({ title: "Group name is required", status: "warning" });
@@ -210,7 +285,7 @@ const GroupManagement = () => {
       await postData("groups", newGroup, "Failed to add group");
       fetchGroups();
       setNewGroup({ name: "", description: "" });
-      setIsAddingOrEditing(null);
+      clearSelectedGroup();
       toast({ title: "Group added", status: "success" });
     } catch (error) {
       toast({ title: "Error adding group", description: error.message, status: "error" });
@@ -232,8 +307,7 @@ const GroupManagement = () => {
       await putData("groups", editingGroup.id, editingGroup, "Failed to update group");
       fetchGroups();
       setEditingGroup(null);
-      setIsAddingOrEditing(null); // Close edit mode
-      setSelectedGroup(null); // Close panel
+      clearSelectedGroup();
       toast({ title: "Group updated", status: "success" });
     } catch (error) {
       toast({ title: "Error updating group", description: error.message, status: "error" });
@@ -245,6 +319,9 @@ const GroupManagement = () => {
     try {
       await deleteData("groups", group.id, "Failed to delete group");
       fetchGroups();
+      if (selectedGroup?.id === group.id) {
+        clearSelectedGroup();
+      }
       toast({ title: "Group deleted", status: "success" });
     } catch (error) {
       toast({ title: "Error deleting group", description: error.message, status: "error" });
@@ -291,10 +368,13 @@ const GroupManagement = () => {
                 colorScheme="cyan"
                 color="white"
                 onClick={() => {
-                  setIsAddingOrEditing("add");
                   setNewGroup({ name: "", description: "" });
+                  setEditingGroup(null);
                   setPermissions([]);
+                  setApplicationTypes([]);
+                  setSavingApplicationTypeId(null);
                   setSelectedGroup(null);
+                  setIsAddingOrEditing("add");
                 }}
                 size="lg"
                 borderRadius="xl"
@@ -350,6 +430,73 @@ const GroupManagement = () => {
               </MotionBox>
             ))}
           </SimpleGrid>
+        )}
+
+        {selectedGroup && isAddingOrEditing !== "add" && (
+          <MotionBox
+            position="sticky"
+            top={{ base: 3, md: 4 }}
+            zIndex={20}
+            mb={6}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            bg={cardBg}
+            borderRadius="2xl"
+            shadow="lg"
+            border="1px solid"
+            borderColor="cyan.200"
+            overflow="hidden"
+          >
+            <Flex
+              direction={{ base: "column", md: "row" }}
+              align={{ base: "stretch", md: "center" }}
+              justify="space-between"
+              gap={4}
+              p={{ base: 4, md: 5 }}
+              bgGradient="linear(to-r, cyan.50, blue.50)"
+            >
+              <HStack spacing={4}>
+                <Avatar
+                  icon={<Icon as={getGroupIcon(selectedGroup.name)} size={20} />}
+                  bg="cyan.500"
+                  color="white"
+                  size="sm"
+                  borderRadius="lg"
+                />
+                <Box>
+                  <Text fontSize="xs" fontWeight="black" color="cyan.600" textTransform="uppercase" letterSpacing="widest">
+                    Selected group
+                  </Text>
+                  <Heading size="md" color="gray.800">
+                    {selectedGroup.name}
+                  </Heading>
+                  <Text fontSize="sm" color="gray.600">
+                    Manage permissions and application visibility below.
+                  </Text>
+                </Box>
+              </HStack>
+
+              <HStack spacing={3} justify={{ base: "space-between", md: "end" }} flexWrap="wrap">
+                <Badge colorScheme="cyan" borderRadius="full" px={3} py={1}>
+                  {permissions.length} permission group{permissions.length === 1 ? "" : "s"}
+                </Badge>
+                <Badge colorScheme="green" borderRadius="full" px={3} py={1}>
+                  {applicationTypes.filter((type) => Number(type.is_visible) === 1).length} app type
+                  {applicationTypes.filter((type) => Number(type.is_visible) === 1).length === 1 ? "" : "s"} visible
+                </Badge>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  colorScheme="cyan"
+                  leftIcon={<X size={16} />}
+                  onClick={clearSelectedGroup}
+                  borderRadius="xl"
+                >
+                  Hide list
+                </Button>
+              </HStack>
+            </Flex>
+          </MotionBox>
         )}
 
         {/* Main Content Card */}
@@ -435,15 +582,7 @@ const GroupManagement = () => {
                           cursor="pointer"
                           onClick={() => {
                             if (!isEditingThis) {
-                              if (isSelected) {
-                                // Toggle off if already selected and not editing
-                                setSelectedGroup(null);
-                                setIsAddingOrEditing(null);
-                              } else {
-                                setSelectedGroup(group);
-                                setIsAddingOrEditing("edit"); // Show permissions view
-                                fetchPermissions(group.id);
-                              }
+                              handleSelectGroup(group);
                             }
                           }}
                           borderLeft={isSelected ? "4px solid" : "4px solid transparent"}
@@ -474,7 +613,7 @@ const GroupManagement = () => {
                                     {group.name}
                                   </Text>
                                   <Text fontSize="xs" color={isSelected ? "cyan.500" : "gray.500"}>
-                                    Click to see permissions
+                                    Click to manage permissions and apps
                                   </Text>
                                 </VStack>
                               </HStack>
@@ -500,7 +639,7 @@ const GroupManagement = () => {
                               {isEditingThis ? (
                                 <>
                                   <IconButton icon={<Save size={16} />} colorScheme="green" size="sm" onClick={(e) => { e.stopPropagation(); handleUpdateGroup(); }} />
-                                  <IconButton icon={<X size={16} />} size="sm" onClick={(e) => { e.stopPropagation(); setEditingGroup(null); setIsAddingOrEditing(null); setSelectedGroup(null); }} />
+                                  <IconButton icon={<X size={16} />} size="sm" onClick={(e) => { e.stopPropagation(); setEditingGroup(null); clearSelectedGroup(); }} />
                                 </>
                               ) : (
                                 <>
@@ -521,10 +660,8 @@ const GroupManagement = () => {
                                       colorScheme="cyan"
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        setSelectedGroup(group);
                                         setEditingGroup(group);
-                                        setIsAddingOrEditing("edit");
-                                        fetchPermissions(group.id);
+                                        loadGroupContext(group);
                                       }}
                                     />
                                   </Tooltip>
@@ -652,6 +789,116 @@ const GroupManagement = () => {
             </Table>
           </Box>
         </Box>
+
+        {selectedGroup && isAddingOrEditing !== "add" && (
+          <MotionBox
+            mt={8}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            bg={cardBg}
+            borderRadius="3xl"
+            shadow="sm"
+            border="1px solid"
+            borderColor={borderColor}
+            overflow="hidden"
+          >
+            <Flex
+              direction={{ base: "column", md: "row" }}
+              justify="space-between"
+              align={{ base: "start", md: "center" }}
+              gap={4}
+              p={6}
+              bg="cyan.50"
+              borderBottom="1px solid"
+              borderColor="cyan.100"
+            >
+              <HStack spacing={4}>
+                <Box p={3} bg="white" borderRadius="xl" shadow="sm">
+                  <Icon as={CheckCircle2} boxSize={6} color="cyan.500" />
+                </Box>
+                <Box>
+                  <Heading size="md" color="gray.800">
+                    Application visibility: {selectedGroup.name}
+                  </Heading>
+                  <Text fontSize="sm" color="gray.600">
+                    Choose which application types this group can see.
+                  </Text>
+                </Box>
+              </HStack>
+              <Badge colorScheme="cyan" borderRadius="full" px={3} py={1}>
+                {applicationTypes.filter((type) => Number(type.is_visible) === 1).length} of{" "}
+                {applicationTypes.length} visible
+              </Badge>
+            </Flex>
+
+            <Box p={6}>
+              {isApplicationTypesLoading ? (
+                <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} spacing={4}>
+                  {[1, 2, 3].map((item) => (
+                    <Box key={item} p={4} borderRadius="xl" border="1px solid" borderColor={borderColor}>
+                      <Skeleton height="22px" mb={3} />
+                      <SkeletonText noOfLines={2} spacing={2} />
+                    </Box>
+                  ))}
+                </SimpleGrid>
+              ) : applicationTypes.length === 0 ? (
+                <Center py={12} flexDir="column">
+                  <Icon as={AlertCircle} color="gray.300" boxSize={10} mb={3} />
+                  <Text color="gray.500">No application types found.</Text>
+                </Center>
+              ) : (
+                <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} spacing={4}>
+                  {applicationTypes.map((applicationType) => {
+                    const isVisible = Number(applicationType.is_visible) === 1;
+                    const isSaving = savingApplicationTypeId === applicationType.id;
+
+                    return (
+                      <Box
+                        key={applicationType.id}
+                        p={4}
+                        borderRadius="xl"
+                        border="1px solid"
+                        borderColor={isVisible ? "cyan.200" : borderColor}
+                        bg={isVisible ? "cyan.50" : "white"}
+                        transition="all 0.2s"
+                      >
+                        <Flex justify="space-between" align="start" gap={3}>
+                          <Box>
+                            <HStack align="center">
+                              <Checkbox
+                                colorScheme="cyan"
+                                isChecked={isVisible}
+                                isDisabled={savingApplicationTypeId !== null}
+                                onChange={(event) =>
+                                  handleApplicationTypeVisibilityChange(
+                                    applicationType,
+                                    event.target.checked
+                                  )
+                                }
+                              >
+                                <Text fontWeight="bold" color="gray.800">
+                                  {applicationType.name}
+                                </Text>
+                              </Checkbox>
+                              {isSaving && <Spinner size="sm" color="cyan.500" />}
+                            </HStack>
+                            <Text mt={2} fontSize="sm" color="gray.500">
+                              {Number(applicationType.app_count) || 0} app
+                              {Number(applicationType.app_count) === 1 ? "" : "s"} in this type
+                            </Text>
+                          </Box>
+                          <Badge colorScheme={isVisible ? "green" : "gray"} borderRadius="full">
+                            {isVisible ? "Visible" : "Hidden"}
+                          </Badge>
+                        </Flex>
+                      </Box>
+                    );
+                  })}
+                </SimpleGrid>
+              )}
+            </Box>
+          </MotionBox>
+        )}
       </Container>
 
       {/* Users Modal */}

@@ -7,6 +7,8 @@ const UserGroupMapping = require("./UserGroupMapping");
 const PermissionDefinition = require("./PermissionDefinition");
 const PermissionCategory = require("./PermissionCategory");
 const GroupPermissionMapping = require("./GroupPermissionMapping");
+const ApplicationType = require("./ApplicationType");
+const GroupApplicationTypeMapping = require("./GroupApplicationTypeMapping");
 const PersonnelHistory = require("./PersonnelHistory");
 const Reminder = require("./Reminder");
 const Suguan = require("./Suguan");
@@ -22,6 +24,7 @@ const TaskCategory = require("./TaskCategory");
 const Task = require("./Task");
 const AccomplishedLog = require("./AccomplishedLog");
 const DailyActivityReport = require("./DailyActivityReport");
+const ATGFile = require("./ATGFile");
 
 // Sync database
 sequelize
@@ -42,6 +45,20 @@ sequelize
       console.log("✅ Apps icon migration completed successfully.");
     } catch (migErr) {
       console.error("❌ Apps icon migration failed:", migErr);
+    }
+    try {
+      const migrateAtgFiles = require("../scripts/migrate_atg_files_folders");
+      await migrateAtgFiles(false);
+      console.log("✅ ATG files migration completed successfully.");
+    } catch (migErr) {
+      console.error("❌ ATG files migration failed:", migErr);
+    }
+    try {
+      const migrateGroupApplicationTypes = require("../scripts/migrate_group_application_types");
+      await migrateGroupApplicationTypes(false);
+      console.log("✅ Group application type visibility migration completed successfully.");
+    } catch (migErr) {
+      console.error("❌ Group application type visibility migration failed:", migErr);
     }
     try {
       const count = await TaskCategory.count();
@@ -101,6 +118,26 @@ GroupPermissionMapping.belongsTo(PermissionCategory, {
   as: "category",
 });
 
+Group.hasMany(GroupApplicationTypeMapping, {
+  foreignKey: "group_id",
+  as: "applicationTypeMappings",
+});
+
+GroupApplicationTypeMapping.belongsTo(Group, {
+  foreignKey: "group_id",
+  as: "group",
+});
+
+ApplicationType.hasMany(GroupApplicationTypeMapping, {
+  foreignKey: "application_type_id",
+  as: "groupMappings",
+});
+
+GroupApplicationTypeMapping.belongsTo(ApplicationType, {
+  foreignKey: "application_type_id",
+  as: "applicationType",
+});
+
 // FaceRecognition associations
 Personnel.hasOne(FaceRecognition, { foreignKey: "personnel_id", as: "faceRecognition" });
 FaceRecognition.belongsTo(Personnel, { foreignKey: "personnel_id", as: "personnel" });
@@ -134,6 +171,8 @@ module.exports = {
   PermissionDefinition,
   PermissionCategory,
   GroupPermissionMapping,
+  ApplicationType,
+  GroupApplicationTypeMapping,
   LoginAudit,
   Reminder,
   File,
@@ -149,4 +188,5 @@ module.exports = {
   AccomplishedLog,
   DailyActivityReport,
   Suguan,
+  ATGFile,
 };

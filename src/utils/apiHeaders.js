@@ -1,11 +1,16 @@
 // src/utils/apiHeaders.js
 
-export const getAuthHeaders = () => {
+export const getAuthHeaders = ({ contentType } = {}) => {
   const authToken = localStorage.getItem("authToken");
-  return {
+  const headers = {
     Authorization: `Bearer ${authToken}`,
-    "Content-Type": "application/json", // optional: add if you post/put json
   };
+
+  if (contentType) {
+    headers["Content-Type"] = contentType;
+  }
+
+  return headers;
 };
 
 

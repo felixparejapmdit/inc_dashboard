@@ -108,7 +108,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
   const [isLogoutAlertOpen, setIsLogoutAlertOpen] = useState(false); // State for the alert dialog
   const bgGradient = useColorModeValue(
     "linear(to-r, gray.50, gray.100)",
-    "linear(to-r, gray.800, gray.900)"
+    "linear(to-r, gray.800, gray.900)",
   );
   const iconColor = useColorModeValue("gray.600", "gray.300");
   const cancelRef = useRef(); // Reference for cancel button in the alert dialog
@@ -136,11 +136,14 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
     const fetchProfileImage = async (personnelId) => {
       if (!personnelId) return null;
       try {
-        const response = await fetch(`/api/personnel_images/2x2/${personnelId}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-          }
-        });
+        const response = await fetch(
+          `/api/personnel_images/2x2/${personnelId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            },
+          },
+        );
         if (response.ok) {
           const json = await response.json();
           if (json.success && json.data && json.data.image_url) {
@@ -170,14 +173,15 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         if (response.ok) {
           const data = await response.json();
           // Decide on avatar based on gender if no custom avatar is set
           const gender = (data.gender || "Male").toLowerCase();
-          const defaultAvatar = gender === "male" ? "/male-avatar.png" : "/female-avatar.png";
+          const defaultAvatar =
+            gender === "male" ? "/male-avatar.png" : "/female-avatar.png";
 
           let avatarUrl = defaultAvatar;
 
@@ -224,8 +228,25 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
     const path = location.pathname;
 
     // Check Settings
-    const settingsPaths = ["/application", "/managements/applicationtype", "/managements/categorymanagement", "/settings/drag-drop", "/add-events", "/managements/locations", "/managements/groupmanagement", "/managements/permissionmanagement", "/user", "/tempdeleted-users", "/managements/phonelocations", "/managements/phonedirectory", "/managements/loginaudits", "/reminders", "/add-suguan", "/ldap-users"];
-    if (settingsPaths.some(p => path.startsWith(p))) {
+    const settingsPaths = [
+      "/application",
+      "/managements/applicationtype",
+      "/managements/categorymanagement",
+      "/settings/drag-drop",
+      "/add-events",
+      "/managements/locations",
+      "/managements/groupmanagement",
+      "/managements/permissionmanagement",
+      "/user",
+      "/tempdeleted-users",
+      "/managements/phonelocations",
+      "/managements/phonedirectory",
+      "/managements/loginaudits",
+      "/reminders",
+      "/add-suguan",
+      "/ldap-users",
+    ];
+    if (settingsPaths.some((p) => path.startsWith(p))) {
       setIsSettingsExpanded(true);
     }
 
@@ -235,13 +256,29 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
     }
 
     // Check Management
-    const managementPaths = ["/managements/citizenships", "/managements/contact_infos", "/managements/departments", "/managements/designations", "/managements/districts", "/managements/housingmanagement", "/managements/government_issued_ids", "/managements/languages", "/managements/nationalities", "/managements/sections", "/managements/subsections"];
-    if (managementPaths.some(p => path.startsWith(p))) {
+    const managementPaths = [
+      "/managements/citizenships",
+      "/managements/contact_infos",
+      "/managements/departments",
+      "/managements/designations",
+      "/managements/districts",
+      "/managements/housingmanagement",
+      "/managements/government_issued_ids",
+      "/managements/languages",
+      "/managements/nationalities",
+      "/managements/sections",
+      "/managements/subsections",
+    ];
+    if (managementPaths.some((p) => path.startsWith(p))) {
       setIsManagementsExpanded(true);
     }
 
     // Check Plugins
-    if (path === "/lokalprofile" || path === "/atgfiles" || path === "/atg-files") {
+    if (
+      path === "/lokalprofile" ||
+      path === "/atgfiles" ||
+      path === "/atg-files"
+    ) {
       setIsPluginsExpanded(true);
     }
   }, [location.pathname]);
@@ -289,7 +326,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
         } else {
           console.error(
             "Failed to log out: Unexpected response status",
-            response.status
+            response.status,
           );
         }
       })
@@ -326,7 +363,13 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
   };
 
   return (
-    <Box className="no-print" display="flex" flexDirection="column" minH="100%" bg="#FFD559">
+    <Box
+      className="no-print"
+      display="flex"
+      flexDirection="column"
+      minH="100%"
+      bg="#FFD559"
+    >
       {/* <Button to="/dashboard" data-tour="dashboard">
   Dashboard
 </Button>
@@ -362,7 +405,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
           boxShadow: "lg",
         }}
         _active={{
-          transform: "scale(0.95)"
+          transform: "scale(0.95)",
         }}
         boxShadow="0 4px 12px rgba(0,0,0,0.15)"
         zIndex={2000}
@@ -370,10 +413,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
         w="32px"
         h="32px"
       >
-        <Icon
-          as={isExpanded ? FiArrowLeft : FiMenu}
-          boxSize={4}
-        />
+        <Icon as={isExpanded ? FiArrowLeft : FiMenu} boxSize={4} />
       </Button>
 
       <Flex
@@ -385,7 +425,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
         right={isMobile ? "0" : "auto"}
         bottom={isMobile ? "0" : "auto"}
         overflowY="auto"
-        width={isMobile ? "100%" : (isExpanded ? "250px" : "0px")}
+        width={isMobile ? "100%" : isExpanded ? "250px" : "0px"}
         bg={isMobile ? "rgba(255, 255, 255, 0.95)" : "#FFD559"}
         backdropFilter={isMobile ? "blur(12px)" : "none"}
         transition="all 0.5s cubic-bezier(0.4, 0, 0.2, 1)"
@@ -411,7 +451,13 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
       >
         {/* Logo Box */}
         {isExpanded && (
-          <Box data-tour="dashboard-logo" position="relative" mb={6} mt={2} textAlign="center">
+          <Box
+            data-tour="dashboard-logo"
+            position="relative"
+            mb={6}
+            mt={2}
+            textAlign="center"
+          >
             <Image
               src="/apps_logo.png"
               alt="INC Dashboard"
@@ -520,9 +566,13 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 <SidebarItem
                   label="Application Type"
                   isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/managements/applicationtype")}
+                  onClick={() =>
+                    handleItemClick("/managements/applicationtype")
+                  }
                   useDynamicIcon
-                  isActive={location.pathname === "/managements/applicationtype"}
+                  isActive={
+                    location.pathname === "/managements/applicationtype"
+                  }
                 />
               )}
               {hasPermission("categories.view") && (
@@ -530,8 +580,12 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiCalendar}
                   label="Categories"
                   isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/managements/categorymanagement")} // Redirect to categorymanagement.js
-                  isActive={location.pathname === "/managements/categorymanagement"}
+                  onClick={() =>
+                    handleItemClick("/managements/categorymanagement")
+                  } // Redirect to categorymanagement.js
+                  isActive={
+                    location.pathname === "/managements/categorymanagement"
+                  }
                 />
               )}
               {hasPermission("dragdrop.view") && (
@@ -575,8 +629,12 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiCalendar}
                   label="Groups"
                   isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/managements/groupmanagement")} // Redirect to groupmanagement.js
-                  isActive={location.pathname === "/managements/groupmanagement"}
+                  onClick={() =>
+                    handleItemClick("/managements/groupmanagement")
+                  } // Redirect to groupmanagement.js
+                  isActive={
+                    location.pathname === "/managements/groupmanagement"
+                  }
                 />
               )}
               {hasPermission("permission.view") && (
@@ -584,8 +642,12 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiCalendar}
                   label="Permissions"
                   isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/managements/permissionmanagement")} // Redirect to permissionmanagement.js
-                  isActive={location.pathname === "/managements/permissionmanagement"}
+                  onClick={() =>
+                    handleItemClick("/managements/permissionmanagement")
+                  } // Redirect to permissionmanagement.js
+                  isActive={
+                    location.pathname === "/managements/permissionmanagement"
+                  }
                 />
               )}
 
@@ -635,15 +697,15 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 />
               )}
 
-{hasPermission("loginreports.view") && (
-              <SidebarItem
-                icon={FiUsers}
-                label="Login Reports"
-                isExpanded={isExpanded}
-                onClick={() => handleItemClick("/managements/loginaudits")} // Redirect to users.js
-                isActive={location.pathname === "/managements/loginaudits"}
-              />
-)}
+              {hasPermission("loginreports.view") && (
+                <SidebarItem
+                  icon={FiUsers}
+                  label="Login Reports"
+                  isExpanded={isExpanded}
+                  onClick={() => handleItemClick("/managements/loginaudits")} // Redirect to users.js
+                  isActive={location.pathname === "/managements/loginaudits"}
+                />
+              )}
               {hasPermission("reminders.view") && (
                 <SidebarItem
                   icon={FiUser}
@@ -672,13 +734,13 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 />
               )}
               {hasPermission("schemasync.view") && (
-              <SidebarItem
-                icon={FiArrowRight} // Use appropriate icon
-                label="Schema Sync"
-                isExpanded={isExpanded}
-                onClick={() => handleItemClick("/settings/schema-sync")}
-                isActive={location.pathname === "/settings/schema-sync"}
-              />
+                <SidebarItem
+                  icon={FiArrowRight} // Use appropriate icon
+                  label="Schema Sync"
+                  isExpanded={isExpanded}
+                  onClick={() => handleItemClick("/settings/schema-sync")}
+                  isActive={location.pathname === "/settings/schema-sync"}
+                />
               )}
             </VStack>
           </Collapse>
@@ -854,18 +916,26 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                 <SidebarItem
                   label="Housing"
                   isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/managements/housingmanagement")}
+                  onClick={() =>
+                    handleItemClick("/managements/housingmanagement")
+                  }
                   useDynamicIcon
-                  isActive={location.pathname === "/managements/housingmanagement"}
+                  isActive={
+                    location.pathname === "/managements/housingmanagement"
+                  }
                 />
               )}
               {hasPermission("issued_id.view") && (
                 <SidebarItem
                   label="Issued ID"
                   isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/managements/government_issued_ids")}
+                  onClick={() =>
+                    handleItemClick("/managements/government_issued_ids")
+                  }
                   useDynamicIcon
-                  isActive={location.pathname === "/managements/government_issued_ids"}
+                  isActive={
+                    location.pathname === "/managements/government_issued_ids"
+                  }
                 />
               )}
               {hasPermission("language.view") && (
@@ -931,13 +1001,15 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   isActive={location.pathname === "/lokalprofile"}
                 />
               )}
-              <SidebarItem
-                icon={FiFolder}
-                label="ATG Files"
-                isExpanded={isExpanded}
-                onClick={() => handleItemClick("/atgfiles")}
-                isActive={location.pathname === "/atgfiles"}
-              />
+              {hasPermission("atgfiles.view") && (
+                <SidebarItem
+                  icon={FiFolder}
+                  label="ATG Files"
+                  isExpanded={isExpanded}
+                  onClick={() => handleItemClick("/atgfiles")}
+                  isActive={location.pathname === "/atgfiles"}
+                />
+              )}
             </VStack>
           </Collapse>
 
@@ -948,7 +1020,9 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
                   icon={FiCalendar}
                   label="File Organizer"
                   isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/file-organizer/shelves", true)} // Open in new tab
+                  onClick={() =>
+                    handleItemClick("/file-organizer/shelves", true)
+                  } // Open in new tab
                 />
               )}
             </VStack>
@@ -956,20 +1030,19 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
 
           <Collapse in={isPluginsExpanded} animateOpacity>
             <VStack align="start" ml={isExpanded ? 4 : 0} spacing={3}>
-
               {/* Daily Activity Report */}
-              <SidebarItem
-                icon={FiFileText}
-                label="Daily Activity"
-                isExpanded={isExpanded}
-                onClick={() => handleItemClick("/daily-activity-report")}
-                isActive={location.pathname === "/daily-activity-report"}
-              />
+              {hasPermission("dailyactivity.view") && (
+                <SidebarItem
+                  icon={FiFileText}
+                  label="Daily Activity"
+                  isExpanded={isExpanded}
+                  onClick={() => handleItemClick("/daily-activity-report")}
+                  isActive={location.pathname === "/daily-activity-report"}
+                />
+              )}
             </VStack>
           </Collapse>
         </VStack>
-
-
 
         <Flex flexGrow={1} />
 
@@ -989,7 +1062,11 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
           justify={isExpanded ? "flex-start" : "center"}
           cursor="pointer"
           onClick={openLogoutDialog}
-          _hover={{ bg: "whiteAlpha.600", shadow: "lg", transform: "translateY(-2px)" }}
+          _hover={{
+            bg: "whiteAlpha.600",
+            shadow: "lg",
+            transform: "translateY(-2px)",
+          }}
           transition="all 0.2s"
           border="1px solid rgba(255,255,255,0.3)"
           data-tour="logout"
@@ -1006,7 +1083,12 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
 
           {isExpanded && (
             <Box overflow="hidden" textAlign="left">
-              <Text fontWeight="bold" fontSize="0.9rem" noOfLines={1} color="gray.800">
+              <Text
+                fontWeight="bold"
+                fontSize="0.9rem"
+                noOfLines={1}
+                color="gray.800"
+              >
                 {user.name}
               </Text>
               <Text fontSize="xs" color="gray.600" fontWeight="500">
@@ -1033,11 +1115,20 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
               </AlertDialogHeader>
               <AlertDialogBody>
                 <VStack spacing={4} align="center" mb={4}>
-                  <Avatar size="xl" name={user.name} src={user.avatarUrl} border="4px solid white" boxShadow="lg" />
-                  <Text fontWeight="bold" fontSize="lg">{user.name || "User"}</Text>
+                  <Avatar
+                    size="xl"
+                    name={user.name}
+                    src={user.avatarUrl}
+                    border="4px solid white"
+                    boxShadow="lg"
+                  />
+                  <Text fontWeight="bold" fontSize="lg">
+                    {user.name || "User"}
+                  </Text>
                 </VStack>
                 <Text textAlign="center">
-                  Are you sure you want to log out? You will need to log in again to access the dashboard.
+                  Are you sure you want to log out? You will need to log in
+                  again to access the dashboard.
                 </Text>
               </AlertDialogBody>
               <AlertDialogFooter>
@@ -1059,7 +1150,7 @@ const Sidebar = ({ currentUser, onSidebarToggle }) => {
           }}
         />
       </Flex>
-    </Box >
+    </Box>
   );
 };
 

@@ -30,7 +30,7 @@ const fileFilter = (req, file, cb) => {
     const extension = path.extname(file.originalname || '').toLowerCase();
 
     if (!allowedExtensions.has(extension)) {
-        return cb(new Error('Unsupported file type. Only PDF, DOCX, TXT, and PPTX are allowed.'));
+        return cb(new Error('Only PDF, DOCX, TXT, and PPTX files are allowed.'));
     }
 
     cb(null, true);
@@ -44,6 +44,7 @@ const upload = multer({
 
 // Routes
 router.get('/api/atg-files', atgFileController.getAllFiles);
+router.post('/api/atg-files/folders', atgFileController.createFolder);
 router.post('/api/atg-files', (req, res, next) => {
     upload.single('file')(req, res, (err) => {
         if (err) {
@@ -55,6 +56,7 @@ router.post('/api/atg-files', (req, res, next) => {
 }, atgFileController.saveFileRecord);
 router.get('/api/atg-files/org-chart', atgFileController.getOrgChart);
 router.get('/api/atg-files/:id/download', atgFileController.downloadFile);
+router.put('/api/atg-files/:id/move', atgFileController.updateFile);
 router.put('/api/atg-files/:id', atgFileController.updateFile);
 router.delete('/api/atg-files/:id', atgFileController.deleteFile);
 

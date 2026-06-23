@@ -13,6 +13,53 @@ const { Op } = require("sequelize");
 const sequelize = require("../config/database"); // Ensure you import sequelize if needed for raw queries
 const UserGroupMapping = require("../models/UserGroupMapping");
 
+const getAllApplicationTypes = () =>
+  sequelize.query(`SELECT id, name FROM applicationtypes ORDER BY id ASC`, {
+    type: sequelize.QueryTypes.SELECT,
+  });
+
+const getVisibleApplicationTypesForUser = async (userId) => {
+  const groupMapping = await UserGroupMapping.findOne({
+    where: { user_id: userId },
+    attributes: ["group_id"],
+  });
+
+  if (!groupMapping?.group_id) {
+    return getAllApplicationTypes();
+  }
+
+  try {
+    return await sequelize.query(
+      `
+      SELECT at.id, at.name
+      FROM applicationtypes at
+      LEFT JOIN group_application_type_mappings gatm
+        ON gatm.application_type_id = at.id
+        AND gatm.group_id = :groupId
+      WHERE COALESCE(gatm.is_visible, 1) = 1
+      ORDER BY at.id ASC
+      `,
+      {
+        replacements: { groupId: groupMapping.group_id },
+        type: sequelize.QueryTypes.SELECT,
+      }
+    );
+  } catch (error) {
+    if (error?.parent?.code === "ER_NO_SUCH_TABLE") {
+      console.warn(
+        "group_application_type_mappings table not found. Showing all application types.",
+      );
+      return getAllApplicationTypes();
+    }
+    throw error;
+  }
+};
+
+const filterAppsByVisibleTypes = (apps, applicationTypes) => {
+  const visibleTypeIds = new Set(applicationTypes.map((type) => Number(type.id)));
+  return apps.filter((app) => visibleTypeIds.has(Number(app.app_type)));
+};
+
 // Get all apps
 exports.getAllApps = async (req, res) => {
   try {
@@ -97,25 +144,26 @@ exports.getAvailableApps1 = async (req, res) => {
   }
 
   try {
-    // Fetch all app types dynamically
-    const appTypes = await sequelize.query(
-      `SELECT id, name FROM applicationtypes ORDER BY id ASC`,
-      { type: sequelize.QueryTypes.SELECT }
-    );
+    // Fetch only the app types visible to this user's group.
+    const appTypes = await getVisibleApplicationTypesForUser(userId);
 
-    // Fetch available apps for the logged-in user
-    const availableApps = await sequelize.query(
-      `
-      SELECT apps.*, apps.app_type
-      FROM apps
-      INNER JOIN available_apps ON apps.id = available_apps.app_id
-      WHERE available_apps.user_id = :userId
-      `,
-      {
-        replacements: { userId },
-        type: sequelize.QueryTypes.SELECT,
-      }
-    );
+    const visibleTypeIds = appTypes.map((type) => Number(type.id));
+
+    // Group visibility controls the dashboard. Show all apps inside visible app types.
+    const availableApps = visibleTypeIds.length === 0
+      ? []
+      : filterAppsByVisibleTypes(await sequelize.query(
+        `
+        SELECT apps.*, apps.app_type
+        FROM apps
+        WHERE apps.app_type IN (:visibleTypeIds)
+        ORDER BY apps.app_type ASC, apps.name ASC
+        `,
+        {
+          replacements: { visibleTypeIds },
+          type: sequelize.QueryTypes.SELECT,
+        }
+      ), appTypes);
 
     // Categorize apps dynamically based on `app_type`
     let categorizedApps = {};
@@ -291,7 +339,7 @@ exports.getAvailableApps2 = async (req, res) => {
 
     appTypes.forEach((type) => {
       categorizedApps[type.name] = combinedData.filter(
-        (item) => item.type === "app" && item.app_type === type.id
+        (item) => item.type === "app" && Number(item.app_type) === Number(type.id)
       );
     });
 
@@ -342,14 +390,11 @@ exports.getAvailableApps = async (req, res) => {
     }
 
 
-    // Fetch all app types dynamically
-    const appTypes = await sequelize.query(
-      `SELECT id, name FROM applicationtypes ORDER BY id ASC`,
-      { type: sequelize.QueryTypes.SELECT }
-    );
+    // Fetch only the app types visible to this user's group.
+    const appTypes = await getVisibleApplicationTypesForUser(userId);
 
     // Fetch available apps for the logged-in user
-    const availableApps = await sequelize.query(
+    const availableApps = filterAppsByVisibleTypes(await sequelize.query(
       `
       SELECT apps.*, apps.app_type 
       FROM apps 
@@ -360,7 +405,7 @@ exports.getAvailableApps = async (req, res) => {
         replacements: { userId },
         type: sequelize.QueryTypes.SELECT,
       }
-    );
+    ), appTypes);
 
     const baseUrl = process.env.REACT_APP_API_URL;
     // Fetch files data (filename and generated_code)
@@ -525,15 +570,15 @@ GROUP BY
     // Initialize the categorizedApps object with categories based on appTypes
     appTypes.forEach((type) => {
       categorizedApps[type.name] = combinedData.filter(
-        (item) => item.type === "app" && item.app_type === type.id
+        (item) => item.type === "app" && Number(item.app_type) === Number(type.id)
       );
     });
 
     // 🛡️ Fallback: Collect apps that passed validation but didn't match any specific App Type
     // This ensures apps with deleted/invalid types or active types not in the fetched list (if filtered) still show up.
-    const knownTypeIds = new Set(appTypes.map((t) => t.id));
+    const knownTypeIds = new Set(appTypes.map((t) => Number(t.id)));
     const uncategorizedApps = combinedData.filter(
-      (item) => item.type === "app" && !knownTypeIds.has(item.app_type)
+      (item) => item.type === "app" && !knownTypeIds.has(Number(item.app_type))
     );
 
     if (uncategorizedApps.length > 0) {

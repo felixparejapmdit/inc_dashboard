@@ -577,6 +577,38 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
     }));
   };
 
+  const visibleAppTypeSections = useMemo(() => {
+    const getAppItems = (categoryName) =>
+      (categorizedApps[categoryName] || []).filter(
+        (item) => !item?.type || item.type === "app"
+      );
+
+    const sections = appTypes
+      .map((type) => ({
+        id: type.id,
+        name: type.name,
+        apps: getAppItems(type.name),
+      }))
+      .filter((section) => section.apps.length > 0);
+
+    const knownTypeNames = new Set(appTypes.map((type) => type.name));
+
+    Object.entries(categorizedApps).forEach(([categoryName, items]) => {
+      if (knownTypeNames.has(categoryName)) return;
+
+      const apps = (items || []).filter((item) => !item?.type || item.type === "app");
+      if (apps.length > 0) {
+        sections.push({
+          id: `category-${categoryName}`,
+          name: categoryName,
+          apps,
+        });
+      }
+    });
+
+    return sections;
+  }, [appTypes, categorizedApps]);
+
   return (
     <Box bg={useColorModeValue("white.50", "gray.900")} minH="100vh" p={6}>
       {/* Sticky Header Section */}
@@ -760,16 +792,14 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
                   handleDragEnd(result, source.droppableId);
                 }}
               >
-                {appTypes.map((type) => {
-                  const appsForType = categorizedApps[type.name] || [];
-                  if (appsForType.length === 0) return null;
-
+                {visibleAppTypeSections.map((section) => {
+                  const appsForType = section.apps;
                   return (
-                    <Box key={type.id} mt={{ base: 5, md: 8 }}>
-                      {renderSectionHeader(type.name, appsForType.length)}
+                    <Box key={section.id} mt={{ base: 5, md: 8 }}>
+                      {renderSectionHeader(section.name, appsForType.length)}
 
                       <Droppable
-                        droppableId={type.name}
+                        droppableId={section.name}
                         direction="horizontal"
                       >
                         {(provided) => (
@@ -812,13 +842,11 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
               </DragDropContext>
             ) : (
               <>
-                {appTypes.map((type) => {
-                  const appsForType = categorizedApps[type.name] || [];
-                  if (appsForType.length === 0) return null;
-
+                {visibleAppTypeSections.map((section) => {
+                  const appsForType = section.apps;
                   return (
-                    <Box key={type.id} mt={{ base: 5, md: 8 }}>
-                      {renderSectionHeader(type.name, appsForType.length)}
+                    <Box key={section.id} mt={{ base: 5, md: 8 }}>
+                      {renderSectionHeader(section.name, appsForType.length)}
 
                       <SimpleGrid
                         columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
@@ -842,33 +870,6 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
 
         )}
 
-        {/* 🛡️ Fallback: Explicitly Render "Others" if not in DB types */}
-        {!searchQuery && ["Others"].map((category) => {
-          const apps = categorizedApps[category];
-          if (!apps || apps.length === 0) return null;
-          // Skip if it was already rendered via appTypes
-          if (appTypes.find((t) => t.name === category)) return null;
-
-          return (
-            <Box key={category} mt={{ base: 5, md: 8 }}>
-              {renderSectionHeader(category, apps.length)}
-
-              <SimpleGrid
-                columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
-                spacing={{ base: 4, md: 6 }}
-              >
-                {apps.map((app) => (
-                  <AppCard
-                    key={app.id}
-                    app={app}
-                    colors={colors}
-                    handleAppClick={handleAppClick}
-                  />
-                ))}
-              </SimpleGrid>
-            </Box>
-          );
-        })}
       </>
 
       {/* Recent Login Logs Section (lazy-loaded) */}

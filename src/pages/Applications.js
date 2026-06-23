@@ -80,6 +80,7 @@ import { fetchData, postData, putData, deleteData } from "../utils/fetchData";
 
 const API_URL = process.env.REACT_APP_API_URL;
 const ITEMS_PER_PAGE = 12;
+const MAX_ICON_SIZE_BYTES = 102400;
 const MotionBox = motion.create(Box);
 
 const Applications = () => {
@@ -98,6 +99,7 @@ const Applications = () => {
   const [app_type, setAppType] = useState("");
   const [editingApp, setEditingApp] = useState(null);
   const [fileError, setFileError] = useState("");
+  const [isIconDragging, setIsIconDragging] = useState(false);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [deletingApp, setDeletingApp] = useState(null);
@@ -139,18 +141,65 @@ const Applications = () => {
     }
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 102400) {
-        setFileError("Image size must be less than 100 KB.");
-        return;
-      }
-      setFileError("");
-      const reader = new FileReader();
-      reader.onloadend = () => setIcon(reader.result);
-      reader.readAsDataURL(file);
+  const processImageFile = (file) => {
+    if (!file) {
+      setFileError("Please choose an image.");
+      return;
     }
+
+    if (!file.type?.startsWith("image/")) {
+      setFileError("Please use an image file.");
+      return;
+    }
+
+    if (file.size > MAX_ICON_SIZE_BYTES) {
+      setFileError("Image size must be less than 100 KB.");
+      return;
+    }
+
+    setFileError("");
+    const reader = new FileReader();
+    reader.onloadend = () => setIcon(reader.result);
+    reader.onerror = () => setFileError("Could not read this image.");
+    reader.readAsDataURL(file);
+  };
+
+  const getImageFromClipboard = (clipboardData) => {
+    const fileFromFiles = Array.from(clipboardData?.files || []).find((file) =>
+      file.type?.startsWith("image/")
+    );
+
+    if (fileFromFiles) return fileFromFiles;
+
+    const imageItem = Array.from(clipboardData?.items || []).find((item) =>
+      item.type?.startsWith("image/")
+    );
+
+    return imageItem?.getAsFile() || null;
+  };
+
+  const handleImageUpload = (e) => {
+    processImageFile(e.target.files?.[0]);
+    e.target.value = "";
+  };
+
+  const handleIconDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsIconDragging(false);
+
+    const imageFile = Array.from(e.dataTransfer?.files || []).find((file) =>
+      file.type?.startsWith("image/")
+    );
+    processImageFile(imageFile);
+  };
+
+  const handleIconPaste = (e) => {
+    const imageFile = getImageFromClipboard(e.clipboardData);
+    if (!imageFile) return;
+
+    e.preventDefault();
+    processImageFile(imageFile);
   };
 
   const resetForm = () => {
@@ -557,7 +606,7 @@ const Applications = () => {
       {/* Add/Edit Modal */}
       <Modal isOpen={isOpen} onClose={onClose} size="xl" isCentered>
         <ModalOverlay backdropFilter="blur(8px)" />
-        <ModalContent borderRadius="3xl">
+        <ModalContent borderRadius="3xl" onPaste={handleIconPaste}>
           <ModalHeader bgGradient={headerGradient} color="white" borderTopRadius="3xl">
             {editingApp ? "Edit App" : "New App"}
           </ModalHeader>
@@ -567,28 +616,56 @@ const Applications = () => {
               <Box w="full" textAlign="center">
                 <Box
                   position="relative"
-                  w="100px"
-                  h="100px"
+                  w="140px"
+                  h="120px"
                   mx="auto"
                   borderRadius="2xl"
                   border="2px dashed"
-                  borderColor="gray.300"
-                  bg="gray.50"
+                  borderColor={isIconDragging ? "orange.400" : "gray.300"}
+                  bg={isIconDragging ? "orange.50" : "gray.50"}
                   overflow="hidden"
                   _hover={{ borderColor: "orange.400" }}
                   cursor="pointer"
+                  tabIndex={0}
+                  role="button"
+                  aria-label="Upload app image"
                   onClick={() => document.getElementById("icon-upload").click()}
+                  onDragEnter={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsIconDragging(true);
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsIconDragging(true);
+                  }}
+                  onDragLeave={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsIconDragging(false);
+                  }}
+                  onDrop={handleIconDrop}
+                  onPaste={handleIconPaste}
                 >
                   {icon ? (
                     <Image src={icon} w="full" h="full" objectFit="cover" />
                   ) : (
                     <Center w="full" h="full" flexDirection="column">
                       <Icon as={UploadCloud} color="gray.400" boxSize={8} />
-                      <Text fontSize="xs" color="gray.500" mt={1}>Upload image</Text>
+                      <Text fontSize="xs" color="gray.600" mt={1} fontWeight="bold">
+                        Upload image
+                      </Text>
+                      <Text fontSize="10px" color="gray.500" mt={1}>
+                        Click, paste, or drop
+                      </Text>
                     </Center>
                   )}
                   <Input type="file" id="icon-upload" display="none" accept="image/*" onChange={handleImageUpload} />
                 </Box>
+                <Text fontSize="xs" color="gray.500" mt={2}>
+                  Copy an image, then press Ctrl+V here. You can also drop an image.
+                </Text>
                 {fileError && <Text color="red.500" fontSize="xs" mt={1}>{fileError}</Text>}
               </Box>
 
