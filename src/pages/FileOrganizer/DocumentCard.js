@@ -21,6 +21,7 @@ import {
 import DeleteConfirmModal from "../../components/FileOrganizer/DeleteConfirmModal";
 import GlobalMenuButton from "../../components/FileOrganizer/GlobalMenuButton";
 import QRCodeModal from "../../components/FileOrganizer/QRCodeModal";
+import { resolveApiBaseUrl, joinUrl } from "../../utils/urlResolvers";
 
 const getDocumentIcon = (type = "") => {
   const value = type.toLowerCase();
@@ -37,10 +38,7 @@ const resolveFileUrl = (fileUrl) => {
   if (!fileUrl) return "";
   if (/^https?:\/\//i.test(fileUrl)) return fileUrl;
 
-  const apiBase = (process.env.REACT_APP_API_URL || "").replace(/\/+$/, "");
-  if (!apiBase) return fileUrl;
-
-  return `${apiBase}${fileUrl.startsWith("/") ? "" : "/"}${fileUrl}`;
+  return joinUrl(resolveApiBaseUrl(5003), fileUrl);
 };
 
 const getExtension = (document) => {

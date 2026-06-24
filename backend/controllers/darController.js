@@ -131,7 +131,7 @@ exports.getTaskById = async (req, res) => {
 exports.createTask = async (req, res) => {
   try {
     const taskData = await pickTaskColumns({ ...req.body });
-    const resolvedUserId = await resolveDarUserId(req, taskData.user_id);
+    const resolvedUserId = await resolveDarUserId(req);
 
     if (!resolvedUserId) {
       return res.status(400).json({

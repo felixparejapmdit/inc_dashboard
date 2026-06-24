@@ -20,7 +20,6 @@ import {
   Icon,
   useColorModeValue,
   useColorMode,
-  Divider,
   Button,
   Modal,
   ModalOverlay,
@@ -50,6 +49,7 @@ import {
   Th,
   Tbody,
   Td,
+  TableContainer,
   InputGroup,
   InputLeftElement,
   Flex,
@@ -60,7 +60,8 @@ import {
   FiBell,
   FiSearch,
   FiGrid,
-  FiMoon,
+  FiEye,
+  FiEyeOff,
   FiExternalLink,
   FiActivity,
   FiMonitor,
@@ -69,13 +70,10 @@ import {
   FiClock,
   FiCpu,
   FiChevronLeft,
-  FiChevronRight
+  FiChevronRight,
 } from "react-icons/fi";
 
 import { useDisclosure } from "@chakra-ui/react";
-
-
-import { SearchIcon } from "@chakra-ui/icons";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { getAuthHeaders } from "../utils/apiHeaders";
@@ -86,14 +84,27 @@ import moment from "moment";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
+const resolveAvatarSrc = (avatarPath) => {
+  if (!avatarPath) return "";
+  if (/^(https?:|data:)/i.test(avatarPath)) return avatarPath;
 
+  const base = API_URL ? API_URL.replace(/\/+$/, "") : "";
+  if (avatarPath.startsWith("/")) {
+    return `${base}${avatarPath}`;
+  }
+
+  return `${base ? `${base}/` : "/"}${avatarPath}`;
+};
 
 // Simple cache config for apps
 const APPS_CACHE_KEY = "categorizedApps";
 const APPS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) {
-  const { isSidebarExpanded: contextIsSidebarExpanded } = useOutletContext() || {};
+export default function Dashboard({
+  isSidebarExpanded: propIsSidebarExpanded,
+}) {
+  const { isSidebarExpanded: contextIsSidebarExpanded } =
+    useOutletContext() || {};
   const isSidebarExpanded = propIsSidebarExpanded ?? contextIsSidebarExpanded;
 
   const [appTypes, setAppTypes] = useState([]);
@@ -110,20 +121,25 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedApp, setSelectedApp] = useState(null);
   const [userFullName, setUserFullName] = useState(
-    localStorage.getItem("userFullName") || ""
+    localStorage.getItem("userFullName") || "",
   );
-
-
 
   const [currentDate, setCurrentDate] = useState(() => new Date());
 
-  const { isOpen: isPreviewOpen, onOpen: onPreviewOpen, onClose: onPreviewClose } = useDisclosure();
+  const {
+    isOpen: isPreviewOpen,
+    onOpen: onPreviewOpen,
+    onClose: onPreviewClose,
+  } = useDisclosure();
   const [previewPersonnelId, setPreviewPersonnelId] = useState(null);
 
-  const handlePreviewPersonnel = useCallback((id) => {
-    setPreviewPersonnelId(id);
-    onPreviewOpen();
-  }, [onPreviewOpen]);
+  const handlePreviewPersonnel = useCallback(
+    (id) => {
+      setPreviewPersonnelId(id);
+      onPreviewOpen();
+    },
+    [onPreviewOpen],
+  );
 
   const handleClosePreview = useCallback(() => {
     setPreviewPersonnelId(null);
@@ -167,16 +183,14 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 25;
 
-
-
   // Hook values moved to top level to avoid conditional constraints
   const dashboardBg = useColorModeValue(
     "linear(to-b, orange.50, white 38%, gray.50)",
-    "linear(to-b, gray.900, gray.900 48%, gray.800)"
+    "linear(to-b, gray.900, gray.900 48%, gray.800)",
   );
   const stickyHeaderBg = useColorModeValue(
     "rgba(255, 255, 255, 0.88)",
-    "rgba(26, 32, 44, 0.86)"
+    "rgba(26, 32, 44, 0.86)",
   );
   const stickyHeaderBorder = useColorModeValue("gray.100", "whiteAlpha.200");
   const headerChipBg = useColorModeValue("whiteAlpha.800", "whiteAlpha.200");
@@ -190,19 +204,25 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
   const recentActivityBorderColor = useColorModeValue("gray.100", "gray.700");
   const recentActivityTheadBg = useColorModeValue("gray.50/50", "gray.900/50");
   const recentActivityTextColor = useColorModeValue("gray.700", "gray.200");
-  const recentActivityRowHoverBg = useColorModeValue("orange.50/30", "whiteAlpha.100");
+  const recentActivityRowHoverBg = useColorModeValue(
+    "orange.50/30",
+    "whiteAlpha.100",
+  );
   const sectionSubText = useColorModeValue("gray.500", "gray.400");
   const sectionBadgeBg = useColorModeValue("orange.100", "orange.700");
   const sectionBadgeColor = useColorModeValue("orange.700", "orange.100");
   const sectionIconBg = useColorModeValue("orange.200", "orange.600");
   const sectionPanelBg = useColorModeValue(
     "rgba(255, 255, 255, 0.62)",
-    "rgba(26, 32, 44, 0.58)"
+    "rgba(26, 32, 44, 0.58)",
   );
-  const sectionPanelBorder = useColorModeValue("whiteAlpha.900", "whiteAlpha.200");
+  const sectionPanelBorder = useColorModeValue(
+    "whiteAlpha.900",
+    "whiteAlpha.200",
+  );
   const sectionPanelShadow = useColorModeValue(
     "0 10px 30px rgba(15, 23, 42, 0.04)",
-    "0 12px 30px rgba(0, 0, 0, 0.22)"
+    "0 12px 30px rgba(0, 0, 0, 0.22)",
   );
 
   const renderSectionHeader = (title, count) => {
@@ -251,7 +271,6 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
     );
   };
 
-
   useEffect(() => {
     // We only need the date (not a ticking clock), so just set it once
     setCurrentDate(new Date());
@@ -262,7 +281,11 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
       scrollFrameRef.current = null;
       const scrollTop = window.scrollY || document.documentElement.scrollTop;
       const shouldCompact =
-        scrollTop > 64 ? true : scrollTop < 16 ? false : compactGreetingRef.current;
+        scrollTop > 64
+          ? true
+          : scrollTop < 16
+            ? false
+            : compactGreetingRef.current;
 
       if (shouldCompact !== compactGreetingRef.current) {
         compactGreetingRef.current = shouldCompact;
@@ -272,7 +295,9 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
 
     const handleScroll = () => {
       if (scrollFrameRef.current !== null) return;
-      scrollFrameRef.current = window.requestAnimationFrame(updateCompactGreeting);
+      scrollFrameRef.current = window.requestAnimationFrame(
+        updateCompactGreeting,
+      );
     };
 
     handleScroll();
@@ -285,10 +310,6 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
     };
   }, []);
 
-
-
-
-
   const isMobile = useBreakpointValue({
     base: true,
     sm: true,
@@ -299,16 +320,19 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
   const shouldEnableDragDrop =
     isDragEnabled && (!isMobile || isMobileDragEnabled);
 
-  const colors = useMemo(() => ({
-    reminderBg: colorMode === "light" ? "orange.100" : "orange.700",
-    eventBg: colorMode === "light" ? "teal.100" : "teal.700",
-    appBg: colorMode === "light" ? "transparent" : "gray.800",
-    cardText: colorMode === "light" ? "gray.600" : "gray.300",
-    cardHeader: colorMode === "light" ? "gray.800" : "gray.100",
-    cardBorder: colorMode === "light" ? "gray.200" : "gray.700",
-    buttonBg: colorMode === "light" ? "blue.600" : "blue.500",
-    buttonHoverBg: colorMode === "light" ? "blue.700" : "blue.600",
-  }), [colorMode]);
+  const colors = useMemo(
+    () => ({
+      reminderBg: colorMode === "light" ? "orange.100" : "orange.700",
+      eventBg: colorMode === "light" ? "teal.100" : "teal.700",
+      appBg: colorMode === "light" ? "transparent" : "gray.800",
+      cardText: colorMode === "light" ? "gray.600" : "gray.300",
+      cardHeader: colorMode === "light" ? "gray.800" : "gray.100",
+      cardBorder: colorMode === "light" ? "gray.200" : "gray.700",
+      buttonBg: colorMode === "light" ? "blue.600" : "blue.500",
+      buttonHoverBg: colorMode === "light" ? "blue.700" : "blue.600",
+    }),
+    [colorMode],
+  );
 
   const handleNextcloudLogin = () => {
     const username = localStorage.getItem("username");
@@ -329,7 +353,7 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
       },
       (error) => {
         console.error("Error logging in to Nextcloud:", error);
-      }
+      },
     );
   };
 
@@ -342,15 +366,21 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
         setLoginAudits(data);
         setHasLoadedLogins(true);
       },
-      (error) => console.error("Failed to fetch login audits:", error)
+      (error) => console.error("Failed to fetch login audits:", error),
     );
   }, [showLogins, hasLoadedLogins]);
+
+  useEffect(() => {
+    if (showLogins) {
+      setCurrentPage(1);
+    }
+  }, [showLogins]);
 
   // Filter audits by username based on search term (case-insensitive)
   const filteredAudits = useMemo(() => {
     if (!searchTerm.trim()) return loginAudits;
     return loginAudits.filter((log) =>
-      log.user?.username.toLowerCase().includes(searchTerm.toLowerCase())
+      log.user?.username.toLowerCase().includes(searchTerm.toLowerCase()),
     );
   }, [loginAudits, searchTerm]);
 
@@ -397,15 +427,15 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
 
     // Non-critical data can stay, or be lazy-loaded later the same way as login audits
     fetchData("events", setEvents, (err) =>
-      console.error("Error fetching events:", err)
+      console.error("Error fetching events:", err),
     );
 
     fetchData("reminders", setReminders, (err) =>
-      console.error("Error fetching reminders:", err)
+      console.error("Error fetching reminders:", err),
     );
 
     const url = `${API_URL}/api/users/logged-in?username=${encodeURIComponent(
-      username
+      username,
     )}`;
     //console.log("Constructed Fetch URL:", url);
 
@@ -514,8 +544,6 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
     }
   };
 
-
-
   const handleSettingsClick = (app) => {
     setSelectedApp(app);
     setUpdatedApp({
@@ -538,7 +566,7 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
     const updatedAppData = { ...selectedApp, ...updatedApp };
 
     setApps((prevApps) =>
-      prevApps.map((app) => (app.id === selectedApp.id ? updatedAppData : app))
+      prevApps.map((app) => (app.id === selectedApp.id ? updatedAppData : app)),
     );
 
     fetch(`${API_URL}/api/apps/${selectedApp.id}`, {
@@ -559,8 +587,8 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
 
         setApps((prevApps) =>
           prevApps.map((app) =>
-            app.id === updatedAppFromAPI.id ? updatedAppFromAPI : app
-          )
+            app.id === updatedAppFromAPI.id ? updatedAppFromAPI : app,
+          ),
         );
 
         setStatus(`App "${updatedApp.name}" updated successfully.`);
@@ -610,7 +638,7 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
   const visibleAppTypeSections = useMemo(() => {
     const getAppItems = (categoryName) =>
       (categorizedApps[categoryName] || []).filter(
-        (item) => !item?.type || item.type === "app"
+        (item) => !item?.type || item.type === "app",
       );
 
     const sections = appTypes
@@ -626,7 +654,9 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
     Object.entries(categorizedApps).forEach(([categoryName, items]) => {
       if (knownTypeNames.has(categoryName)) return;
 
-      const apps = (items || []).filter((item) => !item?.type || item.type === "app");
+      const apps = (items || []).filter(
+        (item) => !item?.type || item.type === "app",
+      );
       if (apps.length > 0) {
         sections.push({
           id: `category-${categoryName}`,
@@ -640,8 +670,12 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
   }, [appTypes, categorizedApps]);
 
   const visibleAppCount = useMemo(
-    () => visibleAppTypeSections.reduce((total, section) => total + section.apps.length, 0),
-    [visibleAppTypeSections]
+    () =>
+      visibleAppTypeSections.reduce(
+        (total, section) => total + section.apps.length,
+        0,
+      ),
+    [visibleAppTypeSections],
   );
 
   return (
@@ -675,7 +709,9 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
         <Flex
           direction={{ base: "column", lg: compactGreeting ? "row" : "column" }}
           gap={compactGreeting ? 2 : 3}
-          align={compactGreeting ? { base: "stretch", lg: "center" } : "stretch"}
+          align={
+            compactGreeting ? { base: "stretch", lg: "center" } : "stretch"
+          }
           transition="gap 0.22s ease"
         >
           <Flex
@@ -713,39 +749,9 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
                 }}
               />
             </InputGroup>
-
-            <HStack spacing={2} flexShrink={0}>
-              <Badge
-                px={2.5}
-                py={1}
-                borderRadius="full"
-                bg={headerChipBg}
-                color={mutedHeaderText}
-                textTransform="none"
-                fontSize="10px"
-              >
-                {visibleAppCount} apps
-              </Badge>
-              <Badge
-                px={2.5}
-                py={1}
-                borderRadius="full"
-                bg={headerChipBg}
-                color={mutedHeaderText}
-                textTransform="none"
-                fontSize="10px"
-              >
-                {visibleAppTypeSections.length} groups
-              </Badge>
-            </HStack>
           </Flex>
 
-          <Box
-            flex="1"
-            width="100%"
-            minW={0}
-            transition="width 0.22s ease"
-          >
+          <Box flex="1" width="100%" minW={0} transition="width 0.22s ease">
             <Box
               bgGradient="linear(to-r, orange.500, yellow.300)"
               borderRadius="2xl"
@@ -762,8 +768,7 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
                 content: '""',
                 position: "absolute",
                 inset: 0,
-                bg:
-                  "radial-gradient(circle at 12% 15%, rgba(255,255,255,0.42), transparent 26%), radial-gradient(circle at 86% 20%, rgba(255,255,255,0.32), transparent 22%)",
+                bg: "radial-gradient(circle at 12% 15%, rgba(255,255,255,0.42), transparent 26%), radial-gradient(circle at 86% 20%, rgba(255,255,255,0.32), transparent 22%)",
                 opacity: compactGreeting ? 0.45 : 0.85,
                 transition: "opacity 0.24s ease",
               }}
@@ -814,8 +819,13 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
                   </Heading>
 
                   {!compactGreeting && (
-                    <Text fontSize="sm" color="whiteAlpha.900" mt={2} noOfLines={1}>
-                      Your applications are ready. Pick a tool and keep the day moving.
+                    <Text
+                      fontSize="sm"
+                      color="whiteAlpha.900"
+                      mt={2}
+                      noOfLines={1}
+                    >
+                      Have a nice day.
                     </Text>
                   )}
                 </Box>
@@ -837,7 +847,11 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
                       <Text fontSize="lg" fontWeight="900" color="orange.700">
                         {visibleAppCount}
                       </Text>
-                      <Text fontSize="10px" color="orange.700" fontWeight="bold">
+                      <Text
+                        fontSize="10px"
+                        color="orange.700"
+                        fontWeight="bold"
+                      >
                         Apps
                       </Text>
                     </Box>
@@ -852,7 +866,11 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
                       <Text fontSize="lg" fontWeight="900" color="orange.700">
                         {visibleAppTypeSections.length}
                       </Text>
-                      <Text fontSize="10px" color="orange.700" fontWeight="bold">
+                      <Text
+                        fontSize="10px"
+                        color="orange.700"
+                        fontWeight="bold"
+                      >
                         Groups
                       </Text>
                     </Box>
@@ -863,8 +881,6 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
           </Box>
         </Flex>
       </Box>
-
-
 
       {/* Recently Opened Apps Section */}
       {recentApps.length > 0 && (
@@ -1022,9 +1038,7 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
               </>
             )}
           </>
-
         )}
-
       </>
 
       {/* Recent Login Logs Section (lazy-loaded) */}
@@ -1032,7 +1046,7 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
         <Flex
           direction={{ base: "column", md: "row" }}
           justify="space-between"
-          align={{ base: "start", md: "center" }}
+          align={{ base: "stretch", md: "center" }}
           mb={3}
           gap={3}
         >
@@ -1053,240 +1067,403 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
             </Text>
           </VStack>
 
-          <Button
-            size="sm"
-            leftIcon={<Icon as={showLogins ? FiMoon : FiActivity} />}
-            colorScheme="orange"
-            variant="subtitle"
-            bg={showLogins ? "orange.50" : "transparent"}
-            color={showLogins ? "orange.600" : "gray.500"}
-            fontSize="xs"
-            fontWeight="bold"
-            borderRadius="full"
-            onClick={() => setShowLogins((v) => !v)}
-            _hover={{ bg: "orange.50", color: "orange.600" }}
+          <HStack
+            spacing={2}
+            flexWrap="wrap"
+            justify={{ base: "flex-start", md: "flex-end" }}
           >
-            {showLogins ? "Hide" : "Show Recent Activity"}
-          </Button>
+            <Badge
+              px={3}
+              py={1}
+              borderRadius="full"
+              fontSize="10px"
+              fontWeight="800"
+              letterSpacing="0.08em"
+              textTransform="uppercase"
+              bg={showLogins ? "orange.100" : "gray.100"}
+              color={showLogins ? "orange.700" : "gray.600"}
+            >
+              {showLogins
+                ? `${filteredAudits.length} ${filteredAudits.length === 1 ? "entry" : "entries"}`
+                : "Hidden"}
+            </Badge>
+
+            <Button
+              size="sm"
+              leftIcon={
+                <Icon as={showLogins ? FiEyeOff : FiEye} boxSize={3.5} />
+              }
+              bg={showLogins ? "orange.500" : "white"}
+              color={showLogins ? "white" : "orange.600"}
+              border="1px solid"
+              borderColor={showLogins ? "orange.500" : "orange.200"}
+              fontSize="xs"
+              fontWeight="800"
+              letterSpacing="0.04em"
+              borderRadius="full"
+              px={4}
+              onClick={() => setShowLogins((v) => !v)}
+              boxShadow={
+                showLogins
+                  ? "0 10px 24px rgba(245, 158, 11, 0.22)"
+                  : "0 6px 18px rgba(15, 23, 42, 0.05)"
+              }
+              _hover={{
+                bg: showLogins ? "orange.500" : "orange.50",
+                color: showLogins ? "white" : "orange.700",
+                transform: "translateY(-1px)",
+              }}
+            >
+              {showLogins ? "Hide Recent Activity" : "Show Recent Activity"}
+            </Button>
+          </HStack>
         </Flex>
 
         {showLogins && (
-          <>
-            <InputGroup size="sm" mb={3} maxW={{ base: "100%", sm: "320px" }}>
-              <InputLeftElement pointerEvents="none">
-                <FiSearch color="gray.400" />
-              </InputLeftElement>
-              <Input
-                placeholder="Filter by user..."
-                variant="filled"
-                bg={recentActivityInputBg}
-                _hover={{ bg: recentActivityInputHoverBg }}
-                _focus={{ bg: "white", borderColor: "orange.400", boxShadow: "0 0 0 1px #ED8936" }}
-                borderRadius="full"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </InputGroup>
-
-            <Box
-              bg={recentActivityBoxBg}
-              borderRadius="2xl"
-              boxShadow="xl"
-              border="1px solid"
+          <Box
+            bg={recentActivityBoxBg}
+            borderRadius="3xl"
+            boxShadow="0 18px 40px rgba(15, 23, 42, 0.08)"
+            border="1px solid"
+            borderColor={recentActivityBorderColor}
+            overflow="hidden"
+          >
+            <Flex
+              px={4}
+              py={3}
+              align="center"
+              justify="space-between"
+              gap={3}
+              flexWrap="wrap"
+              borderBottom="1px solid"
               borderColor={recentActivityBorderColor}
-              overflow="hidden"
+              bg={recentActivityTheadBg}
             >
-              {filteredAudits.length === 0 ? (
-                <Text
-                  color="gray.500"
-                  textAlign="center"
-                  py={6}
-                  fontSize="sm"
-                >
-                  No login records found.
-                </Text>
-              ) : (
-                <>
+              <InputGroup size="sm" maxW={{ base: "100%", sm: "320px" }}>
+                <InputLeftElement pointerEvents="none">
+                  <FiSearch color="gray.400" />
+                </InputLeftElement>
+                <Input
+                  placeholder="Filter by user..."
+                  variant="filled"
+                  bg={recentActivityInputBg}
+                  _hover={{ bg: recentActivityInputHoverBg }}
+                  _focus={{
+                    bg: "white",
+                    borderColor: "orange.400",
+                    boxShadow: "0 0 0 1px #ED8936",
+                  }}
+                  borderRadius="full"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </InputGroup>
+
+              <Text fontSize="xs" color={sectionSubText} fontWeight="600">
+                {filteredAudits.length}{" "}
+                {filteredAudits.length === 1 ? "entry" : "entries"} found
+              </Text>
+            </Flex>
+
+            {filteredAudits.length === 0 ? (
+              <Text color="gray.500" textAlign="center" py={8} fontSize="sm">
+                No login records found.
+              </Text>
+            ) : (
+              <>
+                <TableContainer overflowX="auto">
                   <Table variant="simple" size="sm">
                     <Thead bg={recentActivityTheadBg}>
                       <Tr>
-                        <Th py={2} color="gray.400" fontSize="xs">User</Th>
-                        <Th py={2} color="gray.400" fontSize="xs">Device & OS</Th>
-                        <Th py={2} color="gray.400" fontSize="xs">Browser</Th>
-                        <Th py={2} color="gray.400" fontSize="xs" textAlign="right">Last Active</Th>
+                        <Th
+                          py={3}
+                          px={4}
+                          color="gray.400"
+                          fontSize="10px"
+                          fontWeight="800"
+                          letterSpacing="0.08em"
+                          textTransform="uppercase"
+                        >
+                          User
+                        </Th>
+                        <Th
+                          py={3}
+                          px={4}
+                          color="gray.400"
+                          fontSize="10px"
+                          fontWeight="800"
+                          letterSpacing="0.08em"
+                          textTransform="uppercase"
+                        >
+                          Device & OS
+                        </Th>
+                        <Th
+                          py={3}
+                          px={4}
+                          color="gray.400"
+                          fontSize="10px"
+                          fontWeight="800"
+                          letterSpacing="0.08em"
+                          textTransform="uppercase"
+                        >
+                          Browser
+                        </Th>
+                        <Th
+                          py={3}
+                          px={4}
+                          color="gray.400"
+                          fontSize="10px"
+                          fontWeight="800"
+                          letterSpacing="0.08em"
+                          textTransform="uppercase"
+                          textAlign="right"
+                        >
+                          Last Active
+                        </Th>
                       </Tr>
                     </Thead>
                     <Tbody>
                       {filteredAudits
-                        .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                        .map((log, idx) => (
-                          <Tr
-                            key={log.id || idx}
-                            _hover={{ bg: recentActivityRowHoverBg }}
-                            transition="all 0.2s"
-                          >
-                            <Td py={2}>
-                              <HStack spacing={2}>
-                                <Avatar size="xs" name={log.user?.username} src={log.user?.avatar ? `${API_URL}${log.user.avatar}` : ""} />
-                                <Text fontWeight="bold" color={recentActivityTextColor}>
-                                  {log.user?.username || "—"}
-                                </Text>
-                              </HStack>
-                            </Td>
-                            <Td py={2}>
-                              <HStack spacing={2}>
-                                <Icon
-                                  as={log.device?.toLowerCase().includes('mobile') ? FiSmartphone : FiMonitor}
-                                  color="blue.400"
-                                  boxSize={3}
-                                />
-                                <VStack align="start" spacing={0}>
-                                  <Text fontSize="xs" fontWeight="bold">{(log.device && log.device.length > 20) ? log.device.substring(0, 20) + "..." : log.device || "—"}</Text>
-                                  <Text fontSize="10px" color="gray.500">{log.os || "—"}</Text>
-                                </VStack>
-                              </HStack>
-                            </Td>
-                            <Td py={2}>
-                              <HStack spacing={2}>
-                                <Icon as={FiGlobe} color="teal.400" boxSize={3} />
-                                <Text fontSize="xs">{log.browser || "—"}</Text>
-                              </HStack>
-                            </Td>
-                            <Td py={2} textAlign="right">
-                              <VStack align="end" spacing={0}>
-                                <Text fontSize="xs" fontWeight="bold">
-                                  {log.login_time ? moment(log.login_time).format("MMM DD, h:mm a") : "—"}
-                                </Text>
-                                <Text fontSize="10px" color="gray.400">
-                                  {log.login_time ? moment(log.login_time).fromNow() : ""}
-                                </Text>
-                              </VStack>
-                            </Td>
+                        .slice(
+                          (currentPage - 1) * itemsPerPage,
+                          currentPage * itemsPerPage,
+                        )
+                        .map((log, idx) => {
+                          const userName = log.user?.username || "—";
+                          const avatarSrc = resolveAvatarSrc(log.user?.avatar);
+                          const isMobileDevice = String(log.device || "")
+                            .toLowerCase()
+                            .includes("mobile");
+                          const deviceLabel = log.device || "—";
+                          const osLabel = log.os || "—";
+                          const browserLabel = log.browser || "—";
+                          const loginTime = log.login_time
+                            ? moment(log.login_time).format("MMM DD, h:mm a")
+                            : "—";
+                          const relativeTime = log.login_time
+                            ? moment(log.login_time).fromNow()
+                            : "";
 
-                          </Tr>
-                        ))}
+                          return (
+                            <Tr
+                              key={log.id || idx}
+                              _hover={{ bg: recentActivityRowHoverBg }}
+                              transition="all 0.2s"
+                              borderBottom="1px solid"
+                              borderColor={recentActivityBorderColor}
+                            >
+                              <Td py={3} px={4}>
+                                <HStack spacing={3}>
+                                  <Avatar
+                                    size="sm"
+                                    name={userName}
+                                    src={avatarSrc || undefined}
+                                    bg="orange.100"
+                                    color="orange.700"
+                                    border="1px solid"
+                                    borderColor="orange.200"
+                                  />
+                                  <Box minW={0}>
+                                    <Text
+                                      fontWeight="800"
+                                      color={recentActivityTextColor}
+                                      fontSize="sm"
+                                      noOfLines={1}
+                                    >
+                                      {userName}
+                                    </Text>
+                                  </Box>
+                                </HStack>
+                              </Td>
+                              <Td py={3} px={4}>
+                                <HStack spacing={2}>
+                                  <Icon
+                                    as={
+                                      isMobileDevice ? FiSmartphone : FiMonitor
+                                    }
+                                    color="blue.400"
+                                    boxSize={3}
+                                  />
+                                  <VStack align="start" spacing={0}>
+                                    <Text
+                                      fontSize="sm"
+                                      fontWeight="700"
+                                      noOfLines={1}
+                                    >
+                                      {deviceLabel}
+                                    </Text>
+                                    <Text
+                                      fontSize="10px"
+                                      color="gray.500"
+                                      noOfLines={1}
+                                    >
+                                      {osLabel}
+                                    </Text>
+                                  </VStack>
+                                </HStack>
+                              </Td>
+                              <Td py={3} px={4}>
+                                <HStack spacing={2}>
+                                  <Icon
+                                    as={FiGlobe}
+                                    color="teal.400"
+                                    boxSize={3}
+                                  />
+                                  <Text fontSize="sm" noOfLines={1}>
+                                    {browserLabel}
+                                  </Text>
+                                </HStack>
+                              </Td>
+                              <Td py={3} px={4} textAlign="right">
+                                <VStack align="end" spacing={0}>
+                                  <Text fontSize="sm" fontWeight="800">
+                                    {loginTime}
+                                  </Text>
+                                  <Text fontSize="10px" color="gray.400">
+                                    {relativeTime}
+                                  </Text>
+                                </VStack>
+                              </Td>
+                            </Tr>
+                          );
+                        })}
                     </Tbody>
                   </Table>
-                  {filteredAudits.length > itemsPerPage && (
-                    <Flex
-                      justify="space-between"
-                      align="center"
-                      px={4}
-                      py={2}
-                      bg={recentActivityTheadBg}
-                      borderTop="1px solid"
-                      borderColor={recentActivityBorderColor}
-                    >
-                      <Text fontSize="xs" color={sectionSubText}>
-                        Page {currentPage} of {Math.ceil(filteredAudits.length / itemsPerPage)}
-                      </Text>
-                      <HStack spacing={2}>
-                        <IconButton
-                          icon={<FiChevronLeft />}
-                          size="sm"
-                          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                          isDisabled={currentPage === 1}
-                          aria-label="Previous Page"
-                          variant="ghost"
-                        />
-                        <IconButton
-                          icon={<FiChevronRight />}
-                          size="sm"
-                          onClick={() => setCurrentPage((p) => Math.min(Math.ceil(filteredAudits.length / itemsPerPage), p + 1))}
-                          isDisabled={currentPage === Math.ceil(filteredAudits.length / itemsPerPage)}
-                          aria-label="Next Page"
-                          variant="ghost"
-                        />
-                      </HStack>
-                    </Flex>
-                  )}
-                </>
-              )}
-            </Box>
-          </>
+                </TableContainer>
+                {filteredAudits.length > itemsPerPage && (
+                  <Flex
+                    justify="space-between"
+                    align="center"
+                    px={4}
+                    py={2.5}
+                    bg={recentActivityTheadBg}
+                    borderTop="1px solid"
+                    borderColor={recentActivityBorderColor}
+                  >
+                    <Text fontSize="xs" color={sectionSubText}>
+                      Page {currentPage} of{" "}
+                      {Math.ceil(filteredAudits.length / itemsPerPage)}
+                    </Text>
+                    <HStack spacing={2}>
+                      <IconButton
+                        icon={<FiChevronLeft />}
+                        size="sm"
+                        onClick={() =>
+                          setCurrentPage((p) => Math.max(1, p - 1))
+                        }
+                        isDisabled={currentPage === 1}
+                        aria-label="Previous Page"
+                        variant="ghost"
+                      />
+                      <IconButton
+                        icon={<FiChevronRight />}
+                        size="sm"
+                        onClick={() =>
+                          setCurrentPage((p) =>
+                            Math.min(
+                              Math.ceil(filteredAudits.length / itemsPerPage),
+                              p + 1,
+                            ),
+                          )
+                        }
+                        isDisabled={
+                          currentPage ===
+                          Math.ceil(filteredAudits.length / itemsPerPage)
+                        }
+                        aria-label="Next Page"
+                        variant="ghost"
+                      />
+                    </HStack>
+                  </Flex>
+                )}
+              </>
+            )}
+          </Box>
         )}
       </Box>
 
-
       {/* Modal for App Info */}
-      {
-        selectedApp && (
-          <Modal isOpen={isOpen} onClose={onClose}>
-            <ModalOverlay />
-            <ModalContent>
-              <ModalHeader>Edit {selectedApp.name}</ModalHeader>
-              <ModalCloseButton />
-              <ModalBody>
-                <Box>
-                  <Text mb={2}>App Name</Text>
-                  <Input
-                    name="name"
-                    value={updatedApp.name || ""}
-                    onChange={(e) =>
-                      setUpdatedApp((prev) => ({ ...prev, name: e.target.value }))
-                    }
-                    mb={4}
-                    placeholder="App Name"
-                  />
+      {selectedApp && (
+        <Modal isOpen={isOpen} onClose={onClose}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Edit {selectedApp.name}</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <Box>
+                <Text mb={2}>App Name</Text>
+                <Input
+                  name="name"
+                  value={updatedApp.name || ""}
+                  onChange={(e) =>
+                    setUpdatedApp((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                  mb={4}
+                  placeholder="App Name"
+                />
 
-                  <Text mb={2}>Description</Text>
-                  <Input
-                    name="description"
-                    value={updatedApp.description || ""}
-                    onChange={(e) =>
+                <Text mb={2}>Description</Text>
+                <Input
+                  name="description"
+                  value={updatedApp.description || ""}
+                  onChange={(e) =>
+                    setUpdatedApp((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
+                  mb={4}
+                  placeholder="App Description"
+                />
+
+                <Text mb={2}>URL</Text>
+                <Input
+                  name="url"
+                  value={updatedApp.url || ""}
+                  onChange={(e) =>
+                    setUpdatedApp((prev) => ({ ...prev, url: e.target.value }))
+                  }
+                  mb={4}
+                  placeholder="App URL"
+                />
+
+                <Text mb={2}>App Icon</Text>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
                       setUpdatedApp((prev) => ({
                         ...prev,
-                        description: e.target.value,
-                      }))
-                    }
-                    mb={4}
-                    placeholder="App Description"
-                  />
-
-                  <Text mb={2}>URL</Text>
-                  <Input
-                    name="url"
-                    value={updatedApp.url || ""}
-                    onChange={(e) =>
-                      setUpdatedApp((prev) => ({ ...prev, url: e.target.value }))
-                    }
-                    mb={4}
-                    placeholder="App URL"
-                  />
-
-                  <Text mb={2}>App Icon</Text>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      const reader = new FileReader();
-                      reader.onloadend = () => {
-                        setUpdatedApp((prev) => ({
-                          ...prev,
-                          icon: reader.result,
-                        }));
-                      };
-                      reader.readAsDataURL(file);
-                    }}
-                    mb={4}
-                  />
-                </Box>
-              </ModalBody>
-              <ModalFooter>
-                <Button colorScheme="blue" mr={3} onClick={handleSaveChanges}>
-                  Save Changes
-                </Button>
-                <Button onClick={onClose}>Cancel</Button>
-              </ModalFooter>
-            </ModalContent>
-          </Modal>
-        )
-      }
+                        icon: reader.result,
+                      }));
+                    };
+                    reader.readAsDataURL(file);
+                  }}
+                  mb={4}
+                />
+              </Box>
+            </ModalBody>
+            <ModalFooter>
+              <Button colorScheme="blue" mr={3} onClick={handleSaveChanges}>
+                Save Changes
+              </Button>
+              <Button onClick={onClose}>Cancel</Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+      )}
 
       {/* Personnel Preview Modal */}
-      <Modal isOpen={isPreviewOpen} onClose={handleClosePreview} size="full" scrollBehavior="inside">
+      <Modal
+        isOpen={isPreviewOpen}
+        onClose={handleClosePreview}
+        size="full"
+        scrollBehavior="inside"
+      >
         <ModalOverlay />
         <ModalContent bg={useColorModeValue("gray.50", "gray.900")}>
           <ModalHeader>
@@ -1294,18 +1471,24 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
             <ModalCloseButton />
           </ModalHeader>
           <ModalBody p={0}>
-            {previewPersonnelId && <PersonnelPreview personnelId={previewPersonnelId} inModal={true} isSidebarOpen={isSidebarExpanded} />}
+            {previewPersonnelId && (
+              <PersonnelPreview
+                personnelId={previewPersonnelId}
+                inModal={true}
+                isSidebarOpen={isSidebarExpanded}
+              />
+            )}
           </ModalBody>
           <ModalFooter>
-            <Button onClick={handleClosePreview} colorScheme="blue">Close</Button>
+            <Button onClick={handleClosePreview} colorScheme="blue">
+              Close
+            </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
     </Box>
   );
 }
-
-
 
 // Memoized AppCard to avoid unnecessary re-renders
 const AppCard = React.memo(function AppCard({
@@ -1318,22 +1501,29 @@ const AppCard = React.memo(function AppCard({
   const navigate = useNavigate();
   const isFileData = app.generated_code && app.filename;
   // Use app.type if available, otherwise fallback to extension check
-  const isPhoneDirectory = app.type === "phone_directory" || (app.name && app.extension);
+  const isPhoneDirectory =
+    app.type === "phone_directory" || (app.name && app.extension);
   const { hasPermission } = usePermissionContext();
-  const appCardBg = useColorModeValue("rgba(255, 255, 255, 0.86)", "rgba(26, 32, 44, 0.86)");
+  const appCardBg = useColorModeValue(
+    "rgba(255, 255, 255, 0.86)",
+    "rgba(26, 32, 44, 0.86)",
+  );
   const appCardHoverBg = useColorModeValue("white", "gray.800");
-  const appCardBorder = useColorModeValue("rgba(226, 232, 240, 0.9)", "rgba(74, 85, 104, 0.85)");
+  const appCardBorder = useColorModeValue(
+    "rgba(226, 232, 240, 0.9)",
+    "rgba(74, 85, 104, 0.85)",
+  );
   const appCardShadow = useColorModeValue(
     "0 8px 22px rgba(15, 23, 42, 0.04)",
-    "0 10px 24px rgba(0, 0, 0, 0.28)"
+    "0 10px 24px rgba(0, 0, 0, 0.28)",
   );
   const appCardHoverShadow = useColorModeValue(
     "0 16px 36px rgba(249, 115, 22, 0.14)",
-    "0 18px 38px rgba(0, 0, 0, 0.38)"
+    "0 18px 38px rgba(0, 0, 0, 0.38)",
   );
   const iconShellBg = useColorModeValue(
     "linear(to-br, orange.50, white)",
-    "linear(to-br, gray.700, gray.800)"
+    "linear(to-br, gray.700, gray.800)",
   );
   const iconShellBorder = useColorModeValue("orange.100", "whiteAlpha.200");
   const fileChipBg = useColorModeValue("orange.50", "whiteAlpha.100");
@@ -1403,11 +1593,11 @@ const AppCard = React.memo(function AppCard({
       _hover={
         isClickable
           ? {
-            transform: "translateY(-4px)",
-            boxShadow: appCardHoverShadow,
-            borderColor: "orange.200",
-            bg: appCardHoverBg,
-          }
+              transform: "translateY(-4px)",
+              boxShadow: appCardHoverShadow,
+              borderColor: "orange.200",
+              bg: appCardHoverBg,
+            }
           : {}
       }
     >
@@ -1446,9 +1636,7 @@ const AppCard = React.memo(function AppCard({
         </Text>
         <Text fontSize="xs" color={colors.cardText} noOfLines={1}>
           <strong>Extension:</strong>{" "}
-          {app.extension && app.extension.trim() !== ""
-            ? app.extension
-            : "N/A"}
+          {app.extension && app.extension.trim() !== "" ? app.extension : "N/A"}
         </Text>
         <Text fontSize="xs" color={colors.cardText} noOfLines={1}>
           <strong>DECT:</strong>{" "}
@@ -1486,11 +1674,11 @@ const AppCard = React.memo(function AppCard({
       _hover={
         isClickable
           ? {
-            transform: "translateY(-4px)",
-            boxShadow: appCardHoverShadow,
-            borderColor: "orange.200",
-            bg: appCardHoverBg,
-          }
+              transform: "translateY(-4px)",
+              boxShadow: appCardHoverShadow,
+              borderColor: "orange.200",
+              bg: appCardHoverBg,
+            }
           : {}
       }
       align="center"
@@ -1590,7 +1778,12 @@ const AppCard = React.memo(function AppCard({
               gap={2}
             >
               <Box>
-                <Text fontSize="xs" fontWeight="bold" color={colors.cardText} noOfLines={1}>
+                <Text
+                  fontSize="xs"
+                  fontWeight="bold"
+                  color={colors.cardText}
+                  noOfLines={1}
+                >
                   {app.filename}
                 </Text>
                 <Text fontSize="10px" color="gray.600" noOfLines={1}>
@@ -1627,7 +1820,7 @@ const AppCard1 = React.memo(function AppCard({
   const { hasPermission } = usePermissionContext();
   const cardShadow = useColorModeValue(
     "0 10px 24px rgba(15, 23, 42, 0.08)",
-    "0 12px 24px rgba(0, 0, 0, 0.45)"
+    "0 12px 24px rgba(0, 0, 0, 0.45)",
   );
   const activeBg = useColorModeValue("gray.50", "gray.700");
 
@@ -1700,9 +1893,15 @@ const AppCard1 = React.memo(function AppCard({
         />
       );
     }
-    return <Icon as={FiFile} boxSize={small ? 8 : 10} color={colors.cardHeader} mb={small ? 1 : 2} />;
+    return (
+      <Icon
+        as={FiFile}
+        boxSize={small ? 8 : 10}
+        color={colors.cardHeader}
+        mb={small ? 1 : 2}
+      />
+    );
   };
-
 
   // --- Unified Card Container ---
   // --- Unified Card Container ---
@@ -1713,16 +1912,13 @@ const AppCard1 = React.memo(function AppCard({
       href={isLink ? app.url : undefined}
       target={isLink ? "_blank" : undefined}
       rel={isLink ? "noopener noreferrer" : undefined}
-
       // APPLY FIXED/MAX DIMENSIONS
       width={CARD_DIMENSIONS.w}
       height={CARD_DIMENSIONS.h}
-
       // Interaction
       role={isClickable ? "link" : undefined}
       tabIndex={isClickable ? 0 : -1}
       aria-disabled={!isClickable}
-
       onClick={(e) => {
         if (!isClickable) {
           e.preventDefault();
@@ -1739,14 +1935,13 @@ const AppCard1 = React.memo(function AppCard({
           // Force manual navigation to ensure reliability.
           // This avoids issues where state updates might unmount/change the link before it actuates.
           e.preventDefault();
-          window.open(app.url, '_blank', 'noopener,noreferrer');
+          window.open(app.url, "_blank", "noopener,noreferrer");
         } else {
           // Fallback for non-link cards
           e.preventDefault();
           handleClick(e);
         }
       }}
-
       onKeyDown={(event) => {
         if (!isClickable) return;
         if (event.key === "Enter" || event.key === " ") {
@@ -1755,7 +1950,7 @@ const AppCard1 = React.memo(function AppCard({
           if (handleAppClick) handleAppClick(app);
 
           if (isLink) {
-            window.open(app.url, '_blank', 'noopener,noreferrer');
+            window.open(app.url, "_blank", "noopener,noreferrer");
           } else {
             handleClick(event);
           }
@@ -1763,32 +1958,38 @@ const AppCard1 = React.memo(function AppCard({
       }}
       cursor={isClickable ? "pointer" : "not-allowed"}
       style={{
-        textDecoration: 'none',
+        textDecoration: "none",
         // Optimizations for touch
-        touchAction: 'manipulation',
-        WebkitTapHighlightColor: 'transparent',
+        touchAction: "manipulation",
+        WebkitTapHighlightColor: "transparent",
         // Prevent text selection on the card which can block clicks
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
-        display: 'block'
+        userSelect: "none",
+        WebkitUserSelect: "none",
+        display: "block",
       }}
-
       // Hover styles
-      _hover={isClickable ? {
-        "& > div": {
-          borderColor: "orange.300",
-          boxShadow: "lg",
-        }
-      } : {}}
-
+      _hover={
+        isClickable
+          ? {
+              "& > div": {
+                borderColor: "orange.300",
+                boxShadow: "lg",
+              },
+            }
+          : {}
+      }
       // Active state
-      _active={isClickable ? {
-        "& > div": {
-          borderColor: "orange.400",
-          bg: activeBg,
-          boxShadow: "sm"
-        }
-      } : {}}
+      _active={
+        isClickable
+          ? {
+              "& > div": {
+                borderColor: "orange.400",
+                bg: activeBg,
+                boxShadow: "sm",
+              },
+            }
+          : {}
+      }
     >
       <VStack
         // Visual Card
@@ -1811,11 +2012,9 @@ const AppCard1 = React.memo(function AppCard({
     </Box>
   );
 
-
   // --- Final Rendering ---
   return (
     <CardContainer>
-
       {renderIcon()}
 
       {/* Name and Primary Information */}
@@ -1833,18 +2032,18 @@ const AppCard1 = React.memo(function AppCard({
         {/* --- Phone Directory Details --- */}
         {isPhoneDirectory && (
           <VStack spacing={0} fontSize="xs" color={colors.cardText}>
-            {app.extension && (
-              <Text>Ext: {app.extension}</Text>
-            )}
+            {app.extension && <Text>Ext: {app.extension}</Text>}
             {app.dect_number && (
-              <Text>DECT: {app.dect_number.trim() !== "" ? app.dect_number : "N/A"}</Text>
+              <Text>
+                DECT: {app.dect_number.trim() !== "" ? app.dect_number : "N/A"}
+              </Text>
             )}
           </VStack>
         )}
         {/* --- File Data Details --- */}
         {isFileData && hasPermission("atgfile.view") && (
           <Text fontSize="xs" color={colors.cardText} mt={1} noOfLines={1}>
-            Code: {app.generated_code || 'N/A'}
+            Code: {app.generated_code || "N/A"}
           </Text>
         )}
 
@@ -1855,7 +2054,6 @@ const AppCard1 = React.memo(function AppCard({
           </Text>
         )}
       </VStack>
-
     </CardContainer>
   );
 });

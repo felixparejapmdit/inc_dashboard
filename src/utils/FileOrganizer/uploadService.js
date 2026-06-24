@@ -1,8 +1,9 @@
 // utils/FileOrganizer/uploadService.js
 
 import axios from "axios";
+import { resolveApiBaseUrl } from "../urlResolvers";
 
-const BASE_URL = process.env.REACT_APP_API_URL;
+const BASE_URL = resolveApiBaseUrl(5003);
 
 
 export const uploadFileToLocal = async (file) => {

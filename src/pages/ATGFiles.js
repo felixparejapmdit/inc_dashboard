@@ -73,6 +73,7 @@ import {
   FaFileWord,
 } from "react-icons/fa";
 import { getAuthHeaders } from "../utils/apiHeaders";
+import { resolveApiBaseUrl, joinUrl } from "../utils/urlResolvers";
 
 const SUPPORTED_EXTENSIONS = [".pdf", ".docx", ".txt", ".pptx"];
 
@@ -99,32 +100,13 @@ const FILE_TYPE_META = {
   },
 };
 
-const isLocalHost = () => {
-  if (typeof window === "undefined") return false;
-  return ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
-};
-
-const getFallbackApiBase = () => {
-  if (typeof window === "undefined") return "";
-  return `${window.location.protocol}//${window.location.hostname}:5000`;
-};
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_URL ||
-  (isLocalHost() ? "http://127.0.0.1:5000" : "");
+const API_BASE_URL = resolveApiBaseUrl(5003);
 
 const buildApiUrl = (target) => {
   if (!target) return "";
   if (/^https?:\/\//i.test(target)) return target;
 
-  const base = API_BASE_URL || getFallbackApiBase();
-  if (!base) return target;
-
-  try {
-    return new URL(target, base).toString();
-  } catch (error) {
-    return target;
-  }
+  return joinUrl(API_BASE_URL, target);
 };
 
 const buildBrowserUrl = (target) => {
@@ -135,11 +117,7 @@ const buildBrowserUrl = (target) => {
     return resolved;
   }
 
-  try {
-    return new URL(resolved, API_BASE_URL || getFallbackApiBase()).toString();
-  } catch (error) {
-    return resolved;
-  }
+  return joinUrl(API_BASE_URL, resolved);
 };
 
 const sanitizeSegment = (value) => {

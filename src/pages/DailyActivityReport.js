@@ -5,7 +5,7 @@ import {
   Icon, IconButton, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody,
   ModalFooter, ModalCloseButton, useDisclosure, useToast,
   VStack, HStack, SimpleGrid, Spinner, Tooltip, InputGroup, InputLeftElement,
-  Avatar, Divider,
+  Avatar,
 } from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import ReactSelect from "react-select";
@@ -278,7 +278,7 @@ function SectionHead({ title, action }) {
 }
 
 // ─── Task Modal ────────────────────────────────────────────────────────────────
-function TaskModal({ isOpen, onClose, categories, onSaved, initial, currentWeek, targetUserId }) {
+function TaskModal({ isOpen, onClose, categories, onSaved, initial, currentWeek }) {
   const toast = useToast();
   const blank = useMemo(() => ({
     title: "",
@@ -379,10 +379,6 @@ function TaskModal({ isOpen, onClose, categories, onSaved, initial, currentWeek,
             ? "New"
             : form.kanban_status || "New",
       };
-
-      if (!initial?.task_id && targetUserId) {
-        savePayload.user_id = targetUserId;
-      }
 
       if (
         form.status === "Completed" &&
@@ -1895,14 +1891,23 @@ export default function DailyActivityReport() {
             </Text>
           </Box>
 
-          <HStack
-            spacing={2.5}
+          <Flex
+            gap={2}
             flexShrink={0}
             align="center"
-            divider={<Divider orientation="vertical" h="34px" borderColor="gray.200" />}
-            wrap={{ base: "wrap", lg: "nowrap" }}
+            justify={{ base: "flex-start", xl: "flex-end" }}
+            flexWrap="wrap"
           >
-            <HStack spacing={2.5} minW="0">
+            <HStack
+              spacing={2}
+              px={3}
+              py={2}
+              borderRadius="2xl"
+              border="1px solid"
+              borderColor="gray.100"
+              bg="gray.50"
+              minW="0"
+            >
               <Avatar
                 size="sm"
                 name={loggedInUserName}
@@ -1922,10 +1927,19 @@ export default function DailyActivityReport() {
               </Box>
             </HStack>
 
-            <HStack spacing={2.5} minW="0">
+            <HStack
+              spacing={2}
+              px={3}
+              py={2}
+              borderRadius="2xl"
+              border="1px solid"
+              borderColor="gray.100"
+              bg="#F8FAFC"
+              minW="0"
+            >
               <Box
-                w="34px"
-                h="34px"
+                w="32px"
+                h="32px"
                 borderRadius="full"
                 bg="#EFF6FF"
                 display="flex"
@@ -1945,17 +1959,69 @@ export default function DailyActivityReport() {
               </Box>
             </HStack>
 
+            <HStack
+              spacing={1.5}
+              align="center"
+              px={2.5}
+              py={1.5}
+              borderRadius="2xl"
+              border="1px solid"
+              borderColor="#FECACA"
+              bg="#FFF1F2"
+              minW="0"
+            >
+              <IconButton
+                aria-label="Previous week"
+                icon={<FiChevronLeft />}
+                size="xs"
+                variant="ghost"
+                color={T.crimson}
+                bg="white"
+                borderRadius="full"
+                isDisabled={weekOffset <= MIN_WEEK_OFFSET}
+                onClick={() => setWeekOffset((current) => Math.max(MIN_WEEK_OFFSET, current - 1))}
+                _hover={{ bg: "#FFE4E6" }}
+              />
+              <Box textAlign="center" minW="52px" lineHeight="1">
+                <Text
+                  fontSize="9px"
+                  fontWeight="900"
+                  color={T.crimson}
+                  textTransform="uppercase"
+                  letterSpacing="0.12em"
+                  lineHeight="1.1"
+                >
+                  Week
+                </Text>
+                <Text fontSize="md" fontWeight="900" color={T.crimson} lineHeight="1.05">
+                  {headerWeekNumber}
+                </Text>
+              </Box>
+              <IconButton
+                aria-label="Next week"
+                icon={<FiChevronRight />}
+                size="xs"
+                variant="ghost"
+                color={T.crimson}
+                bg="white"
+                borderRadius="full"
+                isDisabled={weekOffset >= MAX_WEEK_OFFSET}
+                onClick={() => setWeekOffset((current) => Math.min(MAX_WEEK_OFFSET, current + 1))}
+                _hover={{ bg: "#FFE4E6" }}
+              />
+            </HStack>
+
             {canSwitchDarUser && (
               <HStack
                 spacing={2}
-                px={3}
+                px={2.5}
                 py={2}
-                borderRadius="xl"
+                borderRadius="2xl"
                 border="1px solid"
                 borderColor="orange.100"
                 bg="#FFF7ED"
                 flexShrink={0}
-                minW={{ base: "260px", xl: "300px" }}
+                minW={{ base: "100%", md: "280px", xl: "300px" }}
               >
                 <Text
                   fontSize="9px"
@@ -1997,7 +2063,7 @@ export default function DailyActivityReport() {
                       }),
                       control: (base, state) => ({
                         ...base,
-                        minHeight: "32px",
+                        minHeight: "30px",
                         borderRadius: "9999px",
                         borderColor: state.isFocused ? "#F59E0B" : "#FCD9A5",
                         boxShadow: state.isFocused ? "0 0 0 1px #F59E0B" : "none",
@@ -2007,7 +2073,7 @@ export default function DailyActivityReport() {
                       }),
                       valueContainer: (base) => ({
                         ...base,
-                        padding: "0 10px",
+                        padding: "0 8px",
                       }),
                       input: (base) => ({
                         ...base,
@@ -2050,49 +2116,7 @@ export default function DailyActivityReport() {
                 </Box>
               </HStack>
             )}
-
-            <HStack spacing={1.5} align="center" minW="0">
-              <IconButton
-                aria-label="Previous week"
-                icon={<FiChevronLeft />}
-                size="sm"
-                variant="ghost"
-                color={T.crimson}
-                bg="#FFF1F2"
-                borderRadius="full"
-                isDisabled={weekOffset <= MIN_WEEK_OFFSET}
-                onClick={() => setWeekOffset((current) => Math.max(MIN_WEEK_OFFSET, current - 1))}
-                _hover={{ bg: "#FFE4E6" }}
-              />
-              <Box textAlign="center" minW="56px" lineHeight="1">
-                <Text
-                  fontSize="9px"
-                  fontWeight="900"
-                  color={T.crimson}
-                  textTransform="uppercase"
-                  letterSpacing="0.12em"
-                  lineHeight="1.1"
-                >
-                  Week
-                </Text>
-                <Text fontSize="md" fontWeight="900" color={T.crimson} lineHeight="1.05">
-                  {headerWeekNumber}
-                </Text>
-              </Box>
-              <IconButton
-                aria-label="Next week"
-                icon={<FiChevronRight />}
-                size="sm"
-                variant="ghost"
-                color={T.crimson}
-                bg="#FFF1F2"
-                borderRadius="full"
-                isDisabled={weekOffset >= MAX_WEEK_OFFSET}
-                onClick={() => setWeekOffset((current) => Math.min(MAX_WEEK_OFFSET, current + 1))}
-                _hover={{ bg: "#FFE4E6" }}
-              />
-            </HStack>
-          </HStack>
+          </Flex>
         </Flex>
       </Box>
 
@@ -2802,7 +2826,7 @@ export default function DailyActivityReport() {
 
       {/* ── Modals ── */}
       <TaskModal isOpen={taskModal.isOpen} onClose={taskModal.onClose}
-        categories={categories} onSaved={load} initial={editTask} currentWeek={week} targetUserId={activeDarUserId} />
+        categories={categories} onSaved={load} initial={editTask} currentWeek={week} />
       <LogModal isOpen={logModal.isOpen} onClose={logModal.onClose}
         task={logTask} onSaved={load} />
       <SignatureModal

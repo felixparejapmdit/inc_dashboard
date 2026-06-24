@@ -48,6 +48,7 @@ import {
   FaSitemap,
 } from "react-icons/fa";
 import { getAllData } from "../../utils/FileOrganizer/globalSearchService";
+import { resolveApiBaseUrl, joinUrl } from "../../utils/urlResolvers";
 
 const sameId = (left, right) => String(left ?? "") === String(right ?? "");
 const hasValue = (value) => value !== undefined && value !== null && String(value) !== "";
@@ -65,10 +66,7 @@ const resolveFileUrl = (fileUrl) => {
   if (!fileUrl) return "";
   if (/^https?:\/\//i.test(fileUrl)) return fileUrl;
 
-  const apiBase = (process.env.REACT_APP_API_URL || "").replace(/\/+$/, "");
-  if (!apiBase) return fileUrl;
-
-  return `${apiBase}${fileUrl.startsWith("/") ? "" : "/"}${fileUrl}`;
+  return joinUrl(resolveApiBaseUrl(5003), fileUrl);
 };
 
 const normalizeItems = (items, type) =>

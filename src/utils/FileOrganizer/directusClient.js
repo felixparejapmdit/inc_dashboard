@@ -1,17 +1,8 @@
 // utils/FileOrganizer/directusClient.js
 import axios from "axios";
+import { resolveDirectusBaseUrl } from "../urlResolvers";
 
-const isLocalBrowser =
-  typeof window !== "undefined" &&
-  ["localhost", "127.0.0.1"].includes(window.location.hostname);
-
-const DEFAULT_DIRECTUS_URL = isLocalBrowser
-  ? "http://localhost:8055"
-  : "https://test-directus.pmdmc.net";
-
-export const DIRECTUS_URL = (
-  process.env.REACT_APP_DIRECTUS_URL || DEFAULT_DIRECTUS_URL
-).replace(/\/+$/, "");
+export const DIRECTUS_URL = resolveDirectusBaseUrl(8055);
 
 const AUTH_TOKEN = process.env.REACT_APP_DIRECTUS_TOKEN || "";
 

@@ -71,7 +71,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 import { usePermissionContext } from "../contexts/PermissionContext";
 
-import Tutorial from "../components/Tutorial";
 
 const WEB_DAV_ROUTE = "/webdav";
 
@@ -1356,13 +1355,6 @@ const Sidebar = ({ onSidebarToggle }) => {
             </AlertDialogContent>
           </AlertDialogOverlay>
         </AlertDialog>
-        <Tutorial
-          isSidebarExpanded={isExpanded}
-          onExpandSidebar={() => {
-            setIsExpanded(true);
-            onSidebarToggle(true);
-          }}
-        />
       </Flex>
     </Box>
   );

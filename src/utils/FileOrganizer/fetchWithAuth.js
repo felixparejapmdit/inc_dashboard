@@ -1,8 +1,8 @@
 // utils/FileOrganizer/fetchWithAuth.js
 
-export const DIRECTUS_API_URL = (
-  process.env.REACT_APP_DIRECTUS_URL || "https://test-directus.pmdmc.net"
-).replace(/\/+$/, "");
+import { resolveDirectusBaseUrl } from "../urlResolvers";
+
+export const DIRECTUS_API_URL = resolveDirectusBaseUrl(8055);
 
 // Function to get the full asset URL
 export const getAssetUrl = (assetId) => {

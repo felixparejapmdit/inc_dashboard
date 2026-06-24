@@ -1,20 +1,9 @@
 // src/utils/fetchData.js
 import axios from "axios";
 import { getAuthHeaders } from "./apiHeaders";
+import { resolveApiBaseUrl } from "./urlResolvers";
 
-const isLocalDev =
-  typeof window !== "undefined" &&
-  ["localhost", "127.0.0.1"].includes(window.location.hostname);
-
-let API_URL =
-  process.env.REACT_APP_API_URL || (isLocalDev ? "http://127.0.0.1:5000" : "");
-if (
-  typeof window !== "undefined" &&
-  window.location.protocol === "https:" &&
-  API_URL.startsWith("http://")
-) {
-  API_URL = API_URL.replace("http://", "https://");
-}
+const API_URL = resolveApiBaseUrl();
 
 // Global Axios Interceptor for 401 Unauthorized
 axios.interceptors.response.use(
