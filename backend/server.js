@@ -280,7 +280,7 @@ app.get("/api/test-upload", (req, res) => {
 // app.use(userRoutes);
 
 // Start HTTP server
-const PORT_HTTP = process.env.PORT || process.env.REACT_PORT_HTTP || 5000;
+const PORT_HTTP = process.env.REACT_PORT_HTTP || process.env.PORT || 5000;
 const PORT_HTTPS = process.env.PORT_HTTPS || process.env.REACT_PORT_HTTPS || 8443;
 
 const IP_BIND = "0.0.0.0";

@@ -8,7 +8,6 @@ services:
     env_file:
       - .env.docker
     environment:
-      - PORT=5000
       - REACT_PORT_HTTPS=443
       - REDIS_HOST=redis
     volumes:
