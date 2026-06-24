@@ -1,9 +1,8 @@
 const axios = require("axios");
-
-const DIRECTUS_INTERNAL_URL = (process.env.DIRECTUS_INTERNAL_URL || "http://directus:8055").replace(
-  /\/+$/,
-  ""
-);
+const {
+  DIRECTUS_INTERNAL_URL,
+  getDirectusAuthorizationHeader,
+} = require("../services/directusAuthService");
 
 const HOP_BY_HOP_HEADERS = new Set([
   "connection",
@@ -26,26 +25,46 @@ const buildTargetUrl = (req) => {
   return new URL(req.url || "/", baseUrl).toString();
 };
 
+const getForwardHeaders = async (req, { forceServerAuth = false } = {}) => {
+  const serverAuthorization = await getDirectusAuthorizationHeader({ forceRefresh: forceServerAuth });
+  const authorization = serverAuthorization || (!forceServerAuth ? req.headers.authorization : null);
+
+  return {
+    Accept: req.headers.accept || "application/json",
+    Authorization: authorization,
+    Cookie: req.headers.cookie,
+    "Content-Type": req.headers["content-type"],
+  };
+};
+
+const forwardRequest = async (req, targetUrl, forceServerAuth = false) => {
+  const headers = await getForwardHeaders(req, { forceServerAuth });
+
+  return axios.request({
+    method: req.method,
+    url: targetUrl,
+    data: !["GET", "HEAD", "DELETE"].includes(req.method) ? req.body : undefined,
+    headers,
+    responseType: "arraybuffer",
+    timeout: 15000,
+    maxBodyLength: Infinity,
+    maxContentLength: Infinity,
+    validateStatus: () => true,
+  });
+};
+
 exports.proxyDirectusRequest = async (req, res) => {
   const targetUrl = buildTargetUrl(req);
-  const hasBody = !["GET", "HEAD", "DELETE"].includes(req.method);
 
   try {
-    const response = await axios.request({
-      method: req.method,
-      url: targetUrl,
-      data: hasBody ? req.body : undefined,
-      headers: {
-        Accept: req.headers.accept || "application/json",
-        Authorization: req.headers.authorization,
-        "Content-Type": req.headers["content-type"],
-      },
-      responseType: "arraybuffer",
-      timeout: 15000,
-      maxBodyLength: Infinity,
-      maxContentLength: Infinity,
-      validateStatus: () => true,
-    });
+    let response = await forwardRequest(req, targetUrl);
+
+    if (response.status === 401) {
+      const retriedResponse = await forwardRequest(req, targetUrl, true);
+      if (retriedResponse.status !== 401) {
+        response = retriedResponse;
+      }
+    }
 
     res.status(response.status);
 

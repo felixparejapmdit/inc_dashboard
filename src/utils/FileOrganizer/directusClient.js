@@ -4,16 +4,11 @@ import { resolveDirectusBaseUrl } from "../urlResolvers";
 
 export const DIRECTUS_URL = resolveDirectusBaseUrl(8055);
 
-const AUTH_TOKEN = process.env.REACT_APP_DIRECTUS_TOKEN || "";
-
 const headers = {
   "Content-Type": "application/json",
 };
 
-if (AUTH_TOKEN) {
-  headers.Authorization = `Bearer ${AUTH_TOKEN}`;
-}
-
+// Authentication is handled by the backend proxy at /api/directus.
 const directus = axios.create({
   baseURL: DIRECTUS_URL,
   headers,

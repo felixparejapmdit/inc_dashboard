@@ -12,20 +12,11 @@ export const getAssetUrl = (assetId) => {
 // Function to handle API calls with authorization
 export const fetchWithAuth = async (url, options = {}) => {
   try {
-    const sessionToken = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("directus_session_token"))
-      ?.split("=")[1];
-    const token = process.env.REACT_APP_DIRECTUS_TOKEN || sessionToken;
-
-    const headers = {
-      ...options.headers,
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    };
-
     const response = await fetch(url, {
       ...options,
-      headers,
+      headers: {
+        ...options.headers,
+      },
     });
 
     if (!response.ok) {
