@@ -5,13 +5,10 @@ const getBrowserOrigin = (port) => {
     return `http://127.0.0.1:${port}`;
   }
 
-  const protocol = window.location.protocol || "http:";
-  const hostname = window.location.hostname || "127.0.0.1";
-  const host = hostname.includes(":") ? `[${hostname}]` : hostname;
-  return `${protocol}//${host}:${port}`;
+  return window.location.origin || `http://127.0.0.1:${port}`;
 };
 
-export const resolveApiBaseUrl = (fallbackPort = 5003) => {
+export const resolveApiBaseUrl = (fallbackPort = 5000) => {
   const envValue = stripTrailingSlash(process.env.REACT_APP_API_URL);
   return envValue || getBrowserOrigin(fallbackPort);
 };

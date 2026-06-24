@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
   Box,
   Heading,
@@ -49,6 +49,7 @@ import {
   MenuItem,
   Tooltip,
   useDisclosure,
+  InputRightElement,
 } from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import {
@@ -56,20 +57,22 @@ import {
   EditIcon,
   DeleteIcon,
   SearchIcon,
-  CalendarIcon,
   TimeIcon,
-  HamburgerIcon,
+  RepeatIcon,
+  SmallCloseIcon,
 } from "@chakra-ui/icons";
 import {
   FiPrinter,
   FiMapPin,
   FiUser,
-  FiPhone,
   FiGrid,
   FiList,
   FiMoreVertical,
   FiWifi,
   FiZap,
+  FiClipboard,
+  FiFilter,
+  FiImage,
 } from "react-icons/fi";
 import axios from "axios";
 import { useReactToPrint } from "react-to-print";
@@ -80,6 +83,36 @@ const DISTRICT_API_URL = process.env.REACT_APP_DISTRICT_API_URL;
 const LOCAL_CONGREGATION_API_URL = process.env.REACT_APP_LOCAL_CONGREGATION_API_URL;
 
 const MotionCard = motion.create(Card);
+const getLocalDateInputValue = (date = new Date()) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const resolveProfileImageUrl = (assetPath) => {
+  if (!assetPath) return "";
+  if (/^(https?:|data:)/i.test(assetPath)) return assetPath;
+  const baseUrl = API_URL || "";
+  if (!baseUrl) {
+    return assetPath.startsWith("/") ? assetPath : `/${assetPath}`;
+  }
+  return assetPath.startsWith("/")
+    ? `${baseUrl}${assetPath}`
+    : `${baseUrl}/${assetPath}`;
+};
+
+const formatFriendlyDate = (value) => {
+  if (!value) return "N/A";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "N/A";
+  return date.toLocaleDateString("en-PH", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
+
 const LokalProfile = () => {
 
   // --- State ---
@@ -87,6 +120,7 @@ const LokalProfile = () => {
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
   const [searchQuery, setSearchQuery] = useState("");
+  const [profileFilter, setProfileFilter] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editProfile, setEditProfile] = useState(null);
   // --- Printing ---
@@ -100,21 +134,17 @@ const LokalProfile = () => {
   const handlePrint = useReactToPrint({
     contentRef: printRef,
     onAfterPrint: () => {
-      console.log("Print completed");
       setProfileToPrint(null);
     },
   });
 
   useEffect(() => {
     if (profileToPrint && printRef.current) {
-      console.log("Profile to print set:", profileToPrint);
-      console.log("Print ref:", printRef.current);
       setTimeout(() => {
-        console.log("Triggering print...");
         handlePrint();
       }, 300);
     }
-  }, [profileToPrint]);
+  }, [handlePrint, profileToPrint]);
 
   // Dropdown Data
   const [districts, setDistricts] = useState([]);
@@ -142,7 +172,7 @@ const LokalProfile = () => {
     generator: false,
     preparedBy: "",
     signature: "",
-    datePrepared: new Date().toISOString().substr(0, 10),
+    datePrepared: getLocalDateInputValue(),
     imageUrl: "",
     imageFile: null,
     scheduleMidweek: { Tuesday: "", Wednesday: "", Thursday: "" },
@@ -154,19 +184,47 @@ const LokalProfile = () => {
 
   // --- Hooks and Styles ---
   const toast = useToast();
-  const cardBg = useColorModeValue("white", "gray.800");
   const bgColor = useColorModeValue("gray.50", "gray.900");
+
+  const officialLokalIds = useMemo(() => (
+    new Set(localCongregations.map((item) => String(item.id)))
+  ), [localCongregations]);
+
+  const profileStats = useMemo(() => {
+    const now = Date.now();
+    const recentCutoff = now - (30 * 24 * 60 * 60 * 1000);
+
+    const withImage = profiles.filter((profile) => Boolean(profile.imageUrl)).length;
+    const manual = profiles.filter((profile) => (
+      Boolean(profile.lokal) && !officialLokalIds.has(String(profile.lokal))
+    )).length;
+    const withLed = profiles.filter((profile) => Boolean(profile.ledWall)).length;
+    const withGenerator = profiles.filter((profile) => Boolean(profile.generator)).length;
+    const districtsCovered = new Set(
+      profiles
+        .map((profile) => String(profile.district || "").trim())
+        .filter(Boolean)
+    ).size;
+    const recentlyUpdated = profiles.filter((profile) => {
+      const time = new Date(profile.datePrepared || "").getTime();
+      return Number.isFinite(time) && time >= recentCutoff;
+    }).length;
+
+    return {
+      total: profiles.length,
+      withImage,
+      manual,
+      withLed,
+      withGenerator,
+      districtsCovered,
+      recentlyUpdated,
+    };
+  }, [officialLokalIds, profiles]);
 
   // --- Effects ---
 
-
-  useEffect(() => {
-    fetchProfiles();
-    fetchDropdowns();
-  }, []);
-
   // --- Fetch Data ---
-  const fetchProfiles = async () => {
+  const fetchProfiles = useCallback(async () => {
     setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/api/lokal_profiles`);
@@ -181,14 +239,12 @@ const LokalProfile = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
-  const fetchDropdowns = async () => {
+  const fetchDropdowns = useCallback(async () => {
     // Fetch Districts
     try {
-      console.log("Fetching districts from:", `${DISTRICT_API_URL}/api/districts`);
       const districtRes = await axios.get(`${DISTRICT_API_URL}/api/districts`);
-      console.log("Districts Response:", districtRes.data);
 
       const districtsData = Array.isArray(districtRes.data)
         ? districtRes.data
@@ -206,9 +262,7 @@ const LokalProfile = () => {
 
     // Fetch Lokals
     try {
-      console.log("Fetching lokals from:", `${LOCAL_CONGREGATION_API_URL}/api/all-congregations`);
       const lokalRes = await axios.get(`${LOCAL_CONGREGATION_API_URL}/api/all-congregations`);
-      console.log("Lokals Response:", lokalRes.data);
 
       const lokalsData = Array.isArray(lokalRes.data)
         ? lokalRes.data
@@ -219,26 +273,27 @@ const LokalProfile = () => {
       // Don't show generic error if it's just this one failing, user can still proceed with District selecting if needed
       console.warn("Lokal API endpoint might be incorrect or down.");
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    fetchProfiles();
+    fetchDropdowns();
+  }, [fetchDropdowns, fetchProfiles]);
 
   // --- Form Handling ---
   const openModal = (profile = null) => {
     setEditProfile(profile);
     if (profile) {
-      console.log("Editing Profile:", profile);
-
       // Determine if the saved lokal corresponds to an existing ID in the loaded content
       // We check if value matches loosely (string vs int)
-      const isOfficialLokal = localCongregations && localCongregations.some(l => l.id == profile.lokal);
+      const isOfficialLokal = localCongregations && localCongregations.some((l) => String(l.id) === String(profile.lokal));
 
       // It is manual if there IS a lokal value, but it's NOT in the official list
       const isManual = !!profile.lokal && !isOfficialLokal;
 
       const formattedAnniversary = profile.anniversary
-        ? new Date(profile.anniversary).toISOString().split('T')[0]
+        ? getLocalDateInputValue(new Date(profile.anniversary))
         : "";
-
-      console.log("Date Conversion:", profile.anniversary, "->", formattedAnniversary);
 
       setFormData({
         ...initialFormState,
@@ -332,6 +387,48 @@ const LokalProfile = () => {
     }
   };
 
+  const handleRefresh = async () => {
+    await Promise.all([fetchProfiles(), fetchDropdowns()]);
+    toast({
+      title: "Profiles refreshed",
+      status: "success",
+      duration: 1800,
+      isClosable: true,
+    });
+  };
+
+  const copyProfileSummary = async (profile) => {
+    const distName = districts.find((d) => String(d.id) === String(profile.district))?.name || "Unknown District";
+    const lokalName = localCongregations.find((l) => String(l.id) === String(profile.lokal))?.name || profile.lokal || "Unknown Lokal";
+    const summary = [
+      `Lokal Profile: ${lokalName}`,
+      `District: ${distName}`,
+      `Resident Minister: ${profile.destinado || "N/A"}`,
+      `Contact: ${profile.destinadoContact || "N/A"}`,
+      `Serial Number: ${profile.serialNumber || "N/A"}`,
+    ].join("\n");
+
+    try {
+      await navigator.clipboard.writeText(summary);
+      toast({
+        title: "Profile copied",
+        description: `${lokalName} summary is now in your clipboard.`,
+        status: "success",
+        duration: 2000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error("Copy profile summary failed:", error);
+      toast({
+        title: "Copy failed",
+        description: "Your browser blocked clipboard access.",
+        status: "error",
+        duration: 2200,
+        isClosable: true,
+      });
+    }
+  };
+
   const handleImageUpload = (file) => {
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -346,46 +443,79 @@ const LokalProfile = () => {
 
   // --- Filtering ---
   const filteredProfiles = useMemo(() => {
-    if (!searchQuery) return profiles;
-    const lowerQuery = searchQuery.toLowerCase();
+    let list = [...profiles];
+    const lowerQuery = searchQuery.trim().toLowerCase();
 
-    return profiles.filter((p) => {
-      const distName = districts.find(d => d.id == p.district)?.name.toLowerCase() || "";
-      // Handle ID lookup or raw string for Lokal
-      const lokalName = (localCongregations.find(l => l.id == p.lokal)?.name || p.lokal || "").toString().toLowerCase();
-      const serial = p.serialNumber ? p.serialNumber.toLowerCase() : "";
+    if (lowerQuery) {
+      list = list.filter((p) => {
+        const distName = (districts.find((d) => String(d.id) === String(p.district))?.name || "").toLowerCase();
+        const lokalName = (localCongregations.find((l) => String(l.id) === String(p.lokal))?.name || p.lokal || "").toString().toLowerCase();
+        const serial = p.serialNumber ? String(p.serialNumber).toLowerCase() : "";
+        const destined = p.destinado ? String(p.destinado).toLowerCase() : "";
+        const minister = p.districtMinister ? String(p.districtMinister).toLowerCase() : "";
+        const chronicler = p.districtChronicler ? String(p.districtChronicler).toLowerCase() : "";
 
-      return distName.includes(lowerQuery) || lokalName.includes(lowerQuery) || serial.includes(lowerQuery);
+        return (
+          distName.includes(lowerQuery) ||
+          lokalName.includes(lowerQuery) ||
+          serial.includes(lowerQuery) ||
+          destined.includes(lowerQuery) ||
+          minister.includes(lowerQuery) ||
+          chronicler.includes(lowerQuery)
+        );
+      });
+    }
+
+    switch (profileFilter) {
+      case "with-image":
+        list = list.filter((profile) => Boolean(profile.imageUrl));
+        break;
+      case "manual":
+        list = list.filter((profile) => Boolean(profile.lokal) && !officialLokalIds.has(String(profile.lokal)));
+        break;
+      case "led":
+        list = list.filter((profile) => Boolean(profile.ledWall));
+        break;
+      case "generator":
+        list = list.filter((profile) => Boolean(profile.generator));
+        break;
+      default:
+        break;
+    }
+
+    return list.sort((a, b) => {
+      const aTime = new Date(a.datePrepared || 0).getTime();
+      const bTime = new Date(b.datePrepared || 0).getTime();
+      return (Number.isFinite(bTime) ? bTime : 0) - (Number.isFinite(aTime) ? aTime : 0);
     });
-  }, [profiles, districts, localCongregations, searchQuery]);
+  }, [officialLokalIds, profileFilter, profiles, searchQuery, districts, localCongregations]);
 
   // --- Components ---
 
   const ProfileCard = ({ profile }) => {
-    const distName = districts.find(d => d.id == profile.district)?.name;
-    const lokalName = localCongregations.find(l => l.id == profile.lokal)?.name || profile.lokal;
+    const distName = districts.find((d) => String(d.id) === String(profile.district))?.name || "Unknown District";
+    const lokalName = localCongregations.find((l) => String(l.id) === String(profile.lokal))?.name || profile.lokal || "Unknown Lokal";
+    const imageSrc = resolveProfileImageUrl(profile.imageUrl);
+    const hasImage = Boolean(imageSrc);
+    const isManual = Boolean(profile.lokal) && !officialLokalIds.has(String(profile.lokal));
 
     return (
       <MotionCard
-        bg={cardBg}
-        borderRadius="xl"
-        shadow="md"
-        whileHover={{ y: -8, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
+        bg="white"
+        borderRadius="2xl"
+        border="1px solid"
+        borderColor="gray.100"
+        shadow="sm"
+        whileHover={{ y: -6, boxShadow: "0 18px 30px rgba(15, 23, 42, 0.10)" }}
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.2 }}
         overflow="hidden"
       >
-        <Box h="150px" bg="gray.100" position="relative">
-          {profile.imageUrl ? (
+        <Box h="132px" position="relative" bgGradient={hasImage ? undefined : "linear(to-br, teal.50, blue.50)"}>
+          {hasImage ? (
             <Image
-              src={
-                profile.imageUrl?.startsWith("http")
-                  ? profile.imageUrl
-                  : profile.imageUrl?.startsWith("/")
-                    ? `${API_URL}${profile.imageUrl}`
-                    : `${API_URL}/${profile.imageUrl}`
-              }
+              src={imageSrc}
               alt={lokalName}
               w="100%"
               h="100%"
@@ -394,57 +524,107 @@ const LokalProfile = () => {
               _hover={{ transform: "scale(1.1)" }}
               cursor="zoom-in"
               onClick={() => {
-                setSelectedImage(
-                  profile.imageUrl?.startsWith("http")
-                    ? profile.imageUrl
-                    : profile.imageUrl?.startsWith("/")
-                      ? `${API_URL}${profile.imageUrl}`
-                      : `${API_URL}/${profile.imageUrl}`
-                );
+                setSelectedImage(imageSrc);
                 onImageOpen();
               }}
             />
           ) : (
-            <Flex w="100%" h="100%" align="center" justify="center" bg="teal.50" color="teal.300">
-              <Icon as={FiMapPin} boxSize={12} />
+            <Flex w="100%" h="100%" align="center" justify="center" color="teal.300">
+              <VStack spacing={1}>
+                <Icon as={FiImage} boxSize={10} />
+                <Text fontSize="xs" fontWeight="700" color="teal.500">
+                  No photo on file
+                </Text>
+              </VStack>
             </Flex>
           )}
-          <Badge position="absolute" top={3} right={3} colorScheme="teal" borderRadius="full" px={2}>
-            {profile.serialNumber || "No Serial"}
-          </Badge>
+          <HStack position="absolute" top={3} left={3} spacing={2}>
+            <Badge colorScheme="gray" borderRadius="full" px={2} py={1}>
+              {profile.serialNumber || "No Serial"}
+            </Badge>
+            {hasImage ? (
+              <Badge colorScheme="teal" borderRadius="full" px={2} py={1}>
+                Photo
+              </Badge>
+            ) : (
+              <Badge colorScheme="orange" borderRadius="full" px={2} py={1}>
+                Missing photo
+              </Badge>
+            )}
+          </HStack>
         </Box>
-        <CardBody>
-          <VStack align="start" spacing={1}>
-            <Heading size="md" color="teal.700" noOfLines={1} title={lokalName}>{lokalName || "Unknown Lokal"}</Heading>
-            <Text fontSize="sm" color="gray.500" fontWeight="medium">{distName || "Unknown District"}</Text>
+        <CardBody p={4}>
+          <VStack align="stretch" spacing={3}>
+            <Box>
+              <Heading size="sm" color="gray.800" noOfLines={1} title={lokalName}>
+                {lokalName}
+              </Heading>
+              <Text fontSize="xs" color="gray.500" fontWeight="600" noOfLines={1}>
+                {distName}
+              </Text>
+            </Box>
+
+            <HStack spacing={2} flexWrap="wrap">
+              {isManual && <Badge colorScheme="orange" borderRadius="full" px={2}>Manual</Badge>}
+              {profile.ledWall && <Badge colorScheme="purple" borderRadius="full" px={2}>LED Wall</Badge>}
+              {profile.generator && <Badge colorScheme="blue" borderRadius="full" px={2}>Generator</Badge>}
+              {profile.internetSpeed && <Badge colorScheme="teal" borderRadius="full" px={2}>{profile.internetSpeed}</Badge>}
+            </HStack>
+
+            <SimpleGrid columns={2} spacing={3}>
+              <Box>
+                <Text fontSize="9px" fontWeight="800" letterSpacing="0.12em" color="gray.400" textTransform="uppercase">
+                  Resident Minister
+                </Text>
+                <Text fontSize="sm" fontWeight="700" color="gray.700" noOfLines={1} title={profile.destinado}>
+                  {profile.destinado || "N/A"}
+                </Text>
+              </Box>
+              <Box>
+                <Text fontSize="9px" fontWeight="800" letterSpacing="0.12em" color="gray.400" textTransform="uppercase">
+                  Prepared
+                </Text>
+                <Text fontSize="sm" fontWeight="700" color="gray.700">
+                  {formatFriendlyDate(profile.datePrepared)}
+                </Text>
+              </Box>
+            </SimpleGrid>
+
+            <Flex justify="space-between" align="center" pt={1}>
+              <Text fontSize="xs" color="gray.500">
+                Updated {formatFriendlyDate(profile.datePrepared)}
+              </Text>
+              <Text fontSize="xs" fontWeight="700" color="gray.400">
+                {profile.distanceFromCentral ? `${profile.distanceFromCentral} km from central` : "Compact view"}
+              </Text>
+            </Flex>
           </VStack>
-
-          <Divider my={3} />
-
-          <SimpleGrid columns={2} spacing={2} fontSize="sm">
-            <HStack color="gray.600">
-              <Icon as={FiUser} color="teal.500" />
-              <Text noOfLines={1} title={profile.destinado}>{profile.destinado || "N/A"}</Text>
-            </HStack>
-            <HStack color="gray.600">
-              <Icon as={CalendarIcon} color="orange.400" />
-              <Text>{profile.anniversary ? new Date(profile.anniversary).getFullYear() : "N/A"}</Text>
-            </HStack>
-          </SimpleGrid>
-
-          <Flex gap={2} mt={3}>
-            {profile.ledWall && <Badge colorScheme="purple" variant="subtle"><Icon as={FiZap} mr={1} />LED</Badge>}
-            {profile.internetSpeed && <Badge colorScheme="blue" variant="subtle"><Icon as={FiWifi} mr={1} />{profile.internetSpeed}</Badge>}
-          </Flex>
-
         </CardBody>
-        <CardFooter pt={0}>
-          <Flex w="100%" justify="space-between" align="center">
-            <Text fontSize="xs" color="gray.400">Upd: {new Date(profile.datePrepared).toLocaleDateString()}</Text>
-            <HStack>
-              <Tooltip label="Print">
-                <IconButton size="sm" icon={<FiPrinter />} onClick={() => setProfileToPrint({ ...profile, districtName: distName, lokalName: lokalName })} aria-label="Print" variant="ghost" colorScheme="blue" />
+        <CardFooter pt={0} pb={4} px={4}>
+          <Flex w="100%" justify="space-between" align="center" gap={2}>
+            <HStack spacing={1.5}>
+              <Tooltip label="Print" hasArrow>
+                <IconButton
+                  size="sm"
+                  icon={<FiPrinter />}
+                  onClick={() => setProfileToPrint({ ...profile, districtName: distName, lokalName })}
+                  aria-label="Print"
+                  variant="ghost"
+                  colorScheme="blue"
+                />
               </Tooltip>
+              <Tooltip label="Copy summary" hasArrow>
+                <IconButton
+                  size="sm"
+                  icon={<FiClipboard />}
+                  onClick={() => copyProfileSummary(profile)}
+                  aria-label="Copy summary"
+                  variant="ghost"
+                  colorScheme="teal"
+                />
+              </Tooltip>
+            </HStack>
+            <HStack>
               <Menu>
                 <MenuButton as={IconButton} icon={<FiMoreVertical />} variant="ghost" size="sm" />
                 <MenuList>
@@ -459,119 +639,362 @@ const LokalProfile = () => {
     );
   };
 
+  const clearFilters = () => {
+    setSearchQuery("");
+    setProfileFilter("all");
+  };
+
+  const profileFilterOptions = [
+    { value: "all", label: "All", count: profileStats.total, icon: FiFilter },
+    { value: "with-image", label: "With image", count: profileStats.withImage, icon: FiImage },
+    { value: "manual", label: "Manual", count: profileStats.manual, icon: FiMapPin },
+    { value: "led", label: "LED wall", count: profileStats.withLed, icon: FiZap },
+    { value: "generator", label: "Generator", count: profileStats.withGenerator, icon: FiWifi },
+  ];
+
+  const statCards = [
+    { label: "Total profiles", value: profileStats.total, hint: "All registry entries" },
+    { label: "Districts covered", value: profileStats.districtsCovered, hint: "Unique districts" },
+    { label: "With photo", value: profileStats.withImage, hint: "Image attached" },
+    { label: "Manual locals", value: profileStats.manual, hint: "Custom entries" },
+    { label: "Updated 30d", value: profileStats.recentlyUpdated, hint: "Recently prepared" },
+  ];
+
   return (
     <Box p={{ base: 4, md: 8 }} bg={bgColor} minH="100vh">
-      {/* Header Section */}
-      <Flex direction={{ base: "column", md: "row" }} justify="space-between" align="center" mb={6} gap={4}>
-        <Box textAlign={{ base: "center", md: "left" }}>
-          <Heading size="xl" bgGradient="linear(to-r, teal.500, blue.600)" bgClip="text" fontWeight="extrabold">Lokal Profiles</Heading>
-          <Text color="gray.500" fontSize="sm">Manage congregation information and facilities</Text>
-        </Box>
+      <Box
+        bg="white"
+        borderRadius="3xl"
+        border="1px solid"
+        borderColor="gray.100"
+        boxShadow="sm"
+        p={{ base: 4, md: 5 }}
+        mb={5}
+      >
+        <Flex direction={{ base: "column", xl: "row" }} justify="space-between" gap={4} align={{ base: "stretch", xl: "center" }}>
+          <Box flex="1">
+            <Badge colorScheme="teal" borderRadius="full" px={3} py={1} textTransform="uppercase" letterSpacing="0.12em">
+              Lokal registry
+            </Badge>
+            <Heading size={{ base: "lg", md: "xl" }} mt={3} color="gray.800" lineHeight="1.1">
+              Lokal Profiles
+            </Heading>
+            <Text color="gray.500" fontSize={{ base: "sm", md: "md" }} mt={2} maxW="3xl">
+              Compact registry for congregation information, contacts, schedules, equipment, and print-ready summaries.
+            </Text>
+            <Text fontSize="sm" color="gray.400" mt={2}>
+              Showing {filteredProfiles.length} of {profileStats.total} profiles
+            </Text>
+          </Box>
 
-        <HStack w={{ base: "100%", md: "auto" }}>
-          <InputGroup maxW={{ base: "100%", md: "300px" }}>
-            <InputLeftElement pointerEvents="none"><SearchIcon color="gray.400" /></InputLeftElement>
-            <Input
-              placeholder="Search Lokal, District..."
-              bg="white"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </InputGroup>
+          <VStack spacing={3} align="stretch" minW={{ base: "full", xl: "520px" }}>
+            <Flex direction={{ base: "column", md: "row" }} gap={3}>
+              <InputGroup maxW="100%">
+                <InputLeftElement pointerEvents="none">
+                  <SearchIcon color="gray.400" />
+                </InputLeftElement>
+                <Input
+                  placeholder="Search lokal, district, minister..."
+                  bg="gray.50"
+                  borderColor="gray.200"
+                  borderRadius="xl"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  pr={searchQuery ? 10 : 4}
+                />
+                {searchQuery && (
+                  <InputRightElement pointerEvents="auto">
+                    <IconButton
+                      aria-label="Clear search"
+                      icon={<SmallCloseIcon />}
+                      size="xs"
+                      variant="ghost"
+                      onClick={() => setSearchQuery("")}
+                    />
+                  </InputRightElement>
+                )}
+              </InputGroup>
 
-          <HStack bg="white" borderRadius="md" p={1} shadow="sm">
-            <IconButton
-              aria-label="Grid"
-              icon={<FiGrid />}
-              size="sm"
-              variant={viewMode === 'grid' ? 'solid' : 'ghost'}
-              colorScheme="teal"
-              onClick={() => setViewMode('grid')}
-            />
-            <IconButton
-              aria-label="List"
-              icon={<FiList />}
-              size="sm"
-              variant={viewMode === 'list' ? 'solid' : 'ghost'}
-              colorScheme="teal"
-              onClick={() => setViewMode('list')}
-            />
-          </HStack>
+              <Tooltip label="Refresh profiles" hasArrow>
+                <IconButton
+                  aria-label="Refresh profiles"
+                  icon={<RepeatIcon />}
+                  onClick={handleRefresh}
+                  variant="outline"
+                  colorScheme="teal"
+                  borderRadius="xl"
+                />
+              </Tooltip>
 
-          <Tooltip label="Add New Profile" hasArrow>
-            <IconButton
-              icon={<AddIcon boxSize={6} />}
-              colorScheme="teal"
-              size="lg"
-              isRound
-              onClick={() => openModal()}
-              shadow="lg"
-              bgGradient="linear(to-r, teal.400, teal.600)"
-              _hover={{
-                transform: "scale(1.1)",
-                shadow: "xl",
-                bgGradient: "linear(to-r, teal.500, teal.700)"
-              }}
-              transition="all 0.2s"
-            />
-          </Tooltip>
-        </HStack>
-      </Flex>
+              <Tooltip label="Add New Profile" hasArrow>
+                <IconButton
+                  aria-label="Add new profile"
+                  icon={<AddIcon boxSize={5} />}
+                  colorScheme="teal"
+                  borderRadius="xl"
+                  onClick={() => openModal()}
+                  shadow="sm"
+                  bgGradient="linear(to-r, teal.400, teal.600)"
+                  _hover={{
+                    transform: "translateY(-1px)",
+                    shadow: "md",
+                    bgGradient: "linear(to-r, teal.500, teal.700)",
+                  }}
+                  transition="all 0.2s"
+                />
+              </Tooltip>
+            </Flex>
 
-      {/* Main Content */}
+            <Flex direction={{ base: "column", md: "row" }} gap={3} justify="space-between" align={{ base: "stretch", md: "center" }}>
+              <HStack bg="gray.50" borderRadius="full" p={1} border="1px solid" borderColor="gray.100" spacing={1}>
+                <IconButton
+                  aria-label="Grid view"
+                  icon={<FiGrid />}
+                  size="sm"
+                  variant={viewMode === "grid" ? "solid" : "ghost"}
+                  colorScheme="teal"
+                  borderRadius="full"
+                  onClick={() => setViewMode("grid")}
+                />
+                <IconButton
+                  aria-label="List view"
+                  icon={<FiList />}
+                  size="sm"
+                  variant={viewMode === "list" ? "solid" : "ghost"}
+                  colorScheme="teal"
+                  borderRadius="full"
+                  onClick={() => setViewMode("list")}
+                />
+              </HStack>
+
+              <Button size="sm" variant="ghost" colorScheme="gray" onClick={clearFilters} alignSelf="flex-start">
+                Clear filters
+              </Button>
+            </Flex>
+          </VStack>
+        </Flex>
+
+        <SimpleGrid columns={{ base: 2, md: 3, xl: 5 }} spacing={3} mt={5}>
+          {statCards.map((stat) => (
+            <Box
+              key={stat.label}
+              bg="#FAFAFA"
+              border="1px solid"
+              borderColor="gray.100"
+              borderRadius="2xl"
+              px={4}
+              py={3}
+            >
+              <Text fontSize="9px" fontWeight="800" textTransform="uppercase" letterSpacing="0.12em" color="gray.400">
+                {stat.label}
+              </Text>
+              <Text fontSize={{ base: "2xl", md: "3xl" }} fontWeight="900" color="gray.800" lineHeight="1" mt={2}>
+                {stat.value}
+              </Text>
+              <Text fontSize="xs" color="gray.500" mt={1}>
+                {stat.hint}
+              </Text>
+            </Box>
+          ))}
+        </SimpleGrid>
+
+        <Flex gap={2} flexWrap="wrap" mt={4}>
+          {profileFilterOptions.map((option) => {
+            const isActive = profileFilter === option.value;
+            return (
+              <Button
+                key={option.value}
+                size="sm"
+                variant={isActive ? "solid" : "outline"}
+                colorScheme={isActive ? "teal" : "gray"}
+                leftIcon={<Icon as={option.icon} />}
+                onClick={() => setProfileFilter(option.value)}
+                borderRadius="full"
+              >
+                {option.label} ({option.count})
+              </Button>
+            );
+          })}
+        </Flex>
+      </Box>
+
       <Box position="relative">
         {loading ? (
           <Flex justify="center" py={20}>
             <Spinner size="xl" color="teal.500" thickness="4px" />
           </Flex>
         ) : filteredProfiles.length === 0 ? (
-          <Flex direction="column" align="center" justify="center" py={20} bg="white" borderRadius="xl" shadow="sm">
+          <Flex
+            direction="column"
+            align="center"
+            justify="center"
+            py={20}
+            bg="white"
+            borderRadius="2xl"
+            border="1px solid"
+            borderColor="gray.100"
+            shadow="sm"
+            textAlign="center"
+            px={6}
+          >
             <Icon as={FiMapPin} boxSize={12} color="gray.300" mb={4} />
-            <Heading size="md" color="gray.400">No profiles found</Heading>
-            <Text color="gray.500">Try adjusting your search or add a new profile.</Text>
+            <Heading size="md" color="gray.500">
+              No profiles found
+            </Heading>
+            <Text color="gray.500" mt={2} maxW="md">
+              Try a different search, clear the active filter, or add a new profile to get started.
+            </Text>
+            <HStack mt={5} spacing={3} flexWrap="wrap" justify="center">
+              <Button variant="outline" colorScheme="teal" onClick={clearFilters}>
+                Clear filters
+              </Button>
+              <Button colorScheme="teal" onClick={() => openModal()}>
+                Add profile
+              </Button>
+            </HStack>
           </Flex>
         ) : (
           <>
-            {viewMode === 'grid' ? (
-              <SimpleGrid columns={{ base: 1, sm: 2, lg: 3, xl: 4 }} spacing={6}>
-                {filteredProfiles.map(profile => <ProfileCard key={profile.id} profile={profile} />)}
+            {viewMode === "grid" ? (
+              <SimpleGrid columns={{ base: 1, sm: 2, lg: 3, xl: 4 }} spacing={5}>
+                {filteredProfiles.map((profile) => (
+                  <ProfileCard key={profile.id} profile={profile} />
+                ))}
               </SimpleGrid>
             ) : (
-              <Card overflowX="auto" shadow="md" borderRadius="xl">
-                <Table variant="simple" size="sm">
-                  <Thead bg="gray.100">
-                    <Tr>
-                      <Th>Serial</Th>
-                      <Th>Lokal</Th>
-                      <Th>District</Th>
-                      <Th>Resident Minister</Th>
-                      <Th>Updated</Th>
-                      <Th textAlign="right">Actions</Th>
-                    </Tr>
-                  </Thead>
-                  <Tbody>
-                    {filteredProfiles.map(profile => {
-                      const distName = districts.find(d => d.id == profile.district)?.name;
-                      const lokalName = localCongregations.find(l => l.id == profile.lokal)?.name || profile.lokal;
-                      return (
-                        <Tr key={profile.id} _hover={{ bg: "gray.50" }}>
-                          <Td>{profile.serialNumber}</Td>
-                          <Td fontWeight="medium">{lokalName}</Td>
-                          <Td>{distName}</Td>
-                          <Td>{profile.destinado}</Td>
-                          <Td>{new Date(profile.datePrepared).toLocaleDateString()}</Td>
-                          <Td textAlign="right">
-                            <HStack justify="end">
-                              <IconButton size="xs" icon={<FiPrinter />} colorScheme="blue" variant="ghost" onClick={() => setProfileToPrint({ ...profile, districtName: distName, lokalName: lokalName })} />
-                              <IconButton size="xs" icon={<EditIcon />} onClick={() => openModal(profile)} variant="ghost" />
-                              <IconButton size="xs" icon={<DeleteIcon />} colorScheme="red" variant="ghost" onClick={() => handleDelete(profile.id)} />
-                            </HStack>
-                          </Td>
-                        </Tr>
-                      );
-                    })}
-                  </Tbody>
-                </Table>
+              <Card borderRadius="2xl" border="1px solid" borderColor="gray.100" shadow="sm" overflow="hidden">
+                <Box overflowX="auto">
+                  <Table variant="simple" size="sm">
+                    <Thead bg="gray.50">
+                      <Tr>
+                        <Th>Lokal</Th>
+                        <Th>District</Th>
+                        <Th>Resident Minister</Th>
+                        <Th>Facilities</Th>
+                        <Th>Updated</Th>
+                        <Th textAlign="right">Actions</Th>
+                      </Tr>
+                    </Thead>
+                    <Tbody>
+                      {filteredProfiles.map((profile) => {
+                        const distName = districts.find((d) => String(d.id) === String(profile.district))?.name || "Unknown District";
+                        const lokalName = localCongregations.find((l) => String(l.id) === String(profile.lokal))?.name || profile.lokal || "Unknown Lokal";
+                        const imageSrc = resolveProfileImageUrl(profile.imageUrl);
+                        const hasImage = Boolean(imageSrc);
+                        return (
+                          <Tr key={profile.id} _hover={{ bg: "gray.50" }}>
+                            <Td>
+                              <HStack spacing={3} align="center">
+                                <Box
+                                  w="44px"
+                                  h="44px"
+                                  borderRadius="lg"
+                                  overflow="hidden"
+                                  bgGradient={hasImage ? undefined : "linear(to-br, teal.50, blue.50)"}
+                                  border="1px solid"
+                                  borderColor="gray.100"
+                                  flexShrink={0}
+                                >
+                                  {hasImage ? (
+                                    <Image
+                                      src={imageSrc}
+                                      alt={lokalName}
+                                      w="100%"
+                                      h="100%"
+                                      objectFit="cover"
+                                      cursor="zoom-in"
+                                      onClick={() => {
+                                        setSelectedImage(imageSrc);
+                                        onImageOpen();
+                                      }}
+                                    />
+                                  ) : (
+                                    <Flex w="100%" h="100%" align="center" justify="center" color="teal.300">
+                                      <Icon as={FiImage} />
+                                    </Flex>
+                                  )}
+                                </Box>
+                                <Box minW={0}>
+                                  <Text fontWeight="700" color="gray.800" noOfLines={1} title={lokalName}>
+                                    {lokalName}
+                                  </Text>
+                                  <Text fontSize="xs" color="gray.500" noOfLines={1}>
+                                    #{profile.serialNumber || "N/A"}
+                                  </Text>
+                                </Box>
+                              </HStack>
+                            </Td>
+                            <Td>
+                              <Text fontSize="sm" color="gray.700" noOfLines={1}>
+                                {distName}
+                              </Text>
+                            </Td>
+                            <Td>
+                              <Text fontSize="sm" color="gray.700" fontWeight="600" noOfLines={1}>
+                                {profile.destinado || "N/A"}
+                              </Text>
+                              <Text fontSize="xs" color="gray.500" noOfLines={1}>
+                                {profile.destinadoContact || profile.chroniclerContact || "No contact info"}
+                              </Text>
+                            </Td>
+                            <Td>
+                              <HStack spacing={1.5} flexWrap="wrap">
+                                {profile.ledWall && <Badge colorScheme="purple" borderRadius="full">LED</Badge>}
+                                {profile.generator && <Badge colorScheme="blue" borderRadius="full">Gen</Badge>}
+                                {profile.internetSpeed && <Badge colorScheme="teal" borderRadius="full">{profile.internetSpeed}</Badge>}
+                                {!profile.ledWall && !profile.generator && !profile.internetSpeed && (
+                                  <Text fontSize="xs" color="gray.400">No facility tags</Text>
+                                )}
+                              </HStack>
+                            </Td>
+                            <Td fontSize="sm" color="gray.600">
+                              {formatFriendlyDate(profile.datePrepared)}
+                            </Td>
+                            <Td textAlign="right">
+                              <HStack justify="end" spacing={1}>
+                                <Tooltip label="Print" hasArrow>
+                                  <IconButton
+                                    size="xs"
+                                    icon={<FiPrinter />}
+                                    colorScheme="blue"
+                                    variant="ghost"
+                                    aria-label="Print"
+                                    onClick={() => setProfileToPrint({ ...profile, districtName: distName, lokalName })}
+                                  />
+                                </Tooltip>
+                                <Tooltip label="Copy summary" hasArrow>
+                                  <IconButton
+                                    size="xs"
+                                    icon={<FiClipboard />}
+                                    colorScheme="teal"
+                                    variant="ghost"
+                                    aria-label="Copy summary"
+                                    onClick={() => copyProfileSummary(profile)}
+                                  />
+                                </Tooltip>
+                                <IconButton
+                                  size="xs"
+                                  icon={<EditIcon />}
+                                  onClick={() => openModal(profile)}
+                                  variant="ghost"
+                                  aria-label="Edit profile"
+                                />
+                                <IconButton
+                                  size="xs"
+                                  icon={<DeleteIcon />}
+                                  colorScheme="red"
+                                  variant="ghost"
+                                  onClick={() => handleDelete(profile.id)}
+                                  aria-label="Delete profile"
+                                />
+                              </HStack>
+                            </Td>
+                          </Tr>
+                        );
+                      })}
+                    </Tbody>
+                  </Table>
+                </Box>
               </Card>
             )}
           </>
@@ -698,7 +1121,7 @@ const LokalProfile = () => {
                       _hover={{ borderColor: "teal.400", bg: "teal.50" }}
                     >
                       {formData.imageUrl ? (
-                        <Image src={formData.imageUrl?.startsWith('/') ? `${API_URL}${formData.imageUrl}` : formData.imageUrl} h="100%" w="100%" objectFit="contain" />
+                        <Image src={resolveProfileImageUrl(formData.imageUrl)} h="100%" w="100%" objectFit="contain" />
                       ) : (
                         <Flex direction="column" align="center" justify="center" h="100%" color="gray.400">
                           <Icon as={FiMapPin} boxSize={8} mb={2} />

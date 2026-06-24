@@ -38,7 +38,7 @@ const resolveFileUrl = (fileUrl) => {
   if (!fileUrl) return "";
   if (/^https?:\/\//i.test(fileUrl)) return fileUrl;
 
-  return joinUrl(resolveApiBaseUrl(5003), fileUrl);
+  return joinUrl(resolveApiBaseUrl(), fileUrl);
 };
 
 const getExtension = (document) => {

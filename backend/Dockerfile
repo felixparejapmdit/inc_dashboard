@@ -24,8 +24,8 @@ COPY . .
 # Ensure entrypoint is executable
 RUN chmod +x ./entrypoint.sh
 
-# Expose port (defaults to 80 in our setup)
-EXPOSE 80
+# Expose the backend HTTP port
+EXPOSE 5000
 
 # This entrypoint will run our wait script
 ENTRYPOINT ["./entrypoint.sh"]

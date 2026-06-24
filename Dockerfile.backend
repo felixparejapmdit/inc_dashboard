@@ -20,8 +20,8 @@ COPY backend/ .
 COPY backend/entrypoint.sh /usr/src/app/entrypoint.sh
 RUN chmod +x /usr/src/app/entrypoint.sh
 
-# Expose backend port (use port 80 inside container)
-EXPOSE 80
+# Expose backend port (use port 5000 inside container)
+EXPOSE 5000
 
 # Run entrypoint (wait for DB then start server)
 ENTRYPOINT ["/usr/src/app/entrypoint.sh"]

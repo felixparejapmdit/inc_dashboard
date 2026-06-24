@@ -1179,33 +1179,25 @@ export default function DailyActivityReport() {
     return groupName === "admin" || groupName === "vip" || designationName === "team leader";
   }, [currentDesignationName, currentGroupName]);
 
-  const [selectedDarUserId, setSelectedDarUserId] = useState(() => String(userId || ""));
+  const [selectedDarUserId, setSelectedDarUserId] = useState("");
   const [teamMembers, setTeamMembers] = useState([]);
   const [teamMembersLoading, setTeamMembersLoading] = useState(false);
 
   const selectedDarUser = useMemo(() => {
-    const selectedId = String(selectedDarUserId || userId || "");
+    const selectedId = String(selectedDarUserId || "");
     if (!selectedId) return null;
 
     const match = teamMembers.find((member) => String(member.userId) === selectedId);
     if (match) return match;
 
-    if (selectedId === String(userId || "")) {
-      return {
-        userId: selectedId,
-        fullname: loggedInUserName,
-        username: typeof window !== "undefined" ? localStorage.getItem("username") || "" : "",
-      };
-    }
-
     return null;
-  }, [loggedInUserName, selectedDarUserId, teamMembers, userId]);
+  }, [selectedDarUserId, teamMembers]);
 
   const selectedDarUserName = selectedDarUser?.fullname
     || selectedDarUser?.username
     || loggedInUserName;
 
-  const activeDarUserId = String(selectedDarUser?.userId || selectedDarUserId || userId || "");
+  const activeDarUserId = String(selectedDarUserId || userId || "");
 
   const teamMemberOptions = useMemo(() => (
     teamMembers.map((member) => ({
@@ -1219,8 +1211,8 @@ export default function DailyActivityReport() {
   ), [teamMembers]);
 
   const selectedTeamMemberOption = useMemo(() => (
-    teamMemberOptions.find((option) => option.value === activeDarUserId) || null
-  ), [activeDarUserId, teamMemberOptions]);
+    teamMemberOptions.find((option) => option.value === selectedDarUserId) || null
+  ), [selectedDarUserId, teamMemberOptions]);
 
   useEffect(() => {
     let isMounted = true;
@@ -1368,9 +1360,6 @@ export default function DailyActivityReport() {
 
         if (isMounted) {
           setTeamMembers(uniqueUsers);
-          if (uniqueUsers.length > 0 && !uniqueUsers.some((member) => member.userId === currentUserIdValue)) {
-            setSelectedDarUserId(uniqueUsers[0].userId);
-          }
         }
       } catch (error) {
         console.error("Error fetching selectable DAR users:", error);
@@ -2041,7 +2030,7 @@ export default function DailyActivityReport() {
                     isDisabled={teamMembersLoading}
                     menuPlacement="auto"
                     maxMenuHeight={220}
-                    placeholder={teamMembersLoading ? "Loading team members..." : "Search team members..."}
+                    placeholder={teamMembersLoading ? "Loading names..." : "Select name"}
                     options={teamMemberOptions}
                     value={selectedTeamMemberOption}
                     onChange={(option) => setSelectedDarUserId(option?.value || "")}

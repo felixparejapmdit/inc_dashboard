@@ -3,8 +3,7 @@
 import axios from "axios";
 import { resolveApiBaseUrl } from "../urlResolvers";
 
-const BASE_URL = resolveApiBaseUrl(5003);
-
+const BASE_URL = resolveApiBaseUrl();
 
 export const uploadFileToLocal = async (file) => {
   const formData = new FormData();

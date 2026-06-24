@@ -1,9 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import CryptoJS from "crypto-js";
-import crypto from "crypto-browserify";
-import { Buffer } from "buffer";
 
 import {
   Box,
@@ -29,13 +26,11 @@ import {
   InputLeftElement,
   InputRightElement,
   Divider,
-  Link as ChakraLink,
   Icon,
   Card,
   CardBody,
   HStack,
   Badge,
-  useColorModeValue,
   IconButton,
 } from "@chakra-ui/react";
 
@@ -50,9 +45,7 @@ import {
   FiHash,
 } from "react-icons/fi";
 import { usePermissionContext } from "../contexts/PermissionContext";
-import { fetchData } from "../utils/fetchData";
 import FaceRecognitionLogin from "../components/FaceRecognitionLogin";
-import { FaCamera } from "react-icons/fa";
 
 const API_URL = process.env.REACT_APP_API_URL || "";
 
@@ -66,90 +59,12 @@ const Login = () => {
   const [retrievedReference, setRetrievedReference] = useState("");
   const [error, setError] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { isOpen: isFaceLoginOpen, onOpen: onFaceLoginOpen, onClose: onFaceLoginClose } = useDisclosure();
+  const { isOpen: isFaceLoginOpen, onClose: onFaceLoginClose } = useDisclosure();
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
   const toast = useToast();
   const { fetchPermissions } = usePermissionContext();
-
-  // Color mode values
-  const cardBg = useColorModeValue("white", "gray.800");
-  const bgGradient = useColorModeValue(
-    "linear(to-br, orange.400, yellow.400)",
-    "linear(to-br, gray.900, gray.800)"
-  );
-
-  // Hash password functions
-  const hashPassword = (password, encryptionType, existingHash = null) => {
-    switch (encryptionType.toLowerCase()) {
-      case "md5": {
-        if (existingHash) {
-          const md5sum = CryptoJS.MD5(password);
-          const computedHash = `{MD5}` + CryptoJS.enc.Base64.stringify(md5sum);
-          return computedHash === existingHash;
-        } else {
-          const md5sum = CryptoJS.MD5(password);
-          return `{MD5}` + CryptoJS.enc.Base64.stringify(md5sum);
-        }
-      }
-      case "sha": {
-        if (existingHash) {
-          const sha1sum = CryptoJS.SHA1(password);
-          const computedHash = `{SHA}` + CryptoJS.enc.Base64.stringify(sha1sum);
-          return computedHash === existingHash;
-        } else {
-          const sha1sum = CryptoJS.SHA1(password);
-          return `{SHA}` + CryptoJS.enc.Base64.stringify(sha1sum);
-        }
-      }
-      case "ssha": {
-        if (existingHash) {
-          return validateSSHA(password, existingHash);
-        } else {
-          const salt = crypto.randomBytes(8);
-          const sha1sum = crypto
-            .createHash("sha1")
-            .update(password)
-            .update(salt)
-            .digest();
-          const combined = Buffer.concat([sha1sum, salt]).toString("base64");
-          return `{SSHA}` + combined;
-        }
-      }
-      case "clear": {
-        return password === existingHash;
-      }
-      default: {
-        throw new Error(`Unsupported encryption type: ${encryptionType}`);
-      }
-    }
-  };
-
-  const validateSSHA = (password, sshaHash) => {
-    if (!sshaHash.startsWith("{SSHA}")) {
-      return false;
-    }
-
-    const base64Hash = sshaHash.slice(6);
-
-    try {
-      const decoded = Buffer.from(base64Hash, "base64");
-      const sha1Hash = decoded.slice(0, 20);
-      const salt = decoded.slice(20);
-
-      const recomputedHash = crypto
-        .createHash("sha1")
-        .update(password)
-        .update(salt)
-        .digest();
-
-      return Buffer.compare(sha1Hash, recomputedHash) === 0;
-    } catch (error) {
-      console.error("Error decoding Base64 string:", error.message);
-      return false;
-    }
-  };
 
   const handleRetrieveReference = async () => {
     if (!name.trim() || !dateOfBirth.trim()) {
@@ -286,10 +201,10 @@ const Login = () => {
 
     try {
       // ✅ Call Backend Login (Handles both LDAP and Local)
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/auth/login`,
-        { username, password }
-      );
+      const response = await axios.post(`${API_URL}/api/auth/login`, {
+        username,
+        password,
+      });
 
       if (response.data.success) {
         const { token, user } = response.data;
@@ -322,7 +237,9 @@ const Login = () => {
         let userId = user.id;
         if (typeof userId !== "number") {
           try {
-            const userDetailRes = await axios.get(`${process.env.REACT_APP_API_URL}/api/users_access/${user.username}`);
+            const userDetailRes = await axios.get(
+              `${API_URL}/api/users_access/${user.username}`,
+            );
             if (userDetailRes.data && userDetailRes.data.id) {
               userId = userDetailRes.data.id;
             }
@@ -339,13 +256,10 @@ const Login = () => {
 
         // ✅ Update Login Status (Audit)
         try {
-          await axios.put(
-            `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
-            {
-              ID: user.username,
-              isLoggedIn: true,
-            }
-          );
+          await axios.put(`${API_URL}/api/users/update-login-status`, {
+            ID: user.username,
+            isLoggedIn: true,
+          });
         } catch (statusErr) {
           console.warn("Update login status failed:", statusErr.message);
         }
@@ -386,13 +300,10 @@ const Login = () => {
       }
 
       // Update login status
-      await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/users/update-login-status`,
-        {
-          ID: user.username,
-          isLoggedIn: true,
-        }
-      );
+      await axios.put(`${API_URL}/api/users/update-login-status`, {
+        ID: user.username,
+        isLoggedIn: true,
+      });
 
       navigate("/dashboard");
     } catch (error) {

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import {
   Badge,
@@ -100,7 +100,7 @@ const FILE_TYPE_META = {
   },
 };
 
-const API_BASE_URL = resolveApiBaseUrl(5003);
+const API_BASE_URL = resolveApiBaseUrl();
 
 const buildApiUrl = (target) => {
   if (!target) return "";
@@ -121,8 +121,10 @@ const buildBrowserUrl = (target) => {
 };
 
 const sanitizeSegment = (value) => {
-  const cleaned = String(value || "")
-    .replace(/[<>:"/\\|?*\x00-\x1F]/g, "_")
+  const cleaned = Array.from(String(value || ""))
+    .filter((char) => char.charCodeAt(0) >= 32)
+    .join("")
+    .replace(/[<>:"/\\|?*]/g, "_")
     .replace(/\s+/g, " ")
     .trim();
 
@@ -353,7 +355,7 @@ const ATGFiles = () => {
   const deleteModal = useDisclosure();
   const previewModal = useDisclosure();
 
-  const fetchItems = async () => {
+  const fetchItems = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get(buildApiUrl("/api/atg-files"), {
@@ -395,11 +397,11 @@ const ATGFiles = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentFolderPath, toast]);
 
   useEffect(() => {
     fetchItems();
-  }, []);
+  }, [fetchItems]);
 
   useEffect(() => {
     setSelectedItem((current) => {
