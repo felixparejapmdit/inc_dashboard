@@ -31,7 +31,7 @@ REACT_APP_DIRECTUS_TOKEN=
 npm run directus:apply-file-organizer-schema
 ```
 
-3. Start Directus:
+3. Start Directus in detached mode:
 
 ```powershell
 npm run directus:up

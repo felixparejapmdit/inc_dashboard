@@ -26,6 +26,34 @@ services:
       - redis
     restart: always
 
+  directus:
+    image: directus/directus:11
+    container_name: inc_directus_prod
+    env_file:
+      - .env.docker
+    environment:
+      KEY: ${DIRECTUS_KEY:-replace-with-a-long-random-key}
+      SECRET: ${DIRECTUS_SECRET:-replace-with-a-long-random-secret}
+      ADMIN_EMAIL: ${DIRECTUS_ADMIN_EMAIL:-admin@example.com}
+      ADMIN_PASSWORD: ${DIRECTUS_ADMIN_PASSWORD:-change-this-password}
+      DB_CLIENT: mysql
+      DB_HOST: ${MYSQL_HOST}
+      DB_PORT: ${MYSQL_PORT:-3306}
+      DB_DATABASE: ${MYSQL_DATABASE:-ppi}
+      DB_USER: ${MYSQL_USER:-root}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-}
+      PUBLIC_URL: ${DIRECTUS_PUBLIC_URL:-https://test-directus.pmdmc.net}
+      CORS_ENABLED: "true"
+      CORS_ORIGIN: "true"
+    volumes:
+      - ./directus/uploads:/directus/uploads
+      - ./directus/extensions:/directus/extensions
+    ports:
+      - "8055:8055"
+    networks:
+      - inc_prod_network
+    restart: always
+
   frontend:
     build:
       context: .
