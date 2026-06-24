@@ -106,11 +106,12 @@ const isLocalHost = () => {
 
 const getFallbackApiBase = () => {
   if (typeof window === "undefined") return "";
-  return `${window.location.protocol}//${window.location.hostname}:5003`;
+  return `${window.location.protocol}//${window.location.hostname}:5000`;
 };
 
 const API_BASE_URL =
-  process.env.REACT_APP_API_URL || (isLocalHost() ? "http://127.0.0.1:5003" : "");
+  process.env.REACT_APP_API_URL ||
+  (isLocalHost() ? "http://127.0.0.1:5000" : "");
 
 const buildApiUrl = (target) => {
   if (!target) return "";
@@ -154,7 +155,9 @@ const sanitizeSegment = (value) => {
 const sanitizeFileInput = (value) => sanitizeSegment(value);
 
 const normalizeExtension = (value = "") => {
-  const safeValue = String(value || "").trim().toLowerCase();
+  const safeValue = String(value || "")
+    .trim()
+    .toLowerCase();
   if (!safeValue) return "";
   return safeValue.startsWith(".") ? safeValue : `.${safeValue}`;
 };
@@ -393,7 +396,10 @@ const ATGFiles = () => {
 
         const currentVisible = visibleRecords
           .filter((item) => !isFolderItem(item))
-          .filter((item) => normalizeFolderPath(item.folder_path) === currentFolderPath);
+          .filter(
+            (item) =>
+              normalizeFolderPath(item.folder_path) === currentFolderPath,
+          );
 
         return currentVisible[0] || null;
       });
@@ -423,7 +429,8 @@ const ATGFiles = () => {
         return null;
       }
 
-      return normalizeFolderPath(current.folder_path) === normalizeFolderPath(currentFolderPath)
+      return normalizeFolderPath(current.folder_path) ===
+        normalizeFolderPath(currentFolderPath)
         ? current
         : null;
     });
@@ -465,7 +472,9 @@ const ATGFiles = () => {
         }
       } catch (error) {
         if (!cancelled) {
-          setPreviewError("Preview is not available. Please download the file.");
+          setPreviewError(
+            "Preview is not available. Please download the file.",
+          );
         }
       } finally {
         if (!cancelled) {
@@ -595,7 +604,9 @@ const ATGFiles = () => {
 
   const updateQueueItem = (id, nextState) => {
     setUploadQueue((current) =>
-      current.map((item) => (item.id === id ? { ...item, ...nextState } : item)),
+      current.map((item) =>
+        item.id === id ? { ...item, ...nextState } : item,
+      ),
     );
   };
 
@@ -651,17 +662,21 @@ const ATGFiles = () => {
     updateQueueItem(queueId, { status: "uploading", progress: 0, error: "" });
 
     try {
-      const response = await axios.post(buildApiUrl("/api/atg-files"), formData, {
-        headers: {
-          ...getAuthHeaders(),
+      const response = await axios.post(
+        buildApiUrl("/api/atg-files"),
+        formData,
+        {
+          headers: {
+            ...getAuthHeaders(),
+          },
+          onUploadProgress: (event) => {
+            const percent = event.total
+              ? Math.round((event.loaded * 100) / event.total)
+              : 0;
+            updateQueueItem(queueId, { progress: Math.min(percent, 100) });
+          },
         },
-        onUploadProgress: (event) => {
-          const percent = event.total
-            ? Math.round((event.loaded * 100) / event.total)
-            : 0;
-          updateQueueItem(queueId, { progress: Math.min(percent, 100) });
-        },
-      });
+      );
 
       updateQueueItem(queueId, { status: "done", progress: 100 });
       if (shouldToast) {
@@ -706,15 +721,23 @@ const ATGFiles = () => {
     }
   };
 
-  const handleUploadFiles = async (incomingFiles, folderPath = currentFolderPath) => {
+  const handleUploadFiles = async (
+    incomingFiles,
+    folderPath = currentFolderPath,
+  ) => {
     const fileList = Array.from(incomingFiles || []);
     if (!fileList.length) return;
 
     const acceptedFiles = fileList.filter((file) =>
-      SUPPORTED_EXTENSIONS.includes(normalizeExtension(getExtension(file.name))),
+      SUPPORTED_EXTENSIONS.includes(
+        normalizeExtension(getExtension(file.name)),
+      ),
     );
     const rejectedFiles = fileList.filter(
-      (file) => !SUPPORTED_EXTENSIONS.includes(normalizeExtension(getExtension(file.name))),
+      (file) =>
+        !SUPPORTED_EXTENSIONS.includes(
+          normalizeExtension(getExtension(file.name)),
+        ),
     );
 
     reportInvalidFiles(rejectedFiles);
@@ -736,7 +759,11 @@ const ATGFiles = () => {
 
     for (let index = 0; index < acceptedFiles.length; index += 1) {
       // Upload one file at a time so progress stays clear and simple.
-      await uploadOneFile(acceptedFiles[index], queueItems[index].id, folderPath);
+      await uploadOneFile(
+        acceptedFiles[index],
+        queueItems[index].id,
+        folderPath,
+      );
     }
   };
 
@@ -752,10 +779,15 @@ const ATGFiles = () => {
     if (!selectedFiles.length) return;
 
     const acceptedFiles = selectedFiles.filter((file) =>
-      SUPPORTED_EXTENSIONS.includes(normalizeExtension(getExtension(file.name))),
+      SUPPORTED_EXTENSIONS.includes(
+        normalizeExtension(getExtension(file.name)),
+      ),
     );
     const rejectedFiles = selectedFiles.filter(
-      (file) => !SUPPORTED_EXTENSIONS.includes(normalizeExtension(getExtension(file.name))),
+      (file) =>
+        !SUPPORTED_EXTENSIONS.includes(
+          normalizeExtension(getExtension(file.name)),
+        ),
     );
 
     reportInvalidFiles(rejectedFiles);
@@ -779,7 +811,9 @@ const ATGFiles = () => {
       const requiredFolders = new Set();
 
       acceptedFiles.forEach((file) => {
-        const relativePath = normalizeFolderPath(file.webkitRelativePath || file.name);
+        const relativePath = normalizeFolderPath(
+          file.webkitRelativePath || file.name,
+        );
         const relativeFolder = getParentFolderPath(relativePath);
         const destinationFolder = normalizeFolderPath(
           [currentFolderPath, relativeFolder].filter(Boolean).join("/"),
@@ -805,16 +839,23 @@ const ATGFiles = () => {
 
       for (let index = 0; index < acceptedFiles.length; index += 1) {
         const file = acceptedFiles[index];
-        const relativePath = normalizeFolderPath(file.webkitRelativePath || file.name);
+        const relativePath = normalizeFolderPath(
+          file.webkitRelativePath || file.name,
+        );
         const relativeFolder = getParentFolderPath(relativePath);
         const destinationFolder = normalizeFolderPath(
           [currentFolderPath, relativeFolder].filter(Boolean).join("/"),
         );
 
-        const uploaded = await uploadOneFile(file, queueItems[index].id, destinationFolder, {
-          refresh: false,
-          toast: false,
-        });
+        const uploaded = await uploadOneFile(
+          file,
+          queueItems[index].id,
+          destinationFolder,
+          {
+            refresh: false,
+            toast: false,
+          },
+        );
         if (uploaded) uploadedCount += 1;
       }
 
@@ -851,7 +892,10 @@ const ATGFiles = () => {
     event.preventDefault();
     event.stopPropagation();
     setDragActive(false);
-    await handleUploadFiles(Array.from(event.dataTransfer.files || []), currentFolderPath);
+    await handleUploadFiles(
+      Array.from(event.dataTransfer.files || []),
+      currentFolderPath,
+    );
   };
 
   const handleDragOver = (event) => {
@@ -949,8 +993,7 @@ const ATGFiles = () => {
         item.folder_path?.toLowerCase().includes(query) ||
         item.uploaded_by?.toLowerCase().includes(query) ||
         extension.includes(query) ||
-        (isFolderItem(item) &&
-          getItemPath(item).toLowerCase().includes(query));
+        (isFolderItem(item) && getItemPath(item).toLowerCase().includes(query));
 
       const matchesType =
         typeFilter === "all"
@@ -977,7 +1020,8 @@ const ATGFiles = () => {
 
       if (sortBy === "oldest") return dateA - dateB;
       if (sortBy === "name") return nameA.localeCompare(nameB);
-      if (sortBy === "type") return typeA.localeCompare(typeB) || nameA.localeCompare(nameB);
+      if (sortBy === "type")
+        return typeA.localeCompare(typeB) || nameA.localeCompare(nameB);
       return dateB - dateA;
     });
 
@@ -1039,7 +1083,9 @@ const ATGFiles = () => {
 
     try {
       const parsed = new URL(previewFileUrl);
-      const privateHost = ["localhost", "127.0.0.1", "::1"].includes(parsed.hostname);
+      const privateHost = ["localhost", "127.0.0.1", "::1"].includes(
+        parsed.hostname,
+      );
       if (extension === ".docx" || extension === ".pptx") {
         return !privateHost;
       }
@@ -1172,7 +1218,12 @@ const ATGFiles = () => {
             bg="white"
           >
             {previewFrameState.status === "loading" && (
-              <Center position="absolute" inset={0} bg="whiteAlpha.700" zIndex={1}>
+              <Center
+                position="absolute"
+                inset={0}
+                bg="whiteAlpha.700"
+                zIndex={1}
+              >
                 <Spinner />
               </Center>
             )}
@@ -1223,7 +1274,9 @@ const ATGFiles = () => {
 
     if (extension === ".docx" || extension === ".pptx") {
       if (!canPreviewInBrowser) {
-        return renderUnavailable("Preview is not available here. Please download the file.");
+        return renderUnavailable(
+          "Preview is not available here. Please download the file.",
+        );
       }
 
       if (previewFrameState.status === "unavailable") {
@@ -1259,7 +1312,12 @@ const ATGFiles = () => {
             minH="260px"
           >
             {previewFrameState.status === "loading" && (
-              <Center position="absolute" inset={0} bg="whiteAlpha.700" zIndex={1}>
+              <Center
+                position="absolute"
+                inset={0}
+                bg="whiteAlpha.700"
+                zIndex={1}
+              >
                 <Spinner />
               </Center>
             )}
@@ -1524,7 +1582,8 @@ const ATGFiles = () => {
       return;
     }
 
-    const finalName = getExtension(cleaned) === ".txt" ? cleaned : `${cleaned}.txt`;
+    const finalName =
+      getExtension(cleaned) === ".txt" ? cleaned : `${cleaned}.txt`;
     const textFile = new File([""], finalName, { type: "text/plain" });
     const queueItem = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
@@ -1576,7 +1635,10 @@ const ATGFiles = () => {
     if (!isFolderItem(moveTarget)) return true;
     const targetPath = getItemPath(moveTarget);
     const destination = normalizeFolderPath(target?.value || "");
-    return !destination || (destination !== targetPath && !destination.startsWith(`${targetPath}/`));
+    return (
+      !destination ||
+      (destination !== targetPath && !destination.startsWith(`${targetPath}/`))
+    );
   };
 
   const renderItemMenu = (item) => (
@@ -1601,7 +1663,10 @@ const ATGFiles = () => {
             </MenuItem>
           )}
           {!isFolderItem(item) && (
-            <MenuItem icon={<FiDownload />} onClick={() => handleDownload(item)}>
+            <MenuItem
+              icon={<FiDownload />}
+              onClick={() => handleDownload(item)}
+            >
               Download
             </MenuItem>
           )}
@@ -1664,7 +1729,11 @@ const ATGFiles = () => {
                   <Heading size="xs" noOfLines={1}>
                     {item.filename}
                   </Heading>
-                  <Badge colorScheme={meta.color} variant="subtle" rounded="full">
+                  <Badge
+                    colorScheme={meta.color}
+                    variant="subtle"
+                    rounded="full"
+                  >
                     {meta.label}
                   </Badge>
                 </HStack>
@@ -1769,7 +1838,10 @@ const ATGFiles = () => {
           shadow="xl"
         >
           <CardBody p={{ base: 4, md: 5 }}>
-            <Grid templateColumns={{ base: "1fr", xl: "1.35fr 0.65fr" }} gap={4}>
+            <Grid
+              templateColumns={{ base: "1fr", xl: "1.35fr 0.65fr" }}
+              gap={4}
+            >
               <Box>
                 <HStack spacing={3} align="center">
                   <Center
@@ -1819,16 +1891,28 @@ const ATGFiles = () => {
                     </MenuButton>
                     <Portal>
                       <MenuList color="gray.800" zIndex={1500}>
-                        <MenuItem icon={<FiUploadCloud />} onClick={handleChooseFiles}>
+                        <MenuItem
+                          icon={<FiUploadCloud />}
+                          onClick={handleChooseFiles}
+                        >
                           Upload files
                         </MenuItem>
-                        <MenuItem icon={<FiFolder />} onClick={handleChooseFolder}>
+                        <MenuItem
+                          icon={<FiFolder />}
+                          onClick={handleChooseFolder}
+                        >
                           Upload folder
                         </MenuItem>
-                        <MenuItem icon={<FiFolderPlus />} onClick={openCreateFolder}>
+                        <MenuItem
+                          icon={<FiFolderPlus />}
+                          onClick={openCreateFolder}
+                        >
                           New folder
                         </MenuItem>
-                        <MenuItem icon={<FiFileText />} onClick={openCreateTextFile}>
+                        <MenuItem
+                          icon={<FiFileText />}
+                          onClick={openCreateTextFile}
+                        >
                           New text file
                         </MenuItem>
                       </MenuList>
@@ -1838,7 +1922,9 @@ const ATGFiles = () => {
                   {currentFolderCrumbs.map((crumb, index) => {
                     const isLast = index === currentFolderCrumbs.length - 1;
                     return (
-                      <React.Fragment key={`${crumb.path || "root"}-${crumb.label}`}>
+                      <React.Fragment
+                        key={`${crumb.path || "root"}-${crumb.label}`}
+                      >
                         <Button
                           size="sm"
                           variant={isLast ? "solid" : "ghost"}
@@ -1854,19 +1940,30 @@ const ATGFiles = () => {
                         >
                           {crumb.label}
                         </Button>
-                        {!isLast && <Icon as={FiChevronRight} opacity={0.7} flexShrink={0} />}
+                        {!isLast && (
+                          <Icon
+                            as={FiChevronRight}
+                            opacity={0.7}
+                            flexShrink={0}
+                          />
+                        )}
                       </React.Fragment>
                     );
                   })}
                 </HStack>
 
                 <Text mt={2} fontSize="xs" opacity={0.9}>
-                  {visibleItems.length} item{visibleItems.length === 1 ? "" : "s"} in this folder.
+                  {visibleItems.length} item
+                  {visibleItems.length === 1 ? "" : "s"} in this folder.
                 </Text>
               </Box>
 
               <Box>
-                <HStack spacing={2} justify={{ base: "start", xl: "end" }} flexWrap="wrap">
+                <HStack
+                  spacing={2}
+                  justify={{ base: "start", xl: "end" }}
+                  flexWrap="wrap"
+                >
                   {normalizeFolderPath(currentFolderPath) && (
                     <Button
                       leftIcon={<FiArrowLeft />}
@@ -1876,7 +1973,11 @@ const ATGFiles = () => {
                       _hover={{ bg: "whiteAlpha.200" }}
                       rounded="full"
                       size="sm"
-                      onClick={() => moveCurrentFolder(getParentFolderPath(currentFolderPath))}
+                      onClick={() =>
+                        moveCurrentFolder(
+                          getParentFolderPath(currentFolderPath),
+                        )
+                      }
                     >
                       Back
                     </Button>
@@ -1917,7 +2018,8 @@ const ATGFiles = () => {
                     <Icon as={FiClock} boxSize={5} />
                   </HStack>
                   <Text mt={2} fontSize="xs" opacity={0.9}>
-                    {folderCount} folder{folderCount === 1 ? "" : "s"} and {fileCount} file
+                    {folderCount} folder{folderCount === 1 ? "" : "s"} and{" "}
+                    {fileCount} file
                     {fileCount === 1 ? "" : "s"} shown.
                   </Text>
                 </Box>
@@ -1938,7 +2040,8 @@ const ATGFiles = () => {
                 <Box>
                   <Heading size="sm">Upload progress</Heading>
                   <Text fontSize="xs" color={mutedText}>
-                    {activeUploadCount} file{activeUploadCount === 1 ? "" : "s"} in flight
+                    {activeUploadCount} file{activeUploadCount === 1 ? "" : "s"}{" "}
+                    in flight
                   </Text>
                 </Box>
                 <Icon as={FiClock} color="blue.500" />
@@ -2105,7 +2208,8 @@ const ATGFiles = () => {
                     <Box>
                       <Heading size="sm">Files and folders</Heading>
                       <Text fontSize="xs" color={mutedText}>
-                        {visibleItems.length} item{visibleItems.length === 1 ? "" : "s"} shown
+                        {visibleItems.length} item
+                        {visibleItems.length === 1 ? "" : "s"} shown
                       </Text>
                     </Box>
                     <Text fontSize="xs" color={mutedText}>
@@ -2151,7 +2255,10 @@ const ATGFiles = () => {
                         </VStack>
                       </Center>
                     ) : viewMode === "grid" ? (
-                      <SimpleGrid columns={{ base: 1, md: 2, "2xl": 4 }} spacing={2}>
+                      <SimpleGrid
+                        columns={{ base: 1, md: 2, "2xl": 4 }}
+                        spacing={2}
+                      >
                         {visibleItems.map(renderGridItem)}
                       </SimpleGrid>
                     ) : (
@@ -2195,7 +2302,12 @@ const ATGFiles = () => {
                             <Heading size="sm" noOfLines={2}>
                               {selectedItem.filename}
                             </Heading>
-                            <Text mt={1} fontSize="xs" color={mutedText} noOfLines={1}>
+                            <Text
+                              mt={1}
+                              fontSize="xs"
+                              color={mutedText}
+                              noOfLines={1}
+                            >
                               {formatFolderLabel(selectedItem.folder_path)} •{" "}
                               {prettyDate(selectedItem.createdAt)}
                             </Text>
@@ -2251,7 +2363,11 @@ const ATGFiles = () => {
         </Card>
       </Stack>
 
-      <Modal isOpen={folderModal.isOpen} onClose={folderModal.onClose} isCentered>
+      <Modal
+        isOpen={folderModal.isOpen}
+        onClose={folderModal.onClose}
+        isCentered
+      >
         <ModalOverlay bg="blackAlpha.400" />
         <ModalContent borderRadius="2xl">
           <ModalHeader>New folder</ModalHeader>
@@ -2278,7 +2394,11 @@ const ATGFiles = () => {
         </ModalContent>
       </Modal>
 
-      <Modal isOpen={textFileModal.isOpen} onClose={textFileModal.onClose} isCentered>
+      <Modal
+        isOpen={textFileModal.isOpen}
+        onClose={textFileModal.onClose}
+        isCentered
+      >
         <ModalOverlay bg="blackAlpha.400" />
         <ModalContent borderRadius="2xl">
           <ModalHeader>New text file</ModalHeader>
@@ -2305,10 +2425,16 @@ const ATGFiles = () => {
         </ModalContent>
       </Modal>
 
-      <Modal isOpen={renameModal.isOpen} onClose={renameModal.onClose} isCentered>
+      <Modal
+        isOpen={renameModal.isOpen}
+        onClose={renameModal.onClose}
+        isCentered
+      >
         <ModalOverlay bg="blackAlpha.400" />
         <ModalContent borderRadius="2xl">
-          <ModalHeader>{isFolderItem(selectedItem) ? "Rename folder" : "Rename file"}</ModalHeader>
+          <ModalHeader>
+            {isFolderItem(selectedItem) ? "Rename folder" : "Rename file"}
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <Text fontSize="sm" color={mutedText} mb={3}>
@@ -2337,13 +2463,18 @@ const ATGFiles = () => {
       <Modal isOpen={moveModal.isOpen} onClose={moveModal.onClose} isCentered>
         <ModalOverlay bg="blackAlpha.400" />
         <ModalContent borderRadius="2xl">
-          <ModalHeader>{isFolderItem(moveTarget) ? "Move folder" : "Move file"}</ModalHeader>
+          <ModalHeader>
+            {isFolderItem(moveTarget) ? "Move folder" : "Move file"}
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <Text fontSize="sm" color={mutedText} mb={3}>
               Pick a destination folder.
             </Text>
-            <Select value={moveValue} onChange={(event) => setMoveValue(event.target.value)}>
+            <Select
+              value={moveValue}
+              onChange={(event) => setMoveValue(event.target.value)}
+            >
               {folderOptions.map((option) => (
                 <option
                   key={option.value || "root"}
@@ -2366,10 +2497,16 @@ const ATGFiles = () => {
         </ModalContent>
       </Modal>
 
-      <Modal isOpen={deleteModal.isOpen} onClose={deleteModal.onClose} isCentered>
+      <Modal
+        isOpen={deleteModal.isOpen}
+        onClose={deleteModal.onClose}
+        isCentered
+      >
         <ModalOverlay bg="blackAlpha.400" />
         <ModalContent borderRadius="2xl">
-          <ModalHeader>{isFolderItem(deleteTarget) ? "Delete folder" : "Delete file"}</ModalHeader>
+          <ModalHeader>
+            {isFolderItem(deleteTarget) ? "Delete folder" : "Delete file"}
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <Text>
