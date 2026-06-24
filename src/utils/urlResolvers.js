@@ -13,9 +13,9 @@ export const resolveApiBaseUrl = (fallbackPort = 5000) => {
   return envValue || getBrowserOrigin(fallbackPort);
 };
 
-export const resolveDirectusBaseUrl = (fallbackPort = 8055) => {
+export const resolveDirectusBaseUrl = () => {
   const envValue = stripTrailingSlash(process.env.REACT_APP_DIRECTUS_URL);
-  return envValue || getBrowserOrigin(fallbackPort);
+  return envValue || "/api/directus";
 };
 
 export const joinUrl = (baseUrl, targetPath) => {

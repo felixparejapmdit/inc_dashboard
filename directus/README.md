@@ -21,7 +21,8 @@ DIRECTUS_SECRET=replace-with-a-long-random-secret
 DIRECTUS_ADMIN_EMAIL=admin@example.com
 DIRECTUS_ADMIN_PASSWORD=change-this-password
 DIRECTUS_PUBLIC_URL=http://localhost:8055
-REACT_APP_DIRECTUS_URL=http://localhost:8055
+DIRECTUS_INTERNAL_URL=http://localhost:8055
+REACT_APP_DIRECTUS_URL=/api/directus
 REACT_APP_DIRECTUS_TOKEN=
 ```
 

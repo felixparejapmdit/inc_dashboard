@@ -11,6 +11,7 @@ services:
       - REDIS_HOST=redis
       - MYSQL_HOST=db
       - REACT_PORT_HTTP=5000
+      - DIRECTUS_INTERNAL_URL=http://directus:8055
     volumes:
       - ./backend/uploads:/usr/src/app/uploads
       # Idagdag ang linyang ito para makita ng Docker ang certs mo:

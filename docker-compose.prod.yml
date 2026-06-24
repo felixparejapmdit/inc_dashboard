@@ -10,6 +10,7 @@ services:
     environment:
       - REACT_PORT_HTTPS=443
       - REDIS_HOST=redis
+      - DIRECTUS_INTERNAL_URL=http://directus:8055
     volumes:
       - ./backend/uploads:/usr/src/app/uploads
       - ./nginx/certs/cert.pem:/usr/src/app/cert.pem
