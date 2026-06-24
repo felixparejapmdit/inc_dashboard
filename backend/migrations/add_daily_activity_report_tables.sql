@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS `tasks` (
   `category_id` INT          NOT NULL,
   `title`       VARCHAR(100) NOT NULL,
   `description` TEXT         NULL,
+  `local_congregations` TEXT  NULL COMMENT 'Local congregation(s) served for worship service tasks',
   `task_date`   DATE         NOT NULL,
   `start_time`  TIME         NULL,
   `end_time`    TIME         NULL,

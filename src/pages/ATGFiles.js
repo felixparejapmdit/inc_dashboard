@@ -1052,10 +1052,10 @@ const ATGFiles = () => {
   const filePreviewContent = () => {
     if (!selectedItem) {
       return (
-        <Center minH="320px" color={mutedText} flexDirection="column" px={6}>
-          <Icon as={FiFolder} boxSize={12} mb={4} opacity={0.35} />
+        <Center minH="240px" color={mutedText} flexDirection="column" px={4}>
+          <Icon as={FiFolder} boxSize={9} mb={3} opacity={0.35} />
           <Text fontWeight="700">Select a file</Text>
-          <Text fontSize="sm" textAlign="center" mt={2}>
+          <Text fontSize="xs" textAlign="center" mt={1}>
             PDF and TXT files preview here. DOCX and PPTX use a browser viewer
             when available.
           </Text>
@@ -1065,10 +1065,10 @@ const ATGFiles = () => {
 
     if (isFolderItem(selectedItem)) {
       return (
-        <Center minH="320px" color={mutedText} flexDirection="column" px={6}>
-          <Icon as={FiFolder} boxSize={12} mb={4} opacity={0.35} />
+        <Center minH="240px" color={mutedText} flexDirection="column" px={4}>
+          <Icon as={FiFolder} boxSize={9} mb={3} opacity={0.35} />
           <Text fontWeight="700">Folder selected</Text>
-          <Text fontSize="sm" textAlign="center" mt={2}>
+          <Text fontSize="xs" textAlign="center" mt={1}>
             Open it to see the files inside.
           </Text>
         </Center>
@@ -1079,18 +1079,18 @@ const ATGFiles = () => {
     const extension = getItemExtension(selectedItem);
     const renderUnavailable = (message) => (
       <Center
-        minH="320px"
+        minH="240px"
         border="1px dashed"
         borderColor={borderColor}
         rounded="xl"
         bg="gray.50"
-        px={6}
+        px={4}
         textAlign="center"
       >
-        <VStack spacing={3} maxW="sm">
-          <Icon as={FiAlertTriangle} boxSize={10} color="orange.400" />
+        <VStack spacing={2} maxW="sm">
+          <Icon as={FiAlertTriangle} boxSize={8} color="orange.400" />
           <Heading size="sm">Preview not available</Heading>
-          <Text fontSize="sm" color={mutedText}>
+          <Text fontSize="xs" color={mutedText}>
             {message || "Download the file to open it."}
           </Text>
           <HStack spacing={3} flexWrap="wrap" justify="center">
@@ -1125,12 +1125,12 @@ const ATGFiles = () => {
           rounded="xl"
           bg="gray.900"
           color="gray.100"
-          p={4}
-          minH="420px"
-          maxH="calc(100vh - 360px)"
+          p={3}
+          minH="320px"
+          maxH="calc(100vh - 300px)"
           overflow="auto"
           fontFamily="mono"
-          fontSize="sm"
+          fontSize="xs"
           whiteSpace="pre-wrap"
           wordBreak="break-word"
         >
@@ -1163,8 +1163,8 @@ const ATGFiles = () => {
         <Stack spacing={3}>
           <Box
             position="relative"
-            h={{ base: "60vh", xl: "calc(100vh - 360px)" }}
-            minH="480px"
+            h={{ base: "55vh", xl: "calc(100vh - 300px)" }}
+            minH="380px"
             border="1px solid"
             borderColor={borderColor}
             rounded="xl"
@@ -1231,20 +1231,20 @@ const ATGFiles = () => {
       }
 
       return (
-        <Stack spacing={4}>
+        <Stack spacing={3}>
           <Center
-            minH="160px"
+            minH="120px"
             bg="gray.50"
             border="1px dashed"
             borderColor={borderColor}
             rounded="xl"
-            p={6}
+            p={4}
             textAlign="center"
           >
-            <VStack spacing={3} maxW="sm">
-              <Icon as={meta.icon} boxSize={12} color={`${meta.color}.500`} />
+            <VStack spacing={2} maxW="sm">
+              <Icon as={meta.icon} boxSize={9} color={`${meta.color}.500`} />
               <Heading size="sm">{meta.label} preview</Heading>
-              <Text fontSize="sm" color={mutedText}>
+              <Text fontSize="xs" color={mutedText}>
                 If the viewer stays blank, download the file.
               </Text>
             </VStack>
@@ -1256,7 +1256,7 @@ const ATGFiles = () => {
             borderColor={borderColor}
             rounded="xl"
             overflow="hidden"
-            minH="320px"
+            minH="260px"
           >
             {previewFrameState.status === "loading" && (
               <Center position="absolute" inset={0} bg="whiteAlpha.700" zIndex={1}>
@@ -1280,7 +1280,7 @@ const ATGFiles = () => {
                   message: "Preview did not load. Please download the file.",
                 });
               }}
-              style={{ width: "100%", minHeight: "380px", border: "0" }}
+              style={{ width: "100%", minHeight: "300px", border: "0" }}
             />
           </Box>
 
@@ -1632,43 +1632,43 @@ const ATGFiles = () => {
         key={item.id}
         border="1px solid"
         borderColor={isSelected ? "blue.300" : borderColor}
-        rounded="2xl"
+        rounded="xl"
         shadow={isSelected ? "md" : "sm"}
         transition="all 0.2s ease"
         _hover={{ shadow: "md", borderColor: "blue.300" }}
         cursor="pointer"
         onClick={() => (isFolderItem(item) ? openFolder(item) : openFile(item))}
       >
-        <CardBody p={4}>
+        <CardBody px={3} py={2.5}>
           <Grid
             templateColumns={{
               base: "1fr",
               md: "1.8fr 0.7fr 0.9fr 0.4fr",
             }}
-            gap={3}
+            gap={2}
             alignItems="center"
           >
-            <HStack spacing={4} align="start" minW={0}>
+            <HStack spacing={3} align="center" minW={0}>
               <Center
-                boxSize="48px"
-                rounded="2xl"
+                boxSize="38px"
+                rounded="xl"
                 bg={`${meta.color}.50`}
                 color={`${meta.color}.500`}
                 flexShrink={0}
               >
-                <Icon as={meta.icon} boxSize={6} />
+                <Icon as={meta.icon} boxSize={5} />
               </Center>
 
               <Box flex="1" minW={0}>
                 <HStack spacing={2} flexWrap="wrap">
-                  <Heading size="sm" noOfLines={1}>
+                  <Heading size="xs" noOfLines={1}>
                     {item.filename}
                   </Heading>
                   <Badge colorScheme={meta.color} variant="subtle" rounded="full">
                     {meta.label}
                   </Badge>
                 </HStack>
-                <Text mt={1} fontSize="sm" color={mutedText} noOfLines={1}>
+                <Text mt={0.5} fontSize="xs" color={mutedText} noOfLines={1}>
                   {isFolderItem(item)
                     ? "Folder"
                     : `Uploaded by ${item.uploaded_by || "Unknown"}`}
@@ -1680,13 +1680,13 @@ const ATGFiles = () => {
             </HStack>
 
             <Box>
-              <Text fontSize="sm" color={mutedText}>
+              <Text fontSize="xs" color={mutedText}>
                 {isFolderItem(item) ? "Folder" : prettyFileSize(item.file_size)}
               </Text>
             </Box>
 
             <Box>
-              <Text fontSize="sm" color={mutedText}>
+              <Text fontSize="xs" color={mutedText}>
                 {prettyDate(item.createdAt)}
               </Text>
             </Box>
@@ -1707,31 +1707,31 @@ const ATGFiles = () => {
         key={item.id}
         border="1px solid"
         borderColor={isSelected ? "blue.300" : borderColor}
-        rounded="2xl"
+        rounded="xl"
         shadow={isSelected ? "md" : "sm"}
         transition="all 0.2s ease"
         _hover={{ shadow: "md", borderColor: "blue.300" }}
         cursor="pointer"
         onClick={() => (isFolderItem(item) ? openFolder(item) : openFile(item))}
       >
-        <CardBody p={4}>
-          <HStack justify="space-between" align="start" spacing={3}>
+        <CardBody p={3}>
+          <HStack justify="space-between" align="start" spacing={2}>
             <Center
-              boxSize="52px"
-              rounded="2xl"
+              boxSize="42px"
+              rounded="xl"
               bg={`${meta.color}.50`}
               color={`${meta.color}.500`}
               flexShrink={0}
             >
-              <Icon as={meta.icon} boxSize={7} />
+              <Icon as={meta.icon} boxSize={5} />
             </Center>
             {renderItemMenu(item)}
           </HStack>
 
-          <Heading size="sm" mt={4} noOfLines={2}>
+          <Heading size="xs" mt={3} noOfLines={2}>
             {item.filename}
           </Heading>
-          <HStack mt={3} spacing={2} flexWrap="wrap">
+          <HStack mt={2} spacing={1.5} flexWrap="wrap">
             <Badge colorScheme={meta.color} variant="subtle" rounded="full">
               {meta.label}
             </Badge>
@@ -1741,7 +1741,7 @@ const ATGFiles = () => {
               </Badge>
             )}
           </HStack>
-          <Text mt={3} fontSize="xs" color={mutedText} noOfLines={1}>
+          <Text mt={2} fontSize="xs" color={mutedText} noOfLines={1}>
             {formatFolderLabel(item.folder_path)}
           </Text>
           <Text mt={1} fontSize="xs" color={mutedText}>
@@ -1757,51 +1757,51 @@ const ATGFiles = () => {
       minH="100vh"
       w="full"
       bg={pageBg}
-      px={{ base: 4, md: 8 }}
-      py={{ base: 4, md: 6 }}
+      px={{ base: 3, md: 5 }}
+      py={{ base: 3, md: 4 }}
     >
-      <Stack spacing={6} w="full">
+      <Stack spacing={4} w="full">
         <Card
           bgGradient="linear(to-r, blue.700, blue.500)"
           color="white"
-          borderRadius="3xl"
+          borderRadius="2xl"
           overflow="hidden"
           shadow="xl"
         >
-          <CardBody p={{ base: 5, md: 8 }}>
-            <Grid templateColumns={{ base: "1fr", xl: "1.3fr 0.7fr" }} gap={6}>
+          <CardBody p={{ base: 4, md: 5 }}>
+            <Grid templateColumns={{ base: "1fr", xl: "1.35fr 0.65fr" }} gap={4}>
               <Box>
                 <HStack spacing={3} align="center">
                   <Center
-                    w="48px"
-                    h="48px"
-                    rounded="2xl"
+                    w="40px"
+                    h="40px"
+                    rounded="xl"
                     bg="whiteAlpha.200"
                     border="1px solid"
                     borderColor="whiteAlpha.300"
                   >
-                    <Icon as={FiFolder} boxSize={6} />
+                    <Icon as={FiFolder} boxSize={5} />
                   </Center>
                   <Box>
-                    <Heading size={{ base: "lg", md: "xl" }} fontWeight="900">
+                    <Heading size={{ base: "md", md: "lg" }} fontWeight="900">
                       ATG Files
                     </Heading>
-                    <Text opacity={0.9} fontSize="sm">
+                    <Text opacity={0.9} fontSize="xs">
                       Simple file and folder management.
                     </Text>
                   </Box>
                 </HStack>
 
                 <HStack
-                  mt={5}
-                  spacing={2}
+                  mt={3}
+                  spacing={1.5}
                   flexWrap="wrap"
                   align="center"
                   bg="whiteAlpha.180"
                   border="1px solid"
                   borderColor="whiteAlpha.300"
-                  rounded="2xl"
-                  p={2}
+                  rounded="xl"
+                  p={1.5}
                   w="fit-content"
                   maxW="full"
                 >
@@ -1848,7 +1848,7 @@ const ATGFiles = () => {
                           onClick={() => moveCurrentFolder(crumb.path)}
                           isDisabled={isLast}
                           leftIcon={index === 0 ? <FiHome /> : undefined}
-                          rounded="xl"
+                          rounded="lg"
                           maxW={{ base: "180px", md: "260px" }}
                           noOfLines={1}
                         >
@@ -1860,13 +1860,13 @@ const ATGFiles = () => {
                   })}
                 </HStack>
 
-                <Text mt={4} fontSize="sm" opacity={0.9}>
+                <Text mt={2} fontSize="xs" opacity={0.9}>
                   {visibleItems.length} item{visibleItems.length === 1 ? "" : "s"} in this folder.
                 </Text>
               </Box>
 
               <Box>
-                <HStack spacing={3} justify={{ base: "start", xl: "end" }} flexWrap="wrap">
+                <HStack spacing={2} justify={{ base: "start", xl: "end" }} flexWrap="wrap">
                   {normalizeFolderPath(currentFolderPath) && (
                     <Button
                       leftIcon={<FiArrowLeft />}
@@ -1875,6 +1875,7 @@ const ATGFiles = () => {
                       borderColor="whiteAlpha.500"
                       _hover={{ bg: "whiteAlpha.200" }}
                       rounded="full"
+                      size="sm"
                       onClick={() => moveCurrentFolder(getParentFolderPath(currentFolderPath))}
                     >
                       Back
@@ -1888,6 +1889,7 @@ const ATGFiles = () => {
                     borderColor="whiteAlpha.500"
                     _hover={{ bg: "whiteAlpha.200" }}
                     rounded="full"
+                    size="sm"
                     onClick={fetchItems}
                   >
                     Refresh
@@ -1895,26 +1897,26 @@ const ATGFiles = () => {
                 </HStack>
 
                 <Box
-                  mt={5}
+                  mt={3}
                   bg="whiteAlpha.180"
                   backdropFilter="blur(8px)"
-                  rounded="2xl"
-                  p={4}
+                  rounded="xl"
+                  p={3}
                   border="1px solid"
                   borderColor="whiteAlpha.300"
                 >
                   <HStack justify="space-between" align="start">
                     <Box>
-                      <Text fontSize="sm" opacity={0.85}>
+                      <Text fontSize="xs" opacity={0.85}>
                         Current folder
                       </Text>
-                      <Heading size="md" mt={1}>
+                      <Heading size="sm" mt={0.5}>
                         {formatFolderLabel(currentFolderPath)}
                       </Heading>
                     </Box>
-                    <Icon as={FiClock} boxSize={6} />
+                    <Icon as={FiClock} boxSize={5} />
                   </HStack>
-                  <Text mt={3} fontSize="sm" opacity={0.9}>
+                  <Text mt={2} fontSize="xs" opacity={0.9}>
                     {folderCount} folder{folderCount === 1 ? "" : "s"} and {fileCount} file
                     {fileCount === 1 ? "" : "s"} shown.
                   </Text>
@@ -1929,21 +1931,21 @@ const ATGFiles = () => {
             bg={panelBg}
             border="1px solid"
             borderColor={borderColor}
-            rounded="3xl"
+            rounded="2xl"
           >
-            <CardHeader pb={0}>
+            <CardHeader px={4} pt={4} pb={0}>
               <HStack justify="space-between" align="center">
                 <Box>
                   <Heading size="sm">Upload progress</Heading>
-                  <Text fontSize="sm" color={mutedText}>
+                  <Text fontSize="xs" color={mutedText}>
                     {activeUploadCount} file{activeUploadCount === 1 ? "" : "s"} in flight
                   </Text>
                 </Box>
                 <Icon as={FiClock} color="blue.500" />
               </HStack>
             </CardHeader>
-            <CardBody pt={4}>
-              <Stack spacing={3}>
+            <CardBody px={4} pt={3} pb={4}>
+              <Stack spacing={2}>
                 {uploadQueue.map((item) => (
                   <UploadQueueItem key={item.id} item={item} />
                 ))}
@@ -1956,7 +1958,7 @@ const ATGFiles = () => {
           bg={panelBg}
           border="1px solid"
           borderColor={dragActive ? highlightBorder : borderColor}
-          rounded="3xl"
+          rounded="2xl"
           shadow="sm"
           position="relative"
           overflow="hidden"
@@ -1966,7 +1968,7 @@ const ATGFiles = () => {
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          <CardBody p={{ base: 4, md: 5 }}>
+          <CardBody p={{ base: 3, md: 4 }}>
             {dragActive && (
               <Center
                 position="absolute"
@@ -1978,12 +1980,12 @@ const ATGFiles = () => {
                 borderColor="blue.300"
                 pointerEvents="none"
               >
-                <VStack spacing={3}>
-                  <Center w="64px" h="64px" rounded="2xl" bg="white">
-                    <Icon as={FiUploadCloud} boxSize={8} />
+                <VStack spacing={2}>
+                  <Center w="52px" h="52px" rounded="xl" bg="white">
+                    <Icon as={FiUploadCloud} boxSize={6} />
                   </Center>
-                  <Heading size="md">Drop files here</Heading>
-                  <Text fontSize="sm" color="blue.600">
+                  <Heading size="sm">Drop files here</Heading>
+                  <Text fontSize="xs" color="blue.600">
                     PDF, DOCX, TXT, and PPTX files will upload to this folder.
                   </Text>
                 </VStack>
@@ -2010,10 +2012,10 @@ const ATGFiles = () => {
               onChange={handleFolderInputChange}
             />
 
-            <Stack spacing={4}>
+            <Stack spacing={3}>
               <Grid
                 templateColumns={{ base: "1fr", xl: "1.4fr 0.8fr 0.8fr 1fr" }}
-                gap={3}
+                gap={2}
               >
                 <InputGroup>
                   <InputLeftElement pointerEvents="none">
@@ -2023,16 +2025,18 @@ const ATGFiles = () => {
                     value={searchQuery}
                     onChange={(event) => setSearchQuery(event.target.value)}
                     placeholder="Search files or folders"
-                    rounded="xl"
+                    rounded="lg"
                     borderColor={borderColor}
+                    size="sm"
                   />
                 </InputGroup>
 
                 <Select
                   value={typeFilter}
                   onChange={(event) => setTypeFilter(event.target.value)}
-                  rounded="xl"
+                  rounded="lg"
                   borderColor={borderColor}
+                  size="sm"
                 >
                   <option value="all">All file types</option>
                   {SUPPORTED_EXTENSIONS.map((extension) => (
@@ -2045,8 +2049,9 @@ const ATGFiles = () => {
                 <Select
                   value={dateFilter}
                   onChange={(event) => setDateFilter(event.target.value)}
-                  rounded="xl"
+                  rounded="lg"
                   borderColor={borderColor}
+                  size="sm"
                 >
                   <option value="all">All dates</option>
                   <option value="today">Today</option>
@@ -2058,8 +2063,9 @@ const ATGFiles = () => {
                   <Select
                     value={sortBy}
                     onChange={(event) => setSortBy(event.target.value)}
-                    rounded="xl"
+                    rounded="lg"
                     borderColor={borderColor}
+                    size="sm"
                   >
                     <option value="newest">Newest first</option>
                     <option value="oldest">Oldest first</option>
@@ -2074,6 +2080,7 @@ const ATGFiles = () => {
                         colorScheme={viewMode === "list" ? "blue" : "gray"}
                         variant={viewMode === "list" ? "solid" : "outline"}
                         onClick={() => setViewMode("list")}
+                        size="sm"
                       />
                     </Tooltip>
                     <Tooltip label="Grid view">
@@ -2083,6 +2090,7 @@ const ATGFiles = () => {
                         colorScheme={viewMode === "grid" ? "blue" : "gray"}
                         variant={viewMode === "grid" ? "solid" : "outline"}
                         onClick={() => setViewMode("grid")}
+                        size="sm"
                       />
                     </Tooltip>
                   </ButtonGroup>
@@ -2091,12 +2099,12 @@ const ATGFiles = () => {
 
               <Divider />
 
-              <Grid templateColumns={{ base: "1fr", xl: "2fr 1fr" }} gap={5}>
+              <Grid templateColumns={{ base: "1fr", xl: "2fr 1fr" }} gap={4}>
                 <Box>
-                  <HStack justify="space-between" align="center" mb={3}>
+                  <HStack justify="space-between" align="center" mb={2}>
                     <Box>
                       <Heading size="sm">Files and folders</Heading>
-                      <Text fontSize="sm" color={mutedText}>
+                      <Text fontSize="xs" color={mutedText}>
                         {visibleItems.length} item{visibleItems.length === 1 ? "" : "s"} shown
                       </Text>
                     </Box>
@@ -2105,20 +2113,20 @@ const ATGFiles = () => {
                     </Text>
                   </HStack>
 
-                  <Stack spacing={3}>
+                  <Stack spacing={2}>
                     {loading ? (
                       Array.from({ length: 6 }).map((_, index) => (
                         <Box
                           key={`skeleton-${index}`}
-                          p={4}
+                          p={3}
                           border="1px solid"
                           borderColor={borderColor}
-                          rounded="2xl"
+                          rounded="xl"
                         >
-                          <HStack spacing={4}>
-                            <Skeleton boxSize="42px" rounded="lg" />
+                          <HStack spacing={3}>
+                            <Skeleton boxSize="36px" rounded="lg" />
                             <Box flex="1">
-                              <Skeleton height="18px" mb={3} />
+                              <Skeleton height="14px" mb={2} />
                               <Skeleton height="12px" width="60%" />
                             </Box>
                           </HStack>
@@ -2126,24 +2134,24 @@ const ATGFiles = () => {
                       ))
                     ) : visibleItems.length === 0 ? (
                       <Center
-                        minH="260px"
+                        minH="210px"
                         border="1px dashed"
                         borderColor={borderColor}
-                        rounded="3xl"
+                        rounded="2xl"
                         bg={tipBg}
-                        px={6}
+                        px={5}
                         textAlign="center"
                       >
-                        <VStack spacing={3}>
-                          <Icon as={FiFolder} boxSize={10} color="gray.400" />
+                        <VStack spacing={2}>
+                          <Icon as={FiFolder} boxSize={8} color="gray.400" />
                           <Heading size="sm">No items yet</Heading>
-                          <Text color={mutedText} maxW="md">
+                          <Text color={mutedText} fontSize="sm" maxW="md">
                             Create a folder or upload a file to get started.
                           </Text>
                         </VStack>
                       </Center>
                     ) : viewMode === "grid" ? (
-                      <SimpleGrid columns={{ base: 1, md: 2, "2xl": 3 }} spacing={3}>
+                      <SimpleGrid columns={{ base: 1, md: 2, "2xl": 4 }} spacing={2}>
                         {visibleItems.map(renderGridItem)}
                       </SimpleGrid>
                     ) : (
@@ -2162,13 +2170,13 @@ const ATGFiles = () => {
                     bg={panelBg}
                     border="1px solid"
                     borderColor={borderColor}
-                    rounded="3xl"
+                    rounded="2xl"
                   >
-                    <CardHeader pb={0}>
+                    <CardHeader px={4} pt={4} pb={0}>
                       <HStack justify="space-between" align="center">
                         <Box>
                           <Heading size="sm">Preview</Heading>
-                          <Text fontSize="sm" color={mutedText}>
+                          <Text fontSize="xs" color={mutedText}>
                             Quick look
                           </Text>
                         </Box>
@@ -2180,19 +2188,19 @@ const ATGFiles = () => {
                       </HStack>
                     </CardHeader>
 
-                    <CardBody pt={4}>
+                    <CardBody px={4} pt={3} pb={4}>
                       {selectedItem ? (
-                        <Stack spacing={4}>
+                        <Stack spacing={3}>
                           <Box>
                             <Heading size="sm" noOfLines={2}>
                               {selectedItem.filename}
                             </Heading>
-                            <Text mt={1} fontSize="sm" color={mutedText} noOfLines={1}>
+                            <Text mt={1} fontSize="xs" color={mutedText} noOfLines={1}>
                               {formatFolderLabel(selectedItem.folder_path)} •{" "}
                               {prettyDate(selectedItem.createdAt)}
                             </Text>
                             {!isFolderItem(selectedItem) && (
-                              <Text mt={1} fontSize="sm" color={mutedText}>
+                              <Text mt={1} fontSize="xs" color={mutedText}>
                                 {prettyFileSize(selectedItem.file_size)}
                               </Text>
                             )}

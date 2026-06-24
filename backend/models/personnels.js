@@ -89,7 +89,7 @@ const Personnel = sequelize.define(
       set(value) {
         this.setDataValue(
           "language_id",
-          Array.isArray(value) ? value.join(",") : ""
+          Array.isArray(value) ? value.join(",") : "",
         );
       },
     },
@@ -118,7 +118,7 @@ const Personnel = sequelize.define(
       set(value) {
         this.setDataValue(
           "citizenship",
-          Array.isArray(value) ? value.join(",") : ""
+          Array.isArray(value) ? value.join(",") : "",
         );
       },
     },
@@ -219,9 +219,9 @@ const Personnel = sequelize.define(
       defaultValue: DataTypes.NOW,
     },
     deleted_at: {
-  type: DataTypes.DATE,
-  allowNull: true,
-},
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   },
   {
     tableName: "personnels", // Ensure this matches your actual table name
@@ -230,7 +230,7 @@ const Personnel = sequelize.define(
     updatedAt: "updated_at",
     paranoid: true, // 👈 Enables soft delete using deleted_at
     deletedAt: "deleted_at",
-  }
+  },
 );
 
 Personnel.belongsTo(Section, { foreignKey: "section_id", as: "Section" });

@@ -31,6 +31,10 @@ const Task = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    local_congregations: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
     task_date: {
       type: DataTypes.DATEONLY,
       allowNull: false,

@@ -60,7 +60,6 @@ import {
   FiBell,
   FiSearch,
   FiGrid,
-  FiSun,
   FiMoon,
   FiExternalLink,
   FiActivity,
@@ -84,7 +83,6 @@ import { fetchData } from "../utils/fetchData";
 import { usePermissionContext } from "../contexts/PermissionContext";
 import { useDebounce } from "use-debounce";
 import moment from "moment";
-import { motion, AnimatePresence } from "framer-motion";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -148,7 +146,7 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
 
   const [hoveredEvent, setHoveredEvent] = useState(null);
   const [hoveredReminder, setHoveredReminder] = useState(null);
-  const { colorMode, toggleColorMode } = useColorMode();
+  const { colorMode } = useColorMode();
 
   const [filteredApps, setFilteredApps] = useState([]);
 
@@ -158,7 +156,8 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
   const isDragEnabled = false;
 
   const [compactGreeting, setCompactGreeting] = useState(false);
-  const lastScrollTop = useRef(0);
+  const compactGreetingRef = useRef(false);
+  const scrollFrameRef = useRef(null);
 
   // Login audit state + lazy-load control
   const [loginAudits, setLoginAudits] = useState([]);
@@ -171,8 +170,18 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
 
 
   // Hook values moved to top level to avoid conditional constraints
-  const inputBg = useColorModeValue("white", "gray.700");
-  const iconHoverBg = useColorModeValue("orange.100", "whiteAlpha.200");
+  const dashboardBg = useColorModeValue(
+    "linear(to-b, orange.50, white 38%, gray.50)",
+    "linear(to-b, gray.900, gray.900 48%, gray.800)"
+  );
+  const stickyHeaderBg = useColorModeValue(
+    "rgba(255, 255, 255, 0.88)",
+    "rgba(26, 32, 44, 0.86)"
+  );
+  const stickyHeaderBorder = useColorModeValue("gray.100", "whiteAlpha.200");
+  const headerChipBg = useColorModeValue("whiteAlpha.800", "whiteAlpha.200");
+  const headerSearchBg = useColorModeValue("whiteAlpha.900", "whiteAlpha.200");
+  const mutedHeaderText = useColorModeValue("gray.600", "gray.300");
   const sectionTitleColor = useColorModeValue("gray.800", "gray.100");
 
   const recentActivityInputBg = useColorModeValue("gray.100", "gray.700");
@@ -186,6 +195,15 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
   const sectionBadgeBg = useColorModeValue("orange.100", "orange.700");
   const sectionBadgeColor = useColorModeValue("orange.700", "orange.100");
   const sectionIconBg = useColorModeValue("orange.200", "orange.600");
+  const sectionPanelBg = useColorModeValue(
+    "rgba(255, 255, 255, 0.62)",
+    "rgba(26, 32, 44, 0.58)"
+  );
+  const sectionPanelBorder = useColorModeValue("whiteAlpha.900", "whiteAlpha.200");
+  const sectionPanelShadow = useColorModeValue(
+    "0 10px 30px rgba(15, 23, 42, 0.04)",
+    "0 12px 30px rgba(0, 0, 0, 0.22)"
+  );
 
   const renderSectionHeader = (title, count) => {
     const badgeLabel = count ? `${count} apps` : "No apps";
@@ -193,22 +211,23 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
       <HStack
         justify="space-between"
         align="center"
-        mb={4}
+        mb={3}
         flexWrap="wrap"
-        spacing={3}
+        spacing={2}
+        px={1}
       >
-        <HStack spacing={3}>
+        <HStack spacing={2}>
           <Box
             bg={sectionIconBg}
             color="white"
             p={2}
-            borderRadius="lg"
-            boxShadow="md"
+            borderRadius="xl"
+            boxShadow="sm"
           >
-            <FiGrid />
+            <Icon as={FiGrid} boxSize={3.5} />
           </Box>
           <VStack align="start" spacing={0}>
-            <Heading as="h2" size="md" color={sectionTitleColor}>
+            <Heading as="h2" size="sm" color={sectionTitleColor}>
               {title}
             </Heading>
             <Text fontSize="xs" color={sectionSubText}>
@@ -217,10 +236,10 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
           </VStack>
         </HStack>
         <Badge
-          px={3}
-          py={1}
+          px={2}
+          py={0.5}
           borderRadius="full"
-          fontSize="xs"
+          fontSize="10px"
           textTransform="uppercase"
           letterSpacing="wide"
           bg={sectionBadgeBg}
@@ -239,20 +258,31 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
   }, []);
 
   useEffect(() => {
-    const handleScroll = () => {
+    const updateCompactGreeting = () => {
+      scrollFrameRef.current = null;
       const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const shouldCompact =
+        scrollTop > 64 ? true : scrollTop < 16 ? false : compactGreetingRef.current;
 
-      // Use a single threshold with a buffer to prevent flickering
-      // Switch to compact if > 80px, switch back if < 30px
-      if (scrollTop > 80) {
-        setCompactGreeting((prev) => (prev !== true ? true : prev));
-      } else if (scrollTop < 30) {
-        setCompactGreeting((prev) => (prev !== false ? false : prev));
+      if (shouldCompact !== compactGreetingRef.current) {
+        compactGreetingRef.current = shouldCompact;
+        setCompactGreeting(shouldCompact);
       }
     };
 
+    const handleScroll = () => {
+      if (scrollFrameRef.current !== null) return;
+      scrollFrameRef.current = window.requestAnimationFrame(updateCompactGreeting);
+    };
+
+    handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (scrollFrameRef.current !== null) {
+        window.cancelAnimationFrame(scrollFrameRef.current);
+      }
+    };
   }, []);
 
 
@@ -609,77 +639,159 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
     return sections;
   }, [appTypes, categorizedApps]);
 
+  const visibleAppCount = useMemo(
+    () => visibleAppTypeSections.reduce((total, section) => total + section.apps.length, 0),
+    [visibleAppTypeSections]
+  );
+
   return (
-    <Box bg={useColorModeValue("white.50", "gray.900")} minH="100vh" p={6}>
+    <Box
+      bgGradient={dashboardBg}
+      minH="100vh"
+      px={{ base: 3, md: 5 }}
+      py={{ base: 3, md: 4 }}
+    >
       {/* Sticky Header Section */}
       <Box
         position="sticky"
-        top="0"
+        top={{ base: 2, md: 3 }}
         zIndex="1000"
-        boxShadow="sm"
-        bg={useColorModeValue("white", "gray.800")}
-        px={4}
-        py={2}
+        bg={stickyHeaderBg}
+        backdropFilter="blur(18px)"
+        px={{ base: 3, md: 4 }}
+        py={compactGreeting ? 2 : 3}
+        borderRadius="3xl"
+        border="1px solid"
+        borderColor={stickyHeaderBorder}
+        boxShadow={
+          compactGreeting
+            ? "0 10px 28px rgba(15, 23, 42, 0.08)"
+            : "0 18px 48px rgba(15, 23, 42, 0.10)"
+        }
+        transition="padding 0.22s ease, box-shadow 0.22s ease, background 0.22s ease"
+        transform="translateZ(0)"
+        willChange="padding, box-shadow"
       >
-        <HStack
-          justify="space-between"
-          align="start"
-          spacing={4}
-          transition="all 0.4s ease"
-          flexWrap="wrap"
+        <Flex
+          direction={{ base: "column", lg: compactGreeting ? "row" : "column" }}
+          gap={compactGreeting ? 2 : 3}
+          align={compactGreeting ? { base: "stretch", lg: "center" } : "stretch"}
+          transition="gap 0.22s ease"
         >
-
           <Flex
-            direction={compactGreeting ? "row" : "column"}
-            align={compactGreeting ? "center" : "start"}
-            justify={compactGreeting ? "center" : "flex-start"}
-            flex="1"
-            transition="all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
-            gap={4}
             width="100%"
+            align="center"
+            justify="space-between"
+            gap={2}
+            flexWrap="wrap"
+            flex={compactGreeting ? { base: "1 1 auto", lg: "0 0 430px" } : "1"}
           >
-            <Input
-              data-tour="search-bar"
-              placeholder="Search"
-              size="md"
-              borderRadius="full"
-              bg={inputBg}
-              maxW="300px"
-              value={searchQuery}
-              onChange={handleSearchInput}
-              boxShadow="md"
-              transition="all 0.4s ease"
-            />
-
-            <motion.div
-              layout
-              style={{ width: compactGreeting ? "auto" : "100%" }}
-              transition={{ duration: 0.4, ease: "easeInOut" }}
+            <InputGroup
+              size="sm"
+              maxW={{ base: "100%", md: compactGreeting ? "300px" : "380px" }}
+              flex={{ base: "1 1 100%", md: "1 1 auto" }}
+              transition="max-width 0.22s ease"
             >
-              <Box
-                bgGradient="linear(to-r, orange.400, yellow.300)"
-                borderRadius="xl"
-                p={compactGreeting ? 3 : 6}
-                px={compactGreeting ? 5 : 6}
-                textAlign="left"
-                boxShadow="xl"
-                width="100%"
-                display="flex"
-                flexDirection="column"
-                justifyContent="center"
-                minH={compactGreeting ? "60px" : "150px"}
-                transition="all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
-                willChange="min-height, padding"
+              <InputLeftElement pointerEvents="none">
+                <Icon as={FiSearch} color="orange.400" boxSize={3.5} />
+              </InputLeftElement>
+              <Input
+                data-tour="search-bar"
+                placeholder="Search apps"
+                borderRadius="full"
+                bg={headerSearchBg}
+                borderColor={stickyHeaderBorder}
+                pl={9}
+                value={searchQuery}
+                onChange={handleSearchInput}
+                boxShadow="inset 0 1px 0 rgba(255, 255, 255, 0.7)"
+                _hover={{ borderColor: "orange.200" }}
+                _focus={{
+                  bg: "white",
+                  borderColor: "orange.300",
+                  boxShadow: "0 0 0 1px var(--chakra-colors-orange-300)",
+                }}
+              />
+            </InputGroup>
+
+            <HStack spacing={2} flexShrink={0}>
+              <Badge
+                px={2.5}
+                py={1}
+                borderRadius="full"
+                bg={headerChipBg}
+                color={mutedHeaderText}
+                textTransform="none"
+                fontSize="10px"
               >
-                <AnimatePresence mode="wait">
-                  {!compactGreeting && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
+                {visibleAppCount} apps
+              </Badge>
+              <Badge
+                px={2.5}
+                py={1}
+                borderRadius="full"
+                bg={headerChipBg}
+                color={mutedHeaderText}
+                textTransform="none"
+                fontSize="10px"
+              >
+                {visibleAppTypeSections.length} groups
+              </Badge>
+            </HStack>
+          </Flex>
+
+          <Box
+            flex="1"
+            width="100%"
+            minW={0}
+            transition="width 0.22s ease"
+          >
+            <Box
+              bgGradient="linear(to-r, orange.500, yellow.300)"
+              borderRadius="2xl"
+              p={compactGreeting ? { base: 2.5, md: 3 } : { base: 4, md: 5 }}
+              textAlign="left"
+              boxShadow={compactGreeting ? "sm" : "lg"}
+              width="100%"
+              minH={compactGreeting ? "52px" : "118px"}
+              position="relative"
+              overflow="hidden"
+              transition="min-height 0.24s ease, padding 0.24s ease, box-shadow 0.24s ease"
+              willChange="min-height, padding"
+              _before={{
+                content: '""',
+                position: "absolute",
+                inset: 0,
+                bg:
+                  "radial-gradient(circle at 12% 15%, rgba(255,255,255,0.42), transparent 26%), radial-gradient(circle at 86% 20%, rgba(255,255,255,0.32), transparent 22%)",
+                opacity: compactGreeting ? 0.45 : 0.85,
+                transition: "opacity 0.24s ease",
+              }}
+            >
+              <Flex
+                position="relative"
+                zIndex={1}
+                align="center"
+                justify="space-between"
+                gap={3}
+                direction={{ base: "column", md: "row" }}
+              >
+                <Box minW={0} width="100%">
+                  <HStack spacing={2} mb={compactGreeting ? 0 : 1}>
+                    <Badge
+                      bg="whiteAlpha.800"
+                      color="orange.700"
+                      borderRadius="full"
+                      px={2}
+                      py={0.5}
+                      fontSize="10px"
+                      textTransform="uppercase"
+                      letterSpacing="wide"
                     >
-                      <Text fontSize="sm" color="whiteAlpha.900" mb={1}>
+                      Dashboard
+                    </Badge>
+                    {!compactGreeting && (
+                      <Text fontSize="xs" color="whiteAlpha.900" noOfLines={1}>
                         {currentDate.toLocaleDateString("en-US", {
                           weekday: "long",
                           year: "numeric",
@@ -687,66 +799,80 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
                           day: "numeric",
                         })}
                       </Text>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                    )}
+                  </HStack>
 
-                <Heading
-                  as="h1"
-                  size={compactGreeting ? "sm" : "lg"}
-                  color="white"
-                  transition="all 0.3s ease"
-                  noOfLines={1}
-                >
-                  {getTimeBasedGreeting()}
-                </Heading>
+                  <Heading
+                    as="h1"
+                    size={compactGreeting ? "sm" : "lg"}
+                    color="white"
+                    lineHeight="1.1"
+                    transition="font-size 0.24s ease, line-height 0.24s ease"
+                    noOfLines={1}
+                  >
+                    {getTimeBasedGreeting()}
+                  </Heading>
 
-                <AnimatePresence mode="wait">
                   {!compactGreeting && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Text fontSize="md" color="whiteAlpha.800" mt={1}>
-                        Have a nice day.
-                      </Text>
-                    </motion.div>
+                    <Text fontSize="sm" color="whiteAlpha.900" mt={2} noOfLines={1}>
+                      Your applications are ready. Pick a tool and keep the day moving.
+                    </Text>
                   )}
-                </AnimatePresence>
-              </Box>
-            </motion.div>
-          </Flex>
+                </Box>
 
-          {/* Mode toggle & bell */}
-          <HStack spacing={2} alignSelf={compactGreeting ? "center" : "start"} pt={compactGreeting ? 0 : 2}>
-            <IconButton
-              icon={colorMode === "light" ? <FiMoon /> : <FiSun />}
-              onClick={toggleColorMode}
-              isRound
-              size="lg"
-              colorScheme="orange"
-              variant="ghost"
-              aria-label="Toggle color mode"
-              display="none"
-              _hover={{ transform: "rotate(20deg)", bg: iconHoverBg }}
-            />
-
-
-          </HStack>
-        </HStack>
+                {!compactGreeting && (
+                  <HStack
+                    spacing={2}
+                    display={{ base: "none", md: "flex" }}
+                    flexShrink={0}
+                  >
+                    <Box
+                      bg="whiteAlpha.800"
+                      borderRadius="xl"
+                      px={3}
+                      py={2}
+                      minW="92px"
+                      textAlign="center"
+                    >
+                      <Text fontSize="lg" fontWeight="900" color="orange.700">
+                        {visibleAppCount}
+                      </Text>
+                      <Text fontSize="10px" color="orange.700" fontWeight="bold">
+                        Apps
+                      </Text>
+                    </Box>
+                    <Box
+                      bg="whiteAlpha.700"
+                      borderRadius="xl"
+                      px={3}
+                      py={2}
+                      minW="92px"
+                      textAlign="center"
+                    >
+                      <Text fontSize="lg" fontWeight="900" color="orange.700">
+                        {visibleAppTypeSections.length}
+                      </Text>
+                      <Text fontSize="10px" color="orange.700" fontWeight="bold">
+                        Groups
+                      </Text>
+                    </Box>
+                  </HStack>
+                )}
+              </Flex>
+            </Box>
+          </Box>
+        </Flex>
       </Box>
 
 
 
       {/* Recently Opened Apps Section */}
       {recentApps.length > 0 && (
-        <Box mt={6} display="none">
-          <Heading as="h2" size="m" mb={4} color="gray.700">
+        <Box mt={3} display="none">
+          <Heading as="h2" size="sm" mb={2} color="gray.700">
             Recently Opened
           </Heading>
-          <SimpleGrid columns={{ base: 2, sm: 3, md: 5 }} spacing={4}>
+          <SimpleGrid columns={{ base: 2, sm: 3, md: 5 }} spacing={3}>
             {recentApps.map((app) => (
               <AppCard
                 key={app.id}
@@ -764,11 +890,20 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
       <>
         {/* Search Results vs Categorized Apps */}
         {searchQuery && filteredApps.length > 0 ? (
-          <Box mt={{ base: 5, md: 8 }}>
+          <Box
+            mt={{ base: 3, md: 4 }}
+            bg={sectionPanelBg}
+            border="1px solid"
+            borderColor={sectionPanelBorder}
+            borderRadius="3xl"
+            p={{ base: 3, md: 4 }}
+            boxShadow={sectionPanelShadow}
+            backdropFilter="blur(10px)"
+          >
             {renderSectionHeader("Search Results", filteredApps.length)}
             <SimpleGrid
-              columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
-              spacing={{ base: 4, md: 6 }}
+              columns={{ base: 2, sm: 3, md: 4, xl: 5, "2xl": 6 }}
+              spacing={{ base: 3, md: 4 }}
             >
               {filteredApps.map((app) => (
                 <AppCard
@@ -795,7 +930,17 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
                 {visibleAppTypeSections.map((section) => {
                   const appsForType = section.apps;
                   return (
-                    <Box key={section.id} mt={{ base: 5, md: 8 }}>
+                    <Box
+                      key={section.id}
+                      mt={{ base: 3, md: 4 }}
+                      bg={sectionPanelBg}
+                      border="1px solid"
+                      borderColor={sectionPanelBorder}
+                      borderRadius="3xl"
+                      p={{ base: 3, md: 4 }}
+                      boxShadow={sectionPanelShadow}
+                      backdropFilter="blur(10px)"
+                    >
                       {renderSectionHeader(section.name, appsForType.length)}
 
                       <Droppable
@@ -804,8 +949,8 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
                       >
                         {(provided) => (
                           <SimpleGrid
-                            columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
-                            spacing={{ base: 4, md: 6 }}
+                            columns={{ base: 2, sm: 3, md: 4, xl: 5, "2xl": 6 }}
+                            spacing={{ base: 3, md: 4 }}
                             ref={provided.innerRef}
                             {...provided.droppableProps}
                           >
@@ -845,12 +990,22 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
                 {visibleAppTypeSections.map((section) => {
                   const appsForType = section.apps;
                   return (
-                    <Box key={section.id} mt={{ base: 5, md: 8 }}>
+                    <Box
+                      key={section.id}
+                      mt={{ base: 3, md: 4 }}
+                      bg={sectionPanelBg}
+                      border="1px solid"
+                      borderColor={sectionPanelBorder}
+                      borderRadius="3xl"
+                      p={{ base: 3, md: 4 }}
+                      boxShadow={sectionPanelShadow}
+                      backdropFilter="blur(10px)"
+                    >
                       {renderSectionHeader(section.name, appsForType.length)}
 
                       <SimpleGrid
-                        columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
-                        spacing={{ base: 4, md: 6 }}
+                        columns={{ base: 2, sm: 3, md: 4, xl: 5, "2xl": 6 }}
+                        spacing={{ base: 3, md: 4 }}
                       >
                         {appsForType.map((app) => (
                           <AppCard
@@ -873,20 +1028,20 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
       </>
 
       {/* Recent Login Logs Section (lazy-loaded) */}
-      <Box mt={6} mx="auto" px={{ base: 4, md: 8 }} width="100%" maxW="100%">
+      <Box mt={4} mx="auto" px={0} width="100%" maxW="100%">
         <Flex
           direction={{ base: "column", md: "row" }}
           justify="space-between"
           align={{ base: "start", md: "center" }}
-          mb={6}
-          gap={4}
+          mb={3}
+          gap={3}
         >
           <VStack align="start" spacing={1}>
             <HStack spacing={2}>
-              <Icon as={FiActivity} color="orange.400" boxSize={5} />
+              <Icon as={FiActivity} color="orange.400" boxSize={4} />
               <Heading
                 as="h4"
-                size="md"
+                size="sm"
                 color={sectionTitleColor}
                 fontWeight="bold"
               >
@@ -917,7 +1072,7 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
 
         {showLogins && (
           <>
-            <InputGroup size="sm" mb={6} maxW={{ base: "100%", sm: "320px" }}>
+            <InputGroup size="sm" mb={3} maxW={{ base: "100%", sm: "320px" }}>
               <InputLeftElement pointerEvents="none">
                 <FiSearch color="gray.400" />
               </InputLeftElement>
@@ -945,8 +1100,8 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
                 <Text
                   color="gray.500"
                   textAlign="center"
-                  py={10}
-                  fontSize={{ base: "sm", md: "md" }}
+                  py={6}
+                  fontSize="sm"
                 >
                   No login records found.
                 </Text>
@@ -955,10 +1110,10 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
                   <Table variant="simple" size="sm">
                     <Thead bg={recentActivityTheadBg}>
                       <Tr>
-                        <Th py={4} color="gray.400" fontSize="xs">User</Th>
-                        <Th py={4} color="gray.400" fontSize="xs">Device & OS</Th>
-                        <Th py={4} color="gray.400" fontSize="xs">Browser</Th>
-                        <Th py={4} color="gray.400" fontSize="xs" textAlign="right">Last Active</Th>
+                        <Th py={2} color="gray.400" fontSize="xs">User</Th>
+                        <Th py={2} color="gray.400" fontSize="xs">Device & OS</Th>
+                        <Th py={2} color="gray.400" fontSize="xs">Browser</Th>
+                        <Th py={2} color="gray.400" fontSize="xs" textAlign="right">Last Active</Th>
                       </Tr>
                     </Thead>
                     <Tbody>
@@ -970,15 +1125,15 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
                             _hover={{ bg: recentActivityRowHoverBg }}
                             transition="all 0.2s"
                           >
-                            <Td py={4}>
-                              <HStack spacing={3}>
+                            <Td py={2}>
+                              <HStack spacing={2}>
                                 <Avatar size="xs" name={log.user?.username} src={log.user?.avatar ? `${API_URL}${log.user.avatar}` : ""} />
                                 <Text fontWeight="bold" color={recentActivityTextColor}>
                                   {log.user?.username || "—"}
                                 </Text>
                               </HStack>
                             </Td>
-                            <Td py={4}>
+                            <Td py={2}>
                               <HStack spacing={2}>
                                 <Icon
                                   as={log.device?.toLowerCase().includes('mobile') ? FiSmartphone : FiMonitor}
@@ -991,13 +1146,13 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
                                 </VStack>
                               </HStack>
                             </Td>
-                            <Td py={4}>
+                            <Td py={2}>
                               <HStack spacing={2}>
                                 <Icon as={FiGlobe} color="teal.400" boxSize={3} />
                                 <Text fontSize="xs">{log.browser || "—"}</Text>
                               </HStack>
                             </Td>
-                            <Td py={4} textAlign="right">
+                            <Td py={2} textAlign="right">
                               <VStack align="end" spacing={0}>
                                 <Text fontSize="xs" fontWeight="bold">
                                   {log.login_time ? moment(log.login_time).format("MMM DD, h:mm a") : "—"}
@@ -1016,8 +1171,8 @@ export default function Dashboard({ isSidebarExpanded: propIsSidebarExpanded }) 
                     <Flex
                       justify="space-between"
                       align="center"
-                      px={6}
-                      py={4}
+                      px={4}
+                      py={2}
                       bg={recentActivityTheadBg}
                       borderTop="1px solid"
                       borderColor={recentActivityBorderColor}
@@ -1165,6 +1320,23 @@ const AppCard = React.memo(function AppCard({
   // Use app.type if available, otherwise fallback to extension check
   const isPhoneDirectory = app.type === "phone_directory" || (app.name && app.extension);
   const { hasPermission } = usePermissionContext();
+  const appCardBg = useColorModeValue("rgba(255, 255, 255, 0.86)", "rgba(26, 32, 44, 0.86)");
+  const appCardHoverBg = useColorModeValue("white", "gray.800");
+  const appCardBorder = useColorModeValue("rgba(226, 232, 240, 0.9)", "rgba(74, 85, 104, 0.85)");
+  const appCardShadow = useColorModeValue(
+    "0 8px 22px rgba(15, 23, 42, 0.04)",
+    "0 10px 24px rgba(0, 0, 0, 0.28)"
+  );
+  const appCardHoverShadow = useColorModeValue(
+    "0 16px 36px rgba(249, 115, 22, 0.14)",
+    "0 18px 38px rgba(0, 0, 0, 0.38)"
+  );
+  const iconShellBg = useColorModeValue(
+    "linear(to-br, orange.50, white)",
+    "linear(to-br, gray.700, gray.800)"
+  );
+  const iconShellBorder = useColorModeValue("orange.100", "whiteAlpha.200");
+  const fileChipBg = useColorModeValue("orange.50", "whiteAlpha.100");
 
   // Check if it's a valid personnel record
   const isPersonnel = !!app.personnel_id;
@@ -1200,26 +1372,55 @@ const AppCard = React.memo(function AppCard({
     // Phone Directory Layout
     <VStack
       as="div"
-      bg={colors.appBg}
-      borderRadius="xl"
-      border={`3px solid ${colors.cardBorder}`}
-      p={small ? 2 : 6}
-      spacing={2}
-      boxShadow="md"
+      bg={appCardBg}
+      borderRadius="2xl"
+      border="1px solid"
+      borderColor={appCardBorder}
+      p={small ? 2 : 3}
+      spacing={small ? 1 : 1.5}
+      boxShadow={appCardShadow}
       align="center"
       textAlign="center"
       width={small ? "120px" : "100%"}
-      minHeight={small ? "80px" : "200px"}
+      height={small ? "80px" : { base: "140px", md: "156px" }}
+      overflow="hidden"
+      position="relative"
+      justify="center"
+      transition="transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease"
       onClick={handleClick}
       cursor={isClickable ? "pointer" : "default"}
+      _after={{
+        content: '""',
+        position: "absolute",
+        top: 0,
+        left: 4,
+        right: 4,
+        h: "2px",
+        bgGradient: "linear(to-r, orange.300, yellow.300)",
+        borderRadius: "full",
+        opacity: 0.85,
+      }}
       _hover={
         isClickable
-          ? { transform: "scale(1.03)", transition: "all 0.2s ease-in-out" }
+          ? {
+            transform: "translateY(-4px)",
+            boxShadow: appCardHoverShadow,
+            borderColor: "orange.200",
+            bg: appCardHoverBg,
+          }
           : {}
       }
     >
       {/* Avatar */}
-      <Box>
+      <Box
+        bgGradient={iconShellBg}
+        border="1px solid"
+        borderColor={iconShellBorder}
+        borderRadius="full"
+        p={1}
+        boxShadow="sm"
+        mb={small ? 1 : 2}
+      >
         <Image
           src={
             app.avatar
@@ -1227,29 +1428,29 @@ const AppCard = React.memo(function AppCard({
               : "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
           }
           alt={app.name}
-          boxSize={small ? "40px" : "70px"}
+          boxSize={small ? "32px" : "44px"}
           borderRadius="full"
-          mb={3}
-          boxShadow="md"
+          display="block"
         />
       </Box>
 
       {/* Name & Extension */}
-      <VStack spacing={1}>
+      <VStack spacing={0.5}>
         <Text
-          fontSize={small ? "sm" : "lg"}
+          fontSize={small ? "xs" : "sm"}
           fontWeight="bold"
           color={colors.cardHeader}
+          noOfLines={1}
         >
           {app.name}
         </Text>
-        <Text fontSize="sm" color={colors.cardText}>
+        <Text fontSize="xs" color={colors.cardText} noOfLines={1}>
           <strong>Extension:</strong>{" "}
           {app.extension && app.extension.trim() !== ""
             ? app.extension
             : "N/A"}
         </Text>
-        <Text fontSize="sm" color={colors.cardText}>
+        <Text fontSize="xs" color={colors.cardText} noOfLines={1}>
           <strong>DECT:</strong>{" "}
           {app.dect_number && app.dect_number.trim() !== ""
             ? app.dect_number
@@ -1261,36 +1462,59 @@ const AppCard = React.memo(function AppCard({
     // Regular App Layout
     <VStack
       as="div"
-      bg={colors.appBg}
-      borderRadius="xl"
-      border={`3px solid ${colors.cardBorder}`}
-      p={small ? 2 : 6}
-      spacing={2}
-      boxShadow="md"
+      bg={appCardBg}
+      borderRadius="2xl"
+      border="1px solid"
+      borderColor={appCardBorder}
+      p={small ? 2 : 3}
+      spacing={small ? 1 : 1.5}
+      boxShadow={appCardShadow}
+      position="relative"
+      justify="center"
+      transition="transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease"
+      _after={{
+        content: '""',
+        position: "absolute",
+        top: 0,
+        left: 4,
+        right: 4,
+        h: "2px",
+        bgGradient: "linear(to-r, orange.300, yellow.300)",
+        borderRadius: "full",
+        opacity: 0.85,
+      }}
       _hover={
         isClickable
-          ? { transform: "scale(1.03)", transition: "all 0.2s ease-in-out" }
+          ? {
+            transform: "translateY(-4px)",
+            boxShadow: appCardHoverShadow,
+            borderColor: "orange.200",
+            bg: appCardHoverBg,
+          }
           : {}
       }
       align="center"
       textAlign="center"
       width={small ? "120px" : "100%"}
-      minHeight={small ? "80px" : "200px"}
+      height={small ? "80px" : { base: "140px", md: "156px" }}
+      overflow="hidden"
       onClick={handleClick}
       cursor={isClickable ? "pointer" : "not-allowed"}
     >
       {/* App Icon */}
       {app.thumbnail_url ? (
         <Box
-          minW={small ? "40px" : "70px"}
-          maxW={small ? "40px" : "70px"}
-          h={small ? "40px" : "70px"}
+          minW={small ? "40px" : "54px"}
+          maxW={small ? "40px" : "54px"}
+          h={small ? "40px" : "54px"}
           overflow="hidden"
           borderRadius="full"
-          boxShadow="md"
-          border="2px solid"
-          borderColor={colors.cardBorder}
-          mb={4}
+          boxShadow="sm"
+          border="1px solid"
+          borderColor={iconShellBorder}
+          bgGradient={iconShellBg}
+          p={1}
+          mb={small ? 1 : 2}
         >
           <Image
             src={app.thumbnail_url}
@@ -1302,26 +1526,53 @@ const AppCard = React.memo(function AppCard({
           />
         </Box>
       ) : app.icon ? (
-        <Image
-          src={app.icon}
-          alt={`${app.name} Icon`}
-          boxSize={small ? "40px" : "70px"}
+        <Box
+          minW={small ? "40px" : "54px"}
+          maxW={small ? "40px" : "54px"}
+          h={small ? "40px" : "54px"}
           borderRadius="full"
-          mb={4}
-          boxShadow="md"
-          border="2px solid"
-          borderColor={colors.cardBorder}
-        />
+          overflow="hidden"
+          boxShadow="sm"
+          border="1px solid"
+          borderColor={iconShellBorder}
+          bgGradient={iconShellBg}
+          p={1}
+          mb={small ? 1 : 2}
+        >
+          <Image
+            src={app.icon}
+            alt={`${app.name} Icon`}
+            boxSize="100%"
+            objectFit="cover"
+            borderRadius="full"
+            display="block"
+          />
+        </Box>
       ) : (
-        <Icon as={FiFile} boxSize={12} color={colors.cardHeader} mb={4} />
+        <Box
+          minW={small ? "40px" : "54px"}
+          maxW={small ? "40px" : "54px"}
+          h={small ? "40px" : "54px"}
+          borderRadius="full"
+          display="grid"
+          placeItems="center"
+          border="1px solid"
+          borderColor={iconShellBorder}
+          bgGradient={iconShellBg}
+          boxShadow="sm"
+          mb={small ? 1 : 2}
+        >
+          <Icon as={FiFile} boxSize={small ? 6 : 8} color="orange.500" />
+        </Box>
       )}
 
       {/* App Name and Description */}
-      <Box>
+      <Box width="100%" px={1}>
         <Text
-          fontSize={small ? "10px" : "xl"}
+          fontSize={small ? "10px" : "sm"}
           fontWeight="bold"
           color={colors.cardHeader}
+          noOfLines={2}
         >
           {app.name}
         </Text>
@@ -1329,33 +1580,33 @@ const AppCard = React.memo(function AppCard({
         {isFileData ? (
           hasPermission("atgfile.view") ? (
             <Box
-              mt={4}
-              p={4}
+              mt={2}
+              p={2}
               borderRadius="lg"
-              boxShadow="md"
-              bg="white"
+              boxShadow="sm"
+              bg={fileChipBg}
               display="flex"
               alignItems="center"
-              gap={4}
+              gap={2}
             >
               <Box>
-                <Text fontSize="md" fontWeight="bold" color={colors.cardText}>
+                <Text fontSize="xs" fontWeight="bold" color={colors.cardText} noOfLines={1}>
                   {app.filename}
                 </Text>
-                <Text fontSize="sm" color="gray.600">
+                <Text fontSize="10px" color="gray.600" noOfLines={1}>
                   <strong>Generated Code:</strong> {app.generated_code}
                 </Text>
               </Box>
             </Box>
           ) : (
-            <Text fontSize="sm" color={colors.cardText}>
+            <Text fontSize="xs" color={colors.cardText}>
               No Files Found
             </Text>
           )
         ) : null}
 
         {!small && !isFileData && (
-          <Text fontSize="sm" color={colors.cardText}>
+          <Text fontSize="xs" color={colors.cardText} noOfLines={2}>
             {app.description}
           </Text>
         )}

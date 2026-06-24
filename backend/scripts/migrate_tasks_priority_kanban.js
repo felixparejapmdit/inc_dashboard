@@ -3,15 +3,16 @@ const sequelize = require("../config/database.js");
 async function migrate(shouldClose = true) {
   try {
     await sequelize.authenticate();
-    console.log('Database connection OK.');
+    console.log("Database connection OK.");
 
     // Get current columns
     const [columns] = await sequelize.query("DESCRIBE tasks");
-    const hasPriority = columns.some(c => c.Field === 'priority');
-    const hasKanbanStatus = columns.some(c => c.Field === 'kanban_status');
+    const hasPriority = columns.some((c) => c.Field === "priority");
+    const hasKanbanStatus = columns.some((c) => c.Field === "kanban_status");
+    const hasLocalCongregations = columns.some((c) => c.Field === "local_congregations");
 
     if (!hasPriority) {
-      console.log('Adding priority column...');
+      console.log("Adding priority column...");
       await sequelize.query("ALTER TABLE tasks ADD COLUMN priority VARCHAR(20) NOT NULL DEFAULT 'Medium'");
       console.log('Column "priority" added successfully.');
     } else {
@@ -19,24 +20,31 @@ async function migrate(shouldClose = true) {
     }
 
     if (!hasKanbanStatus) {
-      console.log('Adding kanban_status column...');
+      console.log("Adding kanban_status column...");
       await sequelize.query("ALTER TABLE tasks ADD COLUMN kanban_status VARCHAR(50) NOT NULL DEFAULT 'New'");
       console.log('Column "kanban_status" added successfully.');
     } else {
       console.log('Column "kanban_status" already exists.');
     }
 
+    if (!hasLocalCongregations) {
+      console.log("Adding local_congregations column...");
+      await sequelize.query("ALTER TABLE tasks ADD COLUMN local_congregations TEXT NULL AFTER description");
+      console.log('Column "local_congregations" added successfully.');
+    } else {
+      console.log('Column "local_congregations" already exists.');
+    }
+
     // Migrate statuses
-    console.log('Migrating statuses...');
+    console.log("Migrating statuses...");
     await sequelize.query("UPDATE tasks SET status = 'Completed' WHERE status = 'Complete'");
     await sequelize.query("UPDATE tasks SET status = 'Active' WHERE status = 'Check'");
-    
+
     // Set Done status for Completed tasks
     await sequelize.query("UPDATE tasks SET kanban_status = 'Done' WHERE status = 'Completed'");
-    console.log('Statuses migrated and synced.');
-
+    console.log("Statuses migrated and synced.");
   } catch (error) {
-    console.error('Migration failed:', error);
+    console.error("Migration failed:", error);
     if (shouldClose) process.exit(1);
   } finally {
     if (shouldClose) {
@@ -50,4 +58,3 @@ if (require.main === module) {
 } else {
   module.exports = migrate;
 }
-

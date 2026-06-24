@@ -91,8 +91,16 @@ exports.getTasks = async (req, res) => {
     if (targetUserId) where.user_id = targetUserId;
     if (status)  where.status = status;
     if (date)    where.task_date = date;
-    if (week_start && week_end)
-      where.task_date = { [Op.between]: [week_start, week_end] };
+    if (!date && week_start && week_end) {
+      where[Op.or] = [
+        { task_date: { [Op.between]: [week_start, week_end] } },
+        {
+          task_date: { [Op.lt]: week_start },
+          status: { [Op.ne]: "Completed" },
+          kanban_status: { [Op.ne]: "Done" },
+        },
+      ];
+    }
 
     const tasks = await Task.findAll({
       where,
@@ -132,6 +140,12 @@ exports.createTask = async (req, res) => {
     }
 
     taskData.user_id = resolvedUserId;
+    if (taskData.status === "Completed") {
+      taskData.kanban_status = "Done";
+    }
+    if (taskData.kanban_status === "Done") {
+      taskData.status = "Completed";
+    }
 
     const task = await Task.create(taskData, {
       fields: Object.keys(taskData),
@@ -146,6 +160,16 @@ exports.createTask = async (req, res) => {
 exports.updateTask = async (req, res) => {
   try {
     const updateData = await pickTaskColumns({ ...req.body });
+    if (updateData.status === "Completed") {
+      updateData.kanban_status = "Done";
+    }
+    if (updateData.kanban_status === "Done") {
+      updateData.status = "Completed";
+    }
+    if (updateData.status === "Active" && updateData.kanban_status === "Done") {
+      updateData.kanban_status = "New";
+    }
+
     if (Object.keys(updateData).length === 0) {
       return res.status(400).json({
         message: "No valid task fields were provided for update.",

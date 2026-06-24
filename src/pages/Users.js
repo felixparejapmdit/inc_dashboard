@@ -1828,7 +1828,7 @@ const Users = ({ personnelId }) => {
                 <Table variant="simple" minWidth="1000px" size="md" style={{ tableLayout: "fixed" }}>
                   <Thead bg="gray.50">
                     <Tr>
-                      <Th py={3} width="50px" color="gray.600">#</Th>
+                      <Th py={3} width="96px" color="gray.600" whiteSpace="nowrap" textAlign="center">#</Th>
                       {allKeys.map((key) => columnVisibility[key] && (
                         <Th key={`th-${key}`} py={3} color="gray.600">
                           {key.replace("personnel_", "").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
@@ -1858,7 +1858,9 @@ const Users = ({ personnelId }) => {
 
                         return (
                           <Tr key={item.ID} _hover={{ bg: "blue.50" }} transition="background 0.2s">
-                            <Td fontWeight="bold" color="blue.500">{(currentPagePersonnel - 1) * ITEMS_PER_PAGE + index + 1}</Td>
+                            <Td fontWeight="bold" color="blue.500" whiteSpace="nowrap" textAlign="center">
+                              {(currentPagePersonnel - 1) * ITEMS_PER_PAGE + index + 1}
+                            </Td>
 
                             {allKeys.map((key) => columnVisibility[key] && (
                               <Td key={`td-${key}`}>
@@ -1941,7 +1943,7 @@ const Users = ({ personnelId }) => {
                 <Table variant="simple" minWidth="1000px" size="md" style={{ tableLayout: "fixed" }}>
                   <Thead bg="gray.50">
                     <Tr>
-                      <Th py={3} width="50px" color="gray.600">#</Th>
+                      <Th py={3} width="96px" color="gray.600" whiteSpace="nowrap" textAlign="center">#</Th>
                       <Th py={3} width="15%" color="gray.600">Username/UID</Th>
                       <Th py={3} width="35%" color="gray.600">Full Name (from LDAP)</Th>
                       <Th py={3} width="15%" color="gray.600">Group Name</Th>
@@ -1973,7 +1975,9 @@ const Users = ({ personnelId }) => {
                     ) : (
                       currentItemsLdapOnly.map((item, index) => (
                         <Tr key={item.ID} _hover={{ bg: "orange.50" }} transition="background 0.2s">
-                          <Td fontWeight="bold" color="orange.500">{(currentPageLdapOnly - 1) * ITEMS_PER_PAGE + index + 1}</Td>
+                          <Td fontWeight="bold" color="orange.500" whiteSpace="nowrap" textAlign="center">
+                            {(currentPageLdapOnly - 1) * ITEMS_PER_PAGE + index + 1}
+                          </Td>
                           <Td>
                             <Badge colorScheme="orange" variant="outline">{item.username}</Badge>
                           </Td>
