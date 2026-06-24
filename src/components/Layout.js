@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useNavigate, Outlet } from "react-router-dom";
+import { useNavigate, Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar"; // Import your Sidebar component
 import axios from "axios";
 import { usePermissionContext } from "../contexts/PermissionContext"; // Import Permission Context
@@ -15,11 +15,12 @@ import {
   Button,
 } from "@chakra-ui/react";
 import { getAuthHeaders } from "../utils/apiHeaders"; // adjust path as needed
-import { fetchData, fetchLoginData } from "../utils/fetchData";
 const Layout = ({ children, currentUser }) => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const { fetchPermissions } = usePermissionContext();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isEdgeToEdgePage = location.pathname === "/webdav";
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = useRef();
@@ -63,7 +64,7 @@ const Layout = ({ children, currentUser }) => {
         navigate("/login");
       }, 5000);
     }, INACTIVITY_LIMIT);
-  }, [navigate, onOpen]);
+  }, [INACTIVITY_LIMIT, navigate, onOpen]);
 
   useEffect(() => {
     const groupId = localStorage.getItem("groupId");
@@ -151,7 +152,7 @@ const Layout = ({ children, currentUser }) => {
         style={{
           flex: 1, // Take remaining space
           width: "100%",
-          padding: "20px",
+          padding: isEdgeToEdgePage ? 0 : "20px",
         }}
       >
         {children ? (

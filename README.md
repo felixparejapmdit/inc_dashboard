@@ -29,6 +29,11 @@ The core of the application is the multi-step Enrollment Form, designed to captu
 ### 🏢 Organization Management
 - **District & Congregation Management**: Tools to manage the structural hierarchy of districts and local congregations.
 
+### 📁 WebDAV File Manager
+- Replaces the old iframe view with a native file explorer.
+- Uses the Node.js backend as a secure WebDAV bridge, so the browser never sees the WebDAV password.
+- Configure `WEBDAV_URL`, `WEBDAV_USERNAME`, and `WEBDAV_PASSWORD` in the backend `.env` or `.env.docker`.
+
 ## Technology Stack
 
 - **Frontend**: React.js

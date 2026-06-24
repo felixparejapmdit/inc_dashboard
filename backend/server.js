@@ -166,6 +166,7 @@ const uploadLocalRoute = require('./routes/uploadLocal');
 
 const proxySnipeitRoutes = require("./routes/proxySnipeitRoutes");
 const directusProxyRoutes = require("./routes/directusProxyRoutes");
+const webdavRoutes = require("./routes/webdavRoutes");
 const darRoutes = require("./routes/darRoutes");
 
 // ✅ Bootstrap: Load models/index.js to trigger sequelize.sync() and run
@@ -186,6 +187,7 @@ app.use(bodyParser.json({ limit: "100mb" }));
 app.use(bodyParser.urlencoded({ limit: "100mb", extended: true }));
 
 app.use("/api/directus", directusProxyRoutes);
+app.use("/api/webdav", webdavRoutes);
 
 app.get("/api/test-upload", (req, res) => {
   res.send("✅ Upload route working!");
