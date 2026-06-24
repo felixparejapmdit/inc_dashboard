@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
   Box,
   Heading,
@@ -12,12 +12,8 @@ import {
   HStack,
   useToast,
   Container,
-  Stat,
-  StatLabel,
-  StatNumber,
   Badge,
   Flex,
-  Divider,
   InputGroup,
   InputLeftElement,
   Input,
@@ -60,10 +56,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ShieldCheck,
-  Activity,
   AlertCircle,
   Key,
-  Info
 } from "lucide-react";
 
 import {
@@ -106,7 +100,7 @@ const PermissionCategoriesManagement = () => {
     "linear(to-r, green.400, teal.400)"
   );
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     setIsLoading(true);
     try {
       const data = await fetchData("permission-categories");
@@ -120,11 +114,11 @@ const PermissionCategoriesManagement = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [fetchCategories]);
 
   const handleSave = async () => {
     const isEditing = !!editingCategory;
@@ -416,39 +410,89 @@ const PermissionCategoriesManagement = () => {
       </Container>
 
       {/* Add / Edit Modal */}
-      <Modal isOpen={isAddOpen} onClose={() => { onAddClose(); setEditingCategory(null); setFormState({ name: "", description: "" }); }} isCentered motionPreset="slideInBottom">
+      <Modal
+        isOpen={isAddOpen}
+        onClose={() => {
+          onAddClose();
+          setEditingCategory(null);
+          setFormState({ name: "", description: "" });
+        }}
+        isCentered
+        motionPreset="slideInBottom"
+        scrollBehavior="inside"
+        size="xl"
+      >
         <ModalOverlay backdropFilter="blur(4px)" />
-        <ModalContent borderRadius="2xl" boxShadow="2xl">
-          <ModalHeader fontWeight="black" fontSize="2xl">
-            {editingCategory ? "Edit Category" : "New Category"}
+        <ModalContent
+          borderRadius="2xl"
+          boxShadow="2xl"
+          maxH="calc(100vh - 2rem)"
+          overflow="hidden"
+          w={{ base: "calc(100vw - 1rem)", md: "xl" }}
+        >
+          <ModalHeader fontWeight="black" fontSize="xl" pb={1}>
+            {editingCategory ? "Edit category" : "New category"}
           </ModalHeader>
           <ModalCloseButton />
-          <ModalBody pb={6}>
-            <VStack spacing={4}>
+          <ModalBody pb={4} pt={2}>
+            <Text color="gray.500" fontSize="sm" mb={4}>
+              Add a name and a short note.
+            </Text>
+            <VStack align="stretch" spacing={4}>
               <FormControl isRequired>
-                <FormLabel fontWeight="bold">Category Name</FormLabel>
+                <FormLabel fontWeight="bold">Name</FormLabel>
                 <Input
-                  placeholder="e.g. Access"
+                  placeholder="Category name"
                   value={editingCategory ? editingCategory.name : formState.name}
                   onChange={e => editingCategory ? setEditingCategory({ ...editingCategory, name: e.target.value }) : setFormState({ ...formState, name: e.target.value })}
                   borderRadius="xl" focusBorderColor="emerald.400" size="lg"
                 />
               </FormControl>
               <FormControl>
-                <FormLabel fontWeight="bold">Description</FormLabel>
+                <FormLabel fontWeight="bold">Note</FormLabel>
                 <Textarea
-                  placeholder="Write a short description..."
+                  placeholder="Short note"
                   value={editingCategory ? editingCategory.description : formState.description}
                   onChange={e => editingCategory ? setEditingCategory({ ...editingCategory, description: e.target.value }) : setFormState({ ...formState, description: e.target.value })}
-                  borderRadius="xl" focusBorderColor="emerald.400" size="lg"
+                  borderRadius="xl"
+                  focusBorderColor="emerald.400"
+                  size="lg"
+                  minH="120px"
                 />
               </FormControl>
             </VStack>
           </ModalBody>
-          <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={() => { onAddClose(); setEditingCategory(null); }} borderRadius="xl">Cancel</Button>
-            <Button colorScheme="emerald" onClick={handleSave} borderRadius="xl" px={8}>
-              {editingCategory ? "Save Category" : "Save Category"}
+          <ModalFooter
+            borderTop="1px solid"
+            borderColor={borderColor}
+            gap={3}
+            justifyContent="flex-end"
+            px={{ base: 4, md: 6 }}
+            py={4}
+            w="full"
+            flexDirection={{ base: "column-reverse", sm: "row" }}
+            alignItems="stretch"
+          >
+            <Button
+              variant="ghost"
+              onClick={() => {
+                onAddClose();
+                setEditingCategory(null);
+                setFormState({ name: "", description: "" });
+              }}
+              borderRadius="xl"
+              w={{ base: "full", sm: "auto" }}
+            >
+              Close
+            </Button>
+            <Button
+              colorScheme="green"
+              onClick={handleSave}
+              borderRadius="xl"
+              px={8}
+              w={{ base: "full", sm: "auto" }}
+            >
+              Save
             </Button>
           </ModalFooter>
         </ModalContent>
