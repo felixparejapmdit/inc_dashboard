@@ -1893,106 +1893,14 @@ export default function DailyActivityReport() {
             >
               Track tasks, log hours, and generate your weekly DAR.
             </Text>
-            {canSwitchDarUser && (
-              <Box
-                mt={2.5}
-                p={2.5}
-                borderRadius="xl"
-                border="1px solid"
-                borderColor="orange.100"
-                bg="#FFF7ED"
-                maxW={{ base: "100%", md: "360px" }}
-              >
-                <Text fontSize="9px" fontWeight="900" color="#C05621" textTransform="uppercase" letterSpacing="0.12em">
-                  Viewing DAR of:
-                </Text>
-                <Text fontSize="sm" fontWeight="900" color={T.corpBlue} lineHeight="1.15" mt={1} mb={1.5} noOfLines={1}>
-                  {selectedDarUserName}
-                </Text>
-                <ReactSelect
-                  isSearchable
-                  isClearable={false}
-                  isDisabled={teamMembersLoading}
-                  menuPlacement="auto"
-                  maxMenuHeight={220}
-                  placeholder={teamMembersLoading ? "Loading team members..." : "Search team members..."}
-                  options={teamMemberOptions}
-                  value={selectedTeamMemberOption}
-                  onChange={(option) => setSelectedDarUserId(option?.value || "")}
-                  noOptionsMessage={() => "No member found"}
-                  formatOptionLabel={(option) => (
-                    <Box>
-                      <Text fontSize="sm" fontWeight="700" lineHeight="1.1" color="gray.800">
-                        {option.fullname}
-                      </Text>
-                      <Text fontSize="10px" color="gray.500" lineHeight="1.1">
-                        {option.username || option.groupName || "Member"}
-                      </Text>
-                    </Box>
-                  )}
-                  styles={{
-                    control: (base, state) => ({
-                      ...base,
-                      minHeight: "34px",
-                      borderRadius: "9999px",
-                      borderColor: state.isFocused ? "#F59E0B" : "#FCD9A5",
-                      boxShadow: state.isFocused ? "0 0 0 1px #F59E0B" : "none",
-                      backgroundColor: "white",
-                      cursor: "pointer",
-                      "&:hover": { borderColor: "#F59E0B" },
-                    }),
-                    valueContainer: (base) => ({
-                      ...base,
-                      padding: "0 10px",
-                    }),
-                    input: (base) => ({
-                      ...base,
-                      margin: 0,
-                      padding: 0,
-                    }),
-                    placeholder: (base) => ({
-                      ...base,
-                      color: "#9CA3AF",
-                      fontSize: "12px",
-                    }),
-                    singleValue: (base) => ({
-                      ...base,
-                      color: "#374151",
-                      fontSize: "12px",
-                      fontWeight: 700,
-                    }),
-                    menu: (base) => ({
-                      ...base,
-                      zIndex: 20,
-                    }),
-                    option: (base, state) => ({
-                      ...base,
-                      backgroundColor: state.isSelected
-                        ? "#C05621"
-                        : state.isFocused
-                          ? "#FFF7ED"
-                          : "white",
-                      color: state.isSelected ? "white" : "#1F2937",
-                      fontSize: "12px",
-                    }),
-                    dropdownIndicator: (base) => ({
-                      ...base,
-                      padding: 4,
-                      color: "#C05621",
-                    }),
-                    indicatorSeparator: () => ({ display: "none" }),
-                  }}
-                />
-              </Box>
-            )}
           </Box>
 
           <HStack
-            spacing={3}
+            spacing={2.5}
             flexShrink={0}
             align="center"
             divider={<Divider orientation="vertical" h="34px" borderColor="gray.200" />}
-            wrap="wrap"
+            wrap={{ base: "wrap", lg: "nowrap" }}
           >
             <HStack spacing={2.5} minW="0">
               <Avatar
@@ -2036,6 +1944,112 @@ export default function DailyActivityReport() {
                 </Text>
               </Box>
             </HStack>
+
+            {canSwitchDarUser && (
+              <HStack
+                spacing={2}
+                px={3}
+                py={2}
+                borderRadius="xl"
+                border="1px solid"
+                borderColor="orange.100"
+                bg="#FFF7ED"
+                flexShrink={0}
+                minW={{ base: "260px", xl: "300px" }}
+              >
+                <Text
+                  fontSize="9px"
+                  fontWeight="900"
+                  color="#C05621"
+                  textTransform="uppercase"
+                  letterSpacing="0.12em"
+                  whiteSpace="nowrap"
+                  flexShrink={0}
+                >
+                  Viewing DAR of:
+                </Text>
+                <Box flex="1" minW={0}>
+                  <ReactSelect
+                    isSearchable
+                    isClearable={false}
+                    isDisabled={teamMembersLoading}
+                    menuPlacement="auto"
+                    maxMenuHeight={220}
+                    placeholder={teamMembersLoading ? "Loading team members..." : "Search team members..."}
+                    options={teamMemberOptions}
+                    value={selectedTeamMemberOption}
+                    onChange={(option) => setSelectedDarUserId(option?.value || "")}
+                    noOptionsMessage={() => "No member found"}
+                    formatOptionLabel={(option) => (
+                      <Box>
+                        <Text fontSize="sm" fontWeight="700" lineHeight="1.1" color="gray.800">
+                          {option.fullname}
+                        </Text>
+                        <Text fontSize="10px" color="gray.500" lineHeight="1.1">
+                          {option.username || option.groupName || "Member"}
+                        </Text>
+                      </Box>
+                    )}
+                    styles={{
+                      container: (base) => ({
+                        ...base,
+                        width: "100%",
+                      }),
+                      control: (base, state) => ({
+                        ...base,
+                        minHeight: "32px",
+                        borderRadius: "9999px",
+                        borderColor: state.isFocused ? "#F59E0B" : "#FCD9A5",
+                        boxShadow: state.isFocused ? "0 0 0 1px #F59E0B" : "none",
+                        backgroundColor: "white",
+                        cursor: "pointer",
+                        "&:hover": { borderColor: "#F59E0B" },
+                      }),
+                      valueContainer: (base) => ({
+                        ...base,
+                        padding: "0 10px",
+                      }),
+                      input: (base) => ({
+                        ...base,
+                        margin: 0,
+                        padding: 0,
+                      }),
+                      placeholder: (base) => ({
+                        ...base,
+                        color: "#9CA3AF",
+                        fontSize: "12px",
+                      }),
+                      singleValue: (base) => ({
+                        ...base,
+                        color: "#374151",
+                        fontSize: "12px",
+                        fontWeight: 700,
+                      }),
+                      menu: (base) => ({
+                        ...base,
+                        zIndex: 20,
+                      }),
+                      option: (base, state) => ({
+                        ...base,
+                        backgroundColor: state.isSelected
+                          ? "#C05621"
+                          : state.isFocused
+                            ? "#FFF7ED"
+                            : "white",
+                        color: state.isSelected ? "white" : "#1F2937",
+                        fontSize: "12px",
+                      }),
+                      dropdownIndicator: (base) => ({
+                        ...base,
+                        padding: 4,
+                        color: "#C05621",
+                      }),
+                      indicatorSeparator: () => ({ display: "none" }),
+                    }}
+                  />
+                </Box>
+              </HStack>
+            )}
 
             <HStack spacing={1.5} align="center" minW="0">
               <IconButton
