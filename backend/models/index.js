@@ -31,7 +31,7 @@ sequelize
   .sync()
   .then(async () => {
     console.log("Database synchronized successfully.");
-    // Run tasks priority and kanban migration
+    // Run startup schema migrations after sync.
     try {
       const migrateTasks = require("../scripts/migrate_tasks_priority_kanban");
       await migrateTasks(false);
@@ -52,6 +52,13 @@ sequelize
       console.log("✅ ATG files migration completed successfully.");
     } catch (migErr) {
       console.error("❌ ATG files migration failed:", migErr);
+    }
+    try {
+      const migrateDarColumns = require("../scripts/migrate_daily_activity_report_columns");
+      await migrateDarColumns(false);
+      console.log("✅ Daily activity report migration completed successfully.");
+    } catch (migErr) {
+      console.error("❌ Daily activity report migration failed:", migErr);
     }
     try {
       const migrateGroupApplicationTypes = require("../scripts/migrate_group_application_types");
