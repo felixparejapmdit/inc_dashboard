@@ -283,9 +283,9 @@ const hexToRgba = (hex, alpha) => {
   const fullHex =
     sanitized.length === 3
       ? sanitized
-          .split("")
-          .map((char) => char + char)
-          .join("")
+        .split("")
+        .map((char) => char + char)
+        .join("")
       : sanitized;
   const number = Number.parseInt(fullHex, 16);
   const red = (number >> 16) & 255;
@@ -1217,7 +1217,7 @@ const Sidebar = ({ onSidebarToggle }) => {
               {hasPermission("webdav.view") && (
                 <SidebarItem
                   icon={FiCloud}
-                  label="WebDAV"
+                  label="Nextcloud"
                   isExpanded={isExpanded}
                   onClick={() => handleItemClick(WEB_DAV_ROUTE)}
                   isActive={location.pathname === WEB_DAV_ROUTE}
