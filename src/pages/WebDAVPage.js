@@ -19,6 +19,14 @@ import {
   Users,
   RefreshCw,
   Star,
+  MoreHorizontal,
+  Info,
+  Tag,
+  Pencil,
+  Download,
+  Share2,
+  Activity,
+  Copy,
 } from "lucide-react";
 
 import { getAuthHeaders } from "../utils/apiHeaders";
@@ -172,6 +180,18 @@ const WebDAVPage = () => {
   const [sharingInProgress, setSharingInProgress] = useState(false);
   const [shareSuccessNotice, setShareSuccessNotice] = useState("");
 
+  // States for file preview modal, details sidebar, and context menus
+  const [activePreviewFile, setActivePreviewFile] = useState(null);
+  const [previewContent, setPreviewContent] = useState("");
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [isEditingText, setIsEditingText] = useState(false);
+
+  const [activeDetailsEntry, setActiveDetailsEntry] = useState(null);
+  const [activeDetailsTab, setActiveDetailsTab] = useState("sharing"); // "sharing" or "activity"
+  const [activeRowMenu, setActiveRowMenu] = useState(null);
+
   const fileInputRef = useRef(null);
   const requestIdRef = useRef(0);
   const currentPathRef = useRef("/");
@@ -231,6 +251,9 @@ const WebDAVPage = () => {
         !peopleButtonRef.current.contains(event.target)
       ) {
         setShowPeopleSidebar(false);
+      }
+      if (!event.target.closest(".item-context-menu-btn") && !event.target.closest(".item-context-menu")) {
+        setActiveRowMenu(null);
       }
     };
 
@@ -430,6 +453,203 @@ const WebDAVPage = () => {
     setCurrentPath(segments.length ? `/${segments.join("/")}` : "/");
   };
 
+  const handleFileClick = async (entry) => {
+    setActivePreviewFile(entry);
+    setPreviewLoading(true);
+    setPreviewError(null);
+    setPreviewContent("");
+    setPreviewUrl("");
+    setIsEditingText(false);
+
+    const ext = "." + entry.name.split(".").pop().toLowerCase();
+    const textExts = [".txt", ".md", ".json", ".js", ".css", ".html", ".log"];
+    const imageExts = [".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".bmp"];
+    const pdfExts = [".pdf"];
+
+    try {
+      const isText = textExts.includes(ext);
+      const isBinary = imageExts.includes(ext) || pdfExts.includes(ext);
+
+      if (isText) {
+        const response = await axios.get(`${API_BASE_URL}/api/webdav/file`, {
+          params: { path: entry.path },
+          responseType: "text",
+          headers: getAuthHeaders(),
+        });
+        setPreviewContent(response.data);
+      } else if (isBinary) {
+        const response = await axios.get(`${API_BASE_URL}/api/webdav/file`, {
+          params: { path: entry.path },
+          responseType: "blob",
+          headers: getAuthHeaders(),
+        });
+        const url = URL.createObjectURL(response.data);
+        setPreviewUrl(url);
+      }
+    } catch (error) {
+      console.error("Preview failed:", error);
+      setPreviewError(
+        error?.response?.data?.message ||
+        error?.message ||
+        "Could not load preview for this file."
+      );
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const closePreview = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setActivePreviewFile(null);
+    setPreviewContent("");
+    setPreviewUrl("");
+    setIsEditingText(false);
+  };
+
+  const handleSaveTextFile = async () => {
+    try {
+      await axios.post(
+        `${API_BASE_URL}/api/webdav/write`,
+        {
+          path: activePreviewFile.path,
+          content: previewContent,
+        },
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+      setNotice({
+        type: "success",
+        text: `Saved changes to ${activePreviewFile.name}`,
+      });
+      addNotification(`Edited file: ${activePreviewFile.name}`);
+      setIsEditingText(false);
+      await loadDirectory(currentPathRef.current);
+    } catch (error) {
+      setNotice({
+        type: "error",
+        text: getErrorMessage(error, "We could not save the file changes."),
+      });
+    }
+  };
+
+  const handleCreateTextFile = async () => {
+    setNewMenuOpen(false);
+
+    const filename = window.prompt("New text file name (e.g. notes.txt)");
+    let trimmedName = String(filename || "").trim();
+
+    if (!trimmedName) {
+      return;
+    }
+
+    if (!trimmedName.toLowerCase().endsWith(".txt")) {
+      trimmedName += ".txt";
+    }
+
+    setCreatingFolder(true);
+
+    try {
+      const folderPath = currentPathRef.current;
+      const targetFilePath = folderPath === "/" ? `/${trimmedName}` : `${folderPath}/${trimmedName}`;
+
+      await axios.post(
+        `${API_BASE_URL}/api/webdav/write`,
+        {
+          path: targetFilePath,
+          content: "",
+        },
+        {
+          headers: getAuthHeaders(),
+        },
+      );
+
+      setNotice({
+        type: "success",
+        text: `${trimmedName} was created.`,
+      });
+      addNotification(`Created file: ${trimmedName}`);
+
+      await loadDirectory(folderPath);
+    } catch (error) {
+      setNotice({
+        type: "error",
+        text: getErrorMessage(error, "We could not create the text file."),
+      });
+    } finally {
+      setCreatingFolder(false);
+    }
+  };
+
+  const handleRename = async (entry) => {
+    setActiveRowMenu(null);
+    const newName = window.prompt("Rename to:", entry.name);
+    const trimmed = String(newName || "").trim();
+    if (!trimmed || trimmed === entry.name) return;
+
+    try {
+      const segments = entry.path.split("/").filter(Boolean);
+      segments.pop();
+      const parentDir = segments.length ? `/${segments.join("/")}` : "/";
+      const targetPath = parentDir === "/" ? `/${trimmed}` : `${parentDir}/${trimmed}`;
+
+      await axios.post(
+        `${API_BASE_URL}/api/webdav/rename`,
+        { from: entry.path, to: targetPath },
+        { headers: getAuthHeaders() }
+      );
+
+      setNotice({
+        type: "success",
+        text: `Renamed to ${trimmed}`,
+      });
+      addNotification(`Renamed ${entry.name} to ${trimmed}`);
+      await loadDirectory(currentPathRef.current);
+    } catch (error) {
+      setNotice({
+        type: "error",
+        text: getErrorMessage(error, "We could not rename the item."),
+      });
+    }
+  };
+
+  const handleDownloadFile = async (entry) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/webdav/file`, {
+        params: { path: entry.path },
+        responseType: "blob",
+        headers: getAuthHeaders(),
+      });
+
+      const url = URL.createObjectURL(response.data);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = entry.name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      setNotice({
+        type: "error",
+        text: getErrorMessage(error, "We could not download the file."),
+      });
+    }
+  };
+
+  const openDetails = (entry) => {
+    setActiveDetailsEntry(entry);
+    setActiveDetailsTab("sharing");
+    setActiveRowMenu(null);
+  };
+
+  const toggleRowMenu = (event, path) => {
+    event.stopPropagation();
+    setActiveRowMenu((prev) => (prev === path ? null : path));
+  };
+
   const handleRefresh = () => {
     loadDirectory(currentPathRef.current);
   };
@@ -570,15 +790,9 @@ const WebDAVPage = () => {
 
   return (
     <div className="flex min-h-screen w-full flex-col overflow-hidden bg-[#f5f7fb] text-slate-900 relative">
-      <header className="flex h-14 items-center gap-4 bg-[#58a8e4] px-4 text-white shadow-sm">
-        <div className="flex w-full max-w-md items-center rounded-lg bg-[#4b94c8] px-4 py-2 shadow-inner">
-          <Search className="mr-3 h-4 w-4 shrink-0 text-slate-900/70" />
-          <input
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder="Search apps, files, tags, messages ..."
-            className="w-full bg-transparent text-sm text-slate-950 placeholder:text-slate-900/70 outline-none"
-          />
+      <header className="flex h-14 items-center gap-4 bg-[#58a8e4] px-4 text-white shadow-sm shrink-0">
+        <div className="flex items-center gap-2">
+          <span className="font-bold text-lg tracking-wide">PMD Nextcloud</span>
         </div>
 
         <div className="ml-auto flex items-center gap-3">
@@ -720,9 +934,20 @@ const WebDAVPage = () => {
         </div>
       </header>
 
-      <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
-        <div className="flex items-center gap-3">
-          <div className="relative" ref={newMenuRef}>
+      <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 shrink-0">
+        <div className="flex items-center gap-2 max-w-[70%] overflow-hidden">
+          {/* Search box aligned to left side of New button */}
+          <div className="flex w-48 sm:w-56 md:w-64 items-center rounded-lg bg-slate-105 px-3 py-1.5 border border-slate-200 shrink-0">
+            <Search className="mr-2 h-4 w-4 shrink-0 text-slate-400" />
+            <input
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Search files..."
+              className="w-full bg-transparent text-xs text-slate-800 placeholder:text-slate-400 outline-none"
+            />
+          </div>
+
+          <div className="relative shrink-0" ref={newMenuRef}>
             <button
               type="button"
               onClick={() => setNewMenuOpen((value) => !value)}
@@ -751,93 +976,123 @@ const WebDAVPage = () => {
                   <FolderPlus className="h-4 w-4 text-[#208ded]" />
                   New folder
                 </button>
+                <button
+                  type="button"
+                  onClick={handleCreateTextFile}
+                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-100"
+                >
+                  <FileText className="h-4 w-4 text-[#208ded]" />
+                  New text document (.txt)
+                </button>
               </div>
             )}
           </div>
 
-          <div className="relative" ref={allFilesMenuRef}>
-            <button
-              type="button"
-              onClick={() => {
-                setShowAllFilesMenu((val) => !val);
-                setNewMenuOpen(false);
-              }}
-              className="inline-flex items-center gap-1 rounded-lg px-2 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
-            >
-              {allFilesFilter === "all" && "All files"}
-              {allFilesFilter === "favorites" && "Favorites"}
-              {allFilesFilter === "recent" && "Recent"}
-              {allFilesFilter === "shares" && "Shared"}
-              <ChevronDown className="h-4 w-4 text-slate-500" />
-            </button>
+          {/* Compact breadcrumbs with dropdown filter */}
+          <div className="flex items-center gap-1 overflow-x-auto text-sm font-semibold text-slate-700 scrollbar-none pr-1">
+            {breadcrumbs.map((crumb, index) => (
+              <div key={crumb.path} className="flex items-center gap-1 shrink-0">
+                {index > 0 && <ChevronRight className="h-3 w-3 text-slate-400 shrink-0" />}
+                {index === 0 ? (
+                  <div className="relative shrink-0" ref={allFilesMenuRef}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAllFilesMenu((val) => !val);
+                        setNewMenuOpen(false);
+                      }}
+                      className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm font-bold text-slate-900 transition hover:bg-slate-100 animate-fade-in"
+                    >
+                      {allFilesFilter === "all" && "All files"}
+                      {allFilesFilter === "favorites" && "Favorites"}
+                      {allFilesFilter === "recent" && "Recent"}
+                      {allFilesFilter === "shares" && "Shared"}
+                      <ChevronDown className="h-4 w-4 text-slate-500 shrink-0" />
+                    </button>
 
-            {showAllFilesMenu && (
-              <div className="absolute left-0 top-[calc(100%+8px)] z-20 w-48 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl text-slate-800 font-normal">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAllFilesFilter("all");
-                    setCurrentPath("/"); // Navigate to root on choosing All files
-                    setShowAllFilesMenu(false);
-                  }}
-                  className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-slate-100 ${
-                    allFilesFilter === "all" ? "bg-slate-50 font-semibold text-[#208ded]" : ""
-                  }`}
-                >
-                  All files
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAllFilesFilter("recent");
-                    setShowAllFilesMenu(false);
-                  }}
-                  className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-slate-100 ${
-                    allFilesFilter === "recent" ? "bg-slate-50 font-semibold text-[#208ded]" : ""
-                  }`}
-                >
-                  Recent
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAllFilesFilter("favorites");
-                    setShowAllFilesMenu(false);
-                  }}
-                  className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-slate-100 ${
-                    allFilesFilter === "favorites" ? "bg-slate-50 font-semibold text-[#208ded]" : ""
-                  }`}
-                >
-                  Favorites
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAllFilesFilter("shares");
-                    setShowAllFilesMenu(false);
-                  }}
-                  className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-slate-100 ${
-                    allFilesFilter === "shares" ? "bg-slate-50 font-semibold text-[#208ded]" : ""
-                  }`}
-                >
-                  Shared with others
-                </button>
+                    {showAllFilesMenu && (
+                      <div className="absolute left-0 top-[calc(100%+8px)] z-20 w-48 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl text-slate-800 font-normal">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAllFilesFilter("all");
+                            setCurrentPath("/");
+                            setShowAllFilesMenu(false);
+                          }}
+                          className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-slate-100 ${
+                            allFilesFilter === "all" ? "bg-slate-50 font-semibold text-[#208ded]" : ""
+                          }`}
+                        >
+                          All files
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAllFilesFilter("recent");
+                            setShowAllFilesMenu(false);
+                          }}
+                          className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-slate-100 ${
+                            allFilesFilter === "recent" ? "bg-slate-50 font-semibold text-[#208ded]" : ""
+                          }`}
+                        >
+                          Recent
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAllFilesFilter("favorites");
+                            setShowAllFilesMenu(false);
+                          }}
+                          className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-slate-100 ${
+                            allFilesFilter === "favorites" ? "bg-slate-50 font-semibold text-[#208ded]" : ""
+                          }`}
+                        >
+                          Favorites
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAllFilesFilter("shares");
+                            setShowAllFilesMenu(false);
+                          }}
+                          className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-slate-100 ${
+                            allFilesFilter === "shares" ? "bg-slate-50 font-semibold text-[#208ded]" : ""
+                          }`}
+                        >
+                          Shared with others
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => openFolder(crumb.path)}
+                    className={`rounded-lg px-2 py-1.5 text-sm font-semibold transition ${
+                      crumb.path === currentPath
+                        ? "bg-[#e8f4fd] text-[#208ded] cursor-default shrink-0"
+                        : "hover:bg-slate-100 hover:text-slate-800 shrink-0"
+                    }`}
+                  >
+                    {crumb.label}
+                  </button>
+                )}
               </div>
-            )}
+            ))}
           </div>
 
           <button
             type="button"
             onClick={goUp}
             disabled={currentPath === "/"}
-            className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 shrink-0"
           >
             <ArrowUp className="h-4 w-4" />
             Up
           </button>
         </div>
 
-        <div className="flex items-center gap-4 text-sm font-semibold text-slate-700">
+        <div className="flex items-center gap-4 text-sm font-semibold text-slate-700 shrink-0">
           {/* Type Filter */}
           <div className="relative" ref={typeMenuRef}>
             <button
@@ -927,26 +1182,6 @@ const WebDAVPage = () => {
       </div>
 
       <main className="flex flex-1 flex-col overflow-hidden bg-white">
-        <div className="border-b border-slate-200 px-8 pb-7 pt-8">
-          <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-slate-500">
-            {breadcrumbs.map((crumb, index) => (
-              <div key={crumb.path} className="flex items-center gap-2">
-                {index > 0 && <ChevronRight className="h-4 w-4 text-slate-400" />}
-                <button
-                  type="button"
-                  onClick={() => openFolder(crumb.path)}
-                  className={`rounded-full px-3 py-1.5 transition ${crumb.path === currentPath
-                    ? "bg-[#e8f4fd] text-[#208ded]"
-                    : "hover:bg-slate-100 hover:text-slate-800"
-                    }`}
-                >
-                  {crumb.label}
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {notice && (
           <div
             className={`mx-8 mt-5 rounded-2xl border px-4 py-3 ${notice.type === "error"
@@ -961,7 +1196,7 @@ const WebDAVPage = () => {
         <div className="flex flex-1 flex-col overflow-hidden px-2 pb-0 pt-4">
           {viewMode === "list" ? (
             <>
-              <div className="grid grid-cols-[40px_minmax(0,1fr)_140px_120px_160px_90px] items-center border-b border-slate-200 px-6 py-3 text-sm font-medium text-slate-500">
+              <div className="grid grid-cols-[40px_40px_minmax(0,1fr)_120px_100px_150px_90px] items-center border-b border-slate-200 px-6 py-3 text-sm font-medium text-slate-500">
                 <div className="flex items-center justify-center">
                   <input
                     type="checkbox"
@@ -969,6 +1204,9 @@ const WebDAVPage = () => {
                     onChange={handleSelectAll}
                     className="h-4 w-4 rounded border-slate-300 text-[#208ded] focus:ring-[#208ded]"
                   />
+                </div>
+                <div className="flex items-center justify-center">
+                  <Star className="h-4 w-4 text-slate-400" />
                 </div>
                 <div className="pl-2">Name</div>
                 <div>Type</div>
@@ -993,8 +1231,9 @@ const WebDAVPage = () => {
                     return (
                       <div
                         key={entry.path}
-                        className={`grid grid-cols-[40px_minmax(0,1fr)_140px_120px_160px_90px] items-center border-b border-slate-100 px-6 py-3 text-sm transition hover:bg-[#f8fbfe] ${isSelected ? "bg-[#eaf5ff]" : "bg-white"
-                          }`}
+                        className={`grid grid-cols-[40px_40px_minmax(0,1fr)_120px_100px_150px_90px] items-center border-b border-slate-100 px-6 py-2.5 text-sm transition hover:bg-[#f8fbfe] ${
+                          isSelected ? "bg-[#eaf5ff]" : "bg-white"
+                        }`}
                       >
                         <div className="flex items-center justify-center">
                           <input
@@ -1005,7 +1244,7 @@ const WebDAVPage = () => {
                           />
                         </div>
 
-                        <div className="flex items-center gap-1 min-w-0">
+                        <div className="flex items-center justify-center">
                           <button
                             type="button"
                             onClick={() => {
@@ -1015,29 +1254,35 @@ const WebDAVPage = () => {
                                   : [...prev, entry.path]
                               );
                             }}
-                            className={`p-1.5 rounded-full transition shrink-0 ${
+                            className={`p-1 rounded-full transition shrink-0 ${
                               favorites.includes(entry.path)
                                 ? "text-amber-400 hover:bg-amber-50"
-                                : "text-slate-350 hover:text-slate-555 hover:bg-slate-100"
+                                : "text-slate-300 hover:text-slate-500 hover:bg-slate-100"
                             }`}
                             aria-label="Toggle favorite"
                           >
                             <Star className={`h-4 w-4 ${favorites.includes(entry.path) ? "fill-current" : ""}`} />
                           </button>
+                        </div>
 
+                        <div className="flex items-center gap-1 min-w-0">
                           <button
                             type="button"
-                            onClick={() => entry.type === "folder" && openFolder(entry.path)}
-                            className={`flex min-w-0 items-center gap-3 rounded-lg px-2 py-1 text-left transition ${entry.type === "folder"
-                              ? "cursor-pointer hover:bg-slate-50"
-                              : "cursor-default"
-                              }`}
+                            onClick={() => {
+                              if (entry.type === "folder") {
+                                openFolder(entry.path);
+                              } else {
+                                handleFileClick(entry);
+                              }
+                            }}
+                            className="flex min-w-0 flex-1 items-center gap-3 rounded-lg px-2 py-1 text-left transition cursor-pointer hover:bg-slate-50"
                           >
                             <span
-                              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${entry.type === "folder"
-                                ? "bg-[#e8f4fd] text-[#208ded]"
-                                : "bg-slate-100 text-slate-500"
-                                }`}
+                              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                                entry.type === "folder"
+                                  ? "bg-[#e8f4fd] text-[#208ded]"
+                                  : "bg-slate-100 text-slate-550"
+                              }`}
                             >
                               {entry.type === "folder" ? (
                                 <Folder className="h-4 w-4" />
@@ -1056,25 +1301,86 @@ const WebDAVPage = () => {
                           </button>
                         </div>
 
-                        <div className="text-slate-600">
+                        <div className="text-slate-650 font-normal">
                           {entry.type === "folder" ? "Folder" : "File"}
                         </div>
-                        <div className="text-slate-600">
+                        <div className="text-slate-650 font-normal">
                           {entry.type === "folder" ? "—" : formatBytes(entry.size)}
                         </div>
-                        <div className="text-slate-600">{formatDate(entry.modified)}</div>
-                        <div className="flex items-center justify-end">
-                          {entry.type === "folder" ? (
-                            <span className="text-xs text-slate-400 mr-2">Open</span>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => handleDelete(entry)}
-                              className="rounded-full p-2 text-slate-500 transition hover:bg-rose-50 hover:text-rose-600"
-                              aria-label={`Delete ${entry.name}`}
+                        <div className="text-slate-650 font-normal">{formatDate(entry.modified)}</div>
+                        
+                        <div className="flex items-center justify-end relative">
+                          <button
+                            type="button"
+                            onClick={(e) => toggleRowMenu(e, entry.path)}
+                            className="item-context-menu-btn rounded-full p-2 text-slate-450 hover:bg-slate-100 hover:text-slate-800 transition"
+                            aria-label="More actions"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </button>
+
+                          {activeRowMenu === entry.path && (
+                            <div
+                              onClick={(e) => e.stopPropagation()}
+                              className="item-context-menu absolute right-0 top-[calc(100%+4px)] z-20 w-48 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl text-slate-800 font-normal text-left"
                             >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setFavorites((prev) =>
+                                    prev.includes(entry.path)
+                                      ? prev.filter((p) => p !== entry.path)
+                                      : [...prev, entry.path]
+                                  );
+                                  setActiveRowMenu(null);
+                                }}
+                                className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-xs hover:bg-slate-50 transition"
+                              >
+                                <Star className={`h-3.5 w-3.5 text-amber-400 shrink-0 ${favorites.includes(entry.path) ? "fill-current" : ""}`} />
+                                {favorites.includes(entry.path) ? "Remove favorite" : "Add to favorites"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openDetails(entry)}
+                                className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-xs hover:bg-slate-50 transition"
+                              >
+                                <Info className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+                                Details
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleRename(entry)}
+                                className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-xs hover:bg-slate-50 transition"
+                              >
+                                <Pencil className="h-3.5 w-3.5 text-purple-500 shrink-0" />
+                                Rename
+                              </button>
+                              {entry.type === "file" && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveRowMenu(null);
+                                    handleDownloadFile(entry);
+                                  }}
+                                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-xs hover:bg-slate-50 transition"
+                                >
+                                  <Download className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+                                  Download
+                                </button>
+                              )}
+                              <div className="my-1 border-t border-slate-100" />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveRowMenu(null);
+                                  handleDelete(entry);
+                                }}
+                                className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-xs text-rose-600 hover:bg-rose-50 transition font-medium"
+                              >
+                                <Trash2 className="h-3.5 w-3.5 text-rose-600 shrink-0" />
+                                Delete
+                              </button>
+                            </div>
                           )}
                         </div>
                       </div>
@@ -1139,26 +1445,92 @@ const WebDAVPage = () => {
                           </button>
                         </div>
 
-                        {/* Delete action top-right */}
-                        {entry.type !== "folder" && (
-                          <div className="absolute top-3 right-3 z-10">
-                            <button
-                              type="button"
-                              onClick={() => handleDelete(entry)}
-                              className="rounded-full p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition"
-                              aria-label={`Delete ${entry.name}`}
+                        {/* More Actions menu top-right */}
+                        <div className="absolute top-3 right-3 z-10">
+                          <button
+                            type="button"
+                            onClick={(e) => toggleRowMenu(e, entry.path)}
+                            className="item-context-menu-btn rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition"
+                            aria-label="More actions"
+                          >
+                            <MoreHorizontal className="h-3.5 w-3.5" />
+                          </button>
+
+                          {activeRowMenu === entry.path && (
+                            <div
+                              onClick={(e) => e.stopPropagation()}
+                              className="item-context-menu absolute right-0 top-[calc(100%+4px)] z-20 w-44 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl text-slate-800 font-normal text-left"
                             >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        )}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setFavorites((prev) =>
+                                    prev.includes(entry.path)
+                                      ? prev.filter((p) => p !== entry.path)
+                                      : [...prev, entry.path]
+                                  );
+                                  setActiveRowMenu(null);
+                                }}
+                                className="flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left text-xs hover:bg-slate-50 transition"
+                              >
+                                <Star className={`h-3 w-3 text-amber-400 shrink-0 ${favorites.includes(entry.path) ? "fill-current" : ""}`} />
+                                Favorite
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openDetails(entry)}
+                                className="flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left text-xs hover:bg-slate-50 transition"
+                              >
+                                <Info className="h-3 w-3 text-blue-500 shrink-0" />
+                                Details
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleRename(entry)}
+                                className="flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left text-xs hover:bg-slate-50 transition"
+                              >
+                                <Pencil className="h-3 w-3 text-purple-500 shrink-0" />
+                                Rename
+                              </button>
+                              {entry.type === "file" && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveRowMenu(null);
+                                    handleDownloadFile(entry);
+                                  }}
+                                  className="flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left text-xs hover:bg-slate-50 transition"
+                                >
+                                  <Download className="h-3 w-3 text-blue-600 shrink-0" />
+                                  Download
+                                </button>
+                              )}
+                              <div className="my-1 border-t border-slate-100" />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveRowMenu(null);
+                                  handleDelete(entry);
+                                }}
+                                className="flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left text-xs text-rose-600 hover:bg-rose-50 transition font-medium"
+                              >
+                                <Trash2 className="h-3 w-3 text-rose-600 shrink-0" />
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
 
                         {/* Card Content */}
                         <div
-                          onClick={() => entry.type === "folder" && openFolder(entry.path)}
-                          className={`flex flex-col items-center justify-center text-center mt-4 ${
-                            entry.type === "folder" ? "cursor-pointer" : "cursor-default"
-                          }`}
+                          onClick={() => {
+                            if (entry.type === "folder") {
+                              openFolder(entry.path);
+                            } else {
+                              handleFileClick(entry);
+                            }
+                          }}
+                          className="flex flex-col items-center justify-center text-center mt-4 cursor-pointer"
                         >
                           <span
                             className={`flex h-16 w-16 items-center justify-center rounded-2xl mb-3 ${
@@ -1191,7 +1563,7 @@ const WebDAVPage = () => {
             </div>
           )}
 
-          <div className="flex items-center justify-between border-t border-slate-200 px-8 py-4 text-sm text-slate-500">
+          <div className="flex items-center justify-between border-t border-slate-200 px-8 py-4 text-sm text-slate-500 shrink-0">
             <span>
               {fileCount} files · {folderCount} folders
             </span>
@@ -1204,7 +1576,7 @@ const WebDAVPage = () => {
       {showPeopleSidebar && (
         <div
           ref={peopleSidebarRef}
-          className="fixed inset-y-0 right-0 z-30 w-80 bg-white border-l border-slate-200 shadow-2xl flex flex-col transition-all duration-300 ease-in-out animate-slide-in"
+          className="fixed inset-y-0 right-0 z-30 w-80 bg-white border-l border-slate-200 shadow-2xl flex flex-col transition-all duration-300 ease-in-out"
         >
           {/* Sidebar Header */}
           <div className="flex items-center justify-between border-b border-slate-200 px-4 py-4 bg-slate-50">
@@ -1237,7 +1609,7 @@ const WebDAVPage = () => {
                 </div>
 
                 {shareSuccessNotice && (
-                  <div className="rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs p-3 font-medium animate-pulse">
+                  <div className="rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs p-3 font-medium">
                     {shareSuccessNotice}
                   </div>
                 )}
@@ -1267,7 +1639,7 @@ const WebDAVPage = () => {
                               <p className="text-xs font-semibold text-slate-800 truncate">
                                 {user.givenName} {user.sn}
                               </p>
-                              <p className="text-[10px] text-slate-400 truncate">{user.groupName || "Member"}</p>
+                              <p className="text-[10px] text-slate-405 truncate">{user.groupName || "Member"}</p>
                             </div>
                           </div>
                           <button
@@ -1326,7 +1698,7 @@ const WebDAVPage = () => {
                             <p className="text-xs font-semibold text-slate-800 truncate">
                               {user.givenName} {user.sn}
                             </p>
-                            <p className="text-[10px] text-slate-400 truncate">{user.mail || user.uid}</p>
+                            <p className="text-[10px] text-slate-405 truncate">{user.mail || user.uid}</p>
                             <p className="text-[9px] text-[#208ded] font-medium mt-0.5">{user.groupName || "Colleague"}</p>
                           </div>
                         </div>
@@ -1335,6 +1707,347 @@ const WebDAVPage = () => {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Sharing & Details Drawer Sidebar */}
+      {activeDetailsEntry && (
+        <div className="fixed inset-y-0 right-0 z-35 w-96 bg-white border-l border-slate-200 shadow-2xl flex flex-col transition-all duration-300 transform translate-x-0">
+          {/* Header */}
+          <div className="flex flex-col p-4 border-b border-slate-100 bg-slate-50/50">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
+                Item Details
+              </span>
+              <button
+                type="button"
+                onClick={() => setActiveDetailsEntry(null)}
+                className="text-slate-400 hover:text-slate-600 text-sm font-semibold p-1 hover:bg-slate-100 rounded-lg transition"
+              >
+                Close
+              </button>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eaf5ff] text-[#208ded] shrink-0">
+                {activeDetailsEntry.type === "folder" ? (
+                  <Folder className="h-6 w-6" />
+                ) : (
+                  <FileText className="h-6 w-6" />
+                )}
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-slate-800 truncate" title={activeDetailsEntry.name}>
+                  {activeDetailsEntry.name}
+                </p>
+                <p className="text-xs text-slate-450 font-medium">
+                  {activeDetailsEntry.type === "folder" ? "Folder" : formatBytes(activeDetailsEntry.size)} · {formatDate(activeDetailsEntry.modified)}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar Tabs */}
+          <div className="flex border-b border-slate-100 bg-slate-50/20">
+            <button
+              type="button"
+              onClick={() => setActiveDetailsTab("sharing")}
+              className={`flex-1 py-3 text-center text-xs font-semibold flex items-center justify-center gap-2 border-b-2 transition ${
+                activeDetailsTab === "sharing"
+                  ? "border-[#208ded] text-[#208ded] bg-white"
+                  : "border-transparent text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              <Share2 className="h-4 w-4" />
+              Sharing
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveDetailsTab("activity")}
+              className={`flex-1 py-3 text-center text-xs font-semibold flex items-center justify-center gap-2 border-b-2 transition ${
+                activeDetailsTab === "activity"
+                  ? "border-[#208ded] text-[#208ded] bg-white"
+                  : "border-transparent text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              <Activity className="h-4 w-4" />
+              Activity
+            </button>
+          </div>
+
+          {/* Sidebar Content */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 text-slate-700">
+            {activeDetailsTab === "sharing" ? (
+              <div className="space-y-4">
+                {/* Internal shares */}
+                <div>
+                  <div className="flex items-center gap-1 mb-1">
+                    <span className="text-xs font-bold text-slate-700">Internal shares</span>
+                    <Info className="h-3 w-3 text-slate-400" />
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Type names or teams"
+                      className="w-full pl-3 pr-8 py-2 text-xs border border-slate-200 rounded-xl outline-none focus:border-[#208ded] bg-slate-50 transition"
+                    />
+                    <ChevronDown className="absolute right-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                  </div>
+                </div>
+
+                {/* Others with access */}
+                <div>
+                  <div className="flex items-center justify-between py-1 border-b border-slate-100 mb-2">
+                    <span className="text-xs font-bold text-slate-700 font-sans">Others with access</span>
+                    <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#f7efe7] text-[10px] font-bold text-[#58a8e4]">
+                          FP
+                        </span>
+                        <div>
+                          <p className="font-semibold text-slate-800">Felix Pareja (Owner)</p>
+                          <p className="text-[9px] text-slate-400">Full access</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Internal Link */}
+                <div>
+                  <span className="text-xs font-bold text-slate-700 block mb-1">Internal link</span>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="text"
+                      readOnly
+                      value={`${window.location.origin}/uploads${activeDetailsEntry.path}`}
+                      className="flex-1 px-3 py-2 text-[10px] font-mono border border-slate-200 rounded-xl bg-slate-50 text-slate-500 outline-none truncate"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${window.location.origin}/uploads${activeDetailsEntry.path}`);
+                        alert("Link copied to clipboard!");
+                      }}
+                      className="rounded-xl border border-slate-200 bg-white p-2 hover:bg-slate-50 transition shadow-sm"
+                      title="Copy link"
+                    >
+                      <Copy className="h-3.5 w-3.5 text-slate-650" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* External shares */}
+                <div>
+                  <div className="flex items-center gap-1 mb-1">
+                    <span className="text-xs font-bold text-slate-700">External shares</span>
+                    <Info className="h-3 w-3 text-slate-400" />
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Type an email"
+                      className="w-full pl-3 pr-8 py-2 text-xs border border-slate-200 rounded-xl outline-none focus:border-[#208ded] bg-slate-50 transition"
+                    />
+                    <ChevronDown className="absolute right-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                  </div>
+                </div>
+
+                {/* Create public link button */}
+                <button
+                  type="button"
+                  onClick={() => alert("Public link created successfully!")}
+                  className="w-full py-2 bg-[#208ded] hover:bg-[#1b7dd0] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 shadow-sm transition"
+                >
+                  <Plus className="h-4 w-4" />
+                  Create public link
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">
+                  Activity Log
+                </span>
+                <div className="relative pl-6 border-l border-slate-200 space-y-5 text-xs text-slate-600">
+                  <div className="relative">
+                    <span className="absolute -left-[31px] top-0 flex h-4 w-4 items-center justify-center rounded-full bg-blue-100 text-[10px] font-bold text-[#208ded]">
+                      ✓
+                    </span>
+                    <p className="font-semibold text-slate-800">File created</p>
+                    <p className="text-[10px] text-slate-400">By Felix Pareja · 2 hours ago</p>
+                  </div>
+                  <div className="relative">
+                    <span className="absolute -left-[31px] top-0 flex h-4 w-4 items-center justify-center rounded-full bg-amber-105 text-[10px] font-bold text-amber-500">
+                      ★
+                    </span>
+                    <p className="font-semibold text-slate-850">Added to Favorites</p>
+                    <p className="text-[10px] text-slate-400">By System · 1 hour ago</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* File Preview Modal */}
+      {activePreviewFile && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity duration-200">
+          <div className="flex h-[85vh] w-full max-w-4xl flex-col rounded-3xl border border-slate-200 bg-white shadow-2xl overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-6 py-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#eaf5ff] text-[#208ded]">
+                  <FileText className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  <h3 className="truncate font-semibold text-slate-850 text-base" title={activePreviewFile.name}>
+                    {activePreviewFile.name}
+                  </h3>
+                  <p className="text-xs text-slate-400 font-medium">
+                    {formatBytes(activePreviewFile.size)} · Modified {formatDate(activePreviewFile.modified)}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {/* Download Button */}
+                <button
+                  type="button"
+                  onClick={() => handleDownloadFile(activePreviewFile)}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                >
+                  Download
+                </button>
+                
+                {/* Close Button */}
+                <button
+                  type="button"
+                  onClick={closePreview}
+                  className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition font-bold"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            
+            {/* Modal Content */}
+            <div className="flex-1 overflow-auto bg-slate-50/30 p-6 flex flex-col items-center justify-center">
+              {previewLoading ? (
+                <div className="flex flex-col items-center gap-3">
+                  <RefreshCw className="h-8 w-8 text-[#208ded] animate-spin" />
+                  <p className="text-sm font-medium text-slate-500">Loading preview...</p>
+                </div>
+              ) : previewError ? (
+                <div className="text-center">
+                  <p className="text-sm font-semibold text-rose-650 mb-2">Could not load preview</p>
+                  <p className="text-xs text-slate-400 mb-4 max-w-md">{previewError}</p>
+                  <button
+                    type="button"
+                    onClick={() => handleFileClick(activePreviewFile)}
+                    className="rounded-xl bg-[#208ded] hover:bg-[#1b7dd0] text-white text-xs font-medium px-4 py-2"
+                  >
+                    Retry
+                  </button>
+                </div>
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center">
+                  {(() => {
+                    const ext = "." + activePreviewFile.name.split(".").pop().toLowerCase();
+                    if ([".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".bmp"].includes(ext)) {
+                      return (
+                        <div className="max-h-full max-w-full overflow-auto rounded-xl border border-slate-150 bg-white p-2 shadow-sm">
+                          <img
+                            src={previewUrl}
+                            alt={activePreviewFile.name}
+                            className="max-h-[60vh] object-contain mx-auto rounded-lg"
+                          />
+                        </div>
+                      );
+                    }
+                    if ([".pdf"].includes(ext)) {
+                      return (
+                        <iframe
+                          src={previewUrl}
+                          title={activePreviewFile.name}
+                          className="w-full h-full rounded-xl border border-slate-200 bg-white shadow-inner"
+                        />
+                      );
+                    }
+                    if ([".txt", ".md", ".json", ".js", ".css", ".html", ".log"].includes(ext)) {
+                      return (
+                        <div className="w-full h-full flex flex-col bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                          <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-4 py-2">
+                            <span className="text-xs text-slate-400 font-medium font-sans">
+                              {isEditingText ? "Editing File Contents..." : "Read-only preview"}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setIsEditingText(!isEditingText)}
+                              className="text-xs font-semibold text-[#208ded] hover:underline"
+                            >
+                              {isEditingText ? "Cancel Edit" : "Edit File"}
+                            </button>
+                          </div>
+                          {isEditingText ? (
+                            <div className="flex-1 flex flex-col p-4">
+                              <textarea
+                                value={previewContent}
+                                onChange={(e) => setPreviewContent(e.target.value)}
+                                className="flex-1 w-full p-3 font-mono text-sm border border-slate-200 rounded-xl outline-none focus:border-[#208ded] resize-none"
+                              />
+                              <div className="flex justify-end gap-2 mt-3">
+                                <button
+                                  type="button"
+                                  onClick={() => setIsEditingText(false)}
+                                  className="px-3 py-1.5 text-xs font-semibold text-slate-650 rounded-lg hover:bg-slate-50"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={handleSaveTextFile}
+                                  className="px-3 py-1.5 text-xs font-semibold text-white bg-[#208ded] hover:bg-[#1b7dd0] rounded-lg shadow-sm"
+                                >
+                                  Save Changes
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <pre className="flex-1 overflow-auto p-4 font-mono text-xs text-slate-750 whitespace-pre-wrap select-text leading-relaxed text-left w-full">
+                              {previewContent || <span className="text-slate-400 italic">Empty file</span>}
+                            </pre>
+                          )}
+                        </div>
+                      );
+                    }
+                    
+                    // Fallback preview
+                    return (
+                      <div className="text-center p-8 bg-white border border-slate-200 rounded-3xl shadow-sm max-w-sm flex flex-col items-center">
+                        <span className="flex h-20 w-20 items-center justify-center rounded-3xl bg-slate-50 text-slate-400 mb-4 ring-4 ring-slate-50/50">
+                          <FileText className="h-10 w-10 text-slate-500" />
+                        </span>
+                        <h4 className="font-semibold text-slate-800 text-sm mb-1">{activePreviewFile.name}</h4>
+                        <p className="text-xs text-slate-400 mb-6">
+                          Previews for {ext.toUpperCase()} files are not supported natively.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadFile(activePreviewFile)}
+                          className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#208ded] hover:bg-[#1b7dd0] text-white px-4 py-2.5 text-sm font-semibold shadow-sm transition"
+                        >
+                          Download Document
+                        </button>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

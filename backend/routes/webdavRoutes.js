@@ -111,4 +111,89 @@ router.delete("/item", async (req, res) => {
   }
 });
 
+// ✅ GET file content (stream / download)
+router.get("/file", async (req, res) => {
+  try {
+    const targetPath = req.query.path;
+    if (!targetPath) {
+      return res.status(400).json({
+        success: false,
+        message: "A file path is required.",
+      });
+    }
+
+    const normalized = normalizeRemotePath(targetPath);
+    const stat = await req.webdav.client.stat(normalized);
+    const mimeType = stat.mime || "application/octet-stream";
+
+    const buffer = await req.webdav.client.getFileContents(normalized);
+
+    res.setHeader("Content-Type", mimeType);
+    res.setHeader("Content-Disposition", `inline; filename="${encodeURIComponent(stat.basename)}"`);
+    return res.send(buffer);
+  } catch (error) {
+    console.error("❌ WebDAV get file failed:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Could not retrieve the file contents.",
+    });
+  }
+});
+
+// ✅ POST write/save file content
+router.post("/write", async (req, res) => {
+  try {
+    const { path: targetPath, content } = req.body;
+    if (!targetPath) {
+      return res.status(400).json({
+        success: false,
+        message: "A file path is required.",
+      });
+    }
+
+    const normalized = normalizeRemotePath(targetPath);
+    await req.webdav.client.putFileContents(normalized, content || "");
+
+    return res.json({
+      success: true,
+      message: "File written successfully.",
+    });
+  } catch (error) {
+    console.error("❌ WebDAV write file failed:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Could not save the file.",
+    });
+  }
+});
+
+// ✅ POST rename/move file or folder
+router.post("/rename", async (req, res) => {
+  try {
+    const { from, to } = req.body;
+    if (!from || !to) {
+      return res.status(400).json({
+        success: false,
+        message: "Source (from) and target (to) paths are required.",
+      });
+    }
+
+    const normFrom = normalizeRemotePath(from);
+    const normTo = normalizeRemotePath(to);
+
+    await req.webdav.client.moveFile(normFrom, normTo);
+
+    return res.json({
+      success: true,
+      message: "Item renamed successfully.",
+    });
+  } catch (error) {
+    console.error("❌ WebDAV rename failed:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Could not rename the item.",
+    });
+  }
+});
+
 module.exports = router;

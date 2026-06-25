@@ -246,6 +246,15 @@ app.use("/api/user-groups", userGroupsRoutes);
 
 app.use("/uploads", express.static("uploads"));
 
+// Fallback for missing avatar images
+app.use("/uploads/avatar", (req, res, next) => {
+  res.sendFile(path.join(__dirname, "uploads/avatar/default.png"), (err) => {
+    if (err) {
+      res.status(404).end();
+    }
+  });
+});
+
 app.use("/api", importRoutes);
 
 app.use(districtsRoutes);
