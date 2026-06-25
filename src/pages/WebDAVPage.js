@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import axios from "axios";
 import {
   ArrowUp,
@@ -235,7 +241,10 @@ const WebDAVPage = () => {
       if (typeMenuRef.current && !typeMenuRef.current.contains(event.target)) {
         setShowTypeMenu(false);
       }
-      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
+      if (
+        notificationsRef.current &&
+        !notificationsRef.current.contains(event.target)
+      ) {
         setShowNotifications(false);
       }
       if (storageRef.current && !storageRef.current.contains(event.target)) {
@@ -244,10 +253,16 @@ const WebDAVPage = () => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setShowProfile(false);
       }
-      if (allFilesMenuRef.current && !allFilesMenuRef.current.contains(event.target)) {
+      if (
+        allFilesMenuRef.current &&
+        !allFilesMenuRef.current.contains(event.target)
+      ) {
         setShowAllFilesMenu(false);
       }
-      if (currentDirMenuRef.current && !currentDirMenuRef.current.contains(event.target)) {
+      if (
+        currentDirMenuRef.current &&
+        !currentDirMenuRef.current.contains(event.target)
+      ) {
         setCurrentDirMenuOpen(false);
       }
       if (
@@ -258,7 +273,10 @@ const WebDAVPage = () => {
       ) {
         setShowPeopleSidebar(false);
       }
-      if (!event.target.closest(".item-context-menu-btn") && !event.target.closest(".item-context-menu")) {
+      if (
+        !event.target.closest(".item-context-menu-btn") &&
+        !event.target.closest(".item-context-menu")
+      ) {
         setActiveRowMenu(null);
       }
     };
@@ -298,9 +316,13 @@ const WebDAVPage = () => {
   const handleSignOut = async () => {
     const username = localStorage.getItem("username");
     try {
-      await axios.post(`${API_BASE_URL}/api/logout`, { userId: username }, {
-        headers: getAuthHeaders(),
-      });
+      await axios.post(
+        `${API_BASE_URL}/api/logout`,
+        { userId: username },
+        {
+          headers: getAuthHeaders(),
+        },
+      );
     } catch (err) {
       console.error("Logout API failed:", err);
     }
@@ -318,10 +340,12 @@ const WebDAVPage = () => {
     setTimeout(() => {
       setSharingInProgress(false);
       setShareSuccessNotice(`Shared successfully with ${user.givenName}!`);
-      addNotification(`Shared ${selectedPaths.length} items with ${user.givenName} ${user.sn}`);
+      addNotification(
+        `Shared ${selectedPaths.length} items with ${user.givenName} ${user.sn}`,
+      );
       setSharedPaths((prev) => [...new Set([...prev, ...selectedPaths])]);
       setSelectedPaths([]); // clear selections
-      
+
       setTimeout(() => {
         setShareSuccessNotice("");
       }, 3000);
@@ -378,7 +402,9 @@ const WebDAVPage = () => {
     } else if (allFilesFilter === "recent") {
       const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
       result = result.filter(
-        (entry) => entry.type === "file" && new Date(entry.modified).getTime() > sevenDaysAgo
+        (entry) =>
+          entry.type === "file" &&
+          new Date(entry.modified).getTime() > sevenDaysAgo,
       );
     } else if (allFilesFilter === "shares") {
       result = result.filter((entry) => sharedPaths.includes(entry.path));
@@ -388,14 +414,32 @@ const WebDAVPage = () => {
     if (typeFilter === "folders") {
       result = result.filter((entry) => entry.type === "folder");
     } else if (typeFilter === "documents") {
-      const docExts = [".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".txt", ".csv"];
+      const docExts = [
+        ".pdf",
+        ".doc",
+        ".docx",
+        ".xls",
+        ".xlsx",
+        ".ppt",
+        ".pptx",
+        ".txt",
+        ".csv",
+      ];
       result = result.filter(
         (entry) =>
           entry.type === "file" &&
           docExts.some((ext) => entry.name.toLowerCase().endsWith(ext)),
       );
     } else if (typeFilter === "images") {
-      const imgExts = [".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".bmp"];
+      const imgExts = [
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+        ".svg",
+        ".webp",
+        ".bmp",
+      ];
       result = result.filter(
         (entry) =>
           entry.type === "file" &&
@@ -421,12 +465,23 @@ const WebDAVPage = () => {
 
       return haystack.includes(query);
     });
-  }, [entries, searchQuery, typeFilter, allFilesFilter, favorites, sharedPaths]);
+  }, [
+    entries,
+    searchQuery,
+    typeFilter,
+    allFilesFilter,
+    favorites,
+    sharedPaths,
+  ]);
 
-  const folderCount = visibleEntries.filter((entry) => entry.type === "folder").length;
+  const folderCount = visibleEntries.filter(
+    (entry) => entry.type === "folder",
+  ).length;
   const fileCount = visibleEntries.length - folderCount;
   const totalSize = visibleEntries.reduce(
-    (sum, entry) => sum + (entry.type === "file" && Number.isFinite(entry.size) ? entry.size : 0),
+    (sum, entry) =>
+      sum +
+      (entry.type === "file" && Number.isFinite(entry.size) ? entry.size : 0),
     0,
   );
   const allVisibleSelected =
@@ -438,7 +493,14 @@ const WebDAVPage = () => {
 
   const quotaBytes = 10 * 1024 * 1024 * 1024; // 10 GB
   const baselineUsedBytes = 1.2 * 1024 * 1024 * 1024; // 1.2 GB baseline
-  const currentUsedBytes = baselineUsedBytes + entries.reduce((sum, entry) => sum + (entry.type === "file" && Number.isFinite(entry.size) ? entry.size : 0), 0);
+  const currentUsedBytes =
+    baselineUsedBytes +
+    entries.reduce(
+      (sum, entry) =>
+        sum +
+        (entry.type === "file" && Number.isFinite(entry.size) ? entry.size : 0),
+      0,
+    );
   const usedPercentage = Math.min((currentUsedBytes / quotaBytes) * 100, 100);
 
   const openFolder = (path) => {
@@ -469,7 +531,15 @@ const WebDAVPage = () => {
 
     const ext = "." + entry.name.split(".").pop().toLowerCase();
     const textExts = [".txt", ".md", ".json", ".js", ".css", ".html", ".log"];
-    const imageExts = [".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".bmp"];
+    const imageExts = [
+      ".png",
+      ".jpg",
+      ".jpeg",
+      ".gif",
+      ".svg",
+      ".webp",
+      ".bmp",
+    ];
     const pdfExts = [".pdf"];
 
     try {
@@ -496,8 +566,8 @@ const WebDAVPage = () => {
       console.error("Preview failed:", error);
       setPreviewError(
         error?.response?.data?.message ||
-        error?.message ||
-        "Could not load preview for this file."
+          error?.message ||
+          "Could not load preview for this file.",
       );
     } finally {
       setPreviewLoading(false);
@@ -524,7 +594,7 @@ const WebDAVPage = () => {
         },
         {
           headers: getAuthHeaders(),
-        }
+        },
       );
       setNotice({
         type: "success",
@@ -559,7 +629,8 @@ const WebDAVPage = () => {
 
     try {
       const folderPath = currentPathRef.current;
-      const targetFilePath = folderPath === "/" ? `/${trimmedName}` : `${folderPath}/${trimmedName}`;
+      const targetFilePath =
+        folderPath === "/" ? `/${trimmedName}` : `${folderPath}/${trimmedName}`;
 
       await axios.post(
         `${API_BASE_URL}/api/webdav/write`,
@@ -599,12 +670,13 @@ const WebDAVPage = () => {
       const segments = entry.path.split("/").filter(Boolean);
       segments.pop();
       const parentDir = segments.length ? `/${segments.join("/")}` : "/";
-      const targetPath = parentDir === "/" ? `/${trimmed}` : `${parentDir}/${trimmed}`;
+      const targetPath =
+        parentDir === "/" ? `/${trimmed}` : `${parentDir}/${trimmed}`;
 
       await axios.post(
         `${API_BASE_URL}/api/webdav/rename`,
         { from: entry.path, to: targetPath },
-        { headers: getAuthHeaders() }
+        { headers: getAuthHeaders() },
       );
 
       setNotice({
@@ -676,7 +748,9 @@ const WebDAVPage = () => {
 
   const toggleSelected = (path) => {
     setSelectedPaths((prev) =>
-      prev.includes(path) ? prev.filter((item) => item !== path) : [...prev, path],
+      prev.includes(path)
+        ? prev.filter((item) => item !== path)
+        : [...prev, path],
     );
   };
 
@@ -798,7 +872,7 @@ const WebDAVPage = () => {
     <div className="flex min-h-screen w-full flex-col overflow-hidden bg-[#f5f7fb] text-slate-900 relative">
       <header className="flex h-14 items-center gap-4 bg-[#58a8e4] px-4 text-white shadow-sm shrink-0">
         <div className="flex items-center gap-2">
-          <span className="font-bold text-lg tracking-wide">PMD Nextcloud</span>
+          <span className="font-bold text-lg tracking-wide">PMD Drive</span>
         </div>
 
         <div className="ml-auto flex items-center gap-3">
@@ -821,7 +895,9 @@ const WebDAVPage = () => {
                 setShowNotifications((val) => !val);
                 setShowStorage(false);
                 setShowProfile(false);
-                setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+                setNotifications((prev) =>
+                  prev.map((n) => ({ ...n, unread: false })),
+                );
               }}
               className="relative rounded-full p-2 transition hover:bg-white/10"
               aria-label="Notifications"
@@ -853,10 +929,17 @@ const WebDAVPage = () => {
                     </div>
                   ) : (
                     notifications.map((n) => (
-                      <div key={n.id} className="py-2 border-b border-slate-50 last:border-b-0">
-                        <p className="text-xs font-normal text-slate-750">{n.text}</p>
+                      <div
+                        key={n.id}
+                        className="py-2 border-b border-slate-50 last:border-b-0"
+                      >
+                        <p className="text-xs font-normal text-slate-750">
+                          {n.text}
+                        </p>
                         <span className="text-[10px] text-slate-400">
-                          {new Intl.DateTimeFormat("en-US", { timeStyle: "short" }).format(n.time)}
+                          {new Intl.DateTimeFormat("en-US", {
+                            timeStyle: "short",
+                          }).format(n.time)}
                         </span>
                       </div>
                     ))
@@ -883,7 +966,9 @@ const WebDAVPage = () => {
 
             {showStorage && (
               <div className="absolute right-0 top-[calc(100%+8px)] z-20 w-72 rounded-2xl border border-slate-200 bg-white p-4 shadow-xl text-slate-800">
-                <span className="font-semibold text-sm block mb-3">Storage Space</span>
+                <span className="font-semibold text-sm block mb-3">
+                  Storage Space
+                </span>
                 <div className="mb-2 flex items-center justify-between text-xs font-medium text-slate-600">
                   <span>{formatBytes(currentUsedBytes)} used</span>
                   <span>10 GB total</span>
@@ -919,12 +1004,18 @@ const WebDAVPage = () => {
             {showProfile && (
               <div className="absolute right-0 top-[calc(100%+8px)] z-20 w-64 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl text-slate-800">
                 <div className="px-3 py-2 border-b border-slate-100 mb-2">
-                  <p className="text-xs text-slate-400 font-medium">Signed in as</p>
+                  <p className="text-xs text-slate-400 font-medium">
+                    Signed in as
+                  </p>
                   <p className="text-sm font-semibold text-slate-900 truncate">
-                    {localStorage.getItem("displayName") || localStorage.getItem("username") || "User"}
+                    {localStorage.getItem("displayName") ||
+                      localStorage.getItem("username") ||
+                      "User"}
                   </p>
                   <p className="text-[10px] text-slate-500 font-normal truncate">
-                    {localStorage.getItem("role") ? `${localStorage.getItem("role")} Group` : "LDAP Account"}
+                    {localStorage.getItem("role")
+                      ? `${localStorage.getItem("role")} Group`
+                      : "LDAP Account"}
                   </p>
                 </div>
                 <button
@@ -997,14 +1088,17 @@ const WebDAVPage = () => {
           {/* Compact breadcrumbs with folder icon and subdirectory actions */}
           <div className="flex items-center gap-1 overflow-x-auto text-sm font-semibold text-slate-700 scrollbar-none pr-1">
             <Folder className="h-4 w-4 text-slate-400 shrink-0 mr-0.5" />
-            
+
             {breadcrumbs.map((crumb, index) => {
               const isRoot = index === 0;
               const isLast = index === breadcrumbs.length - 1;
 
               if (isRoot) {
                 return (
-                  <div key={crumb.path} className="flex items-center gap-1 shrink-0">
+                  <div
+                    key={crumb.path}
+                    className="flex items-center gap-1 shrink-0"
+                  >
                     <div className="relative shrink-0" ref={allFilesMenuRef}>
                       <button
                         type="button"
@@ -1023,7 +1117,9 @@ const WebDAVPage = () => {
                         {allFilesFilter === "favorites" && "Favorites"}
                         {allFilesFilter === "recent" && "Recent"}
                         {allFilesFilter === "shares" && "Shared"}
-                        {isLast && <ChevronDown className="h-3.5 w-3.5 text-slate-500 shrink-0" />}
+                        {isLast && (
+                          <ChevronDown className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                        )}
                       </button>
 
                       {isLast && showAllFilesMenu && (
@@ -1036,7 +1132,9 @@ const WebDAVPage = () => {
                               setShowAllFilesMenu(false);
                             }}
                             className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs transition hover:bg-slate-50 ${
-                              allFilesFilter === "all" ? "bg-slate-50 font-bold text-[#208ded]" : ""
+                              allFilesFilter === "all"
+                                ? "bg-slate-50 font-bold text-[#208ded]"
+                                : ""
                             }`}
                           >
                             All files
@@ -1048,7 +1146,9 @@ const WebDAVPage = () => {
                               setShowAllFilesMenu(false);
                             }}
                             className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs transition hover:bg-slate-50 ${
-                              allFilesFilter === "recent" ? "bg-slate-50 font-bold text-[#208ded]" : ""
+                              allFilesFilter === "recent"
+                                ? "bg-slate-50 font-bold text-[#208ded]"
+                                : ""
                             }`}
                           >
                             Recent
@@ -1060,7 +1160,9 @@ const WebDAVPage = () => {
                               setShowAllFilesMenu(false);
                             }}
                             className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs transition hover:bg-slate-50 ${
-                              allFilesFilter === "favorites" ? "bg-slate-50 font-bold text-[#208ded]" : ""
+                              allFilesFilter === "favorites"
+                                ? "bg-slate-50 font-bold text-[#208ded]"
+                                : ""
                             }`}
                           >
                             Favorites
@@ -1072,7 +1174,9 @@ const WebDAVPage = () => {
                               setShowAllFilesMenu(false);
                             }}
                             className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs transition hover:bg-slate-50 ${
-                              allFilesFilter === "shares" ? "bg-slate-50 font-bold text-[#208ded]" : ""
+                              allFilesFilter === "shares"
+                                ? "bg-slate-50 font-bold text-[#208ded]"
+                                : ""
                             }`}
                           >
                             Shared with others
@@ -1097,9 +1201,12 @@ const WebDAVPage = () => {
               }
 
               return (
-                <div key={crumb.path} className="flex items-center gap-1 shrink-0">
+                <div
+                  key={crumb.path}
+                  className="flex items-center gap-1 shrink-0"
+                >
                   <ChevronRight className="h-3 w-3 text-slate-450 shrink-0" />
-                  
+
                   {isLast ? (
                     <div className="relative shrink-0" ref={currentDirMenuRef}>
                       <button
@@ -1122,7 +1229,7 @@ const WebDAVPage = () => {
                                 path: crumb.path,
                                 type: "folder",
                                 modified: new Date(),
-                                size: null
+                                size: null,
                               });
                             }}
                             className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs hover:bg-slate-50 transition"
@@ -1190,36 +1297,56 @@ const WebDAVPage = () => {
               <div className="absolute right-0 top-[calc(100%+8px)] z-20 w-44 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl text-slate-800 font-normal">
                 <button
                   type="button"
-                  onClick={() => { setTypeFilter("all"); setShowTypeMenu(false); }}
+                  onClick={() => {
+                    setTypeFilter("all");
+                    setShowTypeMenu(false);
+                  }}
                   className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-slate-100 ${
-                    typeFilter === "all" ? "bg-slate-50 font-semibold text-[#208ded]" : ""
+                    typeFilter === "all"
+                      ? "bg-slate-50 font-semibold text-[#208ded]"
+                      : ""
                   }`}
                 >
                   All files
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setTypeFilter("folders"); setShowTypeMenu(false); }}
+                  onClick={() => {
+                    setTypeFilter("folders");
+                    setShowTypeMenu(false);
+                  }}
                   className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-slate-100 ${
-                    typeFilter === "folders" ? "bg-slate-50 font-semibold text-[#208ded]" : ""
+                    typeFilter === "folders"
+                      ? "bg-slate-50 font-semibold text-[#208ded]"
+                      : ""
                   }`}
                 >
                   Folders
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setTypeFilter("documents"); setShowTypeMenu(false); }}
+                  onClick={() => {
+                    setTypeFilter("documents");
+                    setShowTypeMenu(false);
+                  }}
                   className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-slate-100 ${
-                    typeFilter === "documents" ? "bg-slate-50 font-semibold text-[#208ded]" : ""
+                    typeFilter === "documents"
+                      ? "bg-slate-50 font-semibold text-[#208ded]"
+                      : ""
                   }`}
                 >
                   Documents
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setTypeFilter("images"); setShowTypeMenu(false); }}
+                  onClick={() => {
+                    setTypeFilter("images");
+                    setShowTypeMenu(false);
+                  }}
                   className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-slate-100 ${
-                    typeFilter === "images" ? "bg-slate-50 font-semibold text-[#208ded]" : ""
+                    typeFilter === "images"
+                      ? "bg-slate-50 font-semibold text-[#208ded]"
+                      : ""
                   }`}
                 >
                   Images
@@ -1247,7 +1374,9 @@ const WebDAVPage = () => {
           {/* Grid/List View Toggle */}
           <button
             type="button"
-            onClick={() => setViewMode((prev) => (prev === "list" ? "grid" : "list"))}
+            onClick={() =>
+              setViewMode((prev) => (prev === "list" ? "grid" : "list"))
+            }
             className={`inline-flex items-center gap-2 rounded-lg px-2 py-2 transition hover:bg-slate-100 ${
               viewMode === "grid" ? "bg-[#e8f4fd] text-[#208ded]" : ""
             }`}
@@ -1261,10 +1390,11 @@ const WebDAVPage = () => {
       <main className="flex flex-1 flex-col overflow-hidden bg-white">
         {notice && (
           <div
-            className={`mx-8 mt-5 rounded-2xl border px-4 py-3 ${notice.type === "error"
-              ? "border-rose-200 bg-rose-50 text-rose-700"
-              : "border-emerald-200 bg-emerald-50 text-emerald-700"
-              }`}
+            className={`mx-8 mt-5 rounded-2xl border px-4 py-3 ${
+              notice.type === "error"
+                ? "border-rose-200 bg-rose-50 text-rose-700"
+                : "border-emerald-200 bg-emerald-50 text-emerald-700"
+            }`}
           >
             {notice.text}
           </div>
@@ -1328,7 +1458,7 @@ const WebDAVPage = () => {
                               setFavorites((prev) =>
                                 prev.includes(entry.path)
                                   ? prev.filter((p) => p !== entry.path)
-                                  : [...prev, entry.path]
+                                  : [...prev, entry.path],
                               );
                             }}
                             className={`p-1 rounded-full transition shrink-0 ${
@@ -1338,7 +1468,9 @@ const WebDAVPage = () => {
                             }`}
                             aria-label="Toggle favorite"
                           >
-                            <Star className={`h-4 w-4 ${favorites.includes(entry.path) ? "fill-current" : ""}`} />
+                            <Star
+                              className={`h-4 w-4 ${favorites.includes(entry.path) ? "fill-current" : ""}`}
+                            />
                           </button>
                         </div>
 
@@ -1382,10 +1514,14 @@ const WebDAVPage = () => {
                           {entry.type === "folder" ? "Folder" : "File"}
                         </div>
                         <div className="text-slate-650 font-normal">
-                          {entry.type === "folder" ? "—" : formatBytes(entry.size)}
+                          {entry.type === "folder"
+                            ? "—"
+                            : formatBytes(entry.size)}
                         </div>
-                        <div className="text-slate-650 font-normal">{formatDate(entry.modified)}</div>
-                        
+                        <div className="text-slate-650 font-normal">
+                          {formatDate(entry.modified)}
+                        </div>
+
                         <div className="flex items-center justify-end relative">
                           <button
                             type="button"
@@ -1407,14 +1543,18 @@ const WebDAVPage = () => {
                                   setFavorites((prev) =>
                                     prev.includes(entry.path)
                                       ? prev.filter((p) => p !== entry.path)
-                                      : [...prev, entry.path]
+                                      : [...prev, entry.path],
                                   );
                                   setActiveRowMenu(null);
                                 }}
                                 className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-xs hover:bg-slate-50 transition"
                               >
-                                <Star className={`h-3.5 w-3.5 text-amber-400 shrink-0 ${favorites.includes(entry.path) ? "fill-current" : ""}`} />
-                                {favorites.includes(entry.path) ? "Remove favorite" : "Add to favorites"}
+                                <Star
+                                  className={`h-3.5 w-3.5 text-amber-400 shrink-0 ${favorites.includes(entry.path) ? "fill-current" : ""}`}
+                                />
+                                {favorites.includes(entry.path)
+                                  ? "Remove favorite"
+                                  : "Add to favorites"}
                               </button>
                               <button
                                 type="button"
@@ -1508,7 +1648,7 @@ const WebDAVPage = () => {
                               setFavorites((prev) =>
                                 prev.includes(entry.path)
                                   ? prev.filter((p) => p !== entry.path)
-                                  : [...prev, entry.path]
+                                  : [...prev, entry.path],
                               );
                             }}
                             className={`p-1 rounded-full transition ${
@@ -1518,7 +1658,9 @@ const WebDAVPage = () => {
                             }`}
                             aria-label="Toggle favorite"
                           >
-                            <Star className={`h-3.5 w-3.5 ${favorites.includes(entry.path) ? "fill-current" : ""}`} />
+                            <Star
+                              className={`h-3.5 w-3.5 ${favorites.includes(entry.path) ? "fill-current" : ""}`}
+                            />
                           </button>
                         </div>
 
@@ -1544,13 +1686,15 @@ const WebDAVPage = () => {
                                   setFavorites((prev) =>
                                     prev.includes(entry.path)
                                       ? prev.filter((p) => p !== entry.path)
-                                      : [...prev, entry.path]
+                                      : [...prev, entry.path],
                                   );
                                   setActiveRowMenu(null);
                                 }}
                                 className="flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left text-xs hover:bg-slate-50 transition"
                               >
-                                <Star className={`h-3 w-3 text-amber-400 shrink-0 ${favorites.includes(entry.path) ? "fill-current" : ""}`} />
+                                <Star
+                                  className={`h-3 w-3 text-amber-400 shrink-0 ${favorites.includes(entry.path) ? "fill-current" : ""}`}
+                                />
                                 Favorite
                               </button>
                               <button
@@ -1624,11 +1768,16 @@ const WebDAVPage = () => {
                           </span>
 
                           <div className="w-full px-2">
-                            <p className="text-sm font-semibold text-slate-850 truncate mb-0.5" title={entry.name}>
+                            <p
+                              className="text-sm font-semibold text-slate-850 truncate mb-0.5"
+                              title={entry.name}
+                            >
                               {entry.name}
                             </p>
                             <p className="text-[10px] text-slate-400 font-medium">
-                              {entry.type === "folder" ? "Folder" : formatBytes(entry.size)}
+                              {entry.type === "folder"
+                                ? "Folder"
+                                : formatBytes(entry.size)}
                             </p>
                           </div>
                         </div>
@@ -1642,7 +1791,8 @@ const WebDAVPage = () => {
 
           <div className="flex items-center justify-between border-t border-slate-200 px-8 py-4 text-sm text-slate-500 shrink-0">
             <span>
-              {fileCount} {fileCount === 1 ? "file" : "files"} · {folderCount} {folderCount === 1 ? "folder" : "folders"}
+              {fileCount} {fileCount === 1 ? "file" : "files"} · {folderCount}{" "}
+              {folderCount === 1 ? "folder" : "folders"}
             </span>
             <span>{formatBytes(totalSize)}</span>
           </div>
@@ -1657,7 +1807,9 @@ const WebDAVPage = () => {
         >
           {/* Sidebar Header */}
           <div className="flex items-center justify-between border-b border-slate-200 px-4 py-4 bg-slate-50">
-            <span className="font-semibold text-slate-800">Colleagues & Sharing</span>
+            <span className="font-semibold text-slate-800">
+              Colleagues & Sharing
+            </span>
             <button
               type="button"
               onClick={() => setShowPeopleSidebar(false)}
@@ -1698,11 +1850,19 @@ const WebDAVPage = () => {
                 <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto">
                   {usersList
                     .filter((u) => {
-                      const name = `${u.givenName || ""} ${u.sn || ""}`.toLowerCase();
-                      return name.includes(shareSearchQuery.toLowerCase()) || u.uid?.toLowerCase().includes(shareSearchQuery.toLowerCase());
+                      const name =
+                        `${u.givenName || ""} ${u.sn || ""}`.toLowerCase();
+                      return (
+                        name.includes(shareSearchQuery.toLowerCase()) ||
+                        u.uid
+                          ?.toLowerCase()
+                          .includes(shareSearchQuery.toLowerCase())
+                      );
                     })
                     .map((user) => {
-                      const initials = `${user.givenName?.[0] || ""}${user.sn?.[0] || ""}`.toUpperCase() || user.uid?.[0].toUpperCase();
+                      const initials =
+                        `${user.givenName?.[0] || ""}${user.sn?.[0] || ""}`.toUpperCase() ||
+                        user.uid?.[0].toUpperCase();
                       return (
                         <div
                           key={user.uid}
@@ -1716,7 +1876,9 @@ const WebDAVPage = () => {
                               <p className="text-xs font-semibold text-slate-800 truncate">
                                 {user.givenName} {user.sn}
                               </p>
-                              <p className="text-[10px] text-slate-405 truncate">{user.groupName || "Member"}</p>
+                              <p className="text-[10px] text-slate-405 truncate">
+                                {user.groupName || "Member"}
+                              </p>
                             </div>
                           </div>
                           <button
@@ -1731,14 +1893,17 @@ const WebDAVPage = () => {
                       );
                     })}
                   {usersList.length === 0 && (
-                    <p className="text-xs text-slate-400 text-center py-4">No colleagues found.</p>
+                    <p className="text-xs text-slate-400 text-center py-4">
+                      No colleagues found.
+                    </p>
                   )}
                 </div>
               </div>
             ) : (
               <div className="flex flex-col gap-4">
                 <p className="text-xs text-slate-500 leading-normal">
-                  To share files, check items from the list/grid, then open this sidebar to select a colleague.
+                  To share files, check items from the list/grid, then open this
+                  sidebar to select a colleague.
                 </p>
 
                 <div className="relative mt-2">
@@ -1758,11 +1923,19 @@ const WebDAVPage = () => {
                 <div className="flex flex-col gap-2">
                   {usersList
                     .filter((u) => {
-                      const name = `${u.givenName || ""} ${u.sn || ""}`.toLowerCase();
-                      return name.includes(shareSearchQuery.toLowerCase()) || u.uid?.toLowerCase().includes(shareSearchQuery.toLowerCase());
+                      const name =
+                        `${u.givenName || ""} ${u.sn || ""}`.toLowerCase();
+                      return (
+                        name.includes(shareSearchQuery.toLowerCase()) ||
+                        u.uid
+                          ?.toLowerCase()
+                          .includes(shareSearchQuery.toLowerCase())
+                      );
                     })
                     .map((user) => {
-                      const initials = `${user.givenName?.[0] || ""}${user.sn?.[0] || ""}`.toUpperCase() || user.uid?.[0].toUpperCase();
+                      const initials =
+                        `${user.givenName?.[0] || ""}${user.sn?.[0] || ""}`.toUpperCase() ||
+                        user.uid?.[0].toUpperCase();
                       return (
                         <div
                           key={user.uid}
@@ -1775,8 +1948,12 @@ const WebDAVPage = () => {
                             <p className="text-xs font-semibold text-slate-800 truncate">
                               {user.givenName} {user.sn}
                             </p>
-                            <p className="text-[10px] text-slate-405 truncate">{user.mail || user.uid}</p>
-                            <p className="text-[9px] text-[#208ded] font-medium mt-0.5">{user.groupName || "Colleague"}</p>
+                            <p className="text-[10px] text-slate-405 truncate">
+                              {user.mail || user.uid}
+                            </p>
+                            <p className="text-[9px] text-[#208ded] font-medium mt-0.5">
+                              {user.groupName || "Colleague"}
+                            </p>
                           </div>
                         </div>
                       );
@@ -1805,7 +1982,7 @@ const WebDAVPage = () => {
                 Close
               </button>
             </div>
-            
+
             <div className="flex items-center gap-3">
               <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eaf5ff] text-[#208ded] shrink-0">
                 {activeDetailsEntry.type === "folder" ? (
@@ -1815,11 +1992,17 @@ const WebDAVPage = () => {
                 )}
               </span>
               <div className="min-w-0">
-                <p className="text-sm font-bold text-slate-800 truncate" title={activeDetailsEntry.name}>
+                <p
+                  className="text-sm font-bold text-slate-800 truncate"
+                  title={activeDetailsEntry.name}
+                >
                   {activeDetailsEntry.name}
                 </p>
                 <p className="text-xs text-slate-450 font-medium">
-                  {activeDetailsEntry.type === "folder" ? "Folder" : formatBytes(activeDetailsEntry.size)} · {formatDate(activeDetailsEntry.modified)}
+                  {activeDetailsEntry.type === "folder"
+                    ? "Folder"
+                    : formatBytes(activeDetailsEntry.size)}{" "}
+                  · {formatDate(activeDetailsEntry.modified)}
                 </p>
               </div>
             </div>
@@ -1860,7 +2043,9 @@ const WebDAVPage = () => {
                 {/* Internal shares */}
                 <div>
                   <div className="flex items-center gap-1 mb-1">
-                    <span className="text-xs font-bold text-slate-700">Internal shares</span>
+                    <span className="text-xs font-bold text-slate-700">
+                      Internal shares
+                    </span>
                     <Info className="h-3 w-3 text-slate-400" />
                   </div>
                   <div className="relative">
@@ -1876,7 +2061,9 @@ const WebDAVPage = () => {
                 {/* Others with access */}
                 <div>
                   <div className="flex items-center justify-between py-1 border-b border-slate-100 mb-2">
-                    <span className="text-xs font-bold text-slate-700 font-sans">Others with access</span>
+                    <span className="text-xs font-bold text-slate-700 font-sans">
+                      Others with access
+                    </span>
                     <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
                   </div>
                   <div className="space-y-2">
@@ -1886,8 +2073,12 @@ const WebDAVPage = () => {
                           FP
                         </span>
                         <div>
-                          <p className="font-semibold text-slate-800">Felix Pareja (Owner)</p>
-                          <p className="text-[9px] text-slate-400">Full access</p>
+                          <p className="font-semibold text-slate-800">
+                            Felix Pareja (Owner)
+                          </p>
+                          <p className="text-[9px] text-slate-400">
+                            Full access
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -1896,7 +2087,9 @@ const WebDAVPage = () => {
 
                 {/* Internal Link */}
                 <div>
-                  <span className="text-xs font-bold text-slate-700 block mb-1">Internal link</span>
+                  <span className="text-xs font-bold text-slate-700 block mb-1">
+                    Internal link
+                  </span>
                   <div className="flex items-center gap-1.5">
                     <input
                       type="text"
@@ -1907,7 +2100,9 @@ const WebDAVPage = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        navigator.clipboard.writeText(`${window.location.origin}/uploads${activeDetailsEntry.path}`);
+                        navigator.clipboard.writeText(
+                          `${window.location.origin}/uploads${activeDetailsEntry.path}`,
+                        );
                         alert("Link copied to clipboard!");
                       }}
                       className="rounded-xl border border-slate-200 bg-white p-2 hover:bg-slate-50 transition shadow-sm"
@@ -1921,7 +2116,9 @@ const WebDAVPage = () => {
                 {/* External shares */}
                 <div>
                   <div className="flex items-center gap-1 mb-1">
-                    <span className="text-xs font-bold text-slate-700">External shares</span>
+                    <span className="text-xs font-bold text-slate-700">
+                      External shares
+                    </span>
                     <Info className="h-3 w-3 text-slate-400" />
                   </div>
                   <div className="relative">
@@ -1955,14 +2152,20 @@ const WebDAVPage = () => {
                       ✓
                     </span>
                     <p className="font-semibold text-slate-800">File created</p>
-                    <p className="text-[10px] text-slate-400">By Felix Pareja · 2 hours ago</p>
+                    <p className="text-[10px] text-slate-400">
+                      By Felix Pareja · 2 hours ago
+                    </p>
                   </div>
                   <div className="relative">
                     <span className="absolute -left-[31px] top-0 flex h-4 w-4 items-center justify-center rounded-full bg-amber-105 text-[10px] font-bold text-amber-500">
                       ★
                     </span>
-                    <p className="font-semibold text-slate-850">Added to Favorites</p>
-                    <p className="text-[10px] text-slate-400">By System · 1 hour ago</p>
+                    <p className="font-semibold text-slate-850">
+                      Added to Favorites
+                    </p>
+                    <p className="text-[10px] text-slate-400">
+                      By System · 1 hour ago
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1982,11 +2185,15 @@ const WebDAVPage = () => {
                   <FileText className="h-5 w-5" />
                 </span>
                 <div className="min-w-0">
-                  <h3 className="truncate font-semibold text-slate-850 text-base" title={activePreviewFile.name}>
+                  <h3
+                    className="truncate font-semibold text-slate-850 text-base"
+                    title={activePreviewFile.name}
+                  >
                     {activePreviewFile.name}
                   </h3>
                   <p className="text-xs text-slate-400 font-medium">
-                    {formatBytes(activePreviewFile.size)} · Modified {formatDate(activePreviewFile.modified)}
+                    {formatBytes(activePreviewFile.size)} · Modified{" "}
+                    {formatDate(activePreviewFile.modified)}
                   </p>
                 </div>
               </div>
@@ -1999,7 +2206,7 @@ const WebDAVPage = () => {
                 >
                   Download
                 </button>
-                
+
                 {/* Close Button */}
                 <button
                   type="button"
@@ -2010,18 +2217,24 @@ const WebDAVPage = () => {
                 </button>
               </div>
             </div>
-            
+
             {/* Modal Content */}
             <div className="flex-1 overflow-auto bg-slate-50/30 p-6 flex flex-col items-center justify-center">
               {previewLoading ? (
                 <div className="flex flex-col items-center gap-3">
                   <RefreshCw className="h-8 w-8 text-[#208ded] animate-spin" />
-                  <p className="text-sm font-medium text-slate-500">Loading preview...</p>
+                  <p className="text-sm font-medium text-slate-500">
+                    Loading preview...
+                  </p>
                 </div>
               ) : previewError ? (
                 <div className="text-center">
-                  <p className="text-sm font-semibold text-rose-650 mb-2">Could not load preview</p>
-                  <p className="text-xs text-slate-400 mb-4 max-w-md">{previewError}</p>
+                  <p className="text-sm font-semibold text-rose-650 mb-2">
+                    Could not load preview
+                  </p>
+                  <p className="text-xs text-slate-400 mb-4 max-w-md">
+                    {previewError}
+                  </p>
                   <button
                     type="button"
                     onClick={() => handleFileClick(activePreviewFile)}
@@ -2033,8 +2246,20 @@ const WebDAVPage = () => {
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center">
                   {(() => {
-                    const ext = "." + activePreviewFile.name.split(".").pop().toLowerCase();
-                    if ([".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".bmp"].includes(ext)) {
+                    const ext =
+                      "." +
+                      activePreviewFile.name.split(".").pop().toLowerCase();
+                    if (
+                      [
+                        ".png",
+                        ".jpg",
+                        ".jpeg",
+                        ".gif",
+                        ".svg",
+                        ".webp",
+                        ".bmp",
+                      ].includes(ext)
+                    ) {
                       return (
                         <div className="max-h-full max-w-full overflow-auto rounded-xl border border-slate-150 bg-white p-2 shadow-sm">
                           <img
@@ -2054,12 +2279,24 @@ const WebDAVPage = () => {
                         />
                       );
                     }
-                    if ([".txt", ".md", ".json", ".js", ".css", ".html", ".log"].includes(ext)) {
+                    if (
+                      [
+                        ".txt",
+                        ".md",
+                        ".json",
+                        ".js",
+                        ".css",
+                        ".html",
+                        ".log",
+                      ].includes(ext)
+                    ) {
                       return (
                         <div className="w-full h-full flex flex-col bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                           <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-4 py-2">
                             <span className="text-xs text-slate-400 font-medium font-sans">
-                              {isEditingText ? "Editing File Contents..." : "Read-only preview"}
+                              {isEditingText
+                                ? "Editing File Contents..."
+                                : "Read-only preview"}
                             </span>
                             <button
                               type="button"
@@ -2073,7 +2310,9 @@ const WebDAVPage = () => {
                             <div className="flex-1 flex flex-col p-4">
                               <textarea
                                 value={previewContent}
-                                onChange={(e) => setPreviewContent(e.target.value)}
+                                onChange={(e) =>
+                                  setPreviewContent(e.target.value)
+                                }
                                 className="flex-1 w-full p-3 font-mono text-sm border border-slate-200 rounded-xl outline-none focus:border-[#208ded] resize-none"
                               />
                               <div className="flex justify-end gap-2 mt-3">
@@ -2095,22 +2334,29 @@ const WebDAVPage = () => {
                             </div>
                           ) : (
                             <pre className="flex-1 overflow-auto p-4 font-mono text-xs text-slate-750 whitespace-pre-wrap select-text leading-relaxed text-left w-full">
-                              {previewContent || <span className="text-slate-400 italic">Empty file</span>}
+                              {previewContent || (
+                                <span className="text-slate-400 italic">
+                                  Empty file
+                                </span>
+                              )}
                             </pre>
                           )}
                         </div>
                       );
                     }
-                    
+
                     // Fallback preview
                     return (
                       <div className="text-center p-8 bg-white border border-slate-200 rounded-3xl shadow-sm max-w-sm flex flex-col items-center">
                         <span className="flex h-20 w-20 items-center justify-center rounded-3xl bg-slate-50 text-slate-400 mb-4 ring-4 ring-slate-50/50">
                           <FileText className="h-10 w-10 text-slate-500" />
                         </span>
-                        <h4 className="font-semibold text-slate-800 text-sm mb-1">{activePreviewFile.name}</h4>
+                        <h4 className="font-semibold text-slate-800 text-sm mb-1">
+                          {activePreviewFile.name}
+                        </h4>
                         <p className="text-xs text-slate-400 mb-6">
-                          Previews for {ext.toUpperCase()} files are not supported natively.
+                          Previews for {ext.toUpperCase()} files are not
+                          supported natively.
                         </p>
                         <button
                           type="button"
