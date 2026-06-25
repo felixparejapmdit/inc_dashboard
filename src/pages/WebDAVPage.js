@@ -27,6 +27,7 @@ import {
   Share2,
   Activity,
   Copy,
+  UserPlus,
 } from "lucide-react";
 
 import { getAuthHeaders } from "../utils/apiHeaders";
@@ -191,6 +192,7 @@ const WebDAVPage = () => {
   const [activeDetailsEntry, setActiveDetailsEntry] = useState(null);
   const [activeDetailsTab, setActiveDetailsTab] = useState("sharing"); // "sharing" or "activity"
   const [activeRowMenu, setActiveRowMenu] = useState(null);
+  const [currentDirMenuOpen, setCurrentDirMenuOpen] = useState(false);
 
   const fileInputRef = useRef(null);
   const requestIdRef = useRef(0);
@@ -205,6 +207,7 @@ const WebDAVPage = () => {
   const peopleSidebarRef = useRef(null);
   const peopleButtonRef = useRef(null);
   const allFilesMenuRef = useRef(null);
+  const currentDirMenuRef = useRef(null);
 
   useEffect(() => {
     currentPathRef.current = currentPath;
@@ -243,6 +246,9 @@ const WebDAVPage = () => {
       }
       if (allFilesMenuRef.current && !allFilesMenuRef.current.contains(event.target)) {
         setShowAllFilesMenu(false);
+      }
+      if (currentDirMenuRef.current && !currentDirMenuRef.current.contains(event.target)) {
+        setCurrentDirMenuOpen(false);
       }
       if (
         peopleSidebarRef.current &&
@@ -988,97 +994,168 @@ const WebDAVPage = () => {
             )}
           </div>
 
-          {/* Compact breadcrumbs with dropdown filter */}
+          {/* Compact breadcrumbs with folder icon and subdirectory actions */}
           <div className="flex items-center gap-1 overflow-x-auto text-sm font-semibold text-slate-700 scrollbar-none pr-1">
-            {breadcrumbs.map((crumb, index) => (
-              <div key={crumb.path} className="flex items-center gap-1 shrink-0">
-                {index > 0 && <ChevronRight className="h-3 w-3 text-slate-400 shrink-0" />}
-                {index === 0 ? (
-                  <div className="relative shrink-0" ref={allFilesMenuRef}>
+            <Folder className="h-4 w-4 text-slate-400 shrink-0 mr-0.5" />
+            
+            {breadcrumbs.map((crumb, index) => {
+              const isRoot = index === 0;
+              const isLast = index === breadcrumbs.length - 1;
+
+              if (isRoot) {
+                return (
+                  <div key={crumb.path} className="flex items-center gap-1 shrink-0">
+                    <div className="relative shrink-0" ref={allFilesMenuRef}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (isLast) {
+                            setShowAllFilesMenu((val) => !val);
+                          } else {
+                            openFolder(crumb.path);
+                          }
+                        }}
+                        className={`inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm font-bold text-slate-900 transition hover:bg-slate-100 ${
+                          !isLast ? "text-slate-500 hover:text-slate-800" : ""
+                        }`}
+                      >
+                        {allFilesFilter === "all" && "All files"}
+                        {allFilesFilter === "favorites" && "Favorites"}
+                        {allFilesFilter === "recent" && "Recent"}
+                        {allFilesFilter === "shares" && "Shared"}
+                        {isLast && <ChevronDown className="h-3.5 w-3.5 text-slate-500 shrink-0" />}
+                      </button>
+
+                      {isLast && showAllFilesMenu && (
+                        <div className="absolute left-0 top-[calc(100%+4px)] z-30 w-48 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl text-slate-800 font-normal">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAllFilesFilter("all");
+                              setCurrentPath("/");
+                              setShowAllFilesMenu(false);
+                            }}
+                            className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs transition hover:bg-slate-50 ${
+                              allFilesFilter === "all" ? "bg-slate-50 font-bold text-[#208ded]" : ""
+                            }`}
+                          >
+                            All files
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAllFilesFilter("recent");
+                              setShowAllFilesMenu(false);
+                            }}
+                            className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs transition hover:bg-slate-50 ${
+                              allFilesFilter === "recent" ? "bg-slate-50 font-bold text-[#208ded]" : ""
+                            }`}
+                          >
+                            Recent
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAllFilesFilter("favorites");
+                              setShowAllFilesMenu(false);
+                            }}
+                            className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs transition hover:bg-slate-50 ${
+                              allFilesFilter === "favorites" ? "bg-slate-50 font-bold text-[#208ded]" : ""
+                            }`}
+                          >
+                            Favorites
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAllFilesFilter("shares");
+                              setShowAllFilesMenu(false);
+                            }}
+                            className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs transition hover:bg-slate-50 ${
+                              allFilesFilter === "shares" ? "bg-slate-50 font-bold text-[#208ded]" : ""
+                            }`}
+                          >
+                            Shared with others
+                          </button>
+                          <div className="my-1 border-t border-slate-100" />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowAllFilesMenu(false);
+                              handleRefresh();
+                            }}
+                            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs hover:bg-slate-50 transition"
+                          >
+                            <RefreshCw className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                            Reload content
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <div key={crumb.path} className="flex items-center gap-1 shrink-0">
+                  <ChevronRight className="h-3 w-3 text-slate-450 shrink-0" />
+                  
+                  {isLast ? (
+                    <div className="relative shrink-0" ref={currentDirMenuRef}>
+                      <button
+                        type="button"
+                        onClick={() => setCurrentDirMenuOpen((val) => !val)}
+                        className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm font-bold text-slate-900 bg-slate-100 hover:bg-slate-200 transition shrink-0"
+                      >
+                        {crumb.label}
+                        <ChevronDown className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                      </button>
+
+                      {currentDirMenuOpen && (
+                        <div className="absolute left-0 top-[calc(100%+4px)] z-30 w-44 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl text-slate-800 font-normal">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCurrentDirMenuOpen(false);
+                              openDetails({
+                                name: crumb.label,
+                                path: crumb.path,
+                                type: "folder",
+                                modified: new Date(),
+                                size: null
+                              });
+                            }}
+                            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs hover:bg-slate-50 transition"
+                          >
+                            <UserPlus className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+                            Share
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCurrentDirMenuOpen(false);
+                              handleRefresh();
+                            }}
+                            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs hover:bg-slate-50 transition"
+                          >
+                            <RefreshCw className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                            Reload content
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
                     <button
                       type="button"
-                      onClick={() => {
-                        setShowAllFilesMenu((val) => !val);
-                        setNewMenuOpen(false);
-                      }}
-                      className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm font-bold text-slate-900 transition hover:bg-slate-100 animate-fade-in"
+                      onClick={() => openFolder(crumb.path)}
+                      className="rounded-lg px-2 py-1.5 text-sm font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition shrink-0"
                     >
-                      {allFilesFilter === "all" && "All files"}
-                      {allFilesFilter === "favorites" && "Favorites"}
-                      {allFilesFilter === "recent" && "Recent"}
-                      {allFilesFilter === "shares" && "Shared"}
-                      <ChevronDown className="h-4 w-4 text-slate-500 shrink-0" />
+                      {crumb.label}
                     </button>
-
-                    {showAllFilesMenu && (
-                      <div className="absolute left-0 top-[calc(100%+8px)] z-20 w-48 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl text-slate-800 font-normal">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setAllFilesFilter("all");
-                            setCurrentPath("/");
-                            setShowAllFilesMenu(false);
-                          }}
-                          className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-slate-100 ${
-                            allFilesFilter === "all" ? "bg-slate-50 font-semibold text-[#208ded]" : ""
-                          }`}
-                        >
-                          All files
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setAllFilesFilter("recent");
-                            setShowAllFilesMenu(false);
-                          }}
-                          className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-slate-100 ${
-                            allFilesFilter === "recent" ? "bg-slate-50 font-semibold text-[#208ded]" : ""
-                          }`}
-                        >
-                          Recent
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setAllFilesFilter("favorites");
-                            setShowAllFilesMenu(false);
-                          }}
-                          className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-slate-100 ${
-                            allFilesFilter === "favorites" ? "bg-slate-50 font-semibold text-[#208ded]" : ""
-                          }`}
-                        >
-                          Favorites
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setAllFilesFilter("shares");
-                            setShowAllFilesMenu(false);
-                          }}
-                          className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-slate-100 ${
-                            allFilesFilter === "shares" ? "bg-slate-50 font-semibold text-[#208ded]" : ""
-                          }`}
-                        >
-                          Shared with others
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => openFolder(crumb.path)}
-                    className={`rounded-lg px-2 py-1.5 text-sm font-semibold transition ${
-                      crumb.path === currentPath
-                        ? "bg-[#e8f4fd] text-[#208ded] cursor-default shrink-0"
-                        : "hover:bg-slate-100 hover:text-slate-800 shrink-0"
-                    }`}
-                  >
-                    {crumb.label}
-                  </button>
-                )}
-              </div>
-            ))}
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           <button
@@ -1565,7 +1642,7 @@ const WebDAVPage = () => {
 
           <div className="flex items-center justify-between border-t border-slate-200 px-8 py-4 text-sm text-slate-500 shrink-0">
             <span>
-              {fileCount} files · {folderCount} folders
+              {fileCount} {fileCount === 1 ? "file" : "files"} · {folderCount} {folderCount === 1 ? "folder" : "folders"}
             </span>
             <span>{formatBytes(totalSize)}</span>
           </div>
