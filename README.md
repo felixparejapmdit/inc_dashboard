@@ -32,7 +32,8 @@ The core of the application is the multi-step Enrollment Form, designed to captu
 ### 📁 WebDAV File Manager
 - Replaces the old iframe view with a native file explorer.
 - Uses the Node.js backend as a secure WebDAV bridge, so the browser never sees the WebDAV password.
-- Configure `WEBDAV_URL`, `WEBDAV_USERNAME`, and `WEBDAV_PASSWORD` in the backend `.env` or `.env.docker`.
+- If `users.webdav_url` is empty, the backend auto-fills it on login using the default WebDAV base URL plus a normalized username.
+- The backend reuses the active LDAP session password from an in-memory session vault, not from the database.
 
 ## Technology Stack
 

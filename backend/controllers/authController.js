@@ -8,6 +8,8 @@ const Personnel = require("../models/personnels"); // Import Personnel model
 const UserGroupMapping = require("../models/UserGroupMapping"); // Import UserGroupMapping model
 const Designation = require("../models/Designation"); // Import Designation model
 const Group = require("../models/Group"); // Import Group model
+const { storeWebdavSession } = require("../services/webdavSessionStore");
+const { ensureUserWebdavUrl } = require("../services/webdavService");
 const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
 const { generateToken } = require("../utils/jwt"); // Import the generateToken function
@@ -60,7 +62,7 @@ const authenticateLDAP = (username, password) => {
       filter: `(uid=${username})`,
       scope: "sub",
       // attributes: ["cn"], // ❌ Previous restriction caused missing GID
-      attributes: ["cn", "uid", "gidNumber", "uidNumber", "homeDirectory", "sn", "givenName", "mail", "userPassword"], // ✅ Fetch all needed attributes
+      attributes: ["cn", "uid", "gidNumber", "uidNumber", "homeDirectory", "sn", "givenName", "mail", "userPassword", "entryUUID", "nsUniqueId", "objectGUID"], // ✅ Fetch all needed attributes including UUIDs
     };
 
     client.bind(BIND_DN, BIND_PASSWORD, (err) => {
@@ -83,6 +85,9 @@ const authenticateLDAP = (username, password) => {
         let gidNumber = null;
         let uidNumber = null;
         let homeDirectory = null;
+        let entryUUID = null;
+        let nsUniqueId = null;
+        let objectGUID = null;
 
         res.on("searchEntry", (entry) => {
           console.log(
@@ -109,6 +114,9 @@ const authenticateLDAP = (username, password) => {
             gidNumber = getAttr("gidNumber");
             uidNumber = getAttr("uidNumber");
             homeDirectory = getAttr("homeDirectory");
+            entryUUID = getAttr("entryUUID");
+            nsUniqueId = getAttr("nsUniqueId");
+            objectGUID = getAttr("objectGUID");
           }
 
           console.log("✅ Extracted User DN:", userDN);
@@ -131,7 +139,18 @@ const authenticateLDAP = (username, password) => {
               return reject("Invalid LDAP credentials.");
             }
             console.log("✅ LDAP Authentication successful for:", userDN);
-            resolve({ userDN, username, fullName, cn: rawCn, gidNumber, uidNumber, homeDirectory });
+            resolve({
+              userDN,
+              username,
+              fullName,
+              cn: rawCn,
+              gidNumber,
+              uidNumber,
+              homeDirectory,
+              entryUUID,
+              nsUniqueId,
+              objectGUID
+            });
           });
         });
 
@@ -350,6 +369,23 @@ exports.Login = async (req, res) => {
       // Fetch personnel context
       const context = await getPersonnelContext(ldapUser.username);
 
+      let webdavUrlConfigured = false;
+      try {
+        const userUuid = ldapUser.entryUUID || ldapUser.nsUniqueId || ldapUser.objectGUID;
+        const ensuredWebdavUrl = await ensureUserWebdavUrl(ldapUser.username, userUuid);
+        webdavUrlConfigured = Boolean(ensuredWebdavUrl);
+      } catch (webdavErr) {
+        console.warn(
+          `⚠️ WebDAV URL could not be prepared for ${ldapUser.username}:`,
+          webdavErr.message,
+        );
+      }
+
+      storeWebdavSession({
+        username: ldapUser.username,
+        password,
+      });
+
       user = {
         id: ldapUser.username,
         username: ldapUser.username,
@@ -359,6 +395,7 @@ exports.Login = async (req, res) => {
         // Debugging fields
         cn: ldapUser.cn,
         gidNumber: ldapUser.gidNumber,
+        webdavUrlConfigured,
         ...context // Merge context
       };
 

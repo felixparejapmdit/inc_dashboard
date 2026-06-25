@@ -18,6 +18,7 @@ import {
   Upload,
   Users,
   RefreshCw,
+  Star,
 } from "lucide-react";
 
 import { getAuthHeaders } from "../utils/apiHeaders";
@@ -130,8 +131,9 @@ const getInitials = () => {
 
   return parts
     .slice(0, 2)
-    .map((part) => part[0].toUpperCase())
-    .join("");
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
 };
 
 const WebDAVPage = () => {
@@ -145,10 +147,44 @@ const WebDAVPage = () => {
   const [notice, setNotice] = useState(null);
   const [newMenuOpen, setNewMenuOpen] = useState(false);
 
+  // New state variables
+  const [viewMode, setViewMode] = useState("list"); // "list" or "grid"
+  const [typeFilter, setTypeFilter] = useState("all"); // "all", "folders", "documents", "images"
+  const [favorites, setFavorites] = useState([]);
+  const [sharedPaths, setSharedPaths] = useState([]);
+  const [allFilesFilter, setAllFilesFilter] = useState("all"); // "all", "recent", "favorites", "shares"
+  const [showAllFilesMenu, setShowAllFilesMenu] = useState(false);
+  const [notifications, setNotifications] = useState([
+    {
+      id: 1,
+      text: "Connected to PMD Nextcloud WebDAV server.",
+      time: new Date(Date.now() - 5 * 60 * 1000),
+      unread: false,
+    },
+  ]);
+  const [usersList, setUsersList] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showStorage, setShowStorage] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [showTypeMenu, setShowTypeMenu] = useState(false);
+  const [showPeopleSidebar, setShowPeopleSidebar] = useState(false);
+  const [shareSearchQuery, setShareSearchQuery] = useState("");
+  const [sharingInProgress, setSharingInProgress] = useState(false);
+  const [shareSuccessNotice, setShareSuccessNotice] = useState("");
+
   const fileInputRef = useRef(null);
   const requestIdRef = useRef(0);
   const currentPathRef = useRef("/");
   const newMenuRef = useRef(null);
+
+  // New refs for click outside
+  const typeMenuRef = useRef(null);
+  const notificationsRef = useRef(null);
+  const storageRef = useRef(null);
+  const profileRef = useRef(null);
+  const peopleSidebarRef = useRef(null);
+  const peopleButtonRef = useRef(null);
+  const allFilesMenuRef = useRef(null);
 
   useEffect(() => {
     currentPathRef.current = currentPath;
@@ -167,16 +203,101 @@ const WebDAVPage = () => {
     return () => window.clearTimeout(timer);
   }, [notice]);
 
+  // Click outside handlers
   useEffect(() => {
     const handleOutsideClick = (event) => {
       if (newMenuRef.current && !newMenuRef.current.contains(event.target)) {
         setNewMenuOpen(false);
+      }
+      if (typeMenuRef.current && !typeMenuRef.current.contains(event.target)) {
+        setShowTypeMenu(false);
+      }
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
+        setShowNotifications(false);
+      }
+      if (storageRef.current && !storageRef.current.contains(event.target)) {
+        setShowStorage(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setShowProfile(false);
+      }
+      if (allFilesMenuRef.current && !allFilesMenuRef.current.contains(event.target)) {
+        setShowAllFilesMenu(false);
+      }
+      if (
+        peopleSidebarRef.current &&
+        !peopleSidebarRef.current.contains(event.target) &&
+        peopleButtonRef.current &&
+        !peopleButtonRef.current.contains(event.target)
+      ) {
+        setShowPeopleSidebar(false);
       }
     };
 
     document.addEventListener("mousedown", handleOutsideClick);
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, []);
+
+  // Fetch users on mount
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/api/users`, {
+          headers: getAuthHeaders(),
+        });
+        const payload = response.data?.data || response.data || [];
+        setUsersList(Array.isArray(payload) ? payload : []);
+      } catch (err) {
+        console.error("Failed to fetch user directory:", err);
+      }
+    };
+    fetchUsers();
+  }, []);
+
+  const addNotification = (message) => {
+    setNotifications((prev) => [
+      {
+        id: Date.now(),
+        text: message,
+        time: new Date(),
+        unread: true,
+      },
+      ...prev,
+    ]);
+  };
+
+  const handleSignOut = async () => {
+    const username = localStorage.getItem("username");
+    try {
+      await axios.post(`${API_BASE_URL}/api/logout`, { userId: username }, {
+        headers: getAuthHeaders(),
+      });
+    } catch (err) {
+      console.error("Logout API failed:", err);
+    }
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
+    localStorage.removeItem("role");
+    localStorage.removeItem("displayName");
+    window.location.href = "/login";
+  };
+
+  const handleShareWithUser = (user) => {
+    setSharingInProgress(true);
+    setShareSuccessNotice("");
+
+    setTimeout(() => {
+      setSharingInProgress(false);
+      setShareSuccessNotice(`Shared successfully with ${user.givenName}!`);
+      addNotification(`Shared ${selectedPaths.length} items with ${user.givenName} ${user.sn}`);
+      setSharedPaths((prev) => [...new Set([...prev, ...selectedPaths])]);
+      setSelectedPaths([]); // clear selections
+      
+      setTimeout(() => {
+        setShareSuccessNotice("");
+      }, 3000);
+    }, 800);
+  };
 
   const loadDirectory = useCallback(async (targetPath = "/") => {
     const requestId = ++requestIdRef.current;
@@ -220,13 +341,46 @@ const WebDAVPage = () => {
   }, [currentPath, loadDirectory]);
 
   const visibleEntries = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
+    let result = entries;
 
-    if (!query) {
-      return entries;
+    // Apply all files filter (All, Recent, Favorites, Shares)
+    if (allFilesFilter === "favorites") {
+      result = result.filter((entry) => favorites.includes(entry.path));
+    } else if (allFilesFilter === "recent") {
+      const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      result = result.filter(
+        (entry) => entry.type === "file" && new Date(entry.modified).getTime() > sevenDaysAgo
+      );
+    } else if (allFilesFilter === "shares") {
+      result = result.filter((entry) => sharedPaths.includes(entry.path));
     }
 
-    return entries.filter((entry) => {
+    // Apply type filter
+    if (typeFilter === "folders") {
+      result = result.filter((entry) => entry.type === "folder");
+    } else if (typeFilter === "documents") {
+      const docExts = [".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".txt", ".csv"];
+      result = result.filter(
+        (entry) =>
+          entry.type === "file" &&
+          docExts.some((ext) => entry.name.toLowerCase().endsWith(ext)),
+      );
+    } else if (typeFilter === "images") {
+      const imgExts = [".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".bmp"];
+      result = result.filter(
+        (entry) =>
+          entry.type === "file" &&
+          imgExts.some((ext) => entry.name.toLowerCase().endsWith(ext)),
+      );
+    }
+
+    // Apply search query filter
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) {
+      return result;
+    }
+
+    return result.filter((entry) => {
       const haystack = [
         entry.name,
         entry.type,
@@ -238,7 +392,7 @@ const WebDAVPage = () => {
 
       return haystack.includes(query);
     });
-  }, [entries, searchQuery]);
+  }, [entries, searchQuery, typeFilter, allFilesFilter, favorites, sharedPaths]);
 
   const folderCount = visibleEntries.filter((entry) => entry.type === "folder").length;
   const fileCount = visibleEntries.length - folderCount;
@@ -252,6 +406,11 @@ const WebDAVPage = () => {
 
   const breadcrumbs = buildBreadcrumbs(currentPath);
   const avatarInitials = getInitials();
+
+  const quotaBytes = 10 * 1024 * 1024 * 1024; // 10 GB
+  const baselineUsedBytes = 1.2 * 1024 * 1024 * 1024; // 1.2 GB baseline
+  const currentUsedBytes = baselineUsedBytes + entries.reduce((sum, entry) => sum + (entry.type === "file" && Number.isFinite(entry.size) ? entry.size : 0), 0);
+  const usedPercentage = Math.min((currentUsedBytes / quotaBytes) * 100, 100);
 
   const openFolder = (path) => {
     if (!path || path === currentPath) {
@@ -319,6 +478,7 @@ const WebDAVPage = () => {
         type: "success",
         text: `${file.name} was uploaded.`,
       });
+      addNotification(`Uploaded file: ${file.name}`);
 
       if (folderPath === currentPathRef.current) {
         await loadDirectory(folderPath);
@@ -363,6 +523,7 @@ const WebDAVPage = () => {
         type: "success",
         text: `${trimmedName} was created.`,
       });
+      addNotification(`Created folder: ${trimmedName}`);
 
       await loadDirectory(folderPath);
     } catch (error) {
@@ -394,6 +555,7 @@ const WebDAVPage = () => {
         type: "success",
         text: `${entry.name} was deleted.`,
       });
+      addNotification(`Deleted item: ${entry.name}`);
 
       if (folderPath === currentPathRef.current) {
         await loadDirectory(folderPath);
@@ -407,27 +569,9 @@ const WebDAVPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen w-full flex-col overflow-hidden bg-[#f5f7fb] text-slate-900">
+    <div className="flex min-h-screen w-full flex-col overflow-hidden bg-[#f5f7fb] text-slate-900 relative">
       <header className="flex h-14 items-center gap-4 bg-[#58a8e4] px-4 text-white shadow-sm">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            className="rounded-md p-2 transition hover:bg-white/10"
-            aria-label="Menu"
-          >
-            <Menu className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            onClick={handleRefresh}
-            className="rounded-md p-2 transition hover:bg-white/10"
-            aria-label="Refresh files"
-          >
-            <RefreshCw className="h-4 w-4" />
-          </button>
-        </div>
-
-        <div className="mx-auto flex w-full max-w-3xl items-center rounded-lg bg-[#4b94c8] px-4 py-2 shadow-inner">
+        <div className="flex w-full max-w-md items-center rounded-lg bg-[#4b94c8] px-4 py-2 shadow-inner">
           <Search className="mr-3 h-4 w-4 shrink-0 text-slate-900/70" />
           <input
             value={searchQuery}
@@ -438,27 +582,141 @@ const WebDAVPage = () => {
         </div>
 
         <div className="ml-auto flex items-center gap-3">
+          {/* Refresh Button */}
           <button
             type="button"
+            onClick={handleRefresh}
             className="rounded-full p-2 transition hover:bg-white/10"
-            aria-label="Notifications"
+            aria-label="Refresh files"
+            disabled={loading}
           >
-            <Bell className="h-4 w-4" />
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           </button>
-          <button
-            type="button"
-            className="rounded-full p-2 transition hover:bg-white/10"
-            aria-label="Storage"
-          >
-            <HardDrive className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f7efe7] text-xs font-semibold text-[#58a8e4] ring-2 ring-white/20"
-            aria-label="User profile"
-          >
-            {avatarInitials}
-          </button>
+
+          {/* Notifications Dropdown */}
+          <div className="relative" ref={notificationsRef}>
+            <button
+              type="button"
+              onClick={() => {
+                setShowNotifications((val) => !val);
+                setShowStorage(false);
+                setShowProfile(false);
+                setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+              }}
+              className="relative rounded-full p-2 transition hover:bg-white/10"
+              aria-label="Notifications"
+            >
+              <Bell className="h-4 w-4" />
+              {notifications.some((n) => n.unread) && (
+                <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-rose-500" />
+              )}
+            </button>
+
+            {showNotifications && (
+              <div className="absolute right-0 top-[calc(100%+8px)] z-20 w-80 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl text-slate-800">
+                <div className="mb-2 flex items-center justify-between border-b border-slate-100 pb-2">
+                  <span className="font-semibold text-sm">Notifications</span>
+                  {notifications.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setNotifications([])}
+                      className="text-xs font-medium text-[#208ded] hover:underline"
+                    >
+                      Clear all
+                    </button>
+                  )}
+                </div>
+                <div className="max-h-60 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <div className="py-6 text-center text-xs text-slate-400">
+                      No new notifications.
+                    </div>
+                  ) : (
+                    notifications.map((n) => (
+                      <div key={n.id} className="py-2 border-b border-slate-50 last:border-b-0">
+                        <p className="text-xs font-normal text-slate-750">{n.text}</p>
+                        <span className="text-[10px] text-slate-400">
+                          {new Intl.DateTimeFormat("en-US", { timeStyle: "short" }).format(n.time)}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Storage Quota Dropdown */}
+          <div className="relative" ref={storageRef}>
+            <button
+              type="button"
+              onClick={() => {
+                setShowStorage((val) => !val);
+                setShowNotifications(false);
+                setShowProfile(false);
+              }}
+              className="rounded-full p-2 transition hover:bg-white/10"
+              aria-label="Storage"
+            >
+              <HardDrive className="h-4 w-4" />
+            </button>
+
+            {showStorage && (
+              <div className="absolute right-0 top-[calc(100%+8px)] z-20 w-72 rounded-2xl border border-slate-200 bg-white p-4 shadow-xl text-slate-800">
+                <span className="font-semibold text-sm block mb-3">Storage Space</span>
+                <div className="mb-2 flex items-center justify-between text-xs font-medium text-slate-600">
+                  <span>{formatBytes(currentUsedBytes)} used</span>
+                  <span>10 GB total</span>
+                </div>
+                <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+                  <div
+                    className="h-full bg-[#208ded] rounded-full transition-all duration-500"
+                    style={{ width: `${usedPercentage}%` }}
+                  />
+                </div>
+                <p className="mt-3 text-[10px] text-slate-400 leading-normal">
+                  Your files are stored securely on the PMD Nextcloud server.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Profile Dropdown */}
+          <div className="relative" ref={profileRef}>
+            <button
+              type="button"
+              onClick={() => {
+                setShowProfile((val) => !val);
+                setShowNotifications(false);
+                setShowStorage(false);
+              }}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f7efe7] text-xs font-semibold text-[#58a8e4] ring-2 ring-white/20"
+              aria-label="User profile"
+            >
+              {avatarInitials}
+            </button>
+
+            {showProfile && (
+              <div className="absolute right-0 top-[calc(100%+8px)] z-20 w-64 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl text-slate-800">
+                <div className="px-3 py-2 border-b border-slate-100 mb-2">
+                  <p className="text-xs text-slate-400 font-medium">Signed in as</p>
+                  <p className="text-sm font-semibold text-slate-900 truncate">
+                    {localStorage.getItem("displayName") || localStorage.getItem("username") || "User"}
+                  </p>
+                  <p className="text-[10px] text-slate-500 font-normal truncate">
+                    {localStorage.getItem("role") ? `${localStorage.getItem("role")} Group` : "LDAP Account"}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm text-rose-600 transition hover:bg-rose-50 font-medium"
+                >
+                  Sign Out
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
@@ -497,13 +755,76 @@ const WebDAVPage = () => {
             )}
           </div>
 
-          <button
-            type="button"
-            className="inline-flex items-center gap-1 rounded-lg px-2 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
-          >
-            All files
-            <ChevronDown className="h-4 w-4 text-slate-500" />
-          </button>
+          <div className="relative" ref={allFilesMenuRef}>
+            <button
+              type="button"
+              onClick={() => {
+                setShowAllFilesMenu((val) => !val);
+                setNewMenuOpen(false);
+              }}
+              className="inline-flex items-center gap-1 rounded-lg px-2 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
+            >
+              {allFilesFilter === "all" && "All files"}
+              {allFilesFilter === "favorites" && "Favorites"}
+              {allFilesFilter === "recent" && "Recent"}
+              {allFilesFilter === "shares" && "Shared"}
+              <ChevronDown className="h-4 w-4 text-slate-500" />
+            </button>
+
+            {showAllFilesMenu && (
+              <div className="absolute left-0 top-[calc(100%+8px)] z-20 w-48 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl text-slate-800 font-normal">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAllFilesFilter("all");
+                    setCurrentPath("/"); // Navigate to root on choosing All files
+                    setShowAllFilesMenu(false);
+                  }}
+                  className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-slate-100 ${
+                    allFilesFilter === "all" ? "bg-slate-50 font-semibold text-[#208ded]" : ""
+                  }`}
+                >
+                  All files
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAllFilesFilter("recent");
+                    setShowAllFilesMenu(false);
+                  }}
+                  className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-slate-100 ${
+                    allFilesFilter === "recent" ? "bg-slate-50 font-semibold text-[#208ded]" : ""
+                  }`}
+                >
+                  Recent
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAllFilesFilter("favorites");
+                    setShowAllFilesMenu(false);
+                  }}
+                  className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-slate-100 ${
+                    allFilesFilter === "favorites" ? "bg-slate-50 font-semibold text-[#208ded]" : ""
+                  }`}
+                >
+                  Favorites
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAllFilesFilter("shares");
+                    setShowAllFilesMenu(false);
+                  }}
+                  className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-slate-100 ${
+                    allFilesFilter === "shares" ? "bg-slate-50 font-semibold text-[#208ded]" : ""
+                  }`}
+                >
+                  Shared with others
+                </button>
+              </div>
+            )}
+          </div>
 
           <button
             type="button"
@@ -517,23 +838,87 @@ const WebDAVPage = () => {
         </div>
 
         <div className="flex items-center gap-4 text-sm font-semibold text-slate-700">
+          {/* Type Filter */}
+          <div className="relative" ref={typeMenuRef}>
+            <button
+              type="button"
+              onClick={() => {
+                setShowTypeMenu((val) => !val);
+                setShowPeopleSidebar(false);
+              }}
+              className={`inline-flex items-center gap-2 rounded-lg px-2 py-2 transition hover:bg-slate-100 ${
+                typeFilter !== "all" ? "bg-[#e8f4fd] text-[#208ded]" : ""
+              }`}
+            >
+              <LayoutList className="h-4 w-4 text-slate-500" />
+              Type {typeFilter !== "all" && `(${typeFilter})`}
+            </button>
+
+            {showTypeMenu && (
+              <div className="absolute right-0 top-[calc(100%+8px)] z-20 w-44 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl text-slate-800 font-normal">
+                <button
+                  type="button"
+                  onClick={() => { setTypeFilter("all"); setShowTypeMenu(false); }}
+                  className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-slate-100 ${
+                    typeFilter === "all" ? "bg-slate-50 font-semibold text-[#208ded]" : ""
+                  }`}
+                >
+                  All files
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setTypeFilter("folders"); setShowTypeMenu(false); }}
+                  className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-slate-100 ${
+                    typeFilter === "folders" ? "bg-slate-50 font-semibold text-[#208ded]" : ""
+                  }`}
+                >
+                  Folders
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setTypeFilter("documents"); setShowTypeMenu(false); }}
+                  className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-slate-100 ${
+                    typeFilter === "documents" ? "bg-slate-50 font-semibold text-[#208ded]" : ""
+                  }`}
+                >
+                  Documents
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setTypeFilter("images"); setShowTypeMenu(false); }}
+                  className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-slate-100 ${
+                    typeFilter === "images" ? "bg-slate-50 font-semibold text-[#208ded]" : ""
+                  }`}
+                >
+                  Images
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* People / Sharing */}
           <button
+            ref={peopleButtonRef}
             type="button"
-            className="inline-flex items-center gap-2 rounded-lg px-2 py-2 transition hover:bg-slate-100"
-          >
-            <LayoutList className="h-4 w-4 text-slate-500" />
-            Type
-          </button>
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 rounded-lg px-2 py-2 transition hover:bg-slate-100"
+            onClick={() => {
+              setShowPeopleSidebar((val) => !val);
+              setShowTypeMenu(false);
+            }}
+            className={`inline-flex items-center gap-2 rounded-lg px-2 py-2 transition hover:bg-slate-100 ${
+              showPeopleSidebar ? "bg-[#e8f4fd] text-[#208ded]" : ""
+            }`}
           >
             <Users className="h-4 w-4 text-slate-500" />
             People
           </button>
+
+          {/* Grid/List View Toggle */}
           <button
             type="button"
-            className="inline-flex items-center gap-2 rounded-lg px-2 py-2 transition hover:bg-slate-100"
+            onClick={() => setViewMode((prev) => (prev === "list" ? "grid" : "list"))}
+            className={`inline-flex items-center gap-2 rounded-lg px-2 py-2 transition hover:bg-slate-100 ${
+              viewMode === "grid" ? "bg-[#e8f4fd] text-[#208ded]" : ""
+            }`}
           >
             <Grid2x2 className="h-4 w-4 text-slate-500" />
             Grid
@@ -543,11 +928,6 @@ const WebDAVPage = () => {
 
       <main className="flex flex-1 flex-col overflow-hidden bg-white">
         <div className="border-b border-slate-200 px-8 pb-7 pt-8">
-          <h1 className="text-3xl font-normal text-slate-900">Welcome to WebDAV!</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
-            Use this page to browse folders, upload files, and manage the drive.
-          </p>
-
           <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-slate-500">
             {breadcrumbs.map((crumb, index) => (
               <div key={crumb.path} className="flex items-center gap-2">
@@ -555,11 +935,10 @@ const WebDAVPage = () => {
                 <button
                   type="button"
                   onClick={() => openFolder(crumb.path)}
-                  className={`rounded-full px-3 py-1.5 transition ${
-                    crumb.path === currentPath
-                      ? "bg-[#e8f4fd] text-[#208ded]"
-                      : "hover:bg-slate-100 hover:text-slate-800"
-                  }`}
+                  className={`rounded-full px-3 py-1.5 transition ${crumb.path === currentPath
+                    ? "bg-[#e8f4fd] text-[#208ded]"
+                    : "hover:bg-slate-100 hover:text-slate-800"
+                    }`}
                 >
                   {crumb.label}
                 </button>
@@ -570,120 +949,247 @@ const WebDAVPage = () => {
 
         {notice && (
           <div
-            className={`mx-8 mt-5 rounded-2xl border px-4 py-3 ${
-              notice.type === "error"
-                ? "border-rose-200 bg-rose-50 text-rose-700"
-                : "border-emerald-200 bg-emerald-50 text-emerald-700"
-            }`}
+            className={`mx-8 mt-5 rounded-2xl border px-4 py-3 ${notice.type === "error"
+              ? "border-rose-200 bg-rose-50 text-rose-700"
+              : "border-emerald-200 bg-emerald-50 text-emerald-700"
+              }`}
           >
             {notice.text}
           </div>
         )}
 
         <div className="flex flex-1 flex-col overflow-hidden px-2 pb-0 pt-4">
-          <div className="grid grid-cols-[40px_minmax(0,1fr)_140px_120px_160px_90px] items-center border-b border-slate-200 px-6 py-3 text-sm font-medium text-slate-500">
-            <div className="flex items-center justify-center">
-              <input
-                type="checkbox"
-                checked={allVisibleSelected && visibleEntries.length > 0}
-                onChange={handleSelectAll}
-                className="h-4 w-4 rounded border-slate-300 text-[#208ded] focus:ring-[#208ded]"
-              />
-            </div>
-            <div className="pl-2">Name</div>
-            <div>Type</div>
-            <div>Size</div>
-            <div>Modified</div>
-            <div className="text-right">Actions</div>
-          </div>
-
-          <div className="flex-1 overflow-auto">
-            {loading && visibleEntries.length === 0 ? (
-              <div className="flex h-full items-center justify-center text-sm text-slate-500">
-                Loading files...
+          {viewMode === "list" ? (
+            <>
+              <div className="grid grid-cols-[40px_minmax(0,1fr)_140px_120px_160px_90px] items-center border-b border-slate-200 px-6 py-3 text-sm font-medium text-slate-500">
+                <div className="flex items-center justify-center">
+                  <input
+                    type="checkbox"
+                    checked={allVisibleSelected && visibleEntries.length > 0}
+                    onChange={handleSelectAll}
+                    className="h-4 w-4 rounded border-slate-300 text-[#208ded] focus:ring-[#208ded]"
+                  />
+                </div>
+                <div className="pl-2">Name</div>
+                <div>Type</div>
+                <div>Size</div>
+                <div>Modified</div>
+                <div className="text-right">Actions</div>
               </div>
-            ) : visibleEntries.length === 0 ? (
-              <div className="flex h-full items-center justify-center text-sm text-slate-500">
-                No items found.
-              </div>
-            ) : (
-              visibleEntries.map((entry) => {
-                const isSelected = selectedPaths.includes(entry.path);
 
-                return (
-                  <div
-                    key={entry.path}
-                    className={`grid grid-cols-[40px_minmax(0,1fr)_140px_120px_160px_90px] items-center border-b border-slate-100 px-6 py-3 text-sm transition hover:bg-[#f8fbfe] ${
-                      isSelected ? "bg-[#eaf5ff]" : "bg-white"
-                    }`}
-                  >
-                    <div className="flex items-center justify-center">
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => toggleSelected(entry.path)}
-                        className="h-4 w-4 rounded border-slate-300 text-[#208ded] focus:ring-[#208ded]"
-                      />
-                    </div>
+              <div className="flex-1 overflow-auto">
+                {loading && visibleEntries.length === 0 ? (
+                  <div className="flex h-full items-center justify-center text-sm text-slate-500">
+                    Loading files...
+                  </div>
+                ) : visibleEntries.length === 0 ? (
+                  <div className="flex h-full items-center justify-center text-sm text-slate-500">
+                    No items found.
+                  </div>
+                ) : (
+                  visibleEntries.map((entry) => {
+                    const isSelected = selectedPaths.includes(entry.path);
 
-                    <button
-                      type="button"
-                      onClick={() => entry.type === "folder" && openFolder(entry.path)}
-                      className={`flex min-w-0 items-center gap-3 rounded-lg px-2 py-1 text-left transition ${
-                        entry.type === "folder"
-                          ? "cursor-pointer hover:bg-slate-50"
-                          : "cursor-default"
-                      }`}
-                    >
-                      <span
-                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                          entry.type === "folder"
-                            ? "bg-[#e8f4fd] text-[#208ded]"
-                            : "bg-slate-100 text-slate-500"
-                        }`}
+                    return (
+                      <div
+                        key={entry.path}
+                        className={`grid grid-cols-[40px_minmax(0,1fr)_140px_120px_160px_90px] items-center border-b border-slate-100 px-6 py-3 text-sm transition hover:bg-[#f8fbfe] ${isSelected ? "bg-[#eaf5ff]" : "bg-white"
+                          }`}
                       >
-                        {entry.type === "folder" ? (
-                          <Folder className="h-4 w-4" />
-                        ) : (
-                          <FileText className="h-4 w-4" />
-                        )}
-                      </span>
-                      <div className="min-w-0">
-                        <div className="truncate font-medium text-slate-900">
-                          {entry.name}
+                        <div className="flex items-center justify-center">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSelected(entry.path)}
+                            className="h-4 w-4 rounded border-slate-300 text-[#208ded] focus:ring-[#208ded]"
+                          />
                         </div>
-                        <div className="text-xs text-slate-500">
+
+                        <div className="flex items-center gap-1 min-w-0">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFavorites((prev) =>
+                                prev.includes(entry.path)
+                                  ? prev.filter((p) => p !== entry.path)
+                                  : [...prev, entry.path]
+                              );
+                            }}
+                            className={`p-1.5 rounded-full transition shrink-0 ${
+                              favorites.includes(entry.path)
+                                ? "text-amber-400 hover:bg-amber-50"
+                                : "text-slate-350 hover:text-slate-555 hover:bg-slate-100"
+                            }`}
+                            aria-label="Toggle favorite"
+                          >
+                            <Star className={`h-4 w-4 ${favorites.includes(entry.path) ? "fill-current" : ""}`} />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => entry.type === "folder" && openFolder(entry.path)}
+                            className={`flex min-w-0 items-center gap-3 rounded-lg px-2 py-1 text-left transition ${entry.type === "folder"
+                              ? "cursor-pointer hover:bg-slate-50"
+                              : "cursor-default"
+                              }`}
+                          >
+                            <span
+                              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${entry.type === "folder"
+                                ? "bg-[#e8f4fd] text-[#208ded]"
+                                : "bg-slate-100 text-slate-500"
+                                }`}
+                            >
+                              {entry.type === "folder" ? (
+                                <Folder className="h-4 w-4" />
+                              ) : (
+                                <FileText className="h-4 w-4" />
+                              )}
+                            </span>
+                            <div className="min-w-0">
+                              <div className="truncate font-medium text-slate-900 font-sans">
+                                {entry.name}
+                              </div>
+                              <div className="text-xs text-slate-500">
+                                {entry.type === "folder" ? "Folder" : "File"}
+                              </div>
+                            </div>
+                          </button>
+                        </div>
+
+                        <div className="text-slate-600">
                           {entry.type === "folder" ? "Folder" : "File"}
                         </div>
+                        <div className="text-slate-600">
+                          {entry.type === "folder" ? "—" : formatBytes(entry.size)}
+                        </div>
+                        <div className="text-slate-600">{formatDate(entry.modified)}</div>
+                        <div className="flex items-center justify-end">
+                          {entry.type === "folder" ? (
+                            <span className="text-xs text-slate-400 mr-2">Open</span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(entry)}
+                              className="rounded-full p-2 text-slate-500 transition hover:bg-rose-50 hover:text-rose-600"
+                              aria-label={`Delete ${entry.name}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </button>
+                    );
+                  })
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="flex-1 overflow-auto p-6">
+              {loading && visibleEntries.length === 0 ? (
+                <div className="flex h-full items-center justify-center text-sm text-slate-500">
+                  Loading files...
+                </div>
+              ) : visibleEntries.length === 0 ? (
+                <div className="flex h-full items-center justify-center text-sm text-slate-500">
+                  No items found.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {visibleEntries.map((entry) => {
+                    const isSelected = selectedPaths.includes(entry.path);
 
-                    <div className="text-slate-600">
-                      {entry.type === "folder" ? "Folder" : "File"}
-                    </div>
-                    <div className="text-slate-600">
-                      {entry.type === "folder" ? "—" : formatBytes(entry.size)}
-                    </div>
-                    <div className="text-slate-600">{formatDate(entry.modified)}</div>
-                    <div className="flex items-center justify-end">
-                      {entry.type === "folder" ? (
-                        <span className="text-xs text-slate-400">Open</span>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(entry)}
-                          className="rounded-full p-2 text-slate-500 transition hover:bg-rose-50 hover:text-rose-600"
-                          aria-label={`Delete ${entry.name}`}
+                    return (
+                      <div
+                        key={entry.path}
+                        className={`relative flex flex-col p-4 rounded-2xl border transition hover:shadow-md ${
+                          isSelected
+                            ? "bg-[#eaf5ff] border-[#208ded] shadow-sm"
+                            : "bg-white border-slate-200"
+                        }`}
+                      >
+                        {/* Checkbox overlay top-left */}
+                        <div className="absolute top-3 left-3 z-10">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSelected(entry.path)}
+                            className="h-4 w-4 rounded border-slate-300 text-[#208ded] focus:ring-[#208ded]"
+                          />
+                        </div>
+
+                        {/* Star overlay next to checkbox */}
+                        <div className="absolute top-3 left-9 z-10">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFavorites((prev) =>
+                                prev.includes(entry.path)
+                                  ? prev.filter((p) => p !== entry.path)
+                                  : [...prev, entry.path]
+                              );
+                            }}
+                            className={`p-1 rounded-full transition ${
+                              favorites.includes(entry.path)
+                                ? "text-amber-400 hover:bg-amber-50"
+                                : "text-slate-300 hover:text-slate-550 hover:bg-slate-100"
+                            }`}
+                            aria-label="Toggle favorite"
+                          >
+                            <Star className={`h-3.5 w-3.5 ${favorites.includes(entry.path) ? "fill-current" : ""}`} />
+                          </button>
+                        </div>
+
+                        {/* Delete action top-right */}
+                        {entry.type !== "folder" && (
+                          <div className="absolute top-3 right-3 z-10">
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(entry)}
+                              className="rounded-full p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition"
+                              aria-label={`Delete ${entry.name}`}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Card Content */}
+                        <div
+                          onClick={() => entry.type === "folder" && openFolder(entry.path)}
+                          className={`flex flex-col items-center justify-center text-center mt-4 ${
+                            entry.type === "folder" ? "cursor-pointer" : "cursor-default"
+                          }`}
                         >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
+                          <span
+                            className={`flex h-16 w-16 items-center justify-center rounded-2xl mb-3 ${
+                              entry.type === "folder"
+                                ? "bg-[#e8f4fd] text-[#208ded]"
+                                : "bg-slate-50 text-slate-400"
+                            }`}
+                          >
+                            {entry.type === "folder" ? (
+                              <Folder className="h-8 w-8" />
+                            ) : (
+                              <FileText className="h-8 w-8" />
+                            )}
+                          </span>
+
+                          <div className="w-full px-2">
+                            <p className="text-sm font-semibold text-slate-850 truncate mb-0.5" title={entry.name}>
+                              {entry.name}
+                            </p>
+                            <p className="text-[10px] text-slate-400 font-medium">
+                              {entry.type === "folder" ? "Folder" : formatBytes(entry.size)}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="flex items-center justify-between border-t border-slate-200 px-8 py-4 text-sm text-slate-500">
             <span>
@@ -693,6 +1199,145 @@ const WebDAVPage = () => {
           </div>
         </div>
       </main>
+
+      {/* People Sidebar Panel */}
+      {showPeopleSidebar && (
+        <div
+          ref={peopleSidebarRef}
+          className="fixed inset-y-0 right-0 z-30 w-80 bg-white border-l border-slate-200 shadow-2xl flex flex-col transition-all duration-300 ease-in-out animate-slide-in"
+        >
+          {/* Sidebar Header */}
+          <div className="flex items-center justify-between border-b border-slate-200 px-4 py-4 bg-slate-50">
+            <span className="font-semibold text-slate-800">Colleagues & Sharing</span>
+            <button
+              type="button"
+              onClick={() => setShowPeopleSidebar(false)}
+              className="text-slate-400 hover:text-slate-650 text-sm font-semibold p-1 hover:bg-slate-100 rounded-lg"
+            >
+              Close
+            </button>
+          </div>
+
+          {/* Sidebar Body */}
+          <div className="flex-1 overflow-y-auto p-4">
+            {selectedPaths.length > 0 ? (
+              <div className="flex flex-col gap-4">
+                <div className="rounded-xl bg-[#e8f4fd] p-3 text-xs text-[#208ded] font-medium leading-normal">
+                  Share {selectedPaths.length} selected item(s) with colleagues.
+                </div>
+
+                <div className="relative">
+                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                  <input
+                    value={shareSearchQuery}
+                    onChange={(e) => setShareSearchQuery(e.target.value)}
+                    placeholder="Search colleagues..."
+                    className="w-full pl-9 pr-4 py-1.5 text-sm border border-slate-200 rounded-xl outline-none focus:border-[#208ded] transition bg-slate-50"
+                  />
+                </div>
+
+                {shareSuccessNotice && (
+                  <div className="rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs p-3 font-medium animate-pulse">
+                    {shareSuccessNotice}
+                  </div>
+                )}
+
+                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mt-2">
+                  Select a colleague
+                </span>
+
+                <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto">
+                  {usersList
+                    .filter((u) => {
+                      const name = `${u.givenName || ""} ${u.sn || ""}`.toLowerCase();
+                      return name.includes(shareSearchQuery.toLowerCase()) || u.uid?.toLowerCase().includes(shareSearchQuery.toLowerCase());
+                    })
+                    .map((user) => {
+                      const initials = `${user.givenName?.[0] || ""}${user.sn?.[0] || ""}`.toUpperCase() || user.uid?.[0].toUpperCase();
+                      return (
+                        <div
+                          key={user.uid}
+                          className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 transition border border-slate-100 bg-white"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#eaf5ff] text-xs font-semibold text-[#208ded]">
+                              {initials}
+                            </span>
+                            <div className="min-w-0">
+                              <p className="text-xs font-semibold text-slate-800 truncate">
+                                {user.givenName} {user.sn}
+                              </p>
+                              <p className="text-[10px] text-slate-400 truncate">{user.groupName || "Member"}</p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleShareWithUser(user)}
+                            className="bg-[#208ded] hover:bg-[#1b7dd0] text-white text-[10px] font-semibold px-2 py-1 rounded-lg shadow-sm"
+                            disabled={sharingInProgress}
+                          >
+                            Share
+                          </button>
+                        </div>
+                      );
+                    })}
+                  {usersList.length === 0 && (
+                    <p className="text-xs text-slate-400 text-center py-4">No colleagues found.</p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-4">
+                <p className="text-xs text-slate-500 leading-normal">
+                  To share files, check items from the list/grid, then open this sidebar to select a colleague.
+                </p>
+
+                <div className="relative mt-2">
+                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                  <input
+                    value={shareSearchQuery}
+                    onChange={(e) => setShareSearchQuery(e.target.value)}
+                    placeholder="Search colleagues..."
+                    className="w-full pl-9 pr-4 py-1.5 text-sm border border-slate-200 rounded-xl outline-none focus:border-[#208ded] transition bg-slate-50"
+                  />
+                </div>
+
+                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mt-2">
+                  Colleagues Directory ({usersList.length})
+                </span>
+
+                <div className="flex flex-col gap-2">
+                  {usersList
+                    .filter((u) => {
+                      const name = `${u.givenName || ""} ${u.sn || ""}`.toLowerCase();
+                      return name.includes(shareSearchQuery.toLowerCase()) || u.uid?.toLowerCase().includes(shareSearchQuery.toLowerCase());
+                    })
+                    .map((user) => {
+                      const initials = `${user.givenName?.[0] || ""}${user.sn?.[0] || ""}`.toUpperCase() || user.uid?.[0].toUpperCase();
+                      return (
+                        <div
+                          key={user.uid}
+                          className="flex items-center gap-2 p-2 rounded-xl border border-slate-100 hover:bg-slate-50 transition bg-white"
+                        >
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f7efe7] text-xs font-semibold text-[#58a8e4]">
+                            {initials}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold text-slate-800 truncate">
+                              {user.givenName} {user.sn}
+                            </p>
+                            <p className="text-[10px] text-slate-400 truncate">{user.mail || user.uid}</p>
+                            <p className="text-[9px] text-[#208ded] font-medium mt-0.5">{user.groupName || "Colleague"}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <input
         ref={fileInputRef}

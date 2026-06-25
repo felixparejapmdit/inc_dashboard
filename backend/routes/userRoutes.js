@@ -24,6 +24,7 @@ const UserGroupMapping = require("../models/UserGroupMapping");
 const Group = require("../models/Group");
 const UserController = require("../controllers/userController");
 const ldapController = require("../controllers/ldapController");
+const { clearWebdavSession } = require("../services/webdavSessionStore");
 const { client: esClient, connectElasticsearch } = require("../config/elasticsearchClient");
 
 const verifyToken = require("../middlewares/authMiddleware");
@@ -38,7 +39,7 @@ const agent = new https.Agent({
 
 const USERS_SQL_QUERY = `
   SELECT 
-    u.ID, u.personnel_id, u.username, u.password, MAX(ug.id) AS groupId, u.avatar, 
+    u.ID, u.personnel_id, u.username, u.password, u.webdav_url, MAX(ug.id) AS groupId, u.avatar,
     MAX(ug.name) as groupname, GROUP_CONCAT(a.name) AS availableApps,
     p.givenname AS personnel_givenname, p.middlename AS personnel_middlename,
     p.surname_husband AS personnel_surname_husband, p.surname_maiden AS personnel_surname_maiden,
@@ -87,7 +88,7 @@ const USERS_SQL_QUERY = `
   ) AS addr ON addr.personnel_id = u.personnel_id
   WHERE u.uid IS NOT NULL AND (p.deleted_at IS NULL OR u.personnel_id IS NULL)
   GROUP BY 
-    u.ID, u.personnel_id, u.username, u.password, u.avatar, 
+    u.ID, u.personnel_id, u.username, u.password, u.webdav_url, u.avatar,
     p.givenname, p.middlename, p.surname_husband, p.surname_maiden, p.suffix, p.nickname, 
     p.registered_district_id, p.registered_local_congregation, p.date_of_birth, 
     p.place_of_birth, p.datejoined, p.gender, p.civil_status, p.wedding_anniversary, 
@@ -370,7 +371,7 @@ router.post("/api/sync-to-users", async (req, res) => {
       uid,
       personnel_id: personnelId,
       username: uid, // Use `uid` as username
-      password: ldapUser.userPassword || "", // Default to an empty string if undefined
+      password: null,
       auth_type: "LDAP",
     });
 
@@ -413,7 +414,7 @@ const ldapSearchByFullname = async (fullname) => {
       const searchOptions = {
         filter: `(cn=${fullname})`, // Search by common name (fullname)
         scope: "sub",
-        attributes: ["cn", "sn", "mail", "uid", "userPassword"], // Specify attributes to retrieve
+        attributes: ["cn", "sn", "mail", "uid"], // Specify attributes to retrieve
       };
 
       const user = {};
@@ -430,11 +431,7 @@ const ldapSearchByFullname = async (fullname) => {
 
         result.on("searchEntry", (entry) => {
           entry.attributes.forEach((attribute) => {
-            if (attribute.type === "userPassword") {
-              user[attribute.type] = attribute.vals[0];
-            } else {
-              user[attribute.type] = attribute.vals;
-            }
+            user[attribute.type] = attribute.vals;
           });
         });
 
@@ -887,8 +884,10 @@ router.post("/api/users/login", async (req, res) => {
 
 // Add new user with selected apps
 router.post("/api/users", (req, res) => {
-  const { username, password, fullname, email, avatarUrl, availableApps } =
+  const { username, password, fullname, email, avatarUrl, availableApps, webdav_url } =
     req.body;
+  const normalizedWebdavUrl =
+    typeof webdav_url === "string" ? webdav_url.trim() : webdav_url;
 
   if (!username || !password) {
     return res
@@ -897,10 +896,10 @@ router.post("/api/users", (req, res) => {
   }
 
   const insertUserQuery =
-    "INSERT INTO users (username, password, fullname, email, avatar) VALUES (?, ?, ?, ?, ?)";
+    "INSERT INTO users (username, password, fullname, email, avatar, webdav_url) VALUES (?, ?, ?, ?, ?, ?)";
   db.query(
     insertUserQuery,
-    [username, password, fullname, email, avatarUrl],
+    [username, password, fullname, email, avatarUrl, normalizedWebdavUrl || null],
     (err, results) => {
       if (err) {
         console.error("Error adding user:", err);
@@ -944,15 +943,17 @@ router.post("/api/users", (req, res) => {
 // Update user details and assigned apps
 router.put("/api/users/:id", (req, res) => {
   const userId = parseInt(req.params.id, 10);
-  const { username, avatar, availableApps, fullname, email } = req.body;
+  const { username, avatar, availableApps, fullname, email, webdav_url } = req.body;
+  const normalizedWebdavUrl =
+    typeof webdav_url === "string" ? webdav_url.trim() : webdav_url;
 
   console.log(`[PUT] Updating user ${userId}. Payload:`, { username, fullname, email, appsCount: availableApps?.length });
 
   // Update user details
   // Note: 'fullname' and 'email' columns do not exist in the users table, so they are omitted here.
   const updateUserQuery =
-    "UPDATE users SET username = ?, avatar = ? WHERE ID = ?";
-  db.query(updateUserQuery, [username, avatar, userId], (err) => {
+    "UPDATE users SET username = ?, avatar = ?, webdav_url = ? WHERE ID = ?";
+  db.query(updateUserQuery, [username, avatar, normalizedWebdavUrl || null, userId], (err) => {
     if (err) {
       console.error("Error updating user details:", err);
       return res.status(500).json({ message: "Database update error" });
@@ -1064,6 +1065,7 @@ router.post("/api/logout", (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
     console.log("User logged out successfully:", userId);
+    clearWebdavSession(userId);
     res.json({ message: "User logged out successfully" });
   });
 });

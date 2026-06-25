@@ -103,7 +103,7 @@ exports.findLdapUserAndAudit = async (username, userAgent) => {
     const searchOptions = {
       filter: `(uid=${username})`,
       scope: "sub",
-      attributes: ["cn", "sn", "mail", "uid", "userPassword"],
+      attributes: ["cn", "sn", "mail", "uid"],
     };
 
     return new Promise((resolve, reject) => {
@@ -121,11 +121,7 @@ exports.findLdapUserAndAudit = async (username, userAgent) => {
         result.on("searchEntry", (entry) => {
           found = true;
           entry.attributes.forEach((attribute) => {
-            if (attribute.type === "userPassword") {
-              user[attribute.type] = attribute.values[0];
-            } else {
-              user[attribute.type] = attribute.values;
-            }
+            user[attribute.type] = attribute.values;
           });
         });
 
@@ -637,7 +633,6 @@ exports.getLdapUsersAndGroups = async (req, res) => {
         mail: getAttributeValue(user, "mail"),
         uidNumber: getAttributeValue(user, "uidNumber"),
         gidNumber,
-        userPassword: getAttributeValue(user, "userPassword"),
         groupName: userGroup ? userGroup.groupName : "Unknown",
       };
     });
@@ -1000,7 +995,7 @@ exports.SyncLdapUser = async (req, res) => {
       uid: ldapUser.uidNumber,
       username: ldapUser.uid,
       auth_type: "LDAP",
-      password: ldapUser.userPassword, // Hash this if necessary
+      password: null,
     });
 
     res.status(201).json({ message: "User synced successfully", user });

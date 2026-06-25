@@ -1,6 +1,8 @@
 const express = require("express");
 const multer = require("multer");
 
+const verifyToken = require("../middlewares/authMiddleware");
+const webdavContext = require("../middlewares/webdavContext");
 const {
   createFolder,
   deleteItem,
@@ -17,10 +19,13 @@ const upload = multer({
   },
 });
 
+router.use(verifyToken);
+router.use(webdavContext);
+
 router.get("/list", async (req, res) => {
   try {
     const targetPath = req.query.path || "/";
-    const data = await listDirectory(targetPath);
+    const data = await listDirectory(req.webdav.client, targetPath);
 
     return res.json({
       success: true,
@@ -46,7 +51,7 @@ router.post("/upload", upload.single("file"), async (req, res) => {
     }
 
     const folderPath = req.body?.path || "/";
-    const uploaded = await uploadFile(folderPath, req.file);
+    const uploaded = await uploadFile(req.webdav.client, folderPath, req.file);
 
     return res.status(201).json({
       success: true,
@@ -65,7 +70,7 @@ router.post("/folder", async (req, res) => {
   try {
     const folderPath = req.body?.path || "/";
     const folderName = req.body?.name || "";
-    const created = await createFolder(folderPath, folderName);
+    const created = await createFolder(req.webdav.client, folderPath, folderName);
 
     return res.status(201).json({
       success: true,
@@ -91,7 +96,7 @@ router.delete("/item", async (req, res) => {
       });
     }
 
-    const deleted = await deleteItem(normalizeRemotePath(targetPath));
+    const deleted = await deleteItem(req.webdav.client, normalizeRemotePath(targetPath));
 
     return res.json({
       success: true,

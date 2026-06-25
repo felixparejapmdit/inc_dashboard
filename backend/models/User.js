@@ -29,6 +29,10 @@ const User = sequelize.define(
       type: DataTypes.STRING(50),
       allowNull: true,
     },
+    webdav_url: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+    },
     password: {
       type: DataTypes.STRING(255),
       allowNull: true,

@@ -68,6 +68,20 @@ sequelize
       console.error("❌ Group application type visibility migration failed:", migErr);
     }
     try {
+      const migrateUsersWebdavUrl = require("../scripts/migrate_users_webdav_url");
+      await migrateUsersWebdavUrl(false);
+      console.log("✅ Users WebDAV URL migration completed successfully.");
+    } catch (migErr) {
+      console.error("❌ Users WebDAV URL migration failed:", migErr);
+    }
+    try {
+      const migrateLdapUsersRemovePassword = require("../scripts/migrate_ldap_users_remove_password");
+      await migrateLdapUsersRemovePassword(false);
+      console.log("✅ LDAP_Users password column migration completed successfully.");
+    } catch (migErr) {
+      console.error("❌ LDAP_Users password column migration failed:", migErr);
+    }
+    try {
       const seedWebDavPluginPermission = require("../scripts/seed_webdav_plugin_permission");
       await seedWebDavPluginPermission(false);
       console.log("✅ WebDAV plugin permission seed completed successfully.");

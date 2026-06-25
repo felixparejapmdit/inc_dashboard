@@ -75,7 +75,7 @@ exports.migrateLdapToPmdLoginUsers = async (req, res) => {
           uid: ldapUser.uid,
           personnel_id: null,
           username: ldapUser.uid,
-          password: ldapUser.userPassword || 'LDAP_DEFAULT_PASS',
+          password: null,
           avatar: null,
           isLoggedIn: 0,
           auth_type: "LDAP",
@@ -146,7 +146,7 @@ exports.migrateLdapToPmdLoginUsers1 = async (req, res) => {
           uid: ldapUser.uid,
           personnel_id: null, // Set to null or map if personnel_id exists elsewhere
           username: ldapUser.uid,
-          password: ldapUser.userPassword, // Assuming password format matches
+          password: null,
           avatar: null, // Set avatar if needed
           isLoggedIn: 0, // Default to not logged in
           last_login: null,
@@ -319,6 +319,7 @@ exports.getUserByUsername = async (req, res) => {
       username: user.username,
       email: user.email || null,
       isLoggedIn: user.isLoggedIn,
+      webdav_url: user.webdav_url || null,
     };
 
     // 3️⃣ Store in Redis for 5 minutes

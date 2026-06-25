@@ -43,10 +43,6 @@ const LDAP_Users = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
-    userPassword: {
-      type: DataTypes.STRING(255), // Adjusted for more typical password size
-      allowNull: false,
-    },
     createdAt: {
       type: DataTypes.DATE,
       field: "created_at",
