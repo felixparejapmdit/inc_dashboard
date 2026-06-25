@@ -8,9 +8,8 @@ DB_PASS=${MYSQL_PASSWORD:-M@sunur1n}
 
 echo "Waiting for database at $DB_HOST:$DB_PORT..."
 
-# Wait for the MySQL service to be ready
-until mysql -h"$DB_HOST" -P"$DB_PORT" -u"$DB_USER" -p"$DB_PASS" -e "SELECT 1;" > /dev/null 2>&1; do
-  echo "Database is not yet ready. Waiting..."
+until mysql -h"$DB_HOST" -P"$DB_PORT" -u"$DB_USER" -p"$DB_PASS" -e "SELECT 1;"; do
+  echo "Database is not yet ready. Retrying in 2 seconds..."
   sleep 2
 done
 
