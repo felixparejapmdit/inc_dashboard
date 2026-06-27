@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import {
   Box,
   Button,
@@ -68,6 +69,7 @@ import { filterPersonnelData } from "../utils/filterUtils";
 const MotionBox = motion.create(Box);
 
 const Reminders = () => {
+  const location = useLocation();
   const [reminders, setReminders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -106,6 +108,12 @@ const Reminders = () => {
   useEffect(() => {
     loadReminders();
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const search = params.get("search") || "";
+    setSearchQuery(search);
+  }, [location.search]);
 
   const loadReminders = async () => {
     setLoading(true);

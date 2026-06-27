@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import {
   Box,
   Heading,
@@ -78,6 +79,7 @@ const LOCAL_CONGREGATION_API_URL = process.env.REACT_APP_LOCAL_CONGREGATION_API_
 const MotionBox = motion.create(Box);
 
 const Suguan = () => {
+  const location = useLocation();
   const [suguan, setSuguan] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [localCongregations, setLocalCongregations] = useState([]);
@@ -125,6 +127,23 @@ const Suguan = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const search = params.get("search") || "";
+    const dateParam = params.get("date") || params.get("searchDate");
+
+    setSearchQuery(search);
+
+    if (dateParam) {
+      const nextWeek = moment(dateParam);
+      if (nextWeek.isValid()) {
+        setCurrentWeek(nextWeek.startOf("isoWeek"));
+      }
+    } else {
+      setCurrentWeek(moment().startOf("isoWeek"));
+    }
+  }, [location.search]);
 
   const loadData = async () => {
     setLoading(true);

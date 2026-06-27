@@ -5,6 +5,7 @@ const PermissionContext = createContext();
 
 export const PermissionProvider = ({ children }) => {
   const [permissions, setPermissions] = useState([]);
+  const [isPermissionsLoading, setIsPermissionsLoading] = useState(true);
 
   /**
    * Fetch permissions based on group ID
@@ -14,8 +15,12 @@ export const PermissionProvider = ({ children }) => {
   const fetchPermissions = useCallback(async (groupId) => {
     if (!groupId) {
       console.error("Group ID is required to fetch permissions.");
+      setPermissions([]);
+      setIsPermissionsLoading(false);
       return;
     }
+
+    setIsPermissionsLoading(true);
 
     try {
       await fetchPermissionData(
@@ -25,6 +30,8 @@ export const PermissionProvider = ({ children }) => {
       );
     } catch (error) {
       console.error("❌ Error in fetchPermissions:", error);
+    } finally {
+      setIsPermissionsLoading(false);
     }
   }, []);
 
@@ -44,7 +51,9 @@ export const PermissionProvider = ({ children }) => {
   };
 
   return (
-    <PermissionContext.Provider value={{ fetchPermissions, hasPermission }}>
+    <PermissionContext.Provider
+      value={{ fetchPermissions, hasPermission, isPermissionsLoading }}
+    >
       {children}
     </PermissionContext.Provider>
   );

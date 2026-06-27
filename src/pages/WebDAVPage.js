@@ -6,6 +6,7 @@ import React, {
   useState,
 } from "react";
 import axios from "axios";
+import { useLocation } from "react-router-dom";
 import {
   ArrowUp,
   Bell,
@@ -33,6 +34,7 @@ import {
   Share2,
   Activity,
   Copy,
+  ExternalLink,
   UserPlus,
 } from "lucide-react";
 
@@ -101,6 +103,32 @@ const safeDecode = (value) => {
   }
 };
 
+const normalizeWebdavPath = (remotePath = "/") => {
+  const rawPath = String(remotePath || "/").trim().replace(/\\/g, "/");
+
+  if (!rawPath) {
+    return "/";
+  }
+
+  const withLeadingSlash = rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
+  const collapsed = withLeadingSlash.replace(/\/{2,}/g, "/");
+
+  return collapsed || "/";
+};
+
+const getParentWebdavPath = (remotePath = "/") => {
+  const normalized = normalizeWebdavPath(remotePath);
+
+  if (normalized === "/") {
+    return "/";
+  }
+
+  const segments = normalized.split("/").filter(Boolean);
+  segments.pop();
+
+  return segments.length ? `/${segments.join("/")}` : "/";
+};
+
 const buildBreadcrumbs = (currentPath) => {
   const segments = String(currentPath || "/")
     .split("/")
@@ -129,11 +157,7 @@ const getInitials = () => {
     return "FP";
   }
 
-  const rawName =
-    localStorage.getItem("displayName") ||
-    localStorage.getItem("name") ||
-    localStorage.getItem("username") ||
-    "File";
+  const rawName = getCurrentUserDisplayName();
 
   const parts = String(rawName)
     .replace(/[@._-]/g, " ")
@@ -151,7 +175,54 @@ const getInitials = () => {
     .toUpperCase();
 };
 
+const getCurrentUserDisplayName = () => {
+  if (typeof window === "undefined") {
+    return "User";
+  }
+
+  const candidates = [
+    localStorage.getItem("userFullName"),
+    localStorage.getItem("displayName"),
+    localStorage.getItem("name"),
+    localStorage.getItem("username"),
+  ];
+
+  const match = candidates.find((value) => {
+    const text = String(value || "").trim();
+    if (!text) {
+      return false;
+    }
+
+    const lower = text.toLowerCase();
+    return lower !== "n/a" && lower !== "null" && lower !== "undefined";
+  });
+
+  return match || "User";
+};
+
+const getDirectoryUserLabel = (user = {}) => {
+  const candidates = [
+    user.fullname,
+    `${user.givenName || ""} ${user.sn || ""}`.trim(),
+    user.mail,
+    user.uid,
+  ];
+
+  const name = candidates.find((value) => {
+    const text = String(value || "").trim();
+    if (!text) {
+      return false;
+    }
+
+    const lower = text.toLowerCase();
+    return lower !== "n/a" && lower !== "null" && lower !== "undefined";
+  });
+
+  return String(name || "User").trim() || "User";
+};
+
 const WebDAVPage = () => {
+  const location = useLocation();
   const [currentPath, setCurrentPath] = useState("/");
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -186,6 +257,8 @@ const WebDAVPage = () => {
   const [shareSearchQuery, setShareSearchQuery] = useState("");
   const [sharingInProgress, setSharingInProgress] = useState(false);
   const [shareSuccessNotice, setShareSuccessNotice] = useState("");
+  const [publicLinkUrl, setPublicLinkUrl] = useState("");
+  const [publicLinkLoading, setPublicLinkLoading] = useState(false);
 
   // States for file preview modal, details sidebar, and context menus
   const [activePreviewFile, setActivePreviewFile] = useState(null);
@@ -214,6 +287,26 @@ const WebDAVPage = () => {
   const peopleButtonRef = useRef(null);
   const allFilesMenuRef = useRef(null);
   const currentDirMenuRef = useRef(null);
+  const pendingPreviewPathRef = useRef("");
+
+  const currentUserDisplayName = useMemo(() => getCurrentUserDisplayName(), []);
+  const ownerLabel = `${currentUserDisplayName} (Owner)`;
+  const ownerInitials = useMemo(() => {
+    const parts = String(currentUserDisplayName)
+      .replace(/[@._-]/g, " ")
+      .split(/\s+/)
+      .filter(Boolean);
+
+    if (parts.length === 0) {
+      return "FP";
+    }
+
+    return parts
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase();
+  }, [currentUserDisplayName]);
 
   useEffect(() => {
     currentPathRef.current = currentPath;
@@ -313,6 +406,116 @@ const WebDAVPage = () => {
     ]);
   };
 
+  const copyToClipboard = useCallback(async (text, successMessage) => {
+    const value = String(text || "").trim();
+
+    if (!value) {
+      setNotice({
+        type: "error",
+        text: "Nothing is available to copy yet.",
+      });
+      return false;
+    }
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = value;
+        textarea.setAttribute("readonly", "true");
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+
+      if (successMessage) {
+        setNotice({ type: "success", text: successMessage });
+      }
+
+      return true;
+    } catch (error) {
+      setNotice({
+        type: "error",
+        text: getErrorMessage(error, "We could not copy the link."),
+      });
+      return false;
+    }
+  }, []);
+
+  const buildInternalLink = useCallback(
+    (targetPath, targetType = "file") => {
+      const normalizedPath = normalizeWebdavPath(targetPath);
+      const queryKey = targetType === "folder" ? "folder" : "preview";
+
+      return `${window.location.origin}/webdav?${queryKey}=${encodeURIComponent(
+        normalizedPath,
+      )}`;
+    },
+    [],
+  );
+
+  const handleOpenInternalLink = useCallback(() => {
+    if (!activeDetailsEntry?.path) {
+      return;
+    }
+
+    window.open(
+      buildInternalLink(activeDetailsEntry.path, activeDetailsEntry.type),
+      "_blank",
+      "noopener,noreferrer",
+    );
+  }, [activeDetailsEntry, buildInternalLink]);
+
+  const handleCreatePublicLink = useCallback(async () => {
+    if (!activeDetailsEntry?.path) {
+      return;
+    }
+
+    if (publicLinkUrl) {
+      await copyToClipboard(publicLinkUrl, "Public link copied to clipboard.");
+      return;
+    }
+
+    setPublicLinkLoading(true);
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/api/webdav/share/public`,
+        { path: activeDetailsEntry.path },
+        {
+          headers: getAuthHeaders(),
+        },
+      );
+
+      const sharedUrl =
+        response.data?.data?.publicUrl ||
+        response.data?.data?.url ||
+        response.data?.publicUrl ||
+        response.data?.url;
+
+      if (!sharedUrl) {
+        throw new Error("The server did not return a public link.");
+      }
+
+      setPublicLinkUrl(sharedUrl);
+      setSharedPaths((prev) => [...new Set([...prev, activeDetailsEntry.path])]);
+      setNotice({
+        type: "success",
+        text: "Public link created successfully.",
+      });
+    } catch (error) {
+      setNotice({
+        type: "error",
+        text: getErrorMessage(error, "We could not create a public link."),
+      });
+    } finally {
+      setPublicLinkLoading(false);
+    }
+  }, [activeDetailsEntry, copyToClipboard, publicLinkUrl]);
+
   const handleSignOut = async () => {
     const username = localStorage.getItem("username");
     try {
@@ -328,8 +531,10 @@ const WebDAVPage = () => {
     }
     localStorage.removeItem("token");
     localStorage.removeItem("username");
+    localStorage.removeItem("userFullName");
     localStorage.removeItem("role");
     localStorage.removeItem("displayName");
+    localStorage.removeItem("name");
     window.location.href = "/login";
   };
 
@@ -337,11 +542,13 @@ const WebDAVPage = () => {
     setSharingInProgress(true);
     setShareSuccessNotice("");
 
+    const recipientLabel = getDirectoryUserLabel(user);
+
     setTimeout(() => {
       setSharingInProgress(false);
-      setShareSuccessNotice(`Shared successfully with ${user.givenName}!`);
+      setShareSuccessNotice(`Shared successfully with ${recipientLabel}!`);
       addNotification(
-        `Shared ${selectedPaths.length} items with ${user.givenName} ${user.sn}`,
+        `Shared ${selectedPaths.length} items with ${recipientLabel}`,
       );
       setSharedPaths((prev) => [...new Set([...prev, ...selectedPaths])]);
       setSelectedPaths([]); // clear selections
@@ -392,6 +599,34 @@ const WebDAVPage = () => {
   useEffect(() => {
     loadDirectory(currentPath);
   }, [currentPath, loadDirectory]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const folderParam = params.get("folder");
+    const previewParam = params.get("preview");
+    const previewPath = previewParam ? normalizeWebdavPath(previewParam) : "";
+    const folderPath = folderParam ? normalizeWebdavPath(folderParam) : "";
+
+    if (folderPath) {
+      pendingPreviewPathRef.current = "";
+      if (folderPath !== currentPathRef.current) {
+        setCurrentPath(folderPath);
+      }
+      return;
+    }
+
+    if (!previewPath || previewPath === "/") {
+      pendingPreviewPathRef.current = "";
+      return;
+    }
+
+    pendingPreviewPathRef.current = previewPath;
+
+    const parentFolderPath = getParentWebdavPath(previewPath);
+    if (parentFolderPath !== currentPathRef.current) {
+      setCurrentPath(parentFolderPath);
+    }
+  }, [location.search]);
 
   const visibleEntries = useMemo(() => {
     let result = entries;
@@ -521,7 +756,7 @@ const WebDAVPage = () => {
     setCurrentPath(segments.length ? `/${segments.join("/")}` : "/");
   };
 
-  const handleFileClick = async (entry) => {
+  const handleFileClick = useCallback(async (entry) => {
     setActivePreviewFile(entry);
     setPreviewLoading(true);
     setPreviewError(null);
@@ -572,7 +807,7 @@ const WebDAVPage = () => {
     } finally {
       setPreviewLoading(false);
     }
-  };
+  }, []);
 
   const closePreview = () => {
     if (previewUrl) {
@@ -721,6 +956,7 @@ const WebDAVPage = () => {
     setActiveDetailsEntry(entry);
     setActiveDetailsTab("sharing");
     setActiveRowMenu(null);
+    setPublicLinkUrl("");
   };
 
   const toggleRowMenu = (event, path) => {
@@ -868,6 +1104,28 @@ const WebDAVPage = () => {
     }
   };
 
+  useEffect(() => {
+    const pendingPreviewPath = pendingPreviewPathRef.current;
+
+    if (!pendingPreviewPath || !entries.length) {
+      return;
+    }
+
+    const matchedEntry = entries.find((entry) => entry.path === pendingPreviewPath);
+    if (!matchedEntry) {
+      return;
+    }
+
+    pendingPreviewPathRef.current = "";
+
+    if (matchedEntry.type === "folder") {
+      setCurrentPath(matchedEntry.path);
+      return;
+    }
+
+    handleFileClick(matchedEntry);
+  }, [entries, handleFileClick]);
+
   return (
     <div className="flex min-h-screen w-full flex-col overflow-hidden bg-[#f5f7fb] text-slate-900 relative">
       <header className="flex h-14 items-center gap-4 bg-[#58a8e4] px-4 text-white shadow-sm shrink-0">
@@ -1008,9 +1266,7 @@ const WebDAVPage = () => {
                     Signed in as
                   </p>
                   <p className="text-sm font-semibold text-slate-900 truncate">
-                    {localStorage.getItem("displayName") ||
-                      localStorage.getItem("username") ||
-                      "User"}
+                    {currentUserDisplayName}
                   </p>
                   <p className="text-[10px] text-slate-500 font-normal truncate">
                     {localStorage.getItem("role")
@@ -1850,18 +2106,22 @@ const WebDAVPage = () => {
                 <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto">
                   {usersList
                     .filter((u) => {
-                      const name =
-                        `${u.givenName || ""} ${u.sn || ""}`.toLowerCase();
+                      const name = getDirectoryUserLabel(u).toLowerCase();
                       return (
                         name.includes(shareSearchQuery.toLowerCase()) ||
-                        u.uid
-                          ?.toLowerCase()
-                          .includes(shareSearchQuery.toLowerCase())
+                        u.uid?.toLowerCase().includes(shareSearchQuery.toLowerCase()) ||
+                        u.mail?.toLowerCase().includes(shareSearchQuery.toLowerCase())
                       );
                     })
                     .map((user) => {
+                      const displayName = getDirectoryUserLabel(user);
                       const initials =
-                        `${user.givenName?.[0] || ""}${user.sn?.[0] || ""}`.toUpperCase() ||
+                        `${displayName
+                          .split(" ")
+                          .filter(Boolean)
+                          .slice(0, 2)
+                          .map((part) => part[0] || "")
+                          .join("")}`.toUpperCase() ||
                         user.uid?.[0].toUpperCase();
                       return (
                         <div
@@ -1874,7 +2134,7 @@ const WebDAVPage = () => {
                             </span>
                             <div className="min-w-0">
                               <p className="text-xs font-semibold text-slate-800 truncate">
-                                {user.givenName} {user.sn}
+                                {displayName}
                               </p>
                               <p className="text-[10px] text-slate-405 truncate">
                                 {user.groupName || "Member"}
@@ -1923,18 +2183,22 @@ const WebDAVPage = () => {
                 <div className="flex flex-col gap-2">
                   {usersList
                     .filter((u) => {
-                      const name =
-                        `${u.givenName || ""} ${u.sn || ""}`.toLowerCase();
+                      const name = getDirectoryUserLabel(u).toLowerCase();
                       return (
                         name.includes(shareSearchQuery.toLowerCase()) ||
-                        u.uid
-                          ?.toLowerCase()
-                          .includes(shareSearchQuery.toLowerCase())
+                        u.uid?.toLowerCase().includes(shareSearchQuery.toLowerCase()) ||
+                        u.mail?.toLowerCase().includes(shareSearchQuery.toLowerCase())
                       );
                     })
                     .map((user) => {
+                      const displayName = getDirectoryUserLabel(user);
                       const initials =
-                        `${user.givenName?.[0] || ""}${user.sn?.[0] || ""}`.toUpperCase() ||
+                        `${displayName
+                          .split(" ")
+                          .filter(Boolean)
+                          .slice(0, 2)
+                          .map((part) => part[0] || "")
+                          .join("")}`.toUpperCase() ||
                         user.uid?.[0].toUpperCase();
                       return (
                         <div
@@ -1946,7 +2210,7 @@ const WebDAVPage = () => {
                           </span>
                           <div className="min-w-0">
                             <p className="text-xs font-semibold text-slate-800 truncate">
-                              {user.givenName} {user.sn}
+                              {displayName}
                             </p>
                             <p className="text-[10px] text-slate-405 truncate">
                               {user.mail || user.uid}
@@ -1967,7 +2231,7 @@ const WebDAVPage = () => {
 
       {/* Sharing & Details Drawer Sidebar */}
       {activeDetailsEntry && (
-        <div className="fixed inset-y-0 right-0 z-35 w-96 bg-white border-l border-slate-200 shadow-2xl flex flex-col transition-all duration-300 transform translate-x-0">
+        <div className="fixed inset-y-0 right-0 z-[3000] w-96 bg-white border-l border-slate-200 shadow-2xl flex flex-col transition-all duration-300 transform translate-x-0">
           {/* Header */}
           <div className="flex flex-col p-4 border-b border-slate-100 bg-slate-50/50">
             <div className="flex items-center justify-between mb-3">
@@ -2066,15 +2330,15 @@ const WebDAVPage = () => {
                     </span>
                     <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
                   </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100 text-xs">
-                      <div className="flex items-center gap-2">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+                    <div className="flex items-center gap-2">
                         <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#f7efe7] text-[10px] font-bold text-[#58a8e4]">
-                          FP
+                          {ownerInitials}
                         </span>
                         <div>
                           <p className="font-semibold text-slate-800">
-                            Felix Pareja (Owner)
+                            {ownerLabel}
                           </p>
                           <p className="text-[9px] text-slate-400">
                             Full access
@@ -2094,17 +2358,28 @@ const WebDAVPage = () => {
                     <input
                       type="text"
                       readOnly
-                      value={`${window.location.origin}/uploads${activeDetailsEntry.path}`}
+                      value={buildInternalLink(activeDetailsEntry.path, activeDetailsEntry.type)}
                       className="flex-1 px-3 py-2 text-[10px] font-mono border border-slate-200 rounded-xl bg-slate-50 text-slate-500 outline-none truncate"
                     />
                     <button
                       type="button"
-                      onClick={() => {
-                        navigator.clipboard.writeText(
-                          `${window.location.origin}/uploads${activeDetailsEntry.path}`,
-                        );
-                        alert("Link copied to clipboard!");
-                      }}
+                      onClick={handleOpenInternalLink}
+                      className="rounded-xl border border-slate-200 bg-white p-2 hover:bg-slate-50 transition shadow-sm"
+                      title="Open link in new tab"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5 text-slate-650" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        copyToClipboard(
+                          buildInternalLink(
+                            activeDetailsEntry.path,
+                            activeDetailsEntry.type,
+                          ),
+                          "Internal link copied to clipboard.",
+                        )
+                      }
                       className="rounded-xl border border-slate-200 bg-white p-2 hover:bg-slate-50 transition shadow-sm"
                       title="Copy link"
                     >
@@ -2131,14 +2406,49 @@ const WebDAVPage = () => {
                   </div>
                 </div>
 
+                {publicLinkUrl && (
+                  <div>
+                    <span className="text-xs font-bold text-slate-700 block mb-1">
+                      Public link
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="text"
+                        readOnly
+                        value={publicLinkUrl}
+                        className="flex-1 px-3 py-2 text-[10px] font-mono border border-slate-200 rounded-xl bg-slate-50 text-slate-500 outline-none truncate"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          copyToClipboard(publicLinkUrl, "Public link copied to clipboard.")
+                        }
+                        className="rounded-xl border border-slate-200 bg-white p-2 hover:bg-slate-50 transition shadow-sm"
+                        title="Copy public link"
+                      >
+                        <Copy className="h-3.5 w-3.5 text-slate-650" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Create public link button */}
                 <button
                   type="button"
-                  onClick={() => alert("Public link created successfully!")}
-                  className="w-full py-2 bg-[#208ded] hover:bg-[#1b7dd0] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 shadow-sm transition"
+                  onClick={handleCreatePublicLink}
+                  disabled={publicLinkLoading}
+                  className="w-full py-2 bg-[#208ded] hover:bg-[#1b7dd0] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 shadow-sm transition disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  <Plus className="h-4 w-4" />
-                  Create public link
+                  {publicLinkUrl ? (
+                    <Copy className="h-4 w-4" />
+                  ) : (
+                    <Plus className="h-4 w-4" />
+                  )}
+                  {publicLinkLoading
+                    ? "Creating..."
+                    : publicLinkUrl
+                      ? "Copy public link"
+                      : "Create public link"}
                 </button>
               </div>
             ) : (
@@ -2146,16 +2456,16 @@ const WebDAVPage = () => {
                 <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">
                   Activity Log
                 </span>
-                <div className="relative pl-6 border-l border-slate-200 space-y-5 text-xs text-slate-600">
-                  <div className="relative">
-                    <span className="absolute -left-[31px] top-0 flex h-4 w-4 items-center justify-center rounded-full bg-blue-100 text-[10px] font-bold text-[#208ded]">
-                      ✓
-                    </span>
-                    <p className="font-semibold text-slate-800">File created</p>
-                    <p className="text-[10px] text-slate-400">
-                      By Felix Pareja · 2 hours ago
-                    </p>
-                  </div>
+                  <div className="relative pl-6 border-l border-slate-200 space-y-5 text-xs text-slate-600">
+                    <div className="relative">
+                      <span className="absolute -left-[31px] top-0 flex h-4 w-4 items-center justify-center rounded-full bg-blue-100 text-[10px] font-bold text-[#208ded]">
+                        ✓
+                      </span>
+                      <p className="font-semibold text-slate-800">File created</p>
+                      <p className="text-[10px] text-slate-400">
+                        By {currentUserDisplayName} · 2 hours ago
+                      </p>
+                    </div>
                   <div className="relative">
                     <span className="absolute -left-[31px] top-0 flex h-4 w-4 items-center justify-center rounded-full bg-amber-105 text-[10px] font-bold text-amber-500">
                       ★
@@ -2176,12 +2486,12 @@ const WebDAVPage = () => {
 
       {/* File Preview Modal */}
       {activePreviewFile && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity duration-200">
-          <div className="flex h-[85vh] w-full max-w-4xl flex-col rounded-3xl border border-slate-200 bg-white shadow-2xl overflow-hidden">
+        <div className="fixed inset-0 z-[3001] flex items-center justify-center bg-slate-950/60 backdrop-blur-md p-0 sm:p-4 transition-opacity duration-200">
+          <div className="flex h-full w-full flex-col overflow-hidden bg-[#f4f7fb] shadow-2xl sm:h-[92vh] sm:w-[96vw] sm:max-w-[1600px] sm:rounded-[1.75rem] sm:border sm:border-slate-200">
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-6 py-4">
+            <div className="flex items-center justify-between border-b border-slate-200 bg-gradient-to-r from-white via-slate-50 to-sky-50 px-5 py-4">
               <div className="flex items-center gap-3 min-w-0">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#eaf5ff] text-[#208ded]">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#eaf5ff] text-[#208ded] shadow-sm">
                   <FileText className="h-5 w-5" />
                 </span>
                 <div className="min-w-0">
@@ -2202,7 +2512,7 @@ const WebDAVPage = () => {
                 <button
                   type="button"
                   onClick={() => handleDownloadFile(activePreviewFile)}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white/90 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-white"
                 >
                   Download
                 </button>
@@ -2211,7 +2521,7 @@ const WebDAVPage = () => {
                 <button
                   type="button"
                   onClick={closePreview}
-                  className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition font-bold"
+                  className="rounded-full p-1.5 text-slate-400 transition font-bold hover:bg-slate-100 hover:text-slate-700"
                 >
                   ✕
                 </button>
@@ -2219,16 +2529,16 @@ const WebDAVPage = () => {
             </div>
 
             {/* Modal Content */}
-            <div className="flex-1 overflow-auto bg-slate-50/30 p-6 flex flex-col items-center justify-center">
+            <div className="flex-1 overflow-auto bg-[linear-gradient(180deg,#f8fbff_0%,#eef4f9_100%)] p-4 sm:p-6 flex flex-col items-center justify-center">
               {previewLoading ? (
-                <div className="flex flex-col items-center gap-3">
+                <div className="flex flex-col items-center gap-3 rounded-3xl border border-slate-200 bg-white/85 px-6 py-8 shadow-sm">
                   <RefreshCw className="h-8 w-8 text-[#208ded] animate-spin" />
                   <p className="text-sm font-medium text-slate-500">
                     Loading preview...
                   </p>
                 </div>
               ) : previewError ? (
-                <div className="text-center">
+                <div className="max-w-md rounded-3xl border border-slate-200 bg-white/90 p-6 text-center shadow-sm">
                   <p className="text-sm font-semibold text-rose-650 mb-2">
                     Could not load preview
                   </p>
@@ -2261,11 +2571,11 @@ const WebDAVPage = () => {
                       ].includes(ext)
                     ) {
                       return (
-                        <div className="max-h-full max-w-full overflow-auto rounded-xl border border-slate-150 bg-white p-2 shadow-sm">
+                        <div className="max-h-full max-w-full overflow-auto rounded-2xl border border-slate-200 bg-white/90 p-3 shadow-sm">
                           <img
                             src={previewUrl}
                             alt={activePreviewFile.name}
-                            className="max-h-[60vh] object-contain mx-auto rounded-lg"
+                            className="max-h-[72vh] object-contain mx-auto rounded-lg"
                           />
                         </div>
                       );
@@ -2275,7 +2585,7 @@ const WebDAVPage = () => {
                         <iframe
                           src={previewUrl}
                           title={activePreviewFile.name}
-                          className="w-full h-full rounded-xl border border-slate-200 bg-white shadow-inner"
+                          className="w-full h-full rounded-2xl border border-slate-200 bg-slate-100 shadow-inner"
                         />
                       );
                     }
@@ -2291,8 +2601,8 @@ const WebDAVPage = () => {
                       ].includes(ext)
                     ) {
                       return (
-                        <div className="w-full h-full flex flex-col bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                          <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-4 py-2">
+                        <div className="w-full h-full flex flex-col rounded-3xl border border-slate-200 bg-white/90 shadow-sm overflow-hidden">
+                          <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/70 px-4 py-2">
                             <span className="text-xs text-slate-400 font-medium font-sans">
                               {isEditingText
                                 ? "Editing File Contents..."
@@ -2333,7 +2643,7 @@ const WebDAVPage = () => {
                               </div>
                             </div>
                           ) : (
-                            <pre className="flex-1 overflow-auto p-4 font-mono text-xs text-slate-750 whitespace-pre-wrap select-text leading-relaxed text-left w-full">
+                            <pre className="flex-1 overflow-auto p-4 font-mono text-xs text-slate-750 whitespace-pre-wrap select-text leading-relaxed text-left w-full bg-white/70">
                               {previewContent || (
                                 <span className="text-slate-400 italic">
                                   Empty file
@@ -2347,7 +2657,7 @@ const WebDAVPage = () => {
 
                     // Fallback preview
                     return (
-                      <div className="text-center p-8 bg-white border border-slate-200 rounded-3xl shadow-sm max-w-sm flex flex-col items-center">
+                      <div className="text-center p-8 bg-white/90 border border-slate-200 rounded-3xl shadow-sm max-w-sm flex flex-col items-center">
                         <span className="flex h-20 w-20 items-center justify-center rounded-3xl bg-slate-50 text-slate-400 mb-4 ring-4 ring-slate-50/50">
                           <FileText className="h-10 w-10 text-slate-500" />
                         </span>

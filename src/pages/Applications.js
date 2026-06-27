@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import {
   Box,
   Button,
@@ -74,7 +75,9 @@ import {
   CheckCircle2,
   Layers,
   Database,
-  Activity
+  Activity,
+  ToggleLeft,
+  ToggleRight,
 } from "lucide-react";
 import { fetchData, postData, putData, deleteData } from "../utils/fetchData";
 
@@ -82,8 +85,10 @@ const API_URL = process.env.REACT_APP_API_URL;
 const ITEMS_PER_PAGE = 12;
 const MAX_ICON_SIZE_BYTES = 102400;
 const MotionBox = motion.create(Box);
+const isAppActive = (app) => app?.is_active !== false && app?.is_active !== 0 && app?.is_active !== "0";
 
 const Applications = () => {
+  const location = useLocation();
   const [apps, setApps] = useState([]);
   const [appTypes, setAppTypes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -100,6 +105,7 @@ const Applications = () => {
   const [editingApp, setEditingApp] = useState(null);
   const [fileError, setFileError] = useState("");
   const [isIconDragging, setIsIconDragging] = useState(false);
+  const [updatingStatusId, setUpdatingStatusId] = useState(null);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [deletingApp, setDeletingApp] = useState(null);
@@ -121,6 +127,13 @@ const Applications = () => {
     loadData();
   }, []);
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const search = params.get("search") || "";
+    setSearchQuery(search);
+    setPage(1);
+  }, [location.search]);
+
   const loadData = async () => {
     setIsLoading(true);
     try {
@@ -128,7 +141,11 @@ const Applications = () => {
         fetchData("apps"),
         fetchData("application-types"),
       ]);
-      setApps(appsData || []);
+      const normalizedApps = (appsData || []).map((app) => ({
+        ...app,
+        is_active: isAppActive(app),
+      }));
+      setApps(normalizedApps);
       setAppTypes(typesData || []);
     } catch (error) {
       toast({
@@ -229,6 +246,7 @@ const Applications = () => {
       description,
       icon,
       app_type,
+      is_active: editingApp?.is_active ?? true,
     };
 
     // Find the matching type name for display
@@ -238,13 +256,25 @@ const Applications = () => {
       if (editingApp) {
         const result = await putData("apps", editingApp.id, payload);
         // ✅ Optimistic update: update the item in local state immediately
-        const updatedApp = { ...editingApp, ...payload, app_type_name: typeName, ...(result?.data || {}) };
+        const updatedApp = {
+          ...editingApp,
+          ...payload,
+          is_active: result?.data?.is_active ?? payload.is_active,
+          app_type_name: typeName,
+          ...(result?.data || {}),
+        };
         setApps(prev => prev.map(a => a.id === editingApp.id ? updatedApp : a));
         toast({ title: "App updated", status: "success" });
       } else {
         const result = await postData("apps", payload);
         // ✅ Optimistic update: append the new item immediately
-        const newApp = { id: result?.data?.id || result?.id || Date.now(), ...payload, app_type_name: typeName, ...(result?.data || {}) };
+        const newApp = {
+          id: result?.data?.id || result?.id || Date.now(),
+          ...payload,
+          is_active: result?.data?.is_active ?? payload.is_active,
+          app_type_name: typeName,
+          ...(result?.data || {}),
+        };
         setApps(prev => [...prev, newApp]);
         toast({ title: "App added", status: "success" });
       }
@@ -254,6 +284,44 @@ const Applications = () => {
       loadData();
     } catch (error) {
       toast({ title: "Error saving app", description: error.message, status: "error" });
+    }
+  };
+
+  const handleToggleStatus = async (app) => {
+    const nextIsActive = !isAppActive(app);
+    setUpdatingStatusId(app.id);
+
+    try {
+      const payload = {
+        name: app.name,
+        url: app.url,
+        description: app.description,
+        icon: app.icon,
+        app_type: app.app_type,
+        is_active: nextIsActive,
+      };
+
+      const result = await putData("apps", app.id, payload);
+      const updatedStatus = result?.data?.is_active ?? nextIsActive;
+
+      setApps((prev) =>
+        prev.map((item) =>
+          item.id === app.id ? { ...item, is_active: updatedStatus } : item,
+        ),
+      );
+
+      toast({
+        title: nextIsActive ? "App enabled" : "App disabled",
+        status: "success",
+      });
+    } catch (error) {
+      toast({
+        title: "Could not update app status",
+        description: error.message,
+        status: "error",
+      });
+    } finally {
+      setUpdatingStatusId(null);
     }
   };
 
@@ -282,7 +350,9 @@ const Applications = () => {
         (app) =>
           app.name.toLowerCase().includes(q) ||
           app.url.toLowerCase().includes(q) ||
-          app.description?.toLowerCase().includes(q)
+          app.description?.toLowerCase().includes(q) ||
+          (app.app_type_name || "").toLowerCase().includes(q) ||
+          (isAppActive(app) ? "enabled" : "disabled").includes(q)
       );
     }
     if (filterType) {
@@ -471,17 +541,30 @@ const Applications = () => {
                             bg="white"
                           />
                         </Flex>
-                        <Badge
+                        <VStack
                           position="absolute"
                           top={3}
                           right={3}
-                          colorScheme="purple"
-                          variant="solid"
-                          borderRadius="full"
-                          px={2}
+                          spacing={1}
+                          align="end"
                         >
-                          {app.app_type_name || "App"}
-                        </Badge>
+                          <Badge
+                            colorScheme="purple"
+                            variant="solid"
+                            borderRadius="full"
+                            px={2}
+                          >
+                            {app.app_type_name || "App"}
+                          </Badge>
+                          <Badge
+                            colorScheme={isAppActive(app) ? "green" : "gray"}
+                            variant="solid"
+                            borderRadius="full"
+                            px={2}
+                          >
+                            {isAppActive(app) ? "Enabled" : "Disabled"}
+                          </Badge>
+                        </VStack>
                       </Box>
                       <VStack p={6} pt={8} spacing={3}>
                         <VStack spacing={0}>
@@ -500,6 +583,17 @@ const Applications = () => {
                               colorScheme="green"
                               variant="ghost"
                               onClick={() => window.open(app.url, "_blank")}
+                            />
+                          </Tooltip>
+                          <Tooltip label={isAppActive(app) ? "Disable App" : "Enable App"}>
+                            <IconButton
+                              icon={isAppActive(app) ? <ToggleLeft size={18} /> : <ToggleRight size={18} />}
+                              size="sm"
+                              colorScheme={isAppActive(app) ? "gray" : "green"}
+                              variant="ghost"
+                              onClick={() => handleToggleStatus(app)}
+                              isLoading={updatingStatusId === app.id}
+                              aria-label={isAppActive(app) ? "Disable App" : "Enable App"}
                             />
                           </Tooltip>
                           <Tooltip label="Edit">
@@ -548,7 +642,11 @@ const Applications = () => {
                   </Thead>
                   <Tbody>
                     {paginatedData.map((app) => (
-                      <Tr key={app.id} _hover={{ bg: "gray.50" }}>
+                      <Tr
+                        key={app.id}
+                        _hover={{ bg: isAppActive(app) ? "gray.50" : "gray.100" }}
+                        opacity={isAppActive(app) ? 1 : 0.72}
+                      >
                         <Td>
                           <HStack>
                             <Avatar src={app.icon} name={app.name} size="sm" borderRadius="md" />
@@ -569,10 +667,29 @@ const Applications = () => {
                           </Text>
                         </Td>
                         <Td>
-                          <Badge colorScheme="green" variant="solid" borderRadius="full" px={2} fontSize="xs"> Active </Badge>
+                          <Badge
+                            colorScheme={isAppActive(app) ? "green" : "gray"}
+                            variant="solid"
+                            borderRadius="full"
+                            px={2}
+                            fontSize="xs"
+                          >
+                            {isAppActive(app) ? "Enabled" : "Disabled"}
+                          </Badge>
                         </Td>
                         <Td textAlign="right">
                           <HStack justify="flex-end">
+                            <Tooltip label={isAppActive(app) ? "Disable App" : "Enable App"}>
+                              <IconButton
+                                icon={isAppActive(app) ? <ToggleLeft size={16} /> : <ToggleRight size={16} />}
+                                size="sm"
+                                variant="ghost"
+                                colorScheme={isAppActive(app) ? "gray" : "green"}
+                                onClick={() => handleToggleStatus(app)}
+                                isLoading={updatingStatusId === app.id}
+                                aria-label={isAppActive(app) ? "Disable App" : "Enable App"}
+                              />
+                            </Tooltip>
                             <IconButton icon={<Edit3 size={16} />} size="sm" variant="ghost" onClick={() => {
                               setEditingApp(app);
                               setName(app.name);

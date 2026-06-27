@@ -34,6 +34,11 @@ const App = sequelize.define(
         key: "id",
       },
     },
+    is_active: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+    },
   },
   {
     tableName: "apps",

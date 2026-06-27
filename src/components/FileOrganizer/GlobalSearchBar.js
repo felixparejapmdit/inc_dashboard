@@ -55,6 +55,7 @@ const GlobalSearchBar = () => {
     <>
       {/* Top menu background */}
       <Box
+        data-global-search-ignore="true"
         position="fixed"
         top="0"
         left="0"

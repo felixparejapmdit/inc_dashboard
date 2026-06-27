@@ -47,6 +47,13 @@ sequelize
       console.error("❌ Apps icon migration failed:", migErr);
     }
     try {
+      const migrateAppsStatus = require("../scripts/migrate_apps_status");
+      await migrateAppsStatus(false);
+      console.log("✅ Apps status migration completed successfully.");
+    } catch (migErr) {
+      console.error("❌ Apps status migration failed:", migErr);
+    }
+    try {
       const migrateAtgFiles = require("../scripts/migrate_atg_files_folders");
       await migrateAtgFiles(false);
       console.log("✅ ATG files migration completed successfully.");

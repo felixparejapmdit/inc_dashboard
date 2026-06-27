@@ -1,4 +1,5 @@
 const path = require("path");
+const axios = require("axios");
 const { AuthType, createClient } = require("webdav");
 
 const User = require("../models/User");
@@ -36,6 +37,20 @@ const normalizeWebdavUrl = (value) => {
   }
 
   return url.endsWith("/") ? url : `${url}/`;
+};
+
+const getWebdavOrigin = (webdavUrl) => {
+  const normalized = normalizeWebdavUrl(webdavUrl);
+
+  if (!normalized) {
+    return null;
+  }
+
+  try {
+    return new URL(normalized).origin;
+  } catch {
+    return null;
+  }
 };
 
 const normalizeWebdavAccountId = (value) =>
@@ -331,6 +346,77 @@ const deleteItem = async (client, remotePath = "") => {
   };
 };
 
+const createPublicShareLink = async ({ username, webdavUrl, remotePath }) => {
+  const normalizedUsername = String(username || "").trim();
+  if (!normalizedUsername) {
+    throw new WebdavServiceError("User identity is missing from the session.", 401);
+  }
+
+  const session = getWebdavSession(normalizedUsername);
+  if (!session?.password) {
+    throw new WebdavServiceError(
+      "WebDAV credentials are missing from this session. Please log in again.",
+      401,
+    );
+  }
+
+  const origin = getWebdavOrigin(webdavUrl);
+  if (!origin) {
+    throw new WebdavServiceError("We could not determine the Nextcloud server URL.", 500);
+  }
+
+  const targetPath = normalizeRemotePath(remotePath);
+  const shareEndpoint = `${origin}/ocs/v2.php/apps/files_sharing/api/v1/shares?format=json`;
+
+  const response = await axios.post(
+    shareEndpoint,
+    new URLSearchParams({
+      path: targetPath,
+      shareType: "3",
+      permissions: "1",
+    }),
+    {
+      auth: {
+        username: normalizedUsername,
+        password: session.password,
+      },
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
+        "OCS-APIRequest": "true",
+      },
+    },
+  );
+
+  const ocs = response?.data?.ocs || {};
+  const meta = ocs.meta || {};
+  const data = ocs.data || {};
+
+  if (meta.statuscode && Number(meta.statuscode) >= 400) {
+    throw new WebdavServiceError(
+      meta.message || "The public link could not be created.",
+      Number(meta.statuscode),
+    );
+  }
+
+  const publicUrl =
+    data.url ||
+    data.webUrl ||
+    data.web_url ||
+    (data.token ? `${origin.replace(/\/$/, "")}/s/${data.token}` : null);
+
+  if (!publicUrl) {
+    throw new WebdavServiceError("The public link was created, but no URL was returned.", 500);
+  }
+
+  return {
+    path: targetPath,
+    publicUrl,
+    token: data.token || null,
+    id: data.id || null,
+  };
+};
+
 module.exports = {
   WebdavServiceError,
   buildWebdavContext,
@@ -343,5 +429,6 @@ module.exports = {
   normalizeWebdavUrl,
   ensureUserWebdavUrl,
   getUserWebdavUrl,
+  createPublicShareLink,
   uploadFile,
 };

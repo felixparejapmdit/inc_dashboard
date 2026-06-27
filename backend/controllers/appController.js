@@ -57,8 +57,23 @@ const getVisibleApplicationTypesForUser = async (userId) => {
 
 const filterAppsByVisibleTypes = (apps, applicationTypes) => {
   const visibleTypeIds = new Set(applicationTypes.map((type) => Number(type.id)));
-  return apps.filter((app) => visibleTypeIds.has(Number(app.app_type)));
+  return apps.filter(
+    (app) =>
+      visibleTypeIds.has(Number(app.app_type)) &&
+      Number(app.is_active ?? 1) === 1,
+  );
 };
+
+const serializeApp = (app, applicationTypeName = "Others") => ({
+  id: app.id,
+  name: app.name,
+  url: app.url,
+  description: app.description,
+  icon: app.icon,
+  app_type: app.app_type,
+  is_active: Number(app.is_active ?? 1) === 1,
+  app_type_name: applicationTypeName,
+});
 
 // Get all apps
 exports.getAllApps = async (req, res) => {
@@ -72,20 +87,15 @@ exports.getAllApps = async (req, res) => {
         },
       ],
       order: [
+        ["is_active", "DESC"],
         ["app_type", "ASC"], // Sort by application type
         ["name", "ASC"], // Then by name
       ],
     });
 
-    const transformedApps = apps.map((app) => ({
-      id: app.id,
-      name: app.name,
-      url: app.url,
-      description: app.description,
-      icon: app.icon,
-      app_type: app.app_type,
-      app_type_name: app.applicationType ? app.applicationType.name : "Others",
-    }));
+    const transformedApps = apps.map((app) =>
+      serializeApp(app, app.applicationType ? app.applicationType.name : "Others"),
+    );
 
     res.json(transformedApps);
   } catch (error) {
@@ -105,6 +115,7 @@ exports.getAppsWithTypes = async (req, res) => {
         },
       ],
       order: [
+        ["is_active", "DESC"],
         ["app_type", "ASC"],
         ["name", "ASC"],
       ],
@@ -116,14 +127,7 @@ exports.getAppsWithTypes = async (req, res) => {
       if (!acc[category]) {
         acc[category] = [];
       }
-      acc[category].push({
-        id: app.id,
-        name: app.name,
-        url: app.url,
-        description: app.description,
-        icon: app.icon,
-        app_type: app.app_type,
-      });
+      acc[category].push(serializeApp(app, category));
       return acc;
     }, {});
 
@@ -157,6 +161,7 @@ exports.getAvailableApps1 = async (req, res) => {
         SELECT apps.*, apps.app_type
         FROM apps
         WHERE apps.app_type IN (:visibleTypeIds)
+          AND COALESCE(apps.is_active, 1) = 1
         ORDER BY apps.app_type ASC, apps.name ASC
         `,
         {
@@ -211,6 +216,7 @@ exports.getAvailableApps2 = async (req, res) => {
       FROM apps 
       INNER JOIN available_apps ON apps.id = available_apps.app_id 
       WHERE available_apps.user_id = :userId
+        AND COALESCE(apps.is_active, 1) = 1
       `,
       {
         replacements: { userId },
@@ -400,6 +406,7 @@ exports.getAvailableApps = async (req, res) => {
       FROM apps 
       INNER JOIN available_apps ON apps.id = available_apps.app_id 
       WHERE available_apps.user_id = :userId
+        AND COALESCE(apps.is_active, 1) = 1
       `,
       {
         replacements: { userId },
@@ -614,7 +621,7 @@ GROUP BY
 
 // Add a new app
 exports.addApp = async (req, res) => {
-  const { name, url, description, icon, app_type } = req.body;
+  const { name, url, description, icon, app_type, is_active } = req.body;
 
   if (!name || !url || !app_type) {
     return res.status(400).json({
@@ -645,7 +652,14 @@ exports.addApp = async (req, res) => {
     }
 
     // ✅ Create new app if no duplicates found
-    const newApp = await App.create({ name, url, description, icon, app_type });
+    const newApp = await App.create({
+      name,
+      url,
+      description,
+      icon,
+      app_type,
+      is_active: is_active ?? true,
+    });
     res.status(201).json({ message: "App added successfully.", app: newApp });
   } catch (error) {
     console.error("Error adding app:", error);
@@ -668,29 +682,40 @@ exports.addApp = async (req, res) => {
 // Update an existing app
 exports.updateApp = async (req, res) => {
   const appId = req.params.id;
-  const { name, url, description, icon, app_type } = req.body;
-
-  if (!name || !url || !app_type) {
-    return res.status(400).json({
-      message: "Name, URL, and App Type fields are required.",
-    });
-  }
-
-  // ✅ URL validation regex (same as `addApp`)
-  const urlPattern =
-    /^(https?:\/\/)(localhost|[a-zA-Z0-9.-]+)(:\d+)?(\/[\w-./?%&=]*)?$/;
-
-  if (!urlPattern.test(url)) {
-    return res.status(400).json({
-      message: "Invalid URL format. Must be a valid http or https link.",
-    });
-  }
-
+  const { name, url, description, icon, app_type, is_active } = req.body;
   try {
+    const currentApp = await App.findByPk(appId);
+    if (!currentApp) {
+      return res.status(404).json({ message: "App not found." });
+    }
+
+    const nextName = name ?? currentApp.name;
+    const nextUrl = url ?? currentApp.url;
+    const nextDescription = description ?? currentApp.description;
+    const nextIcon = icon ?? currentApp.icon;
+    const nextAppType = app_type ?? currentApp.app_type;
+    const nextIsActive = is_active ?? currentApp.is_active;
+
+    if (!nextName || !nextUrl || !nextAppType) {
+      return res.status(400).json({
+        message: "Name, URL, and App Type fields are required.",
+      });
+    }
+
+    // ✅ URL validation regex (same as `addApp`)
+    const urlPattern =
+      /^(https?:\/\/)(localhost|[a-zA-Z0-9.-]+)(:\d+)?(\/[\w-./?%&=]*)?$/;
+
+    if (!urlPattern.test(nextUrl)) {
+      return res.status(400).json({
+        message: "Invalid URL format. Must be a valid http or https link.",
+      });
+    }
+
     // ✅ Check if another app (excluding the current one) has the same name or URL
     const existingApp = await App.findOne({
       where: {
-        [Op.or]: [{ name }, { url }],
+        [Op.or]: [{ name: nextName }, { url: nextUrl }],
         id: { [Op.ne]: appId }, // Ensure it's not the same app being updated
       },
     });
@@ -702,7 +727,14 @@ exports.updateApp = async (req, res) => {
     }
 
     const [updated] = await App.update(
-      { name, url, description, icon, app_type },
+      {
+        name: nextName,
+        url: nextUrl,
+        description: nextDescription,
+        icon: nextIcon,
+        app_type: nextAppType,
+        is_active: nextIsActive,
+      },
       { where: { id: appId } }
     );
 

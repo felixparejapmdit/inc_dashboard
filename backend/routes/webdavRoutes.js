@@ -5,6 +5,7 @@ const verifyToken = require("../middlewares/authMiddleware");
 const webdavContext = require("../middlewares/webdavContext");
 const {
   createFolder,
+  createPublicShareLink,
   deleteItem,
   listDirectory,
   normalizeRemotePath,
@@ -192,6 +193,36 @@ router.post("/rename", async (req, res) => {
     return res.status(500).json({
       success: false,
       message: error.message || "Could not rename the item.",
+    });
+  }
+});
+
+router.post("/share/public", async (req, res) => {
+  try {
+    const targetPath = req.body?.path || req.query?.path;
+
+    if (!targetPath) {
+      return res.status(400).json({
+        success: false,
+        message: "A file path is required.",
+      });
+    }
+
+    const shared = await createPublicShareLink({
+      username: req.webdav.username,
+      webdavUrl: req.webdav.webdavUrl,
+      remotePath: targetPath,
+    });
+
+    return res.status(201).json({
+      success: true,
+      data: shared,
+    });
+  } catch (error) {
+    console.error("❌ WebDAV public share failed:", error);
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Could not create a public link.",
     });
   }
 });

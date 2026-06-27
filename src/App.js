@@ -105,6 +105,7 @@ import DocumentsPage from "./pages/FileOrganizer/DocumentsPage.js";
 import GlobalSearchPage from "./pages/FileOrganizer/GlobalSearchPage.js";
 import GlobalTreePage from "./components/FileOrganizer/GlobalTreePage.js"; // New import for the tree view
 import GlobalSearchBar from "./components/FileOrganizer/GlobalSearchBar.js";
+import UniversalSearchModal from "./components/UniversalSearchModal.js";
 import GenerateQRCode from "./pages/FileOrganizer/GenerateQRCode.js";
 import ScanningQrCode from "./pages/FileOrganizer/ScanningQrCode.js";
 
@@ -144,6 +145,12 @@ function MainApp() {
     matchPath({ path: pattern, end: false }, location.pathname)
   );
 
+  const isPublicAuthRoute =
+    location.pathname === "/" ||
+    location.pathname === "/login" ||
+    location.pathname === "/enroll" ||
+    location.pathname.startsWith("/enrollment/");
+
   const [apiUrl, setApiUrl] = useState("");
 
   useEffect(() => {
@@ -167,6 +174,7 @@ function MainApp() {
   return (
     <>
       {showSearchBar && <GlobalSearchBar />}
+      {!isPublicAuthRoute && <UniversalSearchModal />}
       <Routes>
         {isUnderMaintenance ? (
           <Route path="*" element={<Maintenance />} />

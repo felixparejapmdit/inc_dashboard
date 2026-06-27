@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import {
   Box,
   Button,
@@ -18,17 +19,17 @@ import {
   useDisclosure,
   useToast,
   Flex,
-  Spacer,
   FormErrorMessage,
   IconButton,
   Text,
   ButtonGroup,
-  Card,
-  CardBody,
   SimpleGrid,
   Badge,
   Icon,
   HStack,
+  InputGroup,
+  InputLeftElement,
+  InputRightElement,
   useColorModeValue,
   Container,
   Stat,
@@ -36,6 +37,8 @@ import {
   StatNumber,
   Tooltip,
   Divider,
+  Center,
+  Spinner,
 } from "@chakra-ui/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, momentLocalizer } from "react-big-calendar";
@@ -54,7 +57,7 @@ import {
   Activity,
   AlertCircle,
 } from "lucide-react";
-import { TimeIcon } from "@chakra-ui/icons";
+import { CloseIcon, SearchIcon } from "@chakra-ui/icons";
 
 import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import "react-big-calendar/lib/css/react-big-calendar.css";
@@ -69,9 +72,12 @@ const MotionBox = motion.create(Box);
 
 const Events = () => {
   /* ---------- State ---------- */
+  const location = useLocation();
   const [viewMode, setViewMode] = useState("calendar"); // 'calendar' or 'list'
   const [events, setEvents] = useState([]);
   const [locations, setLocations] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [calendarDate, setCalendarDate] = useState(moment().toDate());
   const [formData, setFormData] = useState({
     eventName: "",
     date: "",
@@ -131,9 +137,56 @@ const Events = () => {
     fetchEventsAndLocations();
   }, [fetchEventsAndLocations]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const search = params.get("search") || "";
+    const searchDate = params.get("searchDate") || params.get("date");
+
+    setSearchQuery(search);
+
+    if (search || searchDate) {
+      setViewMode("list");
+    } else {
+      setViewMode("calendar");
+      setCalendarDate(moment().toDate());
+    }
+
+    if (searchDate) {
+      const parsedDate = moment(searchDate);
+      if (parsedDate.isValid()) {
+        setCalendarDate(parsedDate.toDate());
+      }
+    }
+  }, [location.search]);
+
   /* ---------- Memos ---------- */
+  const filteredEvents = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) {
+      return events;
+    }
+
+    const terms = query.split(/\s+/).filter(Boolean);
+
+    return events.filter((event) => {
+      const timeMoment = moment(event.time, ["HH:mm:ss", "HH:mm"], true);
+      const searchText = [
+        event.eventName,
+        event.locationName,
+        event.recurrence,
+        event.date ? moment(event.date).format("YYYY-MM-DD") : "",
+        event.date ? moment(event.date).format("MMMM D, YYYY") : "",
+        timeMoment.isValid() ? timeMoment.format("h:mm A") : event.time,
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      return terms.every((term) => searchText.includes(term));
+    });
+  }, [events, searchQuery]);
+
   const formattedEvents = useMemo(() => {
-    return events
+    return filteredEvents
       .map((event) => {
         const startTime = moment(`${event.date}T${event.time}`);
         return {
@@ -146,13 +199,21 @@ const Events = () => {
         };
       })
       .sort((a, b) => a.start - b.start);
-  }, [events]);
+  }, [filteredEvents]);
 
   /* ---------- Handlers ---------- */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setFormErrors((prev) => ({ ...prev, [name]: "" }));
+  };
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    if (value.trim()) {
+      setViewMode("list");
+    }
   };
 
   const resetForm = () => {
@@ -307,6 +368,8 @@ const Events = () => {
     }
   };
 
+  const hasSearchQuery = searchQuery.trim().length > 0;
+
   return (
     <Box bg={bg} minH="100vh">
       <Container maxW="100%" py={8} px={{ base: 4, md: 8 }}>
@@ -336,7 +399,36 @@ const Events = () => {
             </Text>
           </VStack>
 
-          <HStack spacing={3}>
+          <HStack spacing={3} flexWrap="wrap" justify="flex-end" align="center">
+            <Box flex="1" minW={{ base: "full", xl: "320px" }}>
+              <InputGroup size="lg">
+                <InputLeftElement pointerEvents="none">
+                  <SearchIcon color="gray.400" />
+                </InputLeftElement>
+                <Input
+                  placeholder="Search events, locations, dates..."
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  borderRadius="xl"
+                  bg={cardBg}
+                  focusBorderColor="blue.400"
+                  pr={hasSearchQuery ? "3.5rem" : "1rem"}
+                />
+                {hasSearchQuery && (
+                  <InputRightElement w="3rem" pointerEvents="auto">
+                    <IconButton
+                      aria-label="Clear search"
+                      icon={<CloseIcon boxSize={2.5} />}
+                      size="sm"
+                      variant="ghost"
+                      borderRadius="full"
+                      onClick={() => setSearchQuery("")}
+                    />
+                  </InputRightElement>
+                )}
+              </InputGroup>
+            </Box>
+
             <ButtonGroup isAttached variant="outline" size="lg">
               <Tooltip label="Calendar view">
                 <IconButton
@@ -404,11 +496,16 @@ const Events = () => {
                   textTransform="uppercase"
                   letterSpacing="widest"
                 >
-                  Total Events
+                  {hasSearchQuery ? "Matching Events" : "Total Events"}
                 </Text>
                 <Text fontSize="3xl" fontWeight="black" color="blue.500">
-                  {events.length}
+                  {filteredEvents.length}
                 </Text>
+                {hasSearchQuery && (
+                  <Text fontSize="xs" color="gray.500" fontWeight="semibold" mt={1}>
+                    {events.length} total available
+                  </Text>
+                )}
               </VStack>
               <Box p={3} bg="blue.50" borderRadius="xl">
                 <Icon as={Activity} boxSize={6} color="blue.500" />
@@ -427,109 +524,141 @@ const Events = () => {
           overflow="hidden"
           p={4}
         >
-          <AnimatePresence mode="wait">
-            {viewMode === "calendar" ? (
-              <MotionBox
-                key="calendar"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3 }}
-                height="750px"
-              >
-                <DnDCalendar
-                  localizer={localizer}
-                  events={formattedEvents}
-                  startAccessor="start"
-                  endAccessor="end"
-                  style={{ height: "100%", borderRadius: "20px" }}
-                  selectable
-                  popup
-                  resizable
-                  views={["month", "week", "day", "agenda"]}
-                  onSelectEvent={handleEditEvent}
-                  onEventDrop={handleEventDrop}
-                  eventPropGetter={() => ({
-                    style: {
-                      backgroundColor: "#3182ce",
-                      borderRadius: "10px",
-                      fontSize: "0.85rem",
-                      fontWeight: "bold",
-                      border: "none",
-                      padding: "4px 8px",
-                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                    },
-                  })}
-                />
-              </MotionBox>
-            ) : (
-              <SimpleGrid
-                key="list"
-                columns={{ base: 1, md: 2, lg: 3 }}
-                spacing={6}
-                p={4}
-              >
-                {formattedEvents.map((evt) => (
-                  <MotionBox
-                    key={evt.id}
-                    layout
-                    whileHover={{ scale: 1.02, translateY: -4 }}
-                    onClick={() => handleEditEvent(evt)}
-                    cursor="pointer"
-                    bg={bg}
-                    p={5}
-                    borderRadius="2xl"
-                    border="1px solid"
-                    borderColor={borderColor}
-                    boxShadow="sm"
-                  >
-                    <VStack align="start" spacing={3}>
-                      <HStack w="100%" justify="space-between">
-                        <Heading size="sm" fontWeight="black" color="blue.600">
-                          {evt.title}
-                        </Heading>
-                        {evt.resource.recurrence !== "none" && (
-                          <Badge
-                            colorScheme="purple"
-                            variant="subtle"
-                            borderRadius="full"
-                            px={2}
-                          >
-                            <Repeat
-                              size={10}
-                              style={{ marginRight: "4px", display: "inline" }}
-                            />
-                            {evt.resource.recurrence}
-                          </Badge>
-                        )}
-                      </HStack>
-                      <Divider />
-                      <VStack align="start" spacing={2} fontSize="sm">
-                        <HStack color="gray.600">
-                          <Icon as={CalendarIcon} size={14} />
-                          <Text fontWeight="bold">
-                            {moment(evt.start).format("MMM DD, YYYY")}
-                          </Text>
+          {isLoading ? (
+            <Center py={20}>
+              <VStack spacing={3}>
+                <Spinner size="xl" color="blue.500" thickness="4px" />
+                <Text color="gray.500" fontWeight="semibold">
+                  Loading events...
+                </Text>
+              </VStack>
+            </Center>
+          ) : filteredEvents.length === 0 ? (
+            <Center py={24} px={6} textAlign="center">
+              <VStack spacing={4} maxW="md">
+                <Box p={4} bg="blue.50" borderRadius="full">
+                  <Icon as={AlertCircle} boxSize={8} color="blue.500" />
+                </Box>
+                <Heading size="md" color="gray.700">
+                  No events found
+                </Heading>
+                <Text color="gray.500" lineHeight="1.7">
+                  Try another search term or clear the search to see the full calendar again.
+                </Text>
+                {hasSearchQuery && (
+                  <Button colorScheme="blue" variant="outline" onClick={() => setSearchQuery("")}>
+                    Clear search
+                  </Button>
+                )}
+              </VStack>
+            </Center>
+          ) : (
+            <AnimatePresence mode="wait">
+              {viewMode === "calendar" ? (
+                <MotionBox
+                  key="calendar"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                  height="750px"
+                >
+                  <DnDCalendar
+                    localizer={localizer}
+                    events={formattedEvents}
+                    startAccessor="start"
+                    endAccessor="end"
+                    date={calendarDate}
+                    onNavigate={(nextDate) => setCalendarDate(nextDate)}
+                    style={{ height: "100%", borderRadius: "20px" }}
+                    selectable
+                    popup
+                    resizable
+                    views={["month", "week", "day", "agenda"]}
+                    onSelectEvent={handleEditEvent}
+                    onEventDrop={handleEventDrop}
+                    eventPropGetter={() => ({
+                      style: {
+                        backgroundColor: "#3182ce",
+                        borderRadius: "10px",
+                        fontSize: "0.85rem",
+                        fontWeight: "bold",
+                        border: "none",
+                        padding: "4px 8px",
+                        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                      },
+                    })}
+                  />
+                </MotionBox>
+              ) : (
+                <SimpleGrid
+                  key="list"
+                  columns={{ base: 1, md: 2, lg: 3 }}
+                  spacing={6}
+                  p={4}
+                >
+                  {formattedEvents.map((evt) => (
+                    <MotionBox
+                      key={evt.id}
+                      layout
+                      whileHover={{ scale: 1.02, translateY: -4 }}
+                      onClick={() => handleEditEvent(evt)}
+                      cursor="pointer"
+                      bg={bg}
+                      p={5}
+                      borderRadius="2xl"
+                      border="1px solid"
+                      borderColor={borderColor}
+                      boxShadow="sm"
+                    >
+                      <VStack align="start" spacing={3}>
+                        <HStack w="100%" justify="space-between">
+                          <Heading size="sm" fontWeight="black" color="blue.600">
+                            {evt.title}
+                          </Heading>
+                          {evt.resource.recurrence !== "none" && (
+                            <Badge
+                              colorScheme="purple"
+                              variant="subtle"
+                              borderRadius="full"
+                              px={2}
+                            >
+                              <Repeat
+                                size={10}
+                                style={{ marginRight: "4px", display: "inline" }}
+                              />
+                              {evt.resource.recurrence}
+                            </Badge>
+                          )}
                         </HStack>
-                        <HStack color="gray.600">
-                          <Icon as={Clock} size={14} />
-                          <Text fontWeight="bold">
-                            {moment(evt.start).format("h:mm A")}
-                          </Text>
-                        </HStack>
-                        <HStack color="gray.600">
-                          <Icon as={MapPin} size={14} />
-                          <Text fontWeight="bold" noOfLines={1}>
-                            {evt.resource.locationName}
-                          </Text>
-                        </HStack>
+                        <Divider />
+                        <VStack align="start" spacing={2} fontSize="sm">
+                          <HStack color="gray.600">
+                            <Icon as={CalendarIcon} size={14} />
+                            <Text fontWeight="bold">
+                              {moment(evt.start).format("MMM DD, YYYY")}
+                            </Text>
+                          </HStack>
+                          <HStack color="gray.600">
+                            <Icon as={Clock} size={14} />
+                            <Text fontWeight="bold">
+                              {moment(evt.start).format("h:mm A")}
+                            </Text>
+                          </HStack>
+                          <HStack color="gray.600">
+                            <Icon as={MapPin} size={14} />
+                            <Text fontWeight="bold" noOfLines={1}>
+                              {evt.resource.locationName}
+                            </Text>
+                          </HStack>
+                        </VStack>
                       </VStack>
-                    </VStack>
-                  </MotionBox>
-                ))}
-              </SimpleGrid>
-            )}
-          </AnimatePresence>
+                    </MotionBox>
+                  ))}
+                </SimpleGrid>
+              )}
+            </AnimatePresence>
+          )}
         </Box>
       </Container>
 

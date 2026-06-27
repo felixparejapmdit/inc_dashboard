@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import {
   Box,
   Heading,
@@ -89,6 +90,7 @@ import {
 const MotionBox = motion.create(Box);
 
 const PhoneDirectory = () => {
+  const location = useLocation();
   const toast = useToast();
   const [directory, setDirectory] = useState([]);
   const [nameList, setNameList] = useState([]);
@@ -164,6 +166,13 @@ const PhoneDirectory = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const search = params.get("search") || "";
+    setSearchQuery(search);
+    setPage(1);
+  }, [location.search]);
 
   const handleSave = async () => {
     const entry = editingEntry || formState;

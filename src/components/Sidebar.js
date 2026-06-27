@@ -569,6 +569,7 @@ const Sidebar = ({ onSidebarToggle }) => {
   return (
     <Box
       className="no-print"
+      data-global-search-ignore="true"
       display="flex"
       flexDirection="column"
       minH="100%"

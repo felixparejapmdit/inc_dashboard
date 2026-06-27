@@ -93,6 +93,7 @@ import { filterPersonnelData } from "../utils/filterUtils";
 
 const API_URL = process.env.REACT_APP_API_URL || "";
 const ITEMS_PER_PAGE = 5;
+const isAppActive = (app) => app?.is_active !== false && app?.is_active !== 0 && app?.is_active !== "0";
 
 const Users = ({ personnelId }) => {
   const {
@@ -247,9 +248,14 @@ const Users = ({ personnelId }) => {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const newEnrollSearch = params.get("new_enroll_search");
+    const personnelSearch = params.get("search") || "";
+    const newEnrollSearch = params.get("new_enroll_search") || "";
+
+    setSearchPersonnelList(personnelSearch);
+    setSearchNewPersonnels(newEnrollSearch);
+    setCurrentPagePersonnel(1);
+
     if (newEnrollSearch) {
-      setSearchNewPersonnels(newEnrollSearch);
       // Wait for table to likely be rendered and then scroll
       setTimeout(() => {
         if (newPersonnelRef.current) {
@@ -526,10 +532,14 @@ const Users = ({ personnelId }) => {
         throw new Error("Invalid API response structure");
       }
 
-      setApps(appsData); // Set flat list
+      const normalizedApps = appsData.map((app) => ({
+        ...app,
+        is_active: isAppActive(app),
+      }));
+      setApps(normalizedApps); // Set flat list
 
       // Group apps by application type name instead of ID
-      const groupedApps = appsData.reduce((acc, app) => {
+      const groupedApps = normalizedApps.reduce((acc, app) => {
         const category = app.app_type || "Others";
         if (!acc[category]) {
           acc[category] = [];
@@ -1053,8 +1063,9 @@ const Users = ({ personnelId }) => {
   };
 
   const handleSelectAll = (isChecked) => {
+    const activeAppNames = apps.filter((app) => isAppActive(app)).map((app) => app.name);
     if (isChecked) {
-      setSelectedApps(apps.map((app) => app.name));
+      setSelectedApps(activeAppNames);
       setSelectAll(true);
     } else {
       setSelectedApps([]);
@@ -1309,7 +1320,9 @@ const Users = ({ personnelId }) => {
 
   const handleCategorySelectAll = (category, apps, isChecked) => {
     setSelectedApps((prevSelected) => {
-      const categoryApps = apps.map((app) => app.name);
+      const categoryApps = apps
+        .filter((app) => isAppActive(app))
+        .map((app) => app.name);
 
       if (isChecked) {
         // Select all apps in the category
@@ -2472,10 +2485,13 @@ const Users = ({ personnelId }) => {
 
                 {categorizedApps && Object.keys(categorizedApps).length > 0 ? (
                   Object.entries(categorizedApps).map(([category, apps]) => {
-                    // Check if all apps in this category are selected
-                    const allSelected = apps.every((app) =>
-                      selectedApps.includes(app.name)
-                    );
+                    const selectableApps = apps.filter((app) => isAppActive(app));
+                    // Check if all active apps in this category are selected
+                    const allSelected =
+                      selectableApps.length > 0 &&
+                      selectableApps.every((app) =>
+                        selectedApps.includes(app.name)
+                      );
 
                     return (
                       <Box
@@ -2499,6 +2515,7 @@ const Users = ({ personnelId }) => {
                           </Text>
                           <Checkbox
                             isChecked={allSelected}
+                            isDisabled={selectableApps.length === 0}
                             onChange={(e) =>
                               handleCategorySelectAll(
                                 category,
@@ -2515,10 +2532,12 @@ const Users = ({ personnelId }) => {
                         <Stack spacing={2} pl={4}>
                           {apps.map((app) => {
                             const isChecked = selectedApps.includes(app.name);
+                            const appIsActive = isAppActive(app);
                             return (
                               <Checkbox
                                 key={app.id}
                                 isChecked={isChecked}
+                                isDisabled={!appIsActive}
                                 onChange={(e) => {
                                   const checked = e.target.checked;
                                   setSelectedApps((prev) => {
@@ -2530,12 +2549,20 @@ const Users = ({ personnelId }) => {
                                   });
                                 }}
                                 colorScheme="blue"
+                                opacity={appIsActive ? 1 : 0.5}
                                 _hover={{
                                   transform: "scale(1.02)",
                                   transition: "0.2s ease-in-out",
                                 }}
                               >
-                                {app.name}
+                                <HStack as="span" spacing={2} display="inline-flex">
+                                  <Text as="span">{app.name}</Text>
+                                  {!appIsActive && (
+                                    <Badge colorScheme="gray" variant="subtle">
+                                      Disabled
+                                    </Badge>
+                                  )}
+                                </HStack>
                               </Checkbox>
                             );
                           })}

@@ -96,6 +96,8 @@ const resolveAvatarSrc = (avatarPath) => {
   return `${base ? `${base}/` : "/"}${avatarPath}`;
 };
 
+const toSearchableText = (value) => String(value ?? "").toLowerCase();
+
 // Simple cache config for apps
 const APPS_CACHE_KEY = "categorizedApps";
 const APPS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
@@ -174,6 +176,7 @@ export default function Dashboard({
   const [compactGreeting, setCompactGreeting] = useState(false);
   const compactGreetingRef = useRef(false);
   const scrollFrameRef = useRef(null);
+  const loadingLoginsRef = useRef(false);
 
   // Login audit state + lazy-load control
   const [loginAudits, setLoginAudits] = useState([]);
@@ -359,16 +362,24 @@ export default function Dashboard({
 
   // Lazily fetch login audits when user expands the section
   useEffect(() => {
-    if (!showLogins || hasLoadedLogins) return;
+    if (!(showLogins || searchQuery.trim()) || hasLoadedLogins || loadingLoginsRef.current) {
+      return;
+    }
+
+    loadingLoginsRef.current = true;
     fetchData(
       "login-audits/recent",
       (data) => {
         setLoginAudits(data);
         setHasLoadedLogins(true);
+        loadingLoginsRef.current = false;
       },
-      (error) => console.error("Failed to fetch login audits:", error),
+      (error) => {
+        loadingLoginsRef.current = false;
+        console.error("Failed to fetch login audits:", error);
+      },
     );
-  }, [showLogins, hasLoadedLogins]);
+  }, [hasLoadedLogins, searchQuery, showLogins]);
 
   useEffect(() => {
     if (showLogins) {
@@ -378,11 +389,22 @@ export default function Dashboard({
 
   // Filter audits by username based on search term (case-insensitive)
   const filteredAudits = useMemo(() => {
-    if (!searchTerm.trim()) return loginAudits;
+    const query = `${searchTerm} ${searchQuery}`.trim().toLowerCase();
+    if (!query) return loginAudits;
+
     return loginAudits.filter((log) =>
-      log.user?.username.toLowerCase().includes(searchTerm.toLowerCase()),
+      [
+        log.user?.username,
+        log.user?.fullName,
+        log.user?.name,
+        log.device,
+        log.os,
+        log.browser,
+        log.login_time ? moment(log.login_time).format("MMMM D, YYYY h:mm a") : "",
+        log.login_time ? moment(log.login_time).fromNow() : "",
+      ].some((field) => toSearchableText(field).includes(query)),
     );
-  }, [loginAudits, searchTerm]);
+  }, [loginAudits, searchQuery, searchTerm]);
 
   // Search handler: use debounced query to filter apps
   useEffect(() => {
@@ -394,13 +416,25 @@ export default function Dashboard({
     const filtered = [];
     const query = debouncedSearchQuery.toLowerCase();
 
-    Object.values(categorizedApps).forEach((appsArray) => {
+    Object.entries(categorizedApps).forEach(([categoryName, appsArray]) => {
       appsArray.forEach((app) => {
-        const nameMatch = app.name?.toLowerCase().includes(query);
-        const codeMatch = app.generated_code?.toLowerCase().includes(query);
-        const phoneMatch = app.extension?.toLowerCase().includes(query);
+        const searchableFields = [
+          categoryName,
+          app.name,
+          app.generated_code,
+          app.extension,
+          app.dect_number,
+          app.description,
+          app.url,
+          app.phone_name,
+          app.filename,
+          app.app_type_name,
+          app.personnel_id,
+        ];
 
-        if (nameMatch || codeMatch || phoneMatch) filtered.push(app);
+        if (searchableFields.some((field) => toSearchableText(field).includes(query))) {
+          filtered.push(app);
+        }
       });
     });
 
@@ -414,7 +448,7 @@ export default function Dashboard({
   // Reset pagination when filteredAudits changes (due to search)
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm]);
+  }, [searchQuery, searchTerm]);
 
   useEffect(() => {
     const username = localStorage.getItem("username");
@@ -733,7 +767,7 @@ export default function Dashboard({
               </InputLeftElement>
               <Input
                 data-tour="search-bar"
-                placeholder="Search apps"
+                placeholder="Search dashboard"
                 borderRadius="full"
                 bg={headerSearchBg}
                 borderColor={stickyHeaderBorder}
@@ -811,9 +845,11 @@ export default function Dashboard({
                     as="h1"
                     size={compactGreeting ? "sm" : "lg"}
                     color="white"
-                    lineHeight="1.1"
+                    lineHeight={compactGreeting ? "1.2" : "1.15"}
                     transition="font-size 0.24s ease, line-height 0.24s ease"
-                    noOfLines={1}
+                    isTruncated
+                    display="block"
+                    pb={1}
                   >
                     {getTimeBasedGreeting()}
                   </Heading>
@@ -905,7 +941,7 @@ export default function Dashboard({
 
       <>
         {/* Search Results vs Categorized Apps */}
-        {searchQuery && filteredApps.length > 0 ? (
+        {searchQuery.trim() ? (
           <Box
             mt={{ base: 3, md: 4 }}
             bg={sectionPanelBg}
@@ -917,20 +953,27 @@ export default function Dashboard({
             backdropFilter="blur(10px)"
           >
             {renderSectionHeader("Search Results", filteredApps.length)}
-            <SimpleGrid
-              columns={{ base: 2, sm: 3, md: 4, xl: 5, "2xl": 6 }}
-              spacing={{ base: 3, md: 4 }}
-            >
-              {filteredApps.map((app) => (
-                <AppCard
-                  key={app.id}
-                  app={app}
-                  colors={colors}
-                  handleAppClick={handleAppClick}
-                  onPreview={handlePreviewPersonnel}
-                />
-              ))}
-            </SimpleGrid>
+            {filteredApps.length > 0 ? (
+              <SimpleGrid
+                columns={{ base: 2, sm: 3, md: 4, xl: 5, "2xl": 6 }}
+                spacing={{ base: 3, md: 4 }}
+              >
+                {filteredApps.map((app) => (
+                  <AppCard
+                    key={app.id}
+                    app={app}
+                    colors={colors}
+                    handleAppClick={handleAppClick}
+                    onPreview={handlePreviewPersonnel}
+                  />
+                ))}
+              </SimpleGrid>
+            ) : (
+              <Text color="gray.500" fontSize="sm" px={1} py={3}>
+                No dashboard items matched "{searchQuery}". Open Recent Activity
+                if you want to search login records too.
+              </Text>
+            )}
           </Box>
         ) : (
           <>
@@ -1144,7 +1187,7 @@ export default function Dashboard({
                   <FiSearch color="gray.400" />
                 </InputLeftElement>
                 <Input
-                  placeholder="Filter by user..."
+                  placeholder="Filter activity..."
                   variant="filled"
                   bg={recentActivityInputBg}
                   _hover={{ bg: recentActivityInputHoverBg }}

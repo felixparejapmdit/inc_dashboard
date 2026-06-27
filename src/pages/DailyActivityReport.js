@@ -280,17 +280,24 @@ function SectionHead({ title, action }) {
 // ─── Task Modal ────────────────────────────────────────────────────────────────
 function TaskModal({ isOpen, onClose, categories, onSaved, initial, currentWeek }) {
   const toast = useToast();
+  const defaultTaskDate = useMemo(() => {
+    if (currentWeek?.start && currentWeek?.end) {
+      return getSelectedWeekCompletionDate(currentWeek) || currentWeek.start;
+    }
+    return todayISO();
+  }, [currentWeek?.end, currentWeek?.start]);
+
   const blank = useMemo(() => ({
     title: "",
     category_id: "",
     description: "",
     local_congregations: "",
-    task_date: todayISO(),
+    task_date: defaultTaskDate,
     start_time: "",
     end_time: "",
     status: "Active",
     priority: "Medium",
-  }), []);
+  }), [defaultTaskDate]);
   const [form, setForm] = useState(blank);
   const [saving, setSaving] = useState(false);
 
@@ -316,6 +323,16 @@ function TaskModal({ isOpen, onClose, categories, onSaved, initial, currentWeek 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    if (
+      name === "task_date" &&
+      currentWeek?.start &&
+      currentWeek?.end &&
+      value &&
+      !isDateInRange(value, currentWeek.start, currentWeek.end)
+    ) {
+      return;
+    }
 
     setForm((current) => {
       const next = { ...current, [name]: value };
@@ -405,6 +422,8 @@ function TaskModal({ isOpen, onClose, categories, onSaved, initial, currentWeek 
     borderColor: "gray.200",
     _focus: { borderColor: T.amber, boxShadow: `0 0 0 1px ${T.amber}` },
   };
+  const taskDateMin = currentWeek?.start;
+  const taskDateMax = currentWeek?.end;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="xl" isCentered>
@@ -454,7 +473,20 @@ function TaskModal({ isOpen, onClose, categories, onSaved, initial, currentWeek 
             <SimpleGrid columns={3} spacing={4} w="full">
               <Box>
                 <Text fontSize="9px" fontWeight="800" mb={1} color="gray.400" textTransform="uppercase" letterSpacing="0.12em">Date *</Text>
-                <Input type="date" name="task_date" value={form.task_date} onChange={handleChange} {...fieldStyle} />
+                <Input
+                  type="date"
+                  name="task_date"
+                  value={form.task_date}
+                  onChange={handleChange}
+                  min={taskDateMin}
+                  max={taskDateMax}
+                  {...fieldStyle}
+                />
+                {taskDateMin && taskDateMax && (
+                  <Text mt={1} fontSize="xs" color="gray.500">
+                    Select a date from {fmtDate(taskDateMin)} to {fmtDate(taskDateMax)}.
+                  </Text>
+                )}
               </Box>
               <Box>
                 <Text fontSize="9px" fontWeight="800" mb={1} color="gray.400" textTransform="uppercase" letterSpacing="0.12em">Start Time</Text>
