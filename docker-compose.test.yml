@@ -6,7 +6,7 @@ services:
     container_name: inc_backend_prod
     image: inc_backend_prod:latest
     env_file:
-      - .env.prod.docker
+      - .env.docker
     environment:
       - REACT_PORT_HTTPS=443
       - REDIS_HOST=redis
@@ -30,7 +30,7 @@ services:
     image: directus/directus:11
     container_name: inc_directus_prod
     env_file:
-      - .env.prod.docker
+      - .env.docker
     environment:
       KEY: ${DIRECTUS_KEY:-replace-with-a-long-random-key}
       SECRET: ${DIRECTUS_SECRET:-replace-with-a-long-random-secret}
@@ -59,7 +59,7 @@ services:
       context: .
       dockerfile: Dockerfile.frontend
       args:
-        ENV_FILE: .env.prod.docker
+        ENV_FILE: .env.docker
     container_name: inc_frontend_prod
     command: sh -c "cp -r /app/build/* /frontend_build && tail -f /dev/null"
     volumes:
