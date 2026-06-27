@@ -69,7 +69,7 @@ data/
 .env.test.local
 .env.production.local
 .env.docker
-#.env.prod.docker
+.env.prod.docker
 .env.*.local
 
 # ============================================================
