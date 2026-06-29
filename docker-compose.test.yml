@@ -13,17 +13,19 @@ services:
       - DIRECTUS_INTERNAL_URL=http://directus:8055
     volumes:
       - ./backend/uploads:/usr/src/app/uploads
+      - ./directus:/usr/src/app/directus:ro
       - ./nginx/certs/cert.pem:/usr/src/app/cert.pem
       - ./nginx/certs/key.pem:/usr/src/app/key.pem
     expose:
       - "5000"
     networks:
       - inc_prod_network
+    depends_on:
+      - redis
+      - directus
     extra_hosts:
       - "host.docker.internal:host-gateway"
       - "incdirectory.pmdmc.net:172.18.100.103"
-    depends_on:
-      - redis
     restart: always
 
   directus:

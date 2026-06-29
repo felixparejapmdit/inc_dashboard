@@ -48,6 +48,14 @@ const Profile = () => {
   // State for the 2x2 Picture
   const [profileImage, setProfileImage] = useState(null);
   const [imageLoading, setImageLoading] = useState(false);
+  const [personnelProfile, setPersonnelProfile] = useState(null);
+  const [personnelProfileLoading, setPersonnelProfileLoading] = useState(false);
+  const [personnelAddresses, setPersonnelAddresses] = useState([]);
+  const [personnelLookups, setPersonnelLookups] = useState({
+    citizenships: [],
+    nationalities: [],
+    languages: [],
+  });
 
   const [editUser, setEditUser] = useState({
     name: "",
@@ -94,6 +102,55 @@ const Profile = () => {
 
   const toast = useToast();
   const profileRef = useRef(null);
+
+  const capitalizeValue = (value) => {
+    if (value === null || value === undefined || value === "") return "N/A";
+    return String(value).toUpperCase();
+  };
+
+  const formatDateValue = (value) => {
+    if (!value) return "N/A";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return capitalizeValue(value);
+    return date.toISOString().slice(0, 10);
+  };
+
+  const calculateAge = (dateOfBirth) => {
+    if (!dateOfBirth) return "N/A";
+    const dob = new Date(dateOfBirth);
+    if (Number.isNaN(dob.getTime())) return "N/A";
+    const diffMs = Date.now() - dob.getTime();
+    const ageDt = new Date(diffMs);
+    return Math.abs(ageDt.getUTCFullYear() - 1970);
+  };
+
+  const getNamesByIds = (idsInput, array, nameField = "name") => {
+    if (!idsInput || !Array.isArray(array)) return "N/A";
+
+    const ids = String(idsInput)
+      .split(",")
+      .map((id) => parseInt(id.trim(), 10))
+      .filter((id) => !Number.isNaN(id));
+
+    const names = ids
+      .map((id) => {
+        const match = array.find((entry) => Number(entry.id) === id);
+        return match ? match[nameField] : null;
+      })
+      .filter(Boolean);
+
+    return names.length ? names.join(", ") : "N/A";
+  };
+
+  const getAddressByType = (type) =>
+    personnelAddresses.find((address) => address.address_type === type) || null;
+
+  const getAddressValue = (address) =>
+    address?.name ||
+    address?.address ||
+    address?.address_line ||
+    address?.contact_info ||
+    "N/A";
 
   // --- 1. Fetch User Contacts ---
   const fetchUserContacts = async (personnelId) => {
@@ -193,6 +250,74 @@ const Profile = () => {
         setLoading(false);
       });
   }, []);
+
+  useEffect(() => {
+    const personnelId = user.personnel_id;
+
+    if (!personnelId || personnelId === "null") {
+      setPersonnelProfile(null);
+      setPersonnelAddresses([]);
+      setPersonnelLookups({
+        citizenships: [],
+        nationalities: [],
+        languages: [],
+      });
+      setPersonnelProfileLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+
+    const fetchJson = async (url, fallback = null) => {
+      try {
+        const response = await fetch(url, { headers: getAuthHeaders() });
+        if (!response.ok) return fallback;
+        return await response.json();
+      } catch (error) {
+        console.error(`Error fetching ${url}:`, error);
+        return fallback;
+      }
+    };
+
+    const loadPersonnelProfile = async () => {
+      setPersonnelProfileLoading(true);
+      try {
+        const [
+          profileData,
+          addressData,
+          citizenshipsData,
+          nationalitiesData,
+          languagesData,
+        ] = await Promise.all([
+          fetchJson(`${process.env.REACT_APP_API_URL}/api/personnels/${personnelId}`, null),
+          fetchJson(`${process.env.REACT_APP_API_URL}/api/personnel-addresses/pid/${personnelId}`, []),
+          fetchJson(`${process.env.REACT_APP_API_URL}/api/citizenships`, []),
+          fetchJson(`${process.env.REACT_APP_API_URL}/api/nationalities`, []),
+          fetchJson(`${process.env.REACT_APP_API_URL}/api/languages`, []),
+        ]);
+
+        if (!isMounted) return;
+
+        setPersonnelProfile(profileData || null);
+        setPersonnelAddresses(Array.isArray(addressData) ? addressData : []);
+        setPersonnelLookups({
+          citizenships: Array.isArray(citizenshipsData) ? citizenshipsData : [],
+          nationalities: Array.isArray(nationalitiesData) ? nationalitiesData : [],
+          languages: Array.isArray(languagesData) ? languagesData : [],
+        });
+      } finally {
+        if (isMounted) {
+          setPersonnelProfileLoading(false);
+        }
+      }
+    };
+
+    loadPersonnelProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user.personnel_id]);
 
   // --- Handlers ---
   const handleInputChange = (e) => {
@@ -316,6 +441,65 @@ const Profile = () => {
   // Updated gradient to match sidebar yellow #FFD559
   const bgGradient = useColorModeValue("linear(to-r, #FFD559, #FFC400)", "linear(to-r, yellow.600, orange.700)");
   const cardBg = useColorModeValue("white", "gray.800");
+  const usernameColor = useColorModeValue("gray.500", "gray.300");
+  const displayPersonnelType = personnelProfile?.personnel_type ? capitalizeValue(personnelProfile.personnel_type) : "N/A";
+  const displayMStatus = personnelProfile?.m_status ? capitalizeValue(personnelProfile.m_status) : "N/A";
+  const statusBadgeProps = {
+    variant: "subtle",
+    px: 3,
+    py: 1,
+    borderRadius: "full",
+    fontSize: "xs",
+    fontWeight: "semibold",
+    lineHeight: 1,
+  };
+  const personalHomeAddress = getAddressByType("Home Address");
+  const personalProvincialAddress = getAddressByType("Provincial Address");
+  const personalInfoSections = personnelProfile
+    ? [
+        {
+          title: "Personal Information",
+          columns: { base: 2, md: 3, xl: 4 },
+          items: [
+            { label: "Surname", value: capitalizeValue(personnelProfile.surname_husband), gridColumn: { base: "span 1", md: "span 1", xl: "span 1" } },
+            { label: "Given Name", value: capitalizeValue(personnelProfile.givenname), gridColumn: { base: "span 1", md: "span 1", xl: "span 1" } },
+            { label: "Middle Name", value: capitalizeValue(personnelProfile.middlename), gridColumn: { base: "span 1", md: "span 1", xl: "span 1" } },
+            {
+              label: "Suffix",
+              value: !personnelProfile.suffix || String(personnelProfile.suffix).trim().toLowerCase() === "no suffix"
+                ? "-"
+                : capitalizeValue(personnelProfile.suffix),
+              gridColumn: { base: "span 1", md: "span 1", xl: "span 1" },
+            },
+            { label: "Nickname", value: capitalizeValue(personnelProfile.nickname), gridColumn: { base: "span 1", md: "span 1", xl: "span 1" } },
+            { label: "Gender", value: capitalizeValue(personnelProfile.gender), gridColumn: { base: "span 1", md: "span 1", xl: "span 1" } },
+            { label: "Civil Status", value: capitalizeValue(personnelProfile.civil_status), gridColumn: { base: "span 2", md: "span 1", xl: "span 1" } },
+          ],
+        },
+        {
+          title: "Membership Details",
+          columns: { base: 2, md: 3, xl: 4 },
+          items: [
+            { label: "Citizenship", value: capitalizeValue(getNamesByIds(personnelProfile.citizenship, personnelLookups.citizenships, "citizenship")), gridColumn: { base: "span 2", md: "span 2", xl: "span 2" } },
+            { label: "Ethnicity", value: capitalizeValue(getNamesByIds(personnelProfile.nationality, personnelLookups.nationalities, "nationality")), gridColumn: { base: "span 2", md: "span 2", xl: "span 2" } },
+            { label: "Age", value: personnelProfile.age || calculateAge(personnelProfile.date_of_birth), gridColumn: { base: "span 1", md: "span 1", xl: "span 1" } },
+            { label: "Date of Birth", value: formatDateValue(personnelProfile.date_of_birth), gridColumn: { base: "span 1", md: "span 2", xl: "span 2" } },
+            { label: "Blood Type", value: capitalizeValue(personnelProfile.bloodtype), gridColumn: { base: "span 1", md: "span 1", xl: "span 1" } },
+            { label: "Office Start Date", value: formatDateValue(personnelProfile.datejoined), gridColumn: { base: "span 2", md: "span 2", xl: "span 2" } },
+            { label: "Place of Birth", value: capitalizeValue(personnelProfile.place_of_birth), gridColumn: { base: "span 2", md: "span 2", xl: "span 2" } },
+            { label: "Language", value: capitalizeValue(getNamesByIds(personnelProfile.language_id, personnelLookups.languages)), gridColumn: { base: "span 2", md: "span 2", xl: "span 2" } },
+          ],
+        },
+        {
+          title: "Address Details",
+          columns: { base: 1, md: 2 },
+          items: [
+            { label: "Home Address", value: capitalizeValue(getAddressValue(personalHomeAddress)), gridColumn: { base: "span 1", md: "span 2" } },
+            { label: "Provincial Address", value: capitalizeValue(getAddressValue(personalProvincialAddress)), gridColumn: { base: "span 1", md: "span 2" } },
+          ],
+        },
+      ]
+    : [];
 
   return (
     <Box minH="100vh" bg={useColorModeValue("gray.50", "gray.900")} py={10} px={4}>
@@ -356,7 +540,7 @@ const Profile = () => {
                         >
                           <Spinner size="lg" color="#FFD559" thickness="4px" />
                         </Flex>
-                      ) : (
+                    ) : (
                         <Avatar
                           size="2xl"
                           src={profileImage || "/default-avatar.png"}
@@ -364,13 +548,24 @@ const Profile = () => {
                         />
                       )}
                     </Box>
-                    <Heading size="lg" mt={4} textAlign="center">{user.name || "User"}</Heading>
-                    <Text color="gray.500" fontWeight="medium">{user.username}</Text>
-                    {user.personnel_id && user.personnel_id !== "null" ? (
-                      <Badge colorScheme="green" mt={2} borderRadius="full" px={3} py={1}>Active Personnel</Badge>
-                    ) : (
-                      <Badge colorScheme="orange" mt={2} borderRadius="full" px={3} py={1}>LDAP User (Not Enrolled)</Badge>
-                    )}
+                    <Flex mt={4} direction="column" align="center">
+                      <Flex align="center" justify="center" gap={3} wrap="wrap">
+                        <Heading size="lg" textAlign="center" lineHeight="1.1" letterSpacing="-0.02em">
+                          {user.name || "User"}
+                        </Heading>
+                        <Text fontSize="sm" color={usernameColor} fontWeight="medium">
+                          @{user.username || "unknown"}
+                        </Text>
+                      </Flex>
+                      <Flex mt={2} justify="center" gap={2} wrap="wrap">
+                        <Badge colorScheme="red" {...statusBadgeProps}>
+                          {displayPersonnelType}
+                        </Badge>
+                        <Badge colorScheme="green" {...statusBadgeProps}>
+                          {displayMStatus}
+                        </Badge>
+                      </Flex>
+                    </Flex>
                   </Flex>
 
                   {/* Actions */}
@@ -445,7 +640,7 @@ const Profile = () => {
                 <Divider my={6} />
 
                 {/* Details Grid */}
-                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8} px={6} pb={4}>
+                <Stack spacing={6} px={6} pb={4}>
                   <Box>
                     <Heading size="sm" color="gray.500" textTransform="uppercase" mb={4}>Contact Information</Heading>
                     <Stack spacing={4}>
@@ -465,8 +660,62 @@ const Profile = () => {
                       </Flex>
                     </Stack>
                   </Box>
-                  {/* Removed Account Details Section */}
-                </SimpleGrid>
+
+                  {user.personnel_id && user.personnel_id !== "null" && (
+                    <Stack spacing={5} pt={2}>
+                      {personnelProfileLoading ? (
+                        <Flex justify="center" align="center" minH="140px">
+                          <Spinner size="lg" color="#f59e0b" thickness="4px" />
+                        </Flex>
+                      ) : personnelProfile ? (
+                        personalInfoSections.map((section, index) => (
+                          <Box key={section.title}>
+                            <Flex align="center" gap={3} px={1} mb={3} mt={index === 0 ? 0 : 2}>
+                              <Text
+                                fontSize="sm"
+                                fontWeight="900"
+                                letterSpacing="0.14em"
+                                color="gray.500"
+                                textTransform="uppercase"
+                              >
+                                {section.title}
+                              </Text>
+                              <Box flex="1" h="1px" bg="gray.200" />
+                            </Flex>
+
+                            <SimpleGrid columns={section.columns} spacing={3} px={1}>
+                              {section.items.map((item) => (
+                                <Box
+                                  key={item.label}
+                                  gridColumn={item.gridColumn}
+                                  px={0}
+                                  py={1}
+                                >
+                                  <Text fontSize="xs" color="gray.500" lineHeight="1.2" mb={1}>
+                                    {item.label}
+                                  </Text>
+                                  <Text
+                                    fontSize="sm"
+                                    fontWeight="semibold"
+                                    color="gray.800"
+                                    lineHeight="1.3"
+                                    wordBreak="break-word"
+                                  >
+                                    {item.value}
+                                  </Text>
+                                </Box>
+                              ))}
+                            </SimpleGrid>
+                          </Box>
+                        ))
+                      ) : (
+                        <Text fontSize="sm" color="gray.500" px={1}>
+                          No personal information available yet.
+                        </Text>
+                      )}
+                    </Stack>
+                  )}
+                </Stack>
               </CardBody>
             </Card>
           </VStack>

@@ -37,6 +37,8 @@ import {
   Spinner,
   Center,
   FormControl,
+  InputGroup,
+  InputLeftElement,
   Skeleton,
   SkeletonCircle,
   SkeletonText
@@ -61,7 +63,8 @@ import {
   Briefcase,
   Layers,
   Unlock,
-  RefreshCw
+  RefreshCw,
+  Search
 } from "lucide-react";
 
 import {
@@ -106,6 +109,7 @@ const GroupManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isApplicationTypesLoading, setIsApplicationTypesLoading] = useState(false);
   const [savingApplicationTypeId, setSavingApplicationTypeId] = useState(null);
+  const [permissionSearchByGroup, setPermissionSearchByGroup] = useState({});
 
   const toast = useToast();
   const { fetchPermissions: refreshGlobalPermissions } = usePermissionContext();
@@ -124,64 +128,101 @@ const GroupManagement = () => {
   }, []);
 
   // Fetch logic preserved
-  const fetchGroups = () => {
+  const fetchGroups = async () => {
     setIsLoading(true);
-    fetchData(
-      "groups",
-      (data) => {
-        setGroups(data);
-        setIsLoading(false);
-      },
-      (err) => {
-        toast({ title: "Error loading groups", description: err, status: "error" });
-        setIsLoading(false);
-      },
-      "Failed to load groups"
-    );
+    try {
+      await fetchData(
+        "groups",
+        (data) => {
+          setGroups(data);
+        },
+        null,
+        "Failed to load groups",
+      );
+    } catch (error) {
+      console.error("Failed to load groups:", error);
+      toast({
+        title: "Error loading groups",
+        description: "We could not load the group list right now.",
+        status: "error",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const fetchPermissions = (groupId) => {
-    fetchData(
-      `groups/${groupId}/permissions`,
-      (data) => {
-        const groupedPermissions = data.map((category) => ({
-          categoryId: category.categoryId,
-          categoryName: category.categoryName,
-          permissions: category.permissions.map((permission) => ({
-            id: permission.id,
-            name: permission.name,
-            description: permission.description,
-            accessrights: permission.accessrights,
-          })),
-        }));
-        setPermissions(groupedPermissions);
-      },
-      (err) => toast({ title: "Error loading permissions", description: err, status: "error" }),
-      "Failed to load permissions"
-    );
+  const fetchPermissions = async (groupId) => {
+    try {
+      await fetchData(
+        `groups/${groupId}/permissions`,
+        (data) => {
+          const groupedPermissions = data.map((category) => ({
+            categoryId: category.categoryId,
+            categoryName: category.categoryName,
+            permissions: category.permissions.map((permission) => ({
+              id: permission.id,
+              name: permission.name,
+              description: permission.description,
+              accessrights: permission.accessrights,
+            })),
+          }));
+          setPermissions(groupedPermissions);
+        },
+        null,
+        "Failed to load permissions",
+      );
+    } catch (error) {
+      console.error("Failed to load group permissions:", error);
+      setPermissions([]);
+      toast({
+        title: "Error loading permissions",
+        description: "We could not load this group's permissions right now.",
+        status: "error",
+      });
+    }
   };
 
-  const fetchGroupApplicationTypes = (groupId) => {
+  const fetchGroupApplicationTypes = async (groupId) => {
     setIsApplicationTypesLoading(true);
-    fetchData(
-      `groups/${groupId}/application-types`,
-      (data) => setApplicationTypes(Array.isArray(data) ? data : []),
-      (err) => toast({ title: "Error loading app visibility", description: err, status: "error" }),
-      "Failed to load application visibility",
-      null,
-      () => setIsApplicationTypesLoading(false)
-    ).catch(() => {
+    try {
+      await fetchData(
+        `groups/${groupId}/application-types`,
+        (data) => setApplicationTypes(Array.isArray(data) ? data : []),
+        null,
+        "Failed to load application visibility",
+        null,
+        null,
+      );
+    } catch (error) {
+      console.error("Failed to load application visibility:", error);
       setApplicationTypes([]);
-    });
+      toast({
+        title: "Error loading app visibility",
+        description: "We could not load the application's visibility list.",
+        status: "error",
+      });
+    } finally {
+      setIsApplicationTypesLoading(false);
+    }
   };
 
-  const fetchGroupUsers = (groupId) => {
-    fetchData(
-      `groups/${groupId}/users`,
-      (data) => setGroupUsers(data),
-      (err) => toast({ title: "Error loading users", description: err, status: "error" }),
-      "Failed to load group users"
-    );
+  const fetchGroupUsers = async (groupId) => {
+    try {
+      await fetchData(
+        `groups/${groupId}/users`,
+        (data) => setGroupUsers(data),
+        null,
+        "Failed to load group users",
+      );
+    } catch (error) {
+      console.error("Failed to load group users:", error);
+      setGroupUsers([]);
+      toast({
+        title: "Error loading users",
+        description: "We could not load the users in this group right now.",
+        status: "error",
+      });
+    }
   };
 
   const clearSelectedGroup = () => {
@@ -192,17 +233,29 @@ const GroupManagement = () => {
     setSavingApplicationTypeId(null);
   };
 
-  const loadGroupContext = (group) => {
+  const handlePermissionSearchChange = (value) => {
+    if (!selectedGroup) return;
+
+    setPermissionSearchByGroup((prev) => ({
+      ...prev,
+      [selectedGroup.id]: value,
+    }));
+  };
+
+  const loadGroupContext = async (group) => {
     setSelectedGroup(group);
     setIsAddingOrEditing("edit");
-    fetchGroupUsers(group.id);
-    fetchPermissions(group.id);
-    fetchGroupApplicationTypes(group.id);
+
+    await Promise.allSettled([
+      fetchGroupUsers(group.id),
+      fetchPermissions(group.id),
+      fetchGroupApplicationTypes(group.id),
+    ]);
   };
 
   // Handlers preserved
   const handleShowUsers = (group) => {
-    loadGroupContext(group);
+    void loadGroupContext(group);
     setIsUserGroupModalOpen(true);
   };
 
@@ -213,7 +266,7 @@ const GroupManagement = () => {
       return;
     }
 
-    loadGroupContext(group);
+    void loadGroupContext(group);
   };
 
   const handlePermissionChange = async (groupId, permissionId, categoryId, accessrights, skipRefresh = false) => {
@@ -339,6 +392,46 @@ const GroupManagement = () => {
       default: return FileBadge;
     }
   };
+
+  const currentPermissionSearch =
+    selectedGroup?.id !== undefined
+      ? permissionSearchByGroup[selectedGroup.id] || ""
+      : "";
+
+  const normalizedPermissionSearch = currentPermissionSearch.trim().toLowerCase();
+
+  const filteredPermissionCategories = permissions
+    .map((category) => {
+      if (!normalizedPermissionSearch) {
+        return category;
+      }
+
+      const categoryMatches = category.categoryName
+        ?.toLowerCase()
+        .includes(normalizedPermissionSearch);
+
+      const matchingPermissions = category.permissions.filter((permission) => {
+        const permissionSearchText = [
+          permission.name,
+          permission.description,
+          category.categoryName,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+
+        return permissionSearchText.includes(normalizedPermissionSearch);
+      });
+
+      return {
+        ...category,
+        permissions: categoryMatches ? category.permissions : matchingPermissions,
+      };
+    })
+    .filter(
+      (category) =>
+        !normalizedPermissionSearch || category.permissions.length > 0,
+    );
 
   return (
     <Box bg={bg} minH="100vh">
@@ -692,9 +785,19 @@ const GroupManagement = () => {
                                   overflow="hidden"
                                 >
                                   <Box p={8} bg="gray.50" borderBottom="1px solid" borderColor="gray.200">
-                                    <Flex justify="space-between" align="center" mb={6} bg="white" p={4} borderRadius="xl" shadow="sm">
-                                      <HStack>
-                                        <Icon as={Unlock} color="cyan.500" boxSize={6} />
+                                    <Flex
+                                      justify="space-between"
+                                      align={{ base: "stretch", xl: "center" }}
+                                      direction={{ base: "column", xl: "row" }}
+                                      gap={4}
+                                      mb={6}
+                                      bg="white"
+                                      p={4}
+                                      borderRadius="xl"
+                                      shadow="sm"
+                                    >
+                                      <HStack align="start" spacing={4}>
+                                        <Icon as={Unlock} color="cyan.500" boxSize={6} mt={1} />
                                         <Box>
                                           <Text fontSize="lg" fontWeight="bold" color="gray.800">
                                             Permissions: {group.name}
@@ -704,10 +807,30 @@ const GroupManagement = () => {
                                           </Text>
                                         </Box>
                                       </HStack>
+
+                                      <InputGroup maxW={{ base: "100%", xl: "360px" }}>
+                                        <InputLeftElement pointerEvents="none" height="100%">
+                                          <Icon as={Search} color="gray.400" boxSize={4} />
+                                        </InputLeftElement>
+                                        <Input
+                                          value={currentPermissionSearch}
+                                          onChange={(e) => handlePermissionSearchChange(e.target.value)}
+                                          placeholder={`Search ${group.name} permissions`}
+                                          bg="gray.50"
+                                          borderColor="gray.200"
+                                          borderRadius="xl"
+                                          _focus={{
+                                            bg: "white",
+                                            borderColor: "cyan.400",
+                                            boxShadow: "0 0 0 1px var(--chakra-colors-cyan-400)",
+                                          }}
+                                          pl={10}
+                                        />
+                                      </InputGroup>
                                     </Flex>
 
                                     <Stack spacing={4}>
-                                      {permissions.map((category) => {
+                                      {filteredPermissionCategories.length > 0 ? filteredPermissionCategories.map((category) => {
                                         const allGranted = category.permissions.every(p => p.accessrights === 1);
                                         return (
                                           <Box key={category.categoryId} bg="white" borderRadius="xl" shadow="sm" overflow="hidden" border="1px solid" borderColor="gray.100">
@@ -773,7 +896,18 @@ const GroupManagement = () => {
                                             </Table>
                                           </Box>
                                         );
-                                      })}
+                                      }) : (
+                                        <Center py={10} bg="white" borderRadius="xl" border="1px dashed" borderColor="gray.200">
+                                          <VStack spacing={1}>
+                                            <Text fontWeight="semibold" color="gray.600">
+                                              No permissions matched "{currentPermissionSearch}"
+                                            </Text>
+                                            <Text fontSize="sm" color="gray.400">
+                                              Try a different keyword or clear the search box.
+                                            </Text>
+                                          </VStack>
+                                        </Center>
+                                      )}
                                     </Stack>
                                   </Box>
                                 </MotionBox>

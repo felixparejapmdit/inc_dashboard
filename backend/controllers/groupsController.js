@@ -57,7 +57,6 @@ exports.getGroupUsers = async (req, res) => {
           ],
         },
       ],
-      order: [["User", "username", "ASC"]],
     });
 
     console.log("User Mappings:", userMappings);
@@ -65,16 +64,27 @@ exports.getGroupUsers = async (req, res) => {
     // Fetch additional data from LDAP API
     let ldapUsers = [];
     try {
-      const ldapResponse = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/ldap/users`
-      );
-      ldapUsers = ldapResponse.data;
+      const ldapBaseUrl =
+        (process.env.API_URL || process.env.REACT_APP_API_URL || "").replace(
+          /\/+$/,
+          "",
+        );
+
+      if (ldapBaseUrl) {
+        const ldapResponse = await axios.get(`${ldapBaseUrl}/api/ldap/users`);
+        ldapUsers = ldapResponse.data;
+      } else {
+        console.warn(
+          "LDAP base URL is not configured; continuing without LDAP enrichment.",
+        );
+      }
     } catch (ldapError) {
       console.error("Error fetching LDAP users:", ldapError);
     }
 
-    // Map database user data with LDAP user data
-    const users = userMappings.map((mapping) => {
+    // Map database user data with LDAP user data, then sort safely in JS.
+    const users = userMappings
+      .map((mapping) => {
       if (!mapping.User) {
         console.warn("Warning: Null User detected for mapping:", mapping);
         return {
@@ -94,7 +104,12 @@ exports.getGroupUsers = async (req, res) => {
         email: ldapUser ? ldapUser.mail : "N/A",
         personnel: mapping.User.personnel,
       };
-    });
+      })
+      .sort((left, right) =>
+        String(left.username || "").localeCompare(String(right.username || ""), undefined, {
+          sensitivity: "base",
+        }),
+      );
 
     console.log("Final Users Data:", users);
     res.status(200).json(users);

@@ -42,11 +42,14 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
+  MenuDivider,
   Icon,
   SimpleGrid,
   Image,
   InputGroup,
   InputLeftElement,
+  InputRightElement,
+  Portal,
   Tabs,
   TabList,
   TabPanels,
@@ -67,6 +70,7 @@ import {
 } from "@chakra-ui/react";
 import {
   AddIcon,
+  CopyIcon,
   EditIcon,
   DeleteIcon,
   InfoIcon,
@@ -75,10 +79,11 @@ import {
   Search2Icon,
   RepeatIcon,
   ViewOffIcon,
+  CloseIcon,
 } from "@chakra-ui/icons";
 import axios from "axios";
 import { FaCamera, FaIdCard } from "react-icons/fa";
-import { FiUser, FiInfo, FiRefreshCw, FiUsers } from "react-icons/fi";
+import { FiUser, FiInfo, FiRefreshCw, FiUsers, FiMoreVertical, FiUpload } from "react-icons/fi";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import Papa from "papaparse";
@@ -94,6 +99,23 @@ import { filterPersonnelData } from "../utils/filterUtils";
 const API_URL = process.env.REACT_APP_API_URL || "";
 const ITEMS_PER_PAGE = 5;
 const isAppActive = (app) => app?.is_active !== false && app?.is_active !== 0 && app?.is_active !== "0";
+const SIDEBAR_GRADIENT = "linear(to-b, #FFD559, #FFE07A 48%, #FFD15A)";
+const THIN_SCROLLBAR_STYLES = {
+  "::-webkit-scrollbar": {
+    width: "4px",
+    height: "4px",
+  },
+  "::-webkit-scrollbar-thumb": {
+    backgroundColor: "rgba(0, 0, 0, 0.1)",
+    borderRadius: "10px",
+  },
+  "::-webkit-scrollbar-track": {
+    backgroundColor: "transparent",
+  },
+  msOverflowStyle: "auto",
+  scrollbarWidth: "thin",
+  scrollbarColor: "rgba(0, 0, 0, 0.1) transparent",
+};
 
 const Users = ({ personnelId }) => {
   const {
@@ -133,6 +155,7 @@ const Users = ({ personnelId }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [editingUser, setEditingUser] = useState(null);
   const [status, setStatus] = useState("");
+  const [isSavingUser, setIsSavingUser] = useState(false);
   const [isUsersLoading, setIsUsersLoading] = useState(true);
   const [isNewPersonnelLoading, setIsNewPersonnelLoading] = useState(true);
 
@@ -240,6 +263,17 @@ const Users = ({ personnelId }) => {
   const allVisible = allKeys.every((key) => columnVisibility[key]);
 
   const [categorizedApps, setCategorizedApps] = useState({});
+
+  const activeApps = useMemo(
+    () => apps.filter((app) => isAppActive(app)),
+    [apps]
+  );
+  const hasVisibleApps = useMemo(
+    () => Object.values(categorizedApps).some((categoryApps) =>
+      categoryApps.some((app) => isAppActive(app))
+    ),
+    [categorizedApps]
+  );
 
   const avatarBaseUrl = `${API_URL}/uploads/`;
 
@@ -784,75 +818,89 @@ const Users = ({ personnelId }) => {
     }
   }, [currentItemsPersonnel, currentItemsNew]); // Run whenever the page/list changes
 
-  const [isAlertOpen, setIsAlertOpen] = useState(false);
   const cancelRef = useRef();
+  const avatarInputRef = useRef(null);
   const newPersonnelRef = useRef(null); // Ref for scrolling to new personnel table
 
-  const onCloseAlert = () => setIsAlertOpen(false);
-
-  const handleAddUser = (e) => {
-    e.preventDefault();
-    setIsAlertOpen(true);
-  };
-
   const confirmSave = async () => {
-    onCloseAlert();
+    setIsSavingUser(true);
     let avatarUrlResponse;
 
-    // If a file is selected, upload the avatar using FormData
-    if (avatarFile) {
-      const formData = new FormData();
-      formData.append("avatar", avatarFile);
+    try {
+      // If a file is selected, upload the avatar using FormData
+      if (avatarFile) {
+        const formData = new FormData();
+        formData.append("avatar", avatarFile);
 
-      const avatarResponse = await fetch(
-        `${API_URL}/api/users/${editingUser?.ID || "new"}/avatar`,
-        {
-          method: "PUT",
-          headers: {
-            ...getAuthHeaders(),
-          },
-          body: formData,
+        const avatarResponse = await fetch(
+          `${API_URL}/api/users/${editingUser?.ID || "new"}/avatar`,
+          {
+            method: "PUT",
+            headers: {
+              ...getAuthHeaders(),
+            },
+            body: formData,
+          }
+        );
+
+        if (!avatarResponse.ok) {
+          throw new Error("Error uploading avatar");
         }
-      );
 
-      if (!avatarResponse.ok) {
-        throw new Error("Error uploading avatar");
+        const avatarData = await avatarResponse.json();
+        avatarUrlResponse = avatarData.avatar; // URL of the uploaded avatar
       }
 
-      const avatarData = await avatarResponse.json();
-      avatarUrlResponse = avatarData.avatar; // URL of the uploaded avatar
-    }
+      // Map selected app names to their corresponding IDs, keeping only active apps
+      const activeAppMap = new Map(activeApps.map((app) => [app.name, app.id]));
+      const appIds = selectedApps
+        .filter((appName) => activeAppMap.has(appName))
+        .map((appName) => activeAppMap.get(appName));
 
-    // Map selected app names to their corresponding IDs
-    const appIds = selectedApps
-      .map((appName) => apps.find((app) => app.name === appName)?.id)
-      .filter((id) => id !== undefined); // Ensure no undefined IDs
+      // Prepare the payload with the new avatar URL if uploaded
+      const newUser = {
+        username,
+        password: editingUser ? undefined : "M@sunur1n", // Only include password for new users
+        fullname,
+        email,
+        avatar: avatarUrlResponse || avatarUrl, // Use the uploaded avatar URL if available
+        availableApps: appIds, // Send clean array of IDs
+        app_ids: appIds, // Fallback: some backends prefer snake_case or different naming
+      };
 
-    // Prepare the payload with the new avatar URL if uploaded
-    const newUser = {
-      username,
-      password: editingUser ? undefined : "M@sunur1n", // Only include password for new users
-      fullname,
-      email,
-      avatar: avatarUrlResponse || avatarUrl, // Use the uploaded avatar URL if available
-      availableApps: appIds, // Send clean array of IDs
-      app_ids: appIds, // Fallback: some backends prefer snake_case or different naming
-    };
-
-    try {
       if (editingUser) {
         // Update user information
         await putData(`users/${editingUser.ID}`, newUser);
 
-        // Update selectedApps state with the saved apps
-        setSelectedApps(newUser.availableApps || []);
+        const previousGroupId = String(editingUser.groupId || "");
+        const nextGroupId = String(selectedGroup || "");
 
-        // Refresh users and clear local state
-        await fetchUsers();
+        // Only call the assignment endpoint if the group actually changed.
+        if (previousGroupId !== nextGroupId) {
+          await handleAssignGroup(editingUser.ID, selectedGroup);
+        }
 
-        // Call handleAssignGroup to update the group
-        await handleAssignGroup(editingUser.ID, selectedGroup);
+        const resolvedGroupName =
+          groups.find((group) => String(group.id) === String(selectedGroup))?.name || "N/A";
+        const localPatch = {
+          ...newUser,
+          availableApps: [...selectedApps],
+          groupId: selectedGroup || "",
+          groupname: resolvedGroupName,
+        };
 
+        setExistingPersonnel((prev) =>
+          prev.map((user) =>
+            user.ID === editingUser.ID ? { ...user, ...localPatch } : user
+          )
+        );
+        setUsers((prev) =>
+          prev.map((user) =>
+            user.ID === editingUser.ID ? { ...user, ...localPatch } : user
+          )
+        );
+
+        closeModal();
         toast({
           title: "Success",
           description: "User updated successfully.",
@@ -867,33 +915,37 @@ const Users = ({ personnelId }) => {
         // Assign group to the new user
         await handleAssignGroup(data.id, selectedGroup);
 
-        // Update selectedApps state with the saved apps
-        setSelectedApps(newUser.availableApps || []);
-
-        // Refresh users and clear local state
-        await fetchUsers(); // <-- Add this to refetch the updated users list
-
         // Add the new user to the local state
+        const resolvedGroupName =
+          groups.find((group) => String(group.id) === String(selectedGroup))?.name || "N/A";
+        const localPatch = {
+          ...newUser,
+          ID: data.id,
+          availableApps: [...selectedApps],
+          groupId: selectedGroup || "",
+          groupname: resolvedGroupName,
+        };
+
+        setExistingPersonnel((prev) => [...prev, localPatch]);
         setUsers((prevUsers) => [
           ...prevUsers,
           {
-            ...newUser,
-            ID: data.id,
-            groupname:
-              groups.find((group) => group.id === selectedGroup)?.name || "N/A",
+            ...localPatch,
           },
         ]);
         setStatus("User added successfully.");
-      }
 
-      closeModal();
+        closeModal();
+      }
     } catch (error) {
       setStatus(
         editingUser
           ? "Error updating user. Please try again."
           : "Error adding user. Please try again."
       );
-      console.error("Error in handleAddUser:", error);
+      console.error("Error in confirmSave:", error);
+    } finally {
+      setIsSavingUser(false);
     }
   };
 
@@ -1038,10 +1090,28 @@ const Users = ({ personnelId }) => {
 
     // Robust handling of availableApps: map objects to names if necessary
     const rawApps = item.availableApps || [];
-    const appNames = rawApps.map(app => (typeof app === "object" && app !== null ? app.name : app));
-    setSelectedApps(appNames);
+    const appNames = rawApps
+      .map((app) => {
+        if (typeof app === "object" && app !== null) {
+          return app.name;
+        }
 
-    setSelectAll(appNames.length > 0 && appNames.length === apps.length);
+        const matchedById = apps.find((candidate) => String(candidate.id) === String(app));
+        if (matchedById) {
+          return matchedById.name;
+        }
+
+        return app;
+      })
+      .filter(Boolean);
+    const visibleAppNames = new Set(activeApps.map((app) => app.name));
+    const activeSelection = appNames.filter((appName) => visibleAppNames.has(appName));
+    setSelectedApps(activeSelection);
+
+    setSelectAll(
+      activeApps.length > 0 &&
+      activeApps.every((app) => activeSelection.includes(app.name))
+    );
     setSelectedGroup(item.groupId || "");
 
     onOpen();
@@ -1063,9 +1133,8 @@ const Users = ({ personnelId }) => {
   };
 
   const handleSelectAll = (isChecked) => {
-    const activeAppNames = apps.filter((app) => isAppActive(app)).map((app) => app.name);
     if (isChecked) {
-      setSelectedApps(activeAppNames);
+      setSelectedApps(activeApps.map((app) => app.name));
       setSelectAll(true);
     } else {
       setSelectedApps([]);
@@ -1074,10 +1143,14 @@ const Users = ({ personnelId }) => {
   };
 
   const resetForm = () => {
+    setAvatarFile(null);
     setUsername("");
     setFullname("");
+    setFirstName("");
+    setLastName("");
     setEmail("");
     setAvatarUrl("");
+    setSelectedGroup("");
     setSelectedApps([]);
     setSelectAll(false);
     setEditingUser(null);
@@ -1111,6 +1184,19 @@ const Users = ({ personnelId }) => {
       setUsers((prevUsers) =>
         prevUsers.map((user) =>
           user.ID === userId ? { ...user, groupId } : user
+        )
+      );
+      setExistingPersonnel((prevPersonnel) =>
+        prevPersonnel.map((user) =>
+          user.ID === userId
+            ? {
+                ...user,
+                groupId,
+                groupname:
+                  groups.find((group) => String(group.id) === String(groupId))
+                    ?.name || "N/A",
+              }
+            : user
         )
       );
       setStatus("Group assigned successfully.");
@@ -1316,6 +1402,86 @@ const Users = ({ personnelId }) => {
 
   const handleViewUser = (personnelId) => {
     window.open(`/personnel-preview/${personnelId}`, "_blank");
+  };
+
+  const renderActionMenu = (menuItems = []) => {
+    const visibleMenuItems = menuItems.filter(Boolean);
+
+    if (visibleMenuItems.length === 0) {
+      return null;
+    }
+
+    return (
+      <Menu placement="bottom-end" isLazy>
+        <Tooltip label="More actions">
+          <MenuButton
+            as={IconButton}
+            size="sm"
+            variant="ghost"
+            colorScheme="gray"
+            icon={<FiMoreVertical />}
+            aria-label="More actions"
+          />
+        </Tooltip>
+        <MenuList zIndex="popover" minW="220px" py={1}>
+          {visibleMenuItems.map((menuItem, index) => (
+            <React.Fragment key={`${menuItem.label}-${index}`}>
+              {menuItem.dividerBefore && index > 0 && <MenuDivider my={1} />}
+              <MenuItem
+                icon={
+                  <Icon
+                    as={menuItem.icon}
+                    color={menuItem.iconColor || "gray.500"}
+                    boxSize={4}
+                  />
+                }
+                onClick={menuItem.onClick}
+                isDisabled={menuItem.isDisabled}
+                color={menuItem.color}
+              >
+                {menuItem.label}
+              </MenuItem>
+            </React.Fragment>
+          ))}
+        </MenuList>
+      </Menu>
+    );
+  };
+
+  const currentWebdavUrl = editingUser?.webdav_url || editingUser?.webdavUrl || "";
+  const displayWebdavUrl = currentWebdavUrl || "No WebDAV URL yet";
+
+  const handleCopyWebdavUrl = async () => {
+    if (!currentWebdavUrl) {
+      toast({
+        title: "No WebDAV URL",
+        description: "This user does not have a WebDAV URL yet.",
+        status: "info",
+        duration: 2500,
+        isClosable: true,
+      });
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(currentWebdavUrl);
+      toast({
+        title: "Copied",
+        description: "WebDAV URL copied to clipboard.",
+        status: "success",
+        duration: 2000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error("Failed to copy WebDAV URL:", error);
+      toast({
+        title: "Copy failed",
+        description: "Your browser blocked clipboard access.",
+        status: "error",
+        duration: 2500,
+        isClosable: true,
+      });
+    }
   };
 
   const handleCategorySelectAll = (category, apps, isChecked) => {
@@ -1838,16 +2004,16 @@ const Users = ({ personnelId }) => {
                 </Text>
               </HStack>
               <Box width="100%" overflowX="auto">
-                <Table variant="simple" minWidth="1000px" size="md" style={{ tableLayout: "fixed" }}>
+                <Table variant="simple" minWidth="900px" size="md" style={{ tableLayout: "fixed" }}>
                   <Thead bg="gray.50">
                     <Tr>
-                      <Th py={3} width="96px" color="gray.600" whiteSpace="nowrap" textAlign="center">#</Th>
+                      <Th py={4} width="96px" color="gray.600" whiteSpace="nowrap" textAlign="center">#</Th>
                       {allKeys.map((key) => columnVisibility[key] && (
-                        <Th key={`th-${key}`} py={3} color="gray.600">
+                        <Th key={`th-${key}`} py={4} color="gray.600">
                           {key.replace("personnel_", "").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
                         </Th>
                       ))}
-                      <Th py={3} width="180px" color="gray.600">Action</Th>
+                      <Th py={4} width="160px" color="gray.600" textAlign="right">Action</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
@@ -1871,12 +2037,12 @@ const Users = ({ personnelId }) => {
 
                         return (
                           <Tr key={item.ID} _hover={{ bg: "blue.50" }} transition="background 0.2s">
-                            <Td fontWeight="bold" color="blue.500" whiteSpace="nowrap" textAlign="center">
+                            <Td py={5} fontWeight="bold" color="blue.500" whiteSpace="nowrap" textAlign="center">
                               {(currentPagePersonnel - 1) * ITEMS_PER_PAGE + index + 1}
                             </Td>
 
                             {allKeys.map((key) => columnVisibility[key] && (
-                              <Td key={`td-${key}`}>
+                              <Td key={`td-${key}`} py={5}>
                                 {key === 'avatar' ? (
                                   <Tooltip label="Click to zoom" placement="top">
                                     <Avatar
@@ -1903,32 +2069,62 @@ const Users = ({ personnelId }) => {
                               </Td>
                             ))}
 
-                            <Td>
-                              <HStack spacing={2}>
+                            <Td py={5} textAlign="right">
+                              <HStack spacing={2} justify="flex-end" flexWrap="nowrap">
                                 {hasPermission("personnels.edit") && (
                                   <Tooltip label="Edit User">
-                                    <IconButton size="sm" icon={<EditIcon />} colorScheme="yellow" onClick={() => handleEditUser(item)} aria-label="Edit" />
+                                    <Button size="sm" colorScheme="yellow" leftIcon={<EditIcon />} onClick={() => handleEditUser(item)} whiteSpace="nowrap">
+                                      Edit
+                                    </Button>
                                   </Tooltip>
                                 )}
-                                {hasPermission("personnels.photo") && (
-                                  <Tooltip label="Photoshoot">
-                                    <IconButton size="sm" icon={<FaCamera />} colorScheme="teal" onClick={() => { setSelectedUser(item); setIsPhotoModalOpen(true); }} aria-label="Photoshoot" />
-                                  </Tooltip>
-                                )}
-                                {hasPermission("personnels.edit_rfid_code") && (
-                                  <Tooltip label="Update RFID">
-                                    <IconButton size="sm" icon={<FaIdCard />} colorScheme="blue" onClick={() => { setSelectedUserForRfid(item.personnel_id); setRfidCode(item.rfid_code || ""); onRfidModalOpen(); }} aria-label="Update RFID" />
-                                  </Tooltip>
-                                )}
-                                {hasPermission("personnels.view") && (
-                                  <IconButton size="sm" icon={<ViewIcon />} colorScheme="purple" onClick={() => handleViewUser(item.personnel_id)} isDisabled={!item.personnel_id} aria-label="View" />
-                                )}
-                                {hasPermission("personnels.info") && (
-                                  <IconButton size="sm" icon={<InfoIcon />} colorScheme="orange" onClick={() => { window.location.href = `/enroll?personnel_id=${item.personnel_id}&type=edituser`; }} aria-label="Info" />
-                                )}
-                                {hasPermission("personnels.delete") && (
-                                  <IconButton size="sm" icon={<DeleteIcon />} colorScheme="red" onClick={(e) => { e.stopPropagation(); handleDeleteUser(item); }} aria-label="Delete" />
-                                )}
+                                {renderActionMenu([
+                                  hasPermission("personnels.photo") && {
+                                    label: "Photo",
+                                    icon: FaCamera,
+                                    iconColor: "teal.500",
+                                    onClick: () => {
+                                      setSelectedUser(item);
+                                      setIsPhotoModalOpen(true);
+                                    },
+                                  },
+                                  hasPermission("personnels.edit_rfid_code") && {
+                                    label: "Credentials",
+                                    icon: FaIdCard,
+                                    iconColor: "blue.500",
+                                    onClick: () => {
+                                      setSelectedUserForRfid(item.personnel_id);
+                                      setRfidCode(item.rfid_code || "");
+                                      onRfidModalOpen();
+                                    },
+                                  },
+                                  hasPermission("personnels.view") && {
+                                    label: "View",
+                                    icon: ViewIcon,
+                                    iconColor: "purple.500",
+                                    onClick: () => handleViewUser(item.personnel_id),
+                                    isDisabled: !item.personnel_id,
+                                  },
+                                  hasPermission("personnels.info") && {
+                                    label: "Info",
+                                    icon: InfoIcon,
+                                    iconColor: "orange.500",
+                                    onClick: () => {
+                                      window.location.href = `/enroll?personnel_id=${item.personnel_id}&type=edituser`;
+                                    },
+                                  },
+                                  hasPermission("personnels.delete") && {
+                                    label: "Delete",
+                                    icon: DeleteIcon,
+                                    iconColor: "red.500",
+                                    color: "red.500",
+                                    dividerBefore: true,
+                                    onClick: (e) => {
+                                      e?.stopPropagation?.();
+                                      handleDeleteUser(item);
+                                    },
+                                  },
+                                ])}
                               </HStack>
                             </Td>
                           </Tr>
@@ -1953,15 +2149,15 @@ const Users = ({ personnelId }) => {
                 </Text>
               </HStack>
               <Box width="100%" overflowX="auto">
-                <Table variant="simple" minWidth="1000px" size="md" style={{ tableLayout: "fixed" }}>
+                <Table variant="simple" minWidth="820px" size="md" style={{ tableLayout: "fixed" }}>
                   <Thead bg="gray.50">
                     <Tr>
-                      <Th py={3} width="96px" color="gray.600" whiteSpace="nowrap" textAlign="center">#</Th>
-                      <Th py={3} width="15%" color="gray.600">Username/UID</Th>
-                      <Th py={3} width="35%" color="gray.600">Full Name (from LDAP)</Th>
-                      <Th py={3} width="15%" color="gray.600">Group Name</Th>
-                      <Th py={3} width="15%" color="gray.600">Password</Th>
-                      <Th py={3} width="15%" color="gray.600">Action</Th>
+                      <Th py={4} width="96px" color="gray.600" whiteSpace="nowrap" textAlign="center">#</Th>
+                      <Th py={4} width="18%" color="gray.600">Username/UID</Th>
+                      <Th py={4} width="34%" color="gray.600">Full Name (from LDAP)</Th>
+                      <Th py={4} width="16%" color="gray.600">Group Name</Th>
+                      <Th py={4} width="16%" color="gray.600">Password</Th>
+                      <Th py={4} width="16%" color="gray.600" textAlign="right">Action</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
@@ -1988,21 +2184,21 @@ const Users = ({ personnelId }) => {
                     ) : (
                       currentItemsLdapOnly.map((item, index) => (
                         <Tr key={item.ID} _hover={{ bg: "orange.50" }} transition="background 0.2s">
-                          <Td fontWeight="bold" color="orange.500" whiteSpace="nowrap" textAlign="center">
+                          <Td py={5} fontWeight="bold" color="orange.500" whiteSpace="nowrap" textAlign="center">
                             {(currentPageLdapOnly - 1) * ITEMS_PER_PAGE + index + 1}
                           </Td>
-                          <Td>
+                          <Td py={5}>
                             <Badge colorScheme="orange" variant="outline">{item.username}</Badge>
                           </Td>
-                          <Td fontWeight="medium" color="gray.700" isTruncated>
+                          <Td py={5} fontWeight="medium" color="gray.700" isTruncated>
                             {`${item.givenName || ""} ${item.sn || ""}`.trim() || item.username}
                           </Td>
-                          <Td>
+                          <Td py={5}>
                             <Badge colorScheme={item.groupId ? "blue" : "gray"}>
                               {groups.find(g => g.id === item.groupId)?.name || "N/A"}
                             </Badge>
                           </Td>
-                          <Td>
+                          <Td py={5}>
                             <HStack spacing={2}>
                               <Text fontSize="sm" fontFamily="monospace">
                                 ••••••••
@@ -2022,42 +2218,40 @@ const Users = ({ personnelId }) => {
                               </Tooltip>
                             </HStack>
                           </Td>
-                          <Td>
-                            <HStack spacing={2}>
+                          <Td py={5} textAlign="right">
+                            <HStack spacing={2} justify="flex-end" flexWrap="nowrap">
                               {hasPermission("personnels.edit") && (
                                 <Tooltip label="Edit User">
-                                  <IconButton
+                                  <Button
                                     size="sm"
-                                    icon={<EditIcon />}
                                     colorScheme="yellow"
+                                    leftIcon={<EditIcon />}
                                     onClick={() => handleEditUser(item)}
-                                    aria-label="Edit"
-                                  />
+                                    whiteSpace="nowrap"
+                                  >
+                                    Edit
+                                  </Button>
                                 </Tooltip>
                               )}
-                              <Tooltip label="Requires Personnel Sync">
-                                <IconButton
-                                  size="sm"
-                                  icon={<InfoIcon />}
-                                  colorScheme="gray"
-                                  onClick={() => {
+                              {renderActionMenu([
+                                {
+                                  label: "Info",
+                                  icon: <InfoIcon />,
+                                  onClick: () => {
                                     window.location.href = `/enroll?not_enrolled=${item.username}&type=edituser`;
-                                  }}
-                                  aria-label="Enrollment Info"
-                                />
-                              </Tooltip>
-                              {hasPermission("personnels.delete") && (
-                                <IconButton
-                                  size="sm"
-                                  icon={<DeleteIcon />}
-                                  colorScheme="red"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
+                                  },
+                                },
+                                hasPermission("personnels.delete") && {
+                                  label: "Delete",
+                                  icon: <DeleteIcon />,
+                                  color: "red.500",
+                                  dividerBefore: true,
+                                  onClick: (e) => {
+                                    e?.stopPropagation?.();
                                     handleDeleteUser(item);
-                                  }}
-                                  aria-label="Delete"
-                                />
-                              )}
+                                  },
+                                },
+                              ])}
                             </HStack>
                           </Td>
                         </Tr>
@@ -2121,20 +2315,20 @@ const Users = ({ personnelId }) => {
             </Flex>
 
             <Box overflowX="auto" borderRadius="lg" border="1px solid" borderColor="gray.100">
-              <Table variant="simple" size="md" style={{ tableLayout: "fixed" }}>
+              <Table variant="simple" size="md" minWidth="860px" style={{ tableLayout: "fixed" }}>
                 <Thead bg="gray.50">
                   <Tr>
-                    <Th py={4} width="80px" color="gray.600">#</Th>
-                    <Th py={4} width="45%" color="gray.600">Personnel Details</Th>
-                    <Th py={4} width="30%" color="gray.600">Section</Th>
-                    <Th py={4} width="200px" color="gray.600">Action</Th>
+                    <Th py={5} width="80px" color="gray.600">#</Th>
+                    <Th py={5} width="44%" color="gray.600">Personnel Details</Th>
+                    <Th py={5} width="32%" color="gray.600">Section</Th>
+                    <Th py={5} width="180px" color="gray.600" textAlign="right">Action</Th>
                   </Tr>
                 </Thead>
                 <Tbody>
                   {isNewPersonnelLoading ? (
                     Array.from({ length: 5 }).map((_, i) => (
                       <Tr key={i}>
-                        <Td colSpan={5} py={4}>
+                        <Td colSpan={5} py={5}>
                           <SkeletonText noOfLines={1} spacing="4" skeletonHeight="20px" />
                         </Td>
                       </Tr>
@@ -2156,7 +2350,7 @@ const Users = ({ personnelId }) => {
                           key={personnel.personnel_id}
                           _hover={{ bg: "blue.50", transition: "all 0.2s" }}
                         >
-                          <Td>
+                          <Td py={5}>
                             <HStack spacing={2}>
                               <Text fontWeight="bold" color="blue.500" minW="20px">{rowNumber}</Text>
                               <Badge colorScheme="purple" variant="subtle" px={2} borderRadius="md" fontSize="xs">
@@ -2164,7 +2358,7 @@ const Users = ({ personnelId }) => {
                               </Badge>
                             </HStack>
                           </Td>
-                          <Td>
+                          <Td py={5}>
                             <HStack spacing={3}>
                               <Tooltip label="Click to zoom" placement="top">
                                 <Avatar
@@ -2187,76 +2381,61 @@ const Users = ({ personnelId }) => {
                               </Box>
                             </HStack>
                           </Td>
-                          <Td color="gray.600" isTruncated>{personnel.section || "N/A"}</Td>
+                          <Td py={5} color="gray.600" isTruncated>{personnel.section || "N/A"}</Td>
                           {/* Actions will continue below... */}
-                          <Td>
-                            <HStack spacing={2}>
-                              <Tooltip label="View Full Profile">
-                                <IconButton
-                                  size="sm"
-                                  icon={<ViewIcon />}
-                                  colorScheme="purple"
-                                  onClick={() => window.open(`/personnel-preview/${personnel.personnel_id}`, "_blank")}
-                                  aria-label="View Profile"
-                                />
-                              </Tooltip>
-
-                              <Tooltip label="View Enrollment Info">
-                                <IconButton
-                                  size="sm"
-                                  icon={<InfoIcon />}
-                                  colorScheme="orange"
-                                  onClick={() => window.location.href = `/enroll?personnel_id=${personnel.personnel_id}&type=edituser`}
-                                  aria-label="View Enrollment Info"
-                                />
-                              </Tooltip>
-
-                              {hasPermission("personnels.photo") && (
-                                <Tooltip label="Photoshoot">
-                                  <IconButton
-                                    size="sm"
-                                    icon={<FaCamera />}
-                                    colorScheme="teal"
-                                    onClick={() => {
-                                      setSelectedUser(personnel);
-                                      setIsPhotoModalOpen(true);
-                                    }}
-                                    aria-label="Photoshoot"
-                                  />
-                                </Tooltip>
-                              )}
-
-                              {hasPermission("personnels.edit_rfid_code") && (
-                                <Tooltip label="Update RFID">
-                                  <IconButton
-                                    size="sm"
-                                    icon={<FaIdCard />}
-                                    colorScheme="blue"
-                                    onClick={() => {
-                                      setSelectedUserForRfid(personnel.personnel_id);
-                                      setRfidCode(personnel.rfid_code || "");
-                                      onRfidModalOpen();
-                                    }}
-                                    aria-label="Update RFID"
-                                  />
-                                </Tooltip>
-                              )}
-
+                          <Td py={5} textAlign="right">
+                            <HStack spacing={2} justify="flex-end" flexWrap="nowrap">
                               {hasPermission("personnels.sync_to_users") && (
                                 <Tooltip label="Sync to Users Table">
-                                  <IconButton
+                                  <Button
                                     size="sm"
-                                    icon={<Icon as={FiRefreshCw} boxSize={4} />}
                                     colorScheme="green"
-                                    variant="solid"
+                                    leftIcon={<Icon as={FiRefreshCw} boxSize={4} />}
                                     onClick={() => openSyncModal(personnel.personnel_id, `${personnel.givenname} ${personnel.surname_husband}`)}
                                     isLoading={loadingSyncPersonnel && loadingSyncPersonnel[personnel.personnel_id]}
                                     isDisabled={personnel.personnel_progress !== "8"}
-                                    aria-label="Sync User"
+                                    whiteSpace="nowrap"
                                     boxShadow="sm"
-                                  />
+                                  >
+                                    Sync
+                                  </Button>
                                 </Tooltip>
                               )}
+                              {renderActionMenu([
+                                {
+                                  label: "View",
+                                  icon: ViewIcon,
+                                  iconColor: "purple.500",
+                                  onClick: () => window.open(`/personnel-preview/${personnel.personnel_id}`, "_blank"),
+                                },
+                                {
+                                  label: "Info",
+                                  icon: InfoIcon,
+                                  iconColor: "orange.500",
+                                  onClick: () => {
+                                    window.location.href = `/enroll?personnel_id=${personnel.personnel_id}&type=edituser`;
+                                  },
+                                },
+                                hasPermission("personnels.photo") && {
+                                  label: "Photo",
+                                  icon: FaCamera,
+                                  iconColor: "teal.500",
+                                  onClick: () => {
+                                    setSelectedUser(personnel);
+                                    setIsPhotoModalOpen(true);
+                                  },
+                                },
+                                hasPermission("personnels.edit_rfid_code") && {
+                                  label: "Credentials",
+                                  icon: FaIdCard,
+                                  iconColor: "blue.500",
+                                  onClick: () => {
+                                    setSelectedUserForRfid(personnel.personnel_id);
+                                    setRfidCode(personnel.rfid_code || "");
+                                    onRfidModalOpen();
+                                  },
+                                },
+                              ])}
                             </HStack>
                           </Td>
                         </Tr>
@@ -2328,34 +2507,6 @@ const Users = ({ personnelId }) => {
         </ModalContent>
       </Modal>
 
-      {/* Alert Dialog for Save Confirmation */}
-      <AlertDialog
-        isOpen={isAlertOpen}
-        leastDestructiveRef={cancelRef}
-        onClose={onCloseAlert}
-      >
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Save Changes
-            </AlertDialogHeader>
-
-            <AlertDialogBody>
-              Are you sure you want to save changes?
-            </AlertDialogBody>
-
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onCloseAlert}>
-                Cancel
-              </Button>
-              <Button colorScheme="blue" onClick={confirmSave} ml={3}>
-                Save
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
-
       {/* Delete Confirmation Dialog */}
       <AlertDialog
         isOpen={isDeleteOpen}
@@ -2386,206 +2537,467 @@ const Users = ({ personnelId }) => {
         </AlertDialogOverlay>
       </AlertDialog>
 
-      <Modal isOpen={isOpen} onClose={closeModal}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>{editingUser ? "Edit User" : "Add User"}</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <VStack spacing={4}>
-              <FormControl>
-                <FormLabel>Avatar</FormLabel>
-                {/* Display the current or selected image */}
-                {/* Display the selected image */}
-                {avatarUrl && (
-                  <Box mb={4} textAlign="center">
-                    <Avatar size="xl" src={avatarUrl} alt="Avatar Preview" />
+      {isOpen && (
+        <Portal>
+          <Box
+            position="fixed"
+            inset={0}
+            zIndex={100011}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            px={{ base: 3, md: 6 }}
+            py={{ base: 3, md: 6 }}
+            onClick={closeModal}
+          >
+            <Box
+              position="absolute"
+              inset={0}
+              bg="blackAlpha.600"
+              backdropFilter="blur(4px)"
+              zIndex={0}
+            />
+
+            <Box
+              position="relative"
+              zIndex={1}
+              w="full"
+              maxW="6xl"
+              maxH="92vh"
+              bg="white"
+              border="1px solid"
+              borderColor="gray.200"
+              borderRadius="2xl"
+              boxShadow="0 30px 80px rgba(15, 23, 42, 0.22)"
+              overflow="hidden"
+              display="flex"
+              flexDirection="column"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <Box
+                position="relative"
+                bgGradient={SIDEBAR_GRADIENT}
+                py={4}
+                px={5}
+                pr={14}
+                borderBottom="1px solid"
+                borderColor="whiteAlpha.700"
+              >
+                <Flex align="center" justify="space-between" gap={4} wrap="wrap">
+                  <Box>
+                    <Text fontSize="xl" fontWeight="bold" color="gray.900">
+                      {editingUser ? "Edit User" : "Add User"}
+                    </Text>
+                    <Text fontSize="sm" color="gray.600">
+                      Keep identity, group, and app access in one clean view.
+                    </Text>
                   </Box>
-                )}
-                {/* File input for browsing and selecting an image */}
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                      // Set file to state for upload
-                      setAvatarFile(file);
+                  {editingUser && (
+                    <Badge colorScheme="blue" variant="subtle" px={3} py={1} borderRadius="full">
+                      Editing {username || "User"}
+                    </Badge>
+                  )}
+                </Flex>
 
-                      // Create a temporary preview URL for the selected file
-                      const reader = new FileReader();
-                      reader.onload = (event) =>
-                        setAvatarUrl(event.target.result);
-                      reader.readAsDataURL(file);
-                    }
+                <IconButton
+                  aria-label="Close modal"
+                  icon={<CloseIcon boxSize={3} />}
+                  onClick={closeModal}
+                  position="absolute"
+                  top={3}
+                  right={3}
+                  size="sm"
+                  borderRadius="full"
+                  bg="whiteAlpha.700"
+                  color="gray.700"
+                  _hover={{
+                    bg: "white",
+                    transform: "translateY(-1px)",
+                    boxShadow: "md",
                   }}
+                  transition="all 0.2s ease"
                 />
-              </FormControl>
+              </Box>
 
-              <FormControl isRequired>
-                <FormLabel>Username</FormLabel>
-                <Input
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter Username"
-                  isDisabled={!!editingUser} // Disable input when editing
-                />
-              </FormControl>
-
-              <FormControl isRequired>
-                <FormLabel>First Name</FormLabel>
-                <Input
-                  value={firstName} // Use setFirstName for accuracy
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="Enter First Name"
-                  isDisabled={!!editingUser} // Disable input when editing
-                />
-              </FormControl>
-
-              <FormControl isRequired>
-                <FormLabel>Last Name</FormLabel>
-                <Input
-                  value={lastName} // Use setLastName for accuracy
-                  onChange={(e) => setLastName(e.target.value)}
-                  placeholder="Enter Last Name"
-                  isDisabled={!!editingUser} // Disable input when editing
-                />
-              </FormControl>
-
-              <FormControl isRequired>
-                <FormLabel>Email</FormLabel>
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter Email"
-                  isDisabled={!!editingUser} // Disable input when editing
-                />
-              </FormControl>
-
-              <FormControl isRequired>
-                <FormLabel>Group Name</FormLabel>
-                <Select
-                  placeholder="Assign Group"
-                  value={selectedGroup || ""} // Display the current group
-                  onChange={(e) => setSelectedGroup(e.target.value)} // Update selected group on change
-                >
-                  {groups.map((group) => (
-                    <option key={group.id} value={group.id}>
-                      {group.name}
-                    </option>
-                  ))}
-                </Select>
-              </FormControl>
-
-              <FormControl>
-                <FormLabel fontSize="lg" fontWeight="bold" mb={3}>
-                  Available Apps
-                </FormLabel>
-
-                {categorizedApps && Object.keys(categorizedApps).length > 0 ? (
-                  Object.entries(categorizedApps).map(([category, apps]) => {
-                    const selectableApps = apps.filter((app) => isAppActive(app));
-                    // Check if all active apps in this category are selected
-                    const allSelected =
-                      selectableApps.length > 0 &&
-                      selectableApps.every((app) =>
-                        selectedApps.includes(app.name)
-                      );
-
-                    return (
-                      <Box
-                        key={category}
-                        mt={4}
-                        p={3}
-                        borderRadius="md"
-                        border="1px solid #e2e8f0"
-                      >
-                        <Flex
-                          alignItems="center"
-                          justifyContent="space-between"
-                          mb={2}
-                        >
-                          <Text
-                            fontWeight="bold"
-                            fontSize="md"
-                            color="gray.700"
+              <Box flex="1" minH={0} bg="gray.50" p={4} css={THIN_SCROLLBAR_STYLES} overflowY="auto">
+                <VStack spacing={4} align="stretch">
+                  <SimpleGrid columns={{ base: 1, xl: 2 }} spacing={4} alignItems="start">
+                    <Box bg="white" p={4} borderRadius="xl" border="1px solid" borderColor="gray.100" shadow="sm">
+                      <Text fontSize="sm" fontWeight="semibold" color="gray.600" mb={3}>
+                        Profile
+                      </Text>
+                      <Flex direction={{ base: "column", sm: "row" }} gap={4} align="center">
+                        <Tooltip label="Click to view larger" hasArrow placement="top">
+                          <Box
+                            border="4px solid rgba(255,255,255,0.9)"
+                            borderRadius="full"
+                            boxShadow="lg"
+                            bg="white"
+                            p={1}
+                            cursor="zoom-in"
+                            transition="transform 0.25s ease, box-shadow 0.25s ease"
+                            _hover={{
+                              transform: "scale(1.06)",
+                              boxShadow: "xl",
+                            }}
+                            onClick={() => handleAvatarClick(avatarUrl || "/default-avatar.png")}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                handleAvatarClick(avatarUrl || "/default-avatar.png");
+                              }
+                            }}
                           >
-                            {category === "1" ? "General Apps" : category}
-                          </Text>
-                          <Checkbox
-                            isChecked={allSelected}
-                            isDisabled={selectableApps.length === 0}
-                            onChange={(e) =>
-                              handleCategorySelectAll(
-                                category,
-                                apps,
-                                e.target.checked
-                              )
-                            }
-                            colorScheme="blue"
-                          >
-                            Select All
-                          </Checkbox>
-                        </Flex>
-
-                        <Stack spacing={2} pl={4}>
-                          {apps.map((app) => {
-                            const isChecked = selectedApps.includes(app.name);
-                            const appIsActive = isAppActive(app);
-                            return (
-                              <Checkbox
-                                key={app.id}
-                                isChecked={isChecked}
-                                isDisabled={!appIsActive}
-                                onChange={(e) => {
-                                  const checked = e.target.checked;
-                                  setSelectedApps((prev) => {
-                                    if (checked) {
-                                      return [...prev, app.name];
-                                    } else {
-                                      return prev.filter((name) => name !== app.name);
-                                    }
-                                  });
-                                }}
-                                colorScheme="blue"
-                                opacity={appIsActive ? 1 : 0.5}
+                            <Avatar size="xl" src={avatarUrl} name={fullname || username || "User"} />
+                          </Box>
+                        </Tooltip>
+                        <VStack align="stretch" spacing={3} w="full">
+                          <Box>
+                            <Text fontWeight="semibold" color="gray.800">
+                              {editingUser ? "Update user details" : "Create a new account"}
+                            </Text>
+                            <Text fontSize="sm" color="gray.500">
+                              Use a square image for the cleanest preview.
+                            </Text>
+                          </Box>
+                          <FormControl>
+                            <FormLabel fontSize="xs" mb={1} color="gray.600">
+                              WebDAV URL
+                            </FormLabel>
+                            <InputGroup size="sm">
+                              <Input
+                                value={displayWebdavUrl}
+                                isReadOnly
+                                variant="filled"
+                                fontFamily="mono"
+                                fontSize="xs"
+                                color="gray.700"
+                                bg="gray.50"
+                                pr="3rem"
+                              />
+                              <InputRightElement width="3rem">
+                                <Tooltip label="Copy WebDAV URL">
+                                  <IconButton
+                                    aria-label="Copy WebDAV URL"
+                                    size="xs"
+                                    icon={<CopyIcon />}
+                                    variant="ghost"
+                                    colorScheme="blue"
+                                    isDisabled={!currentWebdavUrl}
+                                    onClick={handleCopyWebdavUrl}
+                                  />
+                                </Tooltip>
+                              </InputRightElement>
+                            </InputGroup>
+                          </FormControl>
+                          <FormControl>
+                            <FormLabel fontSize="xs" mb={1} color="gray.600">
+                              Avatar
+                            </FormLabel>
+                            <Input
+                              ref={avatarInputRef}
+                              type="file"
+                              accept="image/*"
+                              display="none"
+                              onChange={(e) => {
+                                const file = e.target.files[0];
+                                if (file) {
+                                  setAvatarFile(file);
+                                  const reader = new FileReader();
+                                  reader.onload = (event) => setAvatarUrl(event.target.result);
+                                  reader.readAsDataURL(file);
+                                }
+                              }}
+                            />
+                            <HStack spacing={3} align="center" wrap="wrap">
+                              <Button
+                                size="sm"
+                                leftIcon={<Icon as={FiUpload} />}
+                                variant="solid"
+                                bgGradient="linear(to-r, blue.500, cyan.500)"
+                                color="white"
+                                borderRadius="full"
+                                onClick={() => avatarInputRef.current?.click()}
+                                boxShadow="md"
                                 _hover={{
-                                  transform: "scale(1.02)",
-                                  transition: "0.2s ease-in-out",
+                                  bgGradient: "linear(to-r, blue.600, cyan.600)",
+                                  transform: "translateY(-1px)",
+                                  boxShadow: "lg",
                                 }}
+                                transition="all 0.2s ease"
                               >
-                                <HStack as="span" spacing={2} display="inline-flex">
-                                  <Text as="span">{app.name}</Text>
-                                  {!appIsActive && (
-                                    <Badge colorScheme="gray" variant="subtle">
-                                      Disabled
-                                    </Badge>
-                                  )}
-                                </HStack>
-                              </Checkbox>
+                                Choose file
+                              </Button>
+                              <Text
+                                fontSize="xs"
+                                color="gray.600"
+                                noOfLines={1}
+                                px={3}
+                                py={1}
+                                borderRadius="full"
+                                bg="gray.100"
+                                border="1px solid"
+                                borderColor="gray.200"
+                              >
+                                {avatarFile?.name || "No file selected"}
+                              </Text>
+                            </HStack>
+                          </FormControl>
+                        </VStack>
+                      </Flex>
+                    </Box>
+
+                    <Box bg="white" p={4} borderRadius="xl" border="1px solid" borderColor="gray.100" shadow="sm">
+                      <Text fontSize="sm" fontWeight="semibold" color="gray.600" mb={3}>
+                        Account
+                      </Text>
+                      <VStack spacing={3} align="stretch">
+                        <FormControl isRequired>
+                          <FormLabel fontSize="xs" mb={1} color="gray.600">
+                            Username
+                          </FormLabel>
+                          <Input
+                            size="sm"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            placeholder="Enter Username"
+                            isDisabled={!!editingUser}
+                          />
+                        </FormControl>
+
+                        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={3}>
+                          <FormControl isRequired>
+                            <FormLabel fontSize="xs" mb={1} color="gray.600">
+                              First Name
+                            </FormLabel>
+                            <Input
+                              size="sm"
+                              value={firstName}
+                              onChange={(e) => setFirstName(e.target.value)}
+                              placeholder="Enter First Name"
+                              isDisabled={!!editingUser}
+                            />
+                          </FormControl>
+
+                          <FormControl isRequired>
+                            <FormLabel fontSize="xs" mb={1} color="gray.600">
+                              Last Name
+                            </FormLabel>
+                            <Input
+                              size="sm"
+                              value={lastName}
+                              onChange={(e) => setLastName(e.target.value)}
+                              placeholder="Enter Last Name"
+                              isDisabled={!!editingUser}
+                            />
+                          </FormControl>
+                        </SimpleGrid>
+
+                        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={3}>
+                          <FormControl isRequired>
+                            <FormLabel fontSize="xs" mb={1} color="gray.600">
+                              Email
+                            </FormLabel>
+                            <Input
+                              size="sm"
+                              type="email"
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                              placeholder="Enter Email"
+                              isDisabled={!!editingUser}
+                            />
+                          </FormControl>
+
+                          <FormControl isRequired>
+                            <FormLabel fontSize="xs" mb={1} color="gray.600">
+                              Group Name
+                            </FormLabel>
+                            <Select
+                              size="sm"
+                              placeholder="Assign Group"
+                              value={selectedGroup || ""}
+                              onChange={(e) => setSelectedGroup(e.target.value)}
+                              variant="outline"
+                              bg="white"
+                              borderRadius="full"
+                              borderColor="gray.200"
+                              focusBorderColor="blue.400"
+                              iconColor="blue.500"
+                              boxShadow="sm"
+                              _hover={{
+                                borderColor: "blue.300",
+                                bg: "gray.50",
+                              }}
+                            >
+                              {groups.map((group) => (
+                                <option key={group.id} value={group.id}>
+                                  {group.name}
+                                </option>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        </SimpleGrid>
+                      </VStack>
+                    </Box>
+                  </SimpleGrid>
+
+                  <Box bg="white" p={4} borderRadius="xl" border="1px solid" borderColor="gray.100" shadow="sm">
+                    <Flex align="center" justify="space-between" mb={3} gap={3} wrap="wrap">
+                      <Box>
+                        <Text fontSize="sm" fontWeight="semibold" color="gray.600">
+                          Available Apps
+                        </Text>
+                        <Text fontSize="xs" color="gray.500">
+                          Only active apps are shown. Disabled apps stay hidden by system settings.
+                        </Text>
+                      </Box>
+                      <Badge colorScheme="blue" variant="subtle" px={3} py={1} borderRadius="full">
+                        {selectedApps.length} selected
+                      </Badge>
+                    </Flex>
+
+                    {hasVisibleApps ? (
+                      <Box maxH={{ base: "none", lg: "42vh" }} overflowY="auto" pr={1} css={THIN_SCROLLBAR_STYLES}>
+                        <VStack spacing={3} align="stretch">
+                          {Object.entries(categorizedApps).map(([category, apps]) => {
+                            const selectableApps = apps.filter((app) => isAppActive(app));
+                            if (selectableApps.length === 0) return null;
+                            const allSelected =
+                              selectableApps.length > 0 &&
+                              selectableApps.every((app) => selectedApps.includes(app.name));
+
+                            return (
+                              <Box
+                                key={category}
+                                p={3}
+                                borderRadius="lg"
+                                border="1px solid"
+                                borderColor="gray.100"
+                                bg="gray.50"
+                              >
+                                <Flex align="center" justify="space-between" mb={2} gap={3} wrap="wrap">
+                                  <Text fontWeight="semibold" fontSize="sm" color="gray.700">
+                                    {category === "1" ? "General Apps" : category}
+                                  </Text>
+                                  <Checkbox
+                                    size="sm"
+                                    isChecked={allSelected}
+                                    onChange={(e) =>
+                                      handleCategorySelectAll(
+                                        category,
+                                        apps,
+                                        e.target.checked
+                                      )
+                                    }
+                                    colorScheme="blue"
+                                  >
+                                    Select All
+                                  </Checkbox>
+                                </Flex>
+
+                                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={2} pl={1}>
+                                  {selectableApps.map((app) => {
+                                    const isChecked = selectedApps.includes(app.name);
+                                    return (
+                                      <Checkbox
+                                        key={app.id}
+                                        size="sm"
+                                        isChecked={isChecked}
+                                        onChange={(e) => {
+                                          const checked = e.target.checked;
+                                          setSelectedApps((prev) => {
+                                            if (checked) {
+                                              return [...prev, app.name];
+                                            }
+                                            return prev.filter((name) => name !== app.name);
+                                          });
+                                        }}
+                                        colorScheme="blue"
+                                        px={2}
+                                        py={1}
+                                        borderRadius="md"
+                                        _hover={{
+                                          bg: "white",
+                                          transition: "0.2s ease-in-out",
+                                        }}
+                                      >
+                                        <HStack as="span" spacing={2} display="inline-flex" alignItems="center">
+                                          <Avatar
+                                            size="xs"
+                                            src={app.icon || undefined}
+                                            name={app.name}
+                                            bg="blue.50"
+                                            color="blue.700"
+                                            borderRadius="md"
+                                          />
+                                          <Text as="span" fontSize="sm">
+                                            {app.name}
+                                          </Text>
+                                        </HStack>
+                                      </Checkbox>
+                                    );
+                                  })}
+                                </SimpleGrid>
+                              </Box>
                             );
                           })}
-                        </Stack>
+                        </VStack>
                       </Box>
-                    );
-                  })
-                ) : (
-                  <Text mt={3} color="gray.500">
-                    No apps available
-                  </Text>
-                )}
-              </FormControl>
-            </VStack>
-          </ModalBody>
-          <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={handleAddUser}>
-              {editingUser ? "Save Changes" : "Add User"}
-            </Button>
-            <Button onClick={closeModal}>Cancel</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+                    ) : (
+                      <Text mt={2} color="gray.500" fontSize="sm">
+                        No active apps available
+                      </Text>
+                    )}
+                  </Box>
+                </VStack>
+              </Box>
+
+              <Flex
+                bg="white"
+                borderTop="1px solid"
+                borderColor="gray.200"
+                py={4}
+                px={4}
+                gap={3}
+                align="center"
+              >
+                <Button
+                  onClick={closeModal}
+                  variant="outline"
+                  mr="auto"
+                  borderRadius="full"
+                  borderColor="gray.300"
+                  bg="white"
+                  color="gray.700"
+                  px={5}
+                  _hover={{
+                    bg: "gray.50",
+                    borderColor: "gray.400",
+                    transform: "translateY(-1px)",
+                    boxShadow: "sm",
+                  }}
+                  transition="all 0.2s ease"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  colorScheme="blue"
+                  onClick={confirmSave}
+                  isLoading={isSavingUser}
+                  loadingText={editingUser ? "Saving" : "Adding"}
+                  borderRadius="full"
+                  boxShadow="md"
+                  px={6}
+                >
+                  {editingUser ? "Save Changes" : "Add User"}
+                </Button>
+              </Flex>
+            </Box>
+          </Box>
+        </Portal>
+      )}
 
       {/* Photoshoot Modal */}
       <Modal
@@ -2758,21 +3170,46 @@ const Users = ({ personnelId }) => {
         </ModalContent>
       </Modal>
       {/* Avatar Zoom Modal */}
-      <Modal isOpen={isAvatarZoomOpen} onClose={onAvatarZoomClose} size="xl" isCentered>
-        <ModalOverlay backdropFilter="blur(5px)" bg="blackAlpha.600" />
-        <ModalContent bg="transparent" boxShadow="none">
-          <ModalBody p={0} onClick={onAvatarZoomClose} cursor="pointer" display="flex" justifyContent="center">
-            <Image
-              src={zoomedAvatarSrc || "https://bit.ly/broken-link"}
-              alt="Zoomed Avatar"
-              borderRadius="md"
-              boxShadow="2xl"
-              maxH="80vh"
-              objectFit="contain"
+      {isAvatarZoomOpen && (
+        <Portal>
+          <Box
+            position="fixed"
+            inset={0}
+            zIndex={100060}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            px={4}
+            py={4}
+            onClick={onAvatarZoomClose}
+          >
+            <Box
+              position="absolute"
+              inset={0}
+              bg="blackAlpha.600"
+              backdropFilter="blur(5px)"
+              zIndex={0}
             />
-          </ModalBody>
-        </ModalContent>
-      </Modal>
+            <Box
+              position="relative"
+              zIndex={1}
+              maxW="90vw"
+              maxH="90vh"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <Image
+                src={zoomedAvatarSrc || "https://bit.ly/broken-link"}
+                alt="Zoomed Avatar"
+                borderRadius="md"
+                boxShadow="2xl"
+                maxH="90vh"
+                objectFit="contain"
+                cursor="pointer"
+              />
+            </Box>
+          </Box>
+        </Portal>
+      )}
       {/* Sync User Modal */}
       <Modal isOpen={isSyncModalOpen} onClose={onSyncModalClose} isCentered>
         <ModalOverlay />

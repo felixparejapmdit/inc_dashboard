@@ -81,6 +81,14 @@ const getIconForLabel = (label = "", fallbackIcon = FiSettings) => {
   switch (cleanLabel) {
     case "Home":
       return FiHome;
+    case "Administration":
+      return FiSettings;
+    case "Workflow":
+      return FiActivity;
+    case "Master Data":
+      return FiTool;
+    case "Tools & Integrations":
+      return FiSliders;
     case "Statistics":
       return FiPieChart;
     case "Inv Dashboard":
@@ -202,6 +210,10 @@ const getIconForLabel = (label = "", fallbackIcon = FiSettings) => {
 
 const SIDEBAR_ACCENT_COLORS = {
   Home: "#D65A31",
+  Administration: "#C05621",
+  Workflow: "#805AD5",
+  "Master Data": "#7C3AED",
+  "Tools & Integrations": "#0D9488",
   Statistics: "#2563EB",
   "Inv Dashboard": "#7C3AED",
   "ATG Dashboard": "#0F766E",
@@ -295,6 +307,26 @@ const hexToRgba = (hex, alpha) => {
   return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 };
 
+const SidebarSectionLabel = ({ children, isExpanded, show = true }) => {
+  if (!isExpanded || !show) return null;
+
+  return (
+    <Flex align="center" w="full" px={2} pt={3} pb={1}>
+      <Text
+        color="rgba(31, 41, 55, 0.62)"
+        fontSize="0.65rem"
+        fontWeight="800"
+        letterSpacing="0.16em"
+        textTransform="uppercase"
+        whiteSpace="nowrap"
+      >
+        {children}
+      </Text>
+      <Box flex="1" h="1px" ml={2} bg="rgba(31, 41, 55, 0.08)" />
+    </Flex>
+  );
+};
+
 const Sidebar = ({ onSidebarToggle }) => {
   const { hasPermission } = usePermissionContext(); // Correct usage
 
@@ -319,6 +351,107 @@ const Sidebar = ({ onSidebarToggle }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const showLdapUsers = false; // Set this to true if you want to show the item
+  const hasAnyPermission = (...permissions) =>
+    permissions.some((permission) => hasPermission(permission));
+
+  const showQuickAccessSection = hasAnyPermission(
+    "*home.view",
+    "statistics.view",
+    "inv_dashboard.view",
+    "atg_dashboard.view",
+    "*profile.view",
+    "links.view",
+  );
+
+  const showPlatformSetupSection = hasAnyPermission(
+    "apps.view",
+    "applicationtype.view",
+    "categories.view",
+    "dragdrop.view",
+    "events.view",
+    "eventlocations.view",
+  );
+
+  const showPeopleAccessSection = hasAnyPermission(
+    "groups.view",
+    "permission.view",
+    "personnels.view",
+    "personnels.tempdeleted",
+    "personnelhistory.view",
+    "phonelocations.view",
+    "phonedirectory.view",
+    "loginreports.view",
+    "reminders.view",
+    "suguan.view",
+    "schemasync.view",
+  ) || showLdapUsers;
+
+  const showAdministrationMenu =
+    hasPermission("*settings.view") &&
+    (showPlatformSetupSection || showPeopleAccessSection);
+
+  const showProgressStepsSection = hasAnyPermission(
+    "progresstracking.view",
+    "sectionchief.view",
+    "adminoffice.view",
+    "securityoverseer.view",
+    "pmdit.view",
+    "atg1.view",
+    "atg2.view",
+    "atgapproval.view",
+    "personneloffice.view",
+  );
+
+  const showWorkflowMenu =
+    hasPermission("*progress.view") && showProgressStepsSection;
+
+  const showProfileIdentitySection = hasAnyPermission(
+    "citizenship.view",
+    "contact.view",
+  );
+
+  const showOrganizationStructureSection = hasAnyPermission(
+    "department.view",
+    "designation.view",
+  );
+
+  const showGeographyRecordsSection = hasAnyPermission(
+    "district.view",
+    "housing.view",
+    "issued_id.view",
+    "language.view",
+    "nationality.view",
+  );
+
+  const showOrgHierarchySection = hasAnyPermission(
+    "section.view",
+    "subsection.view",
+  );
+
+  const showMasterDataMenu =
+    hasPermission("*management.view") &&
+    (showProfileIdentitySection ||
+      showOrganizationStructureSection ||
+      showGeographyRecordsSection ||
+      showOrgHierarchySection);
+
+  const showInternalToolsSection = hasAnyPermission(
+    "lokalprofile.view",
+    "atgfiles.view",
+  );
+
+  const showFileSharingSection = hasAnyPermission(
+    "webdav.view",
+    "fileorganizer.view",
+  );
+
+  const showReportingSection = hasAnyPermission("dailyactivity.view");
+
+  const showToolsIntegrationsMenu =
+    hasPermission("*plugins.view") &&
+    (showInternalToolsSection ||
+      showFileSharingSection ||
+      showReportingSection);
 
   // Handle item click for mobile (auto-close)
   const handleItemClick = (path, isExternal = false) => {
@@ -678,6 +811,10 @@ const Sidebar = ({ onSidebarToggle }) => {
         <VStack align="stretch" spacing={2}>
           {/* Adjusted the spacing */}
 
+          <SidebarSectionLabel isExpanded={isExpanded} show={showQuickAccessSection}>
+            Quick Access
+          </SidebarSectionLabel>
+
           {hasPermission("*home.view") && (
             <SidebarItem
               data-tour="dashboard"
@@ -744,20 +881,27 @@ const Sidebar = ({ onSidebarToggle }) => {
             />
           )}
 
-          {/* Settings with submenu */}
-          {hasPermission("*settings.view") && (
+          {/* Administration with submenu */}
+          {showAdministrationMenu && (
             <SidebarItem
               data-tour="settings-menu"
               icon={FiSettings}
-              label="Settings"
+              label="Administration"
               isExpanded={isExpanded}
               onClick={handleSettingsToggle} // Toggle settings menu
               rightIcon={isSettingsExpanded ? FiArrowUp : FiArrowDown} // Show arrow when expanded
             />
           )}
-          <Collapse in={isSettingsExpanded} animateOpacity>
+          {showAdministrationMenu && (
+            <Collapse in={isSettingsExpanded} animateOpacity>
             <VStack align="start" ml={isExpanded ? 3 : 0} spacing={1}>
               {/* Adjusted submenu spacing */}
+              <SidebarSectionLabel
+                isExpanded={isExpanded}
+                show={showPlatformSetupSection}
+              >
+                Platform Setup
+              </SidebarSectionLabel>
               {hasPermission("apps.view") && (
                 <SidebarItem
                   icon={FiGrid}
@@ -796,7 +940,7 @@ const Sidebar = ({ onSidebarToggle }) => {
               {hasPermission("dragdrop.view") && (
                 <SidebarItem
                   icon={FiMove}
-                  label="Drap & Drop"
+                  label="Drag & Drop"
                   isExpanded={isExpanded}
                   onClick={() => handleItemClick("/settings/drag-drop")} // Redirect to categorymanagement.js
                   isActive={location.pathname === "/settings/drag-drop"}
@@ -821,14 +965,12 @@ const Sidebar = ({ onSidebarToggle }) => {
                 />
               )}
 
-              {/* {hasPermission("files.view") && (
-              <SidebarItem
-                label="Share a link"
+              <SidebarSectionLabel
                 isExpanded={isExpanded}
-                onClick={() => handleItemClick("/managements/filemanagement")}
-                useDynamicIcon
-              />
-            )} */}
+                show={showPeopleAccessSection}
+              >
+                People & Access
+              </SidebarSectionLabel>
               {hasPermission("groups.view") && (
                 <SidebarItem
                   icon={FiUsers}
@@ -948,21 +1090,29 @@ const Sidebar = ({ onSidebarToggle }) => {
                 />
               )}
             </VStack>
-          </Collapse>
+            </Collapse>
+          )}
 
           {/* Add Progress Steps Menu */}
-          {hasPermission("*progress.view") && (
+          {showWorkflowMenu && (
             <SidebarItem
               data-tour="enrollment-menu"
               icon={FiUserPlus}
-              label="Enrollment "
+              label="Workflow"
               isExpanded={isExpanded}
               onClick={handleProgressToggle} // Toggle settings menu
               rightIcon={isProgressStepsExpanded ? FiArrowUp : FiArrowDown}
             />
           )}
-          <Collapse in={isProgressStepsExpanded} animateOpacity>
+          {showWorkflowMenu && (
+            <Collapse in={isProgressStepsExpanded} animateOpacity>
             <VStack align="start" ml={isExpanded ? 3 : 0} spacing={1}>
+              <SidebarSectionLabel
+                isExpanded={isExpanded}
+                show={showProgressStepsSection}
+              >
+                Progress Steps
+              </SidebarSectionLabel>
               {hasPermission("progresstracking.view") && (
                 <SidebarItem
                   data-tour="progress-tracker"
@@ -1056,22 +1206,30 @@ const Sidebar = ({ onSidebarToggle }) => {
                 />
               )}
             </VStack>
-          </Collapse>
+            </Collapse>
+          )}
 
-          {/* Managements Section */}
-          {hasPermission("*management.view") && (
+          {/* Master Data Section */}
+          {showMasterDataMenu && (
             <SidebarItem
               data-tour="management-menu"
               icon={FiTool} // Change icon to FiBriefcase or any other appropriate icon
-              label="Management"
+              label="Master Data"
               isExpanded={isExpanded}
               onClick={handleManagementsToggle}
               rightIcon={isManagementsExpanded ? FiArrowUp : FiArrowDown}
             />
           )}
 
-          <Collapse in={isManagementsExpanded} animateOpacity>
+          {showMasterDataMenu && (
+            <Collapse in={isManagementsExpanded} animateOpacity>
             <VStack align="start" ml={isExpanded ? 3 : 0} spacing={1}>
+              <SidebarSectionLabel
+                isExpanded={isExpanded}
+                show={showProfileIdentitySection}
+              >
+                Profile & Identity
+              </SidebarSectionLabel>
               {hasPermission("citizenship.view") && (
                 <SidebarItem
                   label="Citizenship"
@@ -1090,6 +1248,12 @@ const Sidebar = ({ onSidebarToggle }) => {
                   isActive={location.pathname === "/managements/contact_infos"}
                 />
               )}
+              <SidebarSectionLabel
+                isExpanded={isExpanded}
+                show={showOrganizationStructureSection}
+              >
+                Organization Structure
+              </SidebarSectionLabel>
               {hasPermission("department.view") && (
                 <SidebarItem
                   label="Department"
@@ -1108,6 +1272,12 @@ const Sidebar = ({ onSidebarToggle }) => {
                   isActive={location.pathname === "/managements/designations"}
                 />
               )}
+              <SidebarSectionLabel
+                isExpanded={isExpanded}
+                show={showGeographyRecordsSection}
+              >
+                Geography & Records
+              </SidebarSectionLabel>
               {hasPermission("district.view") && (
                 <SidebarItem
                   label="District"
@@ -1162,6 +1332,12 @@ const Sidebar = ({ onSidebarToggle }) => {
                   isActive={location.pathname === "/managements/nationalities"}
                 />
               )}
+              <SidebarSectionLabel
+                isExpanded={isExpanded}
+                show={showOrgHierarchySection}
+              >
+                Org Hierarchy
+              </SidebarSectionLabel>
               {hasPermission("section.view") && (
                 <SidebarItem
                   label="Section"
@@ -1181,22 +1357,30 @@ const Sidebar = ({ onSidebarToggle }) => {
                 />
               )}
             </VStack>
-          </Collapse>
+            </Collapse>
+          )}
 
-          {/* Managements Section */}
-          {hasPermission("*plugins.view") && (
+          {/* Tools & Integrations Section */}
+          {showToolsIntegrationsMenu && (
             <SidebarItem
               data-tour="plugins-menu"
               icon={FiSliders} // Change icon to FiBriefcase or any other appropriate icon
-              label="Plugins"
+              label="Tools & Integrations"
               isExpanded={isExpanded}
               onClick={handlePluginsToggle}
               rightIcon={isPluginsExpanded ? FiArrowUp : FiArrowDown}
             />
           )}
 
-          <Collapse in={isPluginsExpanded} animateOpacity>
+          {showToolsIntegrationsMenu && (
+            <Collapse in={isPluginsExpanded} animateOpacity>
             <VStack align="start" ml={isExpanded ? 3 : 0} spacing={1}>
+              <SidebarSectionLabel
+                isExpanded={isExpanded}
+                show={showInternalToolsSection}
+              >
+                Internal Tools
+              </SidebarSectionLabel>
               {hasPermission("lokalprofile.view") && (
                 <SidebarItem
                   icon={FiMapPin}
@@ -1215,6 +1399,12 @@ const Sidebar = ({ onSidebarToggle }) => {
                   isActive={location.pathname === "/atgfiles"}
                 />
               )}
+              <SidebarSectionLabel
+                isExpanded={isExpanded}
+                show={showFileSharingSection}
+              >
+                File Sharing
+              </SidebarSectionLabel>
               {hasPermission("webdav.view") && (
                 <SidebarItem
                   icon={FiCloud}
@@ -1224,11 +1414,6 @@ const Sidebar = ({ onSidebarToggle }) => {
                   isActive={location.pathname === WEB_DAV_ROUTE}
                 />
               )}
-            </VStack>
-          </Collapse>
-
-          <Collapse in={isPluginsExpanded} animateOpacity>
-            <VStack align="start" ml={isExpanded ? 3 : 0} spacing={1}>
               {hasPermission("fileorganizer.view") && (
                 <SidebarItem
                   icon={FiArchive}
@@ -1239,11 +1424,12 @@ const Sidebar = ({ onSidebarToggle }) => {
                   } // Open in new tab
                 />
               )}
-            </VStack>
-          </Collapse>
-
-          <Collapse in={isPluginsExpanded} animateOpacity>
-            <VStack align="start" ml={isExpanded ? 3 : 0} spacing={1}>
+              <SidebarSectionLabel
+                isExpanded={isExpanded}
+                show={showReportingSection}
+              >
+                Reporting
+              </SidebarSectionLabel>
               {/* Daily Activity Report */}
               {hasPermission("dailyactivity.view") && (
                 <SidebarItem
@@ -1255,7 +1441,8 @@ const Sidebar = ({ onSidebarToggle }) => {
                 />
               )}
             </VStack>
-          </Collapse>
+            </Collapse>
+          )}
         </VStack>
 
         <Flex flexGrow={1} />
