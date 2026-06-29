@@ -71,7 +71,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 import { usePermissionContext } from "../contexts/PermissionContext";
 
-
 const WEB_DAV_ROUTE = "/webdav";
 
 // Map labels to icons. The passed icon is only a fallback for unknown labels.
@@ -295,9 +294,9 @@ const hexToRgba = (hex, alpha) => {
   const fullHex =
     sanitized.length === 3
       ? sanitized
-        .split("")
-        .map((char) => char + char)
-        .join("")
+          .split("")
+          .map((char) => char + char)
+          .join("")
       : sanitized;
   const number = Number.parseInt(fullHex, 16);
   const red = (number >> 16) & 255;
@@ -372,19 +371,20 @@ const Sidebar = ({ onSidebarToggle }) => {
     "eventlocations.view",
   );
 
-  const showPeopleAccessSection = hasAnyPermission(
-    "groups.view",
-    "permission.view",
-    "personnels.view",
-    "personnels.tempdeleted",
-    "personnelhistory.view",
-    "phonelocations.view",
-    "phonedirectory.view",
-    "loginreports.view",
-    "reminders.view",
-    "suguan.view",
-    "schemasync.view",
-  ) || showLdapUsers;
+  const showPeopleAccessSection =
+    hasAnyPermission(
+      "groups.view",
+      "permission.view",
+      "personnels.view",
+      "personnels.tempdeleted",
+      "personnelhistory.view",
+      "phonelocations.view",
+      "phonedirectory.view",
+      "loginreports.view",
+      "reminders.view",
+      "suguan.view",
+      "schemasync.view",
+    ) || showLdapUsers;
 
   const showAdministrationMenu =
     hasPermission("*settings.view") &&
@@ -811,7 +811,10 @@ const Sidebar = ({ onSidebarToggle }) => {
         <VStack align="stretch" spacing={2}>
           {/* Adjusted the spacing */}
 
-          <SidebarSectionLabel isExpanded={isExpanded} show={showQuickAccessSection}>
+          <SidebarSectionLabel
+            isExpanded={isExpanded}
+            show={showQuickAccessSection}
+          >
             Quick Access
           </SidebarSectionLabel>
 
@@ -894,202 +897,210 @@ const Sidebar = ({ onSidebarToggle }) => {
           )}
           {showAdministrationMenu && (
             <Collapse in={isSettingsExpanded} animateOpacity>
-            <VStack align="start" ml={isExpanded ? 3 : 0} spacing={1}>
-              {/* Adjusted submenu spacing */}
-              <SidebarSectionLabel
-                isExpanded={isExpanded}
-                show={showPlatformSetupSection}
-              >
-                Platform Setup
-              </SidebarSectionLabel>
-              {hasPermission("apps.view") && (
-                <SidebarItem
-                  icon={FiGrid}
-                  label="Apps"
+              <VStack align="start" ml={isExpanded ? 3 : 0} spacing={1}>
+                {/* Adjusted submenu spacing */}
+                <SidebarSectionLabel
                   isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/application")} // Redirect to application.js
-                  isActive={location.pathname === "/application"}
-                />
-              )}
-              {hasPermission("applicationtype.view") && (
-                <SidebarItem
-                  label="Application Type"
-                  isExpanded={isExpanded}
-                  onClick={() =>
-                    handleItemClick("/managements/applicationtype")
-                  }
-                  useDynamicIcon
-                  isActive={
-                    location.pathname === "/managements/applicationtype"
-                  }
-                />
-              )}
-              {hasPermission("categories.view") && (
-                <SidebarItem
-                  icon={FiTag}
-                  label="Categories"
-                  isExpanded={isExpanded}
-                  onClick={() =>
-                    handleItemClick("/managements/categorymanagement")
-                  } // Redirect to categorymanagement.js
-                  isActive={
-                    location.pathname === "/managements/categorymanagement"
-                  }
-                />
-              )}
-              {hasPermission("dragdrop.view") && (
-                <SidebarItem
-                  icon={FiMove}
-                  label="Drag & Drop"
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/settings/drag-drop")} // Redirect to categorymanagement.js
-                  isActive={location.pathname === "/settings/drag-drop"}
-                />
-              )}
-              {hasPermission("events.view") && (
-                <SidebarItem
-                  icon={FiCalendar}
-                  label="Events"
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/add-events")} // Redirect to Events.js
-                  isActive={location.pathname === "/add-events"}
-                />
-              )}
-              {hasPermission("eventlocations.view") && (
-                <SidebarItem
-                  label="Event Locations"
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/managements/locations")}
-                  useDynamicIcon
-                  isActive={location.pathname === "/managements/locations"}
-                />
-              )}
+                  show={showPlatformSetupSection}
+                >
+                  Platform Setup
+                </SidebarSectionLabel>
+                {hasPermission("apps.view") && (
+                  <SidebarItem
+                    icon={FiGrid}
+                    label="Apps"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/application")} // Redirect to application.js
+                    isActive={location.pathname === "/application"}
+                  />
+                )}
+                {hasPermission("applicationtype.view") && (
+                  <SidebarItem
+                    label="Application Type"
+                    isExpanded={isExpanded}
+                    onClick={() =>
+                      handleItemClick("/managements/applicationtype")
+                    }
+                    useDynamicIcon
+                    isActive={
+                      location.pathname === "/managements/applicationtype"
+                    }
+                  />
+                )}
+                {hasPermission("categories.view") && (
+                  <SidebarItem
+                    icon={FiTag}
+                    label="Categories"
+                    isExpanded={isExpanded}
+                    onClick={() =>
+                      handleItemClick("/managements/categorymanagement")
+                    } // Redirect to categorymanagement.js
+                    isActive={
+                      location.pathname === "/managements/categorymanagement"
+                    }
+                  />
+                )}
+                {hasPermission("dragdrop.view") && (
+                  <SidebarItem
+                    icon={FiMove}
+                    label="Drag & Drop"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/settings/drag-drop")} // Redirect to categorymanagement.js
+                    isActive={location.pathname === "/settings/drag-drop"}
+                  />
+                )}
+                {hasPermission("events.view") && (
+                  <SidebarItem
+                    icon={FiCalendar}
+                    label="Events"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/add-events")} // Redirect to Events.js
+                    isActive={location.pathname === "/add-events"}
+                  />
+                )}
+                {hasPermission("eventlocations.view") && (
+                  <SidebarItem
+                    label="Event Locations"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/managements/locations")}
+                    useDynamicIcon
+                    isActive={location.pathname === "/managements/locations"}
+                  />
+                )}
 
-              <SidebarSectionLabel
-                isExpanded={isExpanded}
-                show={showPeopleAccessSection}
-              >
-                People & Access
-              </SidebarSectionLabel>
-              {hasPermission("groups.view") && (
-                <SidebarItem
-                  icon={FiUsers}
-                  label="Groups"
+                <SidebarSectionLabel
                   isExpanded={isExpanded}
-                  onClick={() =>
-                    handleItemClick("/managements/groupmanagement")
-                  } // Redirect to groupmanagement.js
-                  isActive={
-                    location.pathname === "/managements/groupmanagement"
-                  }
-                />
-              )}
-              {hasPermission("permission.view") && (
-                <SidebarItem
-                  icon={FiLock}
-                  label="Permissions"
-                  isExpanded={isExpanded}
-                  onClick={() =>
-                    handleItemClick("/managements/permissionmanagement")
-                  } // Redirect to permissionmanagement.js
-                  isActive={
-                    location.pathname === "/managements/permissionmanagement"
-                  }
-                />
-              )}
+                  show={showPeopleAccessSection}
+                >
+                  People & Access
+                </SidebarSectionLabel>
+                {hasPermission("groups.view") && (
+                  <SidebarItem
+                    icon={FiUsers}
+                    label="Groups"
+                    isExpanded={isExpanded}
+                    onClick={() =>
+                      handleItemClick("/managements/groupmanagement")
+                    } // Redirect to groupmanagement.js
+                    isActive={
+                      location.pathname === "/managements/groupmanagement"
+                    }
+                  />
+                )}
+                {hasPermission("permission.view") && (
+                  <SidebarItem
+                    icon={FiLock}
+                    label="Permissions"
+                    isExpanded={isExpanded}
+                    onClick={() =>
+                      handleItemClick("/managements/permissionmanagement")
+                    } // Redirect to permissionmanagement.js
+                    isActive={
+                      location.pathname === "/managements/permissionmanagement"
+                    }
+                  />
+                )}
 
-              {hasPermission("personnels.view") && (
-                <SidebarItem
-                  icon={FiUsers}
-                  label="Personnel"
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/user")} // Redirect to users.js
-                  isActive={location.pathname === "/user"}
-                />
-              )}
-              {hasPermission("personnels.tempdeleted") && (
-                <SidebarItem
-                  icon={FiUserX}
-                  label="Deleted Users"
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/tempdeleted-users")} // Redirect to users.js
-                  isActive={location.pathname === "/tempdeleted-users"}
-                />
-              )}
-              {hasPermission("personnelhistory.view") && ( // Or use a specific permission like personnels.history
-                <SidebarItem
-                  icon={FiClock}
-                  label="Personnel History"
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/personnel-history")}
-                  isActive={location.pathname === "/personnel-history"}
-                />
-              )}
-              {hasPermission("phonelocations.view") && (
-                <SidebarItem
-                  label="Phone Locations"
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/managements/phonelocations")}
-                  useDynamicIcon
-                  isActive={location.pathname === "/managements/phonelocations"}
-                />
-              )}
-              {hasPermission("phonedirectory.view") && (
-                <SidebarItem
-                  icon={FiPhone}
-                  label="Phone Directory"
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/managements/phonedirectory")} // Redirect to users.js
-                  isActive={location.pathname === "/managements/phonedirectory"}
-                />
-              )}
+                {hasPermission("personnels.view") && (
+                  <SidebarItem
+                    icon={FiUsers}
+                    label="Personnel"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/user")} // Redirect to users.js
+                    isActive={location.pathname === "/user"}
+                  />
+                )}
+                {hasPermission("personnels.tempdeleted") && (
+                  <SidebarItem
+                    icon={FiUserX}
+                    label="Deleted Users"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/tempdeleted-users")} // Redirect to users.js
+                    isActive={location.pathname === "/tempdeleted-users"}
+                  />
+                )}
+                {hasPermission("personnelhistory.view") && ( // Or use a specific permission like personnels.history
+                  <SidebarItem
+                    icon={FiClock}
+                    label="Personnel History"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/personnel-history")}
+                    isActive={location.pathname === "/personnel-history"}
+                  />
+                )}
+                {hasPermission("phonelocations.view") && (
+                  <SidebarItem
+                    label="Phone Locations"
+                    isExpanded={isExpanded}
+                    onClick={() =>
+                      handleItemClick("/managements/phonelocations")
+                    }
+                    useDynamicIcon
+                    isActive={
+                      location.pathname === "/managements/phonelocations"
+                    }
+                  />
+                )}
+                {hasPermission("phonedirectory.view") && (
+                  <SidebarItem
+                    icon={FiPhone}
+                    label="Phone Directory"
+                    isExpanded={isExpanded}
+                    onClick={() =>
+                      handleItemClick("/managements/phonedirectory")
+                    } // Redirect to users.js
+                    isActive={
+                      location.pathname === "/managements/phonedirectory"
+                    }
+                  />
+                )}
 
-              {hasPermission("loginreports.view") && (
-                <SidebarItem
-                  icon={FiLogIn}
-                  label="Login Reports"
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/managements/loginaudits")} // Redirect to users.js
-                  isActive={location.pathname === "/managements/loginaudits"}
-                />
-              )}
-              {hasPermission("reminders.view") && (
-                <SidebarItem
-                  icon={FiBell}
-                  label="Reminder"
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/reminders")} // Redirect to Reminders.js
-                  isActive={location.pathname === "/reminders"}
-                />
-              )}
-              {hasPermission("suguan.view") && (
-                <SidebarItem
-                  icon={FiClipboard}
-                  label="Suguan"
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/add-suguan")} // Redirect to Suguan.js
-                  isActive={location.pathname === "/add-suguan"}
-                />
-              )}
-              {showLdapUsers && (
-                <SidebarItem
-                  icon={FiServer}
-                  label="LdapUsers" // Added LdapUsers page
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/ldap-users")}
-                  isActive={location.pathname === "/ldap-users"}
-                />
-              )}
-              {hasPermission("schemasync.view") && (
-                <SidebarItem
-                  icon={FiRefreshCw}
-                  label="Schema Sync"
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/settings/schema-sync")}
-                  isActive={location.pathname === "/settings/schema-sync"}
-                />
-              )}
-            </VStack>
+                {hasPermission("loginreports.view") && (
+                  <SidebarItem
+                    icon={FiLogIn}
+                    label="Login Reports"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/managements/loginaudits")} // Redirect to users.js
+                    isActive={location.pathname === "/managements/loginaudits"}
+                  />
+                )}
+                {hasPermission("reminders.view") && (
+                  <SidebarItem
+                    icon={FiBell}
+                    label="Reminder"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/reminders")} // Redirect to Reminders.js
+                    isActive={location.pathname === "/reminders"}
+                  />
+                )}
+                {hasPermission("suguan.view") && (
+                  <SidebarItem
+                    icon={FiClipboard}
+                    label="Suguan"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/add-suguan")} // Redirect to Suguan.js
+                    isActive={location.pathname === "/add-suguan"}
+                  />
+                )}
+                {showLdapUsers && (
+                  <SidebarItem
+                    icon={FiServer}
+                    label="LdapUsers" // Added LdapUsers page
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/ldap-users")}
+                    isActive={location.pathname === "/ldap-users"}
+                  />
+                )}
+                {hasPermission("schemasync.view") && (
+                  <SidebarItem
+                    icon={FiRefreshCw}
+                    label="Schema Sync"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/settings/schema-sync")}
+                    isActive={location.pathname === "/settings/schema-sync"}
+                  />
+                )}
+              </VStack>
             </Collapse>
           )}
 
@@ -1098,7 +1109,7 @@ const Sidebar = ({ onSidebarToggle }) => {
             <SidebarItem
               data-tour="enrollment-menu"
               icon={FiUserPlus}
-              label="Workflow"
+              label="Enrollment"
               isExpanded={isExpanded}
               onClick={handleProgressToggle} // Toggle settings menu
               rightIcon={isProgressStepsExpanded ? FiArrowUp : FiArrowDown}
@@ -1106,106 +1117,106 @@ const Sidebar = ({ onSidebarToggle }) => {
           )}
           {showWorkflowMenu && (
             <Collapse in={isProgressStepsExpanded} animateOpacity>
-            <VStack align="start" ml={isExpanded ? 3 : 0} spacing={1}>
-              <SidebarSectionLabel
-                isExpanded={isExpanded}
-                show={showProgressStepsSection}
-              >
-                Progress Steps
-              </SidebarSectionLabel>
-              {hasPermission("progresstracking.view") && (
-                <SidebarItem
-                  data-tour="progress-tracker"
-                  icon={FiActivity}
-                  label="Progress Tracker"
+              <VStack align="start" ml={isExpanded ? 3 : 0} spacing={1}>
+                <SidebarSectionLabel
                   isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/progresstracking")} // Redirect to the main progress tracking page
-                  isActive={location.pathname === "/progresstracking"}
-                />
-              )}
+                  show={showProgressStepsSection}
+                >
+                  Progress Steps
+                </SidebarSectionLabel>
+                {hasPermission("progresstracking.view") && (
+                  <SidebarItem
+                    data-tour="progress-tracker"
+                    icon={FiActivity}
+                    label="Progress Tracker"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/progresstracking")} // Redirect to the main progress tracking page
+                    isActive={location.pathname === "/progresstracking"}
+                  />
+                )}
 
-              {hasPermission("sectionchief.view") && (
-                <SidebarItem
-                  icon={FiAward}
-                  label="Section Chief"
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/progress/step1")} // Step 1: Section Chief
-                  isActive={location.pathname === "/progress/step1"}
-                />
-              )}
-              {hasPermission("adminoffice.view") && (
-                <SidebarItem
-                  icon={FiBriefcase}
-                  label="Admin Office"
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/progress/step2")} // Step 2: Admin Office
-                  isActive={location.pathname === "/progress/step2"}
-                />
-              )}
-              {hasPermission("securityoverseer.view") && (
-                <SidebarItem
-                  icon={FiShield}
-                  label="Security Overseer"
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/progress/step3")} // Step 3: Security Overseer
-                  isActive={location.pathname === "/progress/step3"}
-                />
-              )}
-              {hasPermission("pmdit.view") && (
-                <SidebarItem
-                  icon={FiCpu}
-                  label="PMD IT"
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/progress/step4")} // Step 4: PMD IT
-                  isActive={location.pathname === "/progress/step4"}
-                />
-              )}
-              {hasPermission("atg1.view") && (
-                <SidebarItem
-                  icon={FiHome}
-                  label="ATG Office 1"
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/progress/step5")} // Step 5: Marco Cervantes
-                  isActive={location.pathname === "/progress/step5"}
-                />
-              )}
-              {hasPermission("atg2.view") && (
-                <SidebarItem
-                  icon={FiHome}
-                  label="ATG Office 2"
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/progress/step6")} // Step 6: Karl Dematera
-                  isActive={location.pathname === "/progress/step6"}
-                />
-              )}
-              {hasPermission("atgapproval.view") && (
-                <SidebarItem
-                  icon={FiCheckCircle}
-                  label="ATG Office Approval"
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/progress/step7")} // Step 7: ATG Office
-                  isActive={location.pathname === "/progress/step7"}
-                />
-              )}
-              {hasPermission("personneloffice.view") && (
-                <SidebarItem
-                  icon={FiUserCheck}
-                  label="Personnel Office"
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/progress/step8")} // Step 8: Personnel Office
-                  isActive={location.pathname === "/progress/step8"}
-                />
-              )}
-              {hasPermission("personneloffice.view") && (
-                <SidebarItem
-                  icon={FiTrendingUp}
-                  label="Users Progress"
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/progress/users-progress")} // Users Progress
-                  isActive={location.pathname === "/progress/users-progress"}
-                />
-              )}
-            </VStack>
+                {hasPermission("sectionchief.view") && (
+                  <SidebarItem
+                    icon={FiAward}
+                    label="Section Chief"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/progress/step1")} // Step 1: Section Chief
+                    isActive={location.pathname === "/progress/step1"}
+                  />
+                )}
+                {hasPermission("adminoffice.view") && (
+                  <SidebarItem
+                    icon={FiBriefcase}
+                    label="Admin Office"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/progress/step2")} // Step 2: Admin Office
+                    isActive={location.pathname === "/progress/step2"}
+                  />
+                )}
+                {hasPermission("securityoverseer.view") && (
+                  <SidebarItem
+                    icon={FiShield}
+                    label="Security Overseer"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/progress/step3")} // Step 3: Security Overseer
+                    isActive={location.pathname === "/progress/step3"}
+                  />
+                )}
+                {hasPermission("pmdit.view") && (
+                  <SidebarItem
+                    icon={FiCpu}
+                    label="PMD IT"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/progress/step4")} // Step 4: PMD IT
+                    isActive={location.pathname === "/progress/step4"}
+                  />
+                )}
+                {hasPermission("atg1.view") && (
+                  <SidebarItem
+                    icon={FiHome}
+                    label="ATG Office 1"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/progress/step5")} // Step 5: Marco Cervantes
+                    isActive={location.pathname === "/progress/step5"}
+                  />
+                )}
+                {hasPermission("atg2.view") && (
+                  <SidebarItem
+                    icon={FiHome}
+                    label="ATG Office 2"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/progress/step6")} // Step 6: Karl Dematera
+                    isActive={location.pathname === "/progress/step6"}
+                  />
+                )}
+                {hasPermission("atgapproval.view") && (
+                  <SidebarItem
+                    icon={FiCheckCircle}
+                    label="ATG Office Approval"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/progress/step7")} // Step 7: ATG Office
+                    isActive={location.pathname === "/progress/step7"}
+                  />
+                )}
+                {hasPermission("personneloffice.view") && (
+                  <SidebarItem
+                    icon={FiUserCheck}
+                    label="Personnel Office"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/progress/step8")} // Step 8: Personnel Office
+                    isActive={location.pathname === "/progress/step8"}
+                  />
+                )}
+                {hasPermission("personneloffice.view") && (
+                  <SidebarItem
+                    icon={FiTrendingUp}
+                    label="Users Progress"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/progress/users-progress")} // Users Progress
+                    isActive={location.pathname === "/progress/users-progress"}
+                  />
+                )}
+              </VStack>
             </Collapse>
           )}
 
@@ -1223,140 +1234,148 @@ const Sidebar = ({ onSidebarToggle }) => {
 
           {showMasterDataMenu && (
             <Collapse in={isManagementsExpanded} animateOpacity>
-            <VStack align="start" ml={isExpanded ? 3 : 0} spacing={1}>
-              <SidebarSectionLabel
-                isExpanded={isExpanded}
-                show={showProfileIdentitySection}
-              >
-                Profile & Identity
-              </SidebarSectionLabel>
-              {hasPermission("citizenship.view") && (
-                <SidebarItem
-                  label="Citizenship"
+              <VStack align="start" ml={isExpanded ? 3 : 0} spacing={1}>
+                <SidebarSectionLabel
                   isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/managements/citizenships")}
-                  useDynamicIcon
-                  isActive={location.pathname === "/managements/citizenships"}
-                />
-              )}
-              {hasPermission("contact.view") && (
-                <SidebarItem
-                  label="Contact Info"
+                  show={showProfileIdentitySection}
+                >
+                  Profile & Identity
+                </SidebarSectionLabel>
+                {hasPermission("citizenship.view") && (
+                  <SidebarItem
+                    label="Citizenship"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/managements/citizenships")}
+                    useDynamicIcon
+                    isActive={location.pathname === "/managements/citizenships"}
+                  />
+                )}
+                {hasPermission("contact.view") && (
+                  <SidebarItem
+                    label="Contact Info"
+                    isExpanded={isExpanded}
+                    onClick={() =>
+                      handleItemClick("/managements/contact_infos")
+                    }
+                    useDynamicIcon
+                    isActive={
+                      location.pathname === "/managements/contact_infos"
+                    }
+                  />
+                )}
+                <SidebarSectionLabel
                   isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/managements/contact_infos")}
-                  useDynamicIcon
-                  isActive={location.pathname === "/managements/contact_infos"}
-                />
-              )}
-              <SidebarSectionLabel
-                isExpanded={isExpanded}
-                show={showOrganizationStructureSection}
-              >
-                Organization Structure
-              </SidebarSectionLabel>
-              {hasPermission("department.view") && (
-                <SidebarItem
-                  label="Department"
+                  show={showOrganizationStructureSection}
+                >
+                  Organization Structure
+                </SidebarSectionLabel>
+                {hasPermission("department.view") && (
+                  <SidebarItem
+                    label="Department"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/managements/departments")}
+                    useDynamicIcon // Use dynamic icon mapping
+                    isActive={location.pathname === "/managements/departments"}
+                  />
+                )}
+                {hasPermission("designation.view") && (
+                  <SidebarItem
+                    label="Designation"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/managements/designations")}
+                    useDynamicIcon
+                    isActive={location.pathname === "/managements/designations"}
+                  />
+                )}
+                <SidebarSectionLabel
                   isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/managements/departments")}
-                  useDynamicIcon // Use dynamic icon mapping
-                  isActive={location.pathname === "/managements/departments"}
-                />
-              )}
-              {hasPermission("designation.view") && (
-                <SidebarItem
-                  label="Designation"
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/managements/designations")}
-                  useDynamicIcon
-                  isActive={location.pathname === "/managements/designations"}
-                />
-              )}
-              <SidebarSectionLabel
-                isExpanded={isExpanded}
-                show={showGeographyRecordsSection}
-              >
-                Geography & Records
-              </SidebarSectionLabel>
-              {hasPermission("district.view") && (
-                <SidebarItem
-                  label="District"
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/managements/districts")}
-                  useDynamicIcon
-                  isActive={location.pathname === "/managements/districts"}
-                />
-              )}
-              {hasPermission("housing.view") && (
-                <SidebarItem
-                  label="Housing"
-                  isExpanded={isExpanded}
-                  onClick={() =>
-                    handleItemClick("/managements/housingmanagement")
-                  }
-                  useDynamicIcon
-                  isActive={
-                    location.pathname === "/managements/housingmanagement"
-                  }
-                />
-              )}
-              {hasPermission("issued_id.view") && (
-                <SidebarItem
-                  label="Issued ID"
-                  isExpanded={isExpanded}
-                  onClick={() =>
-                    handleItemClick("/managements/government_issued_ids")
-                  }
-                  useDynamicIcon
-                  isActive={
-                    location.pathname === "/managements/government_issued_ids"
-                  }
-                />
-              )}
-              {hasPermission("language.view") && (
-                <SidebarItem
-                  label="Language"
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/managements/languages")}
-                  useDynamicIcon
-                  isActive={location.pathname === "/managements/languages"}
-                />
-              )}
+                  show={showGeographyRecordsSection}
+                >
+                  Geography & Records
+                </SidebarSectionLabel>
+                {hasPermission("district.view") && (
+                  <SidebarItem
+                    label="District"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/managements/districts")}
+                    useDynamicIcon
+                    isActive={location.pathname === "/managements/districts"}
+                  />
+                )}
+                {hasPermission("housing.view") && (
+                  <SidebarItem
+                    label="Housing"
+                    isExpanded={isExpanded}
+                    onClick={() =>
+                      handleItemClick("/managements/housingmanagement")
+                    }
+                    useDynamicIcon
+                    isActive={
+                      location.pathname === "/managements/housingmanagement"
+                    }
+                  />
+                )}
+                {hasPermission("issued_id.view") && (
+                  <SidebarItem
+                    label="Issued ID"
+                    isExpanded={isExpanded}
+                    onClick={() =>
+                      handleItemClick("/managements/government_issued_ids")
+                    }
+                    useDynamicIcon
+                    isActive={
+                      location.pathname === "/managements/government_issued_ids"
+                    }
+                  />
+                )}
+                {hasPermission("language.view") && (
+                  <SidebarItem
+                    label="Language"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/managements/languages")}
+                    useDynamicIcon
+                    isActive={location.pathname === "/managements/languages"}
+                  />
+                )}
 
-              {hasPermission("nationality.view") && (
-                <SidebarItem
-                  label="Nationality"
+                {hasPermission("nationality.view") && (
+                  <SidebarItem
+                    label="Nationality"
+                    isExpanded={isExpanded}
+                    onClick={() =>
+                      handleItemClick("/managements/nationalities")
+                    }
+                    useDynamicIcon
+                    isActive={
+                      location.pathname === "/managements/nationalities"
+                    }
+                  />
+                )}
+                <SidebarSectionLabel
                   isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/managements/nationalities")}
-                  useDynamicIcon
-                  isActive={location.pathname === "/managements/nationalities"}
-                />
-              )}
-              <SidebarSectionLabel
-                isExpanded={isExpanded}
-                show={showOrgHierarchySection}
-              >
-                Org Hierarchy
-              </SidebarSectionLabel>
-              {hasPermission("section.view") && (
-                <SidebarItem
-                  label="Section"
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/managements/sections")}
-                  useDynamicIcon
-                  isActive={location.pathname === "/managements/sections"}
-                />
-              )}
-              {hasPermission("subsection.view") && (
-                <SidebarItem
-                  label="Subsection"
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/managements/subsections")}
-                  useDynamicIcon
-                  isActive={location.pathname === "/managements/subsections"}
-                />
-              )}
-            </VStack>
+                  show={showOrgHierarchySection}
+                >
+                  Org Hierarchy
+                </SidebarSectionLabel>
+                {hasPermission("section.view") && (
+                  <SidebarItem
+                    label="Section"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/managements/sections")}
+                    useDynamicIcon
+                    isActive={location.pathname === "/managements/sections"}
+                  />
+                )}
+                {hasPermission("subsection.view") && (
+                  <SidebarItem
+                    label="Subsection"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/managements/subsections")}
+                    useDynamicIcon
+                    isActive={location.pathname === "/managements/subsections"}
+                  />
+                )}
+              </VStack>
             </Collapse>
           )}
 
@@ -1365,7 +1384,7 @@ const Sidebar = ({ onSidebarToggle }) => {
             <SidebarItem
               data-tour="plugins-menu"
               icon={FiSliders} // Change icon to FiBriefcase or any other appropriate icon
-              label="Tools & Integrations"
+              label="Plugins"
               isExpanded={isExpanded}
               onClick={handlePluginsToggle}
               rightIcon={isPluginsExpanded ? FiArrowUp : FiArrowDown}
@@ -1374,73 +1393,73 @@ const Sidebar = ({ onSidebarToggle }) => {
 
           {showToolsIntegrationsMenu && (
             <Collapse in={isPluginsExpanded} animateOpacity>
-            <VStack align="start" ml={isExpanded ? 3 : 0} spacing={1}>
-              <SidebarSectionLabel
-                isExpanded={isExpanded}
-                show={showInternalToolsSection}
-              >
-                Internal Tools
-              </SidebarSectionLabel>
-              {hasPermission("lokalprofile.view") && (
-                <SidebarItem
-                  icon={FiMapPin}
-                  label="Lokal Profile"
+              <VStack align="start" ml={isExpanded ? 3 : 0} spacing={1}>
+                <SidebarSectionLabel
                   isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/lokalprofile")} // Redirect to lokalprofile.js
-                  isActive={location.pathname === "/lokalprofile"}
-                />
-              )}
-              {hasPermission("atgfiles.view") && (
-                <SidebarItem
-                  icon={FiFolder}
-                  label="ATG Files"
+                  show={showInternalToolsSection}
+                >
+                  Internal Tools
+                </SidebarSectionLabel>
+                {hasPermission("lokalprofile.view") && (
+                  <SidebarItem
+                    icon={FiMapPin}
+                    label="Lokal Profile"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/lokalprofile")} // Redirect to lokalprofile.js
+                    isActive={location.pathname === "/lokalprofile"}
+                  />
+                )}
+                {hasPermission("atgfiles.view") && (
+                  <SidebarItem
+                    icon={FiFolder}
+                    label="ATG Files"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/atgfiles")}
+                    isActive={location.pathname === "/atgfiles"}
+                  />
+                )}
+                <SidebarSectionLabel
                   isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/atgfiles")}
-                  isActive={location.pathname === "/atgfiles"}
-                />
-              )}
-              <SidebarSectionLabel
-                isExpanded={isExpanded}
-                show={showFileSharingSection}
-              >
-                File Sharing
-              </SidebarSectionLabel>
-              {hasPermission("webdav.view") && (
-                <SidebarItem
-                  icon={FiCloud}
-                  label="Nextcloud"
+                  show={showFileSharingSection}
+                >
+                  File Sharing
+                </SidebarSectionLabel>
+                {hasPermission("webdav.view") && (
+                  <SidebarItem
+                    icon={FiCloud}
+                    label="Nextcloud"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick(WEB_DAV_ROUTE)}
+                    isActive={location.pathname === WEB_DAV_ROUTE}
+                  />
+                )}
+                {hasPermission("fileorganizer.view") && (
+                  <SidebarItem
+                    icon={FiArchive}
+                    label="File Organizer"
+                    isExpanded={isExpanded}
+                    onClick={() =>
+                      handleItemClick("/file-organizer/shelves", true)
+                    } // Open in new tab
+                  />
+                )}
+                <SidebarSectionLabel
                   isExpanded={isExpanded}
-                  onClick={() => handleItemClick(WEB_DAV_ROUTE)}
-                  isActive={location.pathname === WEB_DAV_ROUTE}
-                />
-              )}
-              {hasPermission("fileorganizer.view") && (
-                <SidebarItem
-                  icon={FiArchive}
-                  label="File Organizer"
-                  isExpanded={isExpanded}
-                  onClick={() =>
-                    handleItemClick("/file-organizer/shelves", true)
-                  } // Open in new tab
-                />
-              )}
-              <SidebarSectionLabel
-                isExpanded={isExpanded}
-                show={showReportingSection}
-              >
-                Reporting
-              </SidebarSectionLabel>
-              {/* Daily Activity Report */}
-              {hasPermission("dailyactivity.view") && (
-                <SidebarItem
-                  icon={FiFileText}
-                  label="Daily Activity"
-                  isExpanded={isExpanded}
-                  onClick={() => handleItemClick("/daily-activity-report")}
-                  isActive={location.pathname === "/daily-activity-report"}
-                />
-              )}
-            </VStack>
+                  show={showReportingSection}
+                >
+                  Reporting
+                </SidebarSectionLabel>
+                {/* Daily Activity Report */}
+                {hasPermission("dailyactivity.view") && (
+                  <SidebarItem
+                    icon={FiFileText}
+                    label="Daily Activity"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/daily-activity-report")}
+                    isActive={location.pathname === "/daily-activity-report"}
+                  />
+                )}
+              </VStack>
             </Collapse>
           )}
         </VStack>
