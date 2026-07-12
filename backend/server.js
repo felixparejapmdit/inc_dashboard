@@ -129,6 +129,7 @@ const applicationTypeRoutes = require("./routes/applicationTypeRoutes");
 const reminderRoutes = require("./routes/reminderRoutes");
 
 const personnelsRoutes = require("./routes/personnelsRoutes"); // Replace with actual route file path
+const statusChangeRoutes = require("./routes/statusChangeRoutes");
 const personnelContactsRoutes = require("./routes/personnelContactsRoutes");
 const personnelAddressesRoutes = require("./routes/personnelAddressesRoutes");
 const personnelGovIDsRoutes = require("./routes/personnelGovIDsRoutes");
@@ -211,6 +212,10 @@ app.use(eventsRoutes);
 app.use(locationRoutes);
 app.use(phonelocationRoutes);
 app.use(applicationTypeRoutes);
+app.use(statusChangeRoutes);
+// Register status-change routes before generic /api/personnels/:id routes so
+// endpoints like /api/personnels/update-removal-progress are not captured by
+// the generic personnel update handler.
 app.use(personnelsRoutes);
 app.use(personnelContactsRoutes);
 app.use(personnelAddressesRoutes);

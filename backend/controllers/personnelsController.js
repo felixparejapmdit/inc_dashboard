@@ -21,7 +21,32 @@ exports.getDeletedPersonnels = async (req, res) => {
       },
       paranoid: false, // Include soft-deleted
     });
-    res.json(users);
+
+    const personnelIds = users.map((u) => u.personnel_id);
+    const historyRows = personnelIds.length
+      ? await PersonnelHistory.findAll({
+          where: { personnel_id: { [Op.in]: personnelIds }, action: "Out" },
+          order: [["timestamp", "DESC"]],
+        })
+      : [];
+
+    const latestOutByPersonnelId = {};
+    historyRows.forEach((row) => {
+      if (!latestOutByPersonnelId[row.personnel_id]) {
+        latestOutByPersonnelId[row.personnel_id] = row;
+      }
+    });
+
+    const formatted = users.map((u) => {
+      const latest = latestOutByPersonnelId[u.personnel_id];
+      const json = u.toJSON();
+      json.removal_reason = latest ? latest.reason : null;
+      json.removal_performed_by = latest ? latest.performed_by : null;
+      json.removal_timestamp = latest ? latest.timestamp : null;
+      return json;
+    });
+
+    res.json(formatted);
   } catch (err) {
     res.status(500).json({ message: "Server error." });
   }
@@ -191,7 +216,19 @@ exports.getMonitoringPersonnels = async (req, res) => {
 exports.getPersonnelsWithUsers = async (req, res) => {
   try {
     const personnels = await Personnel.findAll({
-      attributes: ["personnel_id", "personnel_type", "givenname", "surname_husband"], // Include name fields
+      attributes: [
+        "personnel_id",
+        "personnel_type",
+        "givenname",
+        "surname_husband",
+        "email_address",
+        "personnel_status",
+        "status_change_progress",
+        "department_id",
+        "section_id",
+        "subsection_id",
+        "designation_id",
+      ], // Include name fields
       include: [
         {
           model: User,

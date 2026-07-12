@@ -1,4 +1,5 @@
 const Suguan = require("../models/Suguan");
+const { syncTaskForSuguan, deleteTaskForSuguan } = require("../utils/suguanTaskSync");
 
 // Get all Suguan entries
 exports.getAllSuguan = async (req, res) => {
@@ -39,7 +40,7 @@ exports.getSuguanById = async (req, res) => {
 // Create a new Suguan entry
 exports.createSuguan = async (req, res) => {
   try {
-    const { name, district_id, local_id, date, time, gampanin_id, section_id, subsection_id, personnel_id } = req.body;
+    const { name, district_id, local_id, date, time, end_time, gampanin_id, section_id, subsection_id, personnel_id } = req.body;
 
     // Log the request body for debugging
     console.log("Request Body:", req.body);
@@ -54,6 +55,7 @@ exports.createSuguan = async (req, res) => {
       local_congregation: local_id, // Make sure the key matches the Sequelize model
       date,
       time,
+      end_time: end_time || null, // filled in later, once the service has ended
       gampanin_id,
       section_id,
       subsection_id,
@@ -71,6 +73,8 @@ exports.createSuguan = async (req, res) => {
       subsection_id,
     });
 
+    await syncTaskForSuguan(newSuguan);
+
     res.status(201).json({
       message: "Suguan created successfully",
       suguan: newSuguan,
@@ -84,7 +88,7 @@ exports.createSuguan = async (req, res) => {
 // Update a Suguan entry by ID
 exports.updateSuguan = async (req, res) => {
   try {
-    const { name, district_id, local_id, date, time, gampanin_id, section_id, subsection_id, personnel_id } = req.body;
+    const { name, district_id, local_id, date, time, end_time, gampanin_id, section_id, subsection_id, personnel_id } = req.body;
     const suguan = await Suguan.findByPk(req.params.id);
 
     if (!suguan) {
@@ -99,12 +103,14 @@ exports.updateSuguan = async (req, res) => {
     if (local_id) suguan.local_congregation = local_id; // Adjust field mapping
     if (date) suguan.date = date;
     if (time) suguan.time = time;
+    if (end_time !== undefined) suguan.end_time = end_time || null;
     if (gampanin_id) suguan.gampanin_id = gampanin_id;
     if (section_id) suguan.section_id = section_id;
     if (subsection_id) suguan.subsection_id = subsection_id;
     if (personnel_id) suguan.personnel_id = personnel_id;
 
     await suguan.save();
+    await syncTaskForSuguan(suguan);
     res.status(200).json({ message: "Suguan updated successfully.", suguan });
   } catch (error) {
     console.error("Error updating Suguan:", error);
@@ -122,6 +128,7 @@ exports.deleteSuguan = async (req, res) => {
         .json({ message: `Suguan with ID ${req.params.id} not found.` });
     }
 
+    await deleteTaskForSuguan(suguan.id);
     await suguan.destroy();
     res.status(200).json({ message: "Suguan deleted successfully." });
   } catch (error) {

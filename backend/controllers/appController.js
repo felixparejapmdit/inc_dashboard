@@ -765,3 +765,60 @@ exports.deleteApp = async (req, res) => {
     res.status(500).json({ message: "Database error" });
   }
 };
+
+// Get which users currently have access to a given app
+exports.getAppAccess = async (req, res) => {
+  const appId = req.params.id;
+
+  try {
+    const app = await App.findByPk(appId);
+    if (!app) {
+      console.warn(`App access requested for missing app id ${appId}. Returning empty access list.`);
+      return res.status(200).json({ userIds: [] });
+    }
+
+    const rows = await sequelize.query(
+      "SELECT user_id FROM available_apps WHERE app_id = :appId",
+      { replacements: { appId }, type: sequelize.QueryTypes.SELECT }
+    );
+
+    res.json({ userIds: rows.map((row) => row.user_id) });
+  } catch (error) {
+    console.error("Error fetching app access:", error);
+    res.status(500).json({ message: "Database error" });
+  }
+};
+
+// Replace which users have access to a given app (delete-then-insert, mirroring
+// the existing per-user "available apps" save in userRoutes.js, just flipped
+// to be scoped by app_id instead of user_id).
+exports.updateAppAccess = async (req, res) => {
+  const appId = req.params.id;
+  const { userIds } = req.body;
+
+  if (!Array.isArray(userIds) || !userIds.every((id) => Number.isInteger(Number(id)))) {
+    return res.status(400).json({ message: "userIds must be an array of user IDs." });
+  }
+
+  try {
+    const app = await App.findByPk(appId);
+    if (!app) {
+      return res.status(404).json({ message: "App not found." });
+    }
+
+    await sequelize.query("DELETE FROM available_apps WHERE app_id = :appId", {
+      replacements: { appId },
+    });
+
+    const uniqueUserIds = [...new Set(userIds.map((id) => Number(id)))];
+    if (uniqueUserIds.length > 0) {
+      const values = uniqueUserIds.map((userId) => `(${Number(userId)}, ${Number(appId)})`).join(", ");
+      await sequelize.query(`INSERT INTO available_apps (user_id, app_id) VALUES ${values}`);
+    }
+
+    res.json({ message: "App access updated successfully.", userIds: uniqueUserIds });
+  } catch (error) {
+    console.error("Error updating app access:", error);
+    res.status(500).json({ message: "Database error" });
+  }
+};

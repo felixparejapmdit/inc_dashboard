@@ -96,6 +96,34 @@ sequelize
       console.error("❌ WebDAV plugin permission seed failed:", seedErr);
     }
     try {
+      const migratePersonnelStatusChangeColumns = require("../scripts/migrate_personnel_status_change_columns");
+      await migratePersonnelStatusChangeColumns(false);
+      console.log("✅ Personnel status change column migration completed successfully.");
+    } catch (migErr) {
+      console.error("❌ Personnel status change column migration failed:", migErr);
+    }
+    try {
+      const seedPersonnelStatusChangePermission = require("../scripts/seed_personnel_status_change_permission");
+      await seedPersonnelStatusChangePermission(false);
+      console.log("✅ Personnel status change permission seed completed successfully.");
+    } catch (seedErr) {
+      console.error("❌ Personnel status change permission seed failed:", seedErr);
+    }
+    try {
+      const migrateTasksSuguanId = require("../scripts/migrate_tasks_suguan_id");
+      await migrateTasksSuguanId(false);
+      console.log("✅ Tasks suguan_id column migration completed successfully.");
+    } catch (migErr) {
+      console.error("❌ Tasks suguan_id column migration failed:", migErr);
+    }
+    try {
+      const migrateSuguanEndTime = require("../scripts/migrate_suguan_end_time");
+      await migrateSuguanEndTime(false);
+      console.log("✅ Suguan end_time column migration completed successfully.");
+    } catch (migErr) {
+      console.error("❌ Suguan end_time column migration failed:", migErr);
+    }
+    try {
       const count = await TaskCategory.count();
       if (count === 0) {
         await TaskCategory.bulkCreate([
@@ -108,6 +136,13 @@ sequelize
       }
     } catch (seedErr) {
       console.error("Failed to seed default categories:", seedErr);
+    }
+    try {
+      const { backfillSuguanTasks } = require("../utils/suguanTaskSync");
+      const syncedCount = await backfillSuguanTasks();
+      console.log(`✅ Suguan tasks backfill completed successfully (${syncedCount} synced).`);
+    } catch (syncErr) {
+      console.error("❌ Suguan tasks backfill failed:", syncErr);
     }
   })
   .catch((err) => {

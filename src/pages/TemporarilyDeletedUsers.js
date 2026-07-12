@@ -257,10 +257,11 @@ const TemporarilyDeletedUsers = () => {
                 <Table variant="simple" style={{ tableLayout: "fixed" }}>
                   <Thead bg="gray.50">
                     <Tr>
-                      <Th p={6} width="35%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Personnel Identity</Th>
-                      <Th p={6} width="25%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Middle Designation</Th>
-                      <Th p={6} width="25%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Surname (Husband)</Th>
-                      <Th p={6} width="15%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest" textAlign="right">Record Actions</Th>
+                      <Th p={6} width="22%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Personnel Identity</Th>
+                      <Th p={6} width="13%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Middle Designation</Th>
+                      <Th p={6} width="13%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Surname (Husband)</Th>
+                      <Th p={6} width="32%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Removal Reason</Th>
+                      <Th p={6} width="20%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest" textAlign="right">Record Actions</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
@@ -295,6 +296,17 @@ const TemporarilyDeletedUsers = () => {
                           </Td>
                           <Td p={6}>
                             <Text color="gray.600" fontWeight="bold" isTruncated>{user.surname_husband || "—"}</Text>
+                          </Td>
+                          <Td p={6}>
+                            <Text color="gray.700" fontWeight="semibold" fontSize="sm" noOfLines={2}>
+                              {user.removal_reason || "—"}
+                            </Text>
+                            {user.removal_performed_by && (
+                              <Text color="gray.400" fontSize="xs" mt={1} isTruncated>
+                                Cleared by {user.removal_performed_by}
+                                {user.removal_timestamp ? ` · ${new Date(user.removal_timestamp).toLocaleDateString()}` : ""}
+                              </Text>
+                            )}
                           </Td>
                           <Td p={6} textAlign="right">
                             <Tooltip label="Reinstate Record" hasArrow>

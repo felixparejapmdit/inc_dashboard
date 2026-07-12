@@ -10,6 +10,7 @@ router.get("/api/dar/categories", verifyToken, dar.getCategories);
 router.get("/api/dar/tasks",         verifyToken, dar.getTasks);
 router.get("/api/dar/tasks/:id",     verifyToken, dar.getTaskById);
 router.post("/api/dar/tasks",        verifyToken, dar.createTask);
+router.put("/api/dar/tasks/:id/end-time", verifyToken, dar.updateTaskEndTime);
 router.put("/api/dar/tasks/:id",     verifyToken, dar.updateTask);
 router.delete("/api/dar/tasks/:id",  verifyToken, dar.deleteTask);
 

@@ -55,6 +55,7 @@ import {
   StatHelpText,
   Stack,
 } from "@chakra-ui/react";
+import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
@@ -80,6 +81,8 @@ import {
   ToggleRight,
 } from "lucide-react";
 import { fetchData, postData, putData, deleteData } from "../utils/fetchData";
+import { getAuthHeaders } from "../utils/apiHeaders";
+import SearchableCheckboxMultiSelect from "../components/SearchableCheckboxMultiSelect";
 
 const API_URL = process.env.REACT_APP_API_URL;
 const ITEMS_PER_PAGE = 12;
@@ -107,6 +110,11 @@ const Applications = () => {
   const [isIconDragging, setIsIconDragging] = useState(false);
   const [updatingStatusId, setUpdatingStatusId] = useState(null);
 
+  // Personnel access (which users can see this app)
+  const [accessUserOptions, setAccessUserOptions] = useState([]);
+  const [accessUserIds, setAccessUserIds] = useState([]);
+  const [accessLoading, setAccessLoading] = useState(false);
+
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [deletingApp, setDeletingApp] = useState(null);
   const cancelRef = React.useRef();
@@ -126,6 +134,63 @@ const Applications = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    let cancelled = false;
+
+    const loadAccessData = async () => {
+      try {
+        if (accessUserOptions.length === 0) {
+          const userData = await fetchData("users", null, null, "Failed to load personnel list", { fast: 1 });
+          if (!cancelled) {
+            const options = (userData || [])
+              .map((u) => {
+                const userId = u.user_id ?? u.ID;
+                const hasName = u.fullname && u.fullname !== "N/A";
+                return {
+                  value: userId,
+                  label: (hasName ? u.fullname : u.username) || `User ${userId}`,
+                  username: u.username,
+                  avatar: u.avatar,
+                };
+              })
+              .filter((option) => option.value !== undefined && option.value !== null);
+            setAccessUserOptions(options);
+          }
+        }
+
+        if (editingApp) {
+          setAccessLoading(true);
+          const accessResponse = await axios.get(
+            `${API_URL}/api/apps/${editingApp.id}/access`,
+            { headers: getAuthHeaders() },
+          );
+
+          if (!cancelled) {
+            setAccessUserIds((accessResponse?.data?.userIds || []).map(Number));
+          }
+        } else if (!cancelled) {
+          setAccessUserIds([]);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setAccessUserIds([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setAccessLoading(false);
+        }
+      }
+    };
+
+    loadAccessData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, editingApp]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -227,6 +292,7 @@ const Applications = () => {
     setAppType("");
     setEditingApp(null);
     setFileError("");
+    setAccessUserIds([]);
   };
 
   const handleSave = async () => {
@@ -253,6 +319,8 @@ const Applications = () => {
     const typeName = appTypes.find(t => String(t.id) === String(app_type))?.name || "";
 
     try {
+      let savedAppId = editingApp?.id;
+
       if (editingApp) {
         const result = await putData("apps", editingApp.id, payload);
         // ✅ Optimistic update: update the item in local state immediately
@@ -267,9 +335,10 @@ const Applications = () => {
         toast({ title: "App updated", status: "success" });
       } else {
         const result = await postData("apps", payload);
+        savedAppId = result?.app?.id || result?.data?.id || result?.id || Date.now();
         // ✅ Optimistic update: append the new item immediately
         const newApp = {
-          id: result?.data?.id || result?.id || Date.now(),
+          id: savedAppId,
           ...payload,
           is_active: result?.data?.is_active ?? payload.is_active,
           app_type_name: typeName,
@@ -278,6 +347,13 @@ const Applications = () => {
         setApps(prev => [...prev, newApp]);
         toast({ title: "App added", status: "success" });
       }
+
+      try {
+        await putData("apps", `${savedAppId}/access`, { userIds: accessUserIds });
+      } catch (accessError) {
+        toast({ title: "App saved, but access list failed to save", description: accessError.message, status: "warning" });
+      }
+
       resetForm();
       onClose();
       // Re-fetch in background to sync any server-side computed fields
@@ -807,6 +883,32 @@ const Applications = () => {
               <FormControl>
                 <FormLabel fontWeight="bold" fontSize="sm">Description</FormLabel>
                 <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Short note..." borderRadius="xl" />
+              </FormControl>
+
+              <FormControl>
+                <FormLabel fontWeight="bold" fontSize="sm">Personnel Access</FormLabel>
+                <SearchableCheckboxMultiSelect
+                  options={accessUserOptions}
+                  value={accessUserIds}
+                  onChange={setAccessUserIds}
+                  isLoading={accessLoading}
+                  placeholder="Search personnel…"
+                  summaryNoun="personnel selected"
+                  formatOptionLabel={(option) => (
+                    <HStack spacing={2}>
+                      <Avatar size="xs" src={option.avatar || undefined} name={option.label} />
+                      <Box>
+                        <Text fontSize="sm" lineHeight="1.2">{option.label}</Text>
+                        {option.username && (
+                          <Text fontSize="10px" color="gray.500" lineHeight="1.2">{option.username}</Text>
+                        )}
+                      </Box>
+                    </HStack>
+                  )}
+                />
+                <Text fontSize="xs" color="gray.500" mt={1}>
+                  {accessUserIds.length} personnel currently have access to this app.
+                </Text>
               </FormControl>
             </VStack>
           </ModalBody>

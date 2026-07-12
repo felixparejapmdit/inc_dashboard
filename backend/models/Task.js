@@ -23,6 +23,13 @@ const Task = sequelize.define(
       onUpdate: "CASCADE",
       onDelete: "RESTRICT",
     },
+    suguan_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: { model: "suguan", key: "id" },
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
+    },
     title: {
       type: DataTypes.STRING(100),
       allowNull: false,

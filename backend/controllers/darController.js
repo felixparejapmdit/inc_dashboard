@@ -5,6 +5,7 @@ const TaskCategory = require("../models/TaskCategory");
 const Task = require("../models/Task");
 const AccomplishedLog = require("../models/AccomplishedLog");
 const DailyActivityReport = require("../models/DailyActivityReport");
+const { syncEndTimeToSuguan } = require("../utils/suguanTaskSync");
 
 let taskTableColumnsCache = null;
 
@@ -131,6 +132,7 @@ exports.getTaskById = async (req, res) => {
 exports.createTask = async (req, res) => {
   try {
     const taskData = await pickTaskColumns({ ...req.body });
+    delete taskData.suguan_id; // only the Suguan sync job may set this
     const resolvedUserId = await resolveDarUserId(req);
 
     if (!resolvedUserId) {
@@ -159,7 +161,41 @@ exports.createTask = async (req, res) => {
 
 exports.updateTask = async (req, res) => {
   try {
+    const existing = await Task.findByPk(req.params.id, { attributes: ["task_id", "suguan_id"] });
+    if (!existing) return res.status(404).json({ message: "Task not found." });
+
     const updateData = await pickTaskColumns({ ...req.body });
+    delete updateData.suguan_id; // only the Suguan sync job may set this
+
+    if (existing.suguan_id) {
+      const allowedSuguanFields = {};
+      if (Object.prototype.hasOwnProperty.call(updateData, "end_time")) {
+        allowedSuguanFields.end_time = updateData.end_time || null;
+      }
+
+      if (Object.keys(allowedSuguanFields).length === 0) {
+        return res.status(400).json({
+          message: "Suguan tasks can only update the end time from Daily Activity.",
+        });
+      }
+
+      const [updated] = await Task.update(allowedSuguanFields, {
+        where: { task_id: req.params.id },
+        fields: Object.keys(allowedSuguanFields),
+      });
+
+      if (!updated) return res.status(404).json({ message: "Task not found." });
+
+      if (Object.prototype.hasOwnProperty.call(allowedSuguanFields, "end_time")) {
+        await syncEndTimeToSuguan(existing.suguan_id, allowedSuguanFields.end_time);
+      }
+
+      const task = await Task.findByPk(req.params.id, {
+        include: [{ model: TaskCategory, as: "category" }],
+      });
+      return res.json(task);
+    }
+
     if (updateData.status === "Completed") {
       updateData.kanban_status = "Done";
     }
@@ -191,8 +227,57 @@ exports.updateTask = async (req, res) => {
   }
 };
 
+exports.updateTaskEndTime = async (req, res) => {
+  try {
+    const existing = await Task.findByPk(req.params.id, {
+      attributes: ["task_id", "suguan_id", "end_time"],
+    });
+    if (!existing) {
+      return res.status(404).json({ message: "Task not found." });
+    }
+    if (!existing.suguan_id) {
+      return res.status(400).json({
+        message: "This endpoint is only for tasks managed from Suguan.",
+      });
+    }
+
+    const hasEndTime = Object.prototype.hasOwnProperty.call(req.body || {}, "end_time");
+    const nextEndTime = hasEndTime
+      ? (req.body.end_time === "" ? null : req.body.end_time)
+      : existing.end_time || null;
+
+    const [updated] = await Task.update(
+      { end_time: nextEndTime },
+      {
+        where: { task_id: req.params.id },
+        fields: ["end_time"],
+      }
+    );
+
+    if (!updated) return res.status(404).json({ message: "Task not found." });
+
+    await syncEndTimeToSuguan(existing.suguan_id, nextEndTime);
+
+    const task = await Task.findByPk(req.params.id, {
+      include: [{ model: TaskCategory, as: "category" }],
+    });
+    res.json(task);
+  } catch (err) {
+    console.error("❌ Error in updateTaskEndTime:", err);
+    res.status(500).json({ message: "Failed to update end time.", error: err.message });
+  }
+};
+
 exports.deleteTask = async (req, res) => {
   try {
+    const existing = await Task.findByPk(req.params.id, { attributes: ["task_id", "suguan_id"] });
+    if (!existing) return res.status(404).json({ message: "Task not found." });
+    if (existing.suguan_id) {
+      return res.status(400).json({
+        message: "This task is managed automatically from Suguan and cannot be deleted directly.",
+      });
+    }
+
     const deleted = await Task.destroy({ where: { task_id: req.params.id } });
     if (!deleted) return res.status(404).json({ message: "Task not found." });
     res.json({ message: "Task deleted successfully." });

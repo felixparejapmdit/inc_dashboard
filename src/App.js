@@ -17,6 +17,7 @@ import Applications from "./pages/Applications"; // Import AddApps Page
 import Users from "./pages/Users"; // Import User Page
 import TemporarilyDeletedUsers from "./pages/TemporarilyDeletedUsers"; // Import User Page
 import ProgressTracking from "./pages/progress/ProgressTracking"; // Import User Page
+import StatusChangeTracking from "./pages/statuschange/StatusChangeTracking";
 
 import PersonnelPreview from "./pages/PersonnelPreview";
 import PersonnelHistory from "./pages/PersonnelHistory";
@@ -241,6 +242,7 @@ function MainApp() {
           <Route path="/tempdeleted-users" element={<TemporarilyDeletedUsers />} />
           <Route path="/personnel-history" element={<PersonnelHistory />} />
           <Route path="/progresstracking" element={<ProgressTracking />} />
+          <Route path="/statuschange-tracking" element={<StatusChangeTracking />} />
           <Route path="/progress/step1" element={<ProgressStep1 />} />
           <Route path="/progress/step2" element={<ProgressStep2 />} />
           <Route path="/progress/step3" element={<ProgressStep3 />} />

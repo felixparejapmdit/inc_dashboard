@@ -78,6 +78,69 @@ const DISTRICT_API_URL = process.env.REACT_APP_DISTRICT_API_URL;
 const LOCAL_CONGREGATION_API_URL = process.env.REACT_APP_LOCAL_CONGREGATION_API_URL;
 const MotionBox = motion.create(Box);
 
+const parseSuguanDateTime = (date, time) => {
+  const datePart = String(date || "").trim();
+  const timePart = String(time || "").trim();
+  const candidate = `${datePart} ${timePart}`;
+
+  const parsed = moment(candidate, [
+    "YYYY-MM-DD HH:mm:ss",
+    "YYYY-MM-DD HH:mm",
+    "YYYY-MM-DD hh:mm A",
+    "YYYY-MM-DD h:mm A",
+    "YYYY-MM-DD hh:mm a",
+    "YYYY-MM-DD h:mm a",
+  ], true);
+
+  if (parsed.isValid()) {
+    return parsed.valueOf();
+  }
+
+  const fallback = new Date(`${datePart}T${timePart}`);
+  return Number.isNaN(fallback.getTime()) ? Number.POSITIVE_INFINITY : fallback.getTime();
+};
+
+const formatSuguanTimeForInput = (date, time) => {
+  const datePart = String(date || "").trim();
+  const timePart = String(time || "").trim();
+  const candidate = `${datePart} ${timePart}`;
+
+  const parsed = moment(candidate, [
+    "YYYY-MM-DD HH:mm:ss",
+    "YYYY-MM-DD HH:mm",
+    "YYYY-MM-DD hh:mm A",
+    "YYYY-MM-DD h:mm A",
+    "YYYY-MM-DD hh:mm a",
+    "YYYY-MM-DD h:mm a",
+  ], true);
+
+  if (parsed.isValid()) {
+    return parsed.format("HH:mm");
+  }
+
+  const fallback = new Date(`${datePart}T${timePart}`);
+  return Number.isNaN(fallback.getTime()) ? "" : moment(fallback).format("HH:mm");
+};
+
+const formatSuguanTimeDisplay = (time) => {
+  const timePart = String(time || "").trim();
+  const parsed = moment(timePart, [
+    "HH:mm:ss",
+    "HH:mm",
+    "hh:mm A",
+    "h:mm A",
+    "hh:mm a",
+    "h:mm a",
+  ], true);
+
+  if (parsed.isValid()) {
+    return parsed.format("hh:mm A");
+  }
+
+  const fallback = new Date(`1970-01-01T${timePart}`);
+  return Number.isNaN(fallback.getTime()) ? timePart : moment(fallback).format("hh:mm A");
+};
+
 const Suguan = () => {
   const location = useLocation();
   const [suguan, setSuguan] = useState([]);
@@ -169,7 +232,7 @@ const Suguan = () => {
         if (Array.isArray(data)) {
           const filteredData = filterPersonnelData(data);
           const sorted = filteredData.sort((a, b) => {
-            return moment(`${a.date} ${a.time}`).unix() - moment(`${b.date} ${b.time}`).unix();
+            return parseSuguanDateTime(a.date, a.time) - parseSuguanDateTime(b.date, b.time);
           });
           setSuguan(sorted);
         } else {
@@ -204,7 +267,7 @@ const Suguan = () => {
     setDistrictId(item.district_id);
     setLocalId(item.local_congregation);
     setDate(moment(item.date).format("YYYY-MM-DD"));
-    setTime(moment(item.time, "HH:mm:ss").format("HH:mm"));
+    setTime(formatSuguanTimeForInput(item.date, item.time));
     setGampaninId(item.gampanin_id.toString());
     onOpen();
   };
@@ -275,7 +338,7 @@ const Suguan = () => {
       Week: `Week ${moment(item.date).isoWeek()}`,
       Day: moment(item.date).format("dddd"),
       Date: moment(item.date).format("MMM DD, YYYY"),
-      Time: moment(item.time, "HH:mm").format("hh:mm A"),
+      Time: formatSuguanTimeDisplay(item.time),
       Personnel: item.name,
       Role: getGampaninName(item.gampanin_id),
       Congregation: item.local_congregation,
@@ -942,7 +1005,7 @@ const GridAssignmentCard = ({ item, onEdit, onDelete, gampaninName, color }) => 
         <Text fontSize="xs" fontWeight="black" color="gray.700" noOfLines={1}>{item.local_congregation}</Text>
         <HStack spacing={1}>
           <Icon as={Clock} size={10} color={`${color}.400`} />
-          <Text fontSize="10px" fontWeight="bold" color="gray.500">{moment(item.time, "HH:mm").format("hh:mm A")}</Text>
+          <Text fontSize="10px" fontWeight="bold" color="gray.500">{formatSuguanTimeDisplay(item.time)}</Text>
         </HStack>
         <Text fontSize="9px" fontWeight="black" color={`${color}.600`} textTransform="uppercase">{gampaninName}</Text>
       </VStack>

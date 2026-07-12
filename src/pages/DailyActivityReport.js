@@ -13,10 +13,11 @@ import {
   FiPlus, FiEdit2, FiTrash2, FiSearch, FiPrinter,
   FiList, FiGrid, FiCheckSquare, FiFileText, FiClock,
   FiPenTool, FiType, FiUpload, FiCalendar,
-  FiImage, FiSave, FiRotateCcw, FiChevronLeft, FiChevronRight,
+  FiImage, FiSave, FiRotateCcw, FiChevronLeft, FiChevronRight, FiLock,
 } from "react-icons/fi";
 import { PieChart, Pie, Cell } from "recharts";
 import { getAuthHeaders } from "../utils/apiHeaders";
+import { putData } from "../utils/fetchData";
 
 const API = process.env.REACT_APP_API_URL || "";
 
@@ -48,6 +49,13 @@ const formatR510Date = (date) => {
 };
 
 const normalizeText = (value) => String(value || "").trim().toLowerCase();
+
+const splitWorshipLocations = (value) =>
+  String(value || "")
+    .split(/\r?\n/)
+    .flatMap((line) => line.split(","))
+    .map((line) => line.trim())
+    .filter(Boolean);
 
 const splitHoursMinutes = (hours) => {
   const numeric = Number.parseFloat(hours);
@@ -280,12 +288,13 @@ function SectionHead({ title, action }) {
 // ─── Task Modal ────────────────────────────────────────────────────────────────
 function TaskModal({ isOpen, onClose, categories, onSaved, initial, currentWeek }) {
   const toast = useToast();
+  const isSuguanTask = Boolean(initial?.suguan_id);
   const defaultTaskDate = useMemo(() => {
     if (currentWeek?.start && currentWeek?.end) {
       return getSelectedWeekCompletionDate(currentWeek) || currentWeek.start;
     }
     return todayISO();
-  }, [currentWeek?.end, currentWeek?.start]);
+  }, [currentWeek]);
 
   const blank = useMemo(() => ({
     title: "",
@@ -324,6 +333,10 @@ function TaskModal({ isOpen, onClose, categories, onSaved, initial, currentWeek 
   const handleChange = (e) => {
     const { name, value } = e.target;
 
+    if (isSuguanTask && name !== "end_time") {
+      return;
+    }
+
     if (
       name === "task_date" &&
       currentWeek?.start &&
@@ -349,7 +362,7 @@ function TaskModal({ isOpen, onClose, categories, onSaved, initial, currentWeek 
   };
 
   const handleSave = async () => {
-    if (!form.title || !form.category_id || !form.task_date) {
+    if (!isSuguanTask && (!form.title || !form.category_id || !form.task_date)) {
       toast({ title: "Please fill in all required fields.", status: "warning", duration: 3000, isClosable: true });
       return;
     }
@@ -387,17 +400,20 @@ function TaskModal({ isOpen, onClose, categories, onSaved, initial, currentWeek 
 
     setSaving(true);
     try {
-      const savePayload = {
-        ...form,
-        local_congregations: showWorshipLocalCongregations ? (form.local_congregations || "") : null,
-        kanban_status: form.status === "Completed"
-          ? "Done"
-          : form.kanban_status === "Done"
-            ? "New"
-            : form.kanban_status || "New",
-      };
+      const savePayload = isSuguanTask
+        ? { end_time: form.end_time || null }
+        : {
+            ...form,
+            local_congregations: showWorshipLocalCongregations ? (form.local_congregations || "") : null,
+            kanban_status: form.status === "Completed"
+              ? "Done"
+              : form.kanban_status === "Done"
+                ? "New"
+                : form.kanban_status || "New",
+          };
 
       if (
+        !isSuguanTask &&
         form.status === "Completed" &&
         currentWeek?.start &&
         !isDateInRange(form.task_date, currentWeek.start, currentWeek.end)
@@ -406,11 +422,18 @@ function TaskModal({ isOpen, onClose, categories, onSaved, initial, currentWeek 
       }
 
       if (initial?.task_id) {
-        await axios.put(`${API}/api/dar/tasks/${initial.task_id}`, savePayload, { headers: getAuthHeaders() });
+        await putData("dar/tasks", initial.task_id, savePayload);
       } else {
         await axios.post(`${API}/api/dar/tasks`, savePayload, { headers: getAuthHeaders() });
       }
-      toast({ title: initial ? "Task updated!" : "Task created!", status: "success", duration: 2000, isClosable: true });
+      toast({
+        title: initial
+          ? (isSuguanTask ? "End time updated!" : "Task updated!")
+          : "Task created!",
+        status: "success",
+        duration: 2000,
+        isClosable: true,
+      });
       onSaved(); onClose();
     } catch (err) {
       toast({ title: "Failed to save task.", description: err.response?.data?.error || err.response?.data?.message || err.message, status: "error", duration: 3000, isClosable: true });
@@ -431,20 +454,27 @@ function TaskModal({ isOpen, onClose, categories, onSaved, initial, currentWeek 
       <ModalContent borderRadius="2xl" overflow="hidden" border={`2px solid ${T.amber}`}>
         <ModalHeader bg={T.corpBlue} color="white" fontWeight="900" fontSize="md"
           letterSpacing="0.06em" textTransform="uppercase">
-          {initial ? "✏️ Edit Task" : "➕ New Task"}
+          {initial ? (isSuguanTask ? "✏️ Edit Suguan End Time" : "✏️ Edit Task") : "➕ New Task"}
         </ModalHeader>
         <ModalCloseButton color="white" />
         <ModalBody py={6} bg="white">
           <VStack spacing={4}>
+            {isSuguanTask && (
+              <Box w="full" bg="blue.50" border="1px solid" borderColor="blue.100" borderRadius="xl" px={4} py={3}>
+                <Text fontSize="xs" fontWeight="700" color="blue.700">
+                  This Suguan task is locked for schedule details. Update the end time only so Daily Activity can calculate the hours.
+                </Text>
+              </Box>
+            )}
             <SimpleGrid columns={2} spacing={4} w="full">
               <Box>
                 <Text fontSize="9px" fontWeight="800" mb={1} color="gray.400" textTransform="uppercase" letterSpacing="0.12em">Title *</Text>
-                <Input name="title" value={form.title} onChange={handleChange}
+                <Input name="title" value={form.title} onChange={handleChange} isDisabled={isSuguanTask}
                   placeholder="e.g. Inventory Update" {...fieldStyle} />
               </Box>
               <Box>
                 <Text fontSize="9px" fontWeight="800" mb={1} color="gray.400" textTransform="uppercase" letterSpacing="0.12em">Category *</Text>
-                <Select name="category_id" value={form.category_id} onChange={handleChange} {...fieldStyle}>
+                <Select name="category_id" value={form.category_id} onChange={handleChange} isDisabled={isSuguanTask} {...fieldStyle}>
                   <option value="">Select category…</option>
                   {categories.map(c => <option key={c.category_id} value={c.category_id}>{c.category_name}</option>)}
                 </Select>
@@ -452,7 +482,7 @@ function TaskModal({ isOpen, onClose, categories, onSaved, initial, currentWeek 
             </SimpleGrid>
             <Box w="full">
               <Text fontSize="9px" fontWeight="800" mb={1} color="gray.400" textTransform="uppercase" letterSpacing="0.12em">Description</Text>
-              <Textarea name="description" value={form.description} onChange={handleChange}
+              <Textarea name="description" value={form.description} onChange={handleChange} isDisabled={isSuguanTask}
                 placeholder="Optional details…" rows={3} {...fieldStyle} />
             </Box>
             {showWorshipLocalCongregations && (
@@ -464,6 +494,7 @@ function TaskModal({ isOpen, onClose, categories, onSaved, initial, currentWeek 
                   name="local_congregations"
                   value={form.local_congregations}
                   onChange={handleChange}
+                  isDisabled={isSuguanTask}
                   placeholder="e.g. Cupang Muntinlupa, MMS, and other local congregations"
                   rows={3}
                   {...fieldStyle}
@@ -478,6 +509,7 @@ function TaskModal({ isOpen, onClose, categories, onSaved, initial, currentWeek 
                   name="task_date"
                   value={form.task_date}
                   onChange={handleChange}
+                  isDisabled={isSuguanTask}
                   min={taskDateMin}
                   max={taskDateMax}
                   {...fieldStyle}
@@ -490,7 +522,7 @@ function TaskModal({ isOpen, onClose, categories, onSaved, initial, currentWeek 
               </Box>
               <Box>
                 <Text fontSize="9px" fontWeight="800" mb={1} color="gray.400" textTransform="uppercase" letterSpacing="0.12em">Start Time</Text>
-                <Input type="time" name="start_time" value={form.start_time} onChange={handleChange} {...fieldStyle} />
+                <Input type="time" name="start_time" value={form.start_time} onChange={handleChange} isDisabled={isSuguanTask} {...fieldStyle} />
               </Box>
               <Box>
                 <Text fontSize="9px" fontWeight="800" mb={1} color="gray.400" textTransform="uppercase" letterSpacing="0.12em">End Time</Text>
@@ -500,13 +532,13 @@ function TaskModal({ isOpen, onClose, categories, onSaved, initial, currentWeek 
             <SimpleGrid columns={2} spacing={4} w="full">
               <Box>
                 <Text fontSize="9px" fontWeight="800" mb={1} color="gray.400" textTransform="uppercase" letterSpacing="0.12em">Priority</Text>
-                <Select name="priority" value={form.priority || "Medium"} onChange={handleChange} {...fieldStyle}>
+                <Select name="priority" value={form.priority || "Medium"} onChange={handleChange} isDisabled={isSuguanTask} {...fieldStyle}>
                   {["Critical", "High", "Medium", "Low"].map(p => <option key={p} value={p}>{p}</option>)}
                 </Select>
               </Box>
               <Box>
                 <Text fontSize="9px" fontWeight="800" mb={1} color="gray.400" textTransform="uppercase" letterSpacing="0.12em">Status</Text>
-                <Select name="status" value={form.status} onChange={handleChange} {...fieldStyle}>
+                <Select name="status" value={form.status} onChange={handleChange} isDisabled={isSuguanTask} {...fieldStyle}>
                   {["Active", "Completed"].map(s => <option key={s} value={s}>{s}</option>)}
                 </Select>
               </Box>
@@ -520,7 +552,7 @@ function TaskModal({ isOpen, onClose, categories, onSaved, initial, currentWeek 
             _hover={{ bg: "#059669", transform: "translateY(-1px)" }}
             _active={{ bg: "#047857" }}
             boxShadow={`0 4px 14px ${T.emerald}55`}>
-            Save Task
+            {isSuguanTask ? "Save End Time" : "Save Task"}
           </Button>
         </ModalFooter>
       </ModalContent>
@@ -592,6 +624,232 @@ function LogModal({ isOpen, onClose, task, onSaved }) {
         </ModalFooter>
       </ModalContent>
     </Modal>
+  );
+}
+
+function DailyActivityPreviewPanel({ printMeta, printRows, signatureDataUrl }) {
+  const headerCell = {
+    px: 3,
+    py: 2,
+    fontSize: "10px",
+    fontWeight: "900",
+    textTransform: "uppercase",
+    letterSpacing: "0.08em",
+    color: T.corpBlue,
+    bg: "gray.50",
+    border: "1px solid",
+    borderColor: "gray.200",
+  };
+
+  const cellBorder = "1px solid";
+  const cellColor = "gray.200";
+
+  const previewTextarea = {
+    readOnly: true,
+    resize: "none",
+    minH: "94px",
+    borderRadius: "xl",
+    borderColor: "gray.200",
+    bg: "gray.50",
+    fontSize: "sm",
+    lineHeight: "1.45",
+    color: "gray.700",
+    _focus: { borderColor: "gray.200", boxShadow: "none" },
+    _hover: { borderColor: "gray.200" },
+  };
+
+  return (
+    <Box
+      bg="white"
+      borderRadius="3xl"
+      border="1px solid"
+      borderColor="gray.100"
+      boxShadow="0 14px 40px rgba(15, 23, 42, 0.08)"
+      overflow="hidden"
+    >
+      <Box
+        px={{ base: 4, md: 6 }}
+        py={{ base: 4, md: 5 }}
+        bg="linear-gradient(180deg, #FFFFFF 0%, #FAFAFA 100%)"
+        borderBottom="1px solid"
+        borderColor="gray.100"
+      >
+        <Text
+          textAlign="center"
+          fontSize={{ base: "sm", md: "lg" }}
+          fontWeight="900"
+          color={T.corpBlue}
+          letterSpacing="0.04em"
+          textTransform="uppercase"
+          mb={4}
+        >
+          ULAT UKOL SA NATAPOS NA GAWAIN NG NAGLILINGKOD SA TANGGAPAN
+        </Text>
+
+        <SimpleGrid columns={{ base: 1, md: 5 }} spacing={3}>
+          {[
+            { label: "Pangalan", value: printMeta.name },
+            { label: "Total Hrs", value: printMeta.totalHours },
+            { label: "Dept", value: printMeta.department },
+            { label: "Wk #", value: printMeta.weekNumber },
+            { label: "Petsang Saklaw", value: printMeta.petsangSaklaw },
+          ].map((item) => (
+            <Box
+              key={item.label}
+              border="1px solid"
+              borderColor="gray.200"
+              borderRadius="2xl"
+              bg="white"
+              px={4}
+              py={3}
+            >
+              <Text fontSize="9px" fontWeight="900" color="gray.400" textTransform="uppercase" letterSpacing="0.12em">
+                {item.label}
+              </Text>
+              <Text fontSize="sm" fontWeight="700" color={T.corpBlue} mt={1} noOfLines={2}>
+                {item.value || "—"}
+              </Text>
+            </Box>
+          ))}
+        </SimpleGrid>
+      </Box>
+
+      <Box overflowX="auto">
+        <Box as="table" w="full" style={{ borderCollapse: "collapse", tableLayout: "fixed" }}>
+          <Box as="thead">
+            <Box as="tr">
+              {[
+                { label: "Araw", w: "11%" },
+                { label: "Gawain", w: "44%" },
+                { label: "Reference", w: "11%" },
+                { label: "Remarks ng Section Chief / Department Head", w: "17%" },
+                { label: "Remarks ng Personnel", w: "17%" },
+              ].map((col) => (
+                <Box
+                  as="th"
+                  key={col.label}
+                  w={col.w}
+                  {...headerCell}
+                >
+                  {col.label}
+                </Box>
+              ))}
+            </Box>
+          </Box>
+          <Box as="tbody">
+            {printRows.map((row) => (
+              <Box as="tr" key={row.date}>
+                <Box
+                  as="td"
+                  px={3}
+                  py={3}
+                  border={cellBorder}
+                  borderColor={cellColor}
+                  verticalAlign="top"
+                  textAlign="center"
+                >
+                  <Text fontSize="sm" fontWeight="900" color={T.corpBlue}>
+                    {row.dayLabel}
+                  </Text>
+                  <Text fontSize="xs" color="gray.500" fontWeight="600" mt={1}>
+                    {row.dayHoursLabel}
+                  </Text>
+                </Box>
+                <Box as="td" px={3} py={3} border={cellBorder} borderColor={cellColor} verticalAlign="top">
+                  <Textarea {...previewTextarea} value={row.accomplishments || "—"} />
+                </Box>
+                <Box
+                  as="td"
+                  px={3}
+                  py={3}
+                  border={cellBorder}
+                  borderColor={cellColor}
+                  verticalAlign="top"
+                  fontSize="sm"
+                  color="gray.700"
+                >
+                  • Manual
+                </Box>
+                <Box as="td" px={3} py={3} border={cellBorder} borderColor={cellColor} verticalAlign="top">
+                  <Textarea {...previewTextarea} value={row.remarks || ""} />
+                </Box>
+                <Box as="td" px={3} py={3} border={cellBorder} borderColor={cellColor} verticalAlign="top">
+                  <Textarea {...previewTextarea} value={row.personnelRemarks || ""} />
+                </Box>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      </Box>
+
+      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={0} borderTop="1px solid" borderColor="gray.100">
+        <Box p={5} position="relative" minH="140px">
+          <Text fontSize="sm" fontWeight="700" color="gray.700" mb={5}>
+            Lagda:
+          </Text>
+          {signatureDataUrl && (
+            <Box
+              as="img"
+              src={signatureDataUrl}
+              alt=""
+              position="absolute"
+              left="50%"
+              top="18px"
+              transform="translateX(-50%) rotate(-5deg)"
+              w="160px"
+              h="72px"
+              objectFit="contain"
+              pointerEvents="none"
+              mixBlendMode="multiply"
+            />
+          )}
+          <Box position="absolute" left="72px" right="18px" top="84px" borderBottom="1px solid" borderColor="gray.300" />
+          <Text
+            position="absolute"
+            left="72px"
+            right="18px"
+            top="90px"
+            textAlign="center"
+            fontSize="sm"
+            fontWeight="600"
+            color={T.corpBlue}
+          >
+            {printMeta.name}
+          </Text>
+        </Box>
+        <Box p={5} minH="140px">
+          <Text fontSize="sm" fontWeight="700" color="gray.700" mb={5}>
+            Noted by:
+          </Text>
+          <Box position="relative" h="94px">
+            <Box position="absolute" left="72px" right="18px" top="20px" borderBottom="1px solid" borderColor="gray.300" />
+            <Text
+              position="absolute"
+              left="72px"
+              right="18px"
+              top="28px"
+              textAlign="center"
+              fontSize="sm"
+              fontWeight="600"
+              color={T.corpBlue}
+            >
+              Ronald T. de Guzman
+            </Text>
+            <Text
+              position="absolute"
+              left="72px"
+              right="18px"
+              top="54px"
+              textAlign="center"
+              fontSize="xs"
+              color="gray.500"
+            >
+              Section Chief
+            </Text>
+          </Box>
+        </Box>
+      </SimpleGrid>
+    </Box>
   );
 }
 
@@ -1038,6 +1296,12 @@ export default function DailyActivityReport() {
   const [logs,       setLogs]       = useState([]);
   const [reports,    setReports]    = useState([]);
   const [categories, setCategories] = useState([]);
+  // "Worship Service" tasks are auto-generated from Suguan assignments and
+  // must not be manually created/edited here.
+  const selectableCategories = useMemo(
+    () => categories.filter((c) => c.category_name !== "Worship Service"),
+    [categories]
+  );
   const [loading,    setLoading]    = useState(true);
   const [activeTab,  setActiveTab]  = useState("list");
   const [printTarget, setPrintTarget] = useState("dar");
@@ -1648,14 +1912,6 @@ export default function DailyActivityReport() {
   const headerWeekDay = fmtDay(headerReferenceDate);
   const headerWeekDate = fmtDate(headerReferenceDate);
 
-  const getDayReport = (date) => reports.find(r => r.report_date === date);
-  const saveReport   = async (date, field, value) => {
-    const ex = getDayReport(date);
-    const payload = { user_id: activeDarUserId, report_date: date, accomplishments: ex?.accomplishments || "", remarks: ex?.remarks || "", personnel_remarks: ex?.personnel_remarks || "", [field]: value };
-    await axios.post(`${API}/api/dar/reports`, payload, { headers: getAuthHeaders() });
-    load();
-  };
-
   // ─── Tab config ───────────────────────────────────────────────────────────────
   const TABS = [
     { id: "list",       icon: FiList,        label: "List View",  activeColor: T.corpBlue },
@@ -1663,17 +1919,6 @@ export default function DailyActivityReport() {
     { id: "accomplish", icon: FiCheckSquare, label: "Accomplish", activeColor: T.crimson  },
     { id: "report",     icon: FiFileText,    label: "Report",     activeColor: "#D97706"  },
   ];
-
-  // ─── Shared input focus ring ───────────────────────────────────────────────────
-  const reportTextarea = {
-    size: "sm",
-    rows: 3,
-    borderRadius: "xl",
-    fontSize: "xs",
-    border: "1px dashed",
-    borderColor: "gray.200",
-    _focus: { border: `1.5px solid ${T.amber}`, boxShadow: `0 0 0 1px ${T.amber}` },
-  };
 
   const printTaskHours = useMemo(() => {
     return new Map(
@@ -1723,25 +1968,6 @@ export default function DailyActivityReport() {
       .map((line) => `• ${line}`)
       .join("\n");
   }, [printTaskHours]);
-
-  const formatReportAccomplishments = useCallback((text, dayTasks = []) => {
-    const lines = String(text || "")
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean);
-
-    const normalizedLines = lines.map((line) => line.replace(/^[•\-*\s]+/, "").trim().toLowerCase());
-    const missingTaskLines = dayTasks
-      .filter((task) => {
-        const title = String(task.title || "").trim().toLowerCase();
-        return title && !normalizedLines.some(
-          (line) => line === title || line.includes(title) || title.includes(line)
-        );
-      })
-      .map((task) => `• ${task.title}`);
-
-    return [...lines, ...missingTaskLines].join("\n");
-  }, []);
 
   const printRows = useMemo(() => {
     return weekDays.map((date) => {
@@ -1799,7 +2025,7 @@ export default function DailyActivityReport() {
     const isOfficeTask = (task) => categoryKey(task) === "office task";
     const isOutsideTask = (task) => categoryKey(task) === "outside office task";
     const isPersonalTask = (task) => categoryKey(task) === "personal task";
-    const isSpecialTask = (task) => isOfficeTask(task) || isOutsideTask(task) || isPersonalTask(task);
+    const isSpecialTask = (task) => isOutsideTask(task) || isPersonalTask(task);
     const taskHours = (task) => Number.parseFloat(printTaskHours.get(task.task_id) || 0);
     const uniqueDayCount = (items) => new Set(items.map((item) => item.task_date).filter(Boolean)).size;
     const sumHours = (items) => items.reduce((sum, item) => sum + taskHours(item), 0);
@@ -1811,6 +2037,23 @@ export default function DailyActivityReport() {
     const officeTasks = completedTasks.filter(isOfficeTask);
     const specialTasks = completedTasks.filter(isSpecialTask);
     const churchTasks = completedTasks.filter((task) => !isPersonalTask(task));
+    const worshipEntries = worshipTasks.flatMap((task) => {
+      const locals = splitWorshipLocations(task.local_congregations);
+      const entry = {
+        day: fmtDay(getTaskReportDate(task)),
+        time: task.start_time ? fmtTime(task.start_time) : "",
+      };
+
+      if (!locals.length) {
+        return [{ ...entry, local: "" }];
+      }
+
+      return locals.map((local) => ({
+        ...entry,
+        local,
+      }));
+    });
+
     const rowsSource = specialTasks;
     const specialRows = Array.from({ length: 27 }, (_, index) => {
       const task = rowsSource[index];
@@ -1853,7 +2096,8 @@ export default function DailyActivityReport() {
         dayCount: worshipTasks.length ? String(uniqueDayCount(worshipTasks)) : "",
         hours: splitHoursMinutes(sumHours(worshipTasks)).hours,
         minutes: splitHoursMinutes(sumHours(worshipTasks)).minutes,
-        local: firstWorship?.local_congregations || "",
+        local: worshipEntries.map((entry) => entry.local).filter(Boolean).join("\n"),
+        entries: worshipEntries,
         day: firstWorshipDay,
         time: firstWorshipTime === "—" ? "" : firstWorshipTime,
       },
@@ -2520,6 +2764,11 @@ export default function DailyActivityReport() {
                         <HStack spacing={1.5}>
                           <Box w="8px" h="8px" borderRadius="full" bg={catColor(t.category_id)} flexShrink={0} />
                           <Text fontSize="xs" fontWeight="700" color="gray.500" noOfLines={1}>{catName(t.category_id)}</Text>
+                          {Boolean(t.suguan_id) && (
+                            <Box as="span" px={1.5} py="1px" borderRadius="md" bg="gray.200" color="gray.600" fontSize="7px" fontWeight="900">
+                              FROM SUGUAN
+                            </Box>
+                          )}
                         </HStack>
                       </Box>
                       <Box flex="2">
@@ -2547,20 +2796,42 @@ export default function DailyActivityReport() {
                         )}
                       </Box>
                       <Box flex="0.8">
-                        <HStack spacing={1} justify="flex-end">
-                          <Tooltip label="Edit">
-                            <IconButton size="xs" icon={<FiEdit2 />} borderRadius="lg" aria-label="edit"
-                              bg={T.amberLight} color={T.amber}
-                              _hover={{ bg: T.amber, color: "white" }}
-                              onClick={() => { setEditTask(t); taskModal.onOpen(); }} />
-                          </Tooltip>
-                          <Tooltip label="Delete">
-                            <IconButton size="xs" icon={<FiTrash2 />} borderRadius="lg" aria-label="delete"
-                              bg="#FEE2E2" color={T.crimson}
-                              _hover={{ bg: T.crimson, color: "white" }}
-                              onClick={() => deleteTask(t.task_id)} />
-                          </Tooltip>
-                        </HStack>
+                        {t.suguan_id ? (
+                          <HStack spacing={1} justify="flex-end">
+                            <Tooltip label="Edit end time">
+                              <IconButton
+                                size="xs"
+                                icon={<FiEdit2 />}
+                                borderRadius="lg"
+                                aria-label="edit end time"
+                                bg={T.amberLight}
+                                color={T.amber}
+                                _hover={{ bg: T.amber, color: "white" }}
+                                onClick={() => { setEditTask(t); taskModal.onOpen(); }}
+                              />
+                            </Tooltip>
+                            <Tooltip label="Managed from the Suguan page">
+                              <Box textAlign="right">
+                                <FiLock size={14} color="#9CA3AF" />
+                              </Box>
+                            </Tooltip>
+                          </HStack>
+                        ) : (
+                          <HStack spacing={1} justify="flex-end">
+                            <Tooltip label="Edit">
+                              <IconButton size="xs" icon={<FiEdit2 />} borderRadius="lg" aria-label="edit"
+                                bg={T.amberLight} color={T.amber}
+                                _hover={{ bg: T.amber, color: "white" }}
+                                onClick={() => { setEditTask(t); taskModal.onOpen(); }} />
+                            </Tooltip>
+                            <Tooltip label="Delete">
+                              <IconButton size="xs" icon={<FiTrash2 />} borderRadius="lg" aria-label="delete"
+                                bg="#FEE2E2" color={T.crimson}
+                                _hover={{ bg: T.crimson, color: "white" }}
+                                onClick={() => deleteTask(t.task_id)} />
+                            </Tooltip>
+                          </HStack>
+                        )}
                       </Box>
                     </Flex>
                   </Box>
@@ -2622,7 +2893,9 @@ export default function DailyActivityReport() {
                           Drop tasks here
                         </Text>
                       ) : (
-                        colTasks.map(t => (
+                        colTasks.map(t => {
+                          const isSuguanSynced = Boolean(t.suguan_id);
+                          return (
                           <MotionBox
                             key={t.task_id}
                             layout
@@ -2632,12 +2905,12 @@ export default function DailyActivityReport() {
                             borderRadius="xl"
                             borderLeft={`4px solid ${catColor(t.category_id)}`}
                             boxShadow="sm"
-                            cursor="grab"
-                            draggable
-                            onDragStart={(e) => handleDragStart(e, t.task_id)}
+                            cursor={isSuguanSynced ? "default" : "grab"}
+                            draggable={!isSuguanSynced}
+                            onDragStart={isSuguanSynced ? undefined : (e) => handleDragStart(e, t.task_id)}
                             transition={{ layout: { duration: 0.15, ease: "easeOut" } }}
                             _hover={{ boxShadow: "md", bg: "white", transform: "translateY(-1px)" }}
-                            onClick={() => { setEditTask(t); taskModal.onOpen(); }}
+                            onClick={isSuguanSynced ? undefined : () => { setEditTask(t); taskModal.onOpen(); }}
                           >
                             <Text fontSize="xs" fontWeight="900" color={catColor(t.category_id)} noOfLines={2}>
                               {t.title}
@@ -2664,6 +2937,20 @@ export default function DailyActivityReport() {
                                 <Text fontSize="8px" color="gray.400" fontWeight="600">
                                   {catName(t.category_id)}
                                 </Text>
+                                {isSuguanSynced && (
+                                  <Box
+                                    as="span"
+                                    px={1.5}
+                                    py="2px"
+                                    borderRadius="md"
+                                    bg="gray.200"
+                                    color="gray.600"
+                                    fontSize="7px"
+                                    fontWeight="900"
+                                  >
+                                    FROM SUGUAN
+                                  </Box>
+                                )}
                               </HStack>
                               {t.start_time && (
                                 <Text fontSize="8px" color="gray.400" fontWeight="500">
@@ -2672,7 +2959,8 @@ export default function DailyActivityReport() {
                               )}
                             </Flex>
                           </MotionBox>
-                        ))
+                          );
+                        })
                       )}
                     </VStack>
                   </MotionBox>
@@ -2754,66 +3042,16 @@ export default function DailyActivityReport() {
           {/* ──────────────── REPORT VIEW ──────────────── */}
           {activeTab === "report" && (
             <Box>
-              <Box bg="white" borderRadius="2xl" boxShadow="sm" border={`2px solid ${T.amber}`} overflow="hidden">
-                <SectionHead title={`Daily Activity Report — ${weekLabel(week)}`} />
-
-                {/* Report column headers */}
-                <Box px={5} py={3} bg={T.corpBlue}>
-                  <Flex gap={4}>
-                    {[
-                      { label: "Araw",                  flex: "1.2" },
-                      { label: "Natapus na Gawain",     flex: "3"   },
-                      { label: "Remarks",               flex: "2"   },
-                      { label: "Remarks ng Personnel",  flex: "2"   },
-                    ].map(({ label, flex }) => (
-                      <Text key={label} flex={flex} fontSize="9px" fontWeight="900"
-                        color={T.amber} textTransform="uppercase" letterSpacing="0.12em">
-                        {label}
-                      </Text>
-                    ))}
-                  </Flex>
-                </Box>
-
-                {/* Report rows as pill containers */}
-                <VStack spacing={2} px={4} py={3} align="stretch">
-                  {weekDays.map(date => {
-                    const rpt       = getDayReport(date);
-                    const dayTasks  = completedTasksForReport.filter(t => getTaskReportDate(t) === date);
-                    const defaultAc = formatReportAccomplishments(rpt?.accomplishments, dayTasks);
-                    return (
-                      <Box key={`${activeDarUserId || "self"}-${date}-${rpt?.updated_at || "new"}`} {...pillRow} borderLeft={`4px solid ${T.amber}`}>
-                        <Flex gap={4} align="flex-start">
-                          <Box flex="1.2" pt={1}>
-                            <Text fontWeight="900" fontSize="sm" color={T.corpBlue}>{fmtDay(date)}</Text>
-                            <Text fontSize="xs" color="gray.400">{fmtDate(date)}</Text>
-                          </Box>
-                          <Box flex="3">
-                            <Textarea {...reportTextarea}
-                              key={`accomplishments-${date}-${dayTasks.map(t => t.task_id).join("-")}-${rpt?.updated_at || ""}`}
-                              defaultValue={defaultAc}
-                              onBlur={e => saveReport(date, "accomplishments", e.target.value)}
-                              placeholder="Ilagay ang mga natapus na gawain…" />
-                          </Box>
-                          <Box flex="2">
-                            <Textarea {...reportTextarea}
-                              key={`remarks-${activeDarUserId || "self"}-${date}-${rpt?.updated_at || ""}`}
-                              defaultValue={rpt?.remarks || ""}
-                              onBlur={e => saveReport(date, "remarks", e.target.value)}
-                              placeholder="Admin remarks…" />
-                          </Box>
-                          <Box flex="2">
-                            <Textarea {...reportTextarea}
-                              key={`personnel-remarks-${activeDarUserId || "self"}-${date}-${rpt?.updated_at || ""}`}
-                              defaultValue={rpt?.personnel_remarks || ""}
-                              onBlur={e => saveReport(date, "personnel_remarks", e.target.value)}
-                              placeholder="Sariling remarks…" />
-                          </Box>
-                        </Flex>
-                      </Box>
-                    );
-                  })}
-                </VStack>
+              <Box mb={4} px={1}>
+                <Text fontSize="sm" fontWeight="700" color="gray.500">
+                  Read-only preview for the Daily Activity Report. The print button uses the same content.
+                </Text>
               </Box>
+              <DailyActivityPreviewPanel
+                printMeta={printMeta}
+                printRows={printRows}
+                signatureDataUrl={signatureDataUrl}
+              />
 
               <Flex justify="center" mt={6} gap={3} flexWrap="wrap">
                 <Button
@@ -2847,7 +3085,7 @@ export default function DailyActivityReport() {
 
       {/* ── Modals ── */}
       <TaskModal isOpen={taskModal.isOpen} onClose={taskModal.onClose}
-        categories={categories} onSaved={load} initial={editTask} currentWeek={week} />
+        categories={editTask?.suguan_id ? categories : selectableCategories} onSaved={load} initial={editTask} currentWeek={week} />
       <LogModal isOpen={logModal.isOpen} onClose={logModal.onClose}
         task={logTask} onSaved={load} />
       <SignatureModal
@@ -3023,9 +3261,21 @@ export default function DailyActivityReport() {
                 <div className="r510a-worship-meta">
                   <div className="r510a-worship-meta-label">Mga lokal na pinangasiwaan:</div>
                   <div className="r510a-worship-meta-values">
-                    <strong>{r510aData.worship.local}</strong>
-                    <strong>{r510aData.worship.day}</strong>
-                    <strong>{r510aData.worship.time}</strong>
+                    {r510aData.worship.entries.length > 0 ? (
+                      r510aData.worship.entries.map((entry, index) => (
+                        <div key={`r510a-worship-entry-${index}`} className="r510a-worship-meta-row">
+                          <strong>{entry.local || "—"}</strong>
+                          <strong>{entry.day || "—"}</strong>
+                          <strong>{entry.time || "—"}</strong>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="r510a-worship-meta-row">
+                        <strong>—</strong>
+                        <strong>—</strong>
+                        <strong>—</strong>
+                      </div>
+                    )}
                   </div>
                 </div>
               </td>
@@ -3636,12 +3886,19 @@ export default function DailyActivityReport() {
           }
 
           .r510a-worship-meta-values {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2mm;
+          }
+
+          .r510a-worship-meta-row {
             display: grid;
             grid-template-columns: 1.15fr 0.95fr 0.8fr;
             gap: 3mm;
+            align-items: end;
           }
 
-          .r510a-worship-meta-values strong {
+          .r510a-worship-meta-row strong {
             display: block;
             border-bottom: 0.55pt solid #000;
             min-height: 3.2mm;

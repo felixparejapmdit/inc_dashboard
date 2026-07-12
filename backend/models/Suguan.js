@@ -30,6 +30,10 @@ const Suguan = sequelize.define(
       type: DataTypes.TIME,
       allowNull: false,
     },
+    end_time: {
+      type: DataTypes.TIME,
+      allowNull: true,
+    },
     gampanin_id: {
       type: DataTypes.INTEGER,
       allowNull: false,

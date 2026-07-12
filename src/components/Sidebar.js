@@ -137,6 +137,8 @@ const getIconForLabel = (label = "", fallbackIcon = FiSettings) => {
       return FiUserPlus;
     case "Progress Tracker":
       return FiActivity;
+    case "Status Change":
+      return FiUserX;
     case "Section Chief":
       return FiAward;
     case "Admin Office":
@@ -239,6 +241,7 @@ const SIDEBAR_ACCENT_COLORS = {
   Enrollment: "#805AD5",
   "Enrollment ": "#805AD5",
   "Progress Tracker": "#0F766E",
+  "Status Change": "#BE123C",
   "Section Chief": "#2563EB",
   "Admin Office": "#B7791F",
   "Security Overseer": "#2563EB",
@@ -392,6 +395,7 @@ const Sidebar = ({ onSidebarToggle }) => {
 
   const showProgressStepsSection = hasAnyPermission(
     "progresstracking.view",
+    "statuschangetracking.view",
     "sectionchief.view",
     "adminoffice.view",
     "securityoverseer.view",
@@ -587,7 +591,11 @@ const Sidebar = ({ onSidebarToggle }) => {
     }
 
     // Check Enrollment Progress
-    if (path.startsWith("/progress/") || path === "/progresstracking") {
+    if (
+      path.startsWith("/progress/") ||
+      path === "/progresstracking" ||
+      path === "/statuschange-tracking"
+    ) {
       setIsProgressStepsExpanded(true);
     }
 
@@ -1132,6 +1140,16 @@ const Sidebar = ({ onSidebarToggle }) => {
                     isExpanded={isExpanded}
                     onClick={() => handleItemClick("/progresstracking")} // Redirect to the main progress tracking page
                     isActive={location.pathname === "/progresstracking"}
+                  />
+                )}
+
+                {hasPermission("statuschangetracking.view") && (
+                  <SidebarItem
+                    icon={FiUserX}
+                    label="Status Change"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/statuschange-tracking")}
+                    isActive={location.pathname === "/statuschange-tracking"}
                   />
                 )}
 

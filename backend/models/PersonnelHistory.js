@@ -14,7 +14,7 @@ const PersonnelHistory = sequelize.define(
             allowNull: false,
         },
         action: {
-            type: DataTypes.ENUM("In", "Out"),
+            type: DataTypes.ENUM("In", "Out", "Transferred", "Reassigned"),
             allowNull: false,
         },
         reason: {

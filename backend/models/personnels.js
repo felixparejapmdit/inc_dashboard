@@ -210,6 +210,15 @@ const Personnel = sequelize.define(
       type: DataTypes.STRING(100),
       allowNull: true,
     },
+    personnel_status: {
+      type: DataTypes.STRING(30),
+      allowNull: true,
+      defaultValue: "active",
+    },
+    status_change_progress: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
     created_at: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,

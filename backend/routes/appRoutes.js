@@ -17,6 +17,10 @@ router.post("/api/apps", appController.addApp);
 // Update an existing app
 router.put("/api/apps/:id", verifyToken, appController.updateApp);
 
+// Get/update which users have access to a given app
+router.get("/api/apps/:id/access", verifyToken, appController.getAppAccess);
+router.put("/api/apps/:id/access", verifyToken, appController.updateAppAccess);
+
 // Delete an app
 router.delete("/api/apps/:id", appController.deleteApp);
 
