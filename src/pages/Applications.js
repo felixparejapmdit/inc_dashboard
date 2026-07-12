@@ -80,7 +80,13 @@ import {
   ToggleLeft,
   ToggleRight,
 } from "lucide-react";
-import { fetchData, postData, putData, deleteData } from "../utils/fetchData";
+import {
+  fetchData,
+  postData,
+  putData,
+  deleteData,
+  clearFetchCache,
+} from "../utils/fetchData";
 import { getAuthHeaders } from "../utils/apiHeaders";
 import SearchableCheckboxMultiSelect from "../components/SearchableCheckboxMultiSelect";
 
@@ -90,6 +96,15 @@ const MAX_ICON_SIZE_BYTES = 102400;
 const MotionBox = motion.create(Box);
 const isAppActive = (app) =>
   app?.is_active !== false && app?.is_active !== 0 && app?.is_active !== "0";
+const getAppAccessCount = (app) => Number(app?.access_count ?? 0) || 0;
+const normalizeAccessUserIds = (ids = []) =>
+  Array.from(
+    new Set(
+      (Array.isArray(ids) ? ids : [])
+        .map((id) => Number(id))
+        .filter((id) => Number.isFinite(id)),
+    ),
+  );
 
 const Applications = () => {
   const location = useLocation();
@@ -181,13 +196,7 @@ const Applications = () => {
 
           if (!cancelled) {
             setAccessUserIds(
-              Array.from(
-                new Set(
-                  (accessResponse?.data?.userIds || [])
-                    .map(Number)
-                    .filter((id) => Number.isFinite(id)),
-                ),
-              ),
+              normalizeAccessUserIds(accessResponse?.data?.userIds || []),
             );
           }
         } else if (!cancelled) {
@@ -221,6 +230,7 @@ const Applications = () => {
   const loadData = async () => {
     setIsLoading(true);
     try {
+      clearFetchCache();
       const [appsData, typesData] = await Promise.all([
         fetchData("apps"),
         fetchData("application-types"),
@@ -228,6 +238,7 @@ const Applications = () => {
       const normalizedApps = (appsData || []).map((app) => ({
         ...app,
         is_active: isAppActive(app),
+        access_count: getAppAccessCount(app),
       }));
       setApps(normalizedApps);
       setAppTypes(typesData || []);
@@ -314,6 +325,16 @@ const Applications = () => {
     setAccessUserIds([]);
   };
 
+  const handleAccessUserIdsChange = (nextIds) => {
+    setAccessUserIds(normalizeAccessUserIds(nextIds));
+  };
+
+  const handleRemoveAccessUser = (personId) => {
+    setAccessUserIds((prev) =>
+      normalizeAccessUserIds(prev).filter((id) => id !== Number(personId)),
+    );
+  };
+
   const handleSave = async () => {
     if (isSaving) return; // guard against double-submit (double-click / double Enter)
 
@@ -349,6 +370,7 @@ const Applications = () => {
     // Find the matching type name for display
     const typeName =
       appTypes.find((t) => String(t.id) === String(app_type))?.name || "";
+    const normalizedUserIds = normalizeAccessUserIds(accessUserIds);
 
     setIsSaving(true);
     try {
@@ -356,6 +378,7 @@ const Applications = () => {
 
       if (editingApp) {
         const result = await putData("apps", editingApp.id, payload);
+        savedAppId = result?.app?.id ?? result?.data?.id ?? editingApp.id;
         // ✅ Optimistic update: update the item in local state immediately
         const updatedApp = {
           ...editingApp,
@@ -363,6 +386,7 @@ const Applications = () => {
           is_active: result?.data?.is_active ?? payload.is_active,
           app_type_name: typeName,
           ...(result?.data || {}),
+          access_count: normalizedUserIds.length,
         };
         setApps((prev) =>
           prev.map((a) => (a.id === editingApp.id ? updatedApp : a)),
@@ -394,21 +418,24 @@ const Applications = () => {
           is_active: result?.data?.is_active ?? payload.is_active,
           app_type_name: typeName,
           ...(result?.data || {}),
+          access_count: normalizedUserIds.length,
         };
         setApps((prev) => [...prev, newApp]);
         toast({ title: "App added", status: "success" });
       }
 
-      try {
-        await putData("apps", `${savedAppId}/access`, {
-          userIds: accessUserIds,
-        });
-      } catch (accessError) {
-        toast({
-          title: "App saved, but access list failed to save",
-          description: accessError.message,
-          status: "warning",
-        });
+      if (savedAppId) {
+        try {
+          await putData("apps", `${savedAppId}/access`, {
+            userIds: normalizedUserIds,
+          });
+        } catch (accessError) {
+          toast({
+            title: "App saved, but access list failed to save",
+            description: accessError.message,
+            status: "warning",
+          });
+        }
       }
 
       resetForm();
@@ -416,24 +443,11 @@ const Applications = () => {
       // Re-fetch in background to sync any server-side computed fields
       loadData();
     } catch (error) {
-      const isNotFound = /not found/i.test(error.message || "");
-      if (isNotFound) {
-        toast({
-          title: "This app no longer exists",
-          description:
-            "It may have been changed or removed elsewhere. Refreshing the list.",
-          status: "error",
-        });
-        resetForm();
-        onClose();
-        loadData();
-      } else {
-        toast({
-          title: "Error saving app",
-          description: error.message,
-          status: "error",
-        });
-      }
+      toast({
+        title: "Error saving app",
+        description: error.message,
+        status: "error",
+      });
     } finally {
       setIsSaving(false);
     }
@@ -530,7 +544,7 @@ const Applications = () => {
       accessUserOptions.map((option) => [String(option.value), option]),
     );
 
-    return accessUserIds.map((id) => {
+    return normalizeAccessUserIds(accessUserIds).map((id) => {
       const option = optionMap.get(String(id));
 
       if (option) {
@@ -545,6 +559,11 @@ const Applications = () => {
       };
     });
   }, [accessUserOptions, accessUserIds]);
+
+  const selectedAccessCount = useMemo(
+    () => normalizeAccessUserIds(accessUserIds).length,
+    [accessUserIds],
+  );
 
   const totalPages = Math.ceil(filteredApps.length / ITEMS_PER_PAGE) || 1;
   const paginatedData = filteredApps.slice(
@@ -825,7 +844,7 @@ const Applications = () => {
                         </VStack>
                       </Box>
                       <VStack p={6} pt={8} spacing={3}>
-                        <VStack spacing={0}>
+                        <HStack spacing={2} justify="center" w="full" flexWrap="wrap">
                           <Heading
                             size="md"
                             textAlign="center"
@@ -834,6 +853,11 @@ const Applications = () => {
                           >
                             {app.name}
                           </Heading>
+                          <Text fontSize="xs" color="gray.500" whiteSpace="nowrap">
+                            ({getAppAccessCount(app)} personnel)
+                          </Text>
+                        </HStack>
+                        <VStack spacing={0}>
                           <Text
                             fontSize="xs"
                             color="blue.500"
@@ -843,15 +867,6 @@ const Applications = () => {
                             {app.url}
                           </Text>
                         </VStack>
-                        <Text
-                          fontSize="sm"
-                          color="gray.500"
-                          textAlign="center"
-                          noOfLines={2}
-                          minH="40px"
-                        >
-                          {app.description || "No description."}
-                        </Text>
                         <Divider />
                         <HStack spacing={2} w="full" justify="center">
                           <Tooltip label="Open">
@@ -957,17 +972,14 @@ const Applications = () => {
                               borderRadius="md"
                             />
                             <VStack align="start" spacing={0} overflow="hidden">
-                              <Text fontWeight="bold" isTruncated w="full">
-                                {app.name}
-                              </Text>
-                              <Text
-                                fontSize="xs"
-                                color="gray.500"
-                                isTruncated
-                                w="full"
-                              >
-                                {app.description}
-                              </Text>
+                              <HStack spacing={2} align="baseline" w="full">
+                                <Text fontWeight="bold" isTruncated>
+                                  {app.name}
+                                </Text>
+                                <Text fontSize="xs" color="gray.500" whiteSpace="nowrap">
+                                  ({getAppAccessCount(app)} personnel)
+                                </Text>
+                              </HStack>
                             </VStack>
                           </HStack>
                         </Td>
@@ -1237,12 +1249,12 @@ const Applications = () => {
                 </FormLabel>
                 <SearchableCheckboxMultiSelect
                   options={accessUserOptions}
-                  value={accessUserIds}
-                  onChange={setAccessUserIds}
+                  value={normalizeAccessUserIds(accessUserIds)}
+                  onChange={handleAccessUserIdsChange}
                   isLoading={accessLoading}
                   placeholder="Search personnel…"
                   summaryNoun="personnel selected"
-                  selectedCount={accessUserIds.length}
+                  selectedCount={selectedAccessCount}
                   formatOptionLabel={(option) => (
                     <HStack spacing={2}>
                       <Avatar
@@ -1268,8 +1280,7 @@ const Applications = () => {
                   )}
                 />
                 <Text fontSize="xs" color="gray.500" mt={1}>
-                  {accessUserIds.length} personnel currently have access to this
-                  app.
+                  {selectedAccessCount} personnel currently have access to this app.
                 </Text>
                 {selectedAccessPeople.length > 0 ? (
                   <>
@@ -1340,14 +1351,12 @@ const Applications = () => {
                               size="xs"
                               variant="ghost"
                               colorScheme="red"
+                              type="button"
                               aria-label={`Remove ${person.label}`}
-                              onClick={() =>
-                                setAccessUserIds((prev) =>
-                                  prev.filter(
-                                    (id) => String(id) !== String(person.value),
-                                  ),
-                                )
-                              }
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleRemoveAccessUser(person.value);
+                              }}
                             />
                           </Tooltip>
                         </HStack>

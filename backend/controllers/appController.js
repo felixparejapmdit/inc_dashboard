@@ -93,8 +93,23 @@ exports.getAllApps = async (req, res) => {
       ],
     });
 
+    const accessCounts = await sequelize.query(
+      `
+      SELECT app_id, COUNT(DISTINCT user_id) AS access_count
+      FROM available_apps
+      GROUP BY app_id
+      `,
+      { type: sequelize.QueryTypes.SELECT },
+    );
+    const accessCountMap = new Map(
+      accessCounts.map((row) => [Number(row.app_id), Number(row.access_count) || 0]),
+    );
+
     const transformedApps = apps.map((app) =>
-      serializeApp(app, app.applicationType ? app.applicationType.name : "Others"),
+      ({
+        ...serializeApp(app, app.applicationType ? app.applicationType.name : "Others"),
+        access_count: accessCountMap.get(Number(app.id)) || 0,
+      }),
     );
 
     res.json(transformedApps);
@@ -743,11 +758,15 @@ exports.updateApp = async (req, res) => {
       { where: { id: appId } }
     );
 
-    if (!updated) {
+    const updatedApp = await App.findByPk(appId);
+    if (!updatedApp) {
       return res.status(404).json({ message: "App not found." });
     }
 
-    const updatedApp = await App.findByPk(appId);
+    if (!updated) {
+      console.log(`App ${appId} save was a no-op; returning the current record.`);
+    }
+
     res.json({ message: "App updated successfully.", app: updatedApp });
   } catch (error) {
     console.error("Error updating app:", error);
