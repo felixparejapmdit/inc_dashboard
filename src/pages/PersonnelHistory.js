@@ -155,23 +155,23 @@ const PersonnelHistory = () => {
 
     return (
         <Box bg={bg} minH="100vh">
-            <Container maxW="100%" py={8} px={{ base: 4, md: 8 }}>
+        <Container maxW="100%" py={6} px={{ base: 4, md: 8 }}>
                 {/* Header Section */}
                 <Flex
                     direction={{ base: "column", md: "row" }}
                     justify="space-between"
                     align={{ base: "stretch", md: "center" }}
-                    mb={8}
-                    gap={4}
+                    mb={6}
+                    gap={3}
                 >
-                    <VStack align="start" spacing={1}>
+                    <VStack align="start" spacing={0}>
                         <HStack>
                             <Icon as={History} boxSize={8} color="blue.500" />
                             <Heading size="xl" bgGradient={headerGradient} bgClip="text" fontWeight="black" letterSpacing="tight">
-                                Personnel History
+                                Status History
                             </Heading>
                         </HStack>
-                        <Text color="gray.500" fontWeight="medium">See status changes for each person</Text>
+                        <Text color="gray.500" fontWeight="medium">See each person's changes</Text>
                     </VStack>
 
                     <HStack spacing={3}>
@@ -191,7 +191,7 @@ const PersonnelHistory = () => {
                                 <Search size={18} color="gray" />
                             </InputLeftElement>
                             <Input
-                                placeholder="Search name or action..."
+                                placeholder="Search name or note..."
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
                                 borderRadius="xl"
@@ -204,18 +204,18 @@ const PersonnelHistory = () => {
                 </Flex>
 
                 {/* Stats Grid */}
-                <SimpleGrid columns={{ base: 1, md: 4 }} spacing={6} mb={8}>
+                <SimpleGrid columns={{ base: 1, md: 4 }} spacing={4} mb={6}>
                     {[
-                        { label: "All Logs", value: stats.totalLogs, icon: Activity, color: "blue" },
-                        { label: "Active", value: stats.activeUsers, icon: UserCheck, color: "green" },
-                        { label: "Removed", value: stats.removedUsers, icon: UserMinus, color: "red" },
+                        { label: "Logs", value: stats.totalLogs, icon: Activity, color: "blue" },
+                        { label: "In", value: stats.activeUsers, icon: UserCheck, color: "green" },
+                        { label: "Out", value: stats.removedUsers, icon: UserMinus, color: "red" },
                         { label: "Checked", value: "Yes", icon: ShieldCheck, color: "purple" }
                     ].map(stat => (
                         <MotionBox
                             key={stat.label}
                             whileHover={{ y: -4 }}
                             bg={cardBg}
-                            p={5}
+                            p={4}
                             borderRadius="2xl"
                             boxShadow="sm"
                             border="1px solid"
@@ -240,18 +240,18 @@ const PersonnelHistory = () => {
 
                 {/* Content Section */}
                 {isLoading ? (
-                    <Center p={20} flexDir="column">
+                    <Center p={16} flexDir="column">
                         <Spinner size="xl" color="blue.500" thickness="4px" />
-                        <Text mt={4} fontWeight="bold" color="gray.500">Loading logs...</Text>
+                        <Text mt={4} fontWeight="bold" color="gray.500">Loading history...</Text>
                     </Center>
                 ) : filteredPersonnel.length === 0 ? (
-                    <Center p={20} flexDir="column" bg={cardBg} borderRadius="3xl" border="2px dashed" borderColor={borderColor}>
+                    <Center p={16} flexDir="column" bg={cardBg} borderRadius="3xl" border="2px dashed" borderColor={borderColor}>
                         <Icon as={AlertCircle} boxSize={12} color="gray.300" />
-                        <Heading size="md" mt={4} color="gray.500">No logs found</Heading>
-                        <Text color="gray.400">Try a different search</Text>
+                        <Heading size="md" mt={4} color="gray.500">No history</Heading>
+                        <Text color="gray.400">Try another search.</Text>
                     </Center>
                 ) : (
-                    <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={6}>
+                    <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={4}>
                         <AnimatePresence>
                             {filteredPersonnel.map((person) => (
                                 <MotionBox
@@ -260,7 +260,7 @@ const PersonnelHistory = () => {
                                     animate={{ opacity: 1, scale: 1 }}
                                     whileHover={{ y: -6, boxShadow: "xl" }}
                                     bg={cardBg}
-                                    p={6}
+                                        p={4}
                                     borderRadius="2xl"
                                     border="1px solid"
                                     borderColor={borderColor}
@@ -300,7 +300,7 @@ const PersonnelHistory = () => {
                                             <Text fontSize="xs" fontWeight="black" color="gray.400" textTransform="uppercase">Last action</Text>
                                             <Tag variant="ghost" size="sm" colorScheme="blue">
                                                 <TagLeftIcon as={ArrowUpRight} />
-                                                <TagLabel fontWeight="bold">{person.events.length} Entries</TagLabel>
+                                                <TagLabel fontWeight="bold">{person.events.length} Logs</TagLabel>
                                             </Tag>
                                         </HStack>
 
@@ -336,28 +336,28 @@ const PersonnelHistory = () => {
             <Modal isOpen={isOpen} onClose={onClose} size="2xl" isCentered scrollBehavior="inside">
                 <ModalOverlay backdropFilter="blur(8px)" bg="blackAlpha.400" />
                 <ModalContent borderRadius="3xl" shadow="2xl" border="1px solid" borderColor={borderColor}>
-                    <ModalHeader p={6} borderBottom="1px solid" borderColor={borderColor}>
+                    <ModalHeader p={4} borderBottom="1px solid" borderColor={borderColor}>
                         <Flex align="center" gap={6}>
                             <Avatar size="xl" name={selectedPersonnel?.fullname} src={`${API_URL}/api/personnel_images/2x2/${selectedPersonnel?.id}`} boxShadow="xl" />
                             <Box>
                                 <Heading size="lg" color="gray.800" fontWeight="black">{selectedPersonnel?.fullname}</Heading>
                                 <HStack mt={1} spacing={2}>
                                     <Badge colorScheme="blue" variant="solid" borderRadius="lg" px={3}>ID: {selectedPersonnel?.id}</Badge>
-                                    <Text fontSize="sm" color="gray.500" fontWeight="bold">History Log</Text>
+                                    <Text fontSize="sm" color="gray.500" fontWeight="bold">History</Text>
                                 </HStack>
                             </Box>
                         </Flex>
                     </ModalHeader>
                     <ModalCloseButton m={4} />
                     <ModalBody p={0} bg="gray.100/50">
-                        <VStack align="stretch" spacing={4} p={6}>
+                        <VStack align="stretch" spacing={3} p={4}>
                             {selectedPersonnel?.events.map((event, index) => (
                                 <MotionBox
                                     key={index}
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: index * 0.1 }}
-                                    p={6}
+                                    p={4}
                                     bg="white"
                                     borderRadius="2xl"
                                     shadow="sm"
@@ -367,9 +367,9 @@ const PersonnelHistory = () => {
                                 >
                                     <Flex gap={4}>
                                         <Box minW="100px" textAlign="right" borderRight="2px solid" borderColor="gray.100" pr={4}>
-                                            <Text fontWeight="black" fontSize="sm" color="gray.800">
-                                                {moment(event.timestamp).format("MMM DD")}
-                                            </Text>
+                                                <Text fontWeight="black" fontSize="sm" color="gray.800">
+                                                    {moment(event.timestamp).format("MMM DD")}
+                                                </Text>
                                             <Text fontSize="xs" color="gray.500" fontWeight="bold">
                                                 {moment(event.timestamp).format("h:mm A")}
                                             </Text>
@@ -386,12 +386,12 @@ const PersonnelHistory = () => {
                                                         {event.action === "In" ? "Active" : "Removed"}
                                                     </Badge>
                                                 </HStack>
-                                                <Text fontSize="xs" fontWeight="black" color="gray.400">By: {event.performed_by?.toUpperCase() || "SYSTEM"}</Text>
+                                                <Text fontSize="xs" fontWeight="black" color="gray.400">By {event.performed_by?.toUpperCase() || "SYSTEM"}</Text>
                                             </Flex>
 
                                             <Box bg="gray.50" p={4} borderRadius="xl" border="1px dashed" borderColor="gray.200">
                                                 <Text color="gray.700" fontSize="sm" lineHeight="tall" fontWeight="semibold">
-                                                    {event.reason || "No note provided."}
+                                                    {event.reason || "No note."}
                                                 </Text>
                                             </Box>
                                         </Box>

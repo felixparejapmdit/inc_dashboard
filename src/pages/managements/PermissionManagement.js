@@ -202,23 +202,23 @@ const PermissionManagement = () => {
 
   return (
     <Box bg={bg} minH="100vh">
-      <Container maxW="100%" py={8} px={{ base: 4, md: 8 }}>
+      <Container maxW="100%" py={6} px={{ base: 4, md: 8 }}>
         {/* Header */}
         <Flex
           direction={{ base: "column", md: "row" }}
           justify="space-between"
           align={{ base: "stretch", md: "center" }}
-          mb={8}
-          gap={4}
+          mb={6}
+          gap={3}
         >
-          <VStack align="start" spacing={1}>
+          <VStack align="start" spacing={0}>
             <HStack>
               <Icon as={Shield} boxSize={8} color="teal.500" />
               <Heading size="xl" bgGradient={headerGradient} bgClip="text" fontWeight="black" letterSpacing="tight">
                 Permissions
               </Heading>
             </HStack>
-            <Text color="gray.500" fontWeight="medium">View and manage permissions</Text>
+            <Text color="gray.500" fontWeight="medium">Manage access rules</Text>
           </VStack>
 
           <HStack spacing={3}>
@@ -231,7 +231,7 @@ const PermissionManagement = () => {
               boxShadow="lg"
               _hover={{ transform: "translateY(-2px)", boxShadow: "xl" }}
             >
-              Add Permission
+              Add
             </Button>
             <IconButton
               icon={<RefreshCw size={20} />}
@@ -250,9 +250,9 @@ const PermissionManagement = () => {
         </Flex>
 
         {/* Stats Grid */}
-        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6} mb={8}>
+        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4} mb={6}>
           {[
-            { label: "All Permissions", value: stats.total, icon: Lock, color: "teal" },
+            { label: "Total", value: stats.total, icon: Lock, color: "teal" },
             { label: "Categories", value: stats.categories, icon: Filter, color: "blue" },
             { label: "Shown", value: stats.active, icon: CheckCircle2, color: "purple" }
           ].map((stat, idx) => (
@@ -284,14 +284,14 @@ const PermissionManagement = () => {
         </SimpleGrid>
 
         {/* Filters */}
-        <Box bg={cardBg} p={6} borderRadius="2xl" shadow="sm" border="1px solid" borderColor={borderColor} mb={8}>
-          <HStack spacing={4} flexWrap="wrap">
+        <Box bg={cardBg} p={4} borderRadius="2xl" shadow="sm" border="1px solid" borderColor={borderColor} mb={6}>
+          <HStack spacing={3} flexWrap="wrap">
             <InputGroup maxW="400px">
               <InputLeftElement pointerEvents="none">
                 <Search size={18} color="gray" />
               </InputLeftElement>
               <Input
-                placeholder="Search permissions..."
+                placeholder="Search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 borderRadius="xl"
@@ -301,7 +301,7 @@ const PermissionManagement = () => {
             <Box w="300px">
               <Select
                 isMulti
-                placeholder="Filter by category"
+                placeholder="Category"
                 options={categories.map(c => ({ value: c.id, label: c.name }))}
                 value={selectedCategories}
                 onChange={setSelectedCategories}
@@ -350,20 +350,20 @@ const PermissionManagement = () => {
                 border="1px solid"
                 borderColor={borderColor}
                 overflow="hidden"
-                mb={6}
+                mb={4}
               >
-                <Box bg="gray.50" px={6} py={4} borderBottom="1px solid" borderColor={borderColor}>
+                <Box bg="gray.50" px={4} py={3} borderBottom="1px solid" borderColor={borderColor}>
                   <HStack>
                     <Icon as={Folder} color="teal.500" />
-                    <Text fontWeight="bold" fontSize="lg" color="gray.700">
+                    <Text fontWeight="bold" fontSize="md" color="gray.700">
                       {category.name} ({categoryPermissions.length})
                     </Text>
                   </HStack>
                 </Box>
 
                 {categoryPermissions.length === 0 ? (
-                  <Box p={6} textAlign="center" color="gray.500">
-                    <Text fontSize="sm">No permissions here yet.</Text>
+                  <Box p={4} textAlign="center" color="gray.500">
+                    <Text fontSize="sm">No items yet.</Text>
                   </Box>
                 ) : (
                   <Box overflowX="auto">
@@ -371,8 +371,8 @@ const PermissionManagement = () => {
                       <Thead>
                         <Tr>
                           <Th>Permission</Th>
-                          <Th>Description</Th>
-                          <Th textAlign="right">Actions</Th>
+                          <Th>Note</Th>
+                          <Th textAlign="right">Action</Th>
                         </Tr>
                       </Thead>
                       <Tbody>
@@ -402,7 +402,7 @@ const PermissionManagement = () => {
                               </Td>
                               <Td>
                                 <Text fontSize="sm" color="gray.500">
-                                  {perm.description || "N/A"}
+                                  {perm.description || "—"}
                                 </Text>
                               </Td>
                               <Td textAlign="right">
@@ -445,23 +445,23 @@ const PermissionManagement = () => {
         <ModalOverlay backdropFilter="blur(8px)" />
         <ModalContent borderRadius="3xl">
           <ModalHeader bgGradient={headerGradient} color="white" borderTopRadius="3xl">
-            {modalType === 'add' ? "New Permission" : "Edit Permission"}
+            {modalType === 'add' ? "New" : "Edit"}
           </ModalHeader>
           <ModalCloseButton color="white" />
-          <ModalBody p={8}>
-            <VStack spacing={6}>
-              <Box bg="teal.50" p={4} borderRadius="xl" w="full" display="flex" alignItems="center" gap={4}>
+          <ModalBody p={6}>
+            <VStack spacing={4}>
+              <Box bg="teal.50" p={3} borderRadius="xl" w="full" display="flex" alignItems="center" gap={3}>
                 <Icon as={Unlock} boxSize={8} color="teal.500" />
                 <VStack align="start" spacing={0}>
-                  <Text fontWeight="bold" color="teal.700">Permission Details</Text>
-                  <Text fontSize="xs" color="teal.500">Define the scope and category for this permission key.</Text>
+                  <Text fontWeight="bold" color="teal.700">Details</Text>
+                  <Text fontSize="xs" color="teal.500">Set the name and group.</Text>
                 </VStack>
               </Box>
 
               <FormControl isRequired>
-                <FormLabel fontWeight="bold" fontSize="sm">Permission</FormLabel>
+                <FormLabel fontWeight="bold" fontSize="sm">Name</FormLabel>
                 <Input
-                  placeholder="e.g. view dashboard"
+                  placeholder="e.g. view page"
                   value={formState.name}
                   onChange={(e) => setFormState({ ...formState, name: e.target.value })}
                   borderRadius="xl"
@@ -481,9 +481,9 @@ const PermissionManagement = () => {
               </FormControl>
 
               <FormControl>
-                <FormLabel fontWeight="bold" fontSize="sm">Description</FormLabel>
+                <FormLabel fontWeight="bold" fontSize="sm">Note</FormLabel>
                 <Textarea
-                  placeholder="What this permission does..."
+                  placeholder="Short note"
                   value={formState.description}
                   onChange={(e) => setFormState({ ...formState, description: e.target.value })}
                   borderRadius="xl"
@@ -491,10 +491,10 @@ const PermissionManagement = () => {
               </FormControl>
             </VStack>
           </ModalBody>
-          <ModalFooter bg="gray.50" borderBottomRadius="3xl" p={6}>
+          <ModalFooter bg="gray.50" borderBottomRadius="3xl" p={5}>
             <Button variant="ghost" mr={3} onClick={onClose} borderRadius="xl">Cancel</Button>
             <Button colorScheme="teal" onClick={handleSubmit} borderRadius="xl" px={8}>
-              {modalType === 'add' ? "Save Permission" : "Save Permission"}
+              Save
             </Button>
           </ModalFooter>
         </ModalContent>
@@ -510,10 +510,10 @@ const PermissionManagement = () => {
         <AlertDialogOverlay backdropFilter="blur(4px)" />
         <AlertDialogContent borderRadius="2xl">
           <AlertDialogHeader fontSize="lg" fontWeight="bold">
-            Delete Permission
+            Delete permission
           </AlertDialogHeader>
           <AlertDialogBody>
-            Delete <b>{deletingPermission?.name}</b>? This cannot be undone.
+            Delete <b>{deletingPermission?.name}</b>? This can't be undone.
           </AlertDialogBody>
           <AlertDialogFooter>
             <Button ref={cancelRef} onClick={() => setDeletingPermission(null)} borderRadius="xl">

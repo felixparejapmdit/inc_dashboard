@@ -100,7 +100,23 @@ const parseSuguanDateTime = (date, time) => {
   return Number.isNaN(fallback.getTime()) ? Number.POSITIVE_INFINITY : fallback.getTime();
 };
 
+const SUGUAN_TIME_FORMATS = [
+  "HH:mm:ss",
+  "HH:mm",
+  "hh:mm A",
+  "h:mm A",
+  "hh:mm a",
+  "h:mm a",
+];
+
+const parseSuguanTime = (value) => moment(String(value || "").trim(), SUGUAN_TIME_FORMATS, true);
+
 const formatSuguanTimeForInput = (date, time) => {
+  const directTime = parseSuguanTime(time);
+  if (directTime.isValid()) {
+    return directTime.format("HH:mm");
+  }
+
   const datePart = String(date || "").trim();
   const timePart = String(time || "").trim();
   const candidate = `${datePart} ${timePart}`;
@@ -124,14 +140,7 @@ const formatSuguanTimeForInput = (date, time) => {
 
 const formatSuguanTimeDisplay = (time) => {
   const timePart = String(time || "").trim();
-  const parsed = moment(timePart, [
-    "HH:mm:ss",
-    "HH:mm",
-    "hh:mm A",
-    "h:mm A",
-    "hh:mm a",
-    "h:mm a",
-  ], true);
+  const parsed = parseSuguanTime(timePart);
 
   if (parsed.isValid()) {
     return parsed.format("hh:mm A");

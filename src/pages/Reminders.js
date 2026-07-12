@@ -158,7 +158,7 @@ const Reminders = () => {
     if (!title || !reminderDate || !time) {
       toast({
         title: "Please fill in all required fields",
-        description: "Add a title, date, and time.",
+        description: "Fill in title, date, and time.",
         status: "warning",
       });
       return;
@@ -272,31 +272,31 @@ const Reminders = () => {
     if (reminderDate.isSame(today)) {
       return <Badge colorScheme="orange" variant="solid" borderRadius="full" px={3} py={0.5} fontWeight="black" textTransform="uppercase">Today</Badge>;
     } else if (reminderDate.isBefore(today)) {
-      return <Badge colorScheme="red" variant="subtle" borderRadius="full" px={3} py={0.5} fontWeight="black" textTransform="uppercase">Past Due</Badge>;
+      return <Badge colorScheme="red" variant="subtle" borderRadius="full" px={3} py={0.5} fontWeight="black" textTransform="uppercase">Overdue</Badge>;
     } else {
-      return <Badge colorScheme="teal" variant="outline" borderRadius="full" px={3} py={0.5} fontWeight="black" textTransform="uppercase">Upcoming</Badge>;
+      return <Badge colorScheme="teal" variant="outline" borderRadius="full" px={3} py={0.5} fontWeight="black" textTransform="uppercase">Soon</Badge>;
     }
   };
 
   return (
     <Box bg={bg} minH="100vh">
-      <Container maxW="100%" py={8} px={{ base: 4, md: 8 }}>
+      <Container maxW="100%" py={6} px={{ base: 4, md: 8 }}>
         {/* Header Section */}
         <Flex
           direction={{ base: "column", md: "row" }}
           justify="space-between"
           align={{ base: "stretch", md: "center" }}
-          mb={10}
-          gap={4}
+          mb={6}
+          gap={3}
         >
-          <VStack align="start" spacing={1}>
+          <VStack align="start" spacing={0}>
             <HStack>
               <Icon as={Bell} boxSize={8} color="orange.500" />
               <Heading size="xl" bgGradient="linear(to-r, orange.400, red.500)" bgClip="text" fontWeight="black" letterSpacing="tight">
                 Reminders
               </Heading>
             </HStack>
-            <Text color="gray.500" fontWeight="medium">Keep track of your tasks</Text>
+            <Text color="gray.500" fontWeight="medium">Track tasks</Text>
           </VStack>
 
           <Button
@@ -312,14 +312,14 @@ const Reminders = () => {
               boxShadow: "0 12px 20px -4px rgba(251, 146, 60, 0.3)",
             }}
           >
-            Add Reminder
+            Add
           </Button>
         </Flex>
 
         {/* Stats Row */}
-        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6} mb={10}>
+        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4} mb={6}>
           {[
-            { label: "All Reminders", value: stats.total, color: "blue.500", icon: Bell },
+            { label: "All", value: stats.total, color: "blue.500", icon: Bell },
             { label: "Today", value: stats.today, color: "orange.500", icon: Clock },
             { label: "Soon", value: stats.upcoming, color: "teal.500", icon: Calendar }
           ].map((stat, idx) => (
@@ -336,8 +336,8 @@ const Reminders = () => {
         {/* Toolbar Section */}
         <Stack
           direction={{ base: "column", md: "row" }}
-          spacing={6}
-          mb={8}
+          spacing={4}
+          mb={6}
           align="center"
           justify="space-between"
           w="full"
@@ -347,7 +347,7 @@ const Reminders = () => {
               <Icon as={Search} color="gray.400" />
             </InputLeftElement>
             <Input
-              placeholder="Search reminders..."
+              placeholder="Search"
               bg={cardBg}
               borderRadius="2xl"
               value={searchQuery}
@@ -367,10 +367,10 @@ const Reminders = () => {
               setFilterType(types[index]);
             }}
           >
-            <TabList bg={cardBg} p={1.5} borderRadius="2xl" boxShadow="xs" border="1px solid" borderColor={borderColor}>
+            <TabList bg={cardBg} p={1} borderRadius="2xl" boxShadow="xs" border="1px solid" borderColor={borderColor}>
               <Tab px={6} fontWeight="bold">All</Tab>
               <Tab px={6} fontWeight="bold">Today</Tab>
-              <Tab px={6} fontWeight="bold">Upcoming</Tab>
+              <Tab px={6} fontWeight="bold">Soon</Tab>
               <Tab px={6} fontWeight="bold">Past</Tab>
             </TabList>
           </Tabs>
@@ -395,7 +395,7 @@ const Reminders = () => {
                   exit={{ opacity: 0, scale: 0.95 }}
                   whileHover={{ y: -8, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
                   bg={cardBg}
-                  p={8}
+                  p={6}
                   borderRadius="3xl"
                   boxShadow="lg"
                   border="1px solid"
@@ -420,7 +420,7 @@ const Reminders = () => {
                         {item.title}
                       </Heading>
                       <Text fontSize="sm" color="gray.500" noOfLines={3} fontWeight="medium" lineHeight="tall">
-                        {item.description || "No details yet."}
+                        {item.description || "No details."}
                       </Text>
                     </Box>
 
@@ -493,9 +493,9 @@ const Reminders = () => {
               textAlign="center"
             >
               <Icon as={AlertTriangle} boxSize={16} color="orange.200" />
-              <Heading size="lg" mt={6} color="gray.700" fontWeight="black">No reminders found</Heading>
-              <Text color="gray.400" fontSize="lg" mt={2} maxW="md">Try another filter or add a new reminder.</Text>
-              <Button mt={8} colorScheme="orange" onClick={handleOpenAdd} size="lg" borderRadius="2xl" px={10}>Add Reminder</Button>
+              <Heading size="lg" mt={6} color="gray.700" fontWeight="black">No reminders</Heading>
+              <Text color="gray.400" fontSize="lg" mt={2} maxW="md">Try another filter or add one.</Text>
+              <Button mt={8} colorScheme="orange" onClick={handleOpenAdd} size="lg" borderRadius="2xl" px={10}>Add</Button>
             </MotionBox>
           )}
         </AnimatePresence>
@@ -514,10 +514,10 @@ const Reminders = () => {
             <VStack align="start" spacing={1}>
               <HStack>
                 <Icon as={Bell} />
-                <Heading size="md">{editingReminder ? "Edit Reminder" : "New Reminder"}</Heading>
+                <Heading size="md">{editingReminder ? "Edit" : "New"}</Heading>
               </HStack>
               <Text fontSize="sm" fontWeight="normal" opacity={0.9}>
-                {editingReminder ? "Update the reminder." : "Add a new reminder."}
+                {editingReminder ? "Update it." : "Add one."}
               </Text>
             </VStack>
           </ModalHeader>
@@ -541,7 +541,7 @@ const Reminders = () => {
               </FormControl>
 
               <FormControl>
-                <FormLabel fontWeight="900" fontSize="xs" textTransform="uppercase" letterSpacing="widest" color="gray.600">Description</FormLabel>
+                <FormLabel fontWeight="900" fontSize="xs" textTransform="uppercase" letterSpacing="widest" color="gray.600">Note</FormLabel>
                 <Input
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -611,7 +611,7 @@ const Reminders = () => {
               fontWeight="black"
               boxShadow="0 10px 20px -5px rgba(251, 146, 60, 0.4)"
             >
-              {editingReminder ? "Save Reminder" : "Save Reminder"}
+              Save
             </Button>
           </ModalFooter>
         </ModalContent>

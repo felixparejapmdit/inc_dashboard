@@ -149,27 +149,27 @@ const TemporarilyDeletedUsers = () => {
 
   return (
     <Box bg={bg} minH="100vh">
-      <Container maxW="100%" py={8} px={{ base: 4, md: 8 }}>
+      <Container maxW="100%" py={6} px={{ base: 4, md: 8 }}>
         {/* Header Section */}
         <Flex
           direction={{ base: "column", md: "row" }}
           justify="space-between"
           align={{ base: "stretch", md: "center" }}
-          mb={8}
-          gap={4}
+          mb={6}
+          gap={3}
         >
-          <VStack align="start" spacing={1}>
+          <VStack align="start" spacing={0}>
             <HStack>
               <Icon as={Trash2} boxSize={8} color="red.500" />
               <Heading size="xl" bgGradient={headerGradient} bgClip="text" fontWeight="black" letterSpacing="tight">
-                Recovery Archive
+                Deleted Personnel
               </Heading>
             </HStack>
-            <Text color="gray.500" fontWeight="medium">Reinstate previously removed personnel records and account data</Text>
+            <Text color="gray.500" fontWeight="medium">Restore removed personnel</Text>
           </VStack>
 
           <HStack spacing={3}>
-            <Tooltip label="Reload Archive" hasArrow>
+            <Tooltip label="Refresh" hasArrow>
               <IconButton
                 icon={<RotateCcw size={20} />}
                 onClick={loadDeletedUsers}
@@ -185,7 +185,7 @@ const TemporarilyDeletedUsers = () => {
                 <Search size={18} color="gray" />
               </InputLeftElement>
               <Input
-                placeholder="Search by name..."
+                placeholder="Search name"
                 value={search}
                 onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
                 borderRadius="xl"
@@ -198,11 +198,11 @@ const TemporarilyDeletedUsers = () => {
         </Flex>
 
         {/* Stats Grid */}
-        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6} mb={8}>
+        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4} mb={6}>
           {[
-            { label: "Archived Records", value: stats.total, icon: UserX, color: "red" },
-            { label: "Matching Search", value: stats.filtered, icon: Activity, color: "orange" },
-            { label: "Archive Status", value: "Locked", icon: ShieldAlert, color: "purple" }
+            { label: "Deleted", value: stats.total, icon: UserX, color: "red" },
+            { label: "Matches", value: stats.filtered, icon: Activity, color: "orange" },
+            { label: "Status", value: "Locked", icon: ShieldAlert, color: "purple" }
           ].map(stat => (
             <MotionBox
               key={stat.label}
@@ -240,28 +240,28 @@ const TemporarilyDeletedUsers = () => {
           borderColor={borderColor}
           overflow="hidden"
         >
-          {isLoading ? (
-            <Center p={20} flexDir="column">
-              <Spinner size="xl" color="red.500" thickness="4px" />
-              <Text mt={4} fontWeight="bold" color="gray.500">Scanning archive index...</Text>
-            </Center>
-          ) : filteredUsers.length === 0 ? (
-            <Center p={20} flexDir="column">
-              <Icon as={AlertCircle} boxSize={12} color="gray.300" />
-              <Heading size="md" mt={4} color="gray.500">Archive Empty</Heading>
-              <Text color="gray.400">No personnel records found in the recovery archive</Text>
-            </Center>
-          ) : (
+        {isLoading ? (
+          <Center p={20} flexDir="column">
+            <Spinner size="xl" color="red.500" thickness="4px" />
+            <Text mt={4} fontWeight="bold" color="gray.500">Loading records...</Text>
+          </Center>
+        ) : filteredUsers.length === 0 ? (
+          <Center p={20} flexDir="column">
+            <Icon as={AlertCircle} boxSize={12} color="gray.300" />
+            <Heading size="md" mt={4} color="gray.500">No records</Heading>
+            <Text color="gray.400">No deleted personnel found.</Text>
+          </Center>
+        ) : (
             <>
               <Box overflowX="auto">
                 <Table variant="simple" style={{ tableLayout: "fixed" }}>
                   <Thead bg="gray.50">
                     <Tr>
-                      <Th p={6} width="22%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Personnel Identity</Th>
-                      <Th p={6} width="13%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Middle Designation</Th>
-                      <Th p={6} width="13%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Surname (Husband)</Th>
-                      <Th p={6} width="32%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Removal Reason</Th>
-                      <Th p={6} width="20%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest" textAlign="right">Record Actions</Th>
+                      <Th p={6} width="22%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Name</Th>
+                      <Th p={6} width="13%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Middle</Th>
+                      <Th p={6} width="13%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Surname</Th>
+                      <Th p={6} width="32%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest">Reason</Th>
+                      <Th p={6} width="20%" color="gray.600" fontSize="xs" fontWeight="black" textTransform="uppercase" letterSpacing="widest" textAlign="right">Action</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
@@ -369,7 +369,7 @@ const TemporarilyDeletedUsers = () => {
                 </HStack>
                 <HStack spacing={3}>
                   <Text fontSize="sm" fontWeight="bold" color="gray.500">
-                    Showing {(currentPage - 1) * limit + 1} to {Math.min(currentPage * limit, filteredUsers.length)} of {filteredUsers.length} archived entries
+                    Showing {(currentPage - 1) * limit + 1} to {Math.min(currentPage * limit, filteredUsers.length)} of {filteredUsers.length}
                   </Text>
                   <Select
                     size="sm"
@@ -378,7 +378,7 @@ const TemporarilyDeletedUsers = () => {
                     value={limit}
                     onChange={e => { setLimit(Number(e.target.value)); setCurrentPage(1) }}
                   >
-                    {[5, 10, 20, 50].map(val => <option key={val} value={val}>{val} per page</option>)}
+                    {[5, 10, 20, 50].map(val => <option key={val} value={val}>{val} / page</option>)}
                   </Select>
                 </HStack>
               </Flex>
@@ -397,17 +397,16 @@ const TemporarilyDeletedUsers = () => {
         <AlertDialogOverlay backdropFilter="blur(8px)" bg="blackAlpha.400">
           <AlertDialogContent borderRadius="2xl" shadow="2xl">
             <AlertDialogHeader fontSize="xl" fontWeight="black" color="green.500">
-              Confirm Restoration
+              Restore personnel
             </AlertDialogHeader>
 
             <AlertDialogBody fontWeight="medium">
-              You are about to reinstate <Text as="span" fontWeight="black">"{selectedUser?.givenname} {selectedUser?.middlename} {selectedUser?.surname_husband}"</Text>.
-              This will restore their access and active status in the system.
+              Restore <Text as="span" fontWeight="black">"{selectedUser?.givenname} {selectedUser?.middlename} {selectedUser?.surname_husband}"</Text>?
             </AlertDialogBody>
 
             <AlertDialogFooter gap={3}>
               <Button ref={cancelRef} onClick={onClose} borderRadius="xl" variant="ghost">
-                Abort
+                Cancel
               </Button>
               <Button
                 colorScheme="green"
@@ -416,7 +415,7 @@ const TemporarilyDeletedUsers = () => {
                 px={10}
                 boxShadow="lg"
               >
-                Yes, Restore
+                Restore
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>

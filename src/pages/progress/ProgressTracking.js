@@ -77,14 +77,14 @@ import { usePermissionContext } from "../../contexts/PermissionContext";
 const API_URL = process.env.REACT_APP_API_URL;
 
 const stages = [
-  "Report to the Section Chief",
-  "Report to the Building Admin Office",
-  "Report to the Building Security Overseer",
-  "Report to PMD IT",
-  "Report to ATG Office 1 for Photoshoot",
-  "Report to ATG Office 2 for Confidentiality",
-  "Submit forms to ATG Office for Approval",
-  "Report to the Personnel Office to get the ID",
+  "Section Chief",
+  "Building Admin",
+  "Security",
+  "PMD IT",
+  "ATG Photos",
+  "Confidentiality",
+  "Forms Approval",
+  "Personnel Office",
 ];
 
 
@@ -395,18 +395,18 @@ const ProgressTracking = () => {
       {/* Use full width container if needed, or keeping it cleaner maxW="full" */}
       <Box maxW="full" mx="auto">
         {/* Header Section */}
-        <VStack spacing={6} align="stretch" mb={8}>
+        <VStack spacing={4} align="stretch" mb={6}>
           <Flex justifyContent="space-between" alignItems="center" wrap="wrap" gap={4}>
             <VStack align="start" spacing={0}>
               <Heading size="lg" bgGradient="linear(to-r, orange.400, red.500)" bgClip="text" fontWeight="extrabold">
-                Personnel Tracker
+                Personnel Status
               </Heading>
-              <Text color="gray.500" fontSize="sm">Monitor and manage enrollment progress</Text>
+              <Text color="gray.500" fontSize="sm">Track each person's step</Text>
             </VStack>
 
             <HStack spacing={3} w={{ base: "full", md: "auto" }}>
               <Input
-                placeholder="Search personnel..."
+                placeholder="Search"
                 value={search}
                 onChange={handleSearch}
                 bg="white"
@@ -448,13 +448,13 @@ const ProgressTracking = () => {
                 shadow="sm"
                 _hover={{ transform: "translateY(-1px)", shadow: "md" }}
               >
-                Start Step
+                Open Step 1
               </Button>
             </HStack>
           </Flex>
 
           {/* Stats Section (Compact) */}
-          <SimpleGrid columns={{ base: 1, sm: 3, md: 4 }} spacing={4}>
+          <SimpleGrid columns={{ base: 1, sm: 3, md: 4 }} spacing={3}>
             <Stat
               px={4} py={3}
               bg="white"
@@ -463,7 +463,7 @@ const ProgressTracking = () => {
               borderLeft="4px solid"
               borderColor="orange.400"
             >
-              <StatLabel color="gray.500" fontSize="xs" fontWeight="bold">PENDING REQUESTS</StatLabel>
+              <StatLabel color="gray.500" fontSize="xs" fontWeight="bold">PENDING</StatLabel>
               <PersonnelListPopover items={pendingUsersAll} label="Pending Requests">
                 <StatNumber fontSize="2xl" fontWeight="bold" _hover={{ color: "orange.500", transition: "color 0.2s" }}>
                   {totalRequests}
@@ -479,7 +479,7 @@ const ProgressTracking = () => {
               borderLeft="4px solid"
               borderColor="green.400"
             >
-              <StatLabel color="gray.500" fontSize="xs" fontWeight="bold">COMPLETED</StatLabel>
+              <StatLabel color="gray.500" fontSize="xs" fontWeight="bold">DONE</StatLabel>
               <PersonnelListPopover items={completedUsersAll} label="Completed Personnel">
                 <StatNumber fontSize="2xl" fontWeight="bold" _hover={{ color: "green.500", transition: "color 0.2s" }}>
                   {totalCompleted}
@@ -492,7 +492,7 @@ const ProgressTracking = () => {
         {/* Content Area */}
         {pendingUsersAll.length === 0 && completedUsersAll.length === 0 ? (
           <Flex justify="center" align="center" h="200px" bg="white" rounded="lg" shadow="sm">
-            <Text color="gray.500">No personnel found matching your search.</Text>
+            <Text color="gray.500">No personnel found.</Text>
           </Flex>
         ) : (
           <VStack spacing={8} align="stretch">
@@ -500,9 +500,9 @@ const ProgressTracking = () => {
             {/* PENDING / IN PROGRESS SECTION */}
             {pendingUsers.length > 0 && (
               <Box>
-                <Heading size="md" mb={4} color="orange.600">Pending / In Progress</Heading>
+                <Heading size="md" mb={3} color="orange.600">Pending</Heading>
                 {viewMode === "grid" ? (
-                  <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={6}>
+                  <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={4}>
                     {pendingUsers.map((user, index) => (
                       <Card
                         key={`pending-${user.id}-${index}`}
@@ -532,7 +532,7 @@ const ProgressTracking = () => {
                           </Flex>
                         </CardHeader>
 
-                        <CardBody py={3}>
+                          <CardBody py={3}>
                           <Flex justify="space-between" align="center">
                             <Badge
                               colorScheme="orange"
@@ -540,7 +540,7 @@ const ProgressTracking = () => {
                               rounded="full"
                               px={2}
                               fontSize="xx-small"
-                            >
+                              >
                               IN PROGRESS
                             </Badge>
                             <Text fontSize="xs" fontWeight="bold" color="gray.400">Step {user.personnel_progress || 0}</Text>

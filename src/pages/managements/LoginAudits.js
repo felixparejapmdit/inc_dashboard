@@ -291,22 +291,22 @@ const LoginAudits = () => {
 
   return (
     <Box bg={bg} minH="100vh">
-      <Container maxW="100%" py={8} px={{ base: 4, md: 8 }}>
+      <Container maxW="100%" py={6} px={{ base: 4, md: 8 }}>
         <Flex
           direction={{ base: "column", md: "row" }}
           justify="space-between"
           align={{ base: "stretch", md: "center" }}
-          mb={8}
-          gap={4}
+          mb={6}
+          gap={3}
         >
-          <VStack align="start" spacing={1}>
+          <VStack align="start" spacing={0}>
             <HStack>
               <Icon as={ShieldCheck} boxSize={8} color="purple.500" />
               <Heading size="xl" bgGradient={headerGradient} bgClip="text" fontWeight="black" letterSpacing="tight">
-                Login History
+                Logins
               </Heading>
             </HStack>
-            <Text color="gray.500" fontWeight="medium">See who logged in and when</Text>
+            <Text color="gray.500" fontWeight="medium">See recent logins</Text>
           </VStack>
 
           <HStack spacing={3}>
@@ -322,11 +322,11 @@ const LoginAudits = () => {
                 Export
               </MenuButton>
               <MenuList borderRadius="xl" shadow="xl" border="1px solid" borderColor={borderColor}>
-                <MenuItem icon={<FileText size={16} />} onClick={() => handleExportReport("filtered")}>Current view</MenuItem>
+                <MenuItem icon={<FileText size={16} />} onClick={() => handleExportReport("filtered")}>Current</MenuItem>
                 <Divider my={2} />
-                <MenuItem icon={<Calendar size={16} />} onClick={() => handleExportReport("weekly")}>Last 7 days</MenuItem>
-                <MenuItem icon={<Calendar size={16} />} onClick={() => handleExportReport("monthly")}>Last 30 days</MenuItem>
-                <MenuItem icon={<Calendar size={16} />} onClick={() => handleExportReport("yearly")}>This year</MenuItem>
+                <MenuItem icon={<Calendar size={16} />} onClick={() => handleExportReport("weekly")}>7 days</MenuItem>
+                <MenuItem icon={<Calendar size={16} />} onClick={() => handleExportReport("monthly")}>30 days</MenuItem>
+                <MenuItem icon={<Calendar size={16} />} onClick={() => handleExportReport("yearly")}>Year</MenuItem>
               </MenuList>
             </Menu>
 
@@ -344,12 +344,12 @@ const LoginAudits = () => {
         </Flex>
 
         {/* Stats Grid */}
-        <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} spacing={6} mb={8}>
+        <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} spacing={4} mb={6}>
           {[
-            { label: "All Sessions", value: stats.total, icon: Activity, color: "blue", mode: null },
-            { label: "Today's Logins", value: stats.today, icon: Clock, color: "green", mode: "today" },
-            { label: "Unique Users", value: stats.unique, icon: UsersIcon, color: "purple", mode: "unique" },
-            { label: "Mobile Logins", value: stats.mobile, icon: Monitor, color: "orange", mode: null },
+            { label: "All", value: stats.total, icon: Activity, color: "blue", mode: null },
+            { label: "Today", value: stats.today, icon: Clock, color: "green", mode: "today" },
+            { label: "Users", value: stats.unique, icon: UsersIcon, color: "purple", mode: "unique" },
+            { label: "Mobile", value: stats.mobile, icon: Monitor, color: "orange", mode: null },
           ].map(stat => (
             <MotionBox
               key={stat.label}
@@ -385,16 +385,16 @@ const LoginAudits = () => {
         </SimpleGrid>
 
         {/* Action Panel */}
-        <Box bg={cardBg} p={6} borderRadius="2xl" shadow="sm" border="1px solid" borderColor={borderColor} mb={8}>
-          <SimpleGrid columns={{ base: 1, md: 5 }} spacing={4} align="end">
+        <Box bg={cardBg} p={4} borderRadius="2xl" shadow="sm" border="1px solid" borderColor={borderColor} mb={6}>
+          <SimpleGrid columns={{ base: 1, md: 5 }} spacing={3} align="end">
             <Box gridColumn={{ base: "span 1", md: "span 2" }}>
-              <FormLabel fontSize="xs" fontWeight="black" color="gray.500" textTransform="uppercase">Filter by person</FormLabel>
+              <FormLabel fontSize="xs" fontWeight="black" color="gray.500" textTransform="uppercase">Person</FormLabel>
               <ReactSelect
                 options={personnelOptions}
                 onChange={(opt) => setSelectedPersonnelId(opt ? opt.value : "")}
                 value={personnelOptions.find(o => String(o.value) === String(selectedPersonnelId))}
                 styles={customSelectStyles}
-                placeholder="Search person..."
+                placeholder="Search"
                 isClearable
               />
             </Box>
@@ -417,7 +417,7 @@ const LoginAudits = () => {
                 value={selectedMonth}
                 onChange={e => setSelectedMonth(e.target.value)}
                 borderRadius="xl"
-                placeholder="All months"
+                placeholder="Month"
               >
                 {moment.months().map((m, i) => (
                   <option key={m} value={String(i + 1).padStart(2, "0")}>{m}</option>
@@ -431,7 +431,7 @@ const LoginAudits = () => {
                 value={selectedYear}
                 onChange={e => setSelectedYear(e.target.value)}
                 borderRadius="xl"
-                placeholder="All years"
+                placeholder="Year"
               >
                 {[...Array(5)].map((_, i) => {
                   const y = moment().year() - i;
@@ -441,15 +441,15 @@ const LoginAudits = () => {
             </Box>
           </SimpleGrid>
 
-          <Divider my={6} />
+          <Divider my={4} />
 
-          <Flex justify="space-between" align="center" direction={{ base: "column", sm: "row" }} gap={4}>
+          <Flex justify="space-between" align="center" direction={{ base: "column", sm: "row" }} gap={3}>
             <InputGroup maxW="400px">
               <InputLeftElement pointerEvents="none">
                 <Search size={18} color="gray" />
               </InputLeftElement>
               <Input
-                placeholder="Search device or browser..."
+                placeholder="Search"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 borderRadius="xl"
@@ -459,7 +459,7 @@ const LoginAudits = () => {
 
             <HStack spacing={6}>
               <HStack spacing={2}>
-                <Text fontSize="xs" fontWeight="black" color="gray.500" textTransform="uppercase">Live Sync</Text>
+                <Text fontSize="xs" fontWeight="black" color="gray.500" textTransform="uppercase">Auto</Text>
                 <Switch
                   isChecked={autoRefresh}
                   onChange={e => setAutoRefresh(e.target.checked)}
@@ -468,14 +468,14 @@ const LoginAudits = () => {
                 />
               </HStack>
               <Button leftIcon={<AlertCircle size={16} />} variant="ghost" colorScheme="red" size="sm" onClick={resetFilters}>
-                Clear filters
+                Clear
               </Button>
             </HStack>
           </Flex>
 
           {lastUpdated && (
             <Text mt={4} fontSize="2xs" color="gray.400" fontWeight="bold" textTransform="uppercase">
-              Last update: {moment(lastUpdated).format("h:mm:ss A")} ({secondsAgo}s ago)
+              Updated: {moment(lastUpdated).format("h:mm:ss A")} ({secondsAgo}s ago)
             </Text>
           )}
         </Box>
@@ -497,8 +497,8 @@ const LoginAudits = () => {
           ) : filteredAudits.length === 0 ? (
             <Center p={20} flexDir="column">
               <Icon as={AlertCircle} boxSize={12} color="gray.300" />
-              <Heading size="md" mt={4} color="gray.500">No logs found</Heading>
-              <Text color="gray.400">Try adjusting your filters or search query</Text>
+              <Heading size="md" mt={4} color="gray.500">No records</Heading>
+              <Text color="gray.400">Try another filter.</Text>
             </Center>
           ) : (
             <>

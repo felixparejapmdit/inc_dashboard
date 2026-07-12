@@ -454,7 +454,7 @@ function TaskModal({ isOpen, onClose, categories, onSaved, initial, currentWeek 
       <ModalContent borderRadius="2xl" overflow="hidden" border={`2px solid ${T.amber}`}>
         <ModalHeader bg={T.corpBlue} color="white" fontWeight="900" fontSize="md"
           letterSpacing="0.06em" textTransform="uppercase">
-          {initial ? (isSuguanTask ? "✏️ Edit Suguan End Time" : "✏️ Edit Task") : "➕ New Task"}
+          {initial ? (isSuguanTask ? "✏️ Edit Suguan Time" : "✏️ Edit Task") : "➕ New Task"}
         </ModalHeader>
         <ModalCloseButton color="white" />
         <ModalBody py={6} bg="white">
@@ -462,7 +462,7 @@ function TaskModal({ isOpen, onClose, categories, onSaved, initial, currentWeek 
             {isSuguanTask && (
               <Box w="full" bg="blue.50" border="1px solid" borderColor="blue.100" borderRadius="xl" px={4} py={3}>
                 <Text fontSize="xs" fontWeight="700" color="blue.700">
-                  This Suguan task is locked for schedule details. Update the end time only so Daily Activity can calculate the hours.
+                  Managed from Suguan. Update end time only.
                 </Text>
               </Box>
             )}
@@ -481,9 +481,9 @@ function TaskModal({ isOpen, onClose, categories, onSaved, initial, currentWeek 
               </Box>
             </SimpleGrid>
             <Box w="full">
-              <Text fontSize="9px" fontWeight="800" mb={1} color="gray.400" textTransform="uppercase" letterSpacing="0.12em">Description</Text>
+              <Text fontSize="9px" fontWeight="800" mb={1} color="gray.400" textTransform="uppercase" letterSpacing="0.12em">Note</Text>
               <Textarea name="description" value={form.description} onChange={handleChange} isDisabled={isSuguanTask}
-                placeholder="Optional details…" rows={3} {...fieldStyle} />
+                placeholder="Optional note…" rows={3} {...fieldStyle} />
             </Box>
             {showWorshipLocalCongregations && (
               <Box w="full">
@@ -516,7 +516,7 @@ function TaskModal({ isOpen, onClose, categories, onSaved, initial, currentWeek 
                 />
                 {taskDateMin && taskDateMax && (
                   <Text mt={1} fontSize="xs" color="gray.500">
-                    Select a date from {fmtDate(taskDateMin)} to {fmtDate(taskDateMax)}.
+                    Use a date in this week.
                   </Text>
                 )}
               </Box>
@@ -552,7 +552,7 @@ function TaskModal({ isOpen, onClose, categories, onSaved, initial, currentWeek 
             _hover={{ bg: "#059669", transform: "translateY(-1px)" }}
             _active={{ bg: "#047857" }}
             boxShadow={`0 4px 14px ${T.emerald}55`}>
-            {isSuguanTask ? "Save End Time" : "Save Task"}
+            {isSuguanTask ? "Save Time" : "Save"}
           </Button>
         </ModalFooter>
       </ModalContent>
@@ -596,7 +596,7 @@ function LogModal({ isOpen, onClose, task, onSaved }) {
       <ModalContent borderRadius="2xl" border={`2px solid ${T.amber}`}>
         <ModalHeader bg={T.corpBlue} color="white" fontWeight="900" fontSize="md"
           letterSpacing="0.06em" textTransform="uppercase">
-          ⏱️ Log Accomplishment
+          ⏱️ Log
         </ModalHeader>
         <ModalCloseButton color="white" />
         <ModalBody py={6} bg="white">
@@ -1914,9 +1914,9 @@ export default function DailyActivityReport() {
 
   // ─── Tab config ───────────────────────────────────────────────────────────────
   const TABS = [
-    { id: "list",       icon: FiList,        label: "List View",  activeColor: T.corpBlue },
-    { id: "card",       icon: FiGrid,        label: "Card View",  activeColor: T.purple   },
-    { id: "accomplish", icon: FiCheckSquare, label: "Accomplish", activeColor: T.crimson  },
+    { id: "list",       icon: FiList,        label: "List",       activeColor: T.corpBlue },
+    { id: "card",       icon: FiGrid,        label: "Cards",      activeColor: T.purple   },
+    { id: "accomplish", icon: FiCheckSquare, label: "Done",       activeColor: T.crimson  },
     { id: "report",     icon: FiFileText,    label: "Report",     activeColor: "#D97706"  },
   ];
 
@@ -2124,14 +2124,14 @@ export default function DailyActivityReport() {
         borderColor="gray.100"
         boxShadow="0 14px 40px rgba(15, 23, 42, 0.08)"
         px={{ base: 3, md: 4 }}
-        py={{ base: 3, md: 4 }}
-        mb={4}
+        py={{ base: 2, md: 3 }}
+        mb={3}
       >
         <Flex
           direction={{ base: "column", lg: "row" }}
           align={{ base: "stretch", lg: "center" }}
           justify="space-between"
-          gap={3}
+          gap={2}
         >
           <Box flex="1" minW={0}>
             <Heading
@@ -2143,30 +2143,30 @@ export default function DailyActivityReport() {
               lineHeight="1.05"
               textTransform="uppercase"
             >
-              DAILY ACTIVITY REPORT
+              DAILY ACTIVITY
             </Heading>
             <Text
               fontSize={{ base: "sm", md: "md" }}
               color="gray.500"
               fontWeight="600"
-              lineHeight="1.5"
-              mt={1.5}
+              lineHeight="1.4"
+              mt={1}
             >
-              Track tasks, log hours, and generate your weekly DAR.
+              Track tasks and hours for the week.
             </Text>
           </Box>
 
           <Flex
-            gap={2}
+            gap={1.5}
             flexShrink={0}
             align="center"
             justify={{ base: "flex-start", xl: "flex-end" }}
             flexWrap="wrap"
           >
             <HStack
-              spacing={2}
-              px={3}
-              py={2}
+              spacing={1.5}
+              px={2.5}
+              py={1.5}
               borderRadius="2xl"
               border="1px solid"
               borderColor="gray.100"
@@ -2193,9 +2193,9 @@ export default function DailyActivityReport() {
             </HStack>
 
             <HStack
-              spacing={2}
-              px={3}
-              py={2}
+              spacing={1.5}
+              px={2.5}
+              py={1.5}
               borderRadius="2xl"
               border="1px solid"
               borderColor="gray.100"
@@ -2225,10 +2225,10 @@ export default function DailyActivityReport() {
             </HStack>
 
             <HStack
-              spacing={1.5}
+              spacing={1}
               align="center"
-              px={2.5}
-              py={1.5}
+              px={2}
+              py={1.25}
               borderRadius="2xl"
               border="1px solid"
               borderColor="#FECACA"
@@ -2297,7 +2297,7 @@ export default function DailyActivityReport() {
                   whiteSpace="nowrap"
                   flexShrink={0}
                 >
-                  Viewing DAR of:
+                  Viewing:
                 </Text>
                 <Box flex="1" minW={0}>
                   <ReactSelect
@@ -2306,11 +2306,11 @@ export default function DailyActivityReport() {
                     isDisabled={teamMembersLoading}
                     menuPlacement="auto"
                     maxMenuHeight={220}
-                    placeholder={teamMembersLoading ? "Loading names..." : "Select name"}
+                    placeholder={teamMembersLoading ? "Loading..." : "Choose"}
                     options={teamMemberOptions}
                     value={selectedTeamMemberOption}
                     onChange={(option) => setSelectedDarUserId(option?.value || "")}
-                    noOptionsMessage={() => "No member found"}
+                    noOptionsMessage={() => "No names"}
                     formatOptionLabel={(option) => (
                       <Box>
                         <Text fontSize="sm" fontWeight="700" lineHeight="1.1" color="gray.800">
@@ -2434,7 +2434,7 @@ export default function DailyActivityReport() {
                 {completeCnt}
               </Text>
               <Text fontSize="10px" color={T.corpBlue} fontWeight="900" textTransform="uppercase" letterSpacing="0.1em" mt={2}>
-                Complete Tasks
+                Done
               </Text>
             </Box>
           </Flex>
@@ -2637,8 +2637,8 @@ export default function DailyActivityReport() {
       </SimpleGrid>
 
       {/* ── Tab Bar + Filters ── */}
-      <Box bg="white" borderRadius="2xl" boxShadow="sm" border={`2px solid ${T.amber}`} mb={5}>
-        <Flex align="center" justify="space-between" flexWrap="wrap" p={3} gap={3}>
+      <Box bg="white" borderRadius="2xl" boxShadow="sm" border={`2px solid ${T.amber}`} mb={4}>
+        <Flex align="center" justify="space-between" flexWrap="wrap" p={2} gap={2}>
 
           {/* Pill Tabs */}
           <HStack spacing={2} flexWrap="wrap">
@@ -2703,16 +2703,16 @@ export default function DailyActivityReport() {
               color={sortAZ ? "white" : "gray.500"}
               border={sortAZ ? "none" : "1.5px solid #E5E7EB"}
               _hover={{ bg: sortAZ ? "#16325B" : "#F9FAFB" }}
-            >A–Z</Button>
+            >A-Z</Button>
             <Select size="sm" w="170px" borderRadius="full" borderColor="gray.200"
               fontSize="xs" fontWeight="600" color="gray.600"
               value={filterCat} onChange={e => setFilterCat(e.target.value)}>
-              <option value="">All Categories</option>
+              <option value="">All</option>
               {categories.map(c => <option key={c.category_id} value={String(c.category_id)}>{c.category_name}</option>)}
             </Select>
             <InputGroup size="sm" w="190px">
               <InputLeftElement pointerEvents="none"><FiSearch color="#9CA3AF" size={13} /></InputLeftElement>
-              <Input borderRadius="full" placeholder="Search tasks…" borderColor="gray.200"
+              <Input borderRadius="full" placeholder="Search" borderColor="gray.200"
                 fontSize="xs" value={searchQ} onChange={e => setSearchQ(e.target.value)} />
             </InputGroup>
           </HStack>
@@ -2730,21 +2730,21 @@ export default function DailyActivityReport() {
           {activeTab === "list" && (
             <Box bg="white" borderRadius="2xl" boxShadow="sm" border={`2px solid ${T.amber}`} overflow="hidden">
               <SectionHead
-                title="Ongoing Activities"
+                title="Tasks"
                 action={
                   <Button size="sm" leftIcon={<FiPlus />}
                     bg={T.emerald} color="white" borderRadius="full" fontWeight="900" fontSize="xs"
                     boxShadow={`0 4px 12px ${T.emerald}55`}
                     _hover={{ bg: "#059669", transform: "translateY(-1px)" }} _active={{ bg: "#047857" }}
                     onClick={() => { setEditTask(null); taskModal.onOpen(); }}>
-                    New Task
+                    Add
                   </Button>
                 }
               />
               <ColHeaders cols={[
                 { label: "Category",    flex: "1.2" },
                 { label: "Title",       flex: "2"   },
-                { label: "Description", flex: "2.5" },
+                { label: "Note",        flex: "2.5" },
                 { label: "Date",        flex: "1.2" },
                 { label: "Start",       flex: "1"   },
                 { label: "End",         flex: "1"   },
@@ -2755,18 +2755,18 @@ export default function DailyActivityReport() {
               <VStack spacing={2} px={4} py={3} align="stretch">
                 {filteredTasks.length === 0 ? (
                   <Box textAlign="center" py={10}>
-                    <Text fontSize="sm" fontWeight="600" color="gray.300">No tasks found for this week.</Text>
+                    <Text fontSize="sm" fontWeight="600" color="gray.300">No tasks this week.</Text>
                   </Box>
                 ) : filteredTasks.map(t => (
                   <Box key={t.task_id} {...pillRow} borderLeft={`4px solid ${catColor(t.category_id)}`}>
                     <Flex gap={3} align="center">
                       <Box flex="1.2">
-                        <HStack spacing={1.5}>
-                          <Box w="8px" h="8px" borderRadius="full" bg={catColor(t.category_id)} flexShrink={0} />
-                          <Text fontSize="xs" fontWeight="700" color="gray.500" noOfLines={1}>{catName(t.category_id)}</Text>
+                          <HStack spacing={1.5}>
+                            <Box w="8px" h="8px" borderRadius="full" bg={catColor(t.category_id)} flexShrink={0} />
+                            <Text fontSize="xs" fontWeight="700" color="gray.500" noOfLines={1}>{catName(t.category_id)}</Text>
                           {Boolean(t.suguan_id) && (
                             <Box as="span" px={1.5} py="1px" borderRadius="md" bg="gray.200" color="gray.600" fontSize="7px" fontWeight="900">
-                              FROM SUGUAN
+                              SUGUAN
                             </Box>
                           )}
                         </HStack>
@@ -2798,7 +2798,7 @@ export default function DailyActivityReport() {
                       <Box flex="0.8">
                         {t.suguan_id ? (
                           <HStack spacing={1} justify="flex-end">
-                            <Tooltip label="Edit end time">
+                            <Tooltip label="Edit time">
                               <IconButton
                                 size="xs"
                                 icon={<FiEdit2 />}
@@ -2810,7 +2810,7 @@ export default function DailyActivityReport() {
                                 onClick={() => { setEditTask(t); taskModal.onOpen(); }}
                               />
                             </Tooltip>
-                            <Tooltip label="Managed from the Suguan page">
+                            <Tooltip label="From Suguan">
                               <Box textAlign="right">
                                 <FiLock size={14} color="#9CA3AF" />
                               </Box>
@@ -2948,7 +2948,7 @@ export default function DailyActivityReport() {
                                     fontSize="7px"
                                     fontWeight="900"
                                   >
-                                    FROM SUGUAN
+                                    SUGUAN
                                   </Box>
                                 )}
                               </HStack>
@@ -2972,11 +2972,11 @@ export default function DailyActivityReport() {
           {/* ──────────────── ACCOMPLISH VIEW ──────────────── */}
           {activeTab === "accomplish" && (
             <Box bg="white" borderRadius="2xl" boxShadow="sm" border={`2px solid ${T.amber}`} overflow="hidden">
-              <SectionHead title="Accomplish Task" />
+              <SectionHead title="Done" />
               <ColHeaders cols={[
                 { label: "Category",    flex: "1.2" },
                 { label: "Title",       flex: "2"   },
-                { label: "Description", flex: "2"   },
+                { label: "Note",        flex: "2"   },
                 { label: "Date",        flex: "1.2" },
                 { label: "Completed",   flex: "1.2" },
                 { label: "Hours",       flex: "1.2" },
@@ -2986,7 +2986,7 @@ export default function DailyActivityReport() {
               <VStack spacing={2} px={4} py={3} align="stretch">
                 {filteredTasks.filter(isCompletedTask).length === 0 ? (
                   <Box textAlign="center" py={10}>
-                    <Text fontSize="sm" fontWeight="600" color="gray.300">No accomplished tasks found for this week.</Text>
+                    <Text fontSize="sm" fontWeight="600" color="gray.300">No completed tasks this week.</Text>
                   </Box>
                 ) : filteredTasks.filter(isCompletedTask).map(t => {
                   const log = logs.find(l => l.task_id === t.task_id);

@@ -403,7 +403,7 @@ const LokalProfile = () => {
     const summary = [
       `Lokal Profile: ${lokalName}`,
       `District: ${distName}`,
-      `Resident Minister: ${profile.destinado || "N/A"}`,
+      `Minister: ${profile.destinado || "N/A"}`,
       `Contact: ${profile.destinadoContact || "N/A"}`,
       `Serial Number: ${profile.serialNumber || "N/A"}`,
     ].join("\n");
@@ -532,9 +532,7 @@ const LokalProfile = () => {
             <Flex w="100%" h="100%" align="center" justify="center" color="teal.300">
               <VStack spacing={1}>
                 <Icon as={FiImage} boxSize={10} />
-                <Text fontSize="xs" fontWeight="700" color="teal.500">
-                  No photo on file
-                </Text>
+                <Text fontSize="xs" fontWeight="700" color="teal.500">No photo</Text>
               </VStack>
             </Flex>
           )}
@@ -548,7 +546,7 @@ const LokalProfile = () => {
               </Badge>
             ) : (
               <Badge colorScheme="orange" borderRadius="full" px={2} py={1}>
-                Missing photo
+                No photo
               </Badge>
             )}
           </HStack>
@@ -574,7 +572,7 @@ const LokalProfile = () => {
             <SimpleGrid columns={2} spacing={3}>
               <Box>
                 <Text fontSize="9px" fontWeight="800" letterSpacing="0.12em" color="gray.400" textTransform="uppercase">
-                  Resident Minister
+                  Minister
                 </Text>
                 <Text fontSize="sm" fontWeight="700" color="gray.700" noOfLines={1} title={profile.destinado}>
                   {profile.destinado || "N/A"}
@@ -582,7 +580,7 @@ const LokalProfile = () => {
               </Box>
               <Box>
                 <Text fontSize="9px" fontWeight="800" letterSpacing="0.12em" color="gray.400" textTransform="uppercase">
-                  Prepared
+                  Date
                 </Text>
                 <Text fontSize="sm" fontWeight="700" color="gray.700">
                   {formatFriendlyDate(profile.datePrepared)}
@@ -595,7 +593,7 @@ const LokalProfile = () => {
                 Updated {formatFriendlyDate(profile.datePrepared)}
               </Text>
               <Text fontSize="xs" fontWeight="700" color="gray.400">
-                {profile.distanceFromCentral ? `${profile.distanceFromCentral} km from central` : "Compact view"}
+                {profile.distanceFromCentral ? `${profile.distanceFromCentral} km away` : "No distance"}
               </Text>
             </Flex>
           </VStack>
@@ -653,48 +651,48 @@ const LokalProfile = () => {
   ];
 
   const statCards = [
-    { label: "Total profiles", value: profileStats.total, hint: "All registry entries" },
-    { label: "Districts covered", value: profileStats.districtsCovered, hint: "Unique districts" },
-    { label: "With photo", value: profileStats.withImage, hint: "Image attached" },
-    { label: "Manual locals", value: profileStats.manual, hint: "Custom entries" },
-    { label: "Updated 30d", value: profileStats.recentlyUpdated, hint: "Recently prepared" },
+    { label: "Total", value: profileStats.total, hint: "All entries" },
+    { label: "Districts", value: profileStats.districtsCovered, hint: "Unique districts" },
+    { label: "Photos", value: profileStats.withImage, hint: "With image" },
+    { label: "Manual", value: profileStats.manual, hint: "Custom entries" },
+    { label: "Recent", value: profileStats.recentlyUpdated, hint: "Last 30 days" },
   ];
 
   return (
-    <Box p={{ base: 4, md: 8 }} bg={bgColor} minH="100vh">
+    <Box p={{ base: 4, md: 6 }} bg={bgColor} minH="100vh">
       <Box
         bg="white"
         borderRadius="3xl"
         border="1px solid"
         borderColor="gray.100"
         boxShadow="sm"
-        p={{ base: 4, md: 5 }}
-        mb={5}
+        p={{ base: 4, md: 4 }}
+        mb={4}
       >
-        <Flex direction={{ base: "column", xl: "row" }} justify="space-between" gap={4} align={{ base: "stretch", xl: "center" }}>
+        <Flex direction={{ base: "column", xl: "row" }} justify="space-between" gap={3} align={{ base: "stretch", xl: "center" }}>
           <Box flex="1">
             <Badge colorScheme="teal" borderRadius="full" px={3} py={1} textTransform="uppercase" letterSpacing="0.12em">
-              Lokal registry
+              Lokal profiles
             </Badge>
             <Heading size={{ base: "lg", md: "xl" }} mt={3} color="gray.800" lineHeight="1.1">
               Lokal Profiles
             </Heading>
             <Text color="gray.500" fontSize={{ base: "sm", md: "md" }} mt={2} maxW="3xl">
-              Compact registry for congregation information, contacts, schedules, equipment, and print-ready summaries.
+              Manage local details in one place.
             </Text>
             <Text fontSize="sm" color="gray.400" mt={2}>
               Showing {filteredProfiles.length} of {profileStats.total} profiles
             </Text>
           </Box>
 
-          <VStack spacing={3} align="stretch" minW={{ base: "full", xl: "520px" }}>
-            <Flex direction={{ base: "column", md: "row" }} gap={3}>
+          <VStack spacing={2} align="stretch" minW={{ base: "full", xl: "520px" }}>
+            <Flex direction={{ base: "column", md: "row" }} gap={2}>
               <InputGroup maxW="100%">
                 <InputLeftElement pointerEvents="none">
                   <SearchIcon color="gray.400" />
                 </InputLeftElement>
                 <Input
-                  placeholder="Search lokal, district, minister..."
+                  placeholder="Search local, district, minister"
                   bg="gray.50"
                   borderColor="gray.200"
                   borderRadius="xl"
@@ -715,7 +713,7 @@ const LokalProfile = () => {
                 )}
               </InputGroup>
 
-              <Tooltip label="Refresh profiles" hasArrow>
+              <Tooltip label="Refresh" hasArrow>
                 <IconButton
                   aria-label="Refresh profiles"
                   icon={<RepeatIcon />}
@@ -726,7 +724,7 @@ const LokalProfile = () => {
                 />
               </Tooltip>
 
-              <Tooltip label="Add New Profile" hasArrow>
+              <Tooltip label="Add" hasArrow>
                 <IconButton
                   aria-label="Add new profile"
                   icon={<AddIcon boxSize={5} />}
@@ -768,7 +766,7 @@ const LokalProfile = () => {
               </HStack>
 
               <Button size="sm" variant="ghost" colorScheme="gray" onClick={clearFilters} alignSelf="flex-start">
-                Clear filters
+                Clear
               </Button>
             </Flex>
           </VStack>
@@ -842,14 +840,14 @@ const LokalProfile = () => {
               No profiles found
             </Heading>
             <Text color="gray.500" mt={2} maxW="md">
-              Try a different search, clear the active filter, or add a new profile to get started.
+              Try another search or add one.
             </Text>
             <HStack mt={5} spacing={3} flexWrap="wrap" justify="center">
               <Button variant="outline" colorScheme="teal" onClick={clearFilters}>
-                Clear filters
+                Clear
               </Button>
               <Button colorScheme="teal" onClick={() => openModal()}>
-                Add profile
+                Add
               </Button>
             </HStack>
           </Flex>
@@ -869,7 +867,7 @@ const LokalProfile = () => {
                       <Tr>
                         <Th>Lokal</Th>
                         <Th>District</Th>
-                        <Th>Resident Minister</Th>
+                        <Th>Minister</Th>
                         <Th>Facilities</Th>
                         <Th>Updated</Th>
                         <Th textAlign="right">Actions</Th>
@@ -918,10 +916,10 @@ const LokalProfile = () => {
                                   <Text fontWeight="700" color="gray.800" noOfLines={1} title={lokalName}>
                                     {lokalName}
                                   </Text>
-                                  <Text fontSize="xs" color="gray.500" noOfLines={1}>
-                                    #{profile.serialNumber || "N/A"}
-                                  </Text>
-                                </Box>
+                              <Text fontSize="xs" color="gray.500" noOfLines={1}>
+                                #{profile.serialNumber || "N/A"}
+                              </Text>
+                            </Box>
                               </HStack>
                             </Td>
                             <Td>
@@ -934,7 +932,7 @@ const LokalProfile = () => {
                                 {profile.destinado || "N/A"}
                               </Text>
                               <Text fontSize="xs" color="gray.500" noOfLines={1}>
-                                {profile.destinadoContact || profile.chroniclerContact || "No contact info"}
+                                {profile.destinadoContact || profile.chroniclerContact || "No contact"}
                               </Text>
                             </Td>
                             <Td>
@@ -943,7 +941,7 @@ const LokalProfile = () => {
                                 {profile.generator && <Badge colorScheme="blue" borderRadius="full">Gen</Badge>}
                                 {profile.internetSpeed && <Badge colorScheme="teal" borderRadius="full">{profile.internetSpeed}</Badge>}
                                 {!profile.ledWall && !profile.generator && !profile.internetSpeed && (
-                                  <Text fontSize="xs" color="gray.400">No facility tags</Text>
+                                  <Text fontSize="xs" color="gray.400">No tags</Text>
                                 )}
                               </HStack>
                             </Td>
@@ -1137,36 +1135,36 @@ const LokalProfile = () => {
                 <TabPanel>
                   <VStack spacing={5} align="stretch" maxW="lg">
                     <Box>
-                      <Heading size="sm" mb={4} color="teal.600">Ministerial Staff</Heading>
+                      <Heading size="sm" mb={4} color="teal.600">Minister</Heading>
                       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
                         <Box gridColumn={{ base: "span 1", md: "span 2" }}>
-                          <FormLabel fontSize="sm">Resident Minister (Destinado)</FormLabel>
-                          <Input value={formData.destinado} onChange={(e) => setFormData({ ...formData, destinado: e.target.value })} placeholder="Full Name" />
+                          <FormLabel fontSize="sm">Minister (Destinado)</FormLabel>
+                          <Input value={formData.destinado} onChange={(e) => setFormData({ ...formData, destinado: e.target.value })} placeholder="Full name" />
                         </Box>
                         <Box>
-                          <FormLabel fontSize="sm">Contact Info</FormLabel>
+                          <FormLabel fontSize="sm">Contact</FormLabel>
                           <Input value={formData.destinadoContact} onChange={(e) => setFormData({ ...formData, destinadoContact: e.target.value })} />
                         </Box>
                       </SimpleGrid>
                     </Box>
                     <Divider />
                     <Box>
-                      <Heading size="sm" mb={4} color="teal.600">District Oversight</Heading>
+                      <Heading size="sm" mb={4} color="teal.600">District</Heading>
                       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
                         <Box>
-                          <FormLabel fontSize="sm">District Minister</FormLabel>
+                          <FormLabel fontSize="sm">District Min.</FormLabel>
                           <Input value={formData.districtMinister} onChange={(e) => setFormData({ ...formData, districtMinister: e.target.value })} />
                         </Box>
                         <Box>
-                          <FormLabel fontSize="sm">Contact Info</FormLabel>
+                          <FormLabel fontSize="sm">Contact</FormLabel>
                           <Input value={formData.ministerContact} onChange={(e) => setFormData({ ...formData, ministerContact: e.target.value })} />
                         </Box>
                         <Box>
-                          <FormLabel fontSize="sm">District Chronicler</FormLabel>
+                          <FormLabel fontSize="sm">Chronicler</FormLabel>
                           <Input value={formData.districtChronicler} onChange={(e) => setFormData({ ...formData, districtChronicler: e.target.value })} />
                         </Box>
                         <Box>
-                          <FormLabel fontSize="sm">Contact Info</FormLabel>
+                          <FormLabel fontSize="sm">Contact</FormLabel>
                           <Input value={formData.chroniclerContact} onChange={(e) => setFormData({ ...formData, chroniclerContact: e.target.value })} />
                         </Box>
                       </SimpleGrid>
@@ -1176,7 +1174,7 @@ const LokalProfile = () => {
 
                 {/* Tab 3: Schedule */}
                 <TabPanel>
-                  <Heading size="sm" mb={6} color="teal.600">Worship Service Schedule</Heading>
+                  <Heading size="sm" mb={6} color="teal.600">Schedule</Heading>
                   <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8}>
                     <Box>
                       <Badge colorScheme="purple" mb={3} px={2} py={1} borderRadius="md">Midweek</Badge>
@@ -1223,22 +1221,22 @@ const LokalProfile = () => {
                 {/* Tab 4: Facilities */}
                 <TabPanel>
                   <VStack spacing={5} align="stretch" maxW="lg">
-                    <Heading size="sm" color="teal.600">Site Information</Heading>
+                    <Heading size="sm" color="teal.600">Site</Heading>
                     <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
                       <Box>
-                        <FormLabel fontSize="sm">Seating Capacity</FormLabel>
+                        <FormLabel fontSize="sm">Seats</FormLabel>
                         <Input type="number" value={formData.seatingCapacity} onChange={(e) => setFormData({ ...formData, seatingCapacity: e.target.value })} />
                       </Box>
                       <Box>
-                        <FormLabel fontSize="sm">Internet Speed</FormLabel>
+                        <FormLabel fontSize="sm">Internet</FormLabel>
                         <Input value={formData.internetSpeed} onChange={(e) => setFormData({ ...formData, internetSpeed: e.target.value })} />
                       </Box>
                       <Box>
-                        <FormLabel fontSize="sm">Dist. from Central (km)</FormLabel>
+                        <FormLabel fontSize="sm">Distance (km)</FormLabel>
                         <Input value={formData.distanceFromCentral} onChange={(e) => setFormData({ ...formData, distanceFromCentral: e.target.value })} />
                       </Box>
                       <Box>
-                        <FormLabel fontSize="sm">Travel Time</FormLabel>
+                        <FormLabel fontSize="sm">Travel</FormLabel>
                         <Input value={formData.travelTimeFromCentral} onChange={(e) => setFormData({ ...formData, travelTimeFromCentral: e.target.value })} />
                       </Box>
                     </SimpleGrid>
@@ -1258,19 +1256,19 @@ const LokalProfile = () => {
                         onChange={(e) => setFormData({ ...formData, generator: e.target.checked })}
                         size="lg" colorScheme="teal"
                       >
-                        Power Generator
+                        Generator
                       </Checkbox>
                     </HStack>
 
                     <Divider />
-                    <Heading size="sm" color="teal.600">Meta Data</Heading>
+                    <Heading size="sm" color="teal.600">Meta</Heading>
                     <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
                       <Box>
-                        <FormLabel fontSize="sm">Prepared By</FormLabel>
+                        <FormLabel fontSize="sm">Prepared by</FormLabel>
                         <Input value={formData.preparedBy} onChange={(e) => setFormData({ ...formData, preparedBy: e.target.value })} />
                       </Box>
                       <Box>
-                        <FormLabel fontSize="sm">Date Prepared</FormLabel>
+                        <FormLabel fontSize="sm">Date</FormLabel>
                         <Input type="date" value={formData.datePrepared} onChange={(e) => setFormData({ ...formData, datePrepared: e.target.value })} />
                       </Box>
                     </SimpleGrid>
@@ -1293,14 +1291,14 @@ const LokalProfile = () => {
                   </Select>
                 </Box>
                 {/* ... other condensed fields if needed for mobile ... */}
-                <Text color="gray.500" fontSize="sm" fontStyle="italic">Use desktop to edit full details.</Text>
+                <Text color="gray.500" fontSize="sm" fontStyle="italic">Use desktop for full edits.</Text>
               </VStack>
             </Box>
           </ModalBody>
 
           <ModalFooter bg="gray.50" borderTopWidth="1px">
             <Button variant="ghost" mr={3} onClick={closeModal}>Cancel</Button>
-            <Button colorScheme="teal" onClick={handleSave} px={8}>Save Profile</Button>
+            <Button colorScheme="teal" onClick={handleSave} px={8}>Save</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
