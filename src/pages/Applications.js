@@ -577,7 +577,7 @@ const Applications = () => {
               </Heading>
             </HStack>
             <Text color="gray.500" fontWeight="medium">
-              View and manage your appss
+              View and manage your apps
             </Text>
           </VStack>
 
