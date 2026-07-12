@@ -279,11 +279,11 @@ const Suguan = () => {
       return;
     }
 
-    const dayOfWeek = moment(date).isoWeekday();
-    if (dayOfWeek === 1 || dayOfWeek === 2) {
+    const selectedDate = moment(date, "YYYY-MM-DD", true);
+    if (!selectedDate.isValid() || !selectedDate.isBetween(startOfWeek, endOfWeek, "day", "[]")) {
       toast({
         title: "Invalid date",
-        description: "Monday and Tuesday are not allowed.",
+        description: `Please select a date within Week ${currentWeek.isoWeek()} (${startOfWeek.format("MMM DD")} - ${endOfWeek.format("MMM DD, YYYY")}).`,
         status: "warning",
       });
       return;
@@ -809,21 +809,12 @@ const Suguan = () => {
                     value={date}
                     isDisabled={!local_id}
                     placeholder={local_id ? "" : "Select local first"}
+                    min={startOfWeek.format("YYYY-MM-DD")}
+                    max={endOfWeek.format("YYYY-MM-DD")}
                     onChange={(e) => {
                       const selectedDate = e.target.value;
                       if (!selectedDate) {
                         setDate("");
-                        return;
-                      }
-                      const dayOfWeek = moment(selectedDate).isoWeekday();
-                      if (dayOfWeek === 1 || dayOfWeek === 2) {
-                        toast({
-                          title: "Invalid date",
-                          description: "Monday and Tuesday are not allowed.",
-                          status: "warning",
-                          duration: 3000,
-                          isClosable: true,
-                        });
                         return;
                       }
                       setDate(selectedDate);
