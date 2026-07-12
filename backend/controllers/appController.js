@@ -681,8 +681,13 @@ exports.addApp = async (req, res) => {
 
 // Update an existing app
 exports.updateApp = async (req, res) => {
-  const appId = req.params.id;
+  const appId = Number(req.params.id);
   const { name, url, description, icon, app_type, is_active } = req.body;
+
+  if (!Number.isInteger(appId) || appId <= 0) {
+    return res.status(400).json({ message: "Invalid app id." });
+  }
+
   try {
     const currentApp = await App.findByPk(appId);
     if (!currentApp) {
@@ -752,7 +757,11 @@ exports.updateApp = async (req, res) => {
 
 // Delete an app
 exports.deleteApp = async (req, res) => {
-  const appId = req.params.id;
+  const appId = Number(req.params.id);
+
+  if (!Number.isInteger(appId) || appId <= 0) {
+    return res.status(400).json({ message: "Invalid app id." });
+  }
 
   try {
     const deleted = await App.destroy({ where: { id: appId } });
@@ -766,9 +775,18 @@ exports.deleteApp = async (req, res) => {
   }
 };
 
+// Parses a route :id param into a positive integer, or returns null.
+const parsePositiveIntParam = (value) => {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+};
+
 // Get which users currently have access to a given app
 exports.getAppAccess = async (req, res) => {
-  const appId = req.params.id;
+  const appId = parsePositiveIntParam(req.params.id);
+  if (!appId) {
+    return res.status(400).json({ message: "Invalid app id." });
+  }
 
   try {
     const app = await App.findByPk(appId);
@@ -778,7 +796,7 @@ exports.getAppAccess = async (req, res) => {
     }
 
     const rows = await sequelize.query(
-      "SELECT user_id FROM available_apps WHERE app_id = :appId",
+      "SELECT DISTINCT user_id FROM available_apps WHERE app_id = :appId ORDER BY user_id",
       { replacements: { appId }, type: sequelize.QueryTypes.SELECT }
     );
 
@@ -791,33 +809,62 @@ exports.getAppAccess = async (req, res) => {
 
 // Replace which users have access to a given app (delete-then-insert, mirroring
 // the existing per-user "available apps" save in userRoutes.js, just flipped
-// to be scoped by app_id instead of user_id).
+// to be scoped by app_id instead of user_id). Runs inside a transaction so a
+// failed insert can't leave the app with zero access rows, and silently drops
+// any user id that no longer exists rather than failing the whole save.
 exports.updateAppAccess = async (req, res) => {
-  const appId = req.params.id;
+  const appId = parsePositiveIntParam(req.params.id);
   const { userIds } = req.body;
+
+  if (!appId) {
+    return res.status(400).json({ message: "Invalid app id." });
+  }
 
   if (!Array.isArray(userIds) || !userIds.every((id) => Number.isInteger(Number(id)))) {
     return res.status(400).json({ message: "userIds must be an array of user IDs." });
   }
 
+  const requestedUserIds = [...new Set(userIds.map((id) => Number(id)))];
+
+  const transaction = await sequelize.transaction();
   try {
-    const app = await App.findByPk(appId);
+    const app = await App.findByPk(appId, { transaction });
     if (!app) {
+      await transaction.rollback();
       return res.status(404).json({ message: "App not found." });
+    }
+
+    let validUserIds = [];
+    if (requestedUserIds.length > 0) {
+      const existingUsers = await sequelize.query(
+        "SELECT ID AS id FROM users WHERE ID IN (:requestedUserIds)",
+        { replacements: { requestedUserIds }, type: sequelize.QueryTypes.SELECT, transaction }
+      );
+      validUserIds = existingUsers.map((row) => Number(row.id));
+
+      const skipped = requestedUserIds.filter((id) => !validUserIds.includes(id));
+      if (skipped.length > 0) {
+        console.warn(`updateAppAccess: skipping unknown user id(s) [${skipped.join(", ")}] for app ${appId}.`);
+      }
     }
 
     await sequelize.query("DELETE FROM available_apps WHERE app_id = :appId", {
       replacements: { appId },
+      transaction,
     });
 
-    const uniqueUserIds = [...new Set(userIds.map((id) => Number(id)))];
-    if (uniqueUserIds.length > 0) {
-      const values = uniqueUserIds.map((userId) => `(${Number(userId)}, ${Number(appId)})`).join(", ");
-      await sequelize.query(`INSERT INTO available_apps (user_id, app_id) VALUES ${values}`);
+    if (validUserIds.length > 0) {
+      await sequelize.getQueryInterface().bulkInsert(
+        "available_apps",
+        validUserIds.map((userId) => ({ user_id: userId, app_id: appId })),
+        { transaction }
+      );
     }
 
-    res.json({ message: "App access updated successfully.", userIds: uniqueUserIds });
+    await transaction.commit();
+    res.json({ message: "App access updated successfully.", userIds: validUserIds });
   } catch (error) {
+    await transaction.rollback();
     console.error("Error updating app access:", error);
     res.status(500).json({ message: "Database error" });
   }

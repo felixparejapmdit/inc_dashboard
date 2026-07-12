@@ -114,6 +114,7 @@ const Applications = () => {
   const [accessUserOptions, setAccessUserOptions] = useState([]);
   const [accessUserIds, setAccessUserIds] = useState([]);
   const [accessLoading, setAccessLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [deletingApp, setDeletingApp] = useState(null);
@@ -169,7 +170,15 @@ const Applications = () => {
           );
 
           if (!cancelled) {
-            setAccessUserIds((accessResponse?.data?.userIds || []).map(Number));
+            setAccessUserIds(
+              Array.from(
+                new Set(
+                  (accessResponse?.data?.userIds || [])
+                    .map(Number)
+                    .filter((id) => Number.isFinite(id)),
+                ),
+              ),
+            );
           }
         } else if (!cancelled) {
           setAccessUserIds([]);
@@ -296,6 +305,8 @@ const Applications = () => {
   };
 
   const handleSave = async () => {
+    if (isSaving) return; // guard against double-submit (double-click / double Enter)
+
     if (!name.trim() || !url.trim() || !app_type) {
       toast({ title: "Please fill in all required fields", status: "warning" });
       return;
@@ -303,6 +314,15 @@ const Applications = () => {
 
     if (!icon && !editingApp) {
       toast({ title: "Please add an image", status: "warning" });
+      return;
+    }
+
+    if (editingApp && accessLoading) {
+      toast({
+        title: "Still loading current access list",
+        description: "Please wait a moment before saving so existing access isn't overwritten.",
+        status: "warning",
+      });
       return;
     }
 
@@ -318,6 +338,7 @@ const Applications = () => {
     // Find the matching type name for display
     const typeName = appTypes.find(t => String(t.id) === String(app_type))?.name || "";
 
+    setIsSaving(true);
     try {
       let savedAppId = editingApp?.id;
 
@@ -335,7 +356,19 @@ const Applications = () => {
         toast({ title: "App updated", status: "success" });
       } else {
         const result = await postData("apps", payload);
-        savedAppId = result?.app?.id || result?.data?.id || result?.id || Date.now();
+        savedAppId = result?.app?.id || result?.data?.id || result?.id;
+
+        if (!savedAppId) {
+          // We couldn't confirm the new app's id — refresh from the server
+          // rather than fabricate one, so the access list is saved against
+          // the real row instead of a throwaway local id.
+          toast({ title: "App added", description: "Refreshing list…", status: "success" });
+          resetForm();
+          onClose();
+          loadData();
+          return;
+        }
+
         // ✅ Optimistic update: append the new item immediately
         const newApp = {
           id: savedAppId,
@@ -359,7 +392,21 @@ const Applications = () => {
       // Re-fetch in background to sync any server-side computed fields
       loadData();
     } catch (error) {
-      toast({ title: "Error saving app", description: error.message, status: "error" });
+      const isNotFound = /not found/i.test(error.message || "");
+      if (isNotFound) {
+        toast({
+          title: "This app no longer exists",
+          description: "It may have been changed or removed elsewhere. Refreshing the list.",
+          status: "error",
+        });
+        resetForm();
+        onClose();
+        loadData();
+      } else {
+        toast({ title: "Error saving app", description: error.message, status: "error" });
+      }
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -424,9 +471,9 @@ const Applications = () => {
       const q = searchQuery.toLowerCase();
       data = data.filter(
         (app) =>
-          app.name.toLowerCase().includes(q) ||
-          app.url.toLowerCase().includes(q) ||
-          app.description?.toLowerCase().includes(q) ||
+          (app.name || "").toLowerCase().includes(q) ||
+          (app.url || "").toLowerCase().includes(q) ||
+          (app.description || "").toLowerCase().includes(q) ||
           (app.app_type_name || "").toLowerCase().includes(q) ||
           (isAppActive(app) ? "enabled" : "disabled").includes(q)
       );
@@ -444,6 +491,27 @@ const Applications = () => {
       active: filteredApps.length,
     };
   }, [apps, appTypes, filteredApps]);
+
+  const selectedAccessPeople = useMemo(() => {
+    const optionMap = new Map(
+      accessUserOptions.map((option) => [String(option.value), option]),
+    );
+
+    return accessUserIds.map((id) => {
+      const option = optionMap.get(String(id));
+
+      if (option) {
+        return option;
+      }
+
+      return {
+        value: id,
+        label: `User ${id}`,
+        username: "",
+        avatar: null,
+      };
+    });
+  }, [accessUserOptions, accessUserIds]);
 
   const totalPages = Math.ceil(filteredApps.length / ITEMS_PER_PAGE) || 1;
   const paginatedData = filteredApps.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
@@ -894,6 +962,7 @@ const Applications = () => {
                   isLoading={accessLoading}
                   placeholder="Search personnel…"
                   summaryNoun="personnel selected"
+                  selectedCount={accessUserIds.length}
                   formatOptionLabel={(option) => (
                     <HStack spacing={2}>
                       <Avatar size="xs" src={option.avatar || undefined} name={option.label} />
@@ -909,12 +978,87 @@ const Applications = () => {
                 <Text fontSize="xs" color="gray.500" mt={1}>
                   {accessUserIds.length} personnel currently have access to this app.
                 </Text>
+                {selectedAccessPeople.length > 0 ? (
+                  <>
+                    <Text fontSize="xs" fontWeight="semibold" color="gray.600" mt={4} mb={2}>
+                      Selected personnel
+                    </Text>
+                    <VStack
+                      align="stretch"
+                      spacing={2}
+                      p={3}
+                      bg="gray.50"
+                      border="1px solid"
+                      borderColor="gray.100"
+                      borderRadius="xl"
+                      maxH="220px"
+                      overflowY="auto"
+                    >
+                      {selectedAccessPeople.map((person) => (
+                        <HStack
+                          key={String(person.value)}
+                          spacing={3}
+                          align="center"
+                          justify="space-between"
+                          px={3}
+                          py={2}
+                          bg="white"
+                          borderRadius="lg"
+                          border="1px solid"
+                          borderColor="gray.100"
+                        >
+                          <HStack spacing={3} align="center" minW={0} flex="1">
+                            <Avatar size="sm" src={person.avatar || undefined} name={person.label} />
+                            <Box minW={0} flex="1">
+                              <Text fontSize="sm" fontWeight="600" noOfLines={1}>
+                                {person.label}
+                              </Text>
+                              {person.username && (
+                                <Text fontSize="xs" color="gray.500" noOfLines={1}>
+                                  {person.username}
+                                </Text>
+                              )}
+                            </Box>
+                          </HStack>
+                          <Tooltip label={`Remove ${person.label}`} placement="top">
+                            <IconButton
+                              icon={<X size={14} />}
+                              size="xs"
+                              variant="ghost"
+                              colorScheme="red"
+                              aria-label={`Remove ${person.label}`}
+                              onClick={() =>
+                                setAccessUserIds((prev) =>
+                                  prev.filter((id) => String(id) !== String(person.value)),
+                                )
+                              }
+                            />
+                          </Tooltip>
+                        </HStack>
+                      ))}
+                    </VStack>
+                  </>
+                ) : (
+                  <Text fontSize="xs" color="gray.500" mt={2}>
+                    No personnel selected.
+                  </Text>
+                )}
               </FormControl>
             </VStack>
           </ModalBody>
           <ModalFooter bg="gray.50" borderBottomRadius="3xl" p={6}>
-            <Button variant="ghost" onClick={onClose} mr={3} borderRadius="xl">Cancel</Button>
-            <Button colorScheme="orange" onClick={handleSave} borderRadius="xl" px={8}>Save App</Button>
+            <Button variant="ghost" onClick={onClose} mr={3} borderRadius="xl" isDisabled={isSaving}>Cancel</Button>
+            <Button
+              colorScheme="orange"
+              onClick={handleSave}
+              borderRadius="xl"
+              px={8}
+              isLoading={isSaving}
+              loadingText="Saving…"
+              isDisabled={editingApp && accessLoading}
+            >
+              Save App
+            </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>

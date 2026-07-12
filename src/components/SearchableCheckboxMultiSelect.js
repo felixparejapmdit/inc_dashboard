@@ -43,7 +43,7 @@ const SearchableCheckboxMultiSelect = ({
   const normalizedValue = new Set((Array.isArray(value) ? value : []).map((entry) => String(entry)));
   const selectedOptions = options.filter((option) => normalizedValue.has(String(option.value)));
   const countForSummary = selectedCount ?? selectedOptions.length;
-  const displayPlaceholder = selectedOptions.length > 0
+  const displayPlaceholder = countForSummary > 0
     ? `${countForSummary} ${summaryNoun}`
     : placeholder;
 
