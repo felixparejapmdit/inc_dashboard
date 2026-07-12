@@ -88,7 +88,8 @@ const API_URL = process.env.REACT_APP_API_URL;
 const ITEMS_PER_PAGE = 12;
 const MAX_ICON_SIZE_BYTES = 102400;
 const MotionBox = motion.create(Box);
-const isAppActive = (app) => app?.is_active !== false && app?.is_active !== 0 && app?.is_active !== "0";
+const isAppActive = (app) =>
+  app?.is_active !== false && app?.is_active !== 0 && app?.is_active !== "0";
 
 const Applications = () => {
   const location = useLocation();
@@ -129,7 +130,7 @@ const Applications = () => {
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const headerGradient = useColorModeValue(
     "linear(to-r, orange.500, red.600)",
-    "linear(to-r, orange.400, red.500)"
+    "linear(to-r, orange.400, red.500)",
   );
 
   useEffect(() => {
@@ -144,7 +145,13 @@ const Applications = () => {
     const loadAccessData = async () => {
       try {
         if (accessUserOptions.length === 0) {
-          const userData = await fetchData("users", null, null, "Failed to load personnel list", { fast: 1 });
+          const userData = await fetchData(
+            "users",
+            null,
+            null,
+            "Failed to load personnel list",
+            { fast: 1 },
+          );
           if (!cancelled) {
             const options = (userData || [])
               .map((u) => {
@@ -152,12 +159,15 @@ const Applications = () => {
                 const hasName = u.fullname && u.fullname !== "N/A";
                 return {
                   value: userId,
-                  label: (hasName ? u.fullname : u.username) || `User ${userId}`,
+                  label:
+                    (hasName ? u.fullname : u.username) || `User ${userId}`,
                   username: u.username,
                   avatar: u.avatar,
                 };
               })
-              .filter((option) => option.value !== undefined && option.value !== null);
+              .filter(
+                (option) => option.value !== undefined && option.value !== null,
+              );
             setAccessUserOptions(options);
           }
         }
@@ -257,13 +267,13 @@ const Applications = () => {
 
   const getImageFromClipboard = (clipboardData) => {
     const fileFromFiles = Array.from(clipboardData?.files || []).find((file) =>
-      file.type?.startsWith("image/")
+      file.type?.startsWith("image/"),
     );
 
     if (fileFromFiles) return fileFromFiles;
 
     const imageItem = Array.from(clipboardData?.items || []).find((item) =>
-      item.type?.startsWith("image/")
+      item.type?.startsWith("image/"),
     );
 
     return imageItem?.getAsFile() || null;
@@ -280,7 +290,7 @@ const Applications = () => {
     setIsIconDragging(false);
 
     const imageFile = Array.from(e.dataTransfer?.files || []).find((file) =>
-      file.type?.startsWith("image/")
+      file.type?.startsWith("image/"),
     );
     processImageFile(imageFile);
   };
@@ -320,7 +330,8 @@ const Applications = () => {
     if (editingApp && accessLoading) {
       toast({
         title: "Still loading current access list",
-        description: "Please wait a moment before saving so existing access isn't overwritten.",
+        description:
+          "Please wait a moment before saving so existing access isn't overwritten.",
         status: "warning",
       });
       return;
@@ -336,7 +347,8 @@ const Applications = () => {
     };
 
     // Find the matching type name for display
-    const typeName = appTypes.find(t => String(t.id) === String(app_type))?.name || "";
+    const typeName =
+      appTypes.find((t) => String(t.id) === String(app_type))?.name || "";
 
     setIsSaving(true);
     try {
@@ -352,7 +364,9 @@ const Applications = () => {
           app_type_name: typeName,
           ...(result?.data || {}),
         };
-        setApps(prev => prev.map(a => a.id === editingApp.id ? updatedApp : a));
+        setApps((prev) =>
+          prev.map((a) => (a.id === editingApp.id ? updatedApp : a)),
+        );
         toast({ title: "App updated", status: "success" });
       } else {
         const result = await postData("apps", payload);
@@ -362,7 +376,11 @@ const Applications = () => {
           // We couldn't confirm the new app's id — refresh from the server
           // rather than fabricate one, so the access list is saved against
           // the real row instead of a throwaway local id.
-          toast({ title: "App added", description: "Refreshing list…", status: "success" });
+          toast({
+            title: "App added",
+            description: "Refreshing list…",
+            status: "success",
+          });
           resetForm();
           onClose();
           loadData();
@@ -377,14 +395,20 @@ const Applications = () => {
           app_type_name: typeName,
           ...(result?.data || {}),
         };
-        setApps(prev => [...prev, newApp]);
+        setApps((prev) => [...prev, newApp]);
         toast({ title: "App added", status: "success" });
       }
 
       try {
-        await putData("apps", `${savedAppId}/access`, { userIds: accessUserIds });
+        await putData("apps", `${savedAppId}/access`, {
+          userIds: accessUserIds,
+        });
       } catch (accessError) {
-        toast({ title: "App saved, but access list failed to save", description: accessError.message, status: "warning" });
+        toast({
+          title: "App saved, but access list failed to save",
+          description: accessError.message,
+          status: "warning",
+        });
       }
 
       resetForm();
@@ -396,14 +420,19 @@ const Applications = () => {
       if (isNotFound) {
         toast({
           title: "This app no longer exists",
-          description: "It may have been changed or removed elsewhere. Refreshing the list.",
+          description:
+            "It may have been changed or removed elsewhere. Refreshing the list.",
           status: "error",
         });
         resetForm();
         onClose();
         loadData();
       } else {
-        toast({ title: "Error saving app", description: error.message, status: "error" });
+        toast({
+          title: "Error saving app",
+          description: error.message,
+          status: "error",
+        });
       }
     } finally {
       setIsSaving(false);
@@ -452,7 +481,7 @@ const Applications = () => {
     const appToDelete = deletingApp;
     try {
       // ✅ Optimistic update: remove item from local state immediately
-      setApps(prev => prev.filter(a => a.id !== appToDelete.id));
+      setApps((prev) => prev.filter((a) => a.id !== appToDelete.id));
       setDeletingApp(null);
       await deleteData("apps", appToDelete.id);
       toast({ title: "App deleted", status: "success" });
@@ -461,7 +490,11 @@ const Applications = () => {
     } catch (error) {
       // Rollback on failure
       loadData();
-      toast({ title: "Error deleting app", description: error.message, status: "error" });
+      toast({
+        title: "Error deleting app",
+        description: error.message,
+        status: "error",
+      });
     }
   };
 
@@ -475,7 +508,7 @@ const Applications = () => {
           (app.url || "").toLowerCase().includes(q) ||
           (app.description || "").toLowerCase().includes(q) ||
           (app.app_type_name || "").toLowerCase().includes(q) ||
-          (isAppActive(app) ? "enabled" : "disabled").includes(q)
+          (isAppActive(app) ? "enabled" : "disabled").includes(q),
       );
     }
     if (filterType) {
@@ -514,7 +547,10 @@ const Applications = () => {
   }, [accessUserOptions, accessUserIds]);
 
   const totalPages = Math.ceil(filteredApps.length / ITEMS_PER_PAGE) || 1;
-  const paginatedData = filteredApps.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const paginatedData = filteredApps.slice(
+    (page - 1) * ITEMS_PER_PAGE,
+    page * ITEMS_PER_PAGE,
+  );
 
   return (
     <Box bg={bg} minH="100vh">
@@ -530,18 +566,29 @@ const Applications = () => {
           <VStack align="start" spacing={1}>
             <HStack>
               <Icon as={AppWindow} boxSize={8} color="orange.500" />
-              <Heading size="xl" bgGradient={headerGradient} bgClip="text" fontWeight="black" letterSpacing="tight">
+              <Heading
+                size="xl"
+                bgGradient={headerGradient}
+                bgClip="text"
+                fontWeight="black"
+                letterSpacing="tight"
+              >
                 Apps
               </Heading>
             </HStack>
-            <Text color="gray.500" fontWeight="medium">View and manage your apps</Text>
+            <Text color="gray.500" fontWeight="medium">
+              View and manage your appss
+            </Text>
           </VStack>
 
           <HStack spacing={3}>
             <Button
               leftIcon={<Plus size={18} />}
               colorScheme="orange"
-              onClick={() => { resetForm(); onOpen(); }}
+              onClick={() => {
+                resetForm();
+                onOpen();
+              }}
               size="lg"
               borderRadius="xl"
               boxShadow="lg"
@@ -551,7 +598,12 @@ const Applications = () => {
             </Button>
             <IconButton
               icon={<RefreshCw size={20} />}
-              onClick={() => { setSearchQuery(""); setFilterType(""); setPage(1); loadData(); }}
+              onClick={() => {
+                setSearchQuery("");
+                setFilterType("");
+                setPage(1);
+                loadData();
+              }}
               isLoading={isLoading}
               variant="outline"
               size="lg"
@@ -564,9 +616,24 @@ const Applications = () => {
         {/* Stats Grid */}
         <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6} mb={8}>
           {[
-            { label: "All Apps", value: stats.total, icon: Layers, color: "blue" },
-            { label: "Types", value: stats.types, icon: Database, color: "purple" },
-            { label: "Shown", value: stats.active, icon: Activity, color: "orange" }
+            {
+              label: "All Apps",
+              value: stats.total,
+              icon: Layers,
+              color: "blue",
+            },
+            {
+              label: "Types",
+              value: stats.types,
+              icon: Database,
+              color: "purple",
+            },
+            {
+              label: "Shown",
+              value: stats.active,
+              icon: Activity,
+              color: "orange",
+            },
           ].map((stat) => (
             <MotionBox
               key={stat.label}
@@ -580,15 +647,29 @@ const Applications = () => {
             >
               <HStack justify="space-between">
                 <VStack align="start" spacing={0}>
-                  <Text fontSize="xs" fontWeight="black" color="gray.500" textTransform="uppercase" letterSpacing="widest">
+                  <Text
+                    fontSize="xs"
+                    fontWeight="black"
+                    color="gray.500"
+                    textTransform="uppercase"
+                    letterSpacing="widest"
+                  >
                     {stat.label}
                   </Text>
-                  <Text fontSize="3xl" fontWeight="black" color={`${stat.color}.500`}>
+                  <Text
+                    fontSize="3xl"
+                    fontWeight="black"
+                    color={`${stat.color}.500`}
+                  >
                     {stat.value}
                   </Text>
                 </VStack>
                 <Box p={3} bg={`${stat.color}.50`} borderRadius="xl">
-                  <Icon as={stat.icon} boxSize={6} color={`${stat.color}.500`} />
+                  <Icon
+                    as={stat.icon}
+                    boxSize={6}
+                    color={`${stat.color}.500`}
+                  />
                 </Box>
               </HStack>
             </MotionBox>
@@ -604,7 +685,10 @@ const Applications = () => {
             <Input
               placeholder="Search apps..."
               value={searchQuery}
-              onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(1);
+              }}
               borderRadius="xl"
               bg={cardBg}
               focusBorderColor="orange.400"
@@ -613,14 +697,21 @@ const Applications = () => {
           <Select
             placeholder="Filter by type"
             value={filterType}
-            onChange={(e) => { setFilterType(e.target.value); setPage(1); }}
+            onChange={(e) => {
+              setFilterType(e.target.value);
+              setPage(1);
+            }}
             maxW={{ base: "full", md: "250px" }}
             size="lg"
             borderRadius="xl"
             bg={cardBg}
             focusBorderColor="orange.400"
           >
-            {appTypes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+            {appTypes.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
+            ))}
           </Select>
           <HStack ml="auto">
             <IconButton
@@ -643,19 +734,38 @@ const Applications = () => {
         {/* Content Area */}
         {isLoading ? (
           <Center p={20} flexDir="column">
-            <Icon as={RefreshCw} boxSize={12} color="orange.500" className="spin" />
-            <Text mt={4} color="gray.500">Loading apps...</Text>
+            <Icon
+              as={RefreshCw}
+              boxSize={12}
+              color="orange.500"
+              className="spin"
+            />
+            <Text mt={4} color="gray.500">
+              Loading apps...
+            </Text>
           </Center>
         ) : filteredApps.length === 0 ? (
-          <Center p={20} flexDir="column" bg={cardBg} borderRadius="3xl" border="1px solid" borderColor={borderColor}>
+          <Center
+            p={20}
+            flexDir="column"
+            bg={cardBg}
+            borderRadius="3xl"
+            border="1px solid"
+            borderColor={borderColor}
+          >
             <Icon as={AlertCircle} boxSize={12} color="gray.300" />
-            <Heading size="md" mt={4} color="gray.500">No apps found</Heading>
+            <Heading size="md" mt={4} color="gray.500">
+              No apps found
+            </Heading>
             <Text color="gray.400">Try adjusting search or filters.</Text>
           </Center>
         ) : (
           <>
             {viewMode === "grid" ? (
-              <SimpleGrid columns={{ base: 1, sm: 2, lg: 3, xl: 4 }} spacing={6}>
+              <SimpleGrid
+                columns={{ base: 1, sm: 2, lg: 3, xl: 4 }}
+                spacing={6}
+              >
                 <AnimatePresence>
                   {paginatedData.map((app) => (
                     <MotionBox
@@ -673,7 +783,11 @@ const Applications = () => {
                       borderColor={borderColor}
                       overflow="hidden"
                     >
-                      <Box h="120px" bgGradient="linear(to-br, orange.50, red.50)" position="relative">
+                      <Box
+                        h="120px"
+                        bgGradient="linear(to-br, orange.50, red.50)"
+                        position="relative"
+                      >
                         <Flex justify="center" align="center" h="full" pt={6}>
                           <Avatar
                             src={app.icon}
@@ -712,10 +826,30 @@ const Applications = () => {
                       </Box>
                       <VStack p={6} pt={8} spacing={3}>
                         <VStack spacing={0}>
-                          <Heading size="md" textAlign="center" color="gray.800" noOfLines={1}>{app.name}</Heading>
-                          <Text fontSize="xs" color="blue.500" fontWeight="bold" noOfLines={1}>{app.url}</Text>
+                          <Heading
+                            size="md"
+                            textAlign="center"
+                            color="gray.800"
+                            noOfLines={1}
+                          >
+                            {app.name}
+                          </Heading>
+                          <Text
+                            fontSize="xs"
+                            color="blue.500"
+                            fontWeight="bold"
+                            noOfLines={1}
+                          >
+                            {app.url}
+                          </Text>
                         </VStack>
-                        <Text fontSize="sm" color="gray.500" textAlign="center" noOfLines={2} minH="40px">
+                        <Text
+                          fontSize="sm"
+                          color="gray.500"
+                          textAlign="center"
+                          noOfLines={2}
+                          minH="40px"
+                        >
                           {app.description || "No description."}
                         </Text>
                         <Divider />
@@ -729,15 +863,27 @@ const Applications = () => {
                               onClick={() => window.open(app.url, "_blank")}
                             />
                           </Tooltip>
-                          <Tooltip label={isAppActive(app) ? "Disable App" : "Enable App"}>
+                          <Tooltip
+                            label={
+                              isAppActive(app) ? "Disable App" : "Enable App"
+                            }
+                          >
                             <IconButton
-                              icon={isAppActive(app) ? <ToggleLeft size={18} /> : <ToggleRight size={18} />}
+                              icon={
+                                isAppActive(app) ? (
+                                  <ToggleLeft size={18} />
+                                ) : (
+                                  <ToggleRight size={18} />
+                                )
+                              }
                               size="sm"
                               colorScheme={isAppActive(app) ? "gray" : "green"}
                               variant="ghost"
                               onClick={() => handleToggleStatus(app)}
                               isLoading={updatingStatusId === app.id}
-                              aria-label={isAppActive(app) ? "Disable App" : "Enable App"}
+                              aria-label={
+                                isAppActive(app) ? "Disable App" : "Enable App"
+                              }
                             />
                           </Tooltip>
                           <Tooltip label="Edit">
@@ -773,7 +919,14 @@ const Applications = () => {
                 </AnimatePresence>
               </SimpleGrid>
             ) : (
-              <Box bg={cardBg} borderRadius="3xl" shadow="sm" border="1px solid" borderColor={borderColor} overflow="hidden">
+              <Box
+                bg={cardBg}
+                borderRadius="3xl"
+                shadow="sm"
+                border="1px solid"
+                borderColor={borderColor}
+                overflow="hidden"
+              >
                 <Table variant="simple" style={{ tableLayout: "fixed" }}>
                   <Thead bg="gray.50">
                     <Tr>
@@ -781,32 +934,63 @@ const Applications = () => {
                       <Th width="15%">Type</Th>
                       <Th width="30%">Link</Th>
                       <Th width="10%">Status</Th>
-                      <Th width="15%" textAlign="right">Actions</Th>
+                      <Th width="15%" textAlign="right">
+                        Actions
+                      </Th>
                     </Tr>
                   </Thead>
                   <Tbody>
                     {paginatedData.map((app) => (
                       <Tr
                         key={app.id}
-                        _hover={{ bg: isAppActive(app) ? "gray.50" : "gray.100" }}
+                        _hover={{
+                          bg: isAppActive(app) ? "gray.50" : "gray.100",
+                        }}
                         opacity={isAppActive(app) ? 1 : 0.72}
                       >
                         <Td>
                           <HStack>
-                            <Avatar src={app.icon} name={app.name} size="sm" borderRadius="md" />
+                            <Avatar
+                              src={app.icon}
+                              name={app.name}
+                              size="sm"
+                              borderRadius="md"
+                            />
                             <VStack align="start" spacing={0} overflow="hidden">
-                              <Text fontWeight="bold" isTruncated w="full">{app.name}</Text>
-                              <Text fontSize="xs" color="gray.500" isTruncated w="full">{app.description}</Text>
+                              <Text fontWeight="bold" isTruncated w="full">
+                                {app.name}
+                              </Text>
+                              <Text
+                                fontSize="xs"
+                                color="gray.500"
+                                isTruncated
+                                w="full"
+                              >
+                                {app.description}
+                              </Text>
                             </VStack>
                           </HStack>
                         </Td>
                         <Td>
-                          <Badge colorScheme="purple" variant="subtle" borderRadius="full" px={2}>
+                          <Badge
+                            colorScheme="purple"
+                            variant="subtle"
+                            borderRadius="full"
+                            px={2}
+                          >
                             {app.app_type_name || "General"}
                           </Badge>
                         </Td>
                         <Td>
-                          <Text fontSize="sm" color="blue.500" fontWeight="medium" textDecor="underline" cursor="pointer" onClick={() => window.open(app.url, "_blank")} isTruncated>
+                          <Text
+                            fontSize="sm"
+                            color="blue.500"
+                            fontWeight="medium"
+                            textDecor="underline"
+                            cursor="pointer"
+                            onClick={() => window.open(app.url, "_blank")}
+                            isTruncated
+                          >
                             {app.url}
                           </Text>
                         </Td>
@@ -823,27 +1007,54 @@ const Applications = () => {
                         </Td>
                         <Td textAlign="right">
                           <HStack justify="flex-end">
-                            <Tooltip label={isAppActive(app) ? "Disable App" : "Enable App"}>
+                            <Tooltip
+                              label={
+                                isAppActive(app) ? "Disable App" : "Enable App"
+                              }
+                            >
                               <IconButton
-                                icon={isAppActive(app) ? <ToggleLeft size={16} /> : <ToggleRight size={16} />}
+                                icon={
+                                  isAppActive(app) ? (
+                                    <ToggleLeft size={16} />
+                                  ) : (
+                                    <ToggleRight size={16} />
+                                  )
+                                }
                                 size="sm"
                                 variant="ghost"
-                                colorScheme={isAppActive(app) ? "gray" : "green"}
+                                colorScheme={
+                                  isAppActive(app) ? "gray" : "green"
+                                }
                                 onClick={() => handleToggleStatus(app)}
                                 isLoading={updatingStatusId === app.id}
-                                aria-label={isAppActive(app) ? "Disable App" : "Enable App"}
+                                aria-label={
+                                  isAppActive(app)
+                                    ? "Disable App"
+                                    : "Enable App"
+                                }
                               />
                             </Tooltip>
-                            <IconButton icon={<Edit3 size={16} />} size="sm" variant="ghost" onClick={() => {
-                              setEditingApp(app);
-                              setName(app.name);
-                              setUrl(app.url);
-                              setDescription(app.description || "");
-                              setIcon(app.icon);
-                              setAppType(app.app_type);
-                              onOpen();
-                            }} />
-                            <IconButton icon={<Trash2 size={16} />} size="sm" colorScheme="red" variant="ghost" onClick={() => setDeletingApp(app)} />
+                            <IconButton
+                              icon={<Edit3 size={16} />}
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                setEditingApp(app);
+                                setName(app.name);
+                                setUrl(app.url);
+                                setDescription(app.description || "");
+                                setIcon(app.icon);
+                                setAppType(app.app_type);
+                                onOpen();
+                              }}
+                            />
+                            <IconButton
+                              icon={<Trash2 size={16} />}
+                              size="sm"
+                              colorScheme="red"
+                              variant="ghost"
+                              onClick={() => setDeletingApp(app)}
+                            />
                           </HStack>
                         </Td>
                       </Tr>
@@ -855,20 +1066,39 @@ const Applications = () => {
 
             {/* Pagination */}
             <Flex justify="center" mt={8} gap={2}>
-              <Button onClick={() => setPage(p => Math.max(1, p - 1))} isDisabled={page === 1} size="sm" variant="outline">Previous</Button>
-              <Text alignSelf="center" fontSize="sm" color="gray.500">Page {page} of {totalPages}</Text>
-              <Button onClick={() => setPage(p => Math.min(totalPages, p + 1))} isDisabled={page === totalPages} size="sm" variant="outline">Next</Button>
+              <Button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                isDisabled={page === 1}
+                size="sm"
+                variant="outline"
+              >
+                Previous
+              </Button>
+              <Text alignSelf="center" fontSize="sm" color="gray.500">
+                Page {page} of {totalPages}
+              </Text>
+              <Button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                isDisabled={page === totalPages}
+                size="sm"
+                variant="outline"
+              >
+                Next
+              </Button>
             </Flex>
           </>
         )}
       </Container>
 
-
       {/* Add/Edit Modal */}
       <Modal isOpen={isOpen} onClose={onClose} size="xl" isCentered>
         <ModalOverlay backdropFilter="blur(8px)" />
         <ModalContent borderRadius="3xl" onPaste={handleIconPaste}>
-          <ModalHeader bgGradient={headerGradient} color="white" borderTopRadius="3xl">
+          <ModalHeader
+            bgGradient={headerGradient}
+            color="white"
+            borderTopRadius="3xl"
+          >
             {editingApp ? "Edit App" : "New App"}
           </ModalHeader>
           <ModalCloseButton color="white" />
@@ -914,7 +1144,12 @@ const Applications = () => {
                   ) : (
                     <Center w="full" h="full" flexDirection="column">
                       <Icon as={UploadCloud} color="gray.400" boxSize={8} />
-                      <Text fontSize="xs" color="gray.600" mt={1} fontWeight="bold">
+                      <Text
+                        fontSize="xs"
+                        color="gray.600"
+                        mt={1}
+                        fontWeight="bold"
+                      >
                         Upload image
                       </Text>
                       <Text fontSize="10px" color="gray.500" mt={1}>
@@ -922,39 +1157,84 @@ const Applications = () => {
                       </Text>
                     </Center>
                   )}
-                  <Input type="file" id="icon-upload" display="none" accept="image/*" onChange={handleImageUpload} />
+                  <Input
+                    type="file"
+                    id="icon-upload"
+                    display="none"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                  />
                 </Box>
                 <Text fontSize="xs" color="gray.500" mt={2}>
-                  Copy an image, then press Ctrl+V here. You can also drop an image.
+                  Copy an image, then press Ctrl+V here. You can also drop an
+                  image.
                 </Text>
-                {fileError && <Text color="red.500" fontSize="xs" mt={1}>{fileError}</Text>}
+                {fileError && (
+                  <Text color="red.500" fontSize="xs" mt={1}>
+                    {fileError}
+                  </Text>
+                )}
               </Box>
 
               <SimpleGrid columns={2} spacing={4} w="full">
                 <FormControl isRequired>
-                  <FormLabel fontWeight="bold" fontSize="sm">App Name</FormLabel>
-                  <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Dashboard" borderRadius="xl" />
+                  <FormLabel fontWeight="bold" fontSize="sm">
+                    App Name
+                  </FormLabel>
+                  <Input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Dashboard"
+                    borderRadius="xl"
+                  />
                 </FormControl>
                 <FormControl isRequired>
-                  <FormLabel fontWeight="bold" fontSize="sm">Type</FormLabel>
-                  <Select value={app_type} onChange={(e) => setAppType(e.target.value)} placeholder="Select type" borderRadius="xl">
-                    {appTypes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  <FormLabel fontWeight="bold" fontSize="sm">
+                    Type
+                  </FormLabel>
+                  <Select
+                    value={app_type}
+                    onChange={(e) => setAppType(e.target.value)}
+                    placeholder="Select type"
+                    borderRadius="xl"
+                  >
+                    {appTypes.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.name}
+                      </option>
+                    ))}
                   </Select>
                 </FormControl>
               </SimpleGrid>
 
               <FormControl isRequired>
-                <FormLabel fontWeight="bold" fontSize="sm">Link</FormLabel>
-                <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..." borderRadius="xl" />
+                <FormLabel fontWeight="bold" fontSize="sm">
+                  Link
+                </FormLabel>
+                <Input
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="https://..."
+                  borderRadius="xl"
+                />
               </FormControl>
 
               <FormControl>
-                <FormLabel fontWeight="bold" fontSize="sm">Description</FormLabel>
-                <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Short note..." borderRadius="xl" />
+                <FormLabel fontWeight="bold" fontSize="sm">
+                  Description
+                </FormLabel>
+                <Textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Short note..."
+                  borderRadius="xl"
+                />
               </FormControl>
 
               <FormControl>
-                <FormLabel fontWeight="bold" fontSize="sm">Personnel Access</FormLabel>
+                <FormLabel fontWeight="bold" fontSize="sm">
+                  Personnel Access
+                </FormLabel>
                 <SearchableCheckboxMultiSelect
                   options={accessUserOptions}
                   value={accessUserIds}
@@ -965,22 +1245,41 @@ const Applications = () => {
                   selectedCount={accessUserIds.length}
                   formatOptionLabel={(option) => (
                     <HStack spacing={2}>
-                      <Avatar size="xs" src={option.avatar || undefined} name={option.label} />
+                      <Avatar
+                        size="xs"
+                        src={option.avatar || undefined}
+                        name={option.label}
+                      />
                       <Box>
-                        <Text fontSize="sm" lineHeight="1.2">{option.label}</Text>
+                        <Text fontSize="sm" lineHeight="1.2">
+                          {option.label}
+                        </Text>
                         {option.username && (
-                          <Text fontSize="10px" color="gray.500" lineHeight="1.2">{option.username}</Text>
+                          <Text
+                            fontSize="10px"
+                            color="gray.500"
+                            lineHeight="1.2"
+                          >
+                            {option.username}
+                          </Text>
                         )}
                       </Box>
                     </HStack>
                   )}
                 />
                 <Text fontSize="xs" color="gray.500" mt={1}>
-                  {accessUserIds.length} personnel currently have access to this app.
+                  {accessUserIds.length} personnel currently have access to this
+                  app.
                 </Text>
                 {selectedAccessPeople.length > 0 ? (
                   <>
-                    <Text fontSize="xs" fontWeight="semibold" color="gray.600" mt={4} mb={2}>
+                    <Text
+                      fontSize="xs"
+                      fontWeight="semibold"
+                      color="gray.600"
+                      mt={4}
+                      mb={2}
+                    >
                       Selected personnel
                     </Text>
                     <VStack
@@ -1008,19 +1307,34 @@ const Applications = () => {
                           borderColor="gray.100"
                         >
                           <HStack spacing={3} align="center" minW={0} flex="1">
-                            <Avatar size="sm" src={person.avatar || undefined} name={person.label} />
+                            <Avatar
+                              size="sm"
+                              src={person.avatar || undefined}
+                              name={person.label}
+                            />
                             <Box minW={0} flex="1">
-                              <Text fontSize="sm" fontWeight="600" noOfLines={1}>
+                              <Text
+                                fontSize="sm"
+                                fontWeight="600"
+                                noOfLines={1}
+                              >
                                 {person.label}
                               </Text>
                               {person.username && (
-                                <Text fontSize="xs" color="gray.500" noOfLines={1}>
+                                <Text
+                                  fontSize="xs"
+                                  color="gray.500"
+                                  noOfLines={1}
+                                >
                                   {person.username}
                                 </Text>
                               )}
                             </Box>
                           </HStack>
-                          <Tooltip label={`Remove ${person.label}`} placement="top">
+                          <Tooltip
+                            label={`Remove ${person.label}`}
+                            placement="top"
+                          >
                             <IconButton
                               icon={<X size={14} />}
                               size="xs"
@@ -1029,7 +1343,9 @@ const Applications = () => {
                               aria-label={`Remove ${person.label}`}
                               onClick={() =>
                                 setAccessUserIds((prev) =>
-                                  prev.filter((id) => String(id) !== String(person.value)),
+                                  prev.filter(
+                                    (id) => String(id) !== String(person.value),
+                                  ),
                                 )
                               }
                             />
@@ -1047,7 +1363,15 @@ const Applications = () => {
             </VStack>
           </ModalBody>
           <ModalFooter bg="gray.50" borderBottomRadius="3xl" p={6}>
-            <Button variant="ghost" onClick={onClose} mr={3} borderRadius="xl" isDisabled={isSaving}>Cancel</Button>
+            <Button
+              variant="ghost"
+              onClick={onClose}
+              mr={3}
+              borderRadius="xl"
+              isDisabled={isSaving}
+            >
+              Cancel
+            </Button>
             <Button
               colorScheme="orange"
               onClick={handleSave}
@@ -1064,20 +1388,39 @@ const Applications = () => {
       </Modal>
 
       {/* Delete Confirmation */}
-      <AlertDialog isOpen={!!deletingApp} leastDestructiveRef={cancelRef} onClose={() => setDeletingApp(null)} isCentered>
+      <AlertDialog
+        isOpen={!!deletingApp}
+        leastDestructiveRef={cancelRef}
+        onClose={() => setDeletingApp(null)}
+        isCentered
+      >
         <AlertDialogOverlay backdropFilter="blur(5px)" />
         <AlertDialogContent borderRadius="2xl">
-          <AlertDialogHeader fontSize="lg" fontWeight="bold">Delete App</AlertDialogHeader>
+          <AlertDialogHeader fontSize="lg" fontWeight="bold">
+            Delete App
+          </AlertDialogHeader>
           <AlertDialogBody>
             Delete <b>{deletingApp?.name}</b>? This cannot be undone.
           </AlertDialogBody>
           <AlertDialogFooter>
-            <Button ref={cancelRef} onClick={() => setDeletingApp(null)} borderRadius="xl">Cancel</Button>
-            <Button colorScheme="red" onClick={handleDelete} ml={3} borderRadius="xl">Delete</Button>
+            <Button
+              ref={cancelRef}
+              onClick={() => setDeletingApp(null)}
+              borderRadius="xl"
+            >
+              Cancel
+            </Button>
+            <Button
+              colorScheme="red"
+              onClick={handleDelete}
+              ml={3}
+              borderRadius="xl"
+            >
+              Delete
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
     </Box>
   );
 };
