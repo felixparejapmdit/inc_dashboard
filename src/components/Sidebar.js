@@ -117,7 +117,7 @@ const getIconForLabel = (label = "", fallbackIcon = FiSettings) => {
       return FiLock;
     case "Personnel":
       return FiUsers;
-    case "Deleted Users":
+    case "Disabled Accounts":
       return FiUserX;
     case "Personnel History":
       return FiClock;
@@ -230,7 +230,7 @@ const SIDEBAR_ACCENT_COLORS = {
   Groups: "#0F766E",
   Permissions: "#DC2626",
   Personnel: "#0284C7",
-  "Deleted Users": "#BE123C",
+  "Disabled Accounts": "#BE123C",
   "Personnel History": "#7C3AED",
   "Phone Locations": "#0891B2",
   "Phone Directory": "#0D9488",
@@ -1021,7 +1021,7 @@ const Sidebar = ({ onSidebarToggle }) => {
                 {hasPermission("personnels.tempdeleted") && (
                   <SidebarItem
                     icon={FiUserX}
-                    label="Deleted Users"
+                    label="Disabled Accounts"
                     isExpanded={isExpanded}
                     onClick={() => handleItemClick("/tempdeleted-users")} // Redirect to users.js
                     isActive={location.pathname === "/tempdeleted-users"}

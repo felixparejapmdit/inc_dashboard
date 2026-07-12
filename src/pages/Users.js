@@ -83,7 +83,14 @@ import {
 } from "@chakra-ui/icons";
 import axios from "axios";
 import { FaCamera, FaIdCard } from "react-icons/fa";
-import { FiUser, FiInfo, FiRefreshCw, FiUsers, FiMoreVertical, FiUpload } from "react-icons/fi";
+import {
+  FiUser,
+  FiInfo,
+  FiRefreshCw,
+  FiUsers,
+  FiMoreVertical,
+  FiUpload,
+} from "react-icons/fi";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import Papa from "papaparse";
@@ -93,12 +100,19 @@ import Photoshoot from "./progress/Photoshoot"; // Import Photoshoot component
 import { getAuthHeaders } from "../utils/apiHeaders"; // adjust path as needed
 import { useUserFormData, suffixOptions } from "../hooks/userFormOptions";
 
-import { fetchData, fetchDataPhotoshoot, postData, putData, deleteData } from "../utils/fetchData";
+import {
+  fetchData,
+  fetchDataPhotoshoot,
+  postData,
+  putData,
+  deleteData,
+} from "../utils/fetchData";
 import { filterPersonnelData } from "../utils/filterUtils";
 
 const API_URL = process.env.REACT_APP_API_URL || "";
 const ITEMS_PER_PAGE = 5;
-const isAppActive = (app) => app?.is_active !== false && app?.is_active !== 0 && app?.is_active !== "0";
+const isAppActive = (app) =>
+  app?.is_active !== false && app?.is_active !== 0 && app?.is_active !== "0";
 const SIDEBAR_GRADIENT = "linear(to-b, #FFD559, #FFE07A 48%, #FFD15A)";
 const THIN_SCROLLBAR_STYLES = {
   "::-webkit-scrollbar": {
@@ -166,7 +180,11 @@ const Users = ({ personnelId }) => {
   const [currentPagePersonnel, setCurrentPagePersonnel] = useState(1);
   const [currentPageNew, setCurrentPageNew] = useState(1);
   const [currentPageLdapOnly, setCurrentPageLdapOnly] = useState(1);
-  const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
+  const {
+    isOpen: isDeleteOpen,
+    onOpen: onDeleteOpen,
+    onClose: onDeleteClose,
+  } = useDisclosure();
   const [userToDelete, setUserToDelete] = useState(null);
 
   const [columnVisibility, setColumnVisibility] = useState({});
@@ -178,17 +196,19 @@ const Users = ({ personnelId }) => {
   const [isExporting, setIsExporting] = useState(false);
   const [personnelImages, setPersonnelImages] = useState([]);
 
-
   // Elasticsearch State
   const [useElasticsearch, setUseElasticsearch] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [isSyncingES, setIsSyncingES] = useState(false);
 
-
   // Sync Modal State
   const [selectedSyncPersonnel, setSelectedSyncPersonnel] = useState(null);
   const [selectedSyncGroup, setSelectedSyncGroup] = useState("");
-  const { isOpen: isSyncModalOpen, onOpen: onSyncModalOpen, onClose: onSyncModalClose } = useDisclosure();
+  const {
+    isOpen: isSyncModalOpen,
+    onOpen: onSyncModalOpen,
+    onClose: onSyncModalClose,
+  } = useDisclosure();
 
   // Password Visibility State
   const [showPasswords, setShowPasswords] = useState({});
@@ -224,7 +244,7 @@ const Users = ({ personnelId }) => {
         },
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       toast({
@@ -257,7 +277,8 @@ const Users = ({ personnelId }) => {
   const allKeys = useMemo(() => {
     if (existingPersonnel.length === 0) return [];
     // Prioritize a record with personnel_id to ensure we get all relevant columns
-    const record = existingPersonnel.find(u => u.personnel_id) || existingPersonnel[0];
+    const record =
+      existingPersonnel.find((u) => u.personnel_id) || existingPersonnel[0];
     return Object.keys(record);
   }, [existingPersonnel]);
   const allVisible = allKeys.every((key) => columnVisibility[key]);
@@ -266,13 +287,14 @@ const Users = ({ personnelId }) => {
 
   const activeApps = useMemo(
     () => apps.filter((app) => isAppActive(app)),
-    [apps]
+    [apps],
   );
   const hasVisibleApps = useMemo(
-    () => Object.values(categorizedApps).some((categoryApps) =>
-      categoryApps.some((app) => isAppActive(app))
-    ),
-    [categorizedApps]
+    () =>
+      Object.values(categorizedApps).some((categoryApps) =>
+        categoryApps.some((app) => isAppActive(app)),
+      ),
+    [categorizedApps],
   );
 
   const avatarBaseUrl = `${API_URL}/uploads/`;
@@ -293,7 +315,10 @@ const Users = ({ personnelId }) => {
       // Wait for table to likely be rendered and then scroll
       setTimeout(() => {
         if (newPersonnelRef.current) {
-          newPersonnelRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+          newPersonnelRef.current.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
         }
       }, 500);
     }
@@ -370,7 +395,7 @@ const Users = ({ personnelId }) => {
     if (key === "district") {
       // Filter locals based on selected district
       const filtered = localCongregations.filter(
-        (local) => local.district_id === parseInt(value)
+        (local) => local.district_id === parseInt(value),
       );
       setFilteredLocals(filtered);
     }
@@ -499,8 +524,6 @@ const Users = ({ personnelId }) => {
     });
   };
 
-
-
   // Handle incoming filter from PersonnelStatistics
   useEffect(() => {
     if (location.state?.filterType) {
@@ -532,7 +555,7 @@ const Users = ({ personnelId }) => {
       // Set the specific filter
       if (filterType && resetFilters.hasOwnProperty(filterType)) {
         resetFilters[filterType] = true;
-        setCheckboxes(prev => ({
+        setCheckboxes((prev) => ({
           ...prev,
           [filterType]: true,
         }));
@@ -543,8 +566,10 @@ const Users = ({ personnelId }) => {
 
       // Show a toast notification
       toast({
-        title: `Filtered by ${filterType || 'All Personnel'}`,
-        description: filterType ? `Showing ${filterType} only` : 'Showing all personnel',
+        title: `Filtered by ${filterType || "All Personnel"}`,
+        description: filterType
+          ? `Showing ${filterType} only`
+          : "Showing all personnel",
         status: "info",
         duration: 3000,
         isClosable: true,
@@ -683,12 +708,15 @@ const Users = ({ personnelId }) => {
       if (appliedFilters.Minister) selectedTypes.push("Minister");
       if (appliedFilters.Regular) selectedTypes.push("Regular");
       if (appliedFilters["Lay Member"]) selectedTypes.push("Lay Member");
-      if (appliedFilters["Minister's Wife"]) selectedTypes.push("Minister's Wife");
-      if (appliedFilters["Ministerial Student"]) selectedTypes.push("Ministerial Student");
+      if (appliedFilters["Minister's Wife"])
+        selectedTypes.push("Minister's Wife");
+      if (appliedFilters["Ministerial Student"])
+        selectedTypes.push("Ministerial Student");
       if (appliedFilters.Volunteer) selectedTypes.push("Volunteer");
 
       const personnelTypeMatch =
-        selectedTypes.length === 0 || selectedTypes.includes(user.personnel_type);
+        selectedTypes.length === 0 ||
+        selectedTypes.includes(user.personnel_type);
 
       const matchesAdvancedFilters =
         personnelTypeMatch &&
@@ -705,26 +733,33 @@ const Users = ({ personnelId }) => {
             month: "long",
           }) === birthdayMonth) &&
         (!bloodtype ||
-          user.personnel_bloodtype?.toLowerCase() === bloodtype.toLowerCase()) &&
+          user.personnel_bloodtype?.toLowerCase() ===
+            bloodtype.toLowerCase()) &&
         (!language || user.p.language_id?.toString() === language) &&
         (!citizenship ||
           user.citizenship?.toLowerCase() === citizenship.toLowerCase()) &&
         (!civil_status ||
           user.personnel_civil_status?.toLowerCase() ===
-          civil_status.toLowerCase()) &&
+            civil_status.toLowerCase()) &&
         (!educational_attainment ||
           user.personnel_educational_level?.toLowerCase() ===
-          educational_attainment.toLowerCase()) &&
+            educational_attainment.toLowerCase()) &&
         (!inc_housing_address_id ||
           user.INC_Housing?.toLowerCase() ===
-          inc_housing_address_id.toLowerCase());
+            inc_housing_address_id.toLowerCase());
 
       return (
         combinedFields.includes(searchPersonnelList.toLowerCase()) &&
         matchesAdvancedFilters
       );
     });
-  }, [existingPersonnel, appliedFilters, searchPersonnelList, useElasticsearch, searchResults]);
+  }, [
+    existingPersonnel,
+    appliedFilters,
+    searchPersonnelList,
+    useElasticsearch,
+    searchResults,
+  ]);
 
   const personnelUsers = useMemo(() => {
     return filteredUsers.filter((user) => user.personnel_id !== null);
@@ -735,39 +770,40 @@ const Users = ({ personnelId }) => {
   }, [filteredUsers]);
 
   const uniqueIncHousingAddresses = Array.from(
-    new Set(incHousingAddresses.map((address) => address.name))
+    new Set(incHousingAddresses.map((address) => address.name)),
   );
 
   // Independent search for Newly Enrolled Personnel (Filters from newPersonnels)
   // Independent search for Newly Enrolled Personnel (Filters from newPersonnels)
   const filteredNewPersonnels = useMemo(() => {
     return newPersonnels.filter((personnel) =>
-      `${personnel.givenname || ""} ${personnel.surname_husband || ""} ${personnel.email_address || ""
-        } ${personnel.section || ""}`
+      `${personnel.givenname || ""} ${personnel.surname_husband || ""} ${
+        personnel.email_address || ""
+      } ${personnel.section || ""}`
         .toLowerCase()
-        .includes(searchNewPersonnels.toLowerCase())
+        .includes(searchNewPersonnels.toLowerCase()),
     );
   }, [newPersonnels, searchNewPersonnels]);
 
   const totalPagesPersonnel = Math.ceil(personnelUsers.length / ITEMS_PER_PAGE);
   const currentItemsPersonnel = personnelUsers.slice(
     (currentPagePersonnel - 1) * ITEMS_PER_PAGE,
-    currentPagePersonnel * ITEMS_PER_PAGE
+    currentPagePersonnel * ITEMS_PER_PAGE,
   );
 
   const totalPagesLdapOnly = Math.ceil(ldapOnlyUsers.length / ITEMS_PER_PAGE);
   const currentItemsLdapOnly = ldapOnlyUsers.slice(
     (currentPageLdapOnly - 1) * ITEMS_PER_PAGE,
-    currentPageLdapOnly * ITEMS_PER_PAGE
+    currentPageLdapOnly * ITEMS_PER_PAGE,
   );
 
   const totalPagesNew = Math.ceil(
-    filteredNewPersonnels.length / ITEMS_PER_PAGE
+    filteredNewPersonnels.length / ITEMS_PER_PAGE,
   );
 
   const currentItemsNew = filteredNewPersonnels.slice(
     (currentPageNew - 1) * ITEMS_PER_PAGE,
-    currentPageNew * ITEMS_PER_PAGE
+    currentPageNew * ITEMS_PER_PAGE,
   );
 
   const [avatars, setAvatars] = useState({});
@@ -795,7 +831,7 @@ const Users = ({ personnelId }) => {
         const response = await axios.post(
           `${API_URL}/api/personnel_images/2x2/batch`,
           { ids: idsToFetch },
-          { headers: getAuthHeaders() }
+          { headers: getAuthHeaders() },
         );
 
         if (response.data.success && response.data.data) {
@@ -840,7 +876,7 @@ const Users = ({ personnelId }) => {
               ...getAuthHeaders(),
             },
             body: formData,
-          }
+          },
         );
 
         if (!avatarResponse.ok) {
@@ -881,7 +917,8 @@ const Users = ({ personnelId }) => {
         }
 
         const resolvedGroupName =
-          groups.find((group) => String(group.id) === String(selectedGroup))?.name || "N/A";
+          groups.find((group) => String(group.id) === String(selectedGroup))
+            ?.name || "N/A";
         const localPatch = {
           ...newUser,
           availableApps: [...selectedApps],
@@ -891,13 +928,13 @@ const Users = ({ personnelId }) => {
 
         setExistingPersonnel((prev) =>
           prev.map((user) =>
-            user.ID === editingUser.ID ? { ...user, ...localPatch } : user
-          )
+            user.ID === editingUser.ID ? { ...user, ...localPatch } : user,
+          ),
         );
         setUsers((prev) =>
           prev.map((user) =>
-            user.ID === editingUser.ID ? { ...user, ...localPatch } : user
-          )
+            user.ID === editingUser.ID ? { ...user, ...localPatch } : user,
+          ),
         );
 
         closeModal();
@@ -917,7 +954,8 @@ const Users = ({ personnelId }) => {
 
         // Add the new user to the local state
         const resolvedGroupName =
-          groups.find((group) => String(group.id) === String(selectedGroup))?.name || "N/A";
+          groups.find((group) => String(group.id) === String(selectedGroup))
+            ?.name || "N/A";
         const localPatch = {
           ...newUser,
           ID: data.id,
@@ -941,15 +979,13 @@ const Users = ({ personnelId }) => {
       setStatus(
         editingUser
           ? "Error updating user. Please try again."
-          : "Error adding user. Please try again."
+          : "Error adding user. Please try again.",
       );
       console.error("Error in confirmSave:", error);
     } finally {
       setIsSavingUser(false);
     }
   };
-
-
 
   const handleDeleteUser = (user) => {
     if (!user) return;
@@ -964,7 +1000,11 @@ const Users = ({ personnelId }) => {
     try {
       if (userToDelete.personnel_id) {
         // Soft delete personnel
-        await deleteData("personnels", userToDelete.personnel_id, "Error deleting personnel.");
+        await deleteData(
+          "personnels",
+          userToDelete.personnel_id,
+          "Error deleting personnel.",
+        );
 
         toast({
           title: "Deleted",
@@ -974,7 +1014,9 @@ const Users = ({ personnelId }) => {
           isClosable: true,
         });
 
-        setUsers((prev) => prev.filter((u) => u.personnel_id !== userToDelete.personnel_id));
+        setUsers((prev) =>
+          prev.filter((u) => u.personnel_id !== userToDelete.personnel_id),
+        );
       } else {
         // Delete user
         if (!userToDelete.ID) throw new Error("User ID missing.");
@@ -1038,7 +1080,7 @@ const Users = ({ personnelId }) => {
     try {
       const response = await axios.get(
         `${API_URL}/api/personnel_images/${personnelId}`,
-        { headers: getAuthHeaders() }
+        { headers: getAuthHeaders() },
       );
 
       if (response.data.success) {
@@ -1086,7 +1128,10 @@ const Users = ({ personnelId }) => {
     setFullname(`${firstName} ${lastName}`.trim());
 
     setEmail(item.mail || item.email || item.personnel_email || "");
-    setAvatarUrl(avatars[item.personnel_id] || (item.avatar ? `${API_URL}${item.avatar}` : ""));
+    setAvatarUrl(
+      avatars[item.personnel_id] ||
+        (item.avatar ? `${API_URL}${item.avatar}` : ""),
+    );
 
     // Robust handling of availableApps: map objects to names if necessary
     const rawApps = item.availableApps || [];
@@ -1096,7 +1141,9 @@ const Users = ({ personnelId }) => {
           return app.name;
         }
 
-        const matchedById = apps.find((candidate) => String(candidate.id) === String(app));
+        const matchedById = apps.find(
+          (candidate) => String(candidate.id) === String(app),
+        );
         if (matchedById) {
           return matchedById.name;
         }
@@ -1105,12 +1152,14 @@ const Users = ({ personnelId }) => {
       })
       .filter(Boolean);
     const visibleAppNames = new Set(activeApps.map((app) => app.name));
-    const activeSelection = appNames.filter((appName) => visibleAppNames.has(appName));
+    const activeSelection = appNames.filter((appName) =>
+      visibleAppNames.has(appName),
+    );
     setSelectedApps(activeSelection);
 
     setSelectAll(
       activeApps.length > 0 &&
-      activeApps.every((app) => activeSelection.includes(app.name))
+        activeApps.every((app) => activeSelection.includes(app.name)),
     );
     setSelectedGroup(item.groupId || "");
 
@@ -1125,7 +1174,7 @@ const Users = ({ personnelId }) => {
 
     // Check if all category apps are selected
     const allSelected = categoryApps.every((app) =>
-      updatedSelection.includes(app.name)
+      updatedSelection.includes(app.name),
     );
 
     // Toggle forceRender to trigger a re-render
@@ -1174,7 +1223,7 @@ const Users = ({ personnelId }) => {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ groupId: groupId || null }), // Pass null if empty
-        }
+        },
       );
 
       if (!response.ok) {
@@ -1183,8 +1232,8 @@ const Users = ({ personnelId }) => {
 
       setUsers((prevUsers) =>
         prevUsers.map((user) =>
-          user.ID === userId ? { ...user, groupId } : user
-        )
+          user.ID === userId ? { ...user, groupId } : user,
+        ),
       );
       setExistingPersonnel((prevPersonnel) =>
         prevPersonnel.map((user) =>
@@ -1196,8 +1245,8 @@ const Users = ({ personnelId }) => {
                   groups.find((group) => String(group.id) === String(groupId))
                     ?.name || "N/A",
               }
-            : user
-        )
+            : user,
+        ),
       );
       setStatus("Group assigned successfully.");
     } catch (error) {
@@ -1210,7 +1259,7 @@ const Users = ({ personnelId }) => {
     setCurrentPagePersonnel((prev) =>
       direction === "next"
         ? Math.min(prev + 1, totalPagesPersonnel)
-        : Math.max(prev - 1, 1)
+        : Math.max(prev - 1, 1),
     );
   };
 
@@ -1218,7 +1267,7 @@ const Users = ({ personnelId }) => {
     setCurrentPageNew((prev) =>
       direction === "next"
         ? Math.min(prev + 1, totalPagesNew)
-        : Math.max(prev - 1, 1)
+        : Math.max(prev - 1, 1),
     );
   };
 
@@ -1226,7 +1275,7 @@ const Users = ({ personnelId }) => {
     setCurrentPageLdapOnly((prev) =>
       direction === "next"
         ? Math.min(prev + 1, totalPagesLdapOnly)
-        : Math.max(prev - 1, 1)
+        : Math.max(prev - 1, 1),
     );
   };
 
@@ -1273,7 +1322,7 @@ const Users = ({ personnelId }) => {
 
       // Refresh the new personnel table by removing the synced personnel
       setNewPersonnels((prev) =>
-        prev.filter((item) => item.personnel_id !== personnelId)
+        prev.filter((item) => item.personnel_id !== personnelId),
       );
 
       onSyncModalClose(); // Close modal on success
@@ -1301,12 +1350,14 @@ const Users = ({ personnelId }) => {
       const response = await axios.post(
         `${API_URL}/api/migrateLdapToPmdLoginUsers`,
         {}, // CRITICAL: Ensure an empty body is explicitly sent for POST requests
-        { headers: getAuthHeaders() }
+        { headers: getAuthHeaders() },
       );
 
       toast({
         title: "Sync Successful",
-        description: response.data.message || "Users have been successfully synchronized from LDAP.",
+        description:
+          response.data.message ||
+          "Users have been successfully synchronized from LDAP.",
         status: "success",
         duration: 3000,
         isClosable: true,
@@ -1316,11 +1367,10 @@ const Users = ({ personnelId }) => {
       console.error("Error synchronizing users:", error);
 
       // CRITICAL FIX: Extract specific error message from the backend's 500 response
-      const errorMessage = error.response
-        && error.response.data
-        && error.response.data.message
-        ? error.response.data.message
-        : "Failed to synchronize users from LDAP. Please check network/LDAP.";
+      const errorMessage =
+        error.response && error.response.data && error.response.data.message
+          ? error.response.data.message
+          : "Failed to synchronize users from LDAP. Please check network/LDAP.";
 
       toast({
         title: "Error",
@@ -1340,7 +1390,7 @@ const Users = ({ personnelId }) => {
       await axios.post(
         `${API_URL}/api/migrateLdapToPmdLoginUsers`,
         {},
-        { headers: getAuthHeaders() }
+        { headers: getAuthHeaders() },
       );
       toast({
         title: "Sync Successful",
@@ -1367,17 +1417,33 @@ const Users = ({ personnelId }) => {
   const handleSyncES = async () => {
     setIsSyncingES(true);
     try {
-      const response = await axios.post(`${API_URL}/api/users/sync-es`, {}, { headers: getAuthHeaders() });
-      toast({ title: "Elasticsearch Sync", description: response.data.message, status: "success", duration: 3000, isClosable: true });
+      const response = await axios.post(
+        `${API_URL}/api/users/sync-es`,
+        {},
+        { headers: getAuthHeaders() },
+      );
+      toast({
+        title: "Elasticsearch Sync",
+        description: response.data.message,
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
     } catch (error) {
-      console.error("Sync Error Details:", error.response?.data || error.message);
-      const errorDetail = error.response?.data?.error || error.response?.data?.message || error.message;
+      console.error(
+        "Sync Error Details:",
+        error.response?.data || error.message,
+      );
+      const errorDetail =
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        error.message;
       toast({
         title: "Sync Failed",
         description: `Error: ${errorDetail}`,
         status: "error",
         duration: 5000,
-        isClosable: true
+        isClosable: true,
       });
     } finally {
       setIsSyncingES(false);
@@ -1390,7 +1456,9 @@ const Users = ({ personnelId }) => {
 
     if (useElasticsearch && val.length > 2) {
       try {
-        const res = await axios.get(`${API_URL}/api/users/search?q=${val}`, { headers: getAuthHeaders() });
+        const res = await axios.get(`${API_URL}/api/users/search?q=${val}`, {
+          headers: getAuthHeaders(),
+        });
         setSearchResults(res.data);
       } catch (err) {
         console.error(err);
@@ -1448,7 +1516,8 @@ const Users = ({ personnelId }) => {
     );
   };
 
-  const currentWebdavUrl = editingUser?.webdav_url || editingUser?.webdavUrl || "";
+  const currentWebdavUrl =
+    editingUser?.webdav_url || editingUser?.webdavUrl || "";
   const displayWebdavUrl = currentWebdavUrl || "No WebDAV URL yet";
 
   const handleCopyWebdavUrl = async () => {
@@ -1515,12 +1584,15 @@ const Users = ({ personnelId }) => {
           try {
             const parsed = JSON.parse(savedVisibility);
             if (parsed && Object.keys(parsed).length > 0) {
-              // Optional: Merge with current keys to handle new columns in data? 
-              // For now, just use saved. 
+              // Optional: Merge with current keys to handle new columns in data?
+              // For now, just use saved.
               return parsed;
             }
           } catch (error) {
-            console.error("Error parsing localStorage userColumnVisibility:", error);
+            console.error(
+              "Error parsing localStorage userColumnVisibility:",
+              error,
+            );
           }
         }
 
@@ -1538,7 +1610,10 @@ const Users = ({ personnelId }) => {
         }, {});
 
         // Save default to localStorage
-        localStorage.setItem("userColumnVisibility", JSON.stringify(defaultVisibility));
+        localStorage.setItem(
+          "userColumnVisibility",
+          JSON.stringify(defaultVisibility),
+        );
 
         return defaultVisibility;
       });
@@ -1573,14 +1648,14 @@ const Users = ({ personnelId }) => {
     }
 
     const visibleColumns = Object.keys(columnVisibility).filter(
-      (key) => columnVisibility[key]
+      (key) => columnVisibility[key],
     );
 
     const headers = visibleColumns.map((key) =>
       key
         .replace("personnel_", "")
         .replace(/_/g, " ")
-        .replace(/\b\w/g, (c) => c.toUpperCase())
+        .replace(/\b\w/g, (c) => c.toUpperCase()),
     );
 
     // Prepare data matching PDF layout logic
@@ -1588,10 +1663,13 @@ const Users = ({ personnelId }) => {
       visibleColumns.map((key) => {
         if (key === "avatar") {
           // Export full URL for avatar
-          return avatars[user.personnel_id] || (user.avatar ? `${API_URL}${user.avatar}` : "N/A");
+          return (
+            avatars[user.personnel_id] ||
+            (user.avatar ? `${API_URL}${user.avatar}` : "N/A")
+          );
         }
         return user[key] === null || user[key] === undefined ? "" : user[key];
-      })
+      }),
     );
 
     // Use Papa Parse for robust CSV generation
@@ -1628,14 +1706,14 @@ const Users = ({ personnelId }) => {
       doc.text("Personnel List", 14, 15);
 
       const visibleColumns = Object.keys(columnVisibility).filter(
-        (key) => columnVisibility[key]
+        (key) => columnVisibility[key],
       );
 
       const headers = visibleColumns.map((key) =>
         key
           .replace("personnel_", "")
           .replace(/_/g, " ")
-          .replace(/\b\w/g, (c) => c.toUpperCase())
+          .replace(/\b\w/g, (c) => c.toUpperCase()),
       );
 
       const avatarColumnIndex = visibleColumns.indexOf("avatar");
@@ -1647,35 +1725,40 @@ const Users = ({ personnelId }) => {
           img.crossOrigin = "Anonymous";
           img.src = url;
           img.onload = () => {
-            const canvas = document.createElement('canvas');
+            const canvas = document.createElement("canvas");
             canvas.width = img.width;
             canvas.height = img.height;
-            const ctx = canvas.getContext('2d');
+            const ctx = canvas.getContext("2d");
             ctx.drawImage(img, 0, 0);
-            resolve(canvas.toDataURL('image/png'));
+            resolve(canvas.toDataURL("image/png"));
           };
           img.onerror = () => resolve(null);
         });
       };
 
       // Pre-process data
-      const data = await Promise.all(filteredUsers.map(async (user) => {
-        const row = [];
-        for (const key of visibleColumns) {
-          if (key === 'avatar') {
-            const avatarUrl = avatars[user.personnel_id] || (user.avatar ? `${API_URL}${user.avatar}` : null);
-            let imageData = null;
-            if (avatarUrl) {
-              imageData = await loadImage(avatarUrl);
+      const data = await Promise.all(
+        filteredUsers.map(async (user) => {
+          const row = [];
+          for (const key of visibleColumns) {
+            if (key === "avatar") {
+              const avatarUrl =
+                avatars[user.personnel_id] ||
+                (user.avatar ? `${API_URL}${user.avatar}` : null);
+              let imageData = null;
+              if (avatarUrl) {
+                imageData = await loadImage(avatarUrl);
+              }
+              const initials =
+                (user.givenName?.[0] || "") + (user.sn?.[0] || "");
+              row.push({ content: "", image: imageData, initials });
+            } else {
+              row.push(user[key] || "");
             }
-            const initials = (user.givenName?.[0] || "") + (user.sn?.[0] || "");
-            row.push({ content: '', image: imageData, initials });
-          } else {
-            row.push(user[key] || "");
           }
-        }
-        return row;
-      }));
+          return row;
+        }),
+      );
 
       autoTable(doc, {
         startY: 20,
@@ -1683,29 +1766,48 @@ const Users = ({ personnelId }) => {
         body: data,
         theme: "grid",
         headStyles: { fillColor: [0, 122, 204] },
-        styles: { fontSize: 9, minCellHeight: 15, valign: 'middle' },
+        styles: { fontSize: 9, minCellHeight: 15, valign: "middle" },
         didDrawCell: (dataHook) => {
-          if (dataHook.section === 'body' && dataHook.column.index === avatarColumnIndex) {
+          if (
+            dataHook.section === "body" &&
+            dataHook.column.index === avatarColumnIndex
+          ) {
             const cellRaw = dataHook.cell.raw;
-            if (cellRaw && typeof cellRaw === 'object') {
+            if (cellRaw && typeof cellRaw === "object") {
               const { image, initials } = cellRaw;
               if (image) {
-                doc.addImage(image, 'PNG', dataHook.cell.x + 2, dataHook.cell.y + 2, 11, 11);
+                doc.addImage(
+                  image,
+                  "PNG",
+                  dataHook.cell.x + 2,
+                  dataHook.cell.y + 2,
+                  11,
+                  11,
+                );
               } else {
                 // Draw placeholder
                 doc.setFillColor(200, 200, 200);
-                doc.circle(dataHook.cell.x + 7.5, dataHook.cell.y + 7.5, 5, 'F');
+                doc.circle(
+                  dataHook.cell.x + 7.5,
+                  dataHook.cell.y + 7.5,
+                  5,
+                  "F",
+                );
                 doc.setFontSize(8);
                 doc.setTextColor(255, 255, 255);
-                doc.text(initials || "?", dataHook.cell.x + 7.5, dataHook.cell.y + 10, { align: 'center' });
+                doc.text(
+                  initials || "?",
+                  dataHook.cell.x + 7.5,
+                  dataHook.cell.y + 10,
+                  { align: "center" },
+                );
               }
             }
           }
-        }
+        },
       });
 
       doc.save("personnel_list.pdf");
-
     } catch (error) {
       console.error("Export PDF Error:", error);
       alert("Failed to export PDF: " + error.message);
@@ -1802,9 +1904,21 @@ const Users = ({ personnelId }) => {
   };
 
   return (
-    <Box p={{ base: 4, md: 6 }} bg={useColorModeValue("gray.50", "gray.900")} minH="100vh">
-      <Flex direction={{ base: "column", md: "row" }} justify="space-between" align={{ base: "start", md: "center" }} mb={6} gap={4}>
-        <Heading size="lg" color="blue.600">Personnel Management</Heading>
+    <Box
+      p={{ base: 4, md: 6 }}
+      bg={useColorModeValue("gray.50", "gray.900")}
+      minH="100vh"
+    >
+      <Flex
+        direction={{ base: "column", md: "row" }}
+        justify="space-between"
+        align={{ base: "start", md: "center" }}
+        mb={6}
+        gap={4}
+      >
+        <Heading size="lg" color="blue.600">
+          Personnel Management
+        </Heading>
 
         {/* Sync Users Button */}
         {hasPermission("personnels.syncfromldap") && (
@@ -1832,14 +1946,24 @@ const Users = ({ personnelId }) => {
         >
           Sync Search Index
         </Button> */}
-
       </Flex>
 
       {/* Controls Bar */}
-      <Stack direction={{ base: "column", md: "row" }} spacing={4} mb={6} align="center" bg="white" p={4} borderRadius="lg" shadow="sm">
+      <Stack
+        direction={{ base: "column", md: "row" }}
+        spacing={4}
+        mb={6}
+        align="center"
+        bg="white"
+        p={4}
+        borderRadius="lg"
+        shadow="sm"
+      >
         {/* Search bar for Personnel List */}
         <InputGroup maxW={{ base: "100%", md: "300px" }}>
-          <InputLeftElement pointerEvents="none"><Search2Icon color="gray.400" /></InputLeftElement>
+          <InputLeftElement pointerEvents="none">
+            <Search2Icon color="gray.400" />
+          </InputLeftElement>
           <Input
             placeholder="Search personnel..."
             value={searchPersonnelList}
@@ -1861,7 +1985,8 @@ const Users = ({ personnelId }) => {
             aria-label="Reload Users"
             onClick={() => {
               setSearchPersonnelList("");
-              setAppliedFilters({ // Reset applied filters too if "display all" is intended
+              setAppliedFilters({
+                // Reset applied filters too if "display all" is intended
                 Minister: false,
                 Regular: false,
                 "Lay Member": false,
@@ -1881,7 +2006,8 @@ const Users = ({ personnelId }) => {
                 inc_housing_address_id: "",
                 incHousing: false,
               });
-              setAdvancedFilters({ // Reset UI filters state as well
+              setAdvancedFilters({
+                // Reset UI filters state as well
                 Minister: false,
                 Regular: false,
                 "Lay Member": false,
@@ -1917,7 +2043,12 @@ const Users = ({ personnelId }) => {
           />
         </Tooltip>
 
-        <HStack spacing={2} ml="auto" w={{ base: "100%", md: "auto" }} justify={{ base: "space-between", md: "flex-end" }}>
+        <HStack
+          spacing={2}
+          ml="auto"
+          w={{ base: "100%", md: "auto" }}
+          justify={{ base: "space-between", md: "flex-end" }}
+        >
           {/* Advanced Search Button */}
           <Tooltip label="Advanced Search">
             <IconButton
@@ -1932,9 +2063,20 @@ const Users = ({ personnelId }) => {
           {/* Columns Menu */}
           <Menu closeOnSelect={false}>
             <Tooltip label="Toggle Columns">
-              <MenuButton as={IconButton} icon={<ViewIcon />} aria-label="Columns" variant="ghost" />
+              <MenuButton
+                as={IconButton}
+                icon={<ViewIcon />}
+                aria-label="Columns"
+                variant="ghost"
+              />
             </Tooltip>
-            <MenuList maxHeight="300px" overflowY="auto" minW="250px" px={2} zIndex={10}>
+            <MenuList
+              maxHeight="300px"
+              overflowY="auto"
+              minW="250px"
+              px={2}
+              zIndex={10}
+            >
               <Box px={2} py={1}>
                 <Checkbox
                   isChecked={allVisible}
@@ -1971,11 +2113,22 @@ const Users = ({ personnelId }) => {
           {/* Export Menu */}
           <Menu>
             <Tooltip label="Export Data">
-              <MenuButton as={IconButton} icon={<DownloadIcon />} aria-label="Export" variant="ghost" />
+              <MenuButton
+                as={IconButton}
+                icon={<DownloadIcon />}
+                aria-label="Export"
+                variant="ghost"
+              />
             </Tooltip>
             <MenuList>
-              <MenuItem icon={<DownloadIcon />} onClick={exportAsCSV}>Export as CSV</MenuItem>
-              <MenuItem icon={isExporting ? <Spinner size="xs" /> : <DownloadIcon />} onClick={exportAsPDF} isDisabled={isExporting}>
+              <MenuItem icon={<DownloadIcon />} onClick={exportAsCSV}>
+                Export as CSV
+              </MenuItem>
+              <MenuItem
+                icon={isExporting ? <Spinner size="xs" /> : <DownloadIcon />}
+                onClick={exportAsPDF}
+                isDisabled={isExporting}
+              >
                 {isExporting ? "Exporting..." : "Export as PDF"}
               </MenuItem>
             </MenuList>
@@ -1983,15 +2136,18 @@ const Users = ({ personnelId }) => {
         </HStack>
       </Stack>
 
-
       <Flex direction="column" bg="white" p={4} borderRadius="lg" shadow="md">
         <HStack justify="space-between" mb={4}>
-          <Heading size="md" color="gray.700">User Management</Heading>
+          <Heading size="md" color="gray.700">
+            User Management
+          </Heading>
         </HStack>
 
         <Tabs variant="enclosed" colorScheme="blue" defaultIndex={0}>
           <TabList>
-            <Tab fontWeight="bold">Synced Personnel ({personnelUsers.length})</Tab>
+            <Tab fontWeight="bold">
+              Synced Personnel ({personnelUsers.length})
+            </Tab>
             <Tab fontWeight="bold">LDAP Only ({ldapOnlyUsers.length})</Tab>
           </TabList>
 
@@ -2000,144 +2156,254 @@ const Users = ({ personnelId }) => {
             <TabPanel px={0} pt={4}>
               <HStack justify="space-between" mb={4}>
                 <Text fontSize="sm" color="gray.500" fontWeight="medium">
-                  Showing {currentItemsPersonnel.length} of {personnelUsers.length} synced records
+                  Showing {currentItemsPersonnel.length} of{" "}
+                  {personnelUsers.length} synced records
                 </Text>
               </HStack>
               <Box width="100%" overflowX="auto">
-                <Table variant="simple" minWidth="900px" size="md" style={{ tableLayout: "fixed" }}>
+                <Table
+                  variant="simple"
+                  minWidth="900px"
+                  size="md"
+                  style={{ tableLayout: "fixed" }}
+                >
                   <Thead bg="gray.50">
                     <Tr>
-                      <Th py={4} width="96px" color="gray.600" whiteSpace="nowrap" textAlign="center">#</Th>
-                      {allKeys.map((key) => columnVisibility[key] && (
-                        <Th key={`th-${key}`} py={4} color="gray.600">
-                          {key.replace("personnel_", "").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
-                        </Th>
-                      ))}
-                      <Th py={4} width="160px" color="gray.600" textAlign="right">Action</Th>
+                      <Th
+                        py={4}
+                        width="96px"
+                        color="gray.600"
+                        whiteSpace="nowrap"
+                        textAlign="center"
+                      >
+                        #
+                      </Th>
+                      {allKeys.map(
+                        (key) =>
+                          columnVisibility[key] && (
+                            <Th key={`th-${key}`} py={4} color="gray.600">
+                              {key
+                                .replace("personnel_", "")
+                                .replace(/_/g, " ")
+                                .replace(/\b\w/g, (c) => c.toUpperCase())}
+                            </Th>
+                          ),
+                      )}
+                      <Th
+                        py={4}
+                        width="160px"
+                        color="gray.600"
+                        textAlign="right"
+                      >
+                        Action
+                      </Th>
                     </Tr>
                   </Thead>
                   <Tbody>
-                    {isUsersLoading ? (
-                      Array.from({ length: 5 }).map((_, i) => (
-                        <Tr key={i}>
-                          <Td colSpan={allKeys.filter(k => columnVisibility[k]).length + 2}>
-                            <HStack>
-                              <SkeletonCircle size="10" />
-                              <SkeletonText mt="4" noOfLines={1} spacing="4" skeletonHeight="4" width="100%" />
-                            </HStack>
-                          </Td>
-                        </Tr>
-                      ))
-                    ) : (
-                      currentItemsPersonnel.map((item, index) => {
-                        const avatarSrc = avatars[item.personnel_id] ||
-                          (item.avatar
-                            ? (item.avatar.startsWith("http") ? item.avatar : `${API_URL}${item.avatar.startsWith("/") ? "" : "/"}${item.avatar}`)
-                            : "");
-
-                        return (
-                          <Tr key={item.ID} _hover={{ bg: "blue.50" }} transition="background 0.2s">
-                            <Td py={5} fontWeight="bold" color="blue.500" whiteSpace="nowrap" textAlign="center">
-                              {(currentPagePersonnel - 1) * ITEMS_PER_PAGE + index + 1}
-                            </Td>
-
-                            {allKeys.map((key) => columnVisibility[key] && (
-                              <Td key={`td-${key}`} py={5}>
-                                {key === 'avatar' ? (
-                                  <Tooltip label="Click to zoom" placement="top">
-                                    <Avatar
-                                      size="md"
-                                      src={avatarSrc}
-                                      name={`${item.givenName || item.personnel_givenname || "N/A"} ${item.sn || item.personnel_surname_husband || "N/A"}`}
-                                      cursor="pointer"
-                                      border="2px solid white"
-                                      boxShadow="sm"
-                                      _hover={{ transform: "scale(1.5)", zIndex: 10, borderColor: "blue.400" }}
-                                      transition="all 0.2s"
-                                      onClick={() => handleAvatarClick(avatarSrc)}
-                                      onError={(e) => {
-                                        e.target.onerror = null;
-                                        e.target.src = "/default-avatar.png";
-                                      }}
-                                    />
-                                  </Tooltip>
-                                ) : (
-                                  <Text fontSize="sm" color="gray.700" isTruncated>
-                                    {item[key] !== null && item[key] !== undefined ? String(item[key]) : ""}
-                                  </Text>
-                                )}
-                              </Td>
-                            ))}
-
-                            <Td py={5} textAlign="right">
-                              <HStack spacing={2} justify="flex-end" flexWrap="nowrap">
-                                {hasPermission("personnels.edit") && (
-                                  <Tooltip label="Edit User">
-                                    <Button size="sm" colorScheme="yellow" leftIcon={<EditIcon />} onClick={() => handleEditUser(item)} whiteSpace="nowrap">
-                                      Edit
-                                    </Button>
-                                  </Tooltip>
-                                )}
-                                {renderActionMenu([
-                                  hasPermission("personnels.photo") && {
-                                    label: "Photo",
-                                    icon: FaCamera,
-                                    iconColor: "teal.500",
-                                    onClick: () => {
-                                      setSelectedUser(item);
-                                      setIsPhotoModalOpen(true);
-                                    },
-                                  },
-                                  hasPermission("personnels.edit_rfid_code") && {
-                                    label: "Credentials",
-                                    icon: FaIdCard,
-                                    iconColor: "blue.500",
-                                    onClick: () => {
-                                      setSelectedUserForRfid(item.personnel_id);
-                                      setRfidCode(item.rfid_code || "");
-                                      onRfidModalOpen();
-                                    },
-                                  },
-                                  hasPermission("personnels.view") && {
-                                    label: "View",
-                                    icon: ViewIcon,
-                                    iconColor: "purple.500",
-                                    onClick: () => handleViewUser(item.personnel_id),
-                                    isDisabled: !item.personnel_id,
-                                  },
-                                  hasPermission("personnels.info") && {
-                                    label: "Info",
-                                    icon: InfoIcon,
-                                    iconColor: "orange.500",
-                                    onClick: () => {
-                                      window.location.href = `/enroll?personnel_id=${item.personnel_id}&type=edituser`;
-                                    },
-                                  },
-                                  hasPermission("personnels.delete") && {
-                                    label: "Delete",
-                                    icon: DeleteIcon,
-                                    iconColor: "red.500",
-                                    color: "red.500",
-                                    dividerBefore: true,
-                                    onClick: (e) => {
-                                      e?.stopPropagation?.();
-                                      handleDeleteUser(item);
-                                    },
-                                  },
-                                ])}
+                    {isUsersLoading
+                      ? Array.from({ length: 5 }).map((_, i) => (
+                          <Tr key={i}>
+                            <Td
+                              colSpan={
+                                allKeys.filter((k) => columnVisibility[k])
+                                  .length + 2
+                              }
+                            >
+                              <HStack>
+                                <SkeletonCircle size="10" />
+                                <SkeletonText
+                                  mt="4"
+                                  noOfLines={1}
+                                  spacing="4"
+                                  skeletonHeight="4"
+                                  width="100%"
+                                />
                               </HStack>
                             </Td>
                           </Tr>
-                        );
-                      })
-                    )}
+                        ))
+                      : currentItemsPersonnel.map((item, index) => {
+                          const avatarSrc =
+                            avatars[item.personnel_id] ||
+                            (item.avatar
+                              ? item.avatar.startsWith("http")
+                                ? item.avatar
+                                : `${API_URL}${item.avatar.startsWith("/") ? "" : "/"}${item.avatar}`
+                              : "");
+
+                          return (
+                            <Tr
+                              key={item.ID}
+                              _hover={{ bg: "blue.50" }}
+                              transition="background 0.2s"
+                            >
+                              <Td
+                                py={5}
+                                fontWeight="bold"
+                                color="blue.500"
+                                whiteSpace="nowrap"
+                                textAlign="center"
+                              >
+                                {(currentPagePersonnel - 1) * ITEMS_PER_PAGE +
+                                  index +
+                                  1}
+                              </Td>
+
+                              {allKeys.map(
+                                (key) =>
+                                  columnVisibility[key] && (
+                                    <Td key={`td-${key}`} py={5}>
+                                      {key === "avatar" ? (
+                                        <Tooltip
+                                          label="Click to zoom"
+                                          placement="top"
+                                        >
+                                          <Avatar
+                                            size="md"
+                                            src={avatarSrc}
+                                            name={`${item.givenName || item.personnel_givenname || "N/A"} ${item.sn || item.personnel_surname_husband || "N/A"}`}
+                                            cursor="pointer"
+                                            border="2px solid white"
+                                            boxShadow="sm"
+                                            _hover={{
+                                              transform: "scale(1.5)",
+                                              zIndex: 10,
+                                              borderColor: "blue.400",
+                                            }}
+                                            transition="all 0.2s"
+                                            onClick={() =>
+                                              handleAvatarClick(avatarSrc)
+                                            }
+                                            onError={(e) => {
+                                              e.target.onerror = null;
+                                              e.target.src =
+                                                "/default-avatar.png";
+                                            }}
+                                          />
+                                        </Tooltip>
+                                      ) : (
+                                        <Text
+                                          fontSize="sm"
+                                          color="gray.700"
+                                          isTruncated
+                                        >
+                                          {item[key] !== null &&
+                                          item[key] !== undefined
+                                            ? String(item[key])
+                                            : ""}
+                                        </Text>
+                                      )}
+                                    </Td>
+                                  ),
+                              )}
+
+                              <Td py={5} textAlign="right">
+                                <HStack
+                                  spacing={2}
+                                  justify="flex-end"
+                                  flexWrap="nowrap"
+                                >
+                                  {hasPermission("personnels.edit") && (
+                                    <Tooltip label="Edit User">
+                                      <Button
+                                        size="sm"
+                                        colorScheme="yellow"
+                                        leftIcon={<EditIcon />}
+                                        onClick={() => handleEditUser(item)}
+                                        whiteSpace="nowrap"
+                                      >
+                                        Edit
+                                      </Button>
+                                    </Tooltip>
+                                  )}
+                                  {renderActionMenu([
+                                    hasPermission("personnels.photo") && {
+                                      label: "Photo",
+                                      icon: FaCamera,
+                                      iconColor: "teal.500",
+                                      onClick: () => {
+                                        setSelectedUser(item);
+                                        setIsPhotoModalOpen(true);
+                                      },
+                                    },
+                                    hasPermission(
+                                      "personnels.edit_rfid_code",
+                                    ) && {
+                                      label: "Credentials",
+                                      icon: FaIdCard,
+                                      iconColor: "blue.500",
+                                      onClick: () => {
+                                        setSelectedUserForRfid(
+                                          item.personnel_id,
+                                        );
+                                        setRfidCode(item.rfid_code || "");
+                                        onRfidModalOpen();
+                                      },
+                                    },
+                                    hasPermission("personnels.view") && {
+                                      label: "View",
+                                      icon: ViewIcon,
+                                      iconColor: "purple.500",
+                                      onClick: () =>
+                                        handleViewUser(item.personnel_id),
+                                      isDisabled: !item.personnel_id,
+                                    },
+                                    hasPermission("personnels.info") && {
+                                      label: "Info",
+                                      icon: InfoIcon,
+                                      iconColor: "orange.500",
+                                      onClick: () => {
+                                        window.location.href = `/enroll?personnel_id=${item.personnel_id}&type=edituser`;
+                                      },
+                                    },
+                                    hasPermission("personnels.delete") && {
+                                      label: "Disable",
+                                      icon: DeleteIcon,
+                                      iconColor: "red.500",
+                                      color: "red.500",
+                                      dividerBefore: true,
+                                      onClick: (e) => {
+                                        e?.stopPropagation?.();
+                                        handleDeleteUser(item);
+                                      },
+                                    },
+                                  ])}
+                                </HStack>
+                              </Td>
+                            </Tr>
+                          );
+                        })}
                   </Tbody>
                 </Table>
               </Box>
-              <Flex justify="center" align="center" mt={6} borderTop="1px solid" borderColor="gray.100" pt={4} gap={4}>
-                <Button size="sm" onClick={() => handlePageChangePersonnel("previous")} isDisabled={currentPagePersonnel === 1} variant="outline">Previous</Button>
-                <Text fontSize="sm" fontWeight="bold">Page {currentPagePersonnel} of {totalPagesPersonnel}</Text>
-                <Button size="sm" onClick={() => handlePageChangePersonnel("next")} isDisabled={currentPagePersonnel === totalPagesPersonnel} variant="outline">Next</Button>
+              <Flex
+                justify="center"
+                align="center"
+                mt={6}
+                borderTop="1px solid"
+                borderColor="gray.100"
+                pt={4}
+                gap={4}
+              >
+                <Button
+                  size="sm"
+                  onClick={() => handlePageChangePersonnel("previous")}
+                  isDisabled={currentPagePersonnel === 1}
+                  variant="outline"
+                >
+                  Previous
+                </Button>
+                <Text fontSize="sm" fontWeight="bold">
+                  Page {currentPagePersonnel} of {totalPagesPersonnel}
+                </Text>
+                <Button
+                  size="sm"
+                  onClick={() => handlePageChangePersonnel("next")}
+                  isDisabled={currentPagePersonnel === totalPagesPersonnel}
+                  variant="outline"
+                >
+                  Next
+                </Button>
               </Flex>
             </TabPanel>
 
@@ -2145,19 +2411,43 @@ const Users = ({ personnelId }) => {
             <TabPanel px={0} pt={4}>
               <HStack justify="space-between" mb={4}>
                 <Text fontSize="sm" color="gray.500" fontWeight="medium">
-                  Showing {currentItemsLdapOnly.length} of {ldapOnlyUsers.length} LDAP-only records
+                  Showing {currentItemsLdapOnly.length} of{" "}
+                  {ldapOnlyUsers.length} LDAP-only records
                 </Text>
               </HStack>
               <Box width="100%" overflowX="auto">
-                <Table variant="simple" minWidth="820px" size="md" style={{ tableLayout: "fixed" }}>
+                <Table
+                  variant="simple"
+                  minWidth="820px"
+                  size="md"
+                  style={{ tableLayout: "fixed" }}
+                >
                   <Thead bg="gray.50">
                     <Tr>
-                      <Th py={4} width="96px" color="gray.600" whiteSpace="nowrap" textAlign="center">#</Th>
-                      <Th py={4} width="18%" color="gray.600">Username/UID</Th>
-                      <Th py={4} width="34%" color="gray.600">Full Name (from LDAP)</Th>
-                      <Th py={4} width="16%" color="gray.600">Group Name</Th>
-                      <Th py={4} width="16%" color="gray.600">Password</Th>
-                      <Th py={4} width="16%" color="gray.600" textAlign="right">Action</Th>
+                      <Th
+                        py={4}
+                        width="96px"
+                        color="gray.600"
+                        whiteSpace="nowrap"
+                        textAlign="center"
+                      >
+                        #
+                      </Th>
+                      <Th py={4} width="18%" color="gray.600">
+                        Username/UID
+                      </Th>
+                      <Th py={4} width="34%" color="gray.600">
+                        Full Name (from LDAP)
+                      </Th>
+                      <Th py={4} width="16%" color="gray.600">
+                        Group Name
+                      </Th>
+                      <Th py={4} width="16%" color="gray.600">
+                        Password
+                      </Th>
+                      <Th py={4} width="16%" color="gray.600" textAlign="right">
+                        Action
+                      </Th>
                     </Tr>
                   </Thead>
                   <Tbody>
@@ -2167,7 +2457,13 @@ const Users = ({ personnelId }) => {
                           <Td colSpan={5}>
                             <HStack>
                               <SkeletonCircle size="10" />
-                              <SkeletonText mt="4" noOfLines={1} spacing="4" skeletonHeight="4" width="100%" />
+                              <SkeletonText
+                                mt="4"
+                                noOfLines={1}
+                                spacing="4"
+                                skeletonHeight="4"
+                                width="100%"
+                              />
                             </HStack>
                           </Td>
                         </Tr>
@@ -2177,25 +2473,48 @@ const Users = ({ personnelId }) => {
                         <Td colSpan={5} textAlign="center" py={10}>
                           <VStack spacing={2}>
                             <Icon as={FiUsers} boxSize={8} color="gray.300" />
-                            <Text color="gray.500">No LDAP-only users found. Try syncing.</Text>
+                            <Text color="gray.500">
+                              No LDAP-only users found. Try syncing.
+                            </Text>
                           </VStack>
                         </Td>
                       </Tr>
                     ) : (
                       currentItemsLdapOnly.map((item, index) => (
-                        <Tr key={item.ID} _hover={{ bg: "orange.50" }} transition="background 0.2s">
-                          <Td py={5} fontWeight="bold" color="orange.500" whiteSpace="nowrap" textAlign="center">
-                            {(currentPageLdapOnly - 1) * ITEMS_PER_PAGE + index + 1}
+                        <Tr
+                          key={item.ID}
+                          _hover={{ bg: "orange.50" }}
+                          transition="background 0.2s"
+                        >
+                          <Td
+                            py={5}
+                            fontWeight="bold"
+                            color="orange.500"
+                            whiteSpace="nowrap"
+                            textAlign="center"
+                          >
+                            {(currentPageLdapOnly - 1) * ITEMS_PER_PAGE +
+                              index +
+                              1}
                           </Td>
                           <Td py={5}>
-                            <Badge colorScheme="orange" variant="outline">{item.username}</Badge>
+                            <Badge colorScheme="orange" variant="outline">
+                              {item.username}
+                            </Badge>
                           </Td>
-                          <Td py={5} fontWeight="medium" color="gray.700" isTruncated>
-                            {`${item.givenName || ""} ${item.sn || ""}`.trim() || item.username}
+                          <Td
+                            py={5}
+                            fontWeight="medium"
+                            color="gray.700"
+                            isTruncated
+                          >
+                            {`${item.givenName || ""} ${item.sn || ""}`.trim() ||
+                              item.username}
                           </Td>
                           <Td py={5}>
                             <Badge colorScheme={item.groupId ? "blue" : "gray"}>
-                              {groups.find(g => g.id === item.groupId)?.name || "N/A"}
+                              {groups.find((g) => g.id === item.groupId)
+                                ?.name || "N/A"}
                             </Badge>
                           </Td>
                           <Td py={5}>
@@ -2219,7 +2538,11 @@ const Users = ({ personnelId }) => {
                             </HStack>
                           </Td>
                           <Td py={5} textAlign="right">
-                            <HStack spacing={2} justify="flex-end" flexWrap="nowrap">
+                            <HStack
+                              spacing={2}
+                              justify="flex-end"
+                              flexWrap="nowrap"
+                            >
                               {hasPermission("personnels.edit") && (
                                 <Tooltip label="Edit User">
                                   <Button
@@ -2260,218 +2583,360 @@ const Users = ({ personnelId }) => {
                   </Tbody>
                 </Table>
               </Box>
-              <Flex justify="center" align="center" mt={6} borderTop="1px solid" borderColor="gray.100" pt={4} gap={4}>
-                <Button size="sm" onClick={() => handlePageChangeLdapOnly("previous")} isDisabled={currentPageLdapOnly === 1} variant="outline">Previous</Button>
-                <Text fontSize="sm" fontWeight="bold">Page {currentPageLdapOnly} of {totalPagesLdapOnly}</Text>
-                <Button size="sm" onClick={() => handlePageChangeLdapOnly("next")} isDisabled={currentPageLdapOnly === totalPagesLdapOnly} variant="outline">Next</Button>
+              <Flex
+                justify="center"
+                align="center"
+                mt={6}
+                borderTop="1px solid"
+                borderColor="gray.100"
+                pt={4}
+                gap={4}
+              >
+                <Button
+                  size="sm"
+                  onClick={() => handlePageChangeLdapOnly("previous")}
+                  isDisabled={currentPageLdapOnly === 1}
+                  variant="outline"
+                >
+                  Previous
+                </Button>
+                <Text fontSize="sm" fontWeight="bold">
+                  Page {currentPageLdapOnly} of {totalPagesLdapOnly}
+                </Text>
+                <Button
+                  size="sm"
+                  onClick={() => handlePageChangeLdapOnly("next")}
+                  isDisabled={currentPageLdapOnly === totalPagesLdapOnly}
+                  variant="outline"
+                >
+                  Next
+                </Button>
               </Flex>
             </TabPanel>
           </TabPanels>
-        </Tabs >
-      </Flex >
+        </Tabs>
+      </Flex>
 
       <Divider my={8} borderColor="gray.200" borderStyle="dashed" />
 
-      {
-        hasPermission("personnels.newly_enrolled_personnel") && (
-          <Box
-            ref={newPersonnelRef}
-            bg="white"
-            p={6}
-            borderRadius="xl"
-            shadow="lg"
-            border="1px solid"
-            borderColor="gray.100"
-            className="new-personnel-section"
+      {hasPermission("personnels.newly_enrolled_personnel") && (
+        <Box
+          ref={newPersonnelRef}
+          bg="white"
+          p={6}
+          borderRadius="xl"
+          shadow="lg"
+          border="1px solid"
+          borderColor="gray.100"
+          className="new-personnel-section"
+        >
+          <Flex
+            justify="space-between"
+            align={{ base: "start", md: "center" }}
+            mb={6}
+            direction={{ base: "column", md: "row" }}
+            gap={4}
           >
-            <Flex
-              justify="space-between"
-              align={{ base: "start", md: "center" }}
-              mb={6}
-              direction={{ base: "column", md: "row" }}
-              gap={4}
-            >
-              <Box>
-                <Heading size="md" color="blue.600" mb={1}>
-                  Newly Enrolled Personnel
-                </Heading>
-                <Text fontSize="sm" color="gray.500">
-                  Manage and review the latest personnel enrollments ready for syncing.
-                </Text>
-              </Box>
-
-              <InputGroup maxW="350px" size="md">
-                <InputLeftElement pointerEvents="none" children={<Search2Icon color="gray.400" />} />
-                <Input
-                  placeholder="Search name, email, or section..."
-                  value={searchNewPersonnels}
-                  onChange={(e) => setSearchNewPersonnels(e.target.value)}
-                  borderRadius="full"
-                  focusBorderColor="blue.500"
-                  bg="gray.50"
-                  _focus={{ bg: "white", shadow: "md" }}
-                />
-              </InputGroup>
-            </Flex>
-
-            <Box overflowX="auto" borderRadius="lg" border="1px solid" borderColor="gray.100">
-              <Table variant="simple" size="md" minWidth="860px" style={{ tableLayout: "fixed" }}>
-                <Thead bg="gray.50">
-                  <Tr>
-                    <Th py={5} width="80px" color="gray.600">#</Th>
-                    <Th py={5} width="44%" color="gray.600">Personnel Details</Th>
-                    <Th py={5} width="32%" color="gray.600">Section</Th>
-                    <Th py={5} width="180px" color="gray.600" textAlign="right">Action</Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {isNewPersonnelLoading ? (
-                    Array.from({ length: 5 }).map((_, i) => (
-                      <Tr key={i}>
-                        <Td colSpan={5} py={5}>
-                          <SkeletonText noOfLines={1} spacing="4" skeletonHeight="20px" />
-                        </Td>
-                      </Tr>
-                    ))
-                  ) : filteredNewPersonnels.length === 0 ? (
-                    <Tr>
-                      <Td colSpan={5} textAlign="center" py={8} color="gray.500">
-                        <VStack spacing={2}>
-                          <InfoIcon boxSize={6} color="gray.300" />
-                          <Text>No newly enrolled personnel found.</Text>
-                        </VStack>
-                      </Td>
-                    </Tr>
-                  ) : (
-                    currentItemsNew.map((personnel, index) => {
-                      const rowNumber = (currentPageNew - 1) * ITEMS_PER_PAGE + index + 1;
-                      return (
-                        <Tr
-                          key={personnel.personnel_id}
-                          _hover={{ bg: "blue.50", transition: "all 0.2s" }}
-                        >
-                          <Td py={5}>
-                            <HStack spacing={2}>
-                              <Text fontWeight="bold" color="blue.500" minW="20px">{rowNumber}</Text>
-                              <Badge colorScheme="purple" variant="subtle" px={2} borderRadius="md" fontSize="xs">
-                                {personnel.personnel_id}
-                              </Badge>
-                            </HStack>
-                          </Td>
-                          <Td py={5}>
-                            <HStack spacing={3}>
-                              <Tooltip label="Click to zoom" placement="top">
-                                <Avatar
-                                  size="md"
-                                  name={`${personnel.givenname} ${personnel.surname_husband}`}
-                                  src={avatars[personnel.personnel_id] || undefined}
-                                  border="2px solid white"
-                                  boxShadow="sm"
-                                  cursor="pointer"
-                                  onClick={() => avatars[personnel.personnel_id] && handleAvatarClick(avatars[personnel.personnel_id])}
-                                />
-                              </Tooltip>
-                              <Box>
-                                <Text fontWeight="bold" fontSize="sm" color="gray.700" whiteSpace="nowrap">
-                                  {`${personnel.givenname} ${personnel.surname_husband}`}
-                                </Text>
-                                <Text fontSize="xs" color="gray.500">
-                                  {personnel.email_address}
-                                </Text>
-                              </Box>
-                            </HStack>
-                          </Td>
-                          <Td py={5} color="gray.600" isTruncated>{personnel.section || "N/A"}</Td>
-                          {/* Actions will continue below... */}
-                          <Td py={5} textAlign="right">
-                            <HStack spacing={2} justify="flex-end" flexWrap="nowrap">
-                              {hasPermission("personnels.sync_to_users") && (
-                                <Tooltip label="Sync to Users Table">
-                                  <Button
-                                    size="sm"
-                                    colorScheme="green"
-                                    leftIcon={<Icon as={FiRefreshCw} boxSize={4} />}
-                                    onClick={() => openSyncModal(personnel.personnel_id, `${personnel.givenname} ${personnel.surname_husband}`)}
-                                    isLoading={loadingSyncPersonnel && loadingSyncPersonnel[personnel.personnel_id]}
-                                    isDisabled={personnel.personnel_progress !== "8"}
-                                    whiteSpace="nowrap"
-                                    boxShadow="sm"
-                                  >
-                                    Sync
-                                  </Button>
-                                </Tooltip>
-                              )}
-                              {renderActionMenu([
-                                {
-                                  label: "View",
-                                  icon: ViewIcon,
-                                  iconColor: "purple.500",
-                                  onClick: () => window.open(`/personnel-preview/${personnel.personnel_id}`, "_blank"),
-                                },
-                                {
-                                  label: "Info",
-                                  icon: InfoIcon,
-                                  iconColor: "orange.500",
-                                  onClick: () => {
-                                    window.location.href = `/enroll?personnel_id=${personnel.personnel_id}&type=edituser`;
-                                  },
-                                },
-                                hasPermission("personnels.photo") && {
-                                  label: "Photo",
-                                  icon: FaCamera,
-                                  iconColor: "teal.500",
-                                  onClick: () => {
-                                    setSelectedUser(personnel);
-                                    setIsPhotoModalOpen(true);
-                                  },
-                                },
-                                hasPermission("personnels.edit_rfid_code") && {
-                                  label: "Credentials",
-                                  icon: FaIdCard,
-                                  iconColor: "blue.500",
-                                  onClick: () => {
-                                    setSelectedUserForRfid(personnel.personnel_id);
-                                    setRfidCode(personnel.rfid_code || "");
-                                    onRfidModalOpen();
-                                  },
-                                },
-                              ])}
-                            </HStack>
-                          </Td>
-                        </Tr>
-                      );
-                    })
-                  )}
-                </Tbody>
-              </Table>
+            <Box>
+              <Heading size="md" color="blue.600" mb={1}>
+                Newly Enrolled Personnel
+              </Heading>
+              <Text fontSize="sm" color="gray.500">
+                Manage and review the latest personnel enrollments ready for
+                syncing.
+              </Text>
             </Box>
 
-            <Flex justify="center" align="center" mt={6} borderTop="1px solid" borderColor="gray.100" pt={4} w="100%" gap={4}>
-              <Button
-                size="sm"
-                onClick={() => handlePageChangeNewPersonnel("previous")}
-                isDisabled={currentPageNew === 1}
-                variant="outline"
-                leftIcon={<Icon as={props => <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>} />}
-              >
-                Previous
-              </Button>
-              <Text fontSize="sm" fontWeight="bold" color="gray.600">
-                Page {currentPageNew} of {totalPagesNew || 1}
-              </Text>
-              <Button
-                size="sm"
-                onClick={() => handlePageChangeNewPersonnel("next")}
-                isDisabled={currentPageNew === totalPagesNew}
-                variant="outline"
-                rightIcon={<Icon as={props => <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>} />}
-              >
-                Next
-              </Button>
-            </Flex>
+            <InputGroup maxW="350px" size="md">
+              <InputLeftElement
+                pointerEvents="none"
+                children={<Search2Icon color="gray.400" />}
+              />
+              <Input
+                placeholder="Search name, email, or section..."
+                value={searchNewPersonnels}
+                onChange={(e) => setSearchNewPersonnels(e.target.value)}
+                borderRadius="full"
+                focusBorderColor="blue.500"
+                bg="gray.50"
+                _focus={{ bg: "white", shadow: "md" }}
+              />
+            </InputGroup>
+          </Flex>
+
+          <Box
+            overflowX="auto"
+            borderRadius="lg"
+            border="1px solid"
+            borderColor="gray.100"
+          >
+            <Table
+              variant="simple"
+              size="md"
+              minWidth="860px"
+              style={{ tableLayout: "fixed" }}
+            >
+              <Thead bg="gray.50">
+                <Tr>
+                  <Th py={5} width="80px" color="gray.600">
+                    #
+                  </Th>
+                  <Th py={5} width="44%" color="gray.600">
+                    Personnel Details
+                  </Th>
+                  <Th py={5} width="32%" color="gray.600">
+                    Section
+                  </Th>
+                  <Th py={5} width="180px" color="gray.600" textAlign="right">
+                    Action
+                  </Th>
+                </Tr>
+              </Thead>
+              <Tbody>
+                {isNewPersonnelLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <Tr key={i}>
+                      <Td colSpan={5} py={5}>
+                        <SkeletonText
+                          noOfLines={1}
+                          spacing="4"
+                          skeletonHeight="20px"
+                        />
+                      </Td>
+                    </Tr>
+                  ))
+                ) : filteredNewPersonnels.length === 0 ? (
+                  <Tr>
+                    <Td colSpan={5} textAlign="center" py={8} color="gray.500">
+                      <VStack spacing={2}>
+                        <InfoIcon boxSize={6} color="gray.300" />
+                        <Text>No newly enrolled personnel found.</Text>
+                      </VStack>
+                    </Td>
+                  </Tr>
+                ) : (
+                  currentItemsNew.map((personnel, index) => {
+                    const rowNumber =
+                      (currentPageNew - 1) * ITEMS_PER_PAGE + index + 1;
+                    return (
+                      <Tr
+                        key={personnel.personnel_id}
+                        _hover={{ bg: "blue.50", transition: "all 0.2s" }}
+                      >
+                        <Td py={5}>
+                          <HStack spacing={2}>
+                            <Text
+                              fontWeight="bold"
+                              color="blue.500"
+                              minW="20px"
+                            >
+                              {rowNumber}
+                            </Text>
+                            <Badge
+                              colorScheme="purple"
+                              variant="subtle"
+                              px={2}
+                              borderRadius="md"
+                              fontSize="xs"
+                            >
+                              {personnel.personnel_id}
+                            </Badge>
+                          </HStack>
+                        </Td>
+                        <Td py={5}>
+                          <HStack spacing={3}>
+                            <Tooltip label="Click to zoom" placement="top">
+                              <Avatar
+                                size="md"
+                                name={`${personnel.givenname} ${personnel.surname_husband}`}
+                                src={
+                                  avatars[personnel.personnel_id] || undefined
+                                }
+                                border="2px solid white"
+                                boxShadow="sm"
+                                cursor="pointer"
+                                onClick={() =>
+                                  avatars[personnel.personnel_id] &&
+                                  handleAvatarClick(
+                                    avatars[personnel.personnel_id],
+                                  )
+                                }
+                              />
+                            </Tooltip>
+                            <Box>
+                              <Text
+                                fontWeight="bold"
+                                fontSize="sm"
+                                color="gray.700"
+                                whiteSpace="nowrap"
+                              >
+                                {`${personnel.givenname} ${personnel.surname_husband}`}
+                              </Text>
+                              <Text fontSize="xs" color="gray.500">
+                                {personnel.email_address}
+                              </Text>
+                            </Box>
+                          </HStack>
+                        </Td>
+                        <Td py={5} color="gray.600" isTruncated>
+                          {personnel.section || "N/A"}
+                        </Td>
+                        {/* Actions will continue below... */}
+                        <Td py={5} textAlign="right">
+                          <HStack
+                            spacing={2}
+                            justify="flex-end"
+                            flexWrap="nowrap"
+                          >
+                            {hasPermission("personnels.sync_to_users") && (
+                              <Tooltip label="Sync to Users Table">
+                                <Button
+                                  size="sm"
+                                  colorScheme="green"
+                                  leftIcon={
+                                    <Icon as={FiRefreshCw} boxSize={4} />
+                                  }
+                                  onClick={() =>
+                                    openSyncModal(
+                                      personnel.personnel_id,
+                                      `${personnel.givenname} ${personnel.surname_husband}`,
+                                    )
+                                  }
+                                  isLoading={
+                                    loadingSyncPersonnel &&
+                                    loadingSyncPersonnel[personnel.personnel_id]
+                                  }
+                                  isDisabled={
+                                    personnel.personnel_progress !== "8"
+                                  }
+                                  whiteSpace="nowrap"
+                                  boxShadow="sm"
+                                >
+                                  Sync
+                                </Button>
+                              </Tooltip>
+                            )}
+                            {renderActionMenu([
+                              {
+                                label: "View",
+                                icon: ViewIcon,
+                                iconColor: "purple.500",
+                                onClick: () =>
+                                  window.open(
+                                    `/personnel-preview/${personnel.personnel_id}`,
+                                    "_blank",
+                                  ),
+                              },
+                              {
+                                label: "Info",
+                                icon: InfoIcon,
+                                iconColor: "orange.500",
+                                onClick: () => {
+                                  window.location.href = `/enroll?personnel_id=${personnel.personnel_id}&type=edituser`;
+                                },
+                              },
+                              hasPermission("personnels.photo") && {
+                                label: "Photo",
+                                icon: FaCamera,
+                                iconColor: "teal.500",
+                                onClick: () => {
+                                  setSelectedUser(personnel);
+                                  setIsPhotoModalOpen(true);
+                                },
+                              },
+                              hasPermission("personnels.edit_rfid_code") && {
+                                label: "Credentials",
+                                icon: FaIdCard,
+                                iconColor: "blue.500",
+                                onClick: () => {
+                                  setSelectedUserForRfid(
+                                    personnel.personnel_id,
+                                  );
+                                  setRfidCode(personnel.rfid_code || "");
+                                  onRfidModalOpen();
+                                },
+                              },
+                            ])}
+                          </HStack>
+                        </Td>
+                      </Tr>
+                    );
+                  })
+                )}
+              </Tbody>
+            </Table>
           </Box>
-        )
-      }
+
+          <Flex
+            justify="center"
+            align="center"
+            mt={6}
+            borderTop="1px solid"
+            borderColor="gray.100"
+            pt={4}
+            w="100%"
+            gap={4}
+          >
+            <Button
+              size="sm"
+              onClick={() => handlePageChangeNewPersonnel("previous")}
+              isDisabled={currentPageNew === 1}
+              variant="outline"
+              leftIcon={
+                <Icon
+                  as={(props) => (
+                    <svg
+                      {...props}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 19l-7-7 7-7"
+                      />
+                    </svg>
+                  )}
+                />
+              }
+            >
+              Previous
+            </Button>
+            <Text fontSize="sm" fontWeight="bold" color="gray.600">
+              Page {currentPageNew} of {totalPagesNew || 1}
+            </Text>
+            <Button
+              size="sm"
+              onClick={() => handlePageChangeNewPersonnel("next")}
+              isDisabled={currentPageNew === totalPagesNew}
+              variant="outline"
+              rightIcon={
+                <Icon
+                  as={(props) => (
+                    <svg
+                      {...props}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  )}
+                />
+              }
+            >
+              Next
+            </Button>
+          </Flex>
+        </Box>
+      )}
 
       <Modal isOpen={isRfidModalOpen} onClose={onRfidModalClose}>
         <ModalOverlay />
@@ -2520,7 +2985,8 @@ const Users = ({ personnelId }) => {
             </AlertDialogHeader>
 
             <AlertDialogBody>
-              Are you sure you want to delete <b>{userToDelete?.username || userToDelete?.fullname}</b>?
+              Are you sure you want to delete{" "}
+              <b>{userToDelete?.username || userToDelete?.fullname}</b>?
               <br />
               This action cannot be undone.
             </AlertDialogBody>
@@ -2583,7 +3049,12 @@ const Users = ({ personnelId }) => {
                 borderBottom="1px solid"
                 borderColor="whiteAlpha.700"
               >
-                <Flex align="center" justify="space-between" gap={4} wrap="wrap">
+                <Flex
+                  align="center"
+                  justify="space-between"
+                  gap={4}
+                  wrap="wrap"
+                >
                   <Box>
                     <Text fontSize="xl" fontWeight="bold" color="gray.900">
                       {editingUser ? "Edit User" : "Add User"}
@@ -2593,7 +3064,13 @@ const Users = ({ personnelId }) => {
                     </Text>
                   </Box>
                   {editingUser && (
-                    <Badge colorScheme="blue" variant="subtle" px={3} py={1} borderRadius="full">
+                    <Badge
+                      colorScheme="blue"
+                      variant="subtle"
+                      px={3}
+                      py={1}
+                      borderRadius="full"
+                    >
                       Editing {username || "User"}
                     </Badge>
                   )}
@@ -2619,15 +3096,46 @@ const Users = ({ personnelId }) => {
                 />
               </Box>
 
-              <Box flex="1" minH={0} bg="gray.50" p={4} css={THIN_SCROLLBAR_STYLES} overflowY="auto">
+              <Box
+                flex="1"
+                minH={0}
+                bg="gray.50"
+                p={4}
+                css={THIN_SCROLLBAR_STYLES}
+                overflowY="auto"
+              >
                 <VStack spacing={4} align="stretch">
-                  <SimpleGrid columns={{ base: 1, xl: 2 }} spacing={4} alignItems="start">
-                    <Box bg="white" p={4} borderRadius="xl" border="1px solid" borderColor="gray.100" shadow="sm">
-                      <Text fontSize="sm" fontWeight="semibold" color="gray.600" mb={3}>
+                  <SimpleGrid
+                    columns={{ base: 1, xl: 2 }}
+                    spacing={4}
+                    alignItems="start"
+                  >
+                    <Box
+                      bg="white"
+                      p={4}
+                      borderRadius="xl"
+                      border="1px solid"
+                      borderColor="gray.100"
+                      shadow="sm"
+                    >
+                      <Text
+                        fontSize="sm"
+                        fontWeight="semibold"
+                        color="gray.600"
+                        mb={3}
+                      >
                         Profile
                       </Text>
-                      <Flex direction={{ base: "column", sm: "row" }} gap={4} align="center">
-                        <Tooltip label="Click to view larger" hasArrow placement="top">
+                      <Flex
+                        direction={{ base: "column", sm: "row" }}
+                        gap={4}
+                        align="center"
+                      >
+                        <Tooltip
+                          label="Click to view larger"
+                          hasArrow
+                          placement="top"
+                        >
                           <Box
                             border="4px solid rgba(255,255,255,0.9)"
                             borderRadius="full"
@@ -2640,23 +3148,35 @@ const Users = ({ personnelId }) => {
                               transform: "scale(1.06)",
                               boxShadow: "xl",
                             }}
-                            onClick={() => handleAvatarClick(avatarUrl || "/default-avatar.png")}
+                            onClick={() =>
+                              handleAvatarClick(
+                                avatarUrl || "/default-avatar.png",
+                              )
+                            }
                             role="button"
                             tabIndex={0}
                             onKeyDown={(e) => {
                               if (e.key === "Enter" || e.key === " ") {
                                 e.preventDefault();
-                                handleAvatarClick(avatarUrl || "/default-avatar.png");
+                                handleAvatarClick(
+                                  avatarUrl || "/default-avatar.png",
+                                );
                               }
                             }}
                           >
-                            <Avatar size="xl" src={avatarUrl} name={fullname || username || "User"} />
+                            <Avatar
+                              size="xl"
+                              src={avatarUrl}
+                              name={fullname || username || "User"}
+                            />
                           </Box>
                         </Tooltip>
                         <VStack align="stretch" spacing={3} w="full">
                           <Box>
                             <Text fontWeight="semibold" color="gray.800">
-                              {editingUser ? "Update user details" : "Create a new account"}
+                              {editingUser
+                                ? "Update user details"
+                                : "Create a new account"}
                             </Text>
                             <Text fontSize="sm" color="gray.500">
                               Use a square image for the cleanest preview.
@@ -2706,7 +3226,8 @@ const Users = ({ personnelId }) => {
                                 if (file) {
                                   setAvatarFile(file);
                                   const reader = new FileReader();
-                                  reader.onload = (event) => setAvatarUrl(event.target.result);
+                                  reader.onload = (event) =>
+                                    setAvatarUrl(event.target.result);
                                   reader.readAsDataURL(file);
                                 }
                               }}
@@ -2722,7 +3243,8 @@ const Users = ({ personnelId }) => {
                                 onClick={() => avatarInputRef.current?.click()}
                                 boxShadow="md"
                                 _hover={{
-                                  bgGradient: "linear(to-r, blue.600, cyan.600)",
+                                  bgGradient:
+                                    "linear(to-r, blue.600, cyan.600)",
                                   transform: "translateY(-1px)",
                                   boxShadow: "lg",
                                 }}
@@ -2749,8 +3271,20 @@ const Users = ({ personnelId }) => {
                       </Flex>
                     </Box>
 
-                    <Box bg="white" p={4} borderRadius="xl" border="1px solid" borderColor="gray.100" shadow="sm">
-                      <Text fontSize="sm" fontWeight="semibold" color="gray.600" mb={3}>
+                    <Box
+                      bg="white"
+                      p={4}
+                      borderRadius="xl"
+                      border="1px solid"
+                      borderColor="gray.100"
+                      shadow="sm"
+                    >
+                      <Text
+                        fontSize="sm"
+                        fontWeight="semibold"
+                        color="gray.600"
+                        mb={3}
+                      >
                         Account
                       </Text>
                       <VStack spacing={3} align="stretch">
@@ -2843,106 +3377,166 @@ const Users = ({ personnelId }) => {
                     </Box>
                   </SimpleGrid>
 
-                  <Box bg="white" p={4} borderRadius="xl" border="1px solid" borderColor="gray.100" shadow="sm">
-                    <Flex align="center" justify="space-between" mb={3} gap={3} wrap="wrap">
+                  <Box
+                    bg="white"
+                    p={4}
+                    borderRadius="xl"
+                    border="1px solid"
+                    borderColor="gray.100"
+                    shadow="sm"
+                  >
+                    <Flex
+                      align="center"
+                      justify="space-between"
+                      mb={3}
+                      gap={3}
+                      wrap="wrap"
+                    >
                       <Box>
-                        <Text fontSize="sm" fontWeight="semibold" color="gray.600">
+                        <Text
+                          fontSize="sm"
+                          fontWeight="semibold"
+                          color="gray.600"
+                        >
                           Available Apps
                         </Text>
                         <Text fontSize="xs" color="gray.500">
-                          Only active apps are shown. Disabled apps stay hidden by system settings.
+                          Only active apps are shown. Disabled apps stay hidden
+                          by system settings.
                         </Text>
                       </Box>
-                      <Badge colorScheme="blue" variant="subtle" px={3} py={1} borderRadius="full">
+                      <Badge
+                        colorScheme="blue"
+                        variant="subtle"
+                        px={3}
+                        py={1}
+                        borderRadius="full"
+                      >
                         {selectedApps.length} selected
                       </Badge>
                     </Flex>
 
                     {hasVisibleApps ? (
-                      <Box maxH={{ base: "none", lg: "42vh" }} overflowY="auto" pr={1} css={THIN_SCROLLBAR_STYLES}>
+                      <Box
+                        maxH={{ base: "none", lg: "42vh" }}
+                        overflowY="auto"
+                        pr={1}
+                        css={THIN_SCROLLBAR_STYLES}
+                      >
                         <VStack spacing={3} align="stretch">
-                          {Object.entries(categorizedApps).map(([category, apps]) => {
-                            const selectableApps = apps.filter((app) => isAppActive(app));
-                            if (selectableApps.length === 0) return null;
-                            const allSelected =
-                              selectableApps.length > 0 &&
-                              selectableApps.every((app) => selectedApps.includes(app.name));
+                          {Object.entries(categorizedApps).map(
+                            ([category, apps]) => {
+                              const selectableApps = apps.filter((app) =>
+                                isAppActive(app),
+                              );
+                              if (selectableApps.length === 0) return null;
+                              const allSelected =
+                                selectableApps.length > 0 &&
+                                selectableApps.every((app) =>
+                                  selectedApps.includes(app.name),
+                                );
 
-                            return (
-                              <Box
-                                key={category}
-                                p={3}
-                                borderRadius="lg"
-                                border="1px solid"
-                                borderColor="gray.100"
-                                bg="gray.50"
-                              >
-                                <Flex align="center" justify="space-between" mb={2} gap={3} wrap="wrap">
-                                  <Text fontWeight="semibold" fontSize="sm" color="gray.700">
-                                    {category === "1" ? "General Apps" : category}
-                                  </Text>
-                                  <Checkbox
-                                    size="sm"
-                                    isChecked={allSelected}
-                                    onChange={(e) =>
-                                      handleCategorySelectAll(
-                                        category,
-                                        apps,
-                                        e.target.checked
-                                      )
-                                    }
-                                    colorScheme="blue"
+                              return (
+                                <Box
+                                  key={category}
+                                  p={3}
+                                  borderRadius="lg"
+                                  border="1px solid"
+                                  borderColor="gray.100"
+                                  bg="gray.50"
+                                >
+                                  <Flex
+                                    align="center"
+                                    justify="space-between"
+                                    mb={2}
+                                    gap={3}
+                                    wrap="wrap"
                                   >
-                                    Select All
-                                  </Checkbox>
-                                </Flex>
+                                    <Text
+                                      fontWeight="semibold"
+                                      fontSize="sm"
+                                      color="gray.700"
+                                    >
+                                      {category === "1"
+                                        ? "General Apps"
+                                        : category}
+                                    </Text>
+                                    <Checkbox
+                                      size="sm"
+                                      isChecked={allSelected}
+                                      onChange={(e) =>
+                                        handleCategorySelectAll(
+                                          category,
+                                          apps,
+                                          e.target.checked,
+                                        )
+                                      }
+                                      colorScheme="blue"
+                                    >
+                                      Select All
+                                    </Checkbox>
+                                  </Flex>
 
-                                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={2} pl={1}>
-                                  {selectableApps.map((app) => {
-                                    const isChecked = selectedApps.includes(app.name);
-                                    return (
-                                      <Checkbox
-                                        key={app.id}
-                                        size="sm"
-                                        isChecked={isChecked}
-                                        onChange={(e) => {
-                                          const checked = e.target.checked;
-                                          setSelectedApps((prev) => {
-                                            if (checked) {
-                                              return [...prev, app.name];
-                                            }
-                                            return prev.filter((name) => name !== app.name);
-                                          });
-                                        }}
-                                        colorScheme="blue"
-                                        px={2}
-                                        py={1}
-                                        borderRadius="md"
-                                        _hover={{
-                                          bg: "white",
-                                          transition: "0.2s ease-in-out",
-                                        }}
-                                      >
-                                        <HStack as="span" spacing={2} display="inline-flex" alignItems="center">
-                                          <Avatar
-                                            size="xs"
-                                            src={app.icon || undefined}
-                                            name={app.name}
-                                            bg="blue.50"
-                                            color="blue.700"
-                                            borderRadius="md"
-                                          />
-                                          <Text as="span" fontSize="sm">
-                                            {app.name}
-                                          </Text>
-                                        </HStack>
-                                      </Checkbox>
-                                    );
-                                  })}
-                                </SimpleGrid>
-                              </Box>
-                            );
-                          })}
+                                  <SimpleGrid
+                                    columns={{ base: 1, md: 2 }}
+                                    spacing={2}
+                                    pl={1}
+                                  >
+                                    {selectableApps.map((app) => {
+                                      const isChecked = selectedApps.includes(
+                                        app.name,
+                                      );
+                                      return (
+                                        <Checkbox
+                                          key={app.id}
+                                          size="sm"
+                                          isChecked={isChecked}
+                                          onChange={(e) => {
+                                            const checked = e.target.checked;
+                                            setSelectedApps((prev) => {
+                                              if (checked) {
+                                                return [...prev, app.name];
+                                              }
+                                              return prev.filter(
+                                                (name) => name !== app.name,
+                                              );
+                                            });
+                                          }}
+                                          colorScheme="blue"
+                                          px={2}
+                                          py={1}
+                                          borderRadius="md"
+                                          _hover={{
+                                            bg: "white",
+                                            transition: "0.2s ease-in-out",
+                                          }}
+                                        >
+                                          <HStack
+                                            as="span"
+                                            spacing={2}
+                                            display="inline-flex"
+                                            alignItems="center"
+                                          >
+                                            <Avatar
+                                              size="xs"
+                                              src={app.icon || undefined}
+                                              name={app.name}
+                                              bg="blue.50"
+                                              color="blue.700"
+                                              borderRadius="md"
+                                            />
+                                            <Text as="span" fontSize="sm">
+                                              {app.name}
+                                            </Text>
+                                          </HStack>
+                                        </Checkbox>
+                                      );
+                                    })}
+                                  </SimpleGrid>
+                                </Box>
+                              );
+                            },
+                          )}
                         </VStack>
                       </Box>
                     ) : (
@@ -3049,7 +3643,9 @@ const Users = ({ personnelId }) => {
           <ModalBody>
             <VStack spacing={4} align="stretch" pb={4}>
               <Box bg="gray.50" p={3} borderRadius="md">
-                <Text fontWeight="bold" mb={2} fontSize="sm" color="gray.600">Personnel Types</Text>
+                <Text fontWeight="bold" mb={2} fontSize="sm" color="gray.600">
+                  Personnel Types
+                </Text>
                 <Checkbox
                   isChecked={allAdvanceSelected}
                   onChange={handleAdvanceSelectAll}
@@ -3059,105 +3655,302 @@ const Users = ({ personnelId }) => {
                   Select All
                 </Checkbox>
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={2}>
-                  <Checkbox isChecked={checkboxes.Minister} onChange={(e) => handleCheckboxChange("minister", e.target.checked)}>Minister</Checkbox>
-                  <Checkbox isChecked={checkboxes.Regular} onChange={(e) => handleCheckboxChange("regular", e.target.checked)}>Regular</Checkbox>
-                  <Checkbox isChecked={checkboxes["Lay Member"]} onChange={(e) => handleCheckboxChange("layMember", e.target.checked)}>Lay Member</Checkbox>
-                  <Checkbox isChecked={checkboxes["Minister's Wife"]} onChange={(e) => handleCheckboxChange("ministersWife", e.target.checked)}>Minister's Wife</Checkbox>
-                  <Checkbox isChecked={checkboxes["Ministerial Student"]} onChange={(e) => handleCheckboxChange("ministerialStudent", e.target.checked)}>Ministerial Student</Checkbox>
-                  <Checkbox isChecked={checkboxes.Volunteer} onChange={(e) => handleCheckboxChange("volunteer", e.target.checked)}>Volunteer</Checkbox>
+                  <Checkbox
+                    isChecked={checkboxes.Minister}
+                    onChange={(e) =>
+                      handleCheckboxChange("minister", e.target.checked)
+                    }
+                  >
+                    Minister
+                  </Checkbox>
+                  <Checkbox
+                    isChecked={checkboxes.Regular}
+                    onChange={(e) =>
+                      handleCheckboxChange("regular", e.target.checked)
+                    }
+                  >
+                    Regular
+                  </Checkbox>
+                  <Checkbox
+                    isChecked={checkboxes["Lay Member"]}
+                    onChange={(e) =>
+                      handleCheckboxChange("layMember", e.target.checked)
+                    }
+                  >
+                    Lay Member
+                  </Checkbox>
+                  <Checkbox
+                    isChecked={checkboxes["Minister's Wife"]}
+                    onChange={(e) =>
+                      handleCheckboxChange("ministersWife", e.target.checked)
+                    }
+                  >
+                    Minister's Wife
+                  </Checkbox>
+                  <Checkbox
+                    isChecked={checkboxes["Ministerial Student"]}
+                    onChange={(e) =>
+                      handleCheckboxChange(
+                        "ministerialStudent",
+                        e.target.checked,
+                      )
+                    }
+                  >
+                    Ministerial Student
+                  </Checkbox>
+                  <Checkbox
+                    isChecked={checkboxes.Volunteer}
+                    onChange={(e) =>
+                      handleCheckboxChange("volunteer", e.target.checked)
+                    }
+                  >
+                    Volunteer
+                  </Checkbox>
                 </SimpleGrid>
               </Box>
 
               <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
                 <FormControl>
                   <FormLabel fontSize="sm">District</FormLabel>
-                  <Select placeholder="All Districts" value={advancedFilters.district} onChange={(e) => handleDropdownFilterChange("district", e.target.value)}>
-                    {districts.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+                  <Select
+                    placeholder="All Districts"
+                    value={advancedFilters.district}
+                    onChange={(e) =>
+                      handleDropdownFilterChange("district", e.target.value)
+                    }
+                  >
+                    {districts.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name}
+                      </option>
+                    ))}
                   </Select>
                 </FormControl>
                 <FormControl>
                   <FormLabel fontSize="sm">Local</FormLabel>
-                  <Select placeholder="All Locals" value={advancedFilters.local} onChange={(e) => handleDropdownFilterChange("local", e.target.value)}>
-                    {filteredLocals.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+                  <Select
+                    placeholder="All Locals"
+                    value={advancedFilters.local}
+                    onChange={(e) =>
+                      handleDropdownFilterChange("local", e.target.value)
+                    }
+                  >
+                    {filteredLocals.map((l) => (
+                      <option key={l.id} value={l.id}>
+                        {l.name}
+                      </option>
+                    ))}
                   </Select>
                 </FormControl>
 
                 <FormControl>
                   <FormLabel fontSize="sm">Section</FormLabel>
-                  <Select placeholder="All Sections" value={advancedFilters.section} onChange={(e) => handleDropdownFilterChange("section", e.target.value)}>
-                    {sections.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  <Select
+                    placeholder="All Sections"
+                    value={advancedFilters.section}
+                    onChange={(e) =>
+                      handleDropdownFilterChange("section", e.target.value)
+                    }
+                  >
+                    {sections.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))}
                   </Select>
                 </FormControl>
 
                 <FormControl>
                   <FormLabel fontSize="sm">Team (Subsection)</FormLabel>
-                  <Select placeholder="All Teams" value={advancedFilters.team} onChange={(e) => handleDropdownFilterChange("team", e.target.value)}>
-                    {subsections.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  <Select
+                    placeholder="All Teams"
+                    value={advancedFilters.team}
+                    onChange={(e) =>
+                      handleDropdownFilterChange("team", e.target.value)
+                    }
+                  >
+                    {subsections.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.name}
+                      </option>
+                    ))}
                   </Select>
                 </FormControl>
 
                 <FormControl>
                   <FormLabel fontSize="sm">Designation / Role</FormLabel>
-                  <Select placeholder="All Roles" value={advancedFilters.role} onChange={(e) => handleDropdownFilterChange("role", e.target.value)}>
-                    {designations.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+                  <Select
+                    placeholder="All Roles"
+                    value={advancedFilters.role}
+                    onChange={(e) =>
+                      handleDropdownFilterChange("role", e.target.value)
+                    }
+                  >
+                    {designations.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.name}
+                      </option>
+                    ))}
                   </Select>
                 </FormControl>
 
                 <FormControl>
                   <FormLabel fontSize="sm">Birthday Month</FormLabel>
-                  <Select placeholder="All Months" value={advancedFilters.birthdayMonth} onChange={(e) => handleDropdownFilterChange("birthdayMonth", e.target.value)}>
-                    {["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].map((month) => (
-                      <option key={month} value={month}>{month}</option>
+                  <Select
+                    placeholder="All Months"
+                    value={advancedFilters.birthdayMonth}
+                    onChange={(e) =>
+                      handleDropdownFilterChange(
+                        "birthdayMonth",
+                        e.target.value,
+                      )
+                    }
+                  >
+                    {[
+                      "January",
+                      "February",
+                      "March",
+                      "April",
+                      "May",
+                      "June",
+                      "July",
+                      "August",
+                      "September",
+                      "October",
+                      "November",
+                      "December",
+                    ].map((month) => (
+                      <option key={month} value={month}>
+                        {month}
+                      </option>
                     ))}
                   </Select>
                 </FormControl>
 
                 <FormControl>
                   <FormLabel fontSize="sm">Blood Type</FormLabel>
-                  <Select placeholder="All Blood Types" value={advancedFilters.bloodtype} onChange={(e) => handleDropdownFilterChange("bloodtype", e.target.value)}>
-                    {bloodtypes.filter(bt => bt && bt.trim() !== "").map((bt) => <option key={bt} value={bt}>{bt}</option>)}
+                  <Select
+                    placeholder="All Blood Types"
+                    value={advancedFilters.bloodtype}
+                    onChange={(e) =>
+                      handleDropdownFilterChange("bloodtype", e.target.value)
+                    }
+                  >
+                    {bloodtypes
+                      .filter((bt) => bt && bt.trim() !== "")
+                      .map((bt) => (
+                        <option key={bt} value={bt}>
+                          {bt}
+                        </option>
+                      ))}
                   </Select>
                 </FormControl>
 
                 <FormControl>
                   <FormLabel fontSize="sm">Language</FormLabel>
-                  <Select placeholder="All Languages" value={advancedFilters.language} onChange={(e) => handleDropdownFilterChange("language", e.target.value)}>
-                    {languages.map((lang) => <option key={lang.id} value={lang.id}>{lang.name}</option>)}
+                  <Select
+                    placeholder="All Languages"
+                    value={advancedFilters.language}
+                    onChange={(e) =>
+                      handleDropdownFilterChange("language", e.target.value)
+                    }
+                  >
+                    {languages.map((lang) => (
+                      <option key={lang.id} value={lang.id}>
+                        {lang.name}
+                      </option>
+                    ))}
                   </Select>
                 </FormControl>
 
                 <FormControl>
                   <FormLabel fontSize="sm">Citizenship</FormLabel>
-                  <Select placeholder="All Citizenships" value={advancedFilters.citizenship} onChange={(e) => handleDropdownFilterChange("citizenship", e.target.value)}>
-                    {citizenships.map((c) => <option key={c.id} value={c.id}>{c.citizenship}</option>)}
+                  <Select
+                    placeholder="All Citizenships"
+                    value={advancedFilters.citizenship}
+                    onChange={(e) =>
+                      handleDropdownFilterChange("citizenship", e.target.value)
+                    }
+                  >
+                    {citizenships.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.citizenship}
+                      </option>
+                    ))}
                   </Select>
                 </FormControl>
 
                 <FormControl>
                   <FormLabel fontSize="sm">Civil Status</FormLabel>
-                  <Select placeholder="All Statuses" value={advancedFilters.civil_status} onChange={(e) => handleDropdownFilterChange("civil_status", e.target.value)}>
-                    {civilStatusOptions.map((status) => <option key={status} value={status}>{status}</option>)}
+                  <Select
+                    placeholder="All Statuses"
+                    value={advancedFilters.civil_status}
+                    onChange={(e) =>
+                      handleDropdownFilterChange("civil_status", e.target.value)
+                    }
+                  >
+                    {civilStatusOptions.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
                   </Select>
                 </FormControl>
 
                 <FormControl>
                   <FormLabel fontSize="sm">Educational Attainment</FormLabel>
-                  <Select placeholder="All Levels" value={advancedFilters.educational_attainment} onChange={(e) => handleDropdownFilterChange("educational_attainment", e.target.value)}>
-                    {educationalLevelOptions.map((level) => <option key={level} value={level}>{level}</option>)}
+                  <Select
+                    placeholder="All Levels"
+                    value={advancedFilters.educational_attainment}
+                    onChange={(e) =>
+                      handleDropdownFilterChange(
+                        "educational_attainment",
+                        e.target.value,
+                      )
+                    }
+                  >
+                    {educationalLevelOptions.map((level) => (
+                      <option key={level} value={level}>
+                        {level}
+                      </option>
+                    ))}
                   </Select>
                 </FormControl>
 
                 <FormControl>
                   <FormLabel fontSize="sm">INC Housing Address</FormLabel>
-                  <Select placeholder="All Addresses" value={advancedFilters.inc_housing_address_id} onChange={(e) => handleDropdownFilterChange("inc_housing_address_id", e.target.value)}>
-                    {uniqueIncHousingAddresses.map((name, index) => <option key={index} value={name}>{name}</option>)}
+                  <Select
+                    placeholder="All Addresses"
+                    value={advancedFilters.inc_housing_address_id}
+                    onChange={(e) =>
+                      handleDropdownFilterChange(
+                        "inc_housing_address_id",
+                        e.target.value,
+                      )
+                    }
+                  >
+                    {uniqueIncHousingAddresses.map((name, index) => (
+                      <option key={index} value={name}>
+                        {name}
+                      </option>
+                    ))}
                   </Select>
                 </FormControl>
               </SimpleGrid>
             </VStack>
           </ModalBody>
-          <ModalFooter borderTop="1px solid" borderColor="gray.100" bg="gray.50" py={3}>
-            <Button variant="ghost" mr="auto" colorScheme="red" onClick={clearAdvancedFilters}>
+          <ModalFooter
+            borderTop="1px solid"
+            borderColor="gray.100"
+            bg="gray.50"
+            py={3}
+          >
+            <Button
+              variant="ghost"
+              mr="auto"
+              colorScheme="red"
+              onClick={clearAdvancedFilters}
+            >
               Clear Filters
             </Button>
             <Button variant="outline" onClick={onCloseAdvance} mr={3}>
@@ -3218,7 +4011,8 @@ const Users = ({ personnelId }) => {
           <ModalCloseButton />
           <ModalBody>
             <Text mb={4}>
-              You are about to promote <strong>{selectedSyncPersonnel?.name}</strong> to a User account.
+              You are about to promote{" "}
+              <strong>{selectedSyncPersonnel?.name}</strong> to a User account.
             </Text>
             <FormControl>
               <FormLabel>Assign Group (Optional)</FormLabel>
@@ -3228,18 +4022,25 @@ const Users = ({ personnelId }) => {
                 onChange={(e) => setSelectedSyncGroup(e.target.value)}
               >
                 {groups.map((group) => (
-                  <option key={group.id} value={group.id}>{group.name}</option>
+                  <option key={group.id} value={group.id}>
+                    {group.name}
+                  </option>
                 ))}
               </Select>
             </FormControl>
           </ModalBody>
           <ModalFooter>
-            <Button variant="ghost" onClick={onSyncModalClose}>Cancel</Button>
+            <Button variant="ghost" onClick={onSyncModalClose}>
+              Cancel
+            </Button>
             <Button
               colorScheme="green"
               onClick={confirmSyncToUsers}
               ml={3}
-              isLoading={selectedSyncPersonnel && loadingSyncPersonnel[selectedSyncPersonnel.id]}
+              isLoading={
+                selectedSyncPersonnel &&
+                loadingSyncPersonnel[selectedSyncPersonnel.id]
+              }
             >
               Sync User
             </Button>
@@ -3248,17 +4049,29 @@ const Users = ({ personnelId }) => {
       </Modal>
 
       {/* LDAP Reset Password Modal */}
-      <Modal isOpen={isResetPasswordModalOpen} onClose={onResetPasswordModalClose} isCentered>
+      <Modal
+        isOpen={isResetPasswordModalOpen}
+        onClose={onResetPasswordModalClose}
+        isCentered
+      >
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Reset LDAP Password</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <VStack spacing={4}>
-              <Box bg="orange.50" p={3} borderRadius="md" borderLeft="4px solid" borderColor="orange.400" w="100%">
+              <Box
+                bg="orange.50"
+                p={3}
+                borderRadius="md"
+                borderLeft="4px solid"
+                borderColor="orange.400"
+                w="100%"
+              >
                 <Text fontSize="sm" color="orange.800">
-                  You are resetting the password for <strong>{selectedLdapUser?.username}</strong>.
-                  This will update the LDAP directory directly.
+                  You are resetting the password for{" "}
+                  <strong>{selectedLdapUser?.username}</strong>. This will
+                  update the LDAP directory directly.
                 </Text>
               </Box>
               <FormControl isRequired>
@@ -3273,7 +4086,9 @@ const Users = ({ personnelId }) => {
             </VStack>
           </ModalBody>
           <ModalFooter>
-            <Button variant="ghost" onClick={onResetPasswordModalClose}>Cancel</Button>
+            <Button variant="ghost" onClick={onResetPasswordModalClose}>
+              Cancel
+            </Button>
             <Button
               colorScheme="blue"
               onClick={handleLdapPasswordReset}
@@ -3286,7 +4101,7 @@ const Users = ({ personnelId }) => {
           </ModalFooter>
         </ModalContent>
       </Modal>
-    </Box >
+    </Box>
   );
 };
 
