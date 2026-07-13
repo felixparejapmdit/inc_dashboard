@@ -50,6 +50,19 @@ const formatR510Date = (date) => {
 
 const normalizeText = (value) => String(value || "").trim().toLowerCase();
 
+const decodeJwtPayload = (token) => {
+  const payload = String(token || "").split(".")[1];
+  if (!payload) return null;
+
+  try {
+    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+    return JSON.parse(atob(padded));
+  } catch {
+    return null;
+  }
+};
+
 const splitWorshipLocations = (value) =>
   String(value || "")
     .split(/\r?\n/)
@@ -855,6 +868,10 @@ function DailyActivityPreviewPanel({ printMeta, printRows, signatureDataUrl }) {
 
 const SIGNATURE_COLORS = ["#111827", "#0F4C81", "#1E3A8A", "#4B5563", "#15803D", "#C2410C"];
 const DAR_SIGNATURE_STORAGE_KEY = "daily-activity-report-signature";
+const getDarSignatureStorageKey = (userKey) => {
+  const normalized = String(userKey || "").trim();
+  return normalized ? `${DAR_SIGNATURE_STORAGE_KEY}:${normalized}` : DAR_SIGNATURE_STORAGE_KEY;
+};
 const SIGNATURE_FONTS = [
   { label: "Classic", family: '"Brush Script MT", "Segoe Script", cursive' },
   { label: "Elegant", family: '"Lucida Handwriting", "Segoe Script", cursive' },
@@ -1333,11 +1350,8 @@ export default function DailyActivityReport() {
   const [dragOverCol, setDragOverCol] = useState(null);
   const [assignedNumber, setAssignedNumber] = useState("");
   const [headerAvatarUrl, setHeaderAvatarUrl] = useState("");
-  const [signatureDataUrl, setSignatureDataUrl] = useState(() => (
-    typeof window !== "undefined"
-      ? localStorage.getItem(DAR_SIGNATURE_STORAGE_KEY) || ""
-      : ""
-  ));
+  const [signatureDataUrl, setSignatureDataUrl] = useState("");
+  const [accountSignatureDataUrl, setAccountSignatureDataUrl] = useState("");
 
   const week = useMemo(() => getWeekBounds(weekOffset), [weekOffset]);
 
@@ -1441,14 +1455,28 @@ export default function DailyActivityReport() {
     });
   };
 
-  const userId = useMemo(() => {
-    try {
-      const t = localStorage.getItem("token");
-      if (!t) return null;
-      const p = JSON.parse(atob(t.split(".")[1]));
-      return p.id || p.sub || null;
-    } catch { return null; }
+  const currentAccountId = useMemo(() => {
+    if (typeof window === "undefined") return "";
+
+    const storedUserId = String(localStorage.getItem("userId") || "").trim();
+    if (storedUserId && storedUserId !== "null" && storedUserId !== "undefined") {
+      return storedUserId;
+    }
+
+    const storedUsername = String(localStorage.getItem("username") || "").trim();
+    if (storedUsername && storedUsername !== "null" && storedUsername !== "undefined") {
+      return storedUsername;
+    }
+
+    const token = localStorage.getItem("authToken") || localStorage.getItem("token") || "";
+    const decoded = decodeJwtPayload(token);
+    return String(decoded?.id || decoded?.sub || decoded?.username || "").trim();
   }, []);
+
+  const currentSignatureStorageKey = useMemo(
+    () => getDarSignatureStorageKey(currentAccountId),
+    [currentAccountId],
+  );
 
   const currentPersonnelId = useMemo(() => {
     if (typeof window === "undefined") return "";
@@ -1512,7 +1540,7 @@ export default function DailyActivityReport() {
     || selectedDarUser?.username
     || loggedInUserName;
 
-  const activeDarUserId = String(selectedDarUserId || userId || "");
+  const activeDarUserId = String(selectedDarUserId || currentAccountId || "");
 
   const teamMemberOptions = useMemo(() => (
     teamMembers.map((member) => ({
@@ -1642,7 +1670,7 @@ export default function DailyActivityReport() {
 
         const normalizedGroup = normalizeText(currentGroupName);
         const normalizedDesignation = normalizeText(currentDesignationName);
-        const currentUserIdValue = String(userId || "");
+        const currentUserIdValue = String(currentAccountId || "");
         const currentSectionValue = String(currentSectionId || "");
         const currentSubsectionValue = String(currentSubsectionId || "");
         const isAdminLike = normalizedGroup === "admin" || normalizedGroup === "vip";
@@ -1693,7 +1721,7 @@ export default function DailyActivityReport() {
     return () => {
       isMounted = false;
     };
-  }, [canSwitchDarUser, currentDesignationName, currentGroupName, currentSectionId, currentSubsectionId, userId]);
+  }, [canSwitchDarUser, currentDesignationName, currentGroupName, currentSectionId, currentSubsectionId, currentAccountId]);
 
   useEffect(() => {
     let isMounted = true;
@@ -1734,18 +1762,74 @@ export default function DailyActivityReport() {
   useEffect(() => {
     let isMounted = true;
 
-    // Signature is stored per-user on the backend, so fetch whichever user is
-    // currently active ("Viewing:" selection, or the logged-in user by default)
-    // rather than always showing whatever this browser last saved locally.
-    const fetchSignature = async () => {
-      if (!activeDarUserId) {
-        setSignatureDataUrl("");
+    const fetchCurrentSignature = async () => {
+      if (!currentAccountId) {
+        if (isMounted) {
+          setAccountSignatureDataUrl("");
+        }
         return;
+      }
+
+      const cachedSignature = typeof window !== "undefined"
+        ? localStorage.getItem(currentSignatureStorageKey) || ""
+        : "";
+
+      if (cachedSignature && isMounted) {
+        setAccountSignatureDataUrl(cachedSignature);
       }
 
       try {
         const response = await axios.get(`${API}/api/dar/signature`, {
-          params: { user_id: activeDarUserId },
+          headers: getAuthHeaders(),
+        });
+
+        const fetchedSignature = response.data?.data?.signature || "";
+        if (!isMounted) return;
+
+        setAccountSignatureDataUrl(fetchedSignature);
+
+        if (typeof window !== "undefined") {
+          if (fetchedSignature) {
+            localStorage.setItem(currentSignatureStorageKey, fetchedSignature);
+            localStorage.removeItem(DAR_SIGNATURE_STORAGE_KEY);
+          } else {
+            localStorage.removeItem(currentSignatureStorageKey);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load current signature:", error);
+        if (isMounted) {
+          setAccountSignatureDataUrl(cachedSignature || "");
+        }
+      }
+    };
+
+    fetchCurrentSignature();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentAccountId, currentSignatureStorageKey]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    // Signature is stored per-user on the backend, so fetch whichever user is
+    // currently active ("Viewing:" selection, or the logged-in user by default)
+    // rather than always showing whatever this browser last saved locally.
+    const fetchSignature = async () => {
+      const activeSignatureStorageKey = getDarSignatureStorageKey(activeDarUserId);
+      const cachedSignature = typeof window !== "undefined"
+        ? localStorage.getItem(activeSignatureStorageKey) || ""
+        : "";
+
+      if (cachedSignature && isMounted) {
+        setSignatureDataUrl(cachedSignature);
+      }
+
+      try {
+        const response = await axios.get(`${API}/api/dar/signature`, {
+          params: activeDarUserId ? { user_id: activeDarUserId } : {},
           headers: getAuthHeaders(),
         });
 
@@ -1753,11 +1837,12 @@ export default function DailyActivityReport() {
         if (!isMounted) return;
 
         setSignatureDataUrl(fetchedSignature);
-        if (String(activeDarUserId) === String(userId)) {
+
+        if (typeof window !== "undefined") {
           if (fetchedSignature) {
-            localStorage.setItem(DAR_SIGNATURE_STORAGE_KEY, fetchedSignature);
+            localStorage.setItem(activeSignatureStorageKey, fetchedSignature);
           } else {
-            localStorage.removeItem(DAR_SIGNATURE_STORAGE_KEY);
+            localStorage.removeItem(activeSignatureStorageKey);
           }
         }
       } catch (error) {
@@ -1771,7 +1856,7 @@ export default function DailyActivityReport() {
     return () => {
       isMounted = false;
     };
-  }, [activeDarUserId, userId]);
+  }, [activeDarUserId]);
 
   // Signature is stored per-user on the backend (not just this browser's storage),
   // so it can be retrieved from any PC once saved. We always save it under the
@@ -1788,8 +1873,12 @@ export default function DailyActivityReport() {
         { headers: getAuthHeaders() }
       );
 
-      localStorage.setItem(DAR_SIGNATURE_STORAGE_KEY, dataUrl);
-      if (String(activeDarUserId) === String(userId)) {
+      if (typeof window !== "undefined") {
+        localStorage.setItem(currentSignatureStorageKey, dataUrl);
+        localStorage.removeItem(DAR_SIGNATURE_STORAGE_KEY);
+      }
+      setAccountSignatureDataUrl(dataUrl);
+      if (String(activeDarUserId) === String(currentAccountId)) {
         setSignatureDataUrl(dataUrl);
       }
       toast({
@@ -1809,7 +1898,7 @@ export default function DailyActivityReport() {
         isClosable: true,
       });
     }
-  }, [activeDarUserId, signatureModal, toast, userId]);
+  }, [activeDarUserId, currentAccountId, currentSignatureStorageKey, signatureModal, toast]);
 
   const handlePrint = useCallback((target) => {
     setPrintTarget(target);
@@ -2766,12 +2855,12 @@ export default function DailyActivityReport() {
               fontSize="xs"
               letterSpacing="0.04em"
               leftIcon={<FiPenTool size={13} />}
-              bg={signatureDataUrl ? T.emerald : "#EAF7FA"}
-              color={signatureDataUrl ? "white" : "#317F8B"}
-              border={signatureDataUrl ? "none" : "1.5px solid #BEE3EA"}
-              boxShadow={signatureDataUrl ? `0 4px 12px ${T.emerald}55` : "none"}
+              bg={accountSignatureDataUrl ? T.emerald : "#EAF7FA"}
+              color={accountSignatureDataUrl ? "white" : "#317F8B"}
+              border={accountSignatureDataUrl ? "none" : "1.5px solid #BEE3EA"}
+              boxShadow={accountSignatureDataUrl ? `0 4px 12px ${T.emerald}55` : "none"}
               _hover={{
-                bg: signatureDataUrl ? "#059669" : "#DDF4F8",
+                bg: accountSignatureDataUrl ? "#059669" : "#DDF4F8",
                 transform: "translateY(-1px)",
               }}
               transition="all 0.2s"
@@ -3220,7 +3309,7 @@ export default function DailyActivityReport() {
         isOpen={signatureModal.isOpen}
         onClose={signatureModal.onClose}
         onSave={handleSaveSignature}
-        initialSignature={signatureDataUrl}
+        initialSignature={accountSignatureDataUrl}
         signerName={loggedInUserName}
       />
     </Box>
