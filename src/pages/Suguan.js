@@ -111,6 +111,21 @@ const SUGUAN_TIME_FORMATS = [
 
 const parseSuguanTime = (value) => moment(String(value || "").trim(), SUGUAN_TIME_FORMATS, true);
 
+const normalizeText = (value) => String(value ?? "").trim().toLowerCase();
+
+const isFilled = (value) => {
+  const text = normalizeText(value);
+  return text !== "" && text !== "null" && text !== "undefined" && text !== "0";
+};
+
+const getPersonnelFullName = (personnel) =>
+  `${personnel?.givenname || ""} ${personnel?.surname_husband || ""}`.trim();
+
+const getPersonnelLabel = (personnel) => {
+  const parts = [personnel?.surname_husband, personnel?.givenname].filter(Boolean);
+  return parts.length > 0 ? parts.join(", ") : getPersonnelFullName(personnel) || "Personnel";
+};
+
 const formatSuguanTimeForInput = (date, time) => {
   const directTime = parseSuguanTime(time);
   if (directTime.isValid()) {
@@ -174,6 +189,14 @@ const Suguan = () => {
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
+  const currentUserContext = useMemo(() => ({
+    groupName: normalizeText(localStorage.getItem("groupName")),
+    designationName: normalizeText(localStorage.getItem("designation_name")),
+    personnelId: String(localStorage.getItem("user_id") || localStorage.getItem("personnel_id") || "").trim(),
+    sectionId: String(localStorage.getItem("section_id") || "").trim(),
+    subsectionId: String(localStorage.getItem("subsection_id") || "").trim(),
+    fullName: String(localStorage.getItem("userFullName") || localStorage.getItem("username") || "").trim(),
+  }), []);
 
   const gampanin = [
     { value: "1", name: "Sugo" },
@@ -298,8 +321,8 @@ const Suguan = () => {
       return;
     }
 
-    const sectionId = localStorage.getItem("section_id");
-    const subsectionId = localStorage.getItem("subsection_id");
+    const sectionId = currentUserContext.sectionId;
+    const subsectionId = currentUserContext.subsectionId;
 
     const payload = {
       name,
@@ -316,10 +339,10 @@ const Suguan = () => {
     try {
       if (editingSuguan) {
         await putData("suguan", editingSuguan.id, payload);
-      toast({ title: "Schedule updated", status: "success" });
+        toast({ title: "Schedule updated", status: "success" });
       } else {
         await postData("suguan", payload);
-      toast({ title: "Schedule added", status: "success" });
+        toast({ title: "Schedule added", status: "success" });
       }
       onClose();
       fetchSuguan();
@@ -409,21 +432,76 @@ const Suguan = () => {
   }, [localCongregations, district_id]);
 
   const filteredPersonnels = useMemo(() => {
-    const allowedTypes = ["Minister", "Regular", "Ministerial Student", "Volunteer"];
-    return personnels
-      .filter(p => allowedTypes.includes(p.personnel_type))
-      .sort((a, b) => {
-        const nameA = `${a.surname_husband}, ${a.givenname}`.toLowerCase();
-        const nameB = `${b.surname_husband}, ${b.givenname}`.toLowerCase();
-        return nameA.localeCompare(nameB);
+    const sortedPersonnels = [...personnels].sort((a, b) => {
+      const nameA = getPersonnelLabel(a).toLowerCase();
+      const nameB = getPersonnelLabel(b).toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
+
+    const isAdminUser = currentUserContext.groupName === "admin" || currentUserContext.groupName === "vip";
+    const isSectionChief = currentUserContext.groupName === "section chief"
+      || currentUserContext.designationName === "section chief";
+    const isTeamLeader = currentUserContext.groupName === "team leader"
+      || currentUserContext.designationName === "team leader";
+
+    const matchesCurrentUser = (personnel) => {
+      if (isFilled(currentUserContext.personnelId)) {
+        return String(personnel.personnel_id) === String(currentUserContext.personnelId);
+      }
+
+      const loginName = normalizeText(currentUserContext.fullName);
+      if (!loginName) return false;
+
+      const personnelName = normalizeText(getPersonnelFullName(personnel));
+      const personnelLabel = normalizeText(getPersonnelLabel(personnel));
+      return personnelName === loginName || personnelLabel === loginName;
+    };
+
+    if (isAdminUser) {
+      return sortedPersonnels;
+    }
+
+    if (isSectionChief) {
+      if (!isFilled(currentUserContext.sectionId)) {
+        return sortedPersonnels.filter(matchesCurrentUser);
+      }
+
+      return sortedPersonnels.filter((personnel) =>
+        String(personnel.section_id) === String(currentUserContext.sectionId)
+      );
+    }
+
+    if (isTeamLeader) {
+      if (!isFilled(currentUserContext.subsectionId)) {
+        return sortedPersonnels.filter(matchesCurrentUser);
+      }
+
+      return sortedPersonnels.filter((personnel) => {
+        const sameSubsection = String(personnel.subsection_id) === String(currentUserContext.subsectionId);
+        const sameSection = !isFilled(currentUserContext.sectionId)
+          || String(personnel.section_id) === String(currentUserContext.sectionId);
+        return sameSubsection && sameSection;
       });
-  }, [personnels]);
+    }
+
+    return sortedPersonnels.filter(matchesCurrentUser);
+  }, [personnels, currentUserContext]);
+
+  useEffect(() => {
+    if (editingSuguan) return;
+    if (filteredPersonnels.length !== 1) return;
+    if (personnel_id) return;
+
+    const onlyPersonnel = filteredPersonnels[0];
+    setPersonnelId(String(onlyPersonnel.personnel_id));
+    setName(getPersonnelFullName(onlyPersonnel));
+  }, [editingSuguan, filteredPersonnels, personnel_id]);
 
   const personnelOptions = useMemo(() => {
     return filteredPersonnels.map(p => ({
       value: p.personnel_id,
-      label: `${p.surname_husband}, ${p.givenname}`,
-      name: `${p.givenname} ${p.surname_husband}`
+      label: getPersonnelFullName(p),
+      name: getPersonnelFullName(p)
     }));
   }, [filteredPersonnels]);
 
@@ -769,7 +847,7 @@ const Suguan = () => {
                   }
                   placeholder="Search and select a person..."
                   styles={customSelectStyles}
-                  isClearable
+                  isClearable={filteredPersonnels.length > 1}
                 />
               </FormControl>
 

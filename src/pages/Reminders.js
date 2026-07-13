@@ -31,36 +31,19 @@ import {
   Badge,
   InputGroup,
   InputLeftElement,
-  Select,
   Textarea,
   Tabs,
   TabList,
   Tab,
   Flex,
   Icon,
-  Tooltip,
   useColorModeValue,
   Container,
-  Stat,
-  StatLabel,
-  StatNumber,
-  StatGroup,
-  Avatar,
   Divider,
+  Skeleton,
 } from "@chakra-ui/react";
-import {
-  AddIcon,
-  EditIcon,
-  DeleteIcon,
-  SearchIcon,
-  TimeIcon,
-  CalendarIcon,
-  CheckCircleIcon,
-  InfoOutlineIcon,
-  BellIcon
-} from "@chakra-ui/icons";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, Search, Filter, Plus, Clock, Calendar, Check, Trash2, Edit3, MoreVertical, AlertTriangle, User } from "lucide-react";
+import { Bell, Search, Plus, Clock, Calendar, Trash2, Edit3, AlertTriangle, Info } from "lucide-react";
 import moment from "moment";
 
 import { fetchData, postData, putData, deleteData } from "../utils/fetchData";
@@ -84,6 +67,7 @@ const Reminders = () => {
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [editingReminder, setEditingReminder] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
   const toast = useToast();
 
   const {
@@ -98,8 +82,6 @@ const Reminders = () => {
   const sectionId = localStorage.getItem("section_id");
   const subsectionId = localStorage.getItem("subsection_id");
   const personnelId = localStorage.getItem("personnel_id");
-  const userName = localStorage.getItem("userFullName") || "User";
-
   // Colors
   const bg = useColorModeValue("gray.50", "#0f172a");
   const cardBg = useColorModeValue("white", "gray.800");
@@ -107,7 +89,7 @@ const Reminders = () => {
 
   useEffect(() => {
     loadReminders();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -155,6 +137,8 @@ const Reminders = () => {
 
   const handleAddReminder = async (e) => {
     e.preventDefault();
+    if (isSaving) return; // guard against double-submit (double-click / double Enter)
+
     if (!title || !reminderDate || !time) {
       toast({
         title: "Please fill in all required fields",
@@ -176,6 +160,7 @@ const Reminders = () => {
       personnel_id: personnelId, // Added personnel_id support
     };
 
+    setIsSaving(true);
     try {
       if (editingReminder) {
         await putData("reminders", editingReminder.id, payload);
@@ -200,6 +185,8 @@ const Reminders = () => {
         description: error.message,
         status: "error",
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -232,9 +219,9 @@ const Reminders = () => {
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       result = result.filter(r =>
-        r.title.toLowerCase().includes(q) ||
-        (r.description && r.description.toLowerCase().includes(q)) ||
-        (r.message && r.message.toLowerCase().includes(q))
+        (r.title || "").toLowerCase().includes(q) ||
+        (r.description || "").toLowerCase().includes(q) ||
+        (r.message || "").toLowerCase().includes(q)
       );
     }
 
@@ -381,7 +368,7 @@ const Reminders = () => {
           {loading ? (
             <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} spacing={10}>
               {[1, 2, 3].map((i) => (
-                <Box key={i} h="240px" bg={cardBg} borderRadius="3xl" animation="pulse 2s infinite" />
+                <Skeleton key={i} h="240px" borderRadius="3xl" />
               ))}
             </SimpleGrid>
           ) : filteredReminders.length > 0 ? (
@@ -407,7 +394,7 @@ const Reminders = () => {
                   <VStack align="start" spacing={5} h="full">
                     <Flex justify="space-between" w="full" align="center">
                       <HStack spacing={2} bg="orange.50" px={3} py={1} borderRadius="full">
-                        <Icon as={Clock} color="orange.500" size={14} />
+                        <Icon as={Clock} color="orange.500" boxSize={3.5} />
                         <Text fontSize="xs" fontWeight="900" color="orange.600">
                           {moment(item.time, "HH:mm").format("hh:mm A")}
                         </Text>
@@ -428,13 +415,13 @@ const Reminders = () => {
 
                     <VStack align="start" spacing={3} w="full">
                       <HStack fontSize="xs" color="gray.600" fontWeight="bold">
-                        <Icon as={Calendar} size={14} color="orange.400" />
+                        <Icon as={Calendar} boxSize={3.5} color="orange.400" />
                         <Text>{moment(item.reminder_date).format("MMMM DD, YYYY")}</Text>
                       </HStack>
                       {item.message && (
                         <Box bg="gray.50" p={3} borderRadius="2xl" border="1px solid" borderColor="gray.100" w="full">
                           <HStack fontSize="xs" color="gray.700" spacing={2}>
-                            <Icon as={InfoOutlineIcon} color="blue.400" size={12} />
+                            <Icon as={Info} color="blue.400" boxSize={3} />
                             <Text fontWeight="bold" noOfLines={1}>{item.message}</Text>
                           </HStack>
                         </Box>
@@ -446,7 +433,9 @@ const Reminders = () => {
                         icon={<Edit3 size={18} />}
                         variant="ghost"
                         colorScheme="blue"
-                        size="md"
+                        size="lg"
+                        minW="44px"
+                        minH="44px"
                         borderRadius="xl"
                         onClick={() => handleEditRedirect(item)}
                         aria-label="Edit"
@@ -455,7 +444,9 @@ const Reminders = () => {
                         icon={<Trash2 size={18} />}
                         variant="ghost"
                         colorScheme="red"
-                        size="md"
+                        size="lg"
+                        minW="44px"
+                        minH="44px"
                         borderRadius="xl"
                         onClick={() => {
                           setDeletingReminderId(item.id);
@@ -541,11 +532,11 @@ const Reminders = () => {
               </FormControl>
 
               <FormControl>
-                <FormLabel fontWeight="900" fontSize="xs" textTransform="uppercase" letterSpacing="widest" color="gray.600">Note</FormLabel>
+                <FormLabel fontWeight="900" fontSize="xs" textTransform="uppercase" letterSpacing="widest" color="gray.600">Description</FormLabel>
                 <Input
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Short note"
+                  placeholder="Short description"
                   borderRadius="2xl"
                   size="lg"
                   focusBorderColor="orange.400"
@@ -598,7 +589,7 @@ const Reminders = () => {
           </ModalBody>
 
           <ModalFooter p={10} bg="gray.50" borderTop="1px solid" borderColor="gray.100">
-            <Button variant="ghost" mr={4} onClick={onClose} borderRadius="2xl" size="lg">
+            <Button variant="ghost" mr={4} onClick={onClose} borderRadius="2xl" size="lg" isDisabled={isSaving}>
               Cancel
             </Button>
             <Button
@@ -610,6 +601,8 @@ const Reminders = () => {
               shadow="xl"
               fontWeight="black"
               boxShadow="0 10px 20px -5px rgba(251, 146, 60, 0.4)"
+              isLoading={isSaving}
+              loadingText="Saving…"
             >
               Save
             </Button>

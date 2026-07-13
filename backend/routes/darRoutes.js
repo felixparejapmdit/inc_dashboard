@@ -23,4 +23,8 @@ router.get("/api/dar/reports",       verifyToken, dar.getReports);
 router.post("/api/dar/reports",      verifyToken, dar.upsertReport);
 router.delete("/api/dar/reports/:id",verifyToken, dar.deleteReport);
 
+// ─── Signature ─────────────────────────────────────────────────────────────────
+router.get("/api/dar/signature",     verifyToken, dar.getSignature);
+router.put("/api/dar/signature",     verifyToken, dar.saveSignature);
+
 module.exports = router;

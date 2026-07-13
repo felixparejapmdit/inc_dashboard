@@ -1081,15 +1081,7 @@ const Sidebar = ({ onSidebarToggle }) => {
                     isActive={location.pathname === "/reminders"}
                   />
                 )}
-                {hasPermission("suguan.view") && (
-                  <SidebarItem
-                    icon={FiClipboard}
-                    label="Suguan"
-                    isExpanded={isExpanded}
-                    onClick={() => handleItemClick("/add-suguan")} // Redirect to Suguan.js
-                    isActive={location.pathname === "/add-suguan"}
-                  />
-                )}
+
                 {showLdapUsers && (
                   <SidebarItem
                     icon={FiServer}
@@ -1475,6 +1467,15 @@ const Sidebar = ({ onSidebarToggle }) => {
                     isExpanded={isExpanded}
                     onClick={() => handleItemClick("/daily-activity-report")}
                     isActive={location.pathname === "/daily-activity-report"}
+                  />
+                )}
+                {hasPermission("suguan.view") && (
+                  <SidebarItem
+                    icon={FiClipboard}
+                    label="Suguan"
+                    isExpanded={isExpanded}
+                    onClick={() => handleItemClick("/add-suguan")} // Redirect to Suguan.js
+                    isActive={location.pathname === "/add-suguan"}
                   />
                 )}
               </VStack>

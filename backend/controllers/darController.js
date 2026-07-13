@@ -390,3 +390,50 @@ exports.deleteReport = async (req, res) => {
     res.status(500).json({ message: "Failed to delete report.", error: err.message });
   }
 };
+
+// ─── SIGNATURE ─────────────────────────────────────────────────────────────────
+// Signature is stored per-user (not per-report/per-browser) so it can be
+// retrieved from any PC once the user has saved it once.
+
+exports.getSignature = async (req, res) => {
+  try {
+    const { user_id } = req.query;
+    const targetUserId = await resolveDarUserId(req, user_id);
+
+    if (!targetUserId) {
+      return res.status(400).json({
+        message: "Unable to resolve the user for this signature.",
+      });
+    }
+
+    const user = await User.findByPk(targetUserId, { attributes: ["id", "signature"] });
+    if (!user) return res.status(404).json({ message: "User not found." });
+
+    res.json({ success: true, data: { user_id: user.id, signature: user.signature || "" } });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch signature.", error: err.message });
+  }
+};
+
+// Always saves for the authenticated caller only — a signature identifies its
+// owner, so it can't be set on behalf of another user_id even if one is passed.
+exports.saveSignature = async (req, res) => {
+  try {
+    const { signature } = req.body;
+    const targetUserId = await resolveDarUserId(req);
+
+    if (!targetUserId) {
+      return res.status(400).json({
+        message: "Unable to resolve the current user for this signature.",
+      });
+    }
+
+    const user = await User.findByPk(targetUserId);
+    if (!user) return res.status(404).json({ message: "User not found." });
+
+    await user.update({ signature: signature || null });
+    res.json({ success: true, data: { user_id: user.id, signature: user.signature || "" } });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to save signature.", error: err.message });
+  }
+};

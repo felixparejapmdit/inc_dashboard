@@ -41,6 +41,10 @@ const User = sequelize.define(
       type: DataTypes.TEXT("long"), // or DataTypes.LONGTEXT if available
       allowNull: true, // Make sure this matches your database schema
     },
+    signature: {
+      type: DataTypes.TEXT("long"),
+      allowNull: true,
+    },
     isLoggedIn: {
       type: DataTypes.TINYINT,
       defaultValue: 0,

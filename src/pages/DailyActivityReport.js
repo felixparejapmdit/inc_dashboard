@@ -260,7 +260,7 @@ const pillRow = {
 // ─── Column-header row ─────────────────────────────────────────────────────────
 function ColHeaders({ cols }) {
   return (
-    <Box px={5} py={2} bg="#F8F9FA" borderBottom="1px solid #F3F4F6">
+    <Box display={{ base: "none", md: "block" }} px={5} py={2} bg="#F8F9FA" borderBottom="1px solid #F3F4F6">
       <Flex gap={3} align="center">
         {cols.map(({ label, flex }) => (
           <Text key={label} flex={flex} fontSize="9px" fontWeight="800" color="gray.400"
@@ -466,7 +466,7 @@ function TaskModal({ isOpen, onClose, categories, onSaved, initial, currentWeek 
                 </Text>
               </Box>
             )}
-            <SimpleGrid columns={2} spacing={4} w="full">
+            <SimpleGrid columns={{ base: 1, sm: 2 }} spacing={4} w="full">
               <Box>
                 <Text fontSize="9px" fontWeight="800" mb={1} color="gray.400" textTransform="uppercase" letterSpacing="0.12em">Title *</Text>
                 <Input name="title" value={form.title} onChange={handleChange} isDisabled={isSuguanTask}
@@ -501,7 +501,7 @@ function TaskModal({ isOpen, onClose, categories, onSaved, initial, currentWeek 
                 />
               </Box>
             )}
-            <SimpleGrid columns={3} spacing={4} w="full">
+            <SimpleGrid columns={{ base: 1, sm: 3 }} spacing={4} w="full">
               <Box>
                 <Text fontSize="9px" fontWeight="800" mb={1} color="gray.400" textTransform="uppercase" letterSpacing="0.12em">Date *</Text>
                 <Input
@@ -529,7 +529,7 @@ function TaskModal({ isOpen, onClose, categories, onSaved, initial, currentWeek 
                 <Input type="time" name="end_time" value={form.end_time} onChange={handleChange} {...fieldStyle} />
               </Box>
             </SimpleGrid>
-            <SimpleGrid columns={2} spacing={4} w="full">
+            <SimpleGrid columns={{ base: 1, sm: 2 }} spacing={4} w="full">
               <Box>
                 <Text fontSize="9px" fontWeight="800" mb={1} color="gray.400" textTransform="uppercase" letterSpacing="0.12em">Priority</Text>
                 <Select name="priority" value={form.priority || "Medium"} onChange={handleChange} isDisabled={isSuguanTask} {...fieldStyle}>
@@ -715,7 +715,7 @@ function DailyActivityPreviewPanel({ printMeta, printRows, signatureDataUrl }) {
       </Box>
 
       <Box overflowX="auto">
-        <Box as="table" w="full" style={{ borderCollapse: "collapse", tableLayout: "fixed" }}>
+        <Box as="table" w="full" minW="640px" style={{ borderCollapse: "collapse", tableLayout: "fixed" }}>
           <Box as="thead">
             <Box as="tr">
               {[
@@ -872,6 +872,7 @@ function SignatureModal({ isOpen, onClose, onSave, initialSignature, signerName 
   const [typedColor, setTypedColor] = useState(SIGNATURE_COLORS[0]);
   const [typedFont, setTypedFont] = useState(SIGNATURE_FONTS[0]);
   const [typedSlant, setTypedSlant] = useState(0);
+  const [typedBold, setTypedBold] = useState(false);
   const [uploadedSignature, setUploadedSignature] = useState("");
   const [hasDrawn, setHasDrawn] = useState(false);
 
@@ -971,13 +972,13 @@ function SignatureModal({ isOpen, onClose, onSave, initialSignature, signerName 
     ctx.fillStyle = typedColor;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = `88px ${font.family}`;
+    ctx.font = `${typedBold ? "bold " : ""}88px ${font.family}`;
     ctx.translate(canvas.width / 2, canvas.height / 2);
     ctx.transform(1, 0, Number(typedSlant) / 100, 1, 0, 0);
     ctx.fillText(value, 0, 8);
 
     return canvas.toDataURL("image/png");
-  }, [typedColor, typedFont, typedName, typedSlant]);
+  }, [typedBold, typedColor, typedFont, typedName, typedSlant]);
 
   const saveTypedSignature = (font = typedFont) => {
     const dataUrl = createTypedSignature(font);
@@ -1179,6 +1180,22 @@ function SignatureModal({ isOpen, onClose, onSave, initialSignature, signerName 
                     w="180px"
                   />
                 </HStack>
+                <HStack spacing={3}>
+                  <Text fontSize="sm" fontWeight="800" color={T.corpBlue}>Bold</Text>
+                  <Button
+                    size="sm"
+                    borderRadius="full"
+                    fontWeight="800"
+                    onClick={() => setTypedBold((value) => !value)}
+                    bg={typedBold ? "#4AA6B5" : "white"}
+                    color={typedBold ? "white" : "gray.500"}
+                    border={typedBold ? "none" : "1.5px solid #E5E7EB"}
+                    _hover={{ bg: typedBold ? "#3B94A3" : "#F9FAFB" }}
+                    aria-pressed={typedBold}
+                  >
+                    {typedBold ? "On" : "Off"}
+                  </Button>
+                </HStack>
               </Flex>
 
               <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
@@ -1199,6 +1216,7 @@ function SignatureModal({ isOpen, onClose, onSave, initialSignature, signerName 
                       color={typedColor}
                       fontSize={{ base: "34px", md: "42px" }}
                       fontFamily={font.family}
+                      fontWeight={typedBold ? "700" : "400"}
                       transform={`skewX(${typedSlant}deg)`}
                     >
                       {typedName || signerName || "Your Signature"}
@@ -1308,6 +1326,7 @@ export default function DailyActivityReport() {
   const [weekOffset, setWeekOffset] = useState(0);
   const [searchQ,    setSearchQ]    = useState("");
   const [filterCat,  setFilterCat]  = useState("");
+  const [filterDay,  setFilterDay]  = useState("");
   const [sortAZ,     setSortAZ]     = useState(false);
   const [editTask,   setEditTask]   = useState(null);
   const [logTask,    setLogTask]    = useState(null);
@@ -1679,14 +1698,18 @@ export default function DailyActivityReport() {
   useEffect(() => {
     let isMounted = true;
 
+    // Use the selected "Viewing:" user's personnel ID when one is chosen, so the
+    // R5-10A "ASSIGNED NO." reflects whoever's DAR is actually being viewed,
+    // falling back to the logged-in user's own personnel ID otherwise.
     const fetchAssignedNumber = async () => {
-      if (!currentPersonnelId) {
+      const targetPersonnelId = selectedDarUser?.personnelId || currentPersonnelId;
+      if (!targetPersonnelId) {
         setAssignedNumber("");
         return;
       }
 
       try {
-        const response = await axios.get(`${API}/api/personnels/${currentPersonnelId}`, {
+        const response = await axios.get(`${API}/api/personnels/${targetPersonnelId}`, {
           headers: getAuthHeaders(),
         });
 
@@ -1706,22 +1729,87 @@ export default function DailyActivityReport() {
     return () => {
       isMounted = false;
     };
-  }, [currentPersonnelId]);
+  }, [currentPersonnelId, selectedDarUser]);
 
-  const handleSaveSignature = useCallback((dataUrl) => {
+  useEffect(() => {
+    let isMounted = true;
+
+    // Signature is stored per-user on the backend, so fetch whichever user is
+    // currently active ("Viewing:" selection, or the logged-in user by default)
+    // rather than always showing whatever this browser last saved locally.
+    const fetchSignature = async () => {
+      if (!activeDarUserId) {
+        setSignatureDataUrl("");
+        return;
+      }
+
+      try {
+        const response = await axios.get(`${API}/api/dar/signature`, {
+          params: { user_id: activeDarUserId },
+          headers: getAuthHeaders(),
+        });
+
+        const fetchedSignature = response.data?.data?.signature || "";
+        if (!isMounted) return;
+
+        setSignatureDataUrl(fetchedSignature);
+        if (String(activeDarUserId) === String(userId)) {
+          if (fetchedSignature) {
+            localStorage.setItem(DAR_SIGNATURE_STORAGE_KEY, fetchedSignature);
+          } else {
+            localStorage.removeItem(DAR_SIGNATURE_STORAGE_KEY);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load signature:", error);
+        if (isMounted) setSignatureDataUrl("");
+      }
+    };
+
+    fetchSignature();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activeDarUserId, userId]);
+
+  // Signature is stored per-user on the backend (not just this browser's storage),
+  // so it can be retrieved from any PC once saved. We always save it under the
+  // logged-in user's own account, since a signature can only ever belong to
+  // whoever is actually signing — not necessarily whichever user's DAR is being
+  // viewed via the "Viewing:" dropdown.
+  const handleSaveSignature = useCallback(async (dataUrl) => {
     if (!dataUrl) return;
 
-    setSignatureDataUrl(dataUrl);
-    localStorage.setItem(DAR_SIGNATURE_STORAGE_KEY, dataUrl);
-    toast({
-      title: "Signature saved.",
-      description: "Your signature will now appear on the printed DAR.",
-      status: "success",
-      duration: 2500,
-      isClosable: true,
-    });
-    signatureModal.onClose();
-  }, [signatureModal, toast]);
+    try {
+      await axios.put(
+        `${API}/api/dar/signature`,
+        { signature: dataUrl },
+        { headers: getAuthHeaders() }
+      );
+
+      localStorage.setItem(DAR_SIGNATURE_STORAGE_KEY, dataUrl);
+      if (String(activeDarUserId) === String(userId)) {
+        setSignatureDataUrl(dataUrl);
+      }
+      toast({
+        title: "Signature saved.",
+        description: "Your signature is saved to your account and will appear on the printed DAR on any PC.",
+        status: "success",
+        duration: 2500,
+        isClosable: true,
+      });
+      signatureModal.onClose();
+    } catch (err) {
+      toast({
+        title: "Failed to save signature.",
+        description: err.response?.data?.message || err.message,
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  }, [activeDarUserId, signatureModal, toast, userId]);
 
   const handlePrint = useCallback((target) => {
     setPrintTarget(target);
@@ -1780,9 +1868,10 @@ export default function DailyActivityReport() {
     let t = [...tasks];
     if (searchQ)   t = t.filter(x => x.title.toLowerCase().includes(searchQ.toLowerCase()) || (x.description || "").toLowerCase().includes(searchQ.toLowerCase()));
     if (filterCat) t = t.filter(x => String(x.category_id) === filterCat);
+    if (filterDay) t = t.filter(x => x.task_date === filterDay);
     if (sortAZ)    t.sort((a, b) => a.title.localeCompare(b.title));
     return t;
-  }, [tasks, searchQ, filterCat, sortAZ]);
+  }, [tasks, searchQ, filterCat, filterDay, sortAZ]);
 
   const weekDays = useMemo(() => {
     const days = [];
@@ -2035,6 +2124,9 @@ export default function DailyActivityReport() {
 
     const worshipTasks = completedTasks.filter(isWorshipTask);
     const officeTasks = completedTasks.filter(isOfficeTask);
+    // "Blg. ng lokal na dinalaw/siniyasat" (locals visited/inspected) is a field-visit
+    // metric, so it must come from Outside Office Task entries, not Office Task entries.
+    const outsideTasks = completedTasks.filter(isOutsideTask);
     const specialTasks = completedTasks.filter(isSpecialTask);
     const churchTasks = completedTasks.filter((task) => !isPersonalTask(task));
     const worshipEntries = worshipTasks.flatMap((task) => {
@@ -2102,10 +2194,10 @@ export default function DailyActivityReport() {
         time: firstWorshipTime === "—" ? "" : firstWorshipTime,
       },
       office: {
-        count: officeTasks.length ? String(officeTasks.length) : "0",
         dayCount: officeTasks.length ? String(uniqueDayCount(officeTasks)) : "",
         hours: splitHoursMinutes(sumHours(officeTasks)).hours,
         minutes: splitHoursMinutes(sumHours(officeTasks)).minutes,
+        localsVisitedCount: outsideTasks.length ? String(outsideTasks.length) : "0",
       },
       specialRows,
       dailyTotals,
@@ -2171,7 +2263,7 @@ export default function DailyActivityReport() {
               border="1px solid"
               borderColor="gray.100"
               bg="gray.50"
-              minW="0"
+              minW={{ base: "100%", md: "0" }}
             >
               <Avatar
                 size="sm"
@@ -2200,7 +2292,7 @@ export default function DailyActivityReport() {
               border="1px solid"
               borderColor="gray.100"
               bg="#F8FAFC"
-              minW="0"
+              minW={{ base: "100%", md: "0" }}
             >
               <Box
                 w="32px"
@@ -2233,7 +2325,8 @@ export default function DailyActivityReport() {
               border="1px solid"
               borderColor="#FECACA"
               bg="#FFF1F2"
-              minW="0"
+              minW={{ base: "100%", md: "0" }}
+              justify={{ base: "center", md: "flex-start" }}
             >
               <IconButton
                 aria-label="Previous week"
@@ -2469,8 +2562,8 @@ export default function DailyActivityReport() {
               {weeklyRangeLabel}
             </Text>
           </Flex>
-          <Flex gap={4} align="stretch" minH="152px">
-            <SimpleGrid columns={2} spacingX={5} spacingY={4} flex="0.95" alignContent="center">
+          <Flex direction={{ base: "column", md: "row" }} gap={4} align="stretch" minH={{ base: "auto", md: "152px" }}>
+            <SimpleGrid columns={2} spacingX={5} spacingY={4} flex={{ base: "unset", md: "0.95" }} alignContent="center">
               {reportCategoryMetrics.map((c) => (
                 <Box key={c.name} minW={0}>
                   <Text
@@ -2490,8 +2583,8 @@ export default function DailyActivityReport() {
                 </Box>
               ))}
             </SimpleGrid>
-            <Box w="1px" bg={T.amber} />
-            <Box flex="1.25" display="flex" flexDirection="column" justifyContent="space-between" minW={0}>
+            <Box w={{ base: "100%", md: "1px" }} h={{ base: "1px", md: "auto" }} bg={T.amber} />
+            <Box flex={{ base: "unset", md: "1.25" }} display="flex" flexDirection="column" justifyContent="space-between" minW={0}>
               <Flex align="flex-end" justify="space-between" gap={2} flex="1" px={1} pt={1} pb={1}>
                 {weeklyBreakdown.map((weekItem) => {
                   const barHeight = weekItem.total > 0
@@ -2588,8 +2681,8 @@ export default function DailyActivityReport() {
           >
             Rendered Hours
           </Text>
-          <Flex gap={4} align="center" minH="122px">
-            <Box flex="1">
+          <Flex direction={{ base: "column", md: "row" }} gap={4} align="center" minH={{ base: "auto", md: "122px" }}>
+            <Box flex="1" w="full">
               {reportCategoryMetrics.map((c) => (
                 <Flex key={c.name} align="center" justify="space-between" mb={1.5}>
                   <HStack spacing={1.5} minW={0}>
@@ -2696,6 +2789,14 @@ export default function DailyActivityReport() {
                 <option key={opt.offset} value={opt.offset}>{opt.label}</option>
               ))}
             </Select>
+            <Select size="sm" w="150px" borderRadius="full" borderColor="gray.200"
+              fontSize="xs" fontWeight="600" color="gray.600"
+              value={filterDay} onChange={e => setFilterDay(e.target.value)}>
+              <option value="">All Days</option>
+              {weekDays.map(date => (
+                <option key={date} value={date}>{fmtDay(date)}</option>
+              ))}
+            </Select>
             <Button
               size="sm" onClick={() => setSortAZ(v => !v)} borderRadius="full"
               fontSize="xs" fontWeight="800"
@@ -2759,7 +2860,7 @@ export default function DailyActivityReport() {
                   </Box>
                 ) : filteredTasks.map(t => (
                   <Box key={t.task_id} {...pillRow} borderLeft={`4px solid ${catColor(t.category_id)}`}>
-                    <Flex gap={3} align="center">
+                    <Flex direction={{ base: "column", md: "row" }} align={{ base: "stretch", md: "center" }} gap={{ base: 1.5, md: 3 }}>
                       <Box flex="1.2">
                           <HStack spacing={1.5}>
                             <Box w="8px" h="8px" borderRadius="full" bg={catColor(t.category_id)} flexShrink={0} />
@@ -2772,19 +2873,28 @@ export default function DailyActivityReport() {
                         </HStack>
                       </Box>
                       <Box flex="2">
-                        <Text fontWeight="900" fontSize="sm" color={catColor(t.category_id)} noOfLines={1}>{t.title}</Text>
+                        <Text fontWeight="900" fontSize="sm" color={catColor(t.category_id)} noOfLines={{ base: 2, md: 1 }}>{t.title}</Text>
                       </Box>
                       <Box flex="2.5">
                         <Text fontSize="xs" color="gray.400" noOfLines={2}>{t.description || "—"}</Text>
                       </Box>
                       <Box flex="1.2">
-                        <Text fontSize="xs" color="gray.500" whiteSpace="nowrap">{fmtDate(t.task_date)}</Text>
+                        <Text fontSize="xs" color="gray.500" whiteSpace="nowrap">
+                          <Box as="span" display={{ base: "inline", md: "none" }} fontWeight="700" color="gray.400">Date: </Box>
+                          {fmtDate(t.task_date)}
+                        </Text>
                       </Box>
                       <Box flex="1">
-                        <Text fontSize="xs" color="gray.500">{fmtTime(t.start_time)}</Text>
+                        <Text fontSize="xs" color="gray.500">
+                          <Box as="span" display={{ base: "inline", md: "none" }} fontWeight="700" color="gray.400">Start: </Box>
+                          {fmtTime(t.start_time)}
+                        </Text>
                       </Box>
                       <Box flex="1">
-                        <Text fontSize="xs" color="gray.500">{fmtTime(t.end_time)}</Text>
+                        <Text fontSize="xs" color="gray.500">
+                          <Box as="span" display={{ base: "inline", md: "none" }} fontWeight="700" color="gray.400">End: </Box>
+                          {fmtTime(t.end_time)}
+                        </Text>
                       </Box>
                       <Box flex="1.2">
                         {isCompletedTask(t) ? (
@@ -2795,7 +2905,13 @@ export default function DailyActivityReport() {
                           <StatusBadge status={t.status} />
                         )}
                       </Box>
-                      <Box flex="0.8">
+                      <Box
+                        flex="0.8"
+                        pt={{ base: 2, md: 0 }}
+                        mt={{ base: 1, md: 0 }}
+                        borderTop={{ base: "1px solid", md: "none" }}
+                        borderColor="gray.100"
+                      >
                         {t.suguan_id ? (
                           <HStack spacing={1} justify="flex-end">
                             <Tooltip label="Edit time">
@@ -2992,7 +3108,7 @@ export default function DailyActivityReport() {
                   const log = logs.find(l => l.task_id === t.task_id);
                   return (
                     <Box key={t.task_id} {...pillRow} borderLeft={`4px solid ${catColor(t.category_id)}`}>
-                      <Flex gap={3} align="center">
+                      <Flex direction={{ base: "column", md: "row" }} align={{ base: "stretch", md: "center" }} gap={{ base: 1.5, md: 3 }}>
                         <Box flex="1.2">
                           <HStack spacing={1.5}>
                             <Box w="8px" h="8px" borderRadius="full" bg={catColor(t.category_id)} />
@@ -3000,17 +3116,21 @@ export default function DailyActivityReport() {
                           </HStack>
                         </Box>
                         <Box flex="2">
-                          <Text fontWeight="900" fontSize="sm" color={catColor(t.category_id)} noOfLines={1}>{t.title}</Text>
+                          <Text fontWeight="900" fontSize="sm" color={catColor(t.category_id)} noOfLines={{ base: 2, md: 1 }}>{t.title}</Text>
                         </Box>
                         <Box flex="2">
                           <Text fontSize="xs" color="gray.400" noOfLines={2}>{t.description || "—"}</Text>
                         </Box>
                         <Box flex="1.2">
-                          <Text fontSize="xs" color="gray.500" whiteSpace="nowrap">{fmtDate(t.task_date)}</Text>
+                          <Text fontSize="xs" color="gray.500" whiteSpace="nowrap">
+                            <Box as="span" display={{ base: "inline", md: "none" }} fontWeight="700" color="gray.400">Date: </Box>
+                            {fmtDate(t.task_date)}
+                          </Text>
                         </Box>
                         <Box flex="1.2">
                           <HStack spacing={1}>
                             <FiClock size={11} color={T.amber} />
+                            <Box as="span" display={{ base: "inline", md: "none" }} fontSize="xs" fontWeight="700" color="gray.400">Completed: </Box>
                             <Text fontSize="xs" color="gray.600" fontWeight="600">{log?.completed_time || "—"}</Text>
                           </HStack>
                         </Box>
@@ -3024,7 +3144,13 @@ export default function DailyActivityReport() {
                             <Text fontSize="xs" color="gray.300">—</Text>
                           )}
                         </Box>
-                        <Box flex="1">
+                        <Box
+                          flex="1"
+                          pt={{ base: 2, md: 0 }}
+                          mt={{ base: 1, md: 0 }}
+                          borderTop={{ base: "1px solid", md: "none" }}
+                          borderColor="gray.100"
+                        >
                           <Button size="xs" bg={T.amber} color="white" borderRadius="full"
                             fontWeight="900" fontSize="10px" _hover={{ bg: "#D97706" }}
                             onClick={() => { setLogTask({ ...t, logs: logs.filter(l => l.task_id === t.task_id) }); logModal.onOpen(); }}>
@@ -3053,11 +3179,12 @@ export default function DailyActivityReport() {
                 signatureDataUrl={signatureDataUrl}
               />
 
-              <Flex justify="center" mt={6} gap={3} flexWrap="wrap">
+              <Flex direction={{ base: "column", sm: "row" }} justify="center" mt={6} gap={3}>
                 <Button
                   leftIcon={<FiPrinter />}
                   bg={T.emerald} color="white" size="lg"
                   borderRadius="2xl" fontWeight="900" px={12}
+                  w={{ base: "full", sm: "auto" }}
                   boxShadow={`0 8px 25px ${T.emerald}55`}
                   _hover={{ transform: "translateY(-3px)", boxShadow: `0 12px 30px ${T.emerald}77` }}
                   _active={{ transform: "translateY(0)" }}
@@ -3069,6 +3196,7 @@ export default function DailyActivityReport() {
                   leftIcon={<FiPrinter />}
                   bg={T.corpBlue} color="white" size="lg"
                   borderRadius="2xl" fontWeight="900" px={12}
+                  w={{ base: "full", sm: "auto" }}
                   boxShadow={`0 8px 25px ${T.corpBlue}44`}
                   _hover={{ transform: "translateY(-3px)", boxShadow: `0 12px 30px ${T.corpBlue}66` }}
                   _active={{ transform: "translateY(0)" }}
@@ -3297,7 +3425,7 @@ export default function DailyActivityReport() {
                   <span>Blg. ng tawag pansin na tinanggap</span>
                   <span className="r510a-entry-line">0</span>
                   <span>Blg. ng lokal na dinalaw/siniyasat</span>
-                  <span className="r510a-entry-line">{r510aData.office.count}</span>
+                  <span className="r510a-entry-line">{r510aData.office.localsVisitedCount}</span>
                 </div>
               </td>
               <td className="r510a-center-cell">{r510aData.office.dayCount}</td>

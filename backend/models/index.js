@@ -82,6 +82,13 @@ sequelize
       console.error("❌ Users WebDAV URL migration failed:", migErr);
     }
     try {
+      const migrateUsersSignature = require("../scripts/migrate_users_signature");
+      await migrateUsersSignature(false);
+      console.log("✅ Users signature migration completed successfully.");
+    } catch (migErr) {
+      console.error("❌ Users signature migration failed:", migErr);
+    }
+    try {
       const migrateLdapUsersRemovePassword = require("../scripts/migrate_ldap_users_remove_password");
       await migrateLdapUsersRemovePassword(false);
       console.log("✅ LDAP_Users password column migration completed successfully.");
